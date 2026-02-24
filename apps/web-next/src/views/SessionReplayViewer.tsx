@@ -365,7 +365,7 @@ function getEventBadgeClass(type: EventType): string {
   if (type === "navigation") {return "bg-emerald-500/20 text-emerald-400";}
   if (type === "error") {return "bg-rose-500/20 text-rose-400";}
   if (type === "rage_click") {return "bg-amber-400/20 text-amber-400";}
-  return "bg-zinc-700 text-zinc-400";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 
 function getEventDotClass(type: EventType): string {
@@ -373,7 +373,7 @@ function getEventDotClass(type: EventType): string {
   if (type === "navigation") {return "bg-emerald-500";}
   if (type === "error") {return "bg-rose-500";}
   if (type === "rage_click") {return "bg-amber-400";}
-  return "bg-zinc-500";
+  return "bg-[var(--color-surface-3)]";
 }
 
 function getEventLabel(type: EventType): string {
@@ -414,10 +414,10 @@ function SessionsTab(): React.ReactElement {
   return (
     <div className="flex gap-4">
       {/* Session List */}
-      <div className="w-72 flex-shrink-0 bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-zinc-800">
-          <h3 className="text-white font-semibold text-sm">Recorded Sessions</h3>
-          <p className="text-zinc-500 text-xs mt-0.5">8 sessions · last 24h</p>
+      <div className="w-72 flex-shrink-0 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-[var(--color-border)]">
+          <h3 className="text-[var(--color-text-primary)] font-semibold text-sm">Recorded Sessions</h3>
+          <p className="text-[var(--color-text-muted)] text-xs mt-0.5">8 sessions · last 24h</p>
         </div>
         <div className="overflow-y-auto flex-1">
           {SESSIONS.map((session) => (
@@ -429,21 +429,21 @@ function SessionsTab(): React.ReactElement {
                 setIsPlaying(false);
               }}
               className={cn(
-                "w-full text-left p-3 border-b border-zinc-800 transition-colors",
+                "w-full text-left p-3 border-b border-[var(--color-border)] transition-colors",
                 selectedId === session.id
                   ? "bg-indigo-500/10 border-l-2 border-l-indigo-500"
-                  : "hover:bg-zinc-800"
+                  : "hover:bg-[var(--color-surface-2)]"
               )}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-white text-sm font-medium truncate pr-2">
+                <span className="text-[var(--color-text-primary)] text-sm font-medium truncate pr-2">
                   {session.user}
                 </span>
-                <span className="text-zinc-500 text-xs flex-shrink-0">
+                <span className="text-[var(--color-text-muted)] text-xs flex-shrink-0">
                   {formatDuration(session.duration)}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-1.5">
+              <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] mb-1.5">
                 <span>{session.browser}</span>
                 <span>·</span>
                 <span>{session.device}</span>
@@ -461,7 +461,7 @@ function SessionsTab(): React.ReactElement {
                     {session.errors} err
                   </span>
                 )}
-                <span className="text-zinc-600 text-xs">{session.pageCount}pg</span>
+                <span className="text-[var(--color-text-muted)] text-xs">{session.pageCount}pg</span>
               </div>
             </button>
           ))}
@@ -471,18 +471,18 @@ function SessionsTab(): React.ReactElement {
       {/* Session Detail */}
       <div className="flex-1 flex flex-col gap-4 min-w-0">
         {/* Replay Player */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h3 className="text-white font-semibold">{selected.user}</h3>
-              <p className="text-zinc-500 text-xs">
+              <h3 className="text-[var(--color-text-primary)] font-semibold">{selected.user}</h3>
+              <p className="text-[var(--color-text-muted)] text-xs">
                 {selected.startTime} · {selected.url}
               </p>
             </div>
             <select
               value={speed}
               onChange={(e) => setSpeed(Number(e.target.value))}
-              className="bg-zinc-800 text-zinc-400 text-xs rounded-lg px-2 py-1.5 border border-zinc-700 focus:outline-none"
+              className="bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] text-xs rounded-lg px-2 py-1.5 border border-[var(--color-border)] focus:outline-none"
             >
               <option value={0.5}>0.5x</option>
               <option value={1}>1x</option>
@@ -492,26 +492,26 @@ function SessionsTab(): React.ReactElement {
           </div>
 
           {/* Mock Viewport */}
-          <div className="bg-zinc-950 rounded-lg h-36 mb-3 border border-zinc-800 relative overflow-hidden flex items-center justify-center">
+          <div className="bg-[var(--color-surface-0)] rounded-lg h-36 mb-3 border border-[var(--color-border)] relative overflow-hidden flex items-center justify-center">
             <div className="absolute inset-0 opacity-20 pointer-events-none">
-              <div className="h-7 bg-zinc-700 flex items-center px-2 gap-1.5 border-b border-zinc-600">
+              <div className="h-7 bg-[var(--color-surface-3)] flex items-center px-2 gap-1.5 border-b border-[var(--color-surface-3)]">
                 <div className="w-2 h-2 rounded-full bg-rose-400"></div>
                 <div className="w-2 h-2 rounded-full bg-amber-400"></div>
                 <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                <div className="flex-1 mx-3 bg-zinc-600 rounded h-3.5"></div>
+                <div className="flex-1 mx-3 bg-[var(--color-surface-3)] rounded h-3.5"></div>
               </div>
               <div className="p-3 grid grid-cols-3 gap-2">
-                <div className="h-5 bg-zinc-700 rounded col-span-3"></div>
-                <div className="h-10 bg-zinc-700 rounded"></div>
-                <div className="h-10 bg-zinc-700 rounded"></div>
-                <div className="h-10 bg-zinc-700 rounded"></div>
-                <div className="h-5 bg-zinc-700 rounded col-span-2"></div>
-                <div className="h-5 bg-zinc-700 rounded"></div>
+                <div className="h-5 bg-[var(--color-surface-3)] rounded col-span-3"></div>
+                <div className="h-10 bg-[var(--color-surface-3)] rounded"></div>
+                <div className="h-10 bg-[var(--color-surface-3)] rounded"></div>
+                <div className="h-10 bg-[var(--color-surface-3)] rounded"></div>
+                <div className="h-5 bg-[var(--color-surface-3)] rounded col-span-2"></div>
+                <div className="h-5 bg-[var(--color-surface-3)] rounded"></div>
               </div>
             </div>
             <div className="relative z-10 text-center">
-              <p className="text-zinc-400 text-sm font-medium">Session Recording</p>
-              <p className="text-zinc-600 text-xs mt-0.5">{selected.url}</p>
+              <p className="text-[var(--color-text-secondary)] text-sm font-medium">Session Recording</p>
+              <p className="text-[var(--color-text-muted)] text-xs mt-0.5">{selected.url}</p>
               <p className="text-indigo-400 text-xs mt-1 font-mono">
                 {formatTimestamp(playbackTime)} / {formatTimestamp(selected.duration)}
               </p>
@@ -520,7 +520,7 @@ function SessionsTab(): React.ReactElement {
 
           {/* Scrubber */}
           <div
-            className="relative h-3 bg-zinc-800 rounded-full mb-3 cursor-pointer"
+            className="relative h-3 bg-[var(--color-surface-2)] rounded-full mb-3 cursor-pointer"
             onClick={handleScrubClick}
           >
             <div
@@ -531,14 +531,14 @@ function SessionsTab(): React.ReactElement {
               <div
                 key={ev.time}
                 className={cn(
-                  "absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border border-zinc-900 pointer-events-none",
+                  "absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border border-[var(--color-border)] pointer-events-none",
                   getEventDotClass(ev.type)
                 )}
                 style={{ left: `${(ev.time / selected.duration) * 100}%` }}
               ></div>
             ))}
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow pointer-events-none border border-zinc-300"
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow pointer-events-none border border-[var(--color-border)]"
               style={{ left: `calc(${scrubPercent}% - 6px)` }}
             ></div>
           </div>
@@ -547,23 +547,23 @@ function SessionsTab(): React.ReactElement {
           <div className="flex items-center gap-2">
             <button
               onClick={stepBack}
-              className="text-zinc-400 hover:text-white text-xs px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+              className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-xs px-2.5 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg transition-colors"
             >
               ‹‹ 10s
             </button>
             <button
               onClick={() => setIsPlaying((p) => !p)}
-              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-1.5 rounded-lg transition-colors font-medium"
+              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-4 py-1.5 rounded-lg transition-colors font-medium"
             >
               {isPlaying ? "⏸ Pause" : "▶ Play"}
             </button>
             <button
               onClick={stepForward}
-              className="text-zinc-400 hover:text-white text-xs px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+              className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-xs px-2.5 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg transition-colors"
             >
               10s ››
             </button>
-            <span className="text-zinc-600 text-xs ml-auto">
+            <span className="text-[var(--color-text-muted)] text-xs ml-auto">
               {speed}x speed
             </span>
           </div>
@@ -572,8 +572,8 @@ function SessionsTab(): React.ReactElement {
         {/* Bottom: Events + Metadata */}
         <div className="flex gap-4">
           {/* Event Timeline */}
-          <div className="flex-1 bg-zinc-900 rounded-xl border border-zinc-800 p-4 overflow-y-auto max-h-64">
-            <h4 className="text-white font-semibold text-sm mb-3">Event Timeline</h4>
+          <div className="flex-1 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4 overflow-y-auto max-h-64">
+            <h4 className="text-[var(--color-text-primary)] font-semibold text-sm mb-3">Event Timeline</h4>
             <div className="space-y-1.5">
               {SESSION_EVENTS.map((ev, idx) => (
                 <button
@@ -582,11 +582,11 @@ function SessionsTab(): React.ReactElement {
                   className={cn(
                     "w-full flex items-start gap-2.5 p-2 rounded-lg text-left transition-colors",
                     playbackTime >= ev.time
-                      ? "bg-zinc-800/60 hover:bg-zinc-800"
+                      ? "bg-[var(--color-surface-2)]/60 hover:bg-[var(--color-surface-2)]"
                       : "opacity-40 hover:opacity-60"
                   )}
                 >
-                  <span className="text-zinc-600 text-xs w-8 flex-shrink-0 font-mono mt-0.5">
+                  <span className="text-[var(--color-text-muted)] text-xs w-8 flex-shrink-0 font-mono mt-0.5">
                     {formatTimestamp(ev.time)}
                   </span>
                   <span
@@ -597,7 +597,7 @@ function SessionsTab(): React.ReactElement {
                   >
                     {getEventLabel(ev.type)}
                   </span>
-                  <span className="text-zinc-400 text-xs leading-relaxed">
+                  <span className="text-[var(--color-text-secondary)] text-xs leading-relaxed">
                     {ev.label}
                   </span>
                 </button>
@@ -606,8 +606,8 @@ function SessionsTab(): React.ReactElement {
           </div>
 
           {/* Metadata */}
-          <div className="w-44 flex-shrink-0 bg-zinc-900 rounded-xl border border-zinc-800 p-4">
-            <h4 className="text-white font-semibold text-sm mb-3">Metadata</h4>
+          <div className="w-44 flex-shrink-0 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
+            <h4 className="text-[var(--color-text-primary)] font-semibold text-sm mb-3">Metadata</h4>
             <div className="space-y-3">
               {[
                 { label: "Browser", value: selected.browser },
@@ -620,8 +620,8 @@ function SessionsTab(): React.ReactElement {
                 { label: "Email", value: selected.email },
               ].map(({ label, value }) => (
                 <div key={label}>
-                  <div className="text-zinc-500 text-xs">{label}</div>
-                  <div className="text-zinc-300 text-xs font-medium truncate mt-0.5">
+                  <div className="text-[var(--color-text-muted)] text-xs">{label}</div>
+                  <div className="text-[var(--color-text-primary)] text-xs font-medium truncate mt-0.5">
                     {value}
                   </div>
                 </div>
@@ -646,11 +646,11 @@ function HeatmapsTab(): React.ReactElement {
   return (
     <div className="space-y-4">
       {/* Header + Page Selector */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+      <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-white font-semibold">Click Heatmap</h3>
-            <p className="text-zinc-500 text-xs mt-0.5">
+            <h3 className="text-[var(--color-text-primary)] font-semibold">Click Heatmap</h3>
+            <p className="text-[var(--color-text-muted)] text-xs mt-0.5">
               Aggregated click density across {HEATMAP_PAGES.length} pages
             </p>
           </div>
@@ -662,8 +662,8 @@ function HeatmapsTab(): React.ReactElement {
                 className={cn(
                   "text-xs px-3 py-1.5 rounded-lg transition-colors font-mono",
                   selectedPage === page
-                    ? "bg-indigo-600 text-white"
-                    : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
                 )}
               >
                 {page}
@@ -673,12 +673,12 @@ function HeatmapsTab(): React.ReactElement {
         </div>
 
         {/* Browser Chrome + Grid */}
-        <div className="bg-zinc-950 rounded-lg border border-zinc-800 overflow-hidden">
-          <div className="h-7 bg-zinc-800 flex items-center px-3 gap-1.5 border-b border-zinc-700">
+        <div className="bg-[var(--color-surface-0)] rounded-lg border border-[var(--color-border)] overflow-hidden">
+          <div className="h-7 bg-[var(--color-surface-2)] flex items-center px-3 gap-1.5 border-b border-[var(--color-border)]">
             <div className="w-2.5 h-2.5 rounded-full bg-rose-500 opacity-70"></div>
             <div className="w-2.5 h-2.5 rounded-full bg-amber-500 opacity-70"></div>
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 opacity-70"></div>
-            <div className="flex-1 mx-3 bg-zinc-700 rounded h-4 text-zinc-500 text-xs flex items-center px-2">
+            <div className="flex-1 mx-3 bg-[var(--color-surface-3)] rounded h-4 text-[var(--color-text-muted)] text-xs flex items-center px-2">
               {selectedPage}
             </div>
           </div>
@@ -701,7 +701,7 @@ function HeatmapsTab(): React.ReactElement {
 
         {/* Legend */}
         <div className="flex items-center justify-center gap-2 mt-3">
-          <span className="text-zinc-600 text-xs">Low clicks</span>
+          <span className="text-[var(--color-text-muted)] text-xs">Low clicks</span>
           <div className="flex gap-0.5">
             {["bg-blue-300", "bg-yellow-300", "bg-amber-400", "bg-orange-500", "bg-rose-500"].map(
               (c, i) => (
@@ -709,17 +709,17 @@ function HeatmapsTab(): React.ReactElement {
               )
             )}
           </div>
-          <span className="text-zinc-600 text-xs">High clicks</span>
+          <span className="text-[var(--color-text-muted)] text-xs">High clicks</span>
         </div>
       </div>
 
       {/* Zone Table + Top Elements */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
-          <h4 className="text-white font-semibold text-sm mb-3">Clicks by Zone</h4>
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
+          <h4 className="text-[var(--color-text-primary)] font-semibold text-sm mb-3">Clicks by Zone</h4>
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-zinc-500 border-b border-zinc-800">
+              <tr className="text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
                 <th className="text-left pb-2 font-medium">Zone</th>
                 <th className="text-right pb-2 font-medium">Clicks</th>
                 <th className="text-right pb-2 font-medium">Share</th>
@@ -729,20 +729,20 @@ function HeatmapsTab(): React.ReactElement {
               {HEATMAP_ZONES.map((zone) => {
                 const share = ((zone.clicks / totalZoneClicks) * 100).toFixed(1);
                 return (
-                  <tr key={zone.zone} className="border-b border-zinc-800/40">
-                    <td className="py-2 text-zinc-300">{zone.zone}</td>
-                    <td className="py-2 text-right text-zinc-400">
+                  <tr key={zone.zone} className="border-b border-[var(--color-border)]/40">
+                    <td className="py-2 text-[var(--color-text-primary)]">{zone.zone}</td>
+                    <td className="py-2 text-right text-[var(--color-text-secondary)]">
                       {zone.clicks.toLocaleString()}
                     </td>
                     <td className="py-2 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <div className="w-10 bg-zinc-800 rounded-full h-1.5">
+                        <div className="w-10 bg-[var(--color-surface-2)] rounded-full h-1.5">
                           <div
                             className="bg-indigo-500 h-1.5 rounded-full"
                             style={{ width: share + "%" }}
                           ></div>
                         </div>
-                        <span className="text-zinc-400 w-8 text-right">{share}%</span>
+                        <span className="text-[var(--color-text-secondary)] w-8 text-right">{share}%</span>
                       </div>
                     </td>
                   </tr>
@@ -752,28 +752,28 @@ function HeatmapsTab(): React.ReactElement {
           </table>
         </div>
 
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
-          <h4 className="text-white font-semibold text-sm mb-3">Top Clicked Elements</h4>
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
+          <h4 className="text-[var(--color-text-primary)] font-semibold text-sm mb-3">Top Clicked Elements</h4>
           <div className="space-y-4">
             {TOP_ELEMENTS.map((el, i) => (
               <div key={el.selector}>
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-zinc-600 text-xs flex-shrink-0">{i + 1}.</span>
+                    <span className="text-[var(--color-text-muted)] text-xs flex-shrink-0">{i + 1}.</span>
                     <code className="text-indigo-400 text-xs truncate">{el.selector}</code>
                   </div>
-                  <span className="text-zinc-400 text-xs flex-shrink-0 ml-2">
+                  <span className="text-[var(--color-text-secondary)] text-xs flex-shrink-0 ml-2">
                     {el.clicks.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-zinc-800 rounded-full h-1.5">
+                  <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-1.5">
                     <div
                       className="bg-indigo-500 h-1.5 rounded-full"
                       style={{ width: el.percentage + "%" }}
                     ></div>
                   </div>
-                  <span className="text-zinc-500 text-xs w-9 text-right">
+                  <span className="text-[var(--color-text-muted)] text-xs w-9 text-right">
                     {el.percentage}%
                   </span>
                 </div>
@@ -805,7 +805,7 @@ function FunnelsTab(): React.ReactElement {
     <div className="space-y-4">
       {/* Funnel Selector */}
       <div className="flex items-center gap-2">
-        <span className="text-zinc-500 text-sm">Funnel:</span>
+        <span className="text-[var(--color-text-muted)] text-sm">Funnel:</span>
         {FUNNELS.map((f, i) => (
           <button
             key={f.name}
@@ -813,8 +813,8 @@ function FunnelsTab(): React.ReactElement {
             className={cn(
               "text-sm px-4 py-1.5 rounded-lg transition-colors font-medium",
               selectedFunnel === i
-                ? "bg-indigo-600 text-white"
-                : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
             )}
           >
             {f.name}
@@ -824,8 +824,8 @@ function FunnelsTab(): React.ReactElement {
 
       <div className="grid grid-cols-3 gap-4">
         {/* Main Funnel Chart */}
-        <div className="col-span-2 bg-zinc-900 rounded-xl border border-zinc-800 p-6">
-          <h3 className="text-white font-semibold mb-5">{funnel.name}</h3>
+        <div className="col-span-2 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-6">
+          <h3 className="text-[var(--color-text-primary)] font-semibold mb-5">{funnel.name}</h3>
           <div className="space-y-4">
             {funnel.steps.map((step, i) => {
               const barWidth = (step.users / maxUsers) * 100;
@@ -833,7 +833,7 @@ function FunnelsTab(): React.ReactElement {
               return (
                 <div key={step.name}>
                   <div className="flex items-center gap-3 mb-1">
-                    <span className="text-zinc-500 text-xs w-28 text-right flex-shrink-0">
+                    <span className="text-[var(--color-text-muted)] text-xs w-28 text-right flex-shrink-0">
                       {step.name}
                     </span>
                     <div className="flex-1">
@@ -844,12 +844,12 @@ function FunnelsTab(): React.ReactElement {
                         )}
                         style={{ width: barWidth + "%" }}
                       >
-                        <span className="text-white text-xs font-semibold whitespace-nowrap">
+                        <span className="text-[var(--color-text-primary)] text-xs font-semibold whitespace-nowrap">
                           {step.users.toLocaleString()}
                         </span>
                       </div>
                     </div>
-                    <span className="text-zinc-500 text-xs w-10 text-right flex-shrink-0">
+                    <span className="text-[var(--color-text-muted)] text-xs w-10 text-right flex-shrink-0">
                       {((step.users / maxUsers) * 100).toFixed(0)}%
                     </span>
                   </div>
@@ -858,7 +858,7 @@ function FunnelsTab(): React.ReactElement {
                       <div className="w-28 flex-shrink-0"></div>
                       <p className="text-rose-400 text-xs ml-3">
                         ↓ {step.dropoff}% drop-off
-                        <span className="text-zinc-600 ml-1">
+                        <span className="text-[var(--color-text-muted)] ml-1">
                           ({(maxUsers - step.users).toLocaleString()} users lost)
                         </span>
                       </p>
@@ -870,37 +870,37 @@ function FunnelsTab(): React.ReactElement {
           </div>
 
           {/* Summary */}
-          <div className="mt-6 pt-4 border-t border-zinc-800 flex items-center gap-8">
+          <div className="mt-6 pt-4 border-t border-[var(--color-border)] flex items-center gap-8">
             <div>
-              <div className="text-zinc-500 text-xs mb-1">Overall Conversion</div>
-              <div className="text-white text-3xl font-bold">{overallConversion}%</div>
+              <div className="text-[var(--color-text-muted)] text-xs mb-1">Overall Conversion</div>
+              <div className="text-[var(--color-text-primary)] text-3xl font-bold">{overallConversion}%</div>
             </div>
             <div>
-              <div className="text-zinc-500 text-xs mb-1">Total Users Lost</div>
+              <div className="text-[var(--color-text-muted)] text-xs mb-1">Total Users Lost</div>
               <div className="text-rose-400 text-3xl font-bold">
                 {totalLost.toLocaleString()}
               </div>
             </div>
             <div>
-              <div className="text-zinc-500 text-xs mb-1">Steps</div>
-              <div className="text-white text-3xl font-bold">{funnel.steps.length}</div>
+              <div className="text-[var(--color-text-muted)] text-xs mb-1">Steps</div>
+              <div className="text-[var(--color-text-primary)] text-3xl font-bold">{funnel.steps.length}</div>
             </div>
           </div>
         </div>
 
         {/* Mobile vs Desktop */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
-          <h4 className="text-white font-semibold text-sm mb-4">
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
+          <h4 className="text-[var(--color-text-primary)] font-semibold text-sm mb-4">
             Mobile vs Desktop
           </h4>
           <div className="flex items-center gap-3 mb-4">
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-2 bg-amber-400 rounded-sm"></div>
-              <span className="text-zinc-400 text-xs">Mobile</span>
+              <span className="text-[var(--color-text-secondary)] text-xs">Mobile</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-2 bg-indigo-500 rounded-sm"></div>
-              <span className="text-zinc-400 text-xs">Desktop</span>
+              <span className="text-[var(--color-text-secondary)] text-xs">Desktop</span>
             </div>
           </div>
           <div className="space-y-5">
@@ -909,29 +909,29 @@ function FunnelsTab(): React.ReactElement {
               const desktop = DESKTOP_FUNNEL[i] ?? 0;
               return (
                 <div key={step.name}>
-                  <div className="text-zinc-500 text-xs mb-1.5">{step.name}</div>
+                  <div className="text-[var(--color-text-muted)] text-xs mb-1.5">{step.name}</div>
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-zinc-600 text-xs w-12">Mobile</span>
-                      <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                      <span className="text-[var(--color-text-muted)] text-xs w-12">Mobile</span>
+                      <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                         <div
                           className="bg-amber-400 h-2 rounded-full"
                           style={{ width: mobile + "%" }}
                         ></div>
                       </div>
-                      <span className="text-zinc-400 text-xs w-7 text-right">
+                      <span className="text-[var(--color-text-secondary)] text-xs w-7 text-right">
                         {mobile}%
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-zinc-600 text-xs w-12">Desktop</span>
-                      <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                      <span className="text-[var(--color-text-muted)] text-xs w-12">Desktop</span>
+                      <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                         <div
                           className="bg-indigo-500 h-2 rounded-full"
                           style={{ width: desktop + "%" }}
                         ></div>
                       </div>
-                      <span className="text-zinc-400 text-xs w-7 text-right">
+                      <span className="text-[var(--color-text-secondary)] text-xs w-7 text-right">
                         {desktop}%
                       </span>
                     </div>
@@ -944,14 +944,14 @@ function FunnelsTab(): React.ReactElement {
       </div>
 
       {/* Conversion Rate Trend */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+      <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-white font-semibold text-sm">
+          <h4 className="text-[var(--color-text-primary)] font-semibold text-sm">
             Conversion Rate Trend — Last 6 Months
           </h4>
           <div className="flex items-center gap-1.5">
             <span className="text-emerald-400 text-xs font-semibold">↑ 41%</span>
-            <span className="text-zinc-500 text-xs">improvement</span>
+            <span className="text-[var(--color-text-muted)] text-xs">improvement</span>
           </div>
         </div>
         <div className="flex items-end gap-3" style={{ height: "120px" }}>
@@ -959,14 +959,14 @@ function FunnelsTab(): React.ReactElement {
             const barH = (point.rate / maxTrendRate) * 90;
             return (
               <div key={point.month} className="flex-1 flex flex-col items-center gap-1">
-                <span className="text-zinc-400 text-xs">{point.rate}%</span>
+                <span className="text-[var(--color-text-secondary)] text-xs">{point.rate}%</span>
                 <div className="w-full flex items-end" style={{ height: "80px" }}>
                   <div
                     className="w-full bg-indigo-500 hover:bg-indigo-400 rounded-t-md transition-colors"
                     style={{ height: barH + "px" }}
                   ></div>
                 </div>
-                <span className="text-zinc-500 text-xs">{point.month}</span>
+                <span className="text-[var(--color-text-muted)] text-xs">{point.month}</span>
               </div>
             );
           })}
@@ -1024,9 +1024,9 @@ function InsightsTab(): React.ReactElement {
             (m.trend === "down" && m.isGoodWhenDown) ||
             (m.trend === "up" && !m.isGoodWhenDown);
           return (
-            <div key={m.label} className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
-              <div className="text-zinc-500 text-xs mb-2">{m.label}</div>
-              <div className="text-white text-2xl font-bold mb-1">{m.value}</div>
+            <div key={m.label} className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
+              <div className="text-[var(--color-text-muted)] text-xs mb-2">{m.label}</div>
+              <div className="text-[var(--color-text-primary)] text-2xl font-bold mb-1">{m.value}</div>
               <div
                 className={cn(
                   "text-xs font-medium",
@@ -1043,13 +1043,13 @@ function InsightsTab(): React.ReactElement {
       {/* Satisfaction + Exit Pages */}
       <div className="grid grid-cols-2 gap-4">
         {/* User Satisfaction */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
-          <h4 className="text-white font-semibold text-sm mb-1">
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5">
+          <h4 className="text-[var(--color-text-primary)] font-semibold text-sm mb-1">
             User Satisfaction Score
           </h4>
           <div className="flex items-baseline gap-2 mb-5">
-            <span className="text-5xl font-bold text-white">67</span>
-            <span className="text-zinc-500 text-sm">/ 100 NPS</span>
+            <span className="text-5xl font-bold text-[var(--color-text-primary)]">67</span>
+            <span className="text-[var(--color-text-muted)] text-sm">/ 100 NPS</span>
             <span className="text-emerald-400 text-xs font-medium ml-auto">
               ↑ 4 pts this month
             </span>
@@ -1060,10 +1060,10 @@ function InsightsTab(): React.ReactElement {
               return (
                 <div key={item.label}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-zinc-400 text-xs">{item.label}</span>
-                    <span className="text-zinc-500 text-xs">{item.value}%</span>
+                    <span className="text-[var(--color-text-secondary)] text-xs">{item.label}</span>
+                    <span className="text-[var(--color-text-muted)] text-xs">{item.value}%</span>
                   </div>
-                  <div className="w-full bg-zinc-800 rounded-full h-2">
+                  <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
                     <div
                       className={cn("h-2 rounded-full transition-all", item.color)}
                       style={{ width: pct.toFixed(1) + "%" }}
@@ -1076,15 +1076,15 @@ function InsightsTab(): React.ReactElement {
         </div>
 
         {/* Top Exit Pages */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
-          <h4 className="text-white font-semibold text-sm mb-4">Top Exit Pages</h4>
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5">
+          <h4 className="text-[var(--color-text-primary)] font-semibold text-sm mb-4">Top Exit Pages</h4>
           <div className="space-y-4">
             {TOP_EXIT_PAGES.map((page, i) => (
               <div key={page.page}>
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-zinc-600 text-xs flex-shrink-0">{i + 1}</span>
-                    <span className="text-zinc-300 text-xs font-mono truncate">
+                    <span className="text-[var(--color-text-muted)] text-xs flex-shrink-0">{i + 1}</span>
+                    <span className="text-[var(--color-text-primary)] text-xs font-mono truncate">
                       {page.page}
                     </span>
                   </div>
@@ -1092,17 +1092,17 @@ function InsightsTab(): React.ReactElement {
                     <span className="text-rose-400 text-xs font-semibold">
                       {page.rate}%
                     </span>
-                    <span className="text-zinc-600 text-xs">exit</span>
+                    <span className="text-[var(--color-text-muted)] text-xs">exit</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-zinc-800 rounded-full h-1.5">
+                  <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-1.5">
                     <div
                       className="bg-rose-500 h-1.5 rounded-full"
                       style={{ width: page.rate + "%" }}
                     ></div>
                   </div>
-                  <span className="text-zinc-600 text-xs w-14 text-right">
+                  <span className="text-[var(--color-text-muted)] text-xs w-14 text-right">
                     {page.exits.toLocaleString()}
                   </span>
                 </div>
@@ -1114,9 +1114,9 @@ function InsightsTab(): React.ReactElement {
 
       {/* Rage Clicks + Dead Clicks */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-white font-semibold text-sm">Rage Click Hotspots</h4>
+            <h4 className="text-[var(--color-text-primary)] font-semibold text-sm">Rage Click Hotspots</h4>
             <span className="text-amber-400 text-xs bg-amber-400/10 px-2 py-0.5 rounded-full">
               679 total
             </span>
@@ -1125,10 +1125,10 @@ function InsightsTab(): React.ReactElement {
             {RAGE_HOTSPOTS.map((item) => (
               <div key={item.element} className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="text-zinc-300 text-xs font-mono truncate">
+                  <div className="text-[var(--color-text-primary)] text-xs font-mono truncate">
                     {item.element}
                   </div>
-                  <div className="text-zinc-600 text-xs mt-0.5">
+                  <div className="text-[var(--color-text-muted)] text-xs mt-0.5">
                     {item.sessions} sessions affected
                   </div>
                 </div>
@@ -1140,10 +1140,10 @@ function InsightsTab(): React.ReactElement {
           </div>
         </div>
 
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-white font-semibold text-sm">Dead Click Analysis</h4>
-            <span className="text-zinc-400 text-xs bg-zinc-800 px-2 py-0.5 rounded-full">
+            <h4 className="text-[var(--color-text-primary)] font-semibold text-sm">Dead Click Analysis</h4>
+            <span className="text-[var(--color-text-secondary)] text-xs bg-[var(--color-surface-2)] px-2 py-0.5 rounded-full">
               1,543 total
             </span>
           </div>
@@ -1151,12 +1151,12 @@ function InsightsTab(): React.ReactElement {
             {DEAD_CLICKS.map((item) => (
               <div key={item.element} className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="text-zinc-300 text-xs font-mono truncate">
+                  <div className="text-[var(--color-text-primary)] text-xs font-mono truncate">
                     {item.element}
                   </div>
-                  <div className="text-zinc-600 text-xs mt-0.5">{item.page}</div>
+                  <div className="text-[var(--color-text-muted)] text-xs mt-0.5">{item.page}</div>
                 </div>
-                <div className="flex-shrink-0 text-zinc-400 text-sm font-bold">
+                <div className="flex-shrink-0 text-[var(--color-text-secondary)] text-sm font-bold">
                   {item.count}
                 </div>
               </div>
@@ -1182,27 +1182,27 @@ export default function SessionReplayViewer() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-6">
       {/* Page Header */}
       <div className="mb-6">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h1 className="text-white text-2xl font-bold tracking-tight">
+            <h1 className="text-[var(--color-text-primary)] text-2xl font-bold tracking-tight">
               Session Replay
             </h1>
-            <p className="text-zinc-500 text-sm mt-0.5">
+            <p className="text-[var(--color-text-muted)] text-sm mt-0.5">
               User behavior analysis and session recordings
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-zinc-900 rounded-lg px-3 py-2 border border-zinc-800">
+            <div className="flex items-center gap-2 bg-[var(--color-surface-1)] rounded-lg px-3 py-2 border border-[var(--color-border)]">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              <span className="text-zinc-400 text-sm">Live</span>
+              <span className="text-[var(--color-text-secondary)] text-sm">Live</span>
             </div>
-            <button className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm px-4 py-2 rounded-lg transition-colors border border-zinc-700">
+            <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm px-4 py-2 rounded-lg transition-colors border border-[var(--color-border)]">
               Date Range
             </button>
-            <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition-colors font-medium">
+            <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-4 py-2 rounded-lg transition-colors font-medium">
               Export Data
             </button>
           </div>
@@ -1213,18 +1213,18 @@ export default function SessionReplayViewer() {
           {summaryStats.map(({ label, value, sub }) => (
             <div
               key={label}
-              className="bg-zinc-900 rounded-xl border border-zinc-800 px-4 py-3"
+              className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] px-4 py-3"
             >
-              <div className="text-zinc-500 text-xs mb-1">{label}</div>
-              <div className="text-white text-xl font-bold">{value}</div>
-              <div className="text-zinc-600 text-xs mt-0.5">{sub}</div>
+              <div className="text-[var(--color-text-muted)] text-xs mb-1">{label}</div>
+              <div className="text-[var(--color-text-primary)] text-xl font-bold">{value}</div>
+              <div className="text-[var(--color-text-muted)] text-xs mt-0.5">{sub}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Tab Bar */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 rounded-xl border border-zinc-800 p-1 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-1 w-fit">
         {TABS.map((tab) => (
           <button
             key={tab}
@@ -1232,8 +1232,8 @@ export default function SessionReplayViewer() {
             className={cn(
               "px-6 py-2 rounded-lg text-sm font-medium transition-colors",
               activeTab === tab
-                ? "bg-indigo-600 text-white shadow"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                ? "bg-indigo-600 text-[var(--color-text-primary)] shadow"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {tab}

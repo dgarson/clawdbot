@@ -102,7 +102,7 @@ function categoryBadge(c: EventCategory) {
     credit: "bg-purple-500/10 text-purple-400",
     usage: "bg-orange-500/10 text-orange-400",
     promo: "bg-pink-500/10 text-pink-400",
-    tax: "bg-zinc-500/10 text-zinc-400",
+    tax: "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)]",
   };
   return map[c];
 }
@@ -110,11 +110,11 @@ function statusBadge(s: EventStatus) {
   if (s === "success") {return "bg-emerald-400/10 text-emerald-400";}
   if (s === "failed") {return "bg-rose-400/10 text-rose-400";}
   if (s === "pending") {return "bg-amber-400/10 text-amber-400";}
-  return "bg-zinc-600 text-zinc-400";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 function amountColor(amount: number) {
   if (amount < 0) {return "text-rose-400";}
-  if (amount === 0) {return "text-zinc-500";}
+  if (amount === 0) {return "text-[var(--color-text-muted)]";}
   return "text-emerald-400";
 }
 function formatAmount(amount: number, currency: string) {
@@ -156,50 +156,50 @@ export default function BillingAuditLog() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Billing Audit Log</h1>
-          <p className="text-zinc-400 text-sm mt-1">Immutable record of all billing events, subscription changes, and financial transactions</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Billing Audit Log</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Immutable record of all billing events, subscription changes, and financial transactions</p>
         </div>
         <div className="flex gap-2">
-          <select onChange={e => setExportFormat(e.target.value as ExportFormat)} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-300">
+          <select onChange={e => setExportFormat(e.target.value as ExportFormat)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
             <option value="csv">Export CSV</option>
             <option value="pdf">Export PDF</option>
             <option value="json">Export JSON</option>
           </select>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors">Download</button>
+          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">Download</button>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Revenue (Feb)</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Revenue (Feb)</div>
           <div className="text-2xl font-bold text-emerald-400">${totalRevenue.toLocaleString()}</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Refunds Issued</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Refunds Issued</div>
           <div className="text-2xl font-bold text-amber-400">${totalRefunds.toFixed(0)}</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Failed Payments</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Failed Payments</div>
           <div className={cn("text-2xl font-bold", failedPayments > 0 ? "text-rose-400" : "text-emerald-400")}>{failedPayments}</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Total Events</div>
-          <div className="text-2xl font-bold text-white">{EVENTS.length}</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Total Events</div>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">{EVENTS.length}</div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-zinc-800 mb-6">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200")}
+            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             {t.label}
           </button>
@@ -215,15 +215,15 @@ export default function BillingAuditLog() {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search events..."
-              className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200 placeholder-zinc-500 w-48"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] w-48"
             />
-            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value as EventCategory | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value as EventCategory | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Categories</option>
               {(["subscription", "payment", "invoice", "refund", "credit", "usage", "promo", "tax"] as EventCategory[]).map(c => (
                 <option key={c} value={c} className="capitalize">{c}</option>
               ))}
             </select>
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as EventStatus | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as EventStatus | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Status</option>
               <option value="success">Success</option>
               <option value="failed">Failed</option>
@@ -232,31 +232,31 @@ export default function BillingAuditLog() {
             </select>
           </div>
 
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-700">
+                <tr className="border-b border-[var(--color-border)]">
                   {["Timestamp", "Customer", "Event", "Amount", "Status", "Actor"].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs text-zinc-500 font-medium">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-xs text-[var(--color-text-muted)] font-medium">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {filteredEvents.map(ev => (
-                  <tr key={ev.id} className="hover:bg-zinc-800/50 transition-colors">
-                    <td className="px-4 py-3 text-xs text-zinc-400 whitespace-nowrap">{ev.timestamp}</td>
-                    <td className="px-4 py-3 text-sm text-zinc-200">{ev.customerName}</td>
+                  <tr key={ev.id} className="hover:bg-[var(--color-surface-2)]/50 transition-colors">
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{ev.timestamp}</td>
+                    <td className="px-4 py-3 text-sm text-[var(--color-text-primary)]">{ev.customerName}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", categoryBadge(ev.category))}>{ev.category}</span>
-                        <span className="text-xs text-zinc-400 truncate max-w-48">{ev.description}</span>
+                        <span className="text-xs text-[var(--color-text-secondary)] truncate max-w-48">{ev.description}</span>
                       </div>
                     </td>
                     <td className={cn("px-4 py-3 text-sm font-medium whitespace-nowrap", amountColor(ev.amount))}>{formatAmount(ev.amount, ev.currency)}</td>
                     <td className="px-4 py-3">
                       <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", statusBadge(ev.status))}>{ev.status}</span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-zinc-500">{ev.actor}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-muted)]">{ev.actor}</td>
                   </tr>
                 ))}
               </tbody>
@@ -269,22 +269,22 @@ export default function BillingAuditLog() {
       {tab === "subscriptions" && (
         <div className="space-y-3">
           {SUB_CHANGES.map(sc => (
-            <div key={sc.id} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+            <div key={sc.id} className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <div className="font-medium text-zinc-100">{sc.customerName}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">{sc.timestamp} · by {sc.actor}</div>
+                  <div className="font-medium text-[var(--color-text-primary)]">{sc.customerName}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{sc.timestamp} · by {sc.actor}</div>
                 </div>
                 <div className={cn("text-sm font-bold", sc.mrr_delta > 0 ? "text-emerald-400" : "text-rose-400")}>
                   {sc.mrr_delta > 0 ? "+" : ""}${sc.mrr_delta}/mo MRR
                 </div>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-zinc-400">{sc.fromPlan}</span>
-                <span className="text-zinc-600">→</span>
-                <span className="text-zinc-200">{sc.toPlan}</span>
+                <span className="text-[var(--color-text-secondary)]">{sc.fromPlan}</span>
+                <span className="text-[var(--color-text-muted)]">→</span>
+                <span className="text-[var(--color-text-primary)]">{sc.toPlan}</span>
               </div>
-              <div className="text-xs text-zinc-500 mt-1">Reason: {sc.reason}</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-1">Reason: {sc.reason}</div>
             </div>
           ))}
         </div>
@@ -294,29 +294,29 @@ export default function BillingAuditLog() {
       {tab === "refunds" && (
         <div className="space-y-3">
           {REFUNDS.map(ref => (
-            <div key={ref.id} className={cn("bg-zinc-900 rounded-xl p-4 border", ref.status === "pending" ? "border-amber-500/30" : "border-zinc-800")}>
+            <div key={ref.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border", ref.status === "pending" ? "border-amber-500/30" : "border-[var(--color-border)]")}>
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-zinc-100">{ref.customerName}</span>
+                    <span className="font-medium text-[var(--color-text-primary)]">{ref.customerName}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", ref.status === "approved" ? "bg-emerald-400/10 text-emerald-400" : ref.status === "pending" ? "bg-amber-400/10 text-amber-400" : "bg-rose-400/10 text-rose-400")}>{ref.status}</span>
                   </div>
-                  <div className="text-xs text-zinc-500">Invoice: {ref.invoiceId} · Requested: {ref.requestedAt}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Invoice: {ref.invoiceId} · Requested: {ref.requestedAt}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold text-rose-400">-${ref.refundAmount.toFixed(2)}</div>
-                  <div className="text-xs text-zinc-500">of ${ref.originalAmount.toFixed(2)} charged</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">of ${ref.originalAmount.toFixed(2)} charged</div>
                 </div>
               </div>
-              <div className="text-sm text-zinc-300 bg-zinc-800 rounded-lg p-3 mt-2">{ref.reason}</div>
-              <div className="mt-2 flex justify-between text-xs text-zinc-500">
+              <div className="text-sm text-[var(--color-text-primary)] bg-[var(--color-surface-2)] rounded-lg p-3 mt-2">{ref.reason}</div>
+              <div className="mt-2 flex justify-between text-xs text-[var(--color-text-muted)]">
                 {ref.reviewer && <span>Reviewed by: {ref.reviewer}</span>}
                 {ref.processedAt && <span>Processed: {ref.processedAt}</span>}
               </div>
               {ref.status === "pending" && (
                 <div className="flex gap-2 mt-3">
-                  <button className="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white transition-colors">Approve Refund</button>
-                  <button className="px-3 py-1.5 text-xs bg-rose-700 hover:bg-rose-600 rounded-lg text-white transition-colors">Deny</button>
+                  <button className="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 rounded-lg text-[var(--color-text-primary)] transition-colors">Approve Refund</button>
+                  <button className="px-3 py-1.5 text-xs bg-rose-700 hover:bg-rose-600 rounded-lg text-[var(--color-text-primary)] transition-colors">Deny</button>
                 </div>
               )}
             </div>
@@ -327,27 +327,27 @@ export default function BillingAuditLog() {
       {/* Tax Records */}
       {tab === "tax" && (
         <div>
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-700">
+                <tr className="border-b border-[var(--color-border)]">
                   {["Customer", "Period", "Jurisdiction", "Tax Type", "Amount", "Status", "Filed"].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs text-zinc-500 font-medium">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-xs text-[var(--color-text-muted)] font-medium">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {TAX_RECORDS.map(tx => (
-                  <tr key={tx.id} className="hover:bg-zinc-800/50 transition-colors">
-                    <td className="px-4 py-3 text-sm text-zinc-200">{tx.customerName}</td>
-                    <td className="px-4 py-3 text-xs text-zinc-400">{tx.period}</td>
-                    <td className="px-4 py-3 text-xs text-zinc-400">{tx.jurisdiction}</td>
-                    <td className="px-4 py-3 text-xs text-zinc-300">{tx.taxType}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-zinc-200">${tx.amount.toFixed(2)}</td>
+                  <tr key={tx.id} className="hover:bg-[var(--color-surface-2)]/50 transition-colors">
+                    <td className="px-4 py-3 text-sm text-[var(--color-text-primary)]">{tx.customerName}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{tx.period}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{tx.jurisdiction}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-primary)]">{tx.taxType}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-[var(--color-text-primary)]">${tx.amount.toFixed(2)}</td>
                     <td className="px-4 py-3">
                       <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", tx.status === "filed" ? "bg-emerald-400/10 text-emerald-400" : tx.status === "pending" ? "bg-amber-400/10 text-amber-400" : "bg-indigo-400/10 text-indigo-400")}>{tx.status}</span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-zinc-500">{tx.filedAt ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-muted)]">{tx.filedAt ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>

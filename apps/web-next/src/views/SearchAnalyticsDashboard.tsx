@@ -407,12 +407,12 @@ function MetricCard({
   accent: string;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col gap-1">
-      <span className="text-zinc-500 text-xs font-medium uppercase tracking-wide">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 flex flex-col gap-1">
+      <span className="text-[var(--color-text-muted)] text-xs font-medium uppercase tracking-wide">
         {label}
       </span>
       <span className={cn("text-3xl font-bold", accent)}>{value}</span>
-      <span className="text-zinc-400 text-sm">{sub}</span>
+      <span className="text-[var(--color-text-secondary)] text-sm">{sub}</span>
     </div>
   );
 }
@@ -441,7 +441,7 @@ function BarChart({
                 title={`${d.label}: ${d.value.toLocaleString()}`}
               />
             </div>
-            <span className="text-zinc-500 text-xs truncate w-full text-center">
+            <span className="text-[var(--color-text-muted)] text-xs truncate w-full text-center">
               {d.label}
             </span>
           </div>
@@ -477,7 +477,7 @@ function ProgressBar({
 }) {
   const pct = Math.min((value / max) * 100, 100);
   return (
-    <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+    <div className="h-2 w-full bg-[var(--color-surface-2)] rounded-full overflow-hidden">
       <div
         className={cn("h-full rounded-full", color)}
         style={{ width: `${pct}%` }}
@@ -496,10 +496,10 @@ function ScoreBar({ value }: { value: number }) {
       : "bg-rose-400";
   return (
     <div className="flex items-center gap-2">
-      <div className="h-2 flex-1 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="h-2 flex-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
         <div className={cn("h-full rounded-full", color)} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs text-zinc-300 w-10 text-right">
+      <span className="text-xs text-[var(--color-text-primary)] w-10 text-right">
         {(value * 100).toFixed(0)}%
       </span>
     </div>
@@ -529,7 +529,7 @@ function OverviewTab() {
           label="Total Searches"
           value={totalSearches.toLocaleString()}
           sub="Last 14 days"
-          accent="text-white"
+          accent="text-[var(--color-text-primary)]"
         />
         <MetricCard
           label="Avg Result Count"
@@ -552,23 +552,23 @@ function OverviewTab() {
       </div>
 
       {/* Volume chart */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-white font-semibold">Search Volume Trend</span>
-          <span className="text-zinc-500 text-sm">Daily — Feb 8–21</span>
+          <span className="text-[var(--color-text-primary)] font-semibold">Search Volume Trend</span>
+          <span className="text-[var(--color-text-muted)] text-sm">Daily — Feb 8–21</span>
         </div>
         <BarChart data={volumeData} height={160} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         {/* Top searches */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <span className="text-white font-semibold block mb-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <span className="text-[var(--color-text-primary)] font-semibold block mb-4">
             Top Searches
           </span>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-zinc-500 text-xs uppercase tracking-wide border-b border-zinc-800">
+              <tr className="text-[var(--color-text-muted)] text-xs uppercase tracking-wide border-b border-[var(--color-border)]">
                 <th className="text-left pb-2">Query</th>
                 <th className="text-right pb-2">Results</th>
                 <th className="text-right pb-2">CTR</th>
@@ -578,12 +578,12 @@ function OverviewTab() {
               {topSearches.map((q) => (
                 <tr
                   key={q.id}
-                  className="border-b border-zinc-800 last:border-0"
+                  className="border-b border-[var(--color-border)] last:border-0"
                 >
-                  <td className="py-2 text-zinc-300 truncate max-w-0 w-48">
+                  <td className="py-2 text-[var(--color-text-primary)] truncate max-w-0 w-48">
                     {q.query}
                   </td>
-                  <td className="py-2 text-right text-zinc-400">
+                  <td className="py-2 text-right text-[var(--color-text-secondary)]">
                     {q.resultCount}
                   </td>
                   <td className="py-2 text-right">
@@ -593,7 +593,7 @@ function OverviewTab() {
                         q.ctr >= 0.6
                           ? "text-emerald-400"
                           : q.ctr >= 0.45
-                          ? "text-zinc-300"
+                          ? "text-[var(--color-text-primary)]"
                           : "text-amber-400"
                       )}
                     >
@@ -607,15 +607,15 @@ function OverviewTab() {
         </div>
 
         {/* Latency distribution */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <span className="text-white font-semibold block mb-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <span className="text-[var(--color-text-primary)] font-semibold block mb-4">
             Search Latency Distribution
           </span>
           <div className="flex flex-col gap-6">
             {LATENCY_PERCENTILES.map((p) => (
               <div key={p.label} className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-zinc-400 text-sm font-medium">
+                  <span className="text-[var(--color-text-secondary)] text-sm font-medium">
                     {p.label}
                   </span>
                   <span
@@ -642,7 +642,7 @@ function OverviewTab() {
                       : "bg-rose-400"
                   }
                 />
-                <span className="text-zinc-500 text-xs">
+                <span className="text-[var(--color-text-muted)] text-xs">
                   {p.label === "p50"
                     ? "Median — typical user experience"
                     : p.label === "p95"
@@ -652,18 +652,18 @@ function OverviewTab() {
               </div>
             ))}
           </div>
-          <div className="mt-6 pt-4 border-t border-zinc-800 grid grid-cols-3 gap-3">
+          <div className="mt-6 pt-4 border-t border-[var(--color-border)] grid grid-cols-3 gap-3">
             <div className="text-center">
               <div className="text-emerald-400 font-bold text-lg">98.7%</div>
-              <div className="text-zinc-500 text-xs">Under 200ms</div>
+              <div className="text-[var(--color-text-muted)] text-xs">Under 200ms</div>
             </div>
             <div className="text-center">
               <div className="text-amber-400 font-bold text-lg">1.1%</div>
-              <div className="text-zinc-500 text-xs">200–400ms</div>
+              <div className="text-[var(--color-text-muted)] text-xs">200–400ms</div>
             </div>
             <div className="text-center">
               <div className="text-rose-400 font-bold text-lg">0.2%</div>
-              <div className="text-zinc-500 text-xs">Over 400ms</div>
+              <div className="text-[var(--color-text-muted)] text-xs">Over 400ms</div>
             </div>
           </div>
         </div>
@@ -698,9 +698,9 @@ function QueriesTab() {
   return (
     <div className="flex gap-4 h-full">
       {/* Left: query list */}
-      <div className="w-80 flex-shrink-0 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col">
-        <div className="px-4 py-3 border-b border-zinc-800">
-          <span className="text-white font-semibold text-sm">
+      <div className="w-80 flex-shrink-0 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden flex flex-col">
+        <div className="px-4 py-3 border-b border-[var(--color-border)]">
+          <span className="text-[var(--color-text-primary)] font-semibold text-sm">
             Recent Queries
           </span>
         </div>
@@ -710,21 +710,21 @@ function QueriesTab() {
               key={q.id}
               onClick={() => setSelectedId(q.id)}
               className={cn(
-                "w-full px-4 py-3 border-b border-zinc-800 last:border-0 flex flex-col gap-1 text-left transition-colors",
+                "w-full px-4 py-3 border-b border-[var(--color-border)] last:border-0 flex flex-col gap-1 text-left transition-colors",
                 selectedId === q.id
                   ? "bg-indigo-600/20"
-                  : "hover:bg-zinc-800"
+                  : "hover:bg-[var(--color-surface-2)]"
               )}
             >
               <span
                 className={cn(
                   "text-sm font-medium truncate",
-                  selectedId === q.id ? "text-indigo-300" : "text-zinc-200"
+                  selectedId === q.id ? "text-indigo-300" : "text-[var(--color-text-primary)]"
                 )}
               >
                 {q.query}
               </span>
-              <div className="flex items-center gap-3 text-xs text-zinc-500">
+              <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                 <span>{q.searches.toLocaleString()} searches</span>
                 <span>CTR {(q.ctr * 100).toFixed(0)}%</span>
                 <span>pos {q.avgPosition}</span>
@@ -737,35 +737,35 @@ function QueriesTab() {
 
       {/* Right: detail */}
       <div className="flex-1 flex flex-col gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 className="text-white font-semibold text-lg">
+              <h3 className="text-[var(--color-text-primary)] font-semibold text-lg">
                 "{selected.query}"
               </h3>
               <div className="flex items-center gap-4 mt-1">
-                <span className="text-zinc-400 text-sm">
+                <span className="text-[var(--color-text-secondary)] text-sm">
                   {selected.searches.toLocaleString()} searches
                 </span>
-                <span className="text-zinc-400 text-sm">
+                <span className="text-[var(--color-text-secondary)] text-sm">
                   {selected.resultCount} avg results
                 </span>
                 <span className="text-emerald-400 text-sm font-medium">
                   {(selected.ctr * 100).toFixed(1)}% CTR
                 </span>
-                <span className="text-zinc-400 text-sm">
+                <span className="text-[var(--color-text-secondary)] text-sm">
                   Avg pos {selected.avgPosition}
                 </span>
               </div>
             </div>
-            <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-1 rounded">
+            <span className="text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-2)] px-2 py-1 rounded">
               Last 7 days
             </span>
           </div>
 
           {/* Trend mini chart */}
           <div>
-            <span className="text-zinc-500 text-xs uppercase tracking-wide mb-2 block">
+            <span className="text-[var(--color-text-muted)] text-xs uppercase tracking-wide mb-2 block">
               Daily Trend
             </span>
             <BarChart data={trendData} height={80} />
@@ -774,23 +774,23 @@ function QueriesTab() {
 
         <div className="grid grid-cols-2 gap-4">
           {/* Click distribution */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <span className="text-white font-semibold text-sm block mb-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+            <span className="text-[var(--color-text-primary)] font-semibold text-sm block mb-4">
               Click Position Distribution
             </span>
             <div className="flex flex-col gap-2">
               {clickDist.map((c) => (
                 <div key={c.position} className="flex items-center gap-3">
-                  <span className="text-zinc-500 text-xs w-12">
+                  <span className="text-[var(--color-text-muted)] text-xs w-12">
                     Pos {c.position}
                   </span>
-                  <div className="flex-1 bg-zinc-800 rounded-full h-2 overflow-hidden">
+                  <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2 overflow-hidden">
                     <div
                       className="h-full bg-indigo-500 rounded-full"
                       style={{ width: `${(c.clicks / maxClicks) * 100}%` }}
                     />
                   </div>
-                  <span className="text-zinc-400 text-xs w-16 text-right">
+                  <span className="text-[var(--color-text-secondary)] text-xs w-16 text-right">
                     {c.clicks.toLocaleString()}
                   </span>
                 </div>
@@ -799,25 +799,25 @@ function QueriesTab() {
           </div>
 
           {/* Similar queries */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <span className="text-white font-semibold text-sm block mb-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+            <span className="text-[var(--color-text-primary)] font-semibold text-sm block mb-4">
               Similar Query Suggestions
             </span>
             <div className="flex flex-col gap-2">
               {similarQueries.map((sq, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-2 bg-zinc-800 rounded-lg"
+                  className="flex items-center justify-between p-2 bg-[var(--color-surface-2)] rounded-lg"
                 >
-                  <span className="text-zinc-300 text-sm truncate">{sq}</span>
+                  <span className="text-[var(--color-text-primary)] text-sm truncate">{sq}</span>
                   <button className="text-xs text-indigo-400 hover:text-indigo-300 ml-2 whitespace-nowrap">
                     Add
                   </button>
                 </div>
               ))}
             </div>
-            <div className="mt-4 pt-4 border-t border-zinc-800">
-              <span className="text-zinc-500 text-xs">
+            <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
+              <span className="text-[var(--color-text-muted)] text-xs">
                 Suggestions based on semantic similarity and co-occurrence
                 patterns.
               </span>
@@ -855,9 +855,9 @@ function ZeroResultsTab() {
 
       <div className="grid grid-cols-2 gap-4">
         {/* Zero result list */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
-            <span className="text-white font-semibold text-sm">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+            <span className="text-[var(--color-text-primary)] font-semibold text-sm">
               Zero-Result Queries
             </span>
             <div className="flex items-center gap-1">
@@ -866,8 +866,8 @@ function ZeroResultsTab() {
                 className={cn(
                   "text-xs px-2 py-1 rounded",
                   sortBy === "count"
-                    ? "bg-indigo-600 text-white"
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 By Count
@@ -877,8 +877,8 @@ function ZeroResultsTab() {
                 className={cn(
                   "text-xs px-2 py-1 rounded",
                   sortBy === "recent"
-                    ? "bg-indigo-600 text-white"
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 Recent
@@ -889,10 +889,10 @@ function ZeroResultsTab() {
             {sorted.map((z) => (
               <div
                 key={z.id}
-                className="px-4 py-3 border-b border-zinc-800 last:border-0 hover:bg-zinc-800 transition-colors"
+                className="px-4 py-3 border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-surface-2)] transition-colors"
               >
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <span className="text-zinc-200 text-sm font-medium truncate">
+                  <span className="text-[var(--color-text-primary)] text-sm font-medium truncate">
                     {z.query}
                   </span>
                   <span className="text-rose-400 font-bold text-sm flex-shrink-0">
@@ -900,13 +900,13 @@ function ZeroResultsTab() {
                   </span>
                 </div>
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-xs text-zinc-500">{z.lastSearched}</span>
-                  <span className="text-xs text-zinc-600">·</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{z.lastSearched}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">·</span>
                   <span className="text-xs text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
                     {z.category}
                   </span>
                 </div>
-                <div className="text-xs text-zinc-400 bg-zinc-800/60 rounded p-2">
+                <div className="text-xs text-[var(--color-text-secondary)] bg-[var(--color-surface-2)]/60 rounded p-2">
                   <span className="text-emerald-400 font-medium">Fix: </span>
                   {z.suggestedFix}
                 </div>
@@ -916,15 +916,15 @@ function ZeroResultsTab() {
         </div>
 
         {/* Zero result rate by category */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <span className="text-white font-semibold text-sm block mb-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <span className="text-[var(--color-text-primary)] font-semibold text-sm block mb-4">
             Zero-Result Rate by Category
           </span>
           <div className="flex flex-col gap-4">
             {CATEGORY_ZERO_RATES.map((c) => (
               <div key={c.category} className="flex flex-col gap-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-300">{c.category}</span>
+                  <span className="text-[var(--color-text-primary)]">{c.category}</span>
                   <span
                     className={cn(
                       "font-medium",
@@ -938,7 +938,7 @@ function ZeroResultsTab() {
                     {c.rate}%
                   </span>
                 </div>
-                <div className="h-2.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-2.5 w-full bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div
                     className={cn(
                       "h-full rounded-full",
@@ -955,22 +955,22 @@ function ZeroResultsTab() {
             ))}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-zinc-800">
-            <span className="text-zinc-500 text-xs font-medium block mb-2">
+          <div className="mt-6 pt-4 border-t border-[var(--color-border)]">
+            <span className="text-[var(--color-text-muted)] text-xs font-medium block mb-2">
               Threshold Legend
             </span>
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-2 rounded-full bg-emerald-500" />
-                <span className="text-zinc-400 text-xs">Under 14% — on target</span>
+                <span className="text-[var(--color-text-secondary)] text-xs">Under 14% — on target</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-2 rounded-full bg-amber-400" />
-                <span className="text-zinc-400 text-xs">14–20% — needs attention</span>
+                <span className="text-[var(--color-text-secondary)] text-xs">14–20% — needs attention</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-2 rounded-full bg-rose-500" />
-                <span className="text-zinc-400 text-xs">Over 20% — critical</span>
+                <span className="text-[var(--color-text-secondary)] text-xs">Over 20% — critical</span>
               </div>
             </div>
           </div>
@@ -988,14 +988,14 @@ function RelevanceTab() {
   return (
     <div className="flex flex-col gap-6">
       {/* Index scoring */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <span className="text-white font-semibold block mb-4">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+        <span className="text-[var(--color-text-primary)] font-semibold block mb-4">
           Relevance Scores by Index
         </span>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-zinc-500 text-xs uppercase tracking-wide border-b border-zinc-800">
+              <tr className="text-[var(--color-text-muted)] text-xs uppercase tracking-wide border-b border-[var(--color-border)]">
                 <th className="text-left pb-3">Index</th>
                 <th className="text-left pb-3 w-48">Precision</th>
                 <th className="text-left pb-3 w-48">Recall</th>
@@ -1007,8 +1007,8 @@ function RelevanceTab() {
               {INDEX_RELEVANCE.map((idx) => {
                 const avg = (idx.precision + idx.recall + idx.ndcg) / 3;
                 return (
-                  <tr key={idx.index} className="border-b border-zinc-800 last:border-0">
-                    <td className="py-3 text-zinc-300 font-medium font-mono text-xs">
+                  <tr key={idx.index} className="border-b border-[var(--color-border)] last:border-0">
+                    <td className="py-3 text-[var(--color-text-primary)] font-medium font-mono text-xs">
                       {idx.index}
                     </td>
                     <td className="py-3 pr-6">
@@ -1044,22 +1044,22 @@ function RelevanceTab() {
 
       <div className="grid grid-cols-2 gap-4">
         {/* A/B tests */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-800">
-            <span className="text-white font-semibold text-sm">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-[var(--color-border)]">
+            <span className="text-[var(--color-text-primary)] font-semibold text-sm">
               Ranking Algorithm A/B Tests
             </span>
           </div>
-          <div className="divide-y divide-zinc-800">
+          <div className="divide-y divide-[var(--color-border)]">
             {AB_TESTS.map((test) => (
               <div key={test.name}>
                 <button
                   onClick={() =>
                     setExpandedTest(expandedTest === test.name ? null : test.name)
                   }
-                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-800 transition-colors text-left"
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-[var(--color-surface-2)] transition-colors text-left"
                 >
-                  <span className="text-zinc-300 text-sm">{test.name}</span>
+                  <span className="text-[var(--color-text-primary)] text-sm">{test.name}</span>
                   <div className="flex items-center gap-2">
                     <span
                       className={cn(
@@ -1068,7 +1068,7 @@ function RelevanceTab() {
                           ? "text-emerald-400"
                           : test.status === "losing"
                           ? "text-rose-400"
-                          : "text-zinc-400"
+                          : "text-[var(--color-text-secondary)]"
                       )}
                     >
                       {test.delta > 0 ? "+" : ""}
@@ -1081,7 +1081,7 @@ function RelevanceTab() {
                           ? "bg-emerald-500/20 text-emerald-400"
                           : test.status === "losing"
                           ? "bg-rose-400/20 text-rose-400"
-                          : "bg-zinc-700 text-zinc-400"
+                          : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
                       )}
                     >
                       {test.status.charAt(0).toUpperCase() + test.status.slice(1)}
@@ -1089,18 +1089,18 @@ function RelevanceTab() {
                   </div>
                 </button>
                 {expandedTest === test.name && (
-                  <div className="px-4 pb-4 bg-zinc-800/40">
+                  <div className="px-4 pb-4 bg-[var(--color-surface-2)]/40">
                     <div className="grid grid-cols-2 gap-3 pt-3">
-                      <div className="bg-zinc-800 rounded-lg p-3">
-                        <div className="text-zinc-500 text-xs mb-1">
+                      <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                        <div className="text-[var(--color-text-muted)] text-xs mb-1">
                           Control CTR
                         </div>
-                        <div className="text-white font-bold text-lg">
+                        <div className="text-[var(--color-text-primary)] font-bold text-lg">
                           {(test.control * 100).toFixed(0)}%
                         </div>
                       </div>
-                      <div className="bg-zinc-800 rounded-lg p-3">
-                        <div className="text-zinc-500 text-xs mb-1">
+                      <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                        <div className="text-[var(--color-text-muted)] text-xs mb-1">
                           Variant CTR
                         </div>
                         <div
@@ -1116,14 +1116,14 @@ function RelevanceTab() {
                       </div>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                      <div className="flex-1 h-1.5 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                         <div
                           className="h-full bg-indigo-500"
                           style={{ width: `${test.control * 100}%` }}
                         />
                       </div>
-                      <span className="text-xs text-zinc-500">vs</span>
-                      <div className="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                      <span className="text-xs text-[var(--color-text-muted)]">vs</span>
+                      <div className="flex-1 h-1.5 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                         <div
                           className={cn(
                             "h-full",
@@ -1143,8 +1143,8 @@ function RelevanceTab() {
         </div>
 
         {/* User satisfaction */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <span className="text-white font-semibold text-sm block mb-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <span className="text-[var(--color-text-primary)] font-semibold text-sm block mb-4">
             User Satisfaction by Category
           </span>
           <div className="flex flex-col gap-4">
@@ -1155,7 +1155,7 @@ function RelevanceTab() {
               return (
                 <div key={s.category}>
                   <div className="flex items-center justify-between text-xs mb-1.5">
-                    <span className="text-zinc-300 font-medium">
+                    <span className="text-[var(--color-text-primary)] font-medium">
                       {s.category}
                     </span>
                     <div className="flex items-center gap-3">
@@ -1179,7 +1179,7 @@ function RelevanceTab() {
                       title={`${downPct.toFixed(1)}% negative`}
                     />
                   </div>
-                  <div className="flex items-center justify-between text-xs mt-1 text-zinc-500">
+                  <div className="flex items-center justify-between text-xs mt-1 text-[var(--color-text-muted)]">
                     <span>{upPct.toFixed(0)}% positive</span>
                     <span>{downPct.toFixed(0)}% negative</span>
                   </div>
@@ -1213,16 +1213,16 @@ export default function SearchAnalyticsDashboard() {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">
+              <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
                 Search Analytics
               </h1>
-              <p className="text-zinc-400 text-sm mt-1">
+              <p className="text-[var(--color-text-secondary)] text-sm mt-1">
                 Performance, relevance, and query intelligence — last 14 days
               </p>
             </div>
@@ -1231,10 +1231,10 @@ export default function SearchAnalyticsDashboard() {
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 Index healthy
               </div>
-              <button className="text-sm text-zinc-400 hover:text-zinc-200 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-lg transition-colors">
+              <button className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-1)] border border-[var(--color-border)] px-3 py-1.5 rounded-lg transition-colors">
                 Export CSV
               </button>
-              <button className="text-sm text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg transition-colors">
+              <button className="text-sm text-[var(--color-text-primary)] bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg transition-colors">
                 Configure Indexes
               </button>
             </div>
@@ -1242,7 +1242,7 @@ export default function SearchAnalyticsDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 mb-6 border-b border-zinc-800">
+        <div className="flex items-center gap-1 mb-6 border-b border-[var(--color-border)]">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -1250,8 +1250,8 @@ export default function SearchAnalyticsDashboard() {
               className={cn(
                 "px-4 py-2.5 text-sm font-medium transition-colors relative",
                 activeTab === tab.id
-                  ? "text-white"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {tab.label}

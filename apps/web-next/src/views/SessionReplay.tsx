@@ -189,7 +189,7 @@ function kindColor(kind: EventKind): string {
     case "subagent-done":
       return "text-emerald-400";
     case "system":
-      return "text-zinc-400";
+      return "text-[var(--color-text-secondary)]";
     case "error":
       return "text-rose-400";
   }
@@ -228,21 +228,21 @@ function SessionListItem({
       type="button"
       onClick={onSelect}
       className={cn(
-        "w-full text-left px-4 py-3 border-b border-zinc-800 transition-colors",
-        "hover:bg-zinc-800/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset",
-        isSelected ? "bg-zinc-800 border-l-2 border-l-indigo-500" : "border-l-2 border-l-transparent"
+        "w-full text-left px-4 py-3 border-b border-[var(--color-border)] transition-colors",
+        "hover:bg-[var(--color-surface-2)]/60 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-inset",
+        isSelected ? "bg-[var(--color-surface-2)] border-l-2 border-l-indigo-500" : "border-l-2 border-l-transparent"
       )}
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-semibold text-white truncate">
+        <span className="text-sm font-semibold text-[var(--color-text-primary)] truncate">
           {session.agentName}
         </span>
-        <span className="text-xs text-zinc-400 tabular-nums ml-2 shrink-0">
+        <span className="text-xs text-[var(--color-text-secondary)] tabular-nums ml-2 shrink-0">
           {formatMs(session.totalMs)}
         </span>
       </div>
-      <p className="text-xs text-zinc-400 truncate mb-1.5">{session.label}</p>
-      <div className="flex items-center gap-3 text-xs text-zinc-500">
+      <p className="text-xs text-[var(--color-text-secondary)] truncate mb-1.5">{session.label}</p>
+      <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
         <span>{session.events.length} events</span>
         <span>{session.totalTokens.toLocaleString()} tok</span>
         <span>{session.totalTools} tools</span>
@@ -267,8 +267,8 @@ function EventRow({
       type="button"
       onClick={onToggle}
       className={cn(
-        "w-full text-left px-3 py-2.5 border-b border-zinc-800/50 transition-colors",
-        "hover:bg-zinc-800/40 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-inset",
+        "w-full text-left px-3 py-2.5 border-b border-[var(--color-border)]/50 transition-colors",
+        "hover:bg-[var(--color-surface-2)]/40 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-inset",
         isCurrent && "bg-indigo-500/15 border-l-2 border-l-indigo-500",
         !isCurrent && "border-l-2 border-l-transparent"
       )}
@@ -276,7 +276,7 @@ function EventRow({
       {/* Row header */}
       <div className="flex items-start gap-2">
         {/* Offset badge */}
-        <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono tabular-nums bg-zinc-800 text-zinc-400">
+        <span className="shrink-0 mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono tabular-nums bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]">
           {formatOffset(event.offsetMs)}
         </span>
 
@@ -297,7 +297,7 @@ function EventRow({
               {event.kind}
             </span>
             {event.role && (
-              <span className="text-[10px] text-zinc-500">
+              <span className="text-[10px] text-[var(--color-text-muted)]">
                 ({event.role})
               </span>
             )}
@@ -307,12 +307,12 @@ function EventRow({
               </span>
             )}
             {event.tokens != null && (
-              <span className="text-[10px] text-zinc-500 tabular-nums">
+              <span className="text-[10px] text-[var(--color-text-muted)] tabular-nums">
                 {event.tokens} tok
               </span>
             )}
             {event.duration != null && (
-              <span className="text-[10px] text-zinc-500 tabular-nums">
+              <span className="text-[10px] text-[var(--color-text-muted)] tabular-nums">
                 {formatMs(event.duration)}
               </span>
             )}
@@ -324,7 +324,7 @@ function EventRow({
           {/* Content line — truncated unless expanded */}
           <p
             className={cn(
-              "text-xs text-zinc-300",
+              "text-xs text-[var(--color-text-primary)]",
               !isExpanded && "truncate"
             )}
           >
@@ -333,7 +333,7 @@ function EventRow({
         </div>
 
         {/* Expand indicator */}
-        <span className="shrink-0 mt-1 text-zinc-600 text-xs select-none">
+        <span className="shrink-0 mt-1 text-[var(--color-text-muted)] text-xs select-none">
           {isExpanded ? "▾" : "▸"}
         </span>
       </div>
@@ -484,11 +484,11 @@ export default function SessionReplay() {
   }, []);
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-white">
+    <div className="flex h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* ---- Left panel: session list ---- */}
-      <aside className="w-72 shrink-0 border-r border-zinc-800 flex flex-col bg-zinc-950">
-        <div className="px-4 py-3 border-b border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
+      <aside className="w-72 shrink-0 border-r border-[var(--color-border)] flex flex-col bg-[var(--color-surface-0)]">
+        <div className="px-4 py-3 border-b border-[var(--color-border)]">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
             Sessions
           </h2>
         </div>
@@ -507,15 +507,15 @@ export default function SessionReplay() {
       {/* ---- Right panel: timeline player ---- */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="px-5 py-3 border-b border-zinc-800 flex items-center gap-4 shrink-0">
+        <header className="px-5 py-3 border-b border-[var(--color-border)] flex items-center gap-4 shrink-0">
           <div className="min-w-0 flex-1">
             <h1 className="text-base font-semibold truncate">
               {selectedSession.agentName}{" "}
-              <span className="text-zinc-400 font-normal">
+              <span className="text-[var(--color-text-secondary)] font-normal">
                 — {selectedSession.label}
               </span>
             </h1>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
               {selectedSession.startedAt} · {formatMs(selectedSession.totalMs)} ·{" "}
               {selectedSession.events.length} events ·{" "}
               {selectedSession.totalTokens.toLocaleString()} tokens
@@ -525,7 +525,7 @@ export default function SessionReplay() {
 
         {/* Progress bar (seekable) */}
         <div
-          className="h-2 bg-zinc-800 cursor-pointer shrink-0 group"
+          className="h-2 bg-[var(--color-surface-2)] cursor-pointer shrink-0 group"
           onClick={handleSeek}
           role="slider"
           aria-label="Playback progress"
@@ -541,14 +541,14 @@ export default function SessionReplay() {
         </div>
 
         {/* Transport controls */}
-        <div className="px-5 py-2.5 border-b border-zinc-800 flex items-center gap-4 shrink-0">
+        <div className="px-5 py-2.5 border-b border-[var(--color-border)] flex items-center gap-4 shrink-0">
           {/* Play/Pause */}
           <button
             type="button"
             onClick={togglePlay}
             className={cn(
               "flex items-center justify-center w-8 h-8 rounded-md transition-colors",
-              "bg-indigo-500 hover:bg-indigo-400 text-white",
+              "bg-indigo-500 hover:bg-indigo-400 text-[var(--color-text-primary)]",
               "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
             )}
             aria-label={isPlaying ? "Pause" : "Play"}
@@ -576,14 +576,14 @@ export default function SessionReplay() {
           </button>
 
           {/* Current time */}
-          <span className="text-xs text-zinc-400 font-mono tabular-nums min-w-[4.5rem]">
+          <span className="text-xs text-[var(--color-text-secondary)] font-mono tabular-nums min-w-[4.5rem]">
             {currentEvent ? formatMs(currentEvent.offsetMs) : "—"} /{" "}
             {formatMs(selectedSession.totalMs)}
           </span>
 
           {/* Speed selector */}
           <div className="flex items-center gap-1 ml-auto">
-            <span className="text-[10px] text-zinc-500 uppercase tracking-wider mr-1">
+            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mr-1">
               Speed
             </span>
             {SPEEDS.map((s) => (
@@ -596,7 +596,7 @@ export default function SessionReplay() {
                   "focus:outline-none focus:ring-1 focus:ring-indigo-500",
                   s === speed
                     ? "bg-indigo-500/20 text-indigo-400 font-semibold"
-                    : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+                    : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
                 {s}x
@@ -606,7 +606,7 @@ export default function SessionReplay() {
         </div>
 
         {/* Filter chips */}
-        <div className="px-5 py-2 border-b border-zinc-800 flex items-center gap-2 shrink-0 flex-wrap">
+        <div className="px-5 py-2 border-b border-[var(--color-border)] flex items-center gap-2 shrink-0 flex-wrap">
           {FILTER_CHIPS.map((chip) => {
             const count =
               chip.value === "all"
@@ -624,11 +624,11 @@ export default function SessionReplay() {
                   "focus:outline-none focus:ring-1 focus:ring-indigo-500",
                   chip.value === activeFilter
                     ? "bg-indigo-500/20 text-indigo-400 font-semibold"
-                    : "bg-zinc-800/60 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                    : "bg-[var(--color-surface-2)]/60 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
                 {chip.label}
-                <span className="ml-1.5 text-zinc-500">{count}</span>
+                <span className="ml-1.5 text-[var(--color-text-muted)]">{count}</span>
               </button>
             );
           })}
@@ -640,7 +640,7 @@ export default function SessionReplay() {
           className="flex-1 overflow-y-auto"
         >
           {filteredEvents.length === 0 && (
-            <div className="flex items-center justify-center h-32 text-zinc-600 text-sm">
+            <div className="flex items-center justify-center h-32 text-[var(--color-text-muted)] text-sm">
               No events match this filter.
             </div>
           )}

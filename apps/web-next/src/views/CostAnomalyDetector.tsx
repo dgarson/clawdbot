@@ -144,12 +144,12 @@ const WEEKLY_SPEND = [
 // --- Components ---
 
 const KPICard = ({ title, value, subValue, trend }: { title: string; value: string; subValue?: string; trend?: { val: string; pos: boolean } }) => (
-  <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-sm">
-    <div className="text-zinc-400 text-sm font-medium mb-2">{title}</div>
-    <div className="text-2xl font-bold text-white mb-1">{value}</div>
+  <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-5 rounded-xl shadow-sm">
+    <div className="text-[var(--color-text-secondary)] text-sm font-medium mb-2">{title}</div>
+    <div className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{value}</div>
     {subValue && (
       <div className="flex items-center gap-2">
-        <span className="text-xs text-zinc-500">{subValue}</span>
+        <span className="text-xs text-[var(--color-text-muted)]">{subValue}</span>
         {trend && (
           <span className={cn("text-xs font-medium", trend.pos ? "text-emerald-400" : "text-rose-400")}>
             {trend.pos ? "↑" : "↓"} {trend.val}
@@ -161,14 +161,14 @@ const KPICard = ({ title, value, subValue, trend }: { title: string; value: stri
 );
 
 const Tabs = ({ active, onChange, items }: { active: string; onChange: (id: string) => void; items: { id: string; label: string }[] }) => (
-  <nav className="flex gap-1 border-b border-zinc-800 mb-6" aria-label="Dashboard Tabs">
+  <nav className="flex gap-1 border-b border-[var(--color-border)] mb-6" aria-label="Dashboard Tabs">
     {items.map((item) => (
       <button
         key={item.id}
         onClick={() => onChange(item.id)}
         className={cn(
           "px-4 py-2 text-sm font-medium transition-colors relative",
-          active === item.id ? "text-indigo-400" : "text-zinc-500 hover:text-zinc-300"
+          active === item.id ? "text-indigo-400" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
         )}
       >
         {item.label}
@@ -203,7 +203,7 @@ const StatusBadge = ({ status }: { status: Status | ServiceStatus }) => {
     normal: "text-emerald-400 bg-emerald-400/10",
   };
   return (
-    <span className={cn("px-2 py-0.5 rounded text-xs font-medium", styles[status] || "text-zinc-400 bg-zinc-400/10")}>
+    <span className={cn("px-2 py-0.5 rounded text-xs font-medium", styles[status] || "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10")}>
       {status}
     </span>
   );
@@ -245,8 +245,8 @@ const OverviewView = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-          <h3 className="text-white font-semibold mb-6">7-Day Spend Trend</h3>
+        <div className="lg:col-span-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] p-6 rounded-xl">
+          <h3 className="text-[var(--color-text-primary)] font-semibold mb-6">7-Day Spend Trend</h3>
           <div className="flex items-end justify-between h-48 gap-2 pt-4">
             {WEEKLY_SPEND.map((item) => {
               const height = (item.amount / maxSpend) * 100;
@@ -260,33 +260,33 @@ const OverviewView = () => {
                     )}
                     style={{ height: `${height}%` }}
                   >
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
                       ${item.amount}
                     </div>
                   </div>
-                  <span className="text-zinc-500 text-xs mt-3">{item.day}</span>
+                  <span className="text-[var(--color-text-muted)] text-xs mt-3">{item.day}</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-          <h3 className="text-white font-semibold mb-4">Recent Alerts</h3>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-6 rounded-xl">
+          <h3 className="text-[var(--color-text-primary)] font-semibold mb-4">Recent Alerts</h3>
           <div className="space-y-4">
             {RECENT_ALERTS.map((alert) => (
-              <div key={alert.id} className="flex items-start gap-3 p-3 border border-zinc-800/50 rounded-lg hover:bg-zinc-800/30 transition-colors cursor-pointer">
+              <div key={alert.id} className="flex items-start gap-3 p-3 border border-[var(--color-border)]/50 rounded-lg hover:bg-[var(--color-surface-2)]/30 transition-colors cursor-pointer">
                 <div className={cn("w-2 h-2 rounded-full mt-1.5 shrink-0", alert.magnitude > 100 ? "bg-rose-400" : "bg-amber-400")} />
                 <div>
-                  <div className="text-sm font-medium text-white">{alert.service}</div>
-                  <div className="text-xs text-zinc-400 mt-0.5">
+                  <div className="text-sm font-medium text-[var(--color-text-primary)]">{alert.service}</div>
+                  <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">
                     Spike: <span className="text-rose-400">+{alert.magnitude}%</span> • {alert.timestamp}
                   </div>
                 </div>
               </div>
             ))}
           </div>
-          <button className="w-full mt-4 py-2 text-xs font-medium text-zinc-400 hover:text-white border border-zinc-800 rounded-lg hover:bg-zinc-800 transition-colors">
+          <button className="w-full mt-4 py-2 text-xs font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-2)] transition-colors">
             View All History
           </button>
         </div>
@@ -299,16 +299,16 @@ const AnomaliesView = () => {
   const [expandedId, setExpandedId] = useState<string | null>("anom-1");
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900/50">
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Service</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Detected</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider text-right">Cost Delta</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Severity</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Status</th>
+            <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Service</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Detected</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Cost Delta</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Severity</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -317,15 +317,15 @@ const AnomaliesView = () => {
                 <tr 
                   onClick={() => setExpandedId(expandedId === anom.id ? null : anom.id)}
                   className={cn(
-                    "border-b border-zinc-800 hover:bg-zinc-800/30 transition-colors cursor-pointer",
-                    expandedId === anom.id && "bg-zinc-800/50"
+                    "border-b border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/30 transition-colors cursor-pointer",
+                    expandedId === anom.id && "bg-[var(--color-surface-2)]/50"
                   )}
                 >
-                  <td className="px-6 py-4 font-medium text-white">{anom.service}</td>
-                  <td className="px-6 py-4 text-sm text-zinc-400">{anom.detectedAt}</td>
+                  <td className="px-6 py-4 font-medium text-[var(--color-text-primary)]">{anom.service}</td>
+                  <td className="px-6 py-4 text-sm text-[var(--color-text-secondary)]">{anom.detectedAt}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="text-sm font-bold text-rose-400">+{anom.deltaPercentage}%</div>
-                    <div className="text-[10px] text-zinc-500">${anom.actualCost} vs ${anom.expectedCost}</div>
+                    <div className="text-[10px] text-[var(--color-text-muted)]">${anom.actualCost} vs ${anom.expectedCost}</div>
                   </td>
                   <td className="px-6 py-4">
                     <SeverityBadge level={anom.severity} />
@@ -335,37 +335,37 @@ const AnomaliesView = () => {
                   </td>
                 </tr>
                 {expandedId === anom.id && (
-                  <tr className="bg-zinc-900/80 border-b border-zinc-800">
+                  <tr className="bg-[var(--color-surface-1)]/80 border-b border-[var(--color-border)]">
                     <td colSpan={5} className="px-6 py-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in duration-300">
                         <div>
-                          <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Description</h4>
-                          <p className="text-sm text-zinc-300 leading-relaxed">{anom.description}</p>
+                          <h4 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-2">Description</h4>
+                          <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{anom.description}</p>
                           
-                          <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-6 mb-3">Likely Causes</h4>
+                          <h4 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest mt-6 mb-3">Likely Causes</h4>
                           <div className="flex flex-wrap gap-2">
                             {anom.likelyCauses.map(cause => (
-                              <span key={cause} className="px-2 py-1 bg-zinc-800 text-zinc-400 text-xs rounded border border-zinc-700">
+                              <span key={cause} className="px-2 py-1 bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] text-xs rounded border border-[var(--color-border)]">
                                 {cause}
                               </span>
                             ))}
                           </div>
                         </div>
-                        <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800">
+                        <div className="bg-[var(--color-surface-0)] p-4 rounded-lg border border-[var(--color-border)]">
                           <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-4">Recommended Actions</h4>
                           <ul className="space-y-3">
                             {anom.recommendedActions.map((action, idx) => (
-                              <li key={idx} className="flex gap-3 text-sm text-zinc-300">
+                              <li key={idx} className="flex gap-3 text-sm text-[var(--color-text-primary)]">
                                 <span className="text-indigo-500 font-bold">{idx + 1}.</span>
                                 {action}
                               </li>
                             ))}
                           </ul>
                           <div className="mt-6 flex gap-3">
-                            <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded transition-colors">
+                            <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-xs font-bold rounded transition-colors">
                               Take Action
                             </button>
-                            <button className="px-4 py-2 border border-zinc-700 hover:bg-zinc-800 text-zinc-300 text-xs font-bold rounded transition-colors">
+                            <button className="px-4 py-2 border border-[var(--color-border)] hover:bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-xs font-bold rounded transition-colors">
                               Mute Alert
                             </button>
                           </div>
@@ -385,30 +385,30 @@ const AnomaliesView = () => {
 
 const ServicesView = () => {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900/50">
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Service</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider text-right">Yesterday</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider text-right">7D Avg</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider text-right">30D Avg</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider text-right">% Change</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">7D Trend</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Status</th>
+            <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Service</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Yesterday</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">7D Avg</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">30D Avg</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">% Change</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">7D Trend</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Status</th>
             </tr>
           </thead>
           <tbody>
             {SERVICE_COSTS.map((service) => (
-              <tr key={service.id} className="border-b border-zinc-800 hover:bg-zinc-800/30 transition-colors">
-                <td className="px-6 py-4 font-medium text-white">{service.name}</td>
-                <td className="px-6 py-4 text-right text-sm text-zinc-300">${service.yesterdayCost.toFixed(2)}</td>
-                <td className="px-6 py-4 text-right text-sm text-zinc-400">${service.avg7d.toFixed(2)}</td>
-                <td className="px-6 py-4 text-right text-sm text-zinc-400">${service.avg30d.toFixed(2)}</td>
+              <tr key={service.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/30 transition-colors">
+                <td className="px-6 py-4 font-medium text-[var(--color-text-primary)]">{service.name}</td>
+                <td className="px-6 py-4 text-right text-sm text-[var(--color-text-primary)]">${service.yesterdayCost.toFixed(2)}</td>
+                <td className="px-6 py-4 text-right text-sm text-[var(--color-text-secondary)]">${service.avg7d.toFixed(2)}</td>
+                <td className="px-6 py-4 text-right text-sm text-[var(--color-text-secondary)]">${service.avg30d.toFixed(2)}</td>
                 <td className={cn(
                   "px-6 py-4 text-right text-sm font-medium",
-                  service.changePercentage > 5 ? "text-rose-400" : service.changePercentage < -5 ? "text-emerald-400" : "text-zinc-500"
+                  service.changePercentage > 5 ? "text-rose-400" : service.changePercentage < -5 ? "text-emerald-400" : "text-[var(--color-text-muted)]"
                 )}>
                   {service.changePercentage > 0 ? "+" : ""}{service.changePercentage}%
                 </td>
@@ -433,8 +433,8 @@ const ServicesView = () => {
 const BudgetView = () => {
   return (
     <div className="space-y-6">
-      <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-        <h3 className="text-white font-semibold mb-6">Budget Allocation vs Actual</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-6 rounded-xl">
+        <h3 className="text-[var(--color-text-primary)] font-semibold mb-6">Budget Allocation vs Actual</h3>
         <div className="space-y-8">
           {BUDGET_CATEGORIES.map((cat) => {
             const usagePercent = (cat.actual / cat.allocated) * 100;
@@ -445,17 +445,17 @@ const BudgetView = () => {
               <div key={cat.id} className="space-y-2">
                 <div className="flex justify-between items-end">
                   <div>
-                    <div className="text-sm font-bold text-white mb-0.5">{cat.name}</div>
-                    <div className="text-xs text-zinc-500">${cat.actual.toLocaleString()} spent of ${cat.allocated.toLocaleString()}</div>
+                    <div className="text-sm font-bold text-[var(--color-text-primary)] mb-0.5">{cat.name}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">${cat.actual.toLocaleString()} spent of ${cat.allocated.toLocaleString()}</div>
                   </div>
                   <div className="text-right">
-                    <div className={cn("text-sm font-bold", usagePercent > 90 ? "text-rose-400" : "text-white")}>
+                    <div className={cn("text-sm font-bold", usagePercent > 90 ? "text-rose-400" : "text-[var(--color-text-primary)]")}>
                       {usagePercent.toFixed(1)}%
                     </div>
-                    <div className="text-xs text-zinc-500">Projected: ${cat.projected.toLocaleString()} ({projectedPercent.toFixed(0)}%)</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Projected: ${cat.projected.toLocaleString()} ({projectedPercent.toFixed(0)}%)</div>
                   </div>
                 </div>
-                <div className="relative h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="relative h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div 
                     className={cn("absolute top-0 left-0 h-full rounded-full transition-all duration-500", barColor)}
                     style={{ width: `${Math.min(100, usagePercent)}%` }}
@@ -474,29 +474,29 @@ const BudgetView = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-          <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-4">Projected Month-End</h4>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-6 rounded-xl">
+          <h4 className="text-[var(--color-text-secondary)] text-xs font-bold uppercase tracking-widest mb-4">Projected Month-End</h4>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-white">$42,850</span>
+            <span className="text-3xl font-bold text-[var(--color-text-primary)]">$42,850</span>
             <span className="text-rose-400 text-sm font-medium">+$5,350 over budget</span>
           </div>
-          <p className="text-xs text-zinc-500 mt-2 leading-relaxed">
+          <p className="text-xs text-[var(--color-text-muted)] mt-2 leading-relaxed">
             Based on current consumption rates and detected anomalies, the total spend is projected to exceed the budget by 14.2%.
           </p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-          <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-4">Saving Opportunities</h4>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-6 rounded-xl">
+          <h4 className="text-[var(--color-text-secondary)] text-xs font-bold uppercase tracking-widest mb-4">Saving Opportunities</h4>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-300">Unused Reserved Instances</span>
+              <span className="text-sm text-[var(--color-text-primary)]">Unused Reserved Instances</span>
               <span className="text-emerald-400 text-sm font-bold">-$1,200</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-300">Zombie EC2 Instances</span>
+              <span className="text-sm text-[var(--color-text-primary)]">Zombie EC2 Instances</span>
               <span className="text-emerald-400 text-sm font-bold">-$450</span>
             </div>
-            <div className="flex items-center justify-between border-t border-zinc-800 pt-3">
-              <span className="text-sm font-bold text-white">Potential Monthly Savings</span>
+            <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-3">
+              <span className="text-sm font-bold text-[var(--color-text-primary)]">Potential Monthly Savings</span>
               <span className="text-emerald-400 text-sm font-bold">-$1,650</span>
             </div>
           </div>
@@ -519,26 +519,26 @@ export default function CostAnomalyDetector() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 lg:p-10 font-sans">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 lg:p-10 font-sans">
       <header className="max-w-7xl mx-auto mb-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="p-1.5 bg-indigo-500 rounded-lg text-white" aria-hidden="true">
+              <span className="p-1.5 bg-indigo-500 rounded-lg text-[var(--color-text-primary)]" aria-hidden="true">
                 💰
               </span>
               <h1 className="text-2xl font-bold tracking-tight">Cost Anomaly Detector</h1>
             </div>
-            <p className="text-zinc-500 text-sm">
+            <p className="text-[var(--color-text-muted)] text-sm">
               AI-driven monitoring for AWS/Azure cloud spend and usage patterns.
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs text-zinc-400">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               Live Monitoring Active
             </div>
-            <button className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-zinc-700">
+            <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-[var(--color-border)]">
               Export Report
             </button>
           </div>
@@ -556,12 +556,12 @@ export default function CostAnomalyDetector() {
         </div>
       </main>
 
-      <footer className="max-w-7xl mx-auto mt-20 pt-8 border-t border-zinc-900 text-zinc-600 text-[10px] uppercase tracking-widest flex flex-col md:flex-row justify-between gap-4">
+      <footer className="max-w-7xl mx-auto mt-20 pt-8 border-t border-[var(--color-border)] text-[var(--color-text-muted)] text-[10px] uppercase tracking-widest flex flex-col md:flex-row justify-between gap-4">
         <div>Horizon Cloud Intelligence &copy; 2026</div>
         <div className="flex gap-6">
-          <a href="#" className="hover:text-zinc-400 transition-colors">Documentation</a>
-          <a href="#" className="hover:text-zinc-400 transition-colors">API Access</a>
-          <a href="#" className="hover:text-zinc-400 transition-colors">Support</a>
+          <a href="#" className="hover:text-[var(--color-text-secondary)] transition-colors">Documentation</a>
+          <a href="#" className="hover:text-[var(--color-text-secondary)] transition-colors">API Access</a>
+          <a href="#" className="hover:text-[var(--color-text-secondary)] transition-colors">Support</a>
         </div>
       </footer>
     </div>

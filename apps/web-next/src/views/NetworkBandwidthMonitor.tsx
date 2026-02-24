@@ -380,7 +380,7 @@ function severityBg(severity: AlertSeverity): string {
 function stateColor(state: AlertState): string {
   if (state === "active") {return "text-red-400"}
   if (state === "acknowledged") {return "text-amber-400"}
-  if (state === "silenced") {return "text-zinc-400"}
+  if (state === "silenced") {return "text-[var(--color-text-secondary)]"}
   return "text-emerald-400"
 }
 
@@ -389,7 +389,7 @@ function protocolColor(protocol: Protocol): string {
   if (protocol === "HTTPS") {return "bg-indigo-500"}
   if (protocol === "DB") {return "bg-violet-500"}
   if (protocol === "SSH") {return "bg-amber-500"}
-  return "bg-zinc-500"
+  return "bg-[var(--color-surface-3)]"
 }
 
 function directionLabel(direction: Direction): string {
@@ -418,7 +418,7 @@ function MiniBar({ pct, height = 6, label }: MiniBarProps) {
   return (
     <div className="flex items-center gap-2">
       <div
-        className="relative flex-1 rounded-full overflow-hidden bg-zinc-800"
+        className="relative flex-1 rounded-full overflow-hidden bg-[var(--color-surface-2)]"
         style={{ height }}
       >
         <div
@@ -427,7 +427,7 @@ function MiniBar({ pct, height = 6, label }: MiniBarProps) {
         />
       </div>
       {label !== undefined && (
-        <span className="text-xs text-zinc-400 w-10 text-right">{label}</span>
+        <span className="text-xs text-[var(--color-text-secondary)] w-10 text-right">{label}</span>
       )}
     </div>
   )
@@ -442,8 +442,8 @@ interface StatCellProps {
 function StatCell({ label, value, accent }: StatCellProps) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-xs text-zinc-500">{label}</span>
-      <span className={cn("text-sm font-mono font-medium", accent ? "text-indigo-300" : "text-white")}>
+      <span className="text-xs text-[var(--color-text-muted)]">{label}</span>
+      <span className={cn("text-sm font-mono font-medium", accent ? "text-indigo-300" : "text-[var(--color-text-primary)]")}>
         {value}
       </span>
     </div>
@@ -477,7 +477,7 @@ function InterfacesTab({ interfaces }: InterfacesTabProps) {
                 "w-full text-left rounded-lg border p-3 transition-all",
                 isSelected
                   ? "bg-indigo-500/10 border-indigo-500/50"
-                  : "bg-zinc-900 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/60"
+                  : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/60"
               )}
             >
               <div className="flex items-center justify-between mb-2">
@@ -485,7 +485,7 @@ function InterfacesTab({ interfaces }: InterfacesTabProps) {
                   <span
                     className={cn("w-2 h-2 rounded-full flex-shrink-0", statusColor(iface.status))}
                   />
-                  <span className="text-sm font-mono font-semibold text-white">{iface.name}</span>
+                  <span className="text-sm font-mono font-semibold text-[var(--color-text-primary)]">{iface.name}</span>
                 </div>
                 <span
                   className={cn(
@@ -503,14 +503,14 @@ function InterfacesTab({ interfaces }: InterfacesTabProps) {
 
               <div className="flex flex-col gap-1.5">
                 <div>
-                  <div className="flex justify-between text-[10px] text-zinc-500 mb-0.5">
+                  <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mb-0.5">
                     <span>IN</span>
                     <span>{fmtMbps(iface.inboundMbps)}</span>
                   </div>
                   <MiniBar pct={inPct} height={5} label={`${inPct}%`} />
                 </div>
                 <div>
-                  <div className="flex justify-between text-[10px] text-zinc-500 mb-0.5">
+                  <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mb-0.5">
                     <span>OUT</span>
                     <span>{fmtMbps(iface.outboundMbps)}</span>
                   </div>
@@ -518,7 +518,7 @@ function InterfacesTab({ interfaces }: InterfacesTabProps) {
                 </div>
               </div>
 
-              <div className="flex justify-between mt-2 text-[10px] text-zinc-500">
+              <div className="flex justify-between mt-2 text-[10px] text-[var(--color-text-muted)]">
                 <span>PKT: {fmtPps(iface.inboundPps + iface.outboundPps)}</span>
                 <span>ERR: {((iface.errorRateIn + iface.errorRateOut) / 2).toFixed(3)}%</span>
               </div>
@@ -530,16 +530,16 @@ function InterfacesTab({ interfaces }: InterfacesTabProps) {
       {/* Detail Panel */}
       <div className="flex-1 min-w-0">
         {selected ? (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 h-full overflow-y-auto">
+          <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5 h-full overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
                 <span className={cn("w-3 h-3 rounded-full", statusColor(selected.status))} />
-                <h3 className="text-xl font-mono font-bold text-white">{selected.name}</h3>
-                <span className="text-sm text-zinc-400 font-mono">{fmtMbps(selected.speedMbps)} link</span>
+                <h3 className="text-xl font-mono font-bold text-[var(--color-text-primary)]">{selected.name}</h3>
+                <span className="text-sm text-[var(--color-text-secondary)] font-mono">{fmtMbps(selected.speedMbps)} link</span>
               </div>
               <button
                 onClick={() => setSelectedId(null)}
-                className="text-zinc-500 hover:text-white text-xl leading-none"
+                className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xl leading-none"
               >
                 ×
               </button>
@@ -547,7 +547,7 @@ function InterfacesTab({ interfaces }: InterfacesTabProps) {
 
             {/* Throughput Bars */}
             <div className="mb-5">
-              <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-3">Throughput</h4>
+              <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-widest mb-3">Throughput</h4>
               <div className="space-y-3">
                 {[
                   { label: "Inbound", mbps: selected.inboundMbps },
@@ -556,7 +556,7 @@ function InterfacesTab({ interfaces }: InterfacesTabProps) {
                   const pct = utilizationPct(mbps, selected.speedMbps)
                   return (
                     <div key={label}>
-                      <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                      <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mb-1">
                         <span>{label}</span>
                         <span className="font-mono">
                           {fmtMbps(mbps)} / {fmtMbps(selected.speedMbps)} ({pct}%)
@@ -594,33 +594,33 @@ function InterfacesTab({ interfaces }: InterfacesTabProps) {
 
             {/* 7-day Trend */}
             <div>
-              <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-3">7-Day Utilization Trend</h4>
+              <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-widest mb-3">7-Day Utilization Trend</h4>
               <div className="flex items-end gap-1 h-20">
                 {selected.trend7d.map((pt) => (
                   <div key={pt.date} className="flex-1 flex flex-col items-center gap-1 group relative">
                     <div className="absolute bottom-6 hidden group-hover:flex flex-col items-center z-10">
-                      <div className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-[10px] text-white whitespace-nowrap">
+                      <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-[10px] text-[var(--color-text-primary)] whitespace-nowrap">
                         {pt.date}: {pt.utilizationPct}%
                       </div>
                     </div>
-                    <div className="w-full rounded-sm overflow-hidden bg-zinc-800" style={{ height: 60 }}>
+                    <div className="w-full rounded-sm overflow-hidden bg-[var(--color-surface-2)]" style={{ height: 60 }}>
                       <div
                         className={cn("w-full rounded-sm", utilizationBarColor(pt.utilizationPct))}
                         style={{ height: `${pt.utilizationPct}%`, marginTop: `${100 - pt.utilizationPct}%` }}
                       />
                     </div>
-                    <span className="text-[9px] text-zinc-600">{pt.date.slice(3)}</span>
+                    <span className="text-[9px] text-[var(--color-text-muted)]">{pt.date.slice(3)}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
         ) : (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-8 h-full flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-3">
-              <div className="w-5 h-5 rounded-full border-2 border-zinc-600" />
+          <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-8 h-full flex flex-col items-center justify-center text-center">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-surface-2)] flex items-center justify-center mb-3">
+              <div className="w-5 h-5 rounded-full border-2 border-[var(--color-surface-3)]" />
             </div>
-            <p className="text-zinc-400 text-sm">Select an interface to view detailed statistics</p>
+            <p className="text-[var(--color-text-secondary)] text-sm">Select an interface to view detailed statistics</p>
           </div>
         )}
       </div>
@@ -648,8 +648,8 @@ function TrafficFlowTab({ flows }: TrafficFlowTabProps) {
   return (
     <div className="flex flex-col gap-5 h-full overflow-y-auto">
       {/* Stacked Protocol Chart */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
-        <h3 className="text-sm font-semibold text-zinc-300 mb-3">Bandwidth by Protocol Category</h3>
+      <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Bandwidth by Protocol Category</h3>
         <div className="flex h-8 rounded-lg overflow-hidden gap-px mb-3">
           {PROTOCOLS.map((p) => {
             const pct = (protocolTotals[p] / grandTotal) * 100
@@ -657,7 +657,7 @@ function TrafficFlowTab({ flows }: TrafficFlowTabProps) {
             return (
               <div
                 key={p}
-                className={cn("flex items-center justify-center text-xs font-semibold text-white transition-all", protocolColor(p))}
+                className={cn("flex items-center justify-center text-xs font-semibold text-[var(--color-text-primary)] transition-all", protocolColor(p))}
                 style={{ width: `${pct}%` }}
                 title={`${p}: ${fmtBytes(protocolTotals[p])}`}
               >
@@ -670,27 +670,27 @@ function TrafficFlowTab({ flows }: TrafficFlowTabProps) {
           {PROTOCOLS.map((p) => (
             <div key={p} className="flex items-center gap-1.5">
               <span className={cn("w-2.5 h-2.5 rounded-sm", protocolColor(p))} />
-              <span className="text-xs text-zinc-400">{p}</span>
-              <span className="text-xs font-mono text-zinc-300">{fmtBytes(protocolTotals[p])}</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">{p}</span>
+              <span className="text-xs font-mono text-[var(--color-text-primary)]">{fmtBytes(protocolTotals[p])}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Flow Table */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-        <div className="px-5 py-3 border-b border-zinc-800">
-          <h3 className="text-sm font-semibold text-zinc-300">Top Flows by Bandwidth</h3>
+      <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+        <div className="px-5 py-3 border-b border-[var(--color-border)]">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Top Flows by Bandwidth</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800">
+              <tr className="border-b border-[var(--color-border)]">
                 {["#", "Src IP", "Dst IP", "Proto", "Port", "Bandwidth", "Direction", "Interface", "Latency"].map(
                   (col) => (
                     <th
                       key={col}
-                      className="px-4 py-2.5 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider whitespace-nowrap"
+                      className="px-4 py-2.5 text-left text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider whitespace-nowrap"
                     >
                       {col}
                     </th>
@@ -702,30 +702,30 @@ function TrafficFlowTab({ flows }: TrafficFlowTabProps) {
               {sorted.map((flow, idx) => {
                 const pct = (flow.bytesSec / maxBytes) * 100
                 return (
-                  <tr key={flow.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                    <td className="px-4 py-3 text-zinc-500 font-mono text-xs">{idx + 1}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-300">{flow.srcIp}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-300">{flow.dstIp}</td>
+                  <tr key={flow.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30 transition-colors">
+                    <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono text-xs">{idx + 1}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-[var(--color-text-primary)]">{flow.srcIp}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-[var(--color-text-primary)]">{flow.dstIp}</td>
                     <td className="px-4 py-3">
-                      <span className={cn("px-2 py-0.5 rounded text-xs font-bold text-white", protocolColor(flow.protocol))}>
+                      <span className={cn("px-2 py-0.5 rounded text-xs font-bold text-[var(--color-text-primary)]", protocolColor(flow.protocol))}>
                         {flow.protocol}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-400">{flow.port}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-[var(--color-text-secondary)]">{flow.port}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2 min-w-[140px]">
-                        <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="flex-1 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                           <div
                             className={cn("h-full rounded-full", protocolColor(flow.protocol))}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <span className="font-mono text-xs text-white whitespace-nowrap">{fmtBytes(flow.bytesSec)}</span>
+                        <span className="font-mono text-xs text-[var(--color-text-primary)] whitespace-nowrap">{fmtBytes(flow.bytesSec)}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-xs text-zinc-400">{directionLabel(flow.direction)}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-400">{flow.interfaceName}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-400">{flow.latencyMs}ms</td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{directionLabel(flow.direction)}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-[var(--color-text-secondary)]">{flow.interfaceName}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-[var(--color-text-secondary)]">{flow.latencyMs}ms</td>
                   </tr>
                 )
               })}
@@ -784,28 +784,28 @@ function AlertsTab({ alerts: initialAlerts, thresholds: initialThresholds, inter
         {[
           { label: "Active", count: activeCount, color: "text-red-400", bg: "bg-red-500/10 border-red-500/20" },
           { label: "Acknowledged", count: ackCount, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
-          { label: "Silenced", count: alerts.filter((a) => a.state === "silenced").length, color: "text-zinc-400", bg: "bg-zinc-800 border-zinc-700" },
+          { label: "Silenced", count: alerts.filter((a) => a.state === "silenced").length, color: "text-[var(--color-text-secondary)]", bg: "bg-[var(--color-surface-2)] border-[var(--color-border)]" },
           { label: "Resolved", count: alerts.filter((a) => a.state === "resolved").length, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
         ].map(({ label, count, color, bg }) => (
           <div key={label} className={cn("rounded-xl border p-4 flex flex-col gap-1", bg)}>
             <span className={cn("text-2xl font-bold font-mono", color)}>{count}</span>
-            <span className="text-xs text-zinc-500">{label}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">{label}</span>
           </div>
         ))}
       </div>
 
       {/* Alert History */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-        <div className="px-5 py-3 border-b border-zinc-800">
-          <h3 className="text-sm font-semibold text-zinc-300">Alert History</h3>
+      <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+        <div className="px-5 py-3 border-b border-[var(--color-border)]">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Alert History</h3>
         </div>
-        <div className="divide-y divide-zinc-800/50">
+        <div className="divide-y divide-[var(--color-border)]/50">
           {alerts.map((alert) => (
             <div
               key={alert.id}
               className={cn(
                 "px-5 py-4 flex gap-4 items-start transition-colors",
-                alert.state === "active" ? "bg-zinc-900" : "bg-zinc-900/50"
+                alert.state === "active" ? "bg-[var(--color-surface-1)]" : "bg-[var(--color-surface-1)]/50"
               )}
             >
               <div className="flex-shrink-0 mt-0.5">
@@ -821,17 +821,17 @@ function AlertsTab({ alerts: initialAlerts, thresholds: initialThresholds, inter
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 mb-0.5">
-                  <span className="text-xs font-mono text-zinc-400">{alert.time}</span>
+                  <span className="text-xs font-mono text-[var(--color-text-secondary)]">{alert.time}</span>
                   <span className="text-xs font-mono font-semibold text-indigo-300">{alert.interfaceName}</span>
-                  <span className="text-xs text-zinc-500">{alert.metric}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{alert.metric}</span>
                 </div>
-                <p className="text-sm text-zinc-200 mb-1">{alert.message}</p>
-                <div className="flex items-center gap-3 text-xs text-zinc-500">
+                <p className="text-sm text-[var(--color-text-primary)] mb-1">{alert.message}</p>
+                <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                   <span>
-                    Value: <span className="font-mono text-white">{alert.value}{alert.unit}</span>
+                    Value: <span className="font-mono text-[var(--color-text-primary)]">{alert.value}{alert.unit}</span>
                   </span>
                   <span>
-                    Threshold: <span className="font-mono text-zinc-300">{alert.threshold}{alert.unit}</span>
+                    Threshold: <span className="font-mono text-[var(--color-text-primary)]">{alert.threshold}{alert.unit}</span>
                   </span>
                   <span className={cn("font-semibold", stateColor(alert.state))}>
                     {alert.state.charAt(0).toUpperCase() + alert.state.slice(1)}
@@ -848,7 +848,7 @@ function AlertsTab({ alerts: initialAlerts, thresholds: initialThresholds, inter
                   </button>
                   <button
                     onClick={() => handleAction(alert.id, "silence")}
-                    className="px-2.5 py-1 text-xs rounded bg-zinc-800 text-zinc-400 hover:bg-zinc-700 border border-zinc-700 transition-colors"
+                    className="px-2.5 py-1 text-xs rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] transition-colors"
                   >
                     Silence
                   </button>
@@ -874,12 +874,12 @@ function AlertsTab({ alerts: initialAlerts, thresholds: initialThresholds, inter
       </div>
 
       {/* Threshold Config */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-        <div className="px-5 py-3 border-b border-zinc-800 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-zinc-300">Threshold Configuration</h3>
-          <span className="text-xs text-zinc-500">Click interface to expand</span>
+      <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+        <div className="px-5 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Threshold Configuration</h3>
+          <span className="text-xs text-[var(--color-text-muted)]">Click interface to expand</span>
         </div>
-        <div className="divide-y divide-zinc-800/50">
+        <div className="divide-y divide-[var(--color-border)]/50">
           {interfaces.map((iface) => {
             const cfg = thresholds.find((t) => t.interfaceId === iface.id)
             if (!cfg) {return null}
@@ -887,25 +887,25 @@ function AlertsTab({ alerts: initialAlerts, thresholds: initialThresholds, inter
             return (
               <div key={iface.id}>
                 <button
-                  className="w-full px-5 py-3 flex items-center justify-between hover:bg-zinc-800/30 transition-colors"
+                  className="w-full px-5 py-3 flex items-center justify-between hover:bg-[var(--color-surface-2)]/30 transition-colors"
                   onClick={() => setEditingIfaceId(isOpen ? null : iface.id)}
                 >
                   <div className="flex items-center gap-2">
                     <span className={cn("w-2 h-2 rounded-full", statusColor(iface.status))} />
-                    <span className="font-mono text-sm text-white">{iface.name}</span>
+                    <span className="font-mono text-sm text-[var(--color-text-primary)]">{iface.name}</span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-zinc-500">
+                  <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
                     <span>
-                      In warn: <span className="text-zinc-300 font-mono">{cfg.inboundWarningPct}%</span>
+                      In warn: <span className="text-[var(--color-text-primary)] font-mono">{cfg.inboundWarningPct}%</span>
                     </span>
                     <span>
                       In crit: <span className="text-red-400 font-mono">{cfg.inboundCriticalPct}%</span>
                     </span>
-                    <span className={cn("transition-transform text-zinc-500", isOpen ? "rotate-90" : "")}>›</span>
+                    <span className={cn("transition-transform text-[var(--color-text-muted)]", isOpen ? "rotate-90" : "")}>›</span>
                   </div>
                 </button>
                 {isOpen && (
-                  <div className="px-5 pb-4 grid grid-cols-2 gap-4 bg-zinc-800/20">
+                  <div className="px-5 pb-4 grid grid-cols-2 gap-4 bg-[var(--color-surface-2)]/20">
                     {(
                       [
                         { field: "inboundWarningPct", label: "Inbound Warning (%)" },
@@ -917,7 +917,7 @@ function AlertsTab({ alerts: initialAlerts, thresholds: initialThresholds, inter
                       ] as Array<{ field: keyof Omit<AlertThresholdConfig, "interfaceId">; label: string }>
                     ).map(({ field, label }) => (
                       <label key={field} className="flex flex-col gap-1">
-                        <span className="text-xs text-zinc-500">{label}</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">{label}</span>
                         <input
                           type="number"
                           step="1"
@@ -927,7 +927,7 @@ function AlertsTab({ alerts: initialAlerts, thresholds: initialThresholds, inter
                           onChange={(e) =>
                             handleThresholdChange(iface.id, field, parseFloat(e.target.value))
                           }
-                          className="bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-sm text-white font-mono focus:border-indigo-500 focus:outline-none w-full"
+                          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm text-[var(--color-text-primary)] font-mono focus:border-indigo-500 focus:outline-none w-full"
                         />
                       </label>
                     ))}
@@ -967,7 +967,7 @@ function CapacityTab({ interfaces }: CapacityTabProps) {
     <div className="flex flex-col gap-5 h-full overflow-y-auto">
       {/* Sort Controls */}
       <div className="flex items-center gap-2">
-        <span className="text-xs text-zinc-500">Sort by:</span>
+        <span className="text-xs text-[var(--color-text-muted)]">Sort by:</span>
         {(["utilization", "saturation", "name"] as Array<"name" | "utilization" | "saturation">).map((key) => (
           <button
             key={key}
@@ -975,8 +975,8 @@ function CapacityTab({ interfaces }: CapacityTabProps) {
             className={cn(
               "px-3 py-1 rounded text-xs font-medium transition-colors",
               sortKey === key
-                ? "bg-indigo-500 text-white"
-                : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"
+                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)]"
             )}
           >
             {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -992,13 +992,13 @@ function CapacityTab({ interfaces }: CapacityTabProps) {
             : 0
 
           return (
-            <div key={iface.id} className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+            <div key={iface.id} className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className={cn("w-2.5 h-2.5 rounded-full", statusColor(iface.status))} />
-                  <span className="font-mono font-bold text-white">{iface.name}</span>
-                  <span className="text-xs text-zinc-500">{fmtMbps(iface.speedMbps)} link</span>
+                  <span className="font-mono font-bold text-[var(--color-text-primary)]">{iface.name}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{fmtMbps(iface.speedMbps)} link</span>
                 </div>
                 {iface.projectedSaturationDays !== null ? (
                   <span
@@ -1008,13 +1008,13 @@ function CapacityTab({ interfaces }: CapacityTabProps) {
                         ? "bg-red-500/15 border-red-500/30 text-red-400"
                         : iface.projectedSaturationDays <= 30
                         ? "bg-amber-500/15 border-amber-500/30 text-amber-400"
-                        : "bg-zinc-800 border-zinc-700 text-zinc-400"
+                        : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)]"
                     )}
                   >
                     Saturation in {iface.projectedSaturationDays}d
                   </span>
                 ) : (
-                  <span className="text-xs px-2 py-0.5 rounded border bg-zinc-800 border-zinc-700 text-zinc-500">
+                  <span className="text-xs px-2 py-0.5 rounded border bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)]">
                     No saturation projected
                   </span>
                 )}
@@ -1022,7 +1022,7 @@ function CapacityTab({ interfaces }: CapacityTabProps) {
 
               {/* Current Utilization */}
               <div className="mb-4">
-                <div className="flex justify-between text-xs text-zinc-400 mb-1.5">
+                <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mb-1.5">
                   <span>Current Utilization (combined)</span>
                   <span className="font-mono">{currentUtilPct}%</span>
                 </div>
@@ -1031,16 +1031,16 @@ function CapacityTab({ interfaces }: CapacityTabProps) {
 
               {/* 7-day Trend */}
               <div className="mb-4">
-                <h4 className="text-xs text-zinc-500 mb-2">7-Day Utilization Trend</h4>
+                <h4 className="text-xs text-[var(--color-text-muted)] mb-2">7-Day Utilization Trend</h4>
                 <div className="flex items-end gap-1" style={{ height: 48 }}>
                   {iface.trend7d.map((pt) => (
                     <div key={pt.date} className="flex-1 flex flex-col items-center gap-1 relative group">
                       <div className="absolute bottom-5 hidden group-hover:flex z-10 pointer-events-none">
-                        <div className="bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-[10px] text-white whitespace-nowrap">
+                        <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-1.5 py-0.5 text-[10px] text-[var(--color-text-primary)] whitespace-nowrap">
                           {pt.date}: avg {pt.avgPct}% | peak {pt.peakPct}%
                         </div>
                       </div>
-                      <div className="w-full rounded-sm bg-zinc-800 relative overflow-hidden" style={{ height: 40 }}>
+                      <div className="w-full rounded-sm bg-[var(--color-surface-2)] relative overflow-hidden" style={{ height: 40 }}>
                         {/* Peak bar (lighter) */}
                         <div
                           className={cn("absolute bottom-0 w-full opacity-30", utilizationBarColor(pt.peakPct))}
@@ -1052,32 +1052,32 @@ function CapacityTab({ interfaces }: CapacityTabProps) {
                           style={{ height: `${pt.avgPct}%` }}
                         />
                       </div>
-                      <span className="text-[9px] text-zinc-600">{pt.date.slice(3)}</span>
+                      <span className="text-[9px] text-[var(--color-text-muted)]">{pt.date.slice(3)}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Peak / Avg / P95 Table */}
-              <div className="grid grid-cols-3 gap-3 pt-3 border-t border-zinc-800">
+              <div className="grid grid-cols-3 gap-3 pt-3 border-t border-[var(--color-border)]">
                 <div className="text-center">
-                  <div className="text-xs text-zinc-500 mb-0.5">Peak</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Peak</div>
                   <div className="font-mono text-sm font-semibold text-red-400">{fmtMbps(iface.peakMbps)}</div>
-                  <div className="text-[10px] text-zinc-600">
+                  <div className="text-[10px] text-[var(--color-text-muted)]">
                     {iface.speedMbps > 0 ? `${Math.round((iface.peakMbps / iface.speedMbps) * 100)}%` : "—"}
                   </div>
                 </div>
-                <div className="text-center border-x border-zinc-800">
-                  <div className="text-xs text-zinc-500 mb-0.5">Average</div>
+                <div className="text-center border-x border-[var(--color-border)]">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Average</div>
                   <div className="font-mono text-sm font-semibold text-indigo-300">{fmtMbps(iface.avgMbps)}</div>
-                  <div className="text-[10px] text-zinc-600">
+                  <div className="text-[10px] text-[var(--color-text-muted)]">
                     {iface.speedMbps > 0 ? `${Math.round((iface.avgMbps / iface.speedMbps) * 100)}%` : "—"}
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-zinc-500 mb-0.5">P95</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">P95</div>
                   <div className="font-mono text-sm font-semibold text-amber-300">{fmtMbps(iface.p95Mbps)}</div>
-                  <div className="text-[10px] text-zinc-600">
+                  <div className="text-[10px] text-[var(--color-text-muted)]">
                     {iface.speedMbps > 0 ? `${Math.round((iface.p95Mbps / iface.speedMbps) * 100)}%` : "—"}
                   </div>
                 </div>
@@ -1112,12 +1112,12 @@ export default function NetworkBandwidthMonitor() {
   const activeAlertCount = MOCK_ALERTS.filter((a) => a.state === "active").length
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] flex flex-col">
       {/* Header */}
-      <div className="border-b border-zinc-800 bg-zinc-950 px-6 py-4 flex items-center justify-between flex-shrink-0">
+      <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-0)] px-6 py-4 flex items-center justify-between flex-shrink-0">
         <div>
-          <h1 className="text-lg font-bold text-white">Network Bandwidth Monitor</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Network Bandwidth Monitor</h1>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
             {MOCK_INTERFACES.filter((i) => i.status === "up").length} up ·{" "}
             {MOCK_INTERFACES.filter((i) => i.status === "degraded").length} degraded ·{" "}
             {MOCK_INTERFACES.filter((i) => i.status === "down").length} down · {MOCK_INTERFACES.length} total
@@ -1126,15 +1126,15 @@ export default function NetworkBandwidthMonitor() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs text-zinc-400">Live</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">Live</span>
           </div>
-          <div className="h-4 w-px bg-zinc-800" />
-          <span className="text-xs text-zinc-500">Updated 2026-02-22 05:22 MST</span>
+          <div className="h-4 w-px bg-[var(--color-surface-2)]" />
+          <span className="text-xs text-[var(--color-text-muted)]">Updated 2026-02-22 05:22 MST</span>
         </div>
       </div>
 
       {/* Tab Bar */}
-      <div className="border-b border-zinc-800 bg-zinc-950 px-6 flex-shrink-0">
+      <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-0)] px-6 flex-shrink-0">
         <div className="flex gap-0">
           {TABS.map((tab) => (
             <button
@@ -1143,13 +1143,13 @@ export default function NetworkBandwidthMonitor() {
               className={cn(
                 "relative px-4 py-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2",
                 activeTab === tab.id
-                  ? "border-indigo-500 text-white"
-                  : "border-transparent text-zinc-500 hover:text-zinc-300"
+                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {tab.label}
               {tab.id === "alerts" && activeAlertCount > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
+                <span className="bg-red-500 text-[var(--color-text-primary)] text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
                   {activeAlertCount}
                 </span>
               )}

@@ -141,7 +141,7 @@ function getUsageTextColor(percent: number): string {
 function getStatusDot(status: SessionStatus): string {
   if (status === "active") {return "bg-green-400"}
   if (status === "idle") {return "bg-yellow-400"}
-  return "bg-zinc-500"
+  return "bg-[var(--color-surface-3)]"
 }
 
 function getStatusLabel(status: SessionStatus): string {
@@ -214,12 +214,12 @@ export default function ContextBrowser() {
     return (
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-zinc-400">Context Window Usage</span>
+          <span className="text-sm text-[var(--color-text-secondary)]">Context Window Usage</span>
           <span className={cn("text-sm font-mono font-semibold", textColor)}>
             {formatTokens(session.tokenCount)} / {formatTokens(session.maxTokens)} tokens ({percent}%)
           </span>
         </div>
-        <div className="h-3 w-full rounded-full bg-zinc-800 overflow-hidden">
+        <div className="h-3 w-full rounded-full bg-[var(--color-surface-2)] overflow-hidden">
           <div
             className={cn("h-full rounded-full transition-all duration-500", color)}
             style={{ width: `${Math.min(percent, 100)}%` }}
@@ -235,25 +235,25 @@ export default function ContextBrowser() {
     if (!visible) {return null}
 
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg mb-3 overflow-hidden">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg mb-3 overflow-hidden">
         <button
           onClick={() => toggleSegment(segKey)}
-          className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zinc-800/50 transition-colors"
+          className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[var(--color-surface-2)]/50 transition-colors"
         >
           <div className="flex items-center gap-3">
             <div className={cn(
-              "w-5 h-5 rounded flex items-center justify-center text-xs font-bold bg-zinc-800 text-zinc-300 transition-transform",
+              "w-5 h-5 rounded flex items-center justify-center text-xs font-bold bg-[var(--color-surface-2)] text-[var(--color-text-primary)] transition-transform",
               isOpen && "rotate-90"
             )}>
               ▶
             </div>
-            <span className="text-sm font-medium text-white">{label}</span>
-            {extra && <span className="text-xs text-zinc-500">{extra}</span>}
+            <span className="text-sm font-medium text-[var(--color-text-primary)]">{label}</span>
+            {extra && <span className="text-xs text-[var(--color-text-muted)]">{extra}</span>}
           </div>
-          <span className="text-xs font-mono text-zinc-500">{formatTokens(tokens)} tokens</span>
+          <span className="text-xs font-mono text-[var(--color-text-muted)]">{formatTokens(tokens)} tokens</span>
         </button>
         {isOpen && (
-          <div className="px-4 pb-3 border-t border-zinc-800">
+          <div className="px-4 pb-3 border-t border-[var(--color-border)]">
             {segKey === "projectFiles" && selected ? renderSubItems(
               selected.segments.projectFiles.map((f) => ({ key: `file-${f.name}`, label: f.name, tokens: f.sizeTokens, preview: f.preview })),
               "No project files loaded."
@@ -267,18 +267,18 @@ export default function ContextBrowser() {
               "No injected context."
             ) : null}
             {segKey === "systemPrompt" && selected ? (
-              <div className="mt-3 p-3 bg-zinc-950 rounded text-xs font-mono text-zinc-400 leading-relaxed whitespace-pre-wrap">
+              <div className="mt-3 p-3 bg-[var(--color-surface-0)] rounded text-xs font-mono text-[var(--color-text-secondary)] leading-relaxed whitespace-pre-wrap">
                 {selected.segments.systemPrompt.preview.slice(0, 200)}
                 {selected.segments.systemPrompt.preview.length > 200 && (
-                  <span className="text-zinc-600">…</span>
+                  <span className="text-[var(--color-text-muted)]">…</span>
                 )}
               </div>
             ) : null}
             {segKey === "conversationHistory" && selected ? (
-              <div className="mt-3 p-3 bg-zinc-950 rounded text-xs font-mono text-zinc-400 leading-relaxed whitespace-pre-wrap">
+              <div className="mt-3 p-3 bg-[var(--color-surface-0)] rounded text-xs font-mono text-[var(--color-text-secondary)] leading-relaxed whitespace-pre-wrap">
                 {selected.segments.conversationHistory.preview.slice(0, 200)}
                 {selected.segments.conversationHistory.preview.length > 200 && (
-                  <span className="text-zinc-600">…</span>
+                  <span className="text-[var(--color-text-muted)]">…</span>
                 )}
               </div>
             ) : null}
@@ -290,21 +290,21 @@ export default function ContextBrowser() {
 
   function renderSubItems(items: Array<{ key: string; label: string; tokens: number; preview: string; accent?: boolean }>, emptyMsg: string) {
     const filtered = items.filter((i) => matchesSearch(i.label))
-    if (filtered.length === 0) {return <p className="mt-3 text-xs text-zinc-500 italic">{emptyMsg}</p>}
+    if (filtered.length === 0) {return <p className="mt-3 text-xs text-[var(--color-text-muted)] italic">{emptyMsg}</p>}
     return (
       <div className="mt-3 space-y-2">
         {filtered.map((item) => {
           const isOpen = expandedFiles[item.key] ?? false
           return (
-            <div key={item.key} className="bg-zinc-950 rounded border border-zinc-800/60">
-              <button onClick={() => toggleFile(item.key)} className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-zinc-800/30 transition-colors">
-                <span className={cn("text-xs font-mono", item.accent ? "text-indigo-400" : "text-zinc-300")}>{item.label}</span>
-                <span className="text-xs font-mono text-zinc-600">{formatTokens(item.tokens)}</span>
+            <div key={item.key} className="bg-[var(--color-surface-0)] rounded border border-[var(--color-border)]/60">
+              <button onClick={() => toggleFile(item.key)} className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-[var(--color-surface-2)]/30 transition-colors">
+                <span className={cn("text-xs font-mono", item.accent ? "text-indigo-400" : "text-[var(--color-text-primary)]")}>{item.label}</span>
+                <span className="text-xs font-mono text-[var(--color-text-muted)]">{formatTokens(item.tokens)}</span>
               </button>
               {isOpen && (
-                <div className="px-3 pb-2 border-t border-zinc-800/40">
-                  <div className="mt-2 p-2 bg-zinc-900 rounded text-xs font-mono text-zinc-500 leading-relaxed whitespace-pre-wrap">
-                    {item.preview.slice(0, 200)}{item.preview.length > 200 && <span className="text-zinc-700">…</span>}
+                <div className="px-3 pb-2 border-t border-[var(--color-border)]/40">
+                  <div className="mt-2 p-2 bg-[var(--color-surface-1)] rounded text-xs font-mono text-[var(--color-text-muted)] leading-relaxed whitespace-pre-wrap">
+                    {item.preview.slice(0, 200)}{item.preview.length > 200 && <span className="text-[var(--color-text-muted)]">…</span>}
                   </div>
                 </div>
               )}
@@ -330,8 +330,8 @@ export default function ContextBrowser() {
 
     return (
       <div className="mb-6">
-        <div className="text-xs text-zinc-500 mb-2">Context Breakdown</div>
-        <div className="h-4 w-full rounded-full bg-zinc-800 overflow-hidden flex">
+        <div className="text-xs text-[var(--color-text-muted)] mb-2">Context Breakdown</div>
+        <div className="h-4 w-full rounded-full bg-[var(--color-surface-2)] overflow-hidden flex">
           {parts.map((p) => {
             const w = Math.max((p.tokens / total) * 100, 0)
             if (w < 0.5) {return null}
@@ -349,8 +349,8 @@ export default function ContextBrowser() {
           {parts.map((p) => (
             <div key={p.label} className="flex items-center gap-1.5">
               <div className={cn("w-2.5 h-2.5 rounded-sm", p.color)} />
-              <span className="text-xs text-zinc-500">{p.label}</span>
-              <span className="text-xs font-mono text-zinc-600">{formatTokens(p.tokens)}</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{p.label}</span>
+              <span className="text-xs font-mono text-[var(--color-text-muted)]">{formatTokens(p.tokens)}</span>
             </div>
           ))}
         </div>
@@ -365,12 +365,12 @@ export default function ContextBrowser() {
   )
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] flex">
       {/* Left Panel — Session List */}
-      <div className="w-72 flex-shrink-0 border-r border-zinc-800 flex flex-col">
-        <div className="p-4 border-b border-zinc-800">
-          <h1 className="text-lg font-semibold text-white tracking-tight">Context Browser</h1>
-          <p className="text-xs text-zinc-500 mt-1">Inspect agent context windows</p>
+      <div className="w-72 flex-shrink-0 border-r border-[var(--color-border)] flex flex-col">
+        <div className="p-4 border-b border-[var(--color-border)]">
+          <h1 className="text-lg font-semibold text-[var(--color-text-primary)] tracking-tight">Context Browser</h1>
+          <p className="text-xs text-[var(--color-text-muted)] mt-1">Inspect agent context windows</p>
         </div>
         <div className="p-3">
           <input
@@ -378,7 +378,7 @@ export default function ContextBrowser() {
             placeholder="Search sessions or context..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 outline-none focus:border-indigo-500 transition-colors"
+            className="w-full px-3 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
         <div className="flex-1 overflow-y-auto">
@@ -390,27 +390,27 @@ export default function ContextBrowser() {
                 key={session.id}
                 onClick={() => setSelectedId(session.id)}
                 className={cn(
-                  "w-full text-left px-4 py-3 border-b border-zinc-800/50 transition-colors",
-                  isSelected ? "bg-indigo-500/10 border-l-2 border-l-indigo-500" : "hover:bg-zinc-900/80"
+                  "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/50 transition-colors",
+                  isSelected ? "bg-indigo-500/10 border-l-2 border-l-indigo-500" : "hover:bg-[var(--color-surface-1)]/80"
                 )}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className={cn("text-sm font-medium", isSelected ? "text-indigo-400" : "text-white")}>
+                  <span className={cn("text-sm font-medium", isSelected ? "text-indigo-400" : "text-[var(--color-text-primary)]")}>
                     {session.agentName}
                   </span>
                   <div className="flex items-center gap-1.5">
                     <div className={cn("w-2 h-2 rounded-full", getStatusDot(session.status))} />
-                    <span className="text-xs text-zinc-500">{getStatusLabel(session.status)}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{getStatusLabel(session.status)}</span>
                   </div>
                 </div>
-                <div className="text-xs text-zinc-500 font-mono mb-2">{session.model}</div>
-                <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+                <div className="text-xs text-[var(--color-text-muted)] font-mono mb-2">{session.model}</div>
+                <div className="h-1.5 w-full rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                   <div
                     className={cn("h-full rounded-full", getUsageColor(percent))}
                     style={{ width: `${Math.min(percent, 100)}%` }}
                   />
                 </div>
-                <div className="text-xs text-zinc-600 font-mono mt-1">
+                <div className="text-xs text-[var(--color-text-muted)] font-mono mt-1">
                   {formatTokens(session.tokenCount)} / {formatTokens(session.maxTokens)}
                 </div>
               </button>
@@ -424,10 +424,10 @@ export default function ContextBrowser() {
         {!selected ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-1)] border border-[var(--color-border)] flex items-center justify-center mx-auto mb-4">
                 <div className="w-6 h-6 rounded bg-indigo-500/20 border border-indigo-500/40" />
               </div>
-              <p className="text-zinc-500 text-sm">Select a session to inspect its context window</p>
+              <p className="text-[var(--color-text-muted)] text-sm">Select a session to inspect its context window</p>
             </div>
           </div>
         ) : (
@@ -435,12 +435,12 @@ export default function ContextBrowser() {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-semibold text-white">{selected.agentName}</h2>
-                <span className="text-xs font-mono text-zinc-500">{selected.model} · {selected.id}</span>
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">{selected.agentName}</h2>
+                <span className="text-xs font-mono text-[var(--color-text-muted)]">{selected.model} · {selected.id}</span>
               </div>
               <button
                 onClick={handleTrimContext}
-                className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors"
+                className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors"
               >
                 Trim Context
               </button>
@@ -486,8 +486,8 @@ export default function ContextBrowser() {
             </div>
 
             {/* Summary footer */}
-            <div className="mt-6 p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
-              <div className="flex items-center justify-between text-xs text-zinc-500">
+            <div className="mt-6 p-4 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg">
+              <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)]">
                 <span>Tracked segment total: {formatTokens(computeTotalSegmentTokens(selected.segments))} tokens</span>
                 <span>Overhead / padding: {formatTokens(Math.max(0, selected.tokenCount - computeTotalSegmentTokens(selected.segments)))} tokens</span>
               </div>

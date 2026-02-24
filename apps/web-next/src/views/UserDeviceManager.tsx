@@ -591,7 +591,7 @@ function PolicyStatusBadge({ status }: { status: PolicyStatus }) {
 function EventTypeBadge({ eventType }: { eventType: EventType }) {
   const configs: Record<EventType, { label: string; color: string }> = {
     login: { label: "Login", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-    logout: { label: "Logout", color: "text-zinc-400 bg-zinc-700/30 border-zinc-700/40" },
+    logout: { label: "Logout", color: "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/30 border-[var(--color-border)]/40" },
     block: { label: "Blocked", color: "text-rose-400 bg-rose-500/10 border-rose-500/20" },
     unblock: { label: "Unblocked", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
     trust: { label: "Trusted", color: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20" },
@@ -608,7 +608,7 @@ function EventTypeBadge({ eventType }: { eventType: EventType }) {
 function EventIcon({ eventType }: { eventType: EventType }) {
   const base = "w-4 h-4"
   if (eventType === "login") {return <LogInIcon className={cn(base, "text-emerald-400")} />}
-  if (eventType === "logout") {return <LogOutIcon className={cn(base, "text-zinc-400")} />}
+  if (eventType === "logout") {return <LogOutIcon className={cn(base, "text-[var(--color-text-secondary)]")} />}
   if (eventType === "block") {return <BanIcon className={cn(base, "text-rose-400")} />}
   if (eventType === "unblock") {return <ShieldCheckIcon className={cn(base, "text-emerald-400")} />}
   if (eventType === "trust") {return <ShieldCheckIcon className={cn(base, "text-indigo-400")} />}
@@ -637,26 +637,26 @@ function DevicesTab() {
     <div className="flex flex-col gap-4">
       {/* Summary bar */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
             <ShieldCheckIcon className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs text-zinc-400">Trusted</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">Trusted</span>
           </div>
-          <span className="text-2xl font-bold text-white">{trustCounts.trusted}</span>
+          <span className="text-2xl font-bold text-[var(--color-text-primary)]">{trustCounts.trusted}</span>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
             <ShieldAlertIcon className="w-4 h-4 text-amber-400" />
-            <span className="text-xs text-zinc-400">Unverified</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">Unverified</span>
           </div>
-          <span className="text-2xl font-bold text-white">{trustCounts.unverified}</span>
+          <span className="text-2xl font-bold text-[var(--color-text-primary)]">{trustCounts.unverified}</span>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
             <ShieldOffIcon className="w-4 h-4 text-rose-400" />
-            <span className="text-xs text-zinc-400">Blocked</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">Blocked</span>
           </div>
-          <span className="text-2xl font-bold text-white">{trustCounts.blocked}</span>
+          <span className="text-2xl font-bold text-[var(--color-text-primary)]">{trustCounts.blocked}</span>
         </div>
       </div>
 
@@ -669,8 +669,8 @@ function DevicesTab() {
             className={cn(
               "px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors capitalize",
               trustFilter === f
-                ? "bg-indigo-600 border-indigo-500 text-white"
-                : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:border-zinc-700"
+                ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:border-[var(--color-border)]"
             )}
           >
             {f === "all" ? `All (${DEVICES.length})` : f}
@@ -687,10 +687,10 @@ function DevicesTab() {
               key={device.id}
               onClick={() => setSelectedId(device.id)}
               className={cn(
-                "w-full text-left bg-zinc-900 border rounded-xl p-3 transition-colors group",
+                "w-full text-left bg-[var(--color-surface-1)] border rounded-xl p-3 transition-colors group",
                 selectedId === device.id
-                  ? "border-indigo-500 bg-zinc-800"
-                  : "border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800"
+                  ? "border-indigo-500 bg-[var(--color-surface-2)]"
+                  : "border-[var(--color-border)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               <div className="flex items-start gap-3">
@@ -704,17 +704,17 @@ function DevicesTab() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-medium text-white truncate">{device.name}</span>
+                    <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{device.name}</span>
                     {device.isCurrentDevice && (
                       <span className="flex-shrink-0 text-xs px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
                         You
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-zinc-500 mt-0.5">{device.browser} · {device.os}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{device.browser} · {device.os}</div>
                   <div className="flex items-center gap-1 mt-1">
-                    <ClockIcon className="w-3 h-3 text-zinc-600" />
-                    <span className="text-xs text-zinc-500">{formatRelativeTime(device.lastSeen)}</span>
+                    <ClockIcon className="w-3 h-3 text-[var(--color-text-muted)]" />
+                    <span className="text-xs text-[var(--color-text-muted)]">{formatRelativeTime(device.lastSeen)}</span>
                   </div>
                 </div>
               </div>
@@ -723,11 +723,11 @@ function DevicesTab() {
         </div>
 
         {/* Detail panel */}
-        <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        <div className="flex-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
           {selected ? (
             <div className="h-full flex flex-col">
               {/* Panel header */}
-              <div className="flex items-start gap-4 p-5 border-b border-zinc-800">
+              <div className="flex items-start gap-4 p-5 border-b border-[var(--color-border)]">
                 <div className={cn(
                   "flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center",
                   selected.trustLevel === "trusted" ? "bg-emerald-500/10 text-emerald-400" :
@@ -738,7 +738,7 @@ function DevicesTab() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-lg font-semibold text-white">{selected.name}</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{selected.name}</h3>
                     {selected.isCurrentDevice && (
                       <span className="text-xs px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
                         Current Device
@@ -746,7 +746,7 @@ function DevicesTab() {
                     )}
                     <TrustBadge level={selected.trustLevel} />
                   </div>
-                  <p className="text-sm text-zinc-400 mt-0.5">
+                  <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
                     {selected.browser} {selected.browserVersion} · {selected.os} {selected.osVersion}
                   </p>
                 </div>
@@ -755,40 +755,40 @@ function DevicesTab() {
               {/* Detail body */}
               <div className="flex-1 overflow-y-auto p-5">
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-zinc-800/50 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500 mb-1">Last Seen</div>
-                    <div className="text-sm text-white">{formatDateTime(selected.lastSeen)}</div>
-                    <div className="text-xs text-zinc-500 mt-0.5">{formatRelativeTime(selected.lastSeen)}</div>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-1">Last Seen</div>
+                    <div className="text-sm text-[var(--color-text-primary)]">{formatDateTime(selected.lastSeen)}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{formatRelativeTime(selected.lastSeen)}</div>
                   </div>
-                  <div className="bg-zinc-800/50 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500 mb-1">First Seen</div>
-                    <div className="text-sm text-white">{formatDateTime(selected.firstSeen)}</div>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-1">First Seen</div>
+                    <div className="text-sm text-[var(--color-text-primary)]">{formatDateTime(selected.firstSeen)}</div>
                   </div>
-                  <div className="bg-zinc-800/50 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500 mb-1">IP Address</div>
-                    <div className="text-sm font-mono text-white">{selected.ipAddress}</div>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-1">IP Address</div>
+                    <div className="text-sm font-mono text-[var(--color-text-primary)]">{selected.ipAddress}</div>
                   </div>
-                  <div className="bg-zinc-800/50 rounded-lg p-3">
-                    <div className="flex items-center gap-1 text-xs text-zinc-500 mb-1">
+                  <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
+                    <div className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] mb-1">
                       <GlobeIcon className="w-3 h-3" />
                       Location
                     </div>
-                    <div className="text-sm text-white">{selected.location}</div>
+                    <div className="text-sm text-[var(--color-text-primary)]">{selected.location}</div>
                   </div>
-                  <div className="bg-zinc-800/50 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500 mb-1">Device Type</div>
-                    <div className="text-sm text-white capitalize">{selected.kind}</div>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-1">Device Type</div>
+                    <div className="text-sm text-[var(--color-text-primary)] capitalize">{selected.kind}</div>
                   </div>
-                  <div className="bg-zinc-800/50 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500 mb-1">Active Sessions</div>
-                    <div className="text-sm text-white">{selected.sessionCount}</div>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-1">Active Sessions</div>
+                    <div className="text-sm text-[var(--color-text-primary)]">{selected.sessionCount}</div>
                   </div>
                 </div>
 
                 {/* Trust level bar */}
                 <div className="mb-6">
-                  <div className="text-xs text-zinc-500 mb-2">Trust Score</div>
-                  <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-2">Trust Score</div>
+                  <div className="h-2 w-full bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className={cn(
                         "h-full rounded-full transition-all",
@@ -798,7 +798,7 @@ function DevicesTab() {
                       )}
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-zinc-600 mt-1">
+                  <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
                     <span>Untrusted</span>
                     <span>Fully Trusted</span>
                   </div>
@@ -807,7 +807,7 @@ function DevicesTab() {
                 {/* Actions */}
                 <div className="flex flex-wrap gap-2">
                   {selected.trustLevel !== "trusted" && selected.trustLevel !== "blocked" && (
-                    <button className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors">
+                    <button className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-primary)] text-sm font-medium transition-colors">
                       Mark as Trusted
                     </button>
                   )}
@@ -817,12 +817,12 @@ function DevicesTab() {
                     </button>
                   )}
                   {selected.trustLevel === "blocked" && (
-                    <button className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium transition-colors border border-zinc-700">
+                    <button className="px-3 py-2 rounded-lg bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm font-medium transition-colors border border-[var(--color-border)]">
                       Unblock Device
                     </button>
                   )}
                   {!selected.isCurrentDevice && (
-                    <button className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium transition-colors border border-zinc-700">
+                    <button className="px-3 py-2 rounded-lg bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm font-medium transition-colors border border-[var(--color-border)]">
                       Remove Device
                     </button>
                   )}
@@ -831,8 +831,8 @@ function DevicesTab() {
             </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center p-8">
-              <DesktopIcon className="w-12 h-12 text-zinc-700 mb-3" />
-              <p className="text-zinc-500">Select a device to view details</p>
+              <DesktopIcon className="w-12 h-12 text-[var(--color-text-muted)] mb-3" />
+              <p className="text-[var(--color-text-muted)]">Select a device to view details</p>
             </div>
           )}
         </div>
@@ -861,7 +861,7 @@ function SessionsTab() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-[var(--color-text-secondary)]">
             {activeSessions.length} active session{activeSessions.length !== 1 ? "s" : ""} across {
               new Set(activeSessions.map((s) => s.deviceId)).size
             } device{new Set(activeSessions.map((s) => s.deviceId)).size !== 1 ? "s" : ""}
@@ -880,10 +880,10 @@ function SessionsTab() {
       {/* Sessions list */}
       <div className="flex flex-col gap-3">
         {activeSessions.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 flex flex-col items-center text-center">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-12 flex flex-col items-center text-center">
             <CheckCircleIcon className="w-10 h-10 text-emerald-500 mb-3" />
-            <p className="text-white font-medium">All sessions revoked</p>
-            <p className="text-zinc-500 text-sm mt-1">All other active sessions have been terminated.</p>
+            <p className="text-[var(--color-text-primary)] font-medium">All sessions revoked</p>
+            <p className="text-[var(--color-text-muted)] text-sm mt-1">All other active sessions have been terminated.</p>
           </div>
         ) : (
           activeSessions.map((session) => {
@@ -892,36 +892,36 @@ function SessionsTab() {
               <div
                 key={session.id}
                 className={cn(
-                  "bg-zinc-900 border rounded-xl p-4 flex items-center gap-4",
-                  isCurrentDevice ? "border-indigo-500/50" : "border-zinc-800"
+                  "bg-[var(--color-surface-1)] border rounded-xl p-4 flex items-center gap-4",
+                  isCurrentDevice ? "border-indigo-500/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className={cn(
                   "flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center",
-                  isCurrentDevice ? "bg-indigo-500/10 text-indigo-400" : "bg-zinc-800 text-zinc-400"
+                  isCurrentDevice ? "bg-indigo-500/10 text-indigo-400" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
                 )}>
                   <DesktopIcon className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">{session.deviceName}</span>
+                    <span className="text-sm font-medium text-[var(--color-text-primary)]">{session.deviceName}</span>
                     {isCurrentDevice && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
                         This device
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-zinc-500 mt-0.5">
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
                     {session.browser} · {session.os}
                   </div>
                   <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                     <div className="flex items-center gap-1">
-                      <GlobeIcon className="w-3 h-3 text-zinc-600" />
-                      <span className="text-xs text-zinc-500">{session.location} · {session.ipAddress}</span>
+                      <GlobeIcon className="w-3 h-3 text-[var(--color-text-muted)]" />
+                      <span className="text-xs text-[var(--color-text-muted)]">{session.location} · {session.ipAddress}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <ClockIcon className="w-3 h-3 text-zinc-600" />
-                      <span className="text-xs text-zinc-500">
+                      <ClockIcon className="w-3 h-3 text-[var(--color-text-muted)]" />
+                      <span className="text-xs text-[var(--color-text-muted)]">
                         Started {formatRelativeTime(session.startedAt)} · Active {formatRelativeTime(session.lastActivity)}
                       </span>
                     </div>
@@ -974,8 +974,8 @@ function PoliciesTab() {
   return (
     <div className="flex flex-col gap-4">
       {/* Status overview */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-sm font-medium text-white mb-3">Policy Compliance Overview</div>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+        <div className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Policy Compliance Overview</div>
         <div className="flex items-center gap-2 mb-3">
           {/* Stacked bar */}
           <div className="flex-1 h-3 flex rounded-full overflow-hidden gap-0.5">
@@ -998,22 +998,22 @@ function PoliciesTab() {
               />
             )}
           </div>
-          <span className="text-xs text-zinc-400 flex-shrink-0">
+          <span className="text-xs text-[var(--color-text-secondary)] flex-shrink-0">
             {Math.round((compliant / POLICIES.length) * 100)}% compliant
           </span>
         </div>
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="text-zinc-400">Compliant ({compliant})</span>
+            <span className="text-[var(--color-text-secondary)]">Compliant ({compliant})</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-            <span className="text-zinc-400">Warning ({warning})</span>
+            <span className="text-[var(--color-text-secondary)]">Warning ({warning})</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-            <span className="text-zinc-400">Non-Compliant ({nonCompliant})</span>
+            <span className="text-[var(--color-text-secondary)]">Non-Compliant ({nonCompliant})</span>
           </div>
         </div>
       </div>
@@ -1024,15 +1024,15 @@ function PoliciesTab() {
           <div
             key={policy.id}
             className={cn(
-              "bg-zinc-900 border rounded-xl overflow-hidden transition-colors",
+              "bg-[var(--color-surface-1)] border rounded-xl overflow-hidden transition-colors",
               policy.status === "non-compliant" ? "border-rose-500/30" :
               policy.status === "warning" ? "border-amber-500/30" :
-              "border-zinc-800"
+              "border-[var(--color-border)]"
             )}
           >
             <button
               onClick={() => toggleExpand(policy.id)}
-              className="w-full text-left p-4 flex items-center gap-3 hover:bg-zinc-800/50 transition-colors"
+              className="w-full text-left p-4 flex items-center gap-3 hover:bg-[var(--color-surface-2)]/50 transition-colors"
             >
               <div className={cn(
                 "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
@@ -1046,17 +1046,17 @@ function PoliciesTab() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-white">{policy.name}</span>
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">{policy.name}</span>
                   <PolicyStatusBadge status={policy.status} />
                 </div>
-                <p className="text-xs text-zinc-500 mt-0.5">{policy.description}</p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{policy.description}</p>
               </div>
-              <div className="flex-shrink-0 text-xs text-zinc-500 text-right">
+              <div className="flex-shrink-0 text-xs text-[var(--color-text-muted)] text-right">
                 <div>{policy.affectedDevices}/{policy.totalDevices} devices</div>
                 <div className="mt-0.5">{formatRelativeTime(policy.lastChecked)}</div>
               </div>
               <svg
-                className={cn("flex-shrink-0 w-4 h-4 text-zinc-500 transition-transform ml-2", expandedId === policy.id && "rotate-180")}
+                className={cn("flex-shrink-0 w-4 h-4 text-[var(--color-text-muted)] transition-transform ml-2", expandedId === policy.id && "rotate-180")}
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
               >
                 <path d="m6 9 6 6 6-6" />
@@ -1064,17 +1064,17 @@ function PoliciesTab() {
             </button>
 
             {expandedId === policy.id && (
-              <div className="border-t border-zinc-800 p-4 bg-zinc-800/20">
+              <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-surface-2)]/20">
                 <div className="mb-3">
-                  <div className="text-xs text-zinc-500 mb-1">Rule Expression</div>
-                  <code className="text-xs text-indigo-300 bg-zinc-800 px-2 py-1 rounded font-mono">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">Rule Expression</div>
+                  <code className="text-xs text-indigo-300 bg-[var(--color-surface-2)] px-2 py-1 rounded font-mono">
                     {policy.rule}
                   </code>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs text-zinc-500 mb-1">Device compliance</div>
-                    <div className="w-48 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-1">Device compliance</div>
+                    <div className="w-48 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                       <div
                         className={cn(
                           "h-full rounded-full transition-all",
@@ -1085,11 +1085,11 @@ function PoliciesTab() {
                         style={{ width: `${(policy.affectedDevices / policy.totalDevices) * 100}%` }}
                       />
                     </div>
-                    <div className="text-xs text-zinc-500 mt-1">
+                    <div className="text-xs text-[var(--color-text-muted)] mt-1">
                       {policy.affectedDevices} of {policy.totalDevices} devices passing
                     </div>
                   </div>
-                  <button className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors">
+                  <button className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-xs font-medium transition-colors">
                     Edit Policy
                   </button>
                 </div>
@@ -1138,7 +1138,7 @@ function AuditTab() {
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]"
             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
           >
             <circle cx="11" cy="11" r="8" />
@@ -1149,7 +1149,7 @@ function AuditTab() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search events, devices, IPs..."
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg pl-9 pr-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
 
@@ -1162,8 +1162,8 @@ function AuditTab() {
               className={cn(
                 "px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors",
                 typeFilter === et.value
-                  ? "bg-indigo-600 border-indigo-500 text-white"
-                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:border-zinc-700"
+                  ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                  : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:border-[var(--color-border)]"
               )}
             >
               {et.label}
@@ -1173,24 +1173,24 @@ function AuditTab() {
       </div>
 
       {/* Event count */}
-      <div className="text-xs text-zinc-500">
+      <div className="text-xs text-[var(--color-text-muted)]">
         Showing {filtered.length} of {AUDIT_EVENTS.length} events
       </div>
 
       {/* Event log */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
         {filtered.length === 0 ? (
           <div className="p-12 flex flex-col items-center text-center">
-            <AlertCircleIcon className="w-10 h-10 text-zinc-700 mb-3" />
-            <p className="text-zinc-500">No events match your filters</p>
+            <AlertCircleIcon className="w-10 h-10 text-[var(--color-text-muted)] mb-3" />
+            <p className="text-[var(--color-text-muted)]">No events match your filters</p>
           </div>
         ) : (
-          <div className="divide-y divide-zinc-800">
+          <div className="divide-y divide-[var(--color-border)]">
             {filtered.map((event, idx) => (
               <div
                 key={event.id}
                 className={cn(
-                  "flex items-start gap-3 p-4 transition-colors hover:bg-zinc-800/40",
+                  "flex items-start gap-3 p-4 transition-colors hover:bg-[var(--color-surface-2)]/40",
                   idx === 0 && "rounded-t-xl"
                 )}
               >
@@ -1199,7 +1199,7 @@ function AuditTab() {
                   <div className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center",
                     event.eventType === "login" ? "bg-emerald-500/10" :
-                    event.eventType === "logout" ? "bg-zinc-800" :
+                    event.eventType === "logout" ? "bg-[var(--color-surface-2)]" :
                     event.eventType === "block" ? "bg-rose-500/10" :
                     event.eventType === "trust" ? "bg-indigo-500/10" :
                     event.eventType === "unblock" ? "bg-emerald-500/10" :
@@ -1212,24 +1212,24 @@ function AuditTab() {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-white">{event.deviceName}</span>
+                    <span className="text-sm font-medium text-[var(--color-text-primary)]">{event.deviceName}</span>
                     <EventTypeBadge eventType={event.eventType} />
                   </div>
-                  <p className="text-xs text-zinc-400 mt-0.5">{event.details}</p>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{event.details}</p>
                   <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                     <div className="flex items-center gap-1">
-                      <GlobeIcon className="w-3 h-3 text-zinc-600" />
-                      <span className="text-xs text-zinc-500">{event.location} · {event.ipAddress}</span>
+                      <GlobeIcon className="w-3 h-3 text-[var(--color-text-muted)]" />
+                      <span className="text-xs text-[var(--color-text-muted)]">{event.location} · {event.ipAddress}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <ClockIcon className="w-3 h-3 text-zinc-600" />
-                      <span className="text-xs text-zinc-500">{formatDateTime(event.timestamp)}</span>
+                      <ClockIcon className="w-3 h-3 text-[var(--color-text-muted)]" />
+                      <span className="text-xs text-[var(--color-text-muted)]">{formatDateTime(event.timestamp)}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Relative time */}
-                <div className="flex-shrink-0 text-xs text-zinc-600">
+                <div className="flex-shrink-0 text-xs text-[var(--color-text-muted)]">
                   {formatRelativeTime(event.timestamp)}
                 </div>
               </div>
@@ -1254,7 +1254,7 @@ export default function UserDeviceManager() {
   ]
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-6">
       <div className="max-w-5xl mx-auto">
         {/* Page header */}
         <div className="mb-6">
@@ -1262,15 +1262,15 @@ export default function UserDeviceManager() {
             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
               <ShieldCheckIcon className="w-4 h-4 text-indigo-400" />
             </div>
-            <h1 className="text-xl font-bold text-white">Device Manager</h1>
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Device Manager</h1>
           </div>
-          <p className="text-sm text-zinc-400 ml-11">
+          <p className="text-sm text-[var(--color-text-secondary)] ml-11">
             Manage trusted devices, active sessions, and security policies for your account.
           </p>
         </div>
 
         {/* Tab bar */}
-        <div className="flex items-center gap-1 mb-6 bg-zinc-900 border border-zinc-800 rounded-xl p-1">
+        <div className="flex items-center gap-1 mb-6 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -1278,8 +1278,8 @@ export default function UserDeviceManager() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-sm"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               <span>{tab.label}</span>
@@ -1288,7 +1288,7 @@ export default function UserDeviceManager() {
                   "text-xs px-1.5 py-0.5 rounded-full font-mono",
                   activeTab === tab.id
                     ? "bg-indigo-500/40 text-indigo-100"
-                    : "bg-zinc-800 text-zinc-500"
+                    : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                 )}>
                   {tab.count}
                 </span>

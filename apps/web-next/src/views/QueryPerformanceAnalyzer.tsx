@@ -279,15 +279,15 @@ function PlanNode({ node, depth = 0 }: { node: QueryPlan; depth?: number }) {
     <div>
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-start gap-2 w-full text-left hover:bg-zinc-800/50 rounded px-2 py-1 transition-colors"
+        className="flex items-start gap-2 w-full text-left hover:bg-[var(--color-surface-2)]/50 rounded px-2 py-1 transition-colors"
         style={{ paddingLeft: `${8 + depth * 16}px` }}
       >
-        <span className="text-zinc-600 shrink-0 mt-0.5 text-xs">{node.children?.length ? (open ? "▾" : "▸") : "·"}</span>
+        <span className="text-[var(--color-text-muted)] shrink-0 mt-0.5 text-xs">{node.children?.length ? (open ? "▾" : "▸") : "·"}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs font-mono text-zinc-200">{node.node}</span>
-            <span className="text-xs text-zinc-500">cost={node.cost.toLocaleString()}</span>
-            <span className="text-xs text-zinc-500">rows={node.rows.toLocaleString()}</span>
+            <span className="text-xs font-mono text-[var(--color-text-primary)]">{node.node}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">cost={node.cost.toLocaleString()}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">rows={node.rows.toLocaleString()}</span>
             {node.actual !== undefined && (
               <span className={cn("text-xs font-mono", node.actual > 1000 ? "text-rose-400" : node.actual > 100 ? "text-amber-400" : "text-emerald-400")}>
                 actual={fmtMs(node.actual)}
@@ -331,44 +331,44 @@ export default function QueryPerformanceAnalyzer() {
   const avgQueryTime = Math.round(SLOW_QUERIES.reduce((s, q) => s + q.avgDurationMs, 0) / SLOW_QUERIES.length)
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Query Performance Analyzer</h1>
-          <p className="text-zinc-400 text-sm mt-1">Identify slow queries, missing indexes, and optimization opportunities</p>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Identify slow queries, missing indexes, and optimization opportunities</p>
         </div>
-        <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm text-zinc-300 transition-colors">
+        <button className="px-4 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-md text-sm text-[var(--color-text-primary)] transition-colors">
           Export Report
         </button>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-zinc-900 border border-rose-400/20 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Slow Queries</div>
+        <div className="bg-[var(--color-surface-1)] border border-rose-400/20 rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Slow Queries</div>
           <div className="text-2xl font-bold text-rose-400">{totalSlowQueries}</div>
-          <div className="text-xs text-zinc-500 mt-1">avg {fmtMs(avgQueryTime)}</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">avg {fmtMs(avgQueryTime)}</div>
         </div>
-        <div className="bg-zinc-900 border border-amber-400/20 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Missing Indexes</div>
+        <div className="bg-[var(--color-surface-1)] border border-amber-400/20 rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Missing Indexes</div>
           <div className="text-2xl font-bold text-amber-400">{missingIndexes}</div>
-          <div className="text-xs text-zinc-500 mt-1">potential 80%+ improvement</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">potential 80%+ improvement</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Databases Monitored</div>
-          <div className="text-2xl font-bold text-zinc-300">{DB_STATS.length}</div>
-          <div className="text-xs text-zinc-500 mt-1">all healthy</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Databases Monitored</div>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">{DB_STATS.length}</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">all healthy</div>
         </div>
-        <div className="bg-zinc-900 border border-emerald-400/20 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Cache Hit Rate</div>
+        <div className="bg-[var(--color-surface-1)] border border-emerald-400/20 rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Cache Hit Rate</div>
           <div className="text-2xl font-bold text-emerald-400">94.6%</div>
-          <div className="text-xs text-zinc-500 mt-1">avg across databases</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">avg across databases</div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
+      <div className="flex gap-1 mb-6 border-b border-[var(--color-border)]">
         {tabs.map(t => (
           <button
             key={t.id}
@@ -376,8 +376,8 @@ export default function QueryPerformanceAnalyzer() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-white bg-zinc-900"
-                : "border-transparent text-zinc-400 hover:text-zinc-300"
+                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t.emoji} {t.label}
@@ -389,25 +389,25 @@ export default function QueryPerformanceAnalyzer() {
       {tab === "queries" && (
         <div className="space-y-4">
           <div className="flex gap-2">
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white">
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Statuses</option>
               <option value="slow">Slow</option>
               <option value="fast">Fast</option>
               <option value="error">Error</option>
             </select>
-            <select value={dbFilter} onChange={e => setDbFilter(e.target.value)} className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white">
+            <select value={dbFilter} onChange={e => setDbFilter(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Databases</option>
               {DB_STATS.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
             </select>
-            <span className="text-sm text-zinc-400 self-center">{filtered.length} queries</span>
+            <span className="text-sm text-[var(--color-text-secondary)] self-center">{filtered.length} queries</span>
           </div>
 
           <div className="space-y-2">
             {filtered.map(q => (
-              <div key={q.id} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+              <div key={q.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
                 <button
                   onClick={() => setSelectedQuery(selectedQuery === q.id ? null : q.id)}
-                  className="w-full text-left p-4 hover:bg-zinc-800/50 transition-colors"
+                  className="w-full text-left p-4 hover:bg-[var(--color-surface-2)]/50 transition-colors"
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0">
@@ -415,45 +415,45 @@ export default function QueryPerformanceAnalyzer() {
                         <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusColor[q.status])}>
                           {q.status}
                         </span>
-                        <span className="text-xs px-1.5 py-0.5 bg-zinc-800 text-zinc-400 rounded">{q.database}</span>
-                        <span className="text-xs font-mono text-zinc-500">{q.queryHash}</span>
+                        <span className="text-xs px-1.5 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded">{q.database}</span>
+                        <span className="text-xs font-mono text-[var(--color-text-muted)]">{q.queryHash}</span>
                       </div>
                       <code className="text-xs text-indigo-300 font-mono line-clamp-2 block">{q.query}</code>
                     </div>
                     <div className="flex items-center gap-4 shrink-0 text-sm">
                       <div className="text-center">
-                        <div className="text-xs text-zinc-500 mb-0.5">Avg</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Avg</div>
                         <div className={cn("font-mono", q.avgDurationMs > 5000 ? "text-rose-400" : q.avgDurationMs > 1000 ? "text-amber-400" : "text-emerald-400")}>
                           {fmtMs(q.avgDurationMs)}
                         </div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xs text-zinc-500 mb-0.5">Executions</div>
-                        <div className="text-zinc-300">{fmtNum(q.executions)}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Executions</div>
+                        <div className="text-[var(--color-text-primary)]">{fmtNum(q.executions)}</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xs text-zinc-500 mb-0.5">Rows Scanned</div>
-                        <div className="text-zinc-300">{fmtNum(q.rowsExamined)}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Rows Scanned</div>
+                        <div className="text-[var(--color-text-primary)]">{fmtNum(q.rowsExamined)}</div>
                       </div>
-                      <span className="text-zinc-600">{selectedQuery === q.id ? "▲" : "▼"}</span>
+                      <span className="text-[var(--color-text-muted)]">{selectedQuery === q.id ? "▲" : "▼"}</span>
                     </div>
                   </div>
                 </button>
 
                 {selectedQuery === q.id && (
-                  <div className="border-t border-zinc-800 p-4 bg-zinc-950 space-y-3">
+                  <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-surface-0)] space-y-3">
                     <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div className="bg-zinc-900 rounded-md p-3">
-                        <div className="text-xs text-zinc-500 mb-1">Max Duration</div>
+                      <div className="bg-[var(--color-surface-1)] rounded-md p-3">
+                        <div className="text-xs text-[var(--color-text-muted)] mb-1">Max Duration</div>
                         <div className="text-rose-400 font-mono">{fmtMs(q.maxDurationMs)}</div>
                       </div>
-                      <div className="bg-zinc-900 rounded-md p-3">
-                        <div className="text-xs text-zinc-500 mb-1">Rows Returned / Examined</div>
-                        <div className="text-zinc-300 font-mono">{fmtNum(q.rowsReturned)} / {fmtNum(q.rowsExamined)}</div>
+                      <div className="bg-[var(--color-surface-1)] rounded-md p-3">
+                        <div className="text-xs text-[var(--color-text-muted)] mb-1">Rows Returned / Examined</div>
+                        <div className="text-[var(--color-text-primary)] font-mono">{fmtNum(q.rowsReturned)} / {fmtNum(q.rowsExamined)}</div>
                       </div>
-                      <div className="bg-zinc-900 rounded-md p-3">
-                        <div className="text-xs text-zinc-500 mb-1">User / Last Seen</div>
-                        <div className="text-zinc-300">{q.user}</div>
+                      <div className="bg-[var(--color-surface-1)] rounded-md p-3">
+                        <div className="text-xs text-[var(--color-text-muted)] mb-1">User / Last Seen</div>
+                        <div className="text-[var(--color-text-primary)]">{q.user}</div>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -463,7 +463,7 @@ export default function QueryPerformanceAnalyzer() {
                       >
                         🔬 View EXPLAIN Plan
                       </button>
-                      <button className="px-3 py-1.5 text-xs bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded-md transition-colors">
+                      <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] rounded-md transition-colors">
                         Copy Query
                       </button>
                     </div>
@@ -479,7 +479,7 @@ export default function QueryPerformanceAnalyzer() {
       {tab === "indexes" && (
         <div className="space-y-3">
           {INDEX_RECOMMENDATIONS.map(idx => (
-            <div key={idx.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <div key={idx.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -487,24 +487,24 @@ export default function QueryPerformanceAnalyzer() {
                       {idx.status}
                     </span>
                     <span className="font-medium text-sm">{idx.database}.{idx.table}</span>
-                    <span className="text-xs px-1.5 py-0.5 bg-zinc-800 text-zinc-400 rounded">{idx.type}</span>
+                    <span className="text-xs px-1.5 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded">{idx.type}</span>
                   </div>
                   <div className="flex items-center gap-1 mb-2">
-                    <span className="text-xs text-zinc-500">Columns:</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">Columns:</span>
                     {idx.columns.map(c => (
-                      <span key={c} className="text-xs font-mono px-1.5 py-0.5 bg-zinc-800 text-indigo-300 rounded">{c}</span>
+                      <span key={c} className="text-xs font-mono px-1.5 py-0.5 bg-[var(--color-surface-2)] text-indigo-300 rounded">{c}</span>
                     ))}
                   </div>
-                  <code className="text-xs font-mono text-zinc-400 bg-zinc-800 px-3 py-2 rounded-md block">
+                  <code className="text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-3 py-2 rounded-md block">
                     {idx.createStatement}
                   </code>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className={cn("text-2xl font-bold", idx.status === "missing" ? "text-emerald-400" : "text-zinc-400")}>
+                  <div className={cn("text-2xl font-bold", idx.status === "missing" ? "text-emerald-400" : "text-[var(--color-text-secondary)]")}>
                     {idx.estimatedSpeedup}
                   </div>
-                  <div className="text-xs text-zinc-500">speedup</div>
-                  <div className="text-xs text-zinc-400 mt-1">{idx.affectedQueries} queries</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">speedup</div>
+                  <div className="text-xs text-[var(--color-text-secondary)] mt-1">{idx.affectedQueries} queries</div>
                   {idx.status === "missing" && (
                     <button className="mt-2 px-3 py-1 text-xs bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-md transition-colors">
                       Create Index
@@ -526,11 +526,11 @@ export default function QueryPerformanceAnalyzer() {
       {tab === "databases" && (
         <div className="space-y-4">
           {DB_STATS.map(db => (
-            <div key={db.name} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <div key={db.name} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="font-medium font-mono">{db.name}</div>
-                  <div className="text-sm text-zinc-400 mt-0.5">{db.slowQueryCount} slow queries active</div>
+                  <div className="text-sm text-[var(--color-text-secondary)] mt-0.5">{db.slowQueryCount} slow queries active</div>
                 </div>
                 <div className={cn("text-sm font-medium", db.slowQueryCount > 10 ? "text-rose-400" : db.slowQueryCount > 5 ? "text-amber-400" : "text-emerald-400")}>
                   {db.slowQueryCount > 10 ? "⚠ Degraded" : db.slowQueryCount > 5 ? "! Watch" : "✓ Healthy"}
@@ -538,9 +538,9 @@ export default function QueryPerformanceAnalyzer() {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <div className="text-xs text-zinc-500 mb-1">Connections</div>
-                  <div className="text-zinc-300">{db.activeConnections}/{db.maxConnections}</div>
-                  <div className="mt-1 w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">Connections</div>
+                  <div className="text-[var(--color-text-primary)]">{db.activeConnections}/{db.maxConnections}</div>
+                  <div className="mt-1 w-full h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className={cn("h-full rounded-full", (db.activeConnections / db.maxConnections) > 0.8 ? "bg-rose-500" : "bg-indigo-500")}
                       style={{ width: `${(db.activeConnections / db.maxConnections) * 100}%` }}
@@ -548,17 +548,17 @@ export default function QueryPerformanceAnalyzer() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-500 mb-1">Cache Hit Rate</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">Cache Hit Rate</div>
                   <div className={cn("font-mono", db.cacheHitRate > 95 ? "text-emerald-400" : db.cacheHitRate > 90 ? "text-amber-400" : "text-rose-400")}>
                     {db.cacheHitRate}%
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-500 mb-1">Transactions/s</div>
-                  <div className="text-zinc-300">{db.txPerSec}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">Transactions/s</div>
+                  <div className="text-[var(--color-text-primary)]">{db.txPerSec}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-500 mb-1">Avg Query Time</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">Avg Query Time</div>
                   <div className={cn("font-mono", db.avgQueryTimeMs > 100 ? "text-amber-400" : "text-emerald-400")}>
                     {fmtMs(db.avgQueryTimeMs)}
                   </div>
@@ -581,8 +581,8 @@ export default function QueryPerformanceAnalyzer() {
                 className={cn(
                   "px-3 py-1.5 text-xs rounded-md font-mono transition-colors",
                   explainQuery === q.id
-                    ? "bg-indigo-500 text-white"
-                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                    ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                    : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                 )}
               >
                 {q.queryHash}
@@ -591,21 +591,21 @@ export default function QueryPerformanceAnalyzer() {
           </div>
 
           {explainQueryObj ? (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="p-3 border-b border-zinc-800">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="p-3 border-b border-[var(--color-border)]">
                 <code className="text-xs font-mono text-indigo-300 line-clamp-2">{explainQueryObj.query}</code>
               </div>
               <div className="p-3 space-y-0.5">
                 <PlanNode node={explainQueryObj.plan} />
               </div>
-              <div className="p-3 border-t border-zinc-800 flex items-center gap-4 text-xs text-zinc-500">
+              <div className="p-3 border-t border-[var(--color-border)] flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-emerald-500 inline-block" /> &lt;100ms</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-amber-500 inline-block" /> 100ms–1s</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-rose-500 inline-block" /> &gt;1s</span>
               </div>
             </div>
           ) : (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center text-zinc-500">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-12 text-center text-[var(--color-text-muted)]">
               Select a query hash to view its EXPLAIN plan
             </div>
           )}

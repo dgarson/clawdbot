@@ -131,7 +131,7 @@ function stepIndex(s: WizardStep) { return STEP_ORDER.indexOf(s); }
 function planBadge(p: PlanTier) {
   if (p === "enterprise") {return "border-indigo-500 ring-2 ring-indigo-500/30";}
   if (p === "growth") {return "border-amber-500 ring-2 ring-amber-500/20";}
-  return "border-zinc-700";
+  return "border-[var(--color-border)]";
 }
 
 function provisionStatusIcon(s: ProvisionStatus) {
@@ -144,7 +144,7 @@ function provisionStatusColor(s: ProvisionStatus) {
   if (s === "complete") {return "text-emerald-400";}
   if (s === "provisioning") {return "text-indigo-400 animate-pulse";}
   if (s === "failed") {return "text-rose-400";}
-  return "text-zinc-600";
+  return "text-[var(--color-text-muted)]";
 }
 
 function integrationEmoji(k: IntegrationKey) {
@@ -192,15 +192,15 @@ export default function TenantProvisioningWizard() {
   const provisionPct = Math.round((completeSteps / totalSteps) * 100);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Tenant Provisioning Wizard</h1>
-          <p className="text-zinc-400 text-sm mt-1">Set up a new tenant workspace with full configuration</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Tenant Provisioning Wizard</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Set up a new tenant workspace with full configuration</p>
         </div>
         {currentStep !== "complete" && (
-          <div className="text-sm text-zinc-500">Step {currentIdx + 1} of {STEP_ORDER.length - 1}</div>
+          <div className="text-sm text-[var(--color-text-muted)]">Step {currentIdx + 1} of {STEP_ORDER.length - 1}</div>
         )}
       </div>
 
@@ -212,19 +212,19 @@ export default function TenantProvisioningWizard() {
               <div key={step} className="flex items-center flex-1">
                 <div className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all flex-shrink-0",
-                  i < currentIdx ? "border-emerald-500 bg-emerald-500 text-white" :
+                  i < currentIdx ? "border-emerald-500 bg-emerald-500 text-[var(--color-text-primary)]" :
                   i === currentIdx ? "border-indigo-500 bg-indigo-500/20 text-indigo-400" :
-                  "border-zinc-700 bg-zinc-800 text-zinc-500",
+                  "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-text-muted)]",
                 )}>
                   {i < currentIdx ? "✓" : i + 1}
                 </div>
                 {i < STEP_ORDER.length - 2 && (
-                  <div className={cn("flex-1 h-0.5 mx-2", i < currentIdx ? "bg-emerald-500" : "bg-zinc-700")} />
+                  <div className={cn("flex-1 h-0.5 mx-2", i < currentIdx ? "bg-emerald-500" : "bg-[var(--color-surface-3)]")} />
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-xs text-zinc-500 px-0.5">
+          <div className="flex justify-between text-xs text-[var(--color-text-muted)] px-0.5">
             {["Plan", "Identity", "Resources", "Integrations", "Review"].map(label => (
               <span key={label}>{label}</span>
             ))}
@@ -235,30 +235,30 @@ export default function TenantProvisioningWizard() {
       {/* Step: Plan */}
       {currentStep === "plan" && (
         <div>
-          <h2 className="text-lg font-semibold text-zinc-200 mb-4">Choose a Plan</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Choose a Plan</h2>
           <div className="grid md:grid-cols-3 gap-4">
             {PLANS.map(plan => (
               <div
                 key={plan.id}
                 onClick={() => setSelectedPlan(plan.id)}
                 className={cn(
-                  "bg-zinc-900 rounded-xl p-5 border cursor-pointer transition-all",
-                  selectedPlan === plan.id ? planBadge(plan.id) : "border-zinc-700 hover:border-zinc-500",
+                  "bg-[var(--color-surface-1)] rounded-xl p-5 border cursor-pointer transition-all",
+                  selectedPlan === plan.id ? planBadge(plan.id) : "border-[var(--color-border)] hover:border-[var(--color-surface-3)]",
                 )}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <div className="font-bold text-white text-lg">{plan.name}</div>
+                    <div className="font-bold text-[var(--color-text-primary)] text-lg">{plan.name}</div>
                     <div className="text-indigo-400 font-semibold">{plan.price}</div>
                   </div>
-                  {selectedPlan === plan.id && <div className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs">✓</div>}
+                  {selectedPlan === plan.id && <div className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-[var(--color-text-primary)] text-xs">✓</div>}
                 </div>
-                <div className="text-xs text-zinc-400 mb-4">{plan.description}</div>
+                <div className="text-xs text-[var(--color-text-secondary)] mb-4">{plan.description}</div>
                 <div className="space-y-2">
                   {plan.features.map(f => (
                     <div key={f.name} className="flex items-center gap-2 text-xs">
-                      <span className={f.included ? "text-emerald-400" : "text-zinc-600"}>{f.included ? "✓" : "✗"}</span>
-                      <span className={f.included ? "text-zinc-300" : "text-zinc-600"}>{f.name}</span>
+                      <span className={f.included ? "text-emerald-400" : "text-[var(--color-text-muted)]"}>{f.included ? "✓" : "✗"}</span>
+                      <span className={f.included ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)]"}>{f.name}</span>
                     </div>
                   ))}
                 </div>
@@ -271,7 +271,7 @@ export default function TenantProvisioningWizard() {
       {/* Step: Identity */}
       {currentStep === "identity" && (
         <div className="max-w-xl">
-          <h2 className="text-lg font-semibold text-zinc-200 mb-4">Organization Identity</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Organization Identity</h2>
           <div className="space-y-4">
             {[
               { label: "Organization Name", key: "orgName" as keyof IdentityConfig, placeholder: "Acme Corp" },
@@ -280,27 +280,27 @@ export default function TenantProvisioningWizard() {
               { label: "Admin Email", key: "adminEmail" as keyof IdentityConfig, placeholder: "jane@acme.com" },
             ].map(field => (
               <div key={field.key}>
-                <label className="block text-xs text-zinc-400 mb-1">{field.label}</label>
+                <label className="block text-xs text-[var(--color-text-secondary)] mb-1">{field.label}</label>
                 <input
                   type="text"
                   value={identity[field.key] as string}
                   onChange={e => setIdentity(prev => ({ ...prev, [field.key]: e.target.value }))}
                   placeholder={field.placeholder}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
                 />
                 {field.key === "slug" && identity.slug && (
-                  <div className="text-xs text-zinc-500 mt-1">Preview: https://app.example.com/{identity.slug}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-1">Preview: https://app.example.com/{identity.slug}</div>
                 )}
               </div>
             ))}
-            <div className="flex items-center justify-between p-4 bg-zinc-900 rounded-xl border border-zinc-800">
+            <div className="flex items-center justify-between p-4 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)]">
               <div>
-                <div className="text-sm font-medium text-zinc-200">Require MFA</div>
-                <div className="text-xs text-zinc-500 mt-0.5">All users must enable multi-factor authentication</div>
+                <div className="text-sm font-medium text-[var(--color-text-primary)]">Require MFA</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-0.5">All users must enable multi-factor authentication</div>
               </div>
               <button
                 onClick={() => setIdentity(prev => ({ ...prev, mfaRequired: !prev.mfaRequired }))}
-                className={cn("w-10 h-6 rounded-full transition-colors relative", identity.mfaRequired ? "bg-indigo-600" : "bg-zinc-700")}
+                className={cn("w-10 h-6 rounded-full transition-colors relative", identity.mfaRequired ? "bg-indigo-600" : "bg-[var(--color-surface-3)]")}
               >
                 <div className={cn("w-4 h-4 bg-white rounded-full absolute top-1 transition-transform", identity.mfaRequired ? "translate-x-5" : "translate-x-1")} />
               </button>
@@ -312,11 +312,11 @@ export default function TenantProvisioningWizard() {
       {/* Step: Resources */}
       {currentStep === "resources" && (
         <div className="max-w-xl">
-          <h2 className="text-lg font-semibold text-zinc-200 mb-4">Infrastructure Configuration</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Infrastructure Configuration</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-xs text-zinc-400 mb-2">Region</label>
-              <select value={resources.region} onChange={e => setResources(prev => ({ ...prev, region: e.target.value }))} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200">
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-2">Region</label>
+              <select value={resources.region} onChange={e => setResources(prev => ({ ...prev, region: e.target.value }))} className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)]">
                 <option value="us-east-1">US East (N. Virginia)</option>
                 <option value="us-west-2">US West (Oregon)</option>
                 <option value="eu-west-1">EU West (Ireland)</option>
@@ -324,8 +324,8 @@ export default function TenantProvisioningWizard() {
               </select>
             </div>
             <div>
-              <label className="block text-xs text-zinc-400 mb-2">Database Instance</label>
-              <select value={resources.dbSize} onChange={e => setResources(prev => ({ ...prev, dbSize: e.target.value }))} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200">
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-2">Database Instance</label>
+              <select value={resources.dbSize} onChange={e => setResources(prev => ({ ...prev, dbSize: e.target.value }))} className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)]">
                 <option value="db.t3.medium">db.t3.medium (2 vCPU, 4 GB)</option>
                 <option value="db.t3.large">db.t3.large (2 vCPU, 8 GB)</option>
                 <option value="db.r5.large">db.r5.large (2 vCPU, 16 GB)</option>
@@ -333,17 +333,17 @@ export default function TenantProvisioningWizard() {
               </select>
             </div>
             <div>
-              <label className="block text-xs text-zinc-400 mb-2">Storage (GB)</label>
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-2">Storage (GB)</label>
               <input
                 type="number"
                 value={resources.storageGB}
                 onChange={e => setResources(prev => ({ ...prev, storageGB: Number(e.target.value) }))}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200"
+                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)]"
               />
             </div>
             <div>
-              <label className="block text-xs text-zinc-400 mb-2">Backup Retention (days)</label>
-              <select value={resources.backupRetentionDays} onChange={e => setResources(prev => ({ ...prev, backupRetentionDays: Number(e.target.value) }))} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200">
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-2">Backup Retention (days)</label>
+              <select value={resources.backupRetentionDays} onChange={e => setResources(prev => ({ ...prev, backupRetentionDays: Number(e.target.value) }))} className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)]">
                 <option value={7}>7 days</option>
                 <option value={14}>14 days</option>
                 <option value={30}>30 days</option>
@@ -351,13 +351,13 @@ export default function TenantProvisioningWizard() {
               </select>
             </div>
             <div>
-              <label className="block text-xs text-zinc-400 mb-2">Custom Domain (optional)</label>
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-2">Custom Domain (optional)</label>
               <input
                 type="text"
                 value={resources.customDomain}
                 onChange={e => setResources(prev => ({ ...prev, customDomain: e.target.value }))}
                 placeholder="app.acme.com"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600"
+                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)]"
               />
             </div>
           </div>
@@ -367,32 +367,32 @@ export default function TenantProvisioningWizard() {
       {/* Step: Integrations */}
       {currentStep === "integrations" && (
         <div>
-          <h2 className="text-lg font-semibold text-zinc-200 mb-1">Integrations</h2>
-          <p className="text-xs text-zinc-500 mb-4">Enable integrations now or configure them later in Settings.</p>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-1">Integrations</h2>
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">Enable integrations now or configure them later in Settings.</p>
           <div className="grid md:grid-cols-2 gap-3">
             {integrations.map(integ => (
               <div
                 key={integ.key}
                 onClick={() => toggleIntegration(integ.key)}
                 className={cn(
-                  "bg-zinc-900 rounded-xl p-4 border cursor-pointer transition-all",
-                  integ.enabled ? "border-indigo-500 bg-indigo-500/5" : "border-zinc-800 hover:border-zinc-600",
+                  "bg-[var(--color-surface-1)] rounded-xl p-4 border cursor-pointer transition-all",
+                  integ.enabled ? "border-indigo-500 bg-indigo-500/5" : "border-[var(--color-border)] hover:border-[var(--color-surface-3)]",
                 )}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     <span className="text-xl">{integrationEmoji(integ.key)}</span>
                     <div>
-                      <div className="font-medium text-zinc-200 text-sm">{integ.label}</div>
-                      <div className="text-xs text-zinc-500 mt-0.5">{integ.description}</div>
+                      <div className="font-medium text-[var(--color-text-primary)] text-sm">{integ.label}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{integ.description}</div>
                     </div>
                   </div>
-                  <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ml-2", integ.enabled ? "border-indigo-500 bg-indigo-500" : "border-zinc-600")}>
-                    {integ.enabled && <span className="text-white text-xs">✓</span>}
+                  <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ml-2", integ.enabled ? "border-indigo-500 bg-indigo-500" : "border-[var(--color-surface-3)]")}>
+                    {integ.enabled && <span className="text-[var(--color-text-primary)] text-xs">✓</span>}
                   </div>
                 </div>
                 {integ.enabled && integ.configRequired && (
-                  <div className="mt-3 pt-3 border-t border-zinc-700 text-xs text-amber-400">
+                  <div className="mt-3 pt-3 border-t border-[var(--color-border)] text-xs text-amber-400">
                     ⚠ Configuration required after provisioning
                   </div>
                 )}
@@ -405,7 +405,7 @@ export default function TenantProvisioningWizard() {
       {/* Step: Review */}
       {currentStep === "review" && (
         <div>
-          <h2 className="text-lg font-semibold text-zinc-200 mb-4">Review Configuration</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Review Configuration</h2>
           <div className="space-y-4">
             {[
               {
@@ -437,13 +437,13 @@ export default function TenantProvisioningWizard() {
                 ],
               },
             ].map(section => (
-              <div key={section.title} className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-                <h3 className="text-sm font-semibold text-zinc-300 mb-3">{section.title}</h3>
+              <div key={section.title} className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">{section.title}</h3>
                 <div className="space-y-2">
                   {section.items.map(item => (
                     <div key={item.label} className="flex justify-between text-sm">
-                      <span className="text-zinc-500">{item.label}</span>
-                      <span className="text-zinc-200">{item.value}</span>
+                      <span className="text-[var(--color-text-muted)]">{item.label}</span>
+                      <span className="text-[var(--color-text-primary)]">{item.value}</span>
                     </div>
                   ))}
                 </div>
@@ -456,21 +456,21 @@ export default function TenantProvisioningWizard() {
       {/* Step: Complete / Provisioning */}
       {currentStep === "complete" && (
         <div>
-          <h2 className="text-lg font-semibold text-zinc-200 mb-2">
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
             {isProvisioning ? "Provisioning in Progress..." : "Provisioning Complete!"}
           </h2>
-          <p className="text-xs text-zinc-500 mb-6">{provisionPct}% complete · {completeSteps}/{totalSteps} steps done</p>
+          <p className="text-xs text-[var(--color-text-muted)] mb-6">{provisionPct}% complete · {completeSteps}/{totalSteps} steps done</p>
 
-          <div className="h-2 bg-zinc-700 rounded-full overflow-hidden mb-6">
+          <div className="h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden mb-6">
             <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${provisionPct}%` }} />
           </div>
 
           <div className="space-y-2 mb-8">
             {PROVISION_STEPS.map(step => (
-              <div key={step.id} className="flex items-center gap-3 p-3 bg-zinc-900 rounded-lg border border-zinc-800">
+              <div key={step.id} className="flex items-center gap-3 p-3 bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)]">
                 <span className={cn("text-lg w-5 text-center", provisionStatusColor(step.status))}>{provisionStatusIcon(step.status)}</span>
-                <span className={cn("text-sm flex-1", step.status === "pending" ? "text-zinc-500" : "text-zinc-200")}>{step.label}</span>
-                {step.duration && <span className="text-xs text-zinc-500">{step.duration}</span>}
+                <span className={cn("text-sm flex-1", step.status === "pending" ? "text-[var(--color-text-muted)]" : "text-[var(--color-text-primary)]")}>{step.label}</span>
+                {step.duration && <span className="text-xs text-[var(--color-text-muted)]">{step.duration}</span>}
                 {step.error && <span className="text-xs text-rose-400">{step.error}</span>}
               </div>
             ))}
@@ -480,10 +480,10 @@ export default function TenantProvisioningWizard() {
             <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-5 text-center">
               <div className="text-4xl mb-3">🎉</div>
               <div className="text-lg font-bold text-emerald-400">Tenant Successfully Provisioned!</div>
-              <div className="text-sm text-zinc-400 mt-1">{identity.orgName || "Your organization"} is ready to use.</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">{identity.orgName || "Your organization"} is ready to use.</div>
               <div className="flex gap-3 justify-center mt-4">
-                <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors">Open Dashboard</button>
-                <button className="px-4 py-2 text-sm bg-zinc-700 hover:bg-zinc-600 rounded-lg text-zinc-300 transition-colors">Copy Invite Link</button>
+                <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">Open Dashboard</button>
+                <button className="px-4 py-2 text-sm bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Copy Invite Link</button>
               </div>
             </div>
           )}
@@ -492,18 +492,18 @@ export default function TenantProvisioningWizard() {
 
       {/* Navigation */}
       {currentStep !== "complete" && (
-        <div className="flex justify-between mt-8 pt-6 border-t border-zinc-800">
+        <div className="flex justify-between mt-8 pt-6 border-t border-[var(--color-border)]">
           <button
             onClick={goBack}
             disabled={currentIdx === 0}
-            className={cn("px-4 py-2 text-sm rounded-lg transition-colors", currentIdx === 0 ? "text-zinc-600 cursor-not-allowed" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300")}
+            className={cn("px-4 py-2 text-sm rounded-lg transition-colors", currentIdx === 0 ? "text-[var(--color-text-muted)] cursor-not-allowed" : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]")}
           >
             ← Back
           </button>
           <button
             onClick={goNext}
             disabled={!canProceed(currentStep)}
-            className={cn("px-6 py-2 text-sm rounded-lg transition-colors font-medium", canProceed(currentStep) ? "bg-indigo-600 hover:bg-indigo-500 text-white" : "bg-zinc-700 text-zinc-500 cursor-not-allowed")}
+            className={cn("px-6 py-2 text-sm rounded-lg transition-colors font-medium", canProceed(currentStep) ? "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-3)] text-[var(--color-text-muted)] cursor-not-allowed")}
           >
             {currentStep === "review" ? "🚀 Provision Tenant" : "Next →"}
           </button>

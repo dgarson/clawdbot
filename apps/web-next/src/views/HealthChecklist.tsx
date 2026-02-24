@@ -105,7 +105,7 @@ const STATUS_CONFIG: Record<CheckStatus, { label: string; color: string; bg: str
   pass: { label: "Pass", color: "text-emerald-400", bg: "bg-emerald-900/20", border: "border-emerald-700/50", emoji: "✓" },
   fail: { label: "Fail", color: "text-rose-400", bg: "bg-rose-900/20", border: "border-rose-700/50", emoji: "✗" },
   warn: { label: "Warn", color: "text-amber-400", bg: "bg-amber-900/20", border: "border-amber-700/50", emoji: "⚠" },
-  skip: { label: "Skip", color: "text-zinc-500", bg: "bg-zinc-800/40", border: "border-zinc-700", emoji: "○" },
+  skip: { label: "Skip", color: "text-[var(--color-text-muted)]", bg: "bg-[var(--color-surface-2)]/40", border: "border-[var(--color-border)]", emoji: "○" },
   pending: { label: "Pending", color: "text-blue-400", bg: "bg-blue-900/20", border: "border-blue-700/50", emoji: "…" },
 };
 
@@ -114,7 +114,7 @@ const SEVERITY_CONFIG: Record<CheckSeverity, { label: string; color: string }> =
   high: { label: "High", color: "text-orange-400" },
   medium: { label: "Medium", color: "text-amber-400" },
   low: { label: "Low", color: "text-blue-400" },
-  info: { label: "Info", color: "text-zinc-400" },
+  info: { label: "Info", color: "text-[var(--color-text-secondary)]" },
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -140,14 +140,14 @@ export default function HealthChecklist() {
   const displaySuites = selectedSuite ? [selectedSuite] : SUITES;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-zinc-800">
+      <div className="flex-shrink-0 px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <div>
-              <h1 className="text-xl font-bold text-white">Health Checklist</h1>
-              <p className="text-sm text-zinc-400">System readiness across {SUITES.length} domains</p>
+              <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Health Checklist</h1>
+              <p className="text-sm text-[var(--color-text-secondary)]">System readiness across {SUITES.length} domains</p>
             </div>
             {/* Health score */}
             <div className={cn(
@@ -156,7 +156,7 @@ export default function HealthChecklist() {
             )}>
               <span className="text-2xl">{healthScore >= 90 ? "✅" : healthScore >= 75 ? "⚠️" : "🚨"}</span>
               <div>
-                <div className="text-xs text-zinc-500">Health Score</div>
+                <div className="text-xs text-[var(--color-text-muted)]">Health Score</div>
                 <div className={cn("text-xl font-black", healthScore >= 90 ? "text-emerald-400" : healthScore >= 75 ? "text-amber-400" : "text-rose-400")}>
                   {healthScore}%
                 </div>
@@ -166,14 +166,14 @@ export default function HealthChecklist() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => { setSelectedSuite(null); setSelectedCheck(null); }}
-              className={cn("px-3 py-1.5 rounded text-sm", !selectedSuite ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white")}
+              className={cn("px-3 py-1.5 rounded text-sm", !selectedSuite ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
             >
               All Suites
             </button>
             <button
               onClick={runChecks}
               disabled={isRunning}
-              className={cn("px-4 py-1.5 rounded text-sm", isRunning ? "bg-zinc-700 text-zinc-400" : "bg-indigo-600 hover:bg-indigo-500 text-white")}
+              className={cn("px-4 py-1.5 rounded text-sm", isRunning ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]" : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]")}
             >
               {isRunning ? "⟳ Running…" : "▶ Run All"}
             </button>
@@ -186,19 +186,19 @@ export default function HealthChecklist() {
             { label: "Pass", value: passCount, color: "text-emerald-400", status: "pass" as CheckStatus },
             { label: "Fail", value: failCount, color: "text-rose-400", status: "fail" as CheckStatus },
             { label: "Warn", value: warnCount, color: "text-amber-400", status: "warn" as CheckStatus },
-            { label: "Skip", value: skipCount, color: "text-zinc-500", status: "skip" as CheckStatus },
-            { label: "Total", value: allChecks.length, color: "text-white", status: "all" as CheckStatus | "all" },
+            { label: "Skip", value: skipCount, color: "text-[var(--color-text-muted)]", status: "skip" as CheckStatus },
+            { label: "Total", value: allChecks.length, color: "text-[var(--color-text-primary)]", status: "all" as CheckStatus | "all" },
           ].map((s) => (
             <button
               key={s.label}
               onClick={() => setFilterStatus(filterStatus === s.status ? "all" : s.status)}
               className={cn(
                 "p-3 rounded-lg border text-left transition-all",
-                filterStatus === s.status ? "bg-indigo-900/30 border-indigo-600/50" : "bg-zinc-900 border-zinc-800 hover:border-zinc-600"
+                filterStatus === s.status ? "bg-indigo-900/30 border-indigo-600/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
               )}
             >
               <div className={cn("text-xl font-bold", s.color)}>{s.value}</div>
-              <div className="text-xs text-zinc-500">{s.label}</div>
+              <div className="text-xs text-[var(--color-text-muted)]">{s.label}</div>
             </button>
           ))}
         </div>
@@ -215,10 +215,10 @@ export default function HealthChecklist() {
                 onClick={() => setSelectedSuite(selectedSuite?.id === suite.id ? null : suite)}
                 className={cn(
                   "px-3 py-1.5 rounded text-xs",
-                  selectedSuite?.id === suite.id ? "bg-indigo-600 text-white" :
+                  selectedSuite?.id === suite.id ? "bg-indigo-600 text-[var(--color-text-primary)]" :
                   hasIssue ? "bg-rose-900/30 text-rose-400 border border-rose-700/50" :
                   hasWarn ? "bg-amber-900/30 text-amber-400 border border-amber-700/50" :
-                  "bg-zinc-800 text-zinc-400 hover:text-white"
+                  "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {suite.name.replace(" Checks", "")}
@@ -240,10 +240,10 @@ export default function HealthChecklist() {
               <div key={suite.id}>
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <h3 className="text-sm font-semibold text-white">{suite.name}</h3>
-                    <p className="text-xs text-zinc-500">{suite.description}</p>
+                    <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{suite.name}</h3>
+                    <p className="text-xs text-[var(--color-text-muted)]">{suite.description}</p>
                   </div>
-                  <div className="text-xs text-zinc-500">{suitePass}/{suiteTotal} passing · {suite.runDurationMs}ms</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">{suitePass}/{suiteTotal} passing · {suite.runDurationMs}ms</div>
                 </div>
                 <div className="space-y-1.5">
                   {suiteFiltered.map((check) => {
@@ -259,7 +259,7 @@ export default function HealthChecklist() {
                           isSelected ? "bg-indigo-900/20 border-indigo-600/50" :
                           check.status === "fail" ? "bg-rose-900/10 border-rose-800/50" :
                           check.status === "warn" ? "bg-amber-900/10 border-amber-800/50" :
-                          "bg-zinc-900 border-zinc-800 hover:border-zinc-600"
+                          "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                         )}
                       >
                         {/* Status icon */}
@@ -268,11 +268,11 @@ export default function HealthChecklist() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-medium text-white">{check.name}</span>
+                            <span className="text-sm font-medium text-[var(--color-text-primary)]">{check.name}</span>
                             <span className={cn("text-[10px]", sv.color)}>{sv.label}</span>
-                            {!check.automated && <span className="text-[10px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">Manual</span>}
+                            {!check.automated && <span className="text-[10px] bg-[var(--color-surface-2)] text-[var(--color-text-muted)] px-1.5 py-0.5 rounded">Manual</span>}
                           </div>
-                          <div className="text-xs text-zinc-400">{check.message}</div>
+                          <div className="text-xs text-[var(--color-text-secondary)]">{check.message}</div>
                           {isSelected && check.remediation && (
                             <div className="mt-2 text-xs text-amber-300 bg-amber-900/20 border border-amber-700/40 rounded px-3 py-2">
                               <span className="font-medium">Fix: </span>{check.remediation}
@@ -281,7 +281,7 @@ export default function HealthChecklist() {
                         </div>
                         <div className="flex-shrink-0 text-right">
                           <div className={cn("text-xs font-medium", sc.color)}>{sc.label}</div>
-                          <div className="text-[10px] text-zinc-600">{check.durationMs > 0 ? `${check.durationMs}ms` : "—"}</div>
+                          <div className="text-[10px] text-[var(--color-text-muted)]">{check.durationMs > 0 ? `${check.durationMs}ms` : "—"}</div>
                         </div>
                       </button>
                     );

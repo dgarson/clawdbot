@@ -166,15 +166,15 @@ const ALERTS_DATA: Alert[] = [
 // --- Sub-Components ---
 
 const KPICard = ({ label, value, trend, trendType }: KPICardProps) => (
-  <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-lg">
-    <div className="text-zinc-400 text-sm font-medium mb-1">{label}</div>
+  <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-5 rounded-lg">
+    <div className="text-[var(--color-text-secondary)] text-sm font-medium mb-1">{label}</div>
     <div className="flex items-end justify-between">
-      <div className="text-2xl font-bold text-white">{value}</div>
+      <div className="text-2xl font-bold text-[var(--color-text-primary)]">{value}</div>
       <div className={cn(
         "text-xs font-semibold px-2 py-0.5 rounded-full",
         trendType === "success" ? "bg-emerald-400/10 text-emerald-400" :
         trendType === "error" ? "bg-rose-400/10 text-rose-400" :
-        "bg-zinc-800 text-zinc-400"
+        "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
       )}>
         {trend}
       </div>
@@ -185,7 +185,7 @@ const KPICard = ({ label, value, trend, trendType }: KPICardProps) => (
 const ServiceHealthBar = ({ name, health, status }: ServiceHealth) => (
   <div className="space-y-2">
     <div className="flex justify-between text-sm">
-      <span className="text-zinc-300">{name}</span>
+      <span className="text-[var(--color-text-primary)]">{name}</span>
       <span className={cn(
         "font-medium",
         status === "healthy" ? "text-emerald-400" :
@@ -193,7 +193,7 @@ const ServiceHealthBar = ({ name, health, status }: ServiceHealth) => (
         "text-rose-400"
       )}>{health}%</span>
     </div>
-    <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+    <div className="h-2 w-full bg-[var(--color-surface-2)] rounded-full overflow-hidden">
       <div 
         className={cn(
           "h-full transition-all duration-500",
@@ -223,30 +223,30 @@ const TraceSpan = ({ span, depth = 0, totalDuration }: { span: Span, depth?: num
     "Auth Service": "bg-emerald-500",
     "Billing Engine": "bg-amber-500",
     "Worker Queue": "bg-rose-500",
-    "External": "bg-zinc-500",
+    "External": "bg-[var(--color-surface-3)]",
     "Database Connector": "bg-cyan-500",
   };
 
   return (
     <div className="w-full">
       <div 
-        className="flex items-center group cursor-pointer py-1.5 hover:bg-zinc-800/50 rounded px-2"
+        className="flex items-center group cursor-pointer py-1.5 hover:bg-[var(--color-surface-2)]/50 rounded px-2"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="w-48 flex-shrink-0 flex items-center gap-2" style={{ paddingLeft: `${depth * 12}px` }}>
-          <span className="text-zinc-500 text-[10px] w-4">{span.children && span.children.length > 0 ? (expanded ? "▼" : "▶") : ""}</span>
-          <span className="text-zinc-200 text-xs truncate font-mono">{span.name}</span>
+          <span className="text-[var(--color-text-muted)] text-[10px] w-4">{span.children && span.children.length > 0 ? (expanded ? "▼" : "▶") : ""}</span>
+          <span className="text-[var(--color-text-primary)] text-xs truncate font-mono">{span.name}</span>
         </div>
-        <div className="flex-grow h-4 relative bg-zinc-900/50 rounded-sm">
+        <div className="flex-grow h-4 relative bg-[var(--color-surface-1)]/50 rounded-sm">
           <div 
             className={cn("absolute h-full rounded-sm opacity-80 group-hover:opacity-100 transition-opacity", colors[span.service] || "bg-indigo-500")}
             style={{ left: `${left}%`, width: `${width}%` }}
           />
-          <span className="absolute text-[9px] text-zinc-400 font-mono" style={{ left: `${left + width + 0.5}%` }}>
+          <span className="absolute text-[9px] text-[var(--color-text-secondary)] font-mono" style={{ left: `${left + width + 0.5}%` }}>
             {span.durationMs}ms
           </span>
         </div>
-        <div className="w-32 text-right text-[10px] text-zinc-500 font-mono flex-shrink-0">
+        <div className="w-32 text-right text-[10px] text-[var(--color-text-muted)] font-mono flex-shrink-0">
           {span.service}
         </div>
       </div>
@@ -277,24 +277,24 @@ export default function ObservabilityDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30">
       {/* Header */}
-      <header className="border-b border-zinc-800 px-8 py-4 flex items-center justify-between sticky top-0 bg-zinc-950/80 backdrop-blur-md z-30">
+      <header className="border-b border-[var(--color-border)] px-8 py-4 flex items-center justify-between sticky top-0 bg-[var(--color-surface-0)]/80 backdrop-blur-md z-30">
         <div className="flex items-center gap-4">
-          <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center font-bold text-white italic">H</div>
+          <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center font-bold text-[var(--color-text-primary)] italic">H</div>
           <h1 className="text-lg font-semibold tracking-tight">Horizon Observability</h1>
         </div>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs text-zinc-400 uppercase tracking-widest font-medium">System Live</span>
+            <span className="text-xs text-[var(--color-text-secondary)] uppercase tracking-widest font-medium">System Live</span>
           </div>
-          <div className="text-xs text-zinc-500 font-mono">2026-02-22 04:45:12 MST</div>
+          <div className="text-xs text-[var(--color-text-muted)] font-mono">2026-02-22 04:45:12 MST</div>
         </div>
       </header>
 
       {/* Tabs */}
-      <nav className="px-8 border-b border-zinc-800 bg-zinc-950 sticky top-[65px] z-20">
+      <nav className="px-8 border-b border-[var(--color-border)] bg-[var(--color-surface-0)] sticky top-[65px] z-20">
         <div className="flex gap-8">
           {(["Overview", "Logs", "Traces", "Alerts"] as TabType[]).map((tab) => (
             <button
@@ -304,7 +304,7 @@ export default function ObservabilityDashboard() {
                 "py-4 text-sm font-medium border-b-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
                 activeTab === tab 
                   ? "border-indigo-500 text-indigo-400" 
-                  : "border-transparent text-zinc-500 hover:text-zinc-300"
+                  : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {tab}
@@ -330,8 +330,8 @@ export default function ObservabilityDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Service Health */}
               <div className="lg:col-span-1 space-y-6">
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-                  <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-6 flex items-center gap-2">
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+                  <h3 className="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-6 flex items-center gap-2">
                     Service Health
                   </h3>
                   <div className="space-y-6">
@@ -341,26 +341,26 @@ export default function ObservabilityDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-                  <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-4">
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+                  <h3 className="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-4">
                     Alert Summary
                   </h3>
-                  <div className="flex items-center justify-between p-3 bg-zinc-950 rounded border border-zinc-800">
-                    <span className="text-xs text-zinc-400">Firing Alerts</span>
+                  <div className="flex items-center justify-between p-3 bg-[var(--color-surface-0)] rounded border border-[var(--color-border)]">
+                    <span className="text-xs text-[var(--color-text-secondary)]">Firing Alerts</span>
                     <span className="text-rose-400 font-bold">3</span>
                   </div>
                 </div>
               </div>
 
               {/* Recent Incidents */}
-              <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-zinc-800 flex justify-between items-center">
-                  <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Recent Incidents</h3>
+              <div className="lg:col-span-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-[var(--color-border)] flex justify-between items-center">
+                  <h3 className="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Recent Incidents</h3>
                   <button className="text-xs text-indigo-400 hover:text-indigo-300 font-medium">View History</button>
                 </div>
-                <div className="divide-y divide-zinc-800">
+                <div className="divide-y divide-[var(--color-border)]">
                   {INCIDENTS_DATA.map((inc) => (
-                    <div key={inc.id} className="px-6 py-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors">
+                    <div key={inc.id} className="px-6 py-4 flex items-center justify-between hover:bg-[var(--color-surface-2)]/30 transition-colors">
                       <div className="flex gap-4 items-start">
                         <div className={cn(
                           "w-2 h-2 mt-1.5 rounded-full shrink-0",
@@ -368,11 +368,11 @@ export default function ObservabilityDashboard() {
                           inc.severity === "high" ? "bg-amber-500" : "bg-indigo-500"
                         )} />
                         <div>
-                          <p className="text-sm font-medium text-white">{inc.title}</p>
-                          <p className="text-xs text-zinc-500 mt-0.5">{inc.timestamp} • {inc.severity.toUpperCase()} SEVERITY</p>
+                          <p className="text-sm font-medium text-[var(--color-text-primary)]">{inc.title}</p>
+                          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{inc.timestamp} • {inc.severity.toUpperCase()} SEVERITY</p>
                         </div>
                       </div>
-                      <Badge className={inc.status === "open" ? "bg-rose-500/10 text-rose-400" : "bg-zinc-800 text-zinc-400"}>
+                      <Badge className={inc.status === "open" ? "bg-rose-500/10 text-rose-400" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"}>
                         {inc.status}
                       </Badge>
                     </div>
@@ -387,17 +387,17 @@ export default function ObservabilityDashboard() {
         {activeTab === "Logs" && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Filters */}
-            <div className="flex flex-wrap gap-4 items-center bg-zinc-900 p-4 border border-zinc-800 rounded-lg">
+            <div className="flex flex-wrap gap-4 items-center bg-[var(--color-surface-1)] p-4 border border-[var(--color-border)] rounded-lg">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-zinc-500 uppercase">Level</span>
-                <div className="flex bg-zinc-950 p-1 rounded border border-zinc-800">
+                <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase">Level</span>
+                <div className="flex bg-[var(--color-surface-0)] p-1 rounded border border-[var(--color-border)]">
                   {["ALL", "ERROR", "WARN", "INFO", "DEBUG"].map(lvl => (
                     <button
                       key={lvl}
                       onClick={() => setLogLevelFilter(lvl)}
                       className={cn(
                         "px-3 py-1 text-[10px] font-bold rounded transition-colors",
-                        logLevelFilter === lvl ? "bg-indigo-600 text-white" : "text-zinc-500 hover:text-zinc-300"
+                        logLevelFilter === lvl ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                       )}
                     >
                       {lvl}
@@ -406,58 +406,58 @@ export default function ObservabilityDashboard() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-zinc-500 uppercase">Service</span>
+                <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase">Service</span>
                 <select 
                   value={logServiceFilter}
                   onChange={(e) => setLogServiceFilter(e.target.value)}
-                  className="bg-zinc-950 text-zinc-300 text-xs border border-zinc-800 rounded px-2 py-1 outline-none focus:border-indigo-500"
+                  className="bg-[var(--color-surface-0)] text-[var(--color-text-primary)] text-xs border border-[var(--color-border)] rounded px-2 py-1 outline-none focus:border-indigo-500"
                 >
                   <option value="ALL">All Services</option>
                   {SERVICES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
-              <div className="ml-auto text-[10px] text-zinc-500 font-mono">
+              <div className="ml-auto text-[10px] text-[var(--color-text-muted)] font-mono">
                 Showing {filteredLogs.length} entries
               </div>
             </div>
 
             {/* Log List */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="grid grid-cols-[160px_80px_140px_1fr] px-4 py-2 bg-zinc-950 border-b border-zinc-800 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="grid grid-cols-[160px_80px_140px_1fr] px-4 py-2 bg-[var(--color-surface-0)] border-b border-[var(--color-border)] text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest">
                 <div>Timestamp</div>
                 <div>Level</div>
                 <div>Service</div>
                 <div>Message</div>
               </div>
-              <div className="divide-y divide-zinc-800/50 h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700">
+              <div className="divide-y divide-[var(--color-border)]/50 h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700">
                 {filteredLogs.map((log) => (
                   <div key={log.id}>
                     <div 
                       onClick={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
                       className={cn(
                         "grid grid-cols-[160px_80px_140px_1fr] px-4 py-2.5 text-xs font-mono cursor-pointer transition-colors group",
-                        expandedLogId === log.id ? "bg-indigo-500/5" : "hover:bg-zinc-800/40"
+                        expandedLogId === log.id ? "bg-indigo-500/5" : "hover:bg-[var(--color-surface-2)]/40"
                       )}
                     >
-                      <div className="text-zinc-500 group-hover:text-zinc-400">{log.timestamp.split("T")[1].replace("Z", "")}</div>
+                      <div className="text-[var(--color-text-muted)] group-hover:text-[var(--color-text-secondary)]">{log.timestamp.split("T")[1].replace("Z", "")}</div>
                       <div>
                         <Badge className={cn(
                           log.level === "ERROR" ? "bg-rose-400/10 text-rose-400" :
                           log.level === "WARN" ? "bg-amber-400/10 text-amber-400" :
-                          log.level === "INFO" ? "bg-zinc-700 text-zinc-300" :
+                          log.level === "INFO" ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" :
                           "bg-indigo-400/10 text-indigo-400"
                         )}>
                           {log.level}
                         </Badge>
                       </div>
-                      <div className="text-zinc-300 truncate pr-4">{log.service}</div>
-                      <div className="text-zinc-100 truncate flex items-center gap-2">
+                      <div className="text-[var(--color-text-primary)] truncate pr-4">{log.service}</div>
+                      <div className="text-[var(--color-text-primary)] truncate flex items-center gap-2">
                         {log.message}
-                        <span className="text-[10px] text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity">Click to expand</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity">Click to expand</span>
                       </div>
                     </div>
                     {expandedLogId === log.id && (
-                      <div className="p-4 bg-zinc-950 border-y border-zinc-800">
+                      <div className="p-4 bg-[var(--color-surface-0)] border-y border-[var(--color-border)]">
                         <pre className="text-[11px] text-indigo-300 bg-indigo-500/5 p-3 rounded border border-indigo-500/20 overflow-x-auto">
                           {JSON.stringify({ ...log.details, _id: log.id, _timestamp: log.timestamp }, null, 2)}
                         </pre>
@@ -473,38 +473,38 @@ export default function ObservabilityDashboard() {
         {/* --- TRACES TAB --- */}
         {activeTab === "Traces" && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="grid grid-cols-[120px_1fr_100px_80px_100px] px-4 py-3 bg-zinc-950 border-b border-zinc-800 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="grid grid-cols-[120px_1fr_100px_80px_100px] px-4 py-3 bg-[var(--color-surface-0)] border-b border-[var(--color-border)] text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest">
                 <div>Trace ID</div>
                 <div>Root Span</div>
                 <div>Duration</div>
                 <div>Status</div>
                 <div className="text-right">Services</div>
               </div>
-              <div className="divide-y divide-zinc-800">
+              <div className="divide-y divide-[var(--color-border)]">
                 {TRACES_DATA.map((trace) => (
                   <div key={trace.id}>
                     <div 
                       onClick={() => setExpandedTraceId(expandedTraceId === trace.id ? null : trace.id)}
                       className={cn(
-                        "grid grid-cols-[120px_1fr_100px_80px_100px] px-4 py-4 items-center cursor-pointer hover:bg-zinc-800/40 transition-colors",
-                        expandedTraceId === trace.id ? "bg-zinc-800/40" : ""
+                        "grid grid-cols-[120px_1fr_100px_80px_100px] px-4 py-4 items-center cursor-pointer hover:bg-[var(--color-surface-2)]/40 transition-colors",
+                        expandedTraceId === trace.id ? "bg-[var(--color-surface-2)]/40" : ""
                       )}
                     >
-                      <div className="text-xs font-mono text-zinc-500">{trace.traceId}</div>
-                      <div className="text-sm font-semibold text-white">{trace.rootSpan}</div>
-                      <div className="text-xs font-mono text-zinc-400">{trace.durationMs}ms</div>
+                      <div className="text-xs font-mono text-[var(--color-text-muted)]">{trace.traceId}</div>
+                      <div className="text-sm font-semibold text-[var(--color-text-primary)]">{trace.rootSpan}</div>
+                      <div className="text-xs font-mono text-[var(--color-text-secondary)]">{trace.durationMs}ms</div>
                       <div>
                         <Badge className={trace.status === "success" ? "bg-emerald-400/10 text-emerald-400" : "bg-rose-400/10 text-rose-400"}>
                           {trace.status}
                         </Badge>
                       </div>
-                      <div className="text-right text-xs text-zinc-500">{trace.serviceCount} services</div>
+                      <div className="text-right text-xs text-[var(--color-text-muted)]">{trace.serviceCount} services</div>
                     </div>
                     {expandedTraceId === trace.id && (
-                      <div className="p-6 bg-zinc-950 border-t border-zinc-800">
+                      <div className="p-6 bg-[var(--color-surface-0)] border-t border-[var(--color-border)]">
                         <div className="mb-6 flex justify-between items-center">
-                          <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Span Waterfall</h4>
+                          <h4 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest">Span Waterfall</h4>
                           <div className="flex gap-4">
                             {SERVICES.map(s => (
                               <div key={s} className="flex items-center gap-1.5">
@@ -512,9 +512,9 @@ export default function ObservabilityDashboard() {
                                   s === "API Gateway" ? "bg-indigo-500" :
                                   s === "Auth Service" ? "bg-emerald-500" :
                                   s === "Worker Queue" ? "bg-rose-500" :
-                                  s === "Billing Engine" ? "bg-amber-500" : "bg-zinc-500"
+                                  s === "Billing Engine" ? "bg-amber-500" : "bg-[var(--color-surface-3)]"
                                 )} />
-                                <span className="text-[10px] text-zinc-400">{s}</span>
+                                <span className="text-[10px] text-[var(--color-text-secondary)]">{s}</span>
                               </div>
                             ))}
                           </div>
@@ -525,7 +525,7 @@ export default function ObservabilityDashboard() {
                               <TraceSpan key={span.id} span={span} totalDuration={trace.durationMs} />
                             ))
                           ) : (
-                            <div className="py-8 text-center text-zinc-600 text-xs italic">
+                            <div className="py-8 text-center text-[var(--color-text-muted)] text-xs italic">
                               Full span data not available for this trace in simulation mode.
                             </div>
                           )}
@@ -544,37 +544,37 @@ export default function ObservabilityDashboard() {
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="grid grid-cols-1 gap-4">
               {ALERTS_DATA.map((alert) => (
-                <div key={alert.id} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden group">
+                <div key={alert.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden group">
                   <div className="flex items-center">
                     <div className={cn(
                       "w-1.5 self-stretch",
                       alert.severity === "critical" ? "bg-rose-500" :
                       alert.severity === "high" ? "bg-amber-500" :
-                      alert.severity === "medium" ? "bg-indigo-500" : "bg-zinc-500"
+                      alert.severity === "medium" ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
                     )} />
                     <div className="flex-grow p-5 flex flex-wrap gap-6 items-center justify-between">
                       <div className="min-w-[240px]">
                         <div className="flex items-center gap-3 mb-1">
-                          <h4 className="font-bold text-white">{alert.name}</h4>
+                          <h4 className="font-bold text-[var(--color-text-primary)]">{alert.name}</h4>
                           <Badge className={cn(
                             alert.severity === "critical" ? "bg-rose-500/10 text-rose-500" :
                             alert.severity === "high" ? "bg-amber-500/10 text-amber-500" :
-                            "bg-zinc-800 text-zinc-400"
+                            "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
                           )}>
                             {alert.severity}
                           </Badge>
                         </div>
-                        <p className="text-xs text-zinc-500 font-mono">{alert.condition}</p>
+                        <p className="text-xs text-[var(--color-text-muted)] font-mono">{alert.condition}</p>
                       </div>
                       
                       <div className="flex-grow max-w-md">
-                        <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-1">Triggered At</div>
-                        <div className="text-xs text-zinc-300 font-mono">{alert.triggeredAt.replace("T", " ").replace("Z", "")}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)] uppercase font-bold tracking-widest mb-1">Triggered At</div>
+                        <div className="text-xs text-[var(--color-text-primary)] font-mono">{alert.triggeredAt.replace("T", " ").replace("Z", "")}</div>
                       </div>
 
                       <div className="flex items-center gap-6">
                         <div>
-                          <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-1">Status</div>
+                          <div className="text-[10px] text-[var(--color-text-muted)] uppercase font-bold tracking-widest mb-1">Status</div>
                           <div className="flex items-center gap-2">
                             <span className={cn(
                               "w-2 h-2 rounded-full",
@@ -586,7 +586,7 @@ export default function ObservabilityDashboard() {
                             )}>{alert.status}</span>
                           </div>
                         </div>
-                        <button className="bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold py-2 px-4 rounded transition-colors border border-zinc-700">
+                        <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs font-bold py-2 px-4 rounded transition-colors border border-[var(--color-border)]">
                           {alert.status === "firing" ? "Acknowledge" : "View Resolution"}
                         </button>
                       </div>
@@ -597,7 +597,7 @@ export default function ObservabilityDashboard() {
             </div>
 
             {/* Empty State / Footer Info */}
-            <div className="mt-8 p-8 border-2 border-dashed border-zinc-800 rounded-xl flex flex-col items-center justify-center text-zinc-600">
+            <div className="mt-8 p-8 border-2 border-dashed border-[var(--color-border)] rounded-xl flex flex-col items-center justify-center text-[var(--color-text-muted)]">
               <div className="text-2xl mb-2">🛡️</div>
               <p className="text-sm font-medium">Monitoring 122 active rules</p>
               <p className="text-[10px] uppercase tracking-tighter mt-1">Last scan completed 4s ago</p>
@@ -608,7 +608,7 @@ export default function ObservabilityDashboard() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-12 border-t border-zinc-800 px-8 py-6 flex justify-between items-center text-zinc-500">
+      <footer className="mt-12 border-t border-[var(--color-border)] px-8 py-6 flex justify-between items-center text-[var(--color-text-muted)]">
         <div className="text-[10px] uppercase tracking-widest font-medium">
           Horizon Platform v2.4.0-stable
         </div>

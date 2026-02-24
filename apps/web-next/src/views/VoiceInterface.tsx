@@ -118,7 +118,7 @@ function AudioBars({ active, color }: { active: boolean; color: string }) {
 
 function MicPulseRing({ state }: { state: VoiceState }) {
   const isActive = state === "listening" || state === "speaking" || state === "thinking";
-  const color = state === "listening" ? "bg-indigo-500" : state === "speaking" ? "bg-emerald-500" : state === "thinking" ? "bg-amber-500" : "bg-zinc-600";
+  const color = state === "listening" ? "bg-indigo-500" : state === "speaking" ? "bg-emerald-500" : state === "thinking" ? "bg-amber-500" : "bg-[var(--color-surface-3)]";
 
   return (
     <div className="relative flex items-center justify-center">
@@ -135,8 +135,8 @@ function MicPulseRing({ state }: { state: VoiceState }) {
         aria-pressed={state !== "idle"}
         className={cn(
           "relative z-10 flex items-center justify-center h-28 w-28 rounded-full border-4 transition-all duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
-          state === "idle"      && "bg-zinc-800 border-zinc-600 hover:bg-zinc-700 focus-visible:ring-zinc-500",
-          state === "connecting" && "bg-zinc-800 border-zinc-600 animate-pulse",
+          state === "idle"      && "bg-[var(--color-surface-2)] border-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] focus-visible:ring-zinc-500",
+          state === "connecting" && "bg-[var(--color-surface-2)] border-[var(--color-surface-3)] animate-pulse",
           state === "listening" && "bg-indigo-600 border-indigo-400 hover:bg-indigo-700 focus-visible:ring-indigo-500",
           state === "thinking"  && "bg-amber-600 border-amber-400 focus-visible:ring-amber-500",
           state === "speaking"  && "bg-emerald-600 border-emerald-400 focus-visible:ring-emerald-500",
@@ -144,7 +144,7 @@ function MicPulseRing({ state }: { state: VoiceState }) {
         )}
       >
         {state === "idle" && (
-          <svg className="h-12 w-12 text-zinc-300" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <svg className="h-12 w-12 text-[var(--color-text-primary)]" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <rect x="16" y="8" width="16" height="24" rx="8" />
             <path d="M8 28c0 8.837 7.163 16 16 16s16-7.163 16-16" />
             <line x1="24" y1="44" x2="24" y2="48" />
@@ -152,12 +152,12 @@ function MicPulseRing({ state }: { state: VoiceState }) {
           </svg>
         )}
         {state === "connecting" && (
-          <svg className="h-10 w-10 text-zinc-300 animate-spin" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+          <svg className="h-10 w-10 text-[var(--color-text-primary)] animate-spin" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
             <path d="M42 24A18 18 0 1 1 24 6" />
           </svg>
         )}
         {state === "listening" && (
-          <svg className="h-12 w-12 text-white" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <svg className="h-12 w-12 text-[var(--color-text-primary)]" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <rect x="16" y="8" width="16" height="24" rx="8" />
             <path d="M8 28c0 8.837 7.163 16 16 16s16-7.163 16-16" />
             <line x1="24" y1="44" x2="24" y2="48" />
@@ -172,7 +172,7 @@ function MicPulseRing({ state }: { state: VoiceState }) {
           </div>
         )}
         {state === "speaking" && (
-          <svg className="h-12 w-12 text-white" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <svg className="h-12 w-12 text-[var(--color-text-primary)]" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <polygon points="8,12 8,36 24,36 40,22 24,8" />
             <path d="M36 18c3 1.5 5 4.5 5 8s-2 6.5-5 8" />
             <path d="M40 12c5 3 8 8 8 14s-3 11-8 14" />
@@ -192,8 +192,8 @@ function MicPulseRing({ state }: { state: VoiceState }) {
 // ─── State label ──────────────────────────────────────────────────────────────
 
 const STATE_CONFIG: Record<VoiceState, { label: string; color: string }> = {
-  idle:       { label: "Tap to start voice call",           color: "text-zinc-500" },
-  connecting: { label: "Connecting…",                       color: "text-zinc-400" },
+  idle:       { label: "Tap to start voice call",           color: "text-[var(--color-text-muted)]" },
+  connecting: { label: "Connecting…",                       color: "text-[var(--color-text-secondary)]" },
   listening:  { label: "Listening…",                        color: "text-indigo-300" },
   thinking:   { label: "Thinking…",                         color: "text-amber-300" },
   speaking:   { label: "Luis is speaking",                  color: "text-emerald-300" },
@@ -210,7 +210,7 @@ function TranscriptLine({ entry }: { entry: TranscriptEntry }) {
   if (isSystem) {
     return (
       <div className="flex items-center justify-center py-2">
-        <span className="text-xs text-zinc-600 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800">{entry.text}</span>
+        <span className="text-xs text-[var(--color-text-muted)] px-3 py-1 rounded-full bg-[var(--color-surface-1)] border border-[var(--color-border)]">{entry.text}</span>
       </div>
     );
   }
@@ -220,7 +220,7 @@ function TranscriptLine({ entry }: { entry: TranscriptEntry }) {
       {/* Avatar */}
       <div className={cn(
         "flex-none h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0",
-        isUser ? "bg-indigo-600 text-white" : "bg-zinc-700 text-zinc-200"
+        isUser ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
       )}>
         {isUser ? "D" : "🎨"}
       </div>
@@ -230,16 +230,16 @@ function TranscriptLine({ entry }: { entry: TranscriptEntry }) {
         <div className={cn(
           "px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
           isUser
-            ? "bg-indigo-600 text-white rounded-tr-sm"
-            : "bg-zinc-800 text-zinc-100 rounded-tl-sm",
+            ? "bg-indigo-600 text-[var(--color-text-primary)] rounded-tr-sm"
+            : "bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded-tl-sm",
           entry.isPartial && "opacity-60"
         )}>
           {entry.text}
           {entry.isPartial && <span className="ml-1 inline-flex gap-0.5"><span className="animate-bounce w-1 h-1 bg-current rounded-full" /><span className="animate-bounce w-1 h-1 bg-current rounded-full" style={{ animationDelay: "0.15s" }} /><span className="animate-bounce w-1 h-1 bg-current rounded-full" style={{ animationDelay: "0.3s" }} /></span>}
         </div>
         <div className={cn("flex items-center gap-2 mt-1", isUser && "flex-row-reverse")}>
-          <span className="text-xs text-zinc-600">{time}</span>
-          {entry.duration && <span className="text-xs text-zinc-700">{(entry.duration / 1000).toFixed(1)}s</span>}
+          <span className="text-xs text-[var(--color-text-muted)]">{time}</span>
+          {entry.duration && <span className="text-xs text-[var(--color-text-muted)]">{(entry.duration / 1000).toFixed(1)}s</span>}
           {entry.confidence !== undefined && entry.confidence < 0.9 && (
             <span className="text-xs text-amber-600" title="Low confidence transcription">~{Math.round(entry.confidence * 100)}%</span>
           )}
@@ -360,12 +360,12 @@ export default function VoiceInterface() {
   const stateCfg = STATE_CONFIG[voiceState];
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800 flex items-center justify-between gap-4">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg font-semibold text-white">Voice Interface</h1>
-          <p className="text-sm text-zinc-500 mt-0.5">Speak directly to your agents</p>
+          <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Voice Interface</h1>
+          <p className="text-sm text-[var(--color-text-muted)] mt-0.5">Speak directly to your agents</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -374,7 +374,7 @@ export default function VoiceInterface() {
             aria-label="Toggle transcript"
             className={cn(
               "px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-              showTranscript ? "bg-indigo-600/20 text-indigo-300 border-indigo-500/30" : "bg-zinc-800 text-zinc-400 border-zinc-700"
+              showTranscript ? "bg-indigo-600/20 text-indigo-300 border-indigo-500/30" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]"
             )}
           >
             {showTranscript ? "Hide Transcript" : "Show Transcript"}
@@ -393,10 +393,10 @@ export default function VoiceInterface() {
 
       <div className="flex flex-1 min-h-0">
         {/* Main voice panel */}
-        <div className={cn("flex flex-col items-center", showTranscript ? "w-80 flex-none border-r border-zinc-800" : "flex-1")}>
+        <div className={cn("flex flex-col items-center", showTranscript ? "w-80 flex-none border-r border-[var(--color-border)]" : "flex-1")}>
           {/* Agent selector */}
-          <div className="w-full px-6 py-4 border-b border-zinc-800">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Agent</p>
+          <div className="w-full px-6 py-4 border-b border-[var(--color-border)]">
+            <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Agent</p>
             <div className="space-y-1">
               {VOICE_AGENTS.map((agent) => (
                 <button
@@ -407,14 +407,14 @@ export default function VoiceInterface() {
                   aria-label={`Select ${agent.name} — ${agent.description}`}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                    selectedAgent.id === agent.id ? "bg-indigo-600/20 border border-indigo-500/30" : "hover:bg-zinc-900 border border-transparent",
+                    selectedAgent.id === agent.id ? "bg-indigo-600/20 border border-indigo-500/30" : "hover:bg-[var(--color-surface-1)] border border-transparent",
                     isActive && selectedAgent.id !== agent.id && "opacity-40 cursor-not-allowed"
                   )}
                 >
                   <span className="text-lg flex-none">{agent.emoji}</span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-white">{agent.name}</p>
-                    <p className="text-xs text-zinc-500 truncate">{agent.voice}</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{agent.name}</p>
+                    <p className="text-xs text-[var(--color-text-muted)] truncate">{agent.voice}</p>
                   </div>
                   {selectedAgent.id === agent.id && (
                     <svg className="h-4 w-4 text-indigo-400 flex-none ml-auto" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -432,15 +432,15 @@ export default function VoiceInterface() {
             {isActive && (
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-                <span className="text-sm font-mono text-zinc-300">{formatDuration(sessionDuration)}</span>
+                <span className="text-sm font-mono text-[var(--color-text-primary)]">{formatDuration(sessionDuration)}</span>
               </div>
             )}
 
             {/* Selected agent display */}
             <div className="text-center">
               <div className="text-5xl mb-2">{selectedAgent.emoji}</div>
-              <p className="text-base font-semibold text-white">{selectedAgent.name}</p>
-              <p className="text-xs text-zinc-500">{selectedAgent.description}</p>
+              <p className="text-base font-semibold text-[var(--color-text-primary)]">{selectedAgent.name}</p>
+              <p className="text-xs text-[var(--color-text-muted)]">{selectedAgent.description}</p>
             </div>
 
             {/* Mic button */}
@@ -469,7 +469,7 @@ export default function VoiceInterface() {
                   aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
                   className={cn(
                     "flex items-center justify-center h-10 w-10 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                    isMuted ? "bg-rose-600/20 border-rose-500/30 text-rose-300" : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-zinc-200"
+                    isMuted ? "bg-rose-600/20 border-rose-500/30 text-rose-300" : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {isMuted ? (
@@ -481,7 +481,7 @@ export default function VoiceInterface() {
 
                 {/* Volume */}
                 <div className="flex items-center gap-2">
-                  <svg className="h-3.5 w-3.5 text-zinc-500" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className="h-3.5 w-3.5 text-[var(--color-text-muted)]" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
                     <polygon points="1,5 1,11 4,11 8,14 8,2 4,5" />
                     <path strokeLinecap="round" d="M11 6a3 3 0 010 4" />
                   </svg>
@@ -494,7 +494,7 @@ export default function VoiceInterface() {
                     aria-label="Volume"
                     className="w-20 h-1 accent-indigo-500"
                   />
-                  <span className="text-xs font-mono text-zinc-500 w-6">{volume}</span>
+                  <span className="text-xs font-mono text-[var(--color-text-muted)] w-6">{volume}</span>
                 </div>
               </div>
             )}
@@ -504,12 +504,12 @@ export default function VoiceInterface() {
         {/* Transcript panel */}
         {showTranscript && (
           <div className="flex-1 flex flex-col min-h-0">
-            <div className="flex-none px-5 py-3 border-b border-zinc-800 flex items-center justify-between">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Transcript</p>
+            <div className="flex-none px-5 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+              <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Transcript</p>
               <button
                 onClick={() => setTranscript([])}
                 aria-label="Clear transcript"
-                className="text-xs text-zinc-600 hover:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded transition-colors"
+                className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded transition-colors"
               >
                 Clear
               </button>
@@ -518,7 +518,7 @@ export default function VoiceInterface() {
               {transcript.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
                   <span className="text-3xl">🎙️</span>
-                  <p className="text-sm text-zinc-500">Transcript will appear here</p>
+                  <p className="text-sm text-[var(--color-text-muted)]">Transcript will appear here</p>
                 </div>
               ) : (
                 transcript.map((entry) => <TranscriptLine key={entry.id} entry={entry} />)
@@ -528,10 +528,10 @@ export default function VoiceInterface() {
 
             {/* Partial transcript indicator when listening */}
             {voiceState === "listening" && (
-              <div className="flex-none px-5 py-3 border-t border-zinc-800">
+              <div className="flex-none px-5 py-3 border-t border-[var(--color-border)]">
                 <div className="flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                  <span className="text-xs text-zinc-600">Listening for speech…</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">Listening for speech…</span>
                 </div>
               </div>
             )}

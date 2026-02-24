@@ -787,7 +787,7 @@ function actionTextColor(action: HistoryAction): string {
   if (action === "resolved") {return "text-emerald-400";}
   if (action === "added") {return "text-indigo-400";}
   if (action === "removed") {return "text-rose-400";}
-  return "text-zinc-400";
+  return "text-[var(--color-text-secondary)]";
 }
 
 function computeEnvHealthScore(env: Environment, entries: DriftEntry[]): number {
@@ -832,7 +832,7 @@ function ToggleSwitch({ enabled, onChange }: ToggleSwitchProps) {
       onClick={onChange}
       className={cn(
         "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 transition-colors duration-200",
-        enabled ? "bg-indigo-500 border-indigo-500" : "bg-zinc-700 border-zinc-600"
+        enabled ? "bg-indigo-500 border-indigo-500" : "bg-[var(--color-surface-3)] border-[var(--color-surface-3)]"
       )}
     >
       <span
@@ -877,12 +877,12 @@ function SummaryCard({ label, value, sub, accent, barPercent }: SummaryCardProps
       : "bg-indigo-500";
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col gap-2">
-      <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{label}</span>
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 flex flex-col gap-2">
+      <span className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">{label}</span>
       <span className={cn("text-4xl font-bold tabular-nums", valueColor)}>{value}</span>
-      {sub && <span className="text-xs text-zinc-500">{sub}</span>}
+      {sub && <span className="text-xs text-[var(--color-text-muted)]">{sub}</span>}
       {barPercent !== undefined && (
-        <div className="mt-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="mt-1 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
           <div
             className={cn("h-full rounded-full transition-all duration-700", barColor)}
             style={{ width: `${Math.min(100, Math.max(0, barPercent))}%` }}
@@ -908,14 +908,14 @@ function EnvHealthCard({ env, score, driftCount, criticalCount }: EnvHealthCardP
   const status = score >= 80 ? "Healthy" : score >= 60 ? "Degraded" : "Critical";
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
         <Badge className={envBadgeStyle(env)}>{envLabel(env)}</Badge>
         <span className={cn("text-xs font-medium", scoreColor)}>{status}</span>
       </div>
       <div className={cn("text-5xl font-bold tabular-nums mb-1", scoreColor)}>{score}</div>
-      <div className="text-xs text-zinc-500 mb-3">Health score</div>
-      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden mb-3">
+      <div className="text-xs text-[var(--color-text-muted)] mb-3">Health score</div>
+      <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden mb-3">
         <div
           className={cn("h-full rounded-full transition-all duration-700", trackColor)}
           style={{ width: `${score}%` }}
@@ -924,11 +924,11 @@ function EnvHealthCard({ env, score, driftCount, criticalCount }: EnvHealthCardP
       <div className="flex gap-4 text-xs">
         <div>
           <span className="text-rose-400 font-semibold">{criticalCount}</span>
-          <span className="text-zinc-500 ml-1">critical</span>
+          <span className="text-[var(--color-text-muted)] ml-1">critical</span>
         </div>
         <div>
           <span className="text-amber-400 font-semibold">{driftCount}</span>
-          <span className="text-zinc-500 ml-1">total drifts</span>
+          <span className="text-[var(--color-text-muted)] ml-1">total drifts</span>
         </div>
       </div>
     </div>
@@ -944,7 +944,7 @@ interface MatrixCellProps {
 function MatrixCell({ envA, envB, entries }: MatrixCellProps) {
   if (envA === envB) {
     return (
-      <div className="h-14 flex items-center justify-center bg-zinc-800/30 rounded text-zinc-700 text-xs font-mono select-none">
+      <div className="h-14 flex items-center justify-center bg-[var(--color-surface-2)]/30 rounded text-[var(--color-text-muted)] text-xs font-mono select-none">
         ―
       </div>
     );
@@ -1015,8 +1015,8 @@ function CategoryBarChart({ entries }: CategoryBarChartProps) {
     <div className="space-y-2">
       {rows.map(({ cat, drifted, total }) => (
         <div key={cat} className="flex items-center gap-3">
-          <span className="text-xs text-zinc-400 w-28 shrink-0">{categoryLabel(cat)}</span>
-          <div className="flex-1 h-6 bg-zinc-800 rounded overflow-hidden relative">
+          <span className="text-xs text-[var(--color-text-secondary)] w-28 shrink-0">{categoryLabel(cat)}</span>
+          <div className="flex-1 h-6 bg-[var(--color-surface-2)] rounded overflow-hidden relative">
             <div
               className={cn(
                 "h-full rounded transition-all duration-700",
@@ -1024,11 +1024,11 @@ function CategoryBarChart({ entries }: CategoryBarChartProps) {
               )}
               style={{ width: `${Math.max(4, (drifted / maxDrifted) * 100)}%` }}
             />
-            <span className="absolute inset-0 flex items-center pl-2 text-xs font-medium text-white/70">
+            <span className="absolute inset-0 flex items-center pl-2 text-xs font-medium text-[var(--color-text-primary)]/70">
               {drifted > 0 ? `${drifted} drift${drifted !== 1 ? "s" : ""}` : "Clean"}
             </span>
           </div>
-          <span className="text-xs text-zinc-500 w-10 text-right shrink-0">
+          <span className="text-xs text-[var(--color-text-muted)] w-10 text-right shrink-0">
             {drifted}/{total}
           </span>
         </div>
@@ -1056,15 +1056,15 @@ function TrendChart({ entries }: TrendChartProps) {
           const heightPct = (val / maxVal) * 100;
           return (
             <div key={idx} className="flex-1 flex flex-col items-center justify-end gap-1">
-              <span className="text-[10px] text-zinc-500">{val}</span>
+              <span className="text-[10px] text-[var(--color-text-muted)]">{val}</span>
               <div
                 className={cn(
                   "w-full rounded-t transition-all duration-500",
-                  isToday ? "bg-indigo-500" : "bg-zinc-700"
+                  isToday ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
                 )}
                 style={{ height: `${heightPct}%`, minHeight: "4px" }}
               />
-              <span className="text-[9px] text-zinc-600">{days[idx]}</span>
+              <span className="text-[9px] text-[var(--color-text-muted)]">{days[idx]}</span>
             </div>
           );
         })}
@@ -1153,7 +1153,7 @@ function OverviewTab({ entries }: OverviewTabProps) {
 
       {/* Environment Health Scores */}
       <div>
-        <h3 className="text-sm font-semibold text-zinc-300 mb-3">Environment Health</h3>
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Environment Health</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {envs.map((env) => (
             <EnvHealthCard
@@ -1168,15 +1168,15 @@ function OverviewTab({ entries }: OverviewTabProps) {
       </div>
 
       {/* Sync Matrix */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-sm font-semibold text-white">Environment Sync Matrix</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Environment Sync Matrix</h3>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
               Pairwise drift count between environments
             </p>
           </div>
-          <div className="flex items-center gap-4 text-xs text-zinc-400">
+          <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
             <span className="flex items-center gap-1.5">
               <span className="inline-block w-3 h-3 rounded-sm bg-emerald-500/20 border border-emerald-500/30" />
               In Sync
@@ -1213,26 +1213,26 @@ function OverviewTab({ entries }: OverviewTabProps) {
 
       {/* Bottom: Category Chart + 7-day Trend */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-white mb-1">Drifts by Category</h3>
-          <p className="text-xs text-zinc-500 mb-4">Active drift count per config category</p>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Drifts by Category</h3>
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">Active drift count per config category</p>
           <CategoryBarChart entries={entries} />
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-white mb-1">7-Day Drift Trend</h3>
-          <p className="text-xs text-zinc-500 mb-4">Active drifts detected per day</p>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">7-Day Drift Trend</h3>
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">Active drifts detected per day</p>
           <TrendChart entries={entries} />
-          <div className="mt-4 pt-4 border-t border-zinc-800 grid grid-cols-3 gap-3 text-center">
+          <div className="mt-4 pt-4 border-t border-[var(--color-border)] grid grid-cols-3 gap-3 text-center">
             {envs.map((env) => (
               <div key={env}>
-                <div className="text-xl font-bold text-white">{envDriftCounts(env)}</div>
+                <div className="text-xl font-bold text-[var(--color-text-primary)]">{envDriftCounts(env)}</div>
                 <div className="mt-1">
                   <Badge className={cn("text-[10px]", envBadgeStyle(env))}>
                     {envLabel(env)}
                   </Badge>
                 </div>
-                <div className="text-[10px] text-zinc-500 mt-0.5">drifted keys</div>
+                <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5">drifted keys</div>
               </div>
             ))}
           </div>
@@ -1316,10 +1316,10 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
   return (
     <div className="space-y-4">
       {/* Filter + Search Bar */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 space-y-3">
         {/* Search */}
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm select-none">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-sm select-none">
             ⌕
           </span>
           <input
@@ -1327,12 +1327,12 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search config keys, descriptions, or authors…"
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-8 pr-4 py-2 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg pl-8 pr-4 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 text-xs"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xs"
             >
               ✕
             </button>
@@ -1342,7 +1342,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
         {/* Filter Row */}
         <div className="flex flex-wrap gap-3 items-center">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500 font-medium shrink-0">Severity</span>
+            <span className="text-xs text-[var(--color-text-muted)] font-medium shrink-0">Severity</span>
             <div className="flex gap-1">
               {(["all", "critical", "warning", "info"] as (Severity | "all")[]).map((s) => (
                 <button
@@ -1352,9 +1352,9 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                     "px-2.5 py-1 rounded text-xs font-medium border transition-all",
                     filterSeverity === s
                       ? s === "all"
-                        ? "bg-zinc-700 border-zinc-600 text-white"
+                        ? "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-primary)]"
                         : cn(severityBgBorder(s), severityTextColor(s))
-                      : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-zinc-300"
+                      : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -1364,7 +1364,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500 font-medium shrink-0">Status</span>
+            <span className="text-xs text-[var(--color-text-muted)] font-medium shrink-0">Status</span>
             <div className="flex gap-1">
               {(["all", "drifted", "resolved", "ignored"] as (DriftStatus | "all")[]).map((s) => (
                 <button
@@ -1373,8 +1373,8 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium border transition-all",
                     filterStatus === s
-                      ? "bg-zinc-700 border-zinc-600 text-white"
-                      : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-zinc-300"
+                      ? "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -1384,11 +1384,11 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-xs text-zinc-500 font-medium">Sort</span>
+            <span className="text-xs text-[var(--color-text-muted)] font-medium">Sort</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortKey)}
-              className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded px-2 py-1.5 focus:outline-none"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none"
             >
               <option value="severity">By Severity</option>
               <option value="recent">Most Recent</option>
@@ -1407,7 +1407,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                 "px-2 py-0.5 rounded text-xs border transition-all",
                 filterCategory === cat
                   ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-300"
-                  : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-zinc-300"
+                  : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {categoryLabel(cat)}
@@ -1415,10 +1415,10 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
           ))}
         </div>
 
-        <div className="text-xs text-zinc-500">
+        <div className="text-xs text-[var(--color-text-muted)]">
           {filtered.length} result{filtered.length !== 1 ? "s" : ""}
           {searchQuery && (
-            <span className="ml-1 text-zinc-600">
+            <span className="ml-1 text-[var(--color-text-muted)]">
               for &ldquo;{searchQuery}&rdquo;
             </span>
           )}
@@ -1439,13 +1439,13 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
           </button>
           <button
             onClick={handleBulkIgnore}
-            className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs font-medium hover:bg-zinc-700 transition-colors"
+            className="px-3 py-1.5 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs font-medium hover:bg-[var(--color-surface-3)] transition-colors"
           >
             Ignore All
           </button>
           <button
             onClick={() => setSelectedIds([])}
-            className="ml-auto text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="ml-auto text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
           >
             Clear selection
           </button>
@@ -1455,10 +1455,10 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
       {/* Drift List */}
       <div className="space-y-2">
         {filtered.length === 0 && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-16 text-center">
-            <div className="text-zinc-600 text-3xl mb-3">⌕</div>
-            <div className="text-zinc-500 text-sm font-medium">No drift entries match your filters</div>
-            <div className="text-zinc-600 text-xs mt-1">Try adjusting your filters or search query</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-16 text-center">
+            <div className="text-[var(--color-text-muted)] text-3xl mb-3">⌕</div>
+            <div className="text-[var(--color-text-muted)] text-sm font-medium">No drift entries match your filters</div>
+            <div className="text-[var(--color-text-muted)] text-xs mt-1">Try adjusting your filters or search query</div>
           </div>
         )}
 
@@ -1472,13 +1472,13 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
               ? "border-rose-500/30"
               : entry.status === "drifted" && entry.severity === "warning"
               ? "border-amber-500/20"
-              : "border-zinc-800";
+              : "border-[var(--color-border)]";
 
           return (
             <div
               key={entry.id}
               className={cn(
-                "bg-zinc-900 border rounded-xl overflow-hidden transition-all",
+                "bg-[var(--color-surface-1)] border rounded-xl overflow-hidden transition-all",
                 borderClass,
                 isSelected && "ring-1 ring-indigo-500/40"
               )}
@@ -1489,7 +1489,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                 {entry.status === "drifted" && (
                   <button
                     onClick={() => toggleSelect(entry.id)}
-                    className="pl-4 pr-2 py-3.5 text-zinc-600 hover:text-indigo-400 transition-colors shrink-0"
+                    className="pl-4 pr-2 py-3.5 text-[var(--color-text-muted)] hover:text-indigo-400 transition-colors shrink-0"
                   >
                     <span className="text-base leading-none">
                       {isSelected ? "☑" : "☐"}
@@ -1501,7 +1501,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                 {/* Main content */}
                 <button
                   onClick={() => setExpandedId(isExpanded ? null : entry.id)}
-                  className="flex-1 px-3 py-3.5 flex items-center gap-3 hover:bg-zinc-800/40 transition-colors text-left"
+                  className="flex-1 px-3 py-3.5 flex items-center gap-3 hover:bg-[var(--color-surface-2)]/40 transition-colors text-left"
                 >
                   <div
                     className={cn(
@@ -1512,7 +1512,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                      <span className="text-sm font-mono font-semibold text-white truncate">
+                      <span className="text-sm font-mono font-semibold text-[var(--color-text-primary)] truncate">
                         {entry.key}
                       </span>
                       <Badge
@@ -1528,33 +1528,33 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                           entry.status === "resolved"
                             ? "bg-emerald-400/10 border-emerald-400/30 text-emerald-400"
                             : entry.status === "ignored"
-                            ? "bg-zinc-700 border-zinc-600 text-zinc-400"
+                            ? "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
                             : "bg-rose-400/10 border-rose-400/30 text-rose-400"
                         )}
                       >
                         {entry.status}
                       </Badge>
-                      <Badge className="bg-zinc-800 border-zinc-700 text-zinc-400">
+                      <Badge className="bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)]">
                         {categoryLabel(entry.category)}
                       </Badge>
                     </div>
-                    <div className="text-xs text-zinc-500 truncate">{entry.description}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] truncate">{entry.description}</div>
                   </div>
 
-                  <div className="text-xs text-zinc-600 shrink-0 text-right hidden sm:block">
-                    <div className="text-zinc-400">{timeAgo(entry.detectedAt)}</div>
-                    <div className="text-zinc-600">{formatTimestamp(entry.detectedAt)}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] shrink-0 text-right hidden sm:block">
+                    <div className="text-[var(--color-text-secondary)]">{timeAgo(entry.detectedAt)}</div>
+                    <div className="text-[var(--color-text-muted)]">{formatTimestamp(entry.detectedAt)}</div>
                   </div>
-                  <span className="text-zinc-600 text-xs ml-1">{isExpanded ? "▲" : "▼"}</span>
+                  <span className="text-[var(--color-text-muted)] text-xs ml-1">{isExpanded ? "▲" : "▼"}</span>
                 </button>
               </div>
 
               {/* Expanded Detail */}
               {isExpanded && (
-                <div className="border-t border-zinc-800 px-5 py-4 space-y-4">
+                <div className="border-t border-[var(--color-border)] px-5 py-4 space-y-4">
                   {/* Values per environment */}
                   <div>
-                    <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                    <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">
                       Current Values Per Environment
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
@@ -1568,7 +1568,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                               "rounded-lg border p-3",
                               isExpected
                                 ? "border-emerald-500/30 bg-emerald-500/5"
-                                : "border-zinc-700 bg-zinc-800/50"
+                                : "border-[var(--color-border)] bg-[var(--color-surface-2)]/50"
                             )}
                           >
                             <div className="flex items-center justify-between mb-1.5">
@@ -1577,11 +1577,11 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                                 <span className="text-[10px] text-emerald-400">✓ Expected</span>
                               )}
                             </div>
-                            <div className="font-mono text-sm text-white break-all">
+                            <div className="font-mono text-sm text-[var(--color-text-primary)] break-all">
                               {val !== null ? (
                                 val
                               ) : (
-                                <span className="text-zinc-500 italic">not set</span>
+                                <span className="text-[var(--color-text-muted)] italic">not set</span>
                               )}
                             </div>
                           </div>
@@ -1589,7 +1589,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                       })}
                     </div>
                     <div className="mt-2 flex items-center gap-2">
-                      <span className="text-xs text-zinc-500">Expected value:</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">Expected value:</span>
                       <span className="font-mono text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                         {entry.expectedValue}
                       </span>
@@ -1599,12 +1599,12 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                   {/* Metadata */}
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <span className="text-zinc-500">Last changed by</span>
-                      <div className="text-zinc-300 mt-0.5 font-mono">{entry.lastChangedBy}</div>
+                      <span className="text-[var(--color-text-muted)]">Last changed by</span>
+                      <div className="text-[var(--color-text-primary)] mt-0.5 font-mono">{entry.lastChangedBy}</div>
                     </div>
                     <div>
-                      <span className="text-zinc-500">Detected at</span>
-                      <div className="text-zinc-300 mt-0.5">{formatTimestamp(entry.detectedAt)}</div>
+                      <span className="text-[var(--color-text-muted)]">Detected at</span>
+                      <div className="text-[var(--color-text-primary)] mt-0.5">{formatTimestamp(entry.detectedAt)}</div>
                     </div>
                   </div>
 
@@ -1619,7 +1619,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                       </button>
                       <button
                         onClick={() => onIgnore(entry.id)}
-                        className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs font-medium hover:bg-zinc-700 transition-colors"
+                        className="px-3 py-1.5 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs font-medium hover:bg-[var(--color-surface-3)] transition-colors"
                       >
                         Ignore Drift
                       </button>
@@ -1635,7 +1635,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                     </div>
                   )}
                   {entry.status === "ignored" && (
-                    <div className="flex items-center gap-2 text-xs text-zinc-400 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2">
                       <span>—</span>
                       <span>This drift is suppressed by an active ignore rule or policy.</span>
                     </div>
@@ -1702,10 +1702,10 @@ function HistoryTab({ events }: HistoryTabProps) {
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 space-y-3">
         {/* Search */}
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm select-none">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-sm select-none">
             ⌕
           </span>
           <input
@@ -1713,14 +1713,14 @@ function HistoryTab({ events }: HistoryTabProps) {
             value={searchActor}
             onChange={(e) => setSearchActor(e.target.value)}
             placeholder="Search by actor, config key, or comment…"
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-8 pr-4 py-2 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg pl-8 pr-4 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
           />
         </div>
 
         <div className="flex flex-wrap gap-3 items-center">
           {/* Environment filter */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500 font-medium">Environment</span>
+            <span className="text-xs text-[var(--color-text-muted)] font-medium">Environment</span>
             <div className="flex gap-1">
               {(["all", "dev", "staging", "prod"] as (Environment | "all")[]).map((env) => (
                 <button
@@ -1730,9 +1730,9 @@ function HistoryTab({ events }: HistoryTabProps) {
                     "px-2.5 py-1 rounded text-xs font-medium border transition-all",
                     filterEnv === env
                       ? env === "all"
-                        ? "bg-zinc-700 border-zinc-600 text-white"
+                        ? "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-primary)]"
                         : envBadgeStyle(env)
-                      : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-zinc-300"
+                      : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {env === "all" ? "All" : envLabel(env)}
@@ -1743,7 +1743,7 @@ function HistoryTab({ events }: HistoryTabProps) {
 
           {/* Action filter */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500 font-medium">Action</span>
+            <span className="text-xs text-[var(--color-text-muted)] font-medium">Action</span>
             <div className="flex gap-1 flex-wrap">
               {allActions.map((action) => (
                 <button
@@ -1752,8 +1752,8 @@ function HistoryTab({ events }: HistoryTabProps) {
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium border transition-all",
                     filterAction === action
-                      ? "bg-zinc-700 border-zinc-600 text-white"
-                      : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-zinc-300"
+                      ? "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {action === "all"
@@ -1765,16 +1765,16 @@ function HistoryTab({ events }: HistoryTabProps) {
           </div>
         </div>
 
-        <div className="text-xs text-zinc-500">
+        <div className="text-xs text-[var(--color-text-muted)]">
           {filtered.length} event{filtered.length !== 1 ? "s" : ""}
         </div>
       </div>
 
       {/* Timeline — grouped by date */}
       {grouped.length === 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-16 text-center">
-          <div className="text-zinc-600 text-3xl mb-3">📅</div>
-          <div className="text-zinc-500 text-sm font-medium">No events match your filters</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-16 text-center">
+          <div className="text-[var(--color-text-muted)] text-3xl mb-3">📅</div>
+          <div className="text-[var(--color-text-muted)] text-sm font-medium">No events match your filters</div>
         </div>
       )}
 
@@ -1782,28 +1782,28 @@ function HistoryTab({ events }: HistoryTabProps) {
         <div key={date}>
           {/* Date separator */}
           <div className="flex items-center gap-3 mb-3">
-            <div className="h-px flex-1 bg-zinc-800" />
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider px-2">
+            <div className="h-px flex-1 bg-[var(--color-surface-2)]" />
+            <span className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider px-2">
               {date}
             </span>
-            <div className="h-px flex-1 bg-zinc-800" />
+            <div className="h-px flex-1 bg-[var(--color-surface-2)]" />
           </div>
 
           <div className="relative">
-            <div className="absolute left-[22px] top-0 bottom-0 w-px bg-zinc-800" />
+            <div className="absolute left-[22px] top-0 bottom-0 w-px bg-[var(--color-surface-2)]" />
             <div className="space-y-3">
               {evts.map((event) => (
                 <div key={event.id} className="relative flex gap-4">
                   {/* Dot */}
                   <div
                     className={cn(
-                      "relative z-10 w-3 h-3 rounded-full mt-4 ml-4 shrink-0 border-2 border-zinc-950",
+                      "relative z-10 w-3 h-3 rounded-full mt-4 ml-4 shrink-0 border-2 border-[var(--color-border)]",
                       severityDotColor(event.severity)
                     )}
                   />
 
                   {/* Card */}
-                  <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                  <div className="flex-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -1828,7 +1828,7 @@ function HistoryTab({ events }: HistoryTabProps) {
                           </Badge>
                         </div>
 
-                        <div className="font-mono text-sm font-semibold text-white mb-1.5">
+                        <div className="font-mono text-sm font-semibold text-[var(--color-text-primary)] mb-1.5">
                           {event.configKey}
                         </div>
 
@@ -1837,7 +1837,7 @@ function HistoryTab({ events }: HistoryTabProps) {
                             <span className="font-mono text-rose-400 bg-rose-400/10 px-1.5 py-0.5 rounded border border-rose-400/20">
                               {event.oldValue}
                             </span>
-                            <span className="text-zinc-600">→</span>
+                            <span className="text-[var(--color-text-muted)]">→</span>
                             <span className="font-mono text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded border border-emerald-400/20">
                               {event.newValue}
                             </span>
@@ -1853,21 +1853,21 @@ function HistoryTab({ events }: HistoryTabProps) {
                         )}
 
                         {event.comment && (
-                          <div className="text-xs text-zinc-500 italic mt-1">
+                          <div className="text-xs text-[var(--color-text-muted)] italic mt-1">
                             &ldquo;{event.comment}&rdquo;
                           </div>
                         )}
 
-                        <div className="mt-2 text-xs text-zinc-600 font-mono">
+                        <div className="mt-2 text-xs text-[var(--color-text-muted)] font-mono">
                           {event.actor}
                         </div>
                       </div>
 
                       <div className="text-right shrink-0">
-                        <div className="text-xs text-zinc-400">
+                        <div className="text-xs text-[var(--color-text-secondary)]">
                           {timeAgo(event.timestamp)}
                         </div>
-                        <div className="text-[10px] text-zinc-600 mt-0.5">
+                        <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5">
                           {formatTimestamp(event.timestamp)}
                         </div>
                       </div>
@@ -1919,7 +1919,7 @@ function PoliciesTab({
             "px-4 py-2 rounded-lg text-sm font-medium border transition-all",
             activeSection === "policies"
               ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-300"
-              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-300"
+              : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           )}
         >
           Detection Policies ({policies.length})
@@ -1930,7 +1930,7 @@ function PoliciesTab({
             "px-4 py-2 rounded-lg text-sm font-medium border transition-all",
             activeSection === "ignore-rules"
               ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-300"
-              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-300"
+              : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           )}
         >
           Ignore Rules ({ignoreRules.length})
@@ -1942,21 +1942,21 @@ function PoliciesTab({
         <div className="space-y-4">
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
               <div className="text-3xl font-bold text-emerald-400">
                 {activePolicies.length}
               </div>
-              <div className="text-xs text-zinc-400 mt-1">Active Policies</div>
+              <div className="text-xs text-[var(--color-text-secondary)] mt-1">Active Policies</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-zinc-500">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-[var(--color-text-muted)]">
                 {disabledPolicies.length}
               </div>
-              <div className="text-xs text-zinc-400 mt-1">Disabled</div>
+              <div className="text-xs text-[var(--color-text-secondary)] mt-1">Disabled</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
               <div className="text-3xl font-bold text-indigo-400">{totalTriggers}</div>
-              <div className="text-xs text-zinc-400 mt-1">Total Triggers</div>
+              <div className="text-xs text-[var(--color-text-secondary)] mt-1">Total Triggers</div>
             </div>
           </div>
 
@@ -1965,14 +1965,14 @@ function PoliciesTab({
             <div
               key={policy.id}
               className={cn(
-                "bg-zinc-900 border rounded-xl p-5 transition-all",
-                policy.enabled ? "border-zinc-800" : "border-zinc-800/40 opacity-60"
+                "bg-[var(--color-surface-1)] border rounded-xl p-5 transition-all",
+                policy.enabled ? "border-[var(--color-border)]" : "border-[var(--color-border)]/40 opacity-60"
               )}
             >
               <div className="flex items-start gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-sm font-semibold text-white">{policy.name}</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{policy.name}</span>
                     <Badge
                       className={cn(
                         severityBgBorder(policy.severity),
@@ -1981,21 +1981,21 @@ function PoliciesTab({
                     >
                       {policy.severity}
                     </Badge>
-                    <Badge className="bg-zinc-800 border-zinc-700 text-zinc-400">
+                    <Badge className="bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)]">
                       {categoryLabel(policy.category)}
                     </Badge>
                     {!policy.enabled && (
-                      <Badge className="bg-zinc-800 border-zinc-700 text-zinc-500">
+                      <Badge className="bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)]">
                         disabled
                       </Badge>
                     )}
                   </div>
 
-                  <p className="text-xs text-zinc-500 mb-4">{policy.description}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mb-4">{policy.description}</p>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     <div>
-                      <div className="text-zinc-500 mb-1.5">Environments</div>
+                      <div className="text-[var(--color-text-muted)] mb-1.5">Environments</div>
                       <div className="flex gap-1 flex-wrap">
                         {policy.environments.map((env) => (
                           <Badge key={env} className={envBadgeStyle(env)}>
@@ -2005,18 +2005,18 @@ function PoliciesTab({
                       </div>
                     </div>
                     <div>
-                      <div className="text-zinc-500 mb-1">Threshold</div>
-                      <div className="text-zinc-300 font-medium">
+                      <div className="text-[var(--color-text-muted)] mb-1">Threshold</div>
+                      <div className="text-[var(--color-text-primary)] font-medium">
                         {policy.threshold === 0 ? "Any deviation" : `±${policy.threshold}%`}
                       </div>
                     </div>
                     <div>
-                      <div className="text-zinc-500 mb-1">Total Triggers</div>
-                      <div className="text-zinc-300 font-medium">{policy.triggerCount}</div>
+                      <div className="text-[var(--color-text-muted)] mb-1">Total Triggers</div>
+                      <div className="text-[var(--color-text-primary)] font-medium">{policy.triggerCount}</div>
                     </div>
                     <div>
-                      <div className="text-zinc-500 mb-1">Last Triggered</div>
-                      <div className="text-zinc-300 font-medium">
+                      <div className="text-[var(--color-text-muted)] mb-1">Last Triggered</div>
+                      <div className="text-[var(--color-text-primary)] font-medium">
                         {policy.lastTriggered ? timeAgo(policy.lastTriggered) : "Never"}
                       </div>
                     </div>
@@ -2024,7 +2024,7 @@ function PoliciesTab({
 
                   {/* Trigger count bar */}
                   <div className="mt-3">
-                    <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                       <div
                         className="h-full bg-indigo-500/60 rounded-full transition-all duration-700"
                         style={{
@@ -2032,19 +2032,19 @@ function PoliciesTab({
                         }}
                       />
                     </div>
-                    <div className="text-[10px] text-zinc-600 mt-0.5">
+                    <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5">
                       {Math.round((policy.triggerCount / Math.max(totalTriggers, 1)) * 100)}% of total triggers
                     </div>
                   </div>
 
                   {policy.ignorePatterns.length > 0 && (
                     <div className="mt-3">
-                      <div className="text-xs text-zinc-500 mb-1">Ignore patterns</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-1">Ignore patterns</div>
                       <div className="flex gap-1 flex-wrap">
                         {policy.ignorePatterns.map((pattern) => (
                           <span
                             key={pattern}
-                            className="font-mono text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-700"
+                            className="font-mono text-[10px] bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-1.5 py-0.5 rounded border border-[var(--color-border)]"
                           >
                             {pattern}
                           </span>
@@ -2062,7 +2062,7 @@ function PoliciesTab({
           ))}
 
           {/* Add policy CTA */}
-          <button className="w-full bg-zinc-900 border border-dashed border-zinc-700 rounded-xl p-4 text-sm text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-all">
+          <button className="w-full bg-[var(--color-surface-1)] border border-dashed border-[var(--color-border)] rounded-xl p-4 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)] transition-all">
             + Create Detection Policy
           </button>
         </div>
@@ -2073,27 +2073,27 @@ function PoliciesTab({
         <div className="space-y-4">
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
               <div className="text-3xl font-bold text-emerald-400">{activeIgnoreRules.length}</div>
-              <div className="text-xs text-zinc-400 mt-1">Active Rules</div>
+              <div className="text-xs text-[var(--color-text-secondary)] mt-1">Active Rules</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-zinc-500">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
+              <div className="text-3xl font-bold text-[var(--color-text-muted)]">
                 {ignoreRules.length - activeIgnoreRules.length}
               </div>
-              <div className="text-xs text-zinc-400 mt-1">Disabled</div>
+              <div className="text-xs text-[var(--color-text-secondary)] mt-1">Disabled</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
               <div className="text-3xl font-bold text-indigo-400">{totalMatches}</div>
-              <div className="text-xs text-zinc-400 mt-1">Total Matches</div>
+              <div className="text-xs text-[var(--color-text-secondary)] mt-1">Total Matches</div>
             </div>
           </div>
 
           {/* Info banner */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-xs text-zinc-400">
-            <strong className="text-zinc-300">Ignore rules</strong> suppress drift alerts for
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-xs text-[var(--color-text-secondary)]">
+            <strong className="text-[var(--color-text-primary)]">Ignore rules</strong> suppress drift alerts for
             config keys matching the glob pattern. Use{" "}
-            <code className="font-mono bg-zinc-800 px-1 py-0.5 rounded text-indigo-300">
+            <code className="font-mono bg-[var(--color-surface-2)] px-1 py-0.5 rounded text-indigo-300">
               *
             </code>{" "}
             as a wildcard. Disabled rules are retained for audit history and can be re-enabled
@@ -2105,35 +2105,35 @@ function PoliciesTab({
             <div
               key={rule.id}
               className={cn(
-                "bg-zinc-900 border rounded-xl p-5 transition-all",
-                rule.enabled ? "border-zinc-800" : "border-zinc-800/40 opacity-60"
+                "bg-[var(--color-surface-1)] border rounded-xl p-5 transition-all",
+                rule.enabled ? "border-[var(--color-border)]" : "border-[var(--color-border)]/40 opacity-60"
               )}
             >
               <div className="flex items-start gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-sm font-semibold text-white">
+                    <span className="font-mono text-sm font-semibold text-[var(--color-text-primary)]">
                       {rule.pattern}
                     </span>
                     {!rule.enabled && (
-                      <Badge className="bg-zinc-800 border-zinc-700 text-zinc-500">
+                      <Badge className="bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)]">
                         disabled
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-zinc-500 mb-3">{rule.reason}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mb-3">{rule.reason}</p>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                     <div>
-                      <div className="text-zinc-500 mb-0.5">Added by</div>
-                      <div className="text-zinc-300 font-mono truncate">{rule.addedBy}</div>
+                      <div className="text-[var(--color-text-muted)] mb-0.5">Added by</div>
+                      <div className="text-[var(--color-text-primary)] font-mono truncate">{rule.addedBy}</div>
                     </div>
                     <div>
-                      <div className="text-zinc-500 mb-0.5">Added</div>
-                      <div className="text-zinc-300">{formatDate(rule.addedAt)}</div>
+                      <div className="text-[var(--color-text-muted)] mb-0.5">Added</div>
+                      <div className="text-[var(--color-text-primary)]">{formatDate(rule.addedAt)}</div>
                     </div>
                     <div>
-                      <div className="text-zinc-500 mb-0.5">Matches</div>
-                      <div className="text-zinc-300">
+                      <div className="text-[var(--color-text-muted)] mb-0.5">Matches</div>
+                      <div className="text-[var(--color-text-primary)]">
                         {rule.matchCount} key{rule.matchCount !== 1 ? "s" : ""}
                       </div>
                     </div>
@@ -2150,7 +2150,7 @@ function PoliciesTab({
           ))}
 
           {/* Add rule CTA */}
-          <button className="w-full bg-zinc-900 border border-dashed border-zinc-700 rounded-xl p-4 text-sm text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-all">
+          <button className="w-full bg-[var(--color-surface-1)] border border-dashed border-[var(--color-border)] rounded-xl p-4 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)] transition-all">
             + Add Ignore Rule
           </button>
         </div>
@@ -2218,7 +2218,7 @@ export default function EnvironmentDriftDetector() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Critical banner */}
       {criticalCount > 0 && showScanBanner && (
         <div className="bg-rose-500/10 border-b border-rose-500/30 px-6 py-2.5">
@@ -2250,13 +2250,13 @@ export default function EnvironmentDriftDetector() {
       )}
 
       {/* Sticky Header */}
-      <div className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-0)]/90 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2.5 mb-0.5">
                 <span className="text-xl select-none">🔍</span>
-                <h1 className="text-xl font-bold text-white tracking-tight">
+                <h1 className="text-xl font-bold text-[var(--color-text-primary)] tracking-tight">
                   Environment Drift Detector
                 </h1>
                 {criticalCount > 0 && (
@@ -2265,19 +2265,19 @@ export default function EnvironmentDriftDetector() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-[var(--color-text-muted)]">
                 Configuration drift monitoring across{" "}
-                <strong className="text-zinc-300">dev</strong>,{" "}
-                <strong className="text-zinc-300">staging</strong>, and{" "}
-                <strong className="text-zinc-300">prod</strong> — {driftEntries.length} configs
+                <strong className="text-[var(--color-text-primary)]">dev</strong>,{" "}
+                <strong className="text-[var(--color-text-primary)]">staging</strong>, and{" "}
+                <strong className="text-[var(--color-text-primary)]">prod</strong> — {driftEntries.length} configs
                 tracked
               </p>
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
               <div className="text-right text-xs hidden sm:block">
-                <div className="text-zinc-600">Last scan</div>
-                <div className="text-zinc-400 font-medium">{timeAgo(lastRefreshed)}</div>
+                <div className="text-[var(--color-text-muted)]">Last scan</div>
+                <div className="text-[var(--color-text-secondary)] font-medium">{timeAgo(lastRefreshed)}</div>
               </div>
               <button
                 onClick={handleRefresh}
@@ -2285,7 +2285,7 @@ export default function EnvironmentDriftDetector() {
                 className={cn(
                   "px-3 py-1.5 rounded-lg border text-xs font-medium transition-all",
                   isRefreshing
-                    ? "bg-zinc-800 border-zinc-700 text-zinc-500 cursor-not-allowed"
+                    ? "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)] cursor-not-allowed"
                     : "bg-indigo-500/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/20"
                 )}
               >
@@ -2295,7 +2295,7 @@ export default function EnvironmentDriftDetector() {
           </div>
 
           {/* Tab Bar */}
-          <div className="flex gap-0 mt-4 -mb-px border-b border-zinc-800/0">
+          <div className="flex gap-0 mt-4 -mb-px border-b border-[var(--color-border)]/0">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -2303,8 +2303,8 @@ export default function EnvironmentDriftDetector() {
                 className={cn(
                   "px-4 py-2 text-sm font-medium border-b-2 transition-all flex items-center gap-1.5 -mb-px",
                   activeTab === tab.id
-                    ? "border-indigo-500 text-white"
-                    : "border-transparent text-zinc-500 hover:text-zinc-300 hover:border-zinc-700"
+                    ? "border-indigo-500 text-[var(--color-text-primary)]"
+                    : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
                 )}
               >
                 {tab.label}

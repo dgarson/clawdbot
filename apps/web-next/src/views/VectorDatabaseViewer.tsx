@@ -243,16 +243,16 @@ export default function VectorDatabaseViewer(): React.ReactElement {
   const uniqueModels = Array.from(new Set(sampleEmbeddings.map((e) => e.model)));
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Vector Database</h1>
-          <p className="text-zinc-400">Manage collections, embeddings, and search across your vector store</p>
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-2">Vector Database</h1>
+          <p className="text-[var(--color-text-secondary)]">Manage collections, embeddings, and search across your vector store</p>
         </header>
 
         {/* Tabs */}
-        <nav className="flex gap-1 mb-6 border-b border-zinc-800">
+        <nav className="flex gap-1 mb-6 border-b border-[var(--color-border)]">
           {(["collections", "embeddings", "search", "health"] as TabType[]).map((tab) => (
             <button
               key={tab}
@@ -261,7 +261,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                 "px-4 py-2 text-sm font-medium transition-all duration-150 border-b-2 -mb-px",
                 activeTab === tab
                   ? "text-indigo-400 border-indigo-500"
-                  : "text-zinc-400 border-transparent hover:text-white hover:border-zinc-600"
+                  : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
               )}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1).replace("health", "Index Health").replace("search", "Search Lab")}
@@ -276,23 +276,23 @@ export default function VectorDatabaseViewer(): React.ReactElement {
               {sampleCollections.map((collection) => (
                 <div
                   key={collection.id}
-                  className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"
+                  className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden"
                 >
                   <button
                     onClick={() => toggleCollection(collection.id)}
-                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-800/50 transition-colors"
+                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-[var(--color-surface-2)]/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       {getStatusIndicator(collection.indexStatus)}
                       <div className="text-left">
-                        <div className="font-medium text-white">{collection.name}</div>
-                        <div className="text-xs text-zinc-500">
+                        <div className="font-medium text-[var(--color-text-primary)]">{collection.name}</div>
+                        <div className="text-xs text-[var(--color-text-muted)]">
                           {collection.dimensions}d · {collection.distanceMetric} · {collection.vectorCount.toLocaleString()} vectors
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-6 text-sm">
-                      <span className="text-zinc-400">{collection.diskSize}</span>
+                      <span className="text-[var(--color-text-secondary)]">{collection.diskSize}</span>
                       <span
                         className={cn(
                           "px-2 py-0.5 text-xs rounded",
@@ -303,21 +303,21 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                       >
                         {collection.indexStatus}
                       </span>
-                      <span className="text-zinc-500 text-xl">{expandedCollections.has(collection.id) ? "−" : "+"}</span>
+                      <span className="text-[var(--color-text-muted)] text-xl">{expandedCollections.has(collection.id) ? "−" : "+"}</span>
                     </div>
                   </button>
                   
                   {expandedCollections.has(collection.id) && (
-                    <div className="px-4 py-4 border-t border-zinc-800 bg-zinc-900/50">
+                    <div className="px-4 py-4 border-t border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
                       <div className="grid md:grid-cols-3 gap-6">
                         {/* Schema */}
                         <div>
-                          <h4 className="text-xs uppercase tracking-wider text-zinc-500 mb-2">Schema</h4>
+                          <h4 className="text-xs uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Schema</h4>
                           <div className="space-y-1">
                             {Object.entries(collection.schema).map(([key, type]) => (
                               <div key={key} className="flex justify-between text-sm">
-                                <span className="text-zinc-300">{key}</span>
-                                <span className="text-zinc-500">{type}</span>
+                                <span className="text-[var(--color-text-primary)]">{key}</span>
+                                <span className="text-[var(--color-text-muted)]">{type}</span>
                               </div>
                             ))}
                           </div>
@@ -325,12 +325,12 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                         
                         {/* Metadata Fields */}
                         <div>
-                          <h4 className="text-xs uppercase tracking-wider text-zinc-500 mb-2">Metadata Fields</h4>
+                          <h4 className="text-xs uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Metadata Fields</h4>
                           <div className="flex flex-wrap gap-1">
                             {collection.metadataFields.map((field) => (
                               <span
                                 key={field}
-                                className="px-2 py-0.5 bg-zinc-800 text-zinc-300 text-xs rounded"
+                                className="px-2 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-xs rounded"
                               >
                                 {field}
                               </span>
@@ -340,7 +340,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                         
                         {/* Sample Vectors */}
                         <div>
-                          <h4 className="text-xs uppercase tracking-wider text-zinc-500 mb-2">Sample Vectors</h4>
+                          <h4 className="text-xs uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Sample Vectors</h4>
                           <div className="flex items-end gap-0.5 h-8">
                             {collection.sampleVectors.map((val, idx) => (
                               <div
@@ -354,7 +354,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                               />
                             ))}
                           </div>
-                          <div className="flex justify-between text-xs text-zinc-600 mt-1">
+                          <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
                             <span>-1</span>
                             <span>0</span>
                             <span>+1</span>
@@ -377,7 +377,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
               <select
                 value={embeddingCollectionFilter}
                 onChange={(e) => setEmbeddingCollectionFilter(e.target.value)}
-                className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
               >
                 <option value="all">All Collections</option>
                 {sampleCollections.map((c) => (
@@ -387,22 +387,22 @@ export default function VectorDatabaseViewer(): React.ReactElement {
               <select
                 value={embeddingModelFilter}
                 onChange={(e) => setEmbeddingModelFilter(e.target.value)}
-                className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
               >
                 <option value="all">All Models</option>
                 {uniqueModels.map((m) => (
                   <option key={m} value={m}>{m}</option>
                 ))}
               </select>
-              <span className="text-sm text-zinc-500 self-center">
+              <span className="text-sm text-[var(--color-text-muted)] self-center">
                 Showing {filteredEmbeddings.length} embeddings
               </span>
             </div>
 
             {/* Scatter Plot */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-zinc-400 mb-4">2D Projection</h3>
-              <div className="relative w-full h-64 bg-zinc-950 rounded border border-zinc-800 overflow-hidden">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+              <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-4">2D Projection</h3>
+              <div className="relative w-full h-64 bg-[var(--color-surface-0)] rounded border border-[var(--color-border)] overflow-hidden">
                 {filteredEmbeddings.map((emb, idx) => {
                   // Project to 2D using first 2 dimensions
                   const x = ((emb.vector[0] + 1) / 2) * 100;
@@ -430,33 +430,33 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                       className="w-2 h-2 rounded-full"
                       style={{ backgroundColor: clusterColors[cluster] }}
                     />
-                    <span className="text-zinc-500">Cluster {cluster}</span>
+                    <span className="text-[var(--color-text-muted)]">Cluster {cluster}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Embeddings Table */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-zinc-950 border-b border-zinc-800">
+                  <thead className="bg-[var(--color-surface-0)] border-b border-[var(--color-border)]">
                     <tr>
-                      <th className="px-4 py-2 text-left text-zinc-500 font-medium">ID</th>
-                      <th className="px-4 py-2 text-left text-zinc-500 font-medium">Collection</th>
-                      <th className="px-4 py-2 text-left text-zinc-500 font-medium">Model</th>
-                      <th className="px-4 py-2 text-left text-zinc-500 font-medium">Cluster</th>
-                      <th className="px-4 py-2 text-left text-zinc-500 font-medium">Created</th>
+                      <th className="px-4 py-2 text-left text-[var(--color-text-muted)] font-medium">ID</th>
+                      <th className="px-4 py-2 text-left text-[var(--color-text-muted)] font-medium">Collection</th>
+                      <th className="px-4 py-2 text-left text-[var(--color-text-muted)] font-medium">Model</th>
+                      <th className="px-4 py-2 text-left text-[var(--color-text-muted)] font-medium">Cluster</th>
+                      <th className="px-4 py-2 text-left text-[var(--color-text-muted)] font-medium">Created</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredEmbeddings.slice(0, 15).map((emb) => (
-                      <tr key={emb.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-                        <td className="px-4 py-2 text-zinc-300 font-mono text-xs">{emb.id}</td>
-                        <td className="px-4 py-2 text-zinc-300">
+                      <tr key={emb.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30">
+                        <td className="px-4 py-2 text-[var(--color-text-primary)] font-mono text-xs">{emb.id}</td>
+                        <td className="px-4 py-2 text-[var(--color-text-primary)]">
                           {sampleCollections.find((c) => c.id === emb.collectionId)?.name || emb.collectionId}
                         </td>
-                        <td className="px-4 py-2 text-zinc-400 text-xs">{emb.model}</td>
+                        <td className="px-4 py-2 text-[var(--color-text-secondary)] text-xs">{emb.model}</td>
                         <td className="px-4 py-2">
                           <span
                             className="px-1.5 py-0.5 text-xs rounded"
@@ -468,7 +468,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                             {emb.cluster}
                           </span>
                         </td>
-                        <td className="px-4 py-2 text-zinc-500 text-xs">
+                        <td className="px-4 py-2 text-[var(--color-text-muted)] text-xs">
                           {new Date(emb.createdAt).toLocaleDateString()}
                         </td>
                       </tr>
@@ -484,7 +484,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
         {activeTab === "search" && (
           <div className="space-y-6">
             {/* Search Input */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex gap-3 flex-wrap">
                 <input
                   type="text"
@@ -492,12 +492,12 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   placeholder="Enter your search query..."
-                  className="flex-1 min-w-[200px] bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                  className="flex-1 min-w-[200px] bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-4 py-2 text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
                 />
                 <select
                   value={searchCollection}
                   onChange={(e) => setSearchCollection(e.target.value)}
-                  className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
+                  className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                 >
                   {sampleCollections.filter((c) => c.indexStatus === "ready").map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -506,7 +506,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                 <button
                   onClick={handleSearch}
                   disabled={!searchQuery.trim() || isSearching}
-                  className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                  className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-[var(--color-surface-3)] disabled:cursor-not-allowed text-[var(--color-text-primary)] px-6 py-2 rounded-lg font-medium transition-colors"
                 >
                   {isSearching ? "Searching..." : "Search"}
                 </button>
@@ -515,39 +515,39 @@ export default function VectorDatabaseViewer(): React.ReactElement {
 
             {/* Results */}
             {searchResults.length > 0 && (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                <div className="px-4 py-3 border-b border-zinc-800">
-                  <h3 className="text-sm font-medium text-zinc-400">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+                <div className="px-4 py-3 border-b border-[var(--color-border)]">
+                  <h3 className="text-sm font-medium text-[var(--color-text-secondary)]">
                     {searchResults.length} results found
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-zinc-950 border-b border-zinc-800">
+                    <thead className="bg-[var(--color-surface-0)] border-b border-[var(--color-border)]">
                       <tr>
-                        <th className="px-4 py-2 text-left text-zinc-500 font-medium">ID</th>
-                        <th className="px-4 py-2 text-left text-zinc-500 font-medium">Similarity</th>
-                        <th className="px-4 py-2 text-left text-zinc-500 font-medium">Distance</th>
-                        <th className="px-4 py-2 text-left text-zinc-500 font-medium">Payload</th>
+                        <th className="px-4 py-2 text-left text-[var(--color-text-muted)] font-medium">ID</th>
+                        <th className="px-4 py-2 text-left text-[var(--color-text-muted)] font-medium">Similarity</th>
+                        <th className="px-4 py-2 text-left text-[var(--color-text-muted)] font-medium">Distance</th>
+                        <th className="px-4 py-2 text-left text-[var(--color-text-muted)] font-medium">Payload</th>
                       </tr>
                     </thead>
                     <tbody>
                       {searchResults.map((result) => (
-                        <tr key={result.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-                          <td className="px-4 py-3 text-zinc-300 font-mono text-xs">{result.id}</td>
+                        <tr key={result.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30">
+                          <td className="px-4 py-3 text-[var(--color-text-primary)] font-mono text-xs">{result.id}</td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <div className="w-16 h-2 bg-zinc-800 rounded overflow-hidden">
+                              <div className="w-16 h-2 bg-[var(--color-surface-2)] rounded overflow-hidden">
                                 <div
                                   className="h-full bg-indigo-500"
                                   style={{ width: `${result.score * 100}%` }}
                                 />
                               </div>
-                              <span className="text-zinc-400 text-xs">{result.score.toFixed(3)}</span>
+                              <span className="text-[var(--color-text-secondary)] text-xs">{result.score.toFixed(3)}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-zinc-400 font-mono text-xs">{result.distance.toFixed(4)}</td>
-                          <td className="px-4 py-3 text-zinc-500 text-xs max-w-xs truncate">
+                          <td className="px-4 py-3 text-[var(--color-text-secondary)] font-mono text-xs">{result.distance.toFixed(4)}</td>
+                          <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs max-w-xs truncate">
                             {JSON.stringify(result.payload)}
                           </td>
                         </tr>
@@ -559,13 +559,13 @@ export default function VectorDatabaseViewer(): React.ReactElement {
             )}
 
             {searchResults.length === 0 && searchQuery && !isSearching && (
-              <div className="text-center py-12 text-zinc-500">
+              <div className="text-center py-12 text-[var(--color-text-muted)]">
                 No results found. Try a different query.
               </div>
             )}
 
             {searchResults.length === 0 && !searchQuery && (
-              <div className="text-center py-12 text-zinc-500">
+              <div className="text-center py-12 text-[var(--color-text-muted)]">
                 Enter a search query to find similar vectors
               </div>
             )}
@@ -581,12 +581,12 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                 return (
                   <div
                     key={stats.collectionId}
-                    className="bg-zinc-900 border border-zinc-800 rounded-lg p-4"
+                    className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className="font-medium text-white">{collection?.name || stats.collectionId}</h3>
-                        <p className="text-xs text-zinc-500">
+                        <h3 className="font-medium text-[var(--color-text-primary)]">{collection?.name || stats.collectionId}</h3>
+                        <p className="text-xs text-[var(--color-text-muted)]">
                           Last rebuild: {new Date(stats.lastRebuild).toLocaleString()}
                         </p>
                       </div>
@@ -604,19 +604,19 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                       <div>
-                        <div className="text-xs text-zinc-500 uppercase tracking-wider">Segments</div>
-                        <div className="text-lg font-medium text-white">{stats.segments}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Segments</div>
+                        <div className="text-lg font-medium text-[var(--color-text-primary)]">{stats.segments}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-zinc-500 uppercase tracking-wider">Memory</div>
-                        <div className="text-lg font-medium text-white">{stats.memoryUsage}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Memory</div>
+                        <div className="text-lg font-medium text-[var(--color-text-primary)]">{stats.memoryUsage}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-zinc-500 uppercase tracking-wider">Queue Depth</div>
-                        <div className="text-lg font-medium text-white">{stats.indexingQueueDepth.toLocaleString()}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Queue Depth</div>
+                        <div className="text-lg font-medium text-[var(--color-text-primary)]">{stats.indexingQueueDepth.toLocaleString()}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-zinc-500 uppercase tracking-wider">Status</div>
+                        <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Status</div>
                         <div className={cn("text-lg font-medium", getHealthColor(stats.health))}>
                           {collection?.indexStatus || "unknown"}
                         </div>
@@ -626,10 +626,10 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                     {/* Queue Depth Bar */}
                     <div className="mb-4">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-zinc-500">Indexing Queue</span>
-                        <span className="text-zinc-400">{stats.indexingQueueDepth.toLocaleString()}</span>
+                        <span className="text-[var(--color-text-muted)]">Indexing Queue</span>
+                        <span className="text-[var(--color-text-secondary)]">{stats.indexingQueueDepth.toLocaleString()}</span>
                       </div>
-                      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div
                           className={cn(
                             "h-full transition-all",
@@ -643,7 +643,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
 
                     {/* Rebuild Button */}
                     <button
-                      className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm rounded transition-colors"
+                      className="w-full py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm rounded transition-colors"
                     >
                       Rebuild Index
                     </button>
@@ -653,26 +653,26 @@ export default function VectorDatabaseViewer(): React.ReactElement {
             </div>
 
             {/* Summary */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-zinc-400 mb-3">Overall Health</h3>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+              <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-3">Overall Health</h3>
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-emerald-400">
                     {sampleIndexStats.filter((s) => s.health === "healthy").length}
                   </div>
-                  <div className="text-xs text-zinc-500">Healthy</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Healthy</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-amber-400">
                     {sampleIndexStats.filter((s) => s.health === "degraded").length}
                   </div>
-                  <div className="text-xs text-zinc-500">Degraded</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Degraded</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-rose-400">
                     {sampleIndexStats.filter((s) => s.health === "critical").length}
                   </div>
-                  <div className="text-xs text-zinc-500">Critical</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Critical</div>
                 </div>
               </div>
             </div>

@@ -67,6 +67,7 @@ export function GatewayAuthModal({ authError, onConnect, onDismiss }: GatewayAut
       aria-modal="true"
       aria-labelledby="gateway-auth-title"
       onKeyDown={handleKeyDown}
+      onClick={(e) => { if (e.target === e.currentTarget) onDismiss(); }}
     >
       <div className="relative w-full max-w-md mx-4 bg-surface-1 border border-tok-border rounded-2xl shadow-2xl p-6">
         {/* Header */}

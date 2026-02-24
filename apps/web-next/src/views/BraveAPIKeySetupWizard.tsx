@@ -103,16 +103,16 @@ const BraveAPIKeySetupWizard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-6 font-mono">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 font-mono">
       {/* ── Header ── */}
       <div className="max-w-2xl mx-auto mb-8">
         <div className="flex items-center gap-3 mb-2">
           <span className="text-2xl">🔑</span>
-          <h1 className="text-2xl font-bold tracking-tight text-white">
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
             Brave Search API Setup
           </h1>
         </div>
-        <p className="text-sm text-gray-400 ml-12">
+        <p className="text-sm text-[var(--color-text-secondary)] ml-12">
           Complete these steps to enable web search for all 15 discovery agents
         </p>
       </div>
@@ -129,17 +129,17 @@ const BraveAPIKeySetupWizard: React.FC = () => {
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all",
                   currentStep === s.step
-                    ? "bg-blue-600 text-white ring-2 ring-blue-400/30"
+                    ? "bg-blue-600 text-[var(--color-text-primary)] ring-2 ring-blue-400/30"
                     : s.step < currentStep
                     ? "bg-emerald-900 text-emerald-300 border border-emerald-700"
-                    : "bg-gray-800 text-gray-400 border border-gray-700",
+                    : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)]",
                   s.step > currentStep && "cursor-not-allowed opacity-50"
                 )}
               >
                 {s.step < currentStep ? (
                   <span className="text-emerald-400">✓</span>
                 ) : (
-                  <span className={cn("w-5 h-5 rounded-full flex items-center justify-center text-xs", currentStep === s.step ? "bg-white/20" : "bg-gray-700")}>
+                  <span className={cn("w-5 h-5 rounded-full flex items-center justify-center text-xs", currentStep === s.step ? "bg-white/20" : "bg-[var(--color-surface-3)]")}>
                     {s.step}
                   </span>
                 )}
@@ -151,7 +151,7 @@ const BraveAPIKeySetupWizard: React.FC = () => {
                 <div
                   className={cn(
                     "flex-1 h-0.5 mx-2",
-                    s.step < currentStep ? "bg-emerald-600" : "bg-gray-700"
+                    s.step < currentStep ? "bg-emerald-600" : "bg-[var(--color-surface-3)]"
                   )}
                 />
               )}
@@ -162,16 +162,16 @@ const BraveAPIKeySetupWizard: React.FC = () => {
 
       {/* ── Step Content Card ── */}
       <div className="max-w-2xl mx-auto">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
           {/* Step 1: Why You Need This */}
           {currentStep === 1 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-white mb-4">
+              <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-4">
                 Why You Need This
               </h2>
-              <div className="space-y-3 text-sm text-gray-300">
+              <div className="space-y-3 text-sm text-[var(--color-text-primary)]">
                 <p>
-                  <strong className="text-white">Brave Search API</strong> is the web
+                  <strong className="text-[var(--color-text-primary)]">Brave Search API</strong> is the web
                   intelligence backbone for all 15 discovery agents in the Feb 23
                   discovery run.
                 </p>
@@ -211,7 +211,7 @@ const BraveAPIKeySetupWizard: React.FC = () => {
                 href={REGISTRATION_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors mt-4"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-[var(--color-text-primary)] font-medium rounded-lg transition-colors mt-4"
               >
                 Get API Key
                 <span className="text-xs opacity-75">→</span>
@@ -222,15 +222,15 @@ const BraveAPIKeySetupWizard: React.FC = () => {
           {/* Step 2: Get Your Key */}
           {currentStep === 2 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-white mb-4">
+              <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-4">
                 Get Your Key
               </h2>
 
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-[var(--color-text-primary)]">
                 Follow these steps to create a Brave Search API account:
               </p>
 
-              <ol className="list-decimal list-inside space-y-3 ml-2 text-sm text-gray-300">
+              <ol className="list-decimal list-inside space-y-3 ml-2 text-sm text-[var(--color-text-primary)]">
                 <li>
                   Visit{" "}
                   <a
@@ -251,9 +251,9 @@ const BraveAPIKeySetupWizard: React.FC = () => {
                 <li>Copy your API key from the dashboard</li>
               </ol>
 
-              <div className="mt-6 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
+              <div className="mt-6 p-4 bg-[var(--color-surface-2)]/50 border border-[var(--color-border)] rounded-lg">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-400 truncate mr-4 font-mono">
+                  <div className="text-sm text-[var(--color-text-secondary)] truncate mr-4 font-mono">
                     {REGISTRATION_URL}
                   </div>
                   <button
@@ -261,8 +261,8 @@ const BraveAPIKeySetupWizard: React.FC = () => {
                     className={cn(
                       "px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex-shrink-0",
                       copied
-                        ? "bg-emerald-600 text-white"
-                        : "bg-gray-700 hover:bg-gray-600 text-gray-200"
+                        ? "bg-emerald-600 text-[var(--color-text-primary)]"
+                        : "bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
                     )}
                   >
                     {copied ? "Copied!" : "Copy URL"}
@@ -274,7 +274,7 @@ const BraveAPIKeySetupWizard: React.FC = () => {
                 <div className="flex items-start gap-2">
                   <span className="text-amber-400">💡</span>
                   <p className="text-xs text-amber-300">
-                    Your API key will look like: <code className="bg-gray-800 px-1 rounded">BSA-xxxxxxxxxxxxxxxxxxxxxxxx</code>
+                    Your API key will look like: <code className="bg-[var(--color-surface-2)] px-1 rounded">BSA-xxxxxxxxxxxxxxxxxxxxxxxx</code>
                   </p>
                 </div>
               </div>
@@ -284,12 +284,12 @@ const BraveAPIKeySetupWizard: React.FC = () => {
           {/* Step 3: Configure */}
           {currentStep === 3 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-white mb-4">
+              <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-4">
                 Configure Your Key
               </h2>
 
               <div className="space-y-3">
-                <label className="block text-sm text-gray-300">
+                <label className="block text-sm text-[var(--color-text-primary)]">
                   Brave Search API Key
                 </label>
 
@@ -302,19 +302,19 @@ const BraveAPIKeySetupWizard: React.FC = () => {
                       setTestResult(null);
                     }}
                     placeholder="Enter your Brave Search API key"
-                    className="w-full px-4 py-3 bg-gray-950 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 font-mono text-sm"
+                    className="w-full px-4 py-3 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 font-mono text-sm"
                   />
                   <button
                     type="button"
                     onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 text-xs"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-xs"
                   >
                     {showApiKey ? "Hide" : "Show"}
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <span className="px-2 py-0.5 bg-gray-800 rounded font-mono">
+                <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
+                  <span className="px-2 py-0.5 bg-[var(--color-surface-2)] rounded font-mono">
                     BRAVE_API_KEY
                   </span>
                   <span>Environment variable name</span>
@@ -322,7 +322,7 @@ const BraveAPIKeySetupWizard: React.FC = () => {
               </div>
 
               {apiKey.trim() && (
-                <div className="text-xs text-gray-400">
+                <div className="text-xs text-[var(--color-text-secondary)]">
                   Key length: {apiKey.length} characters
                 </div>
               )}
@@ -334,12 +334,12 @@ const BraveAPIKeySetupWizard: React.FC = () => {
                   className={cn(
                     "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                     !apiKey.trim() || isTesting
-                      ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                      ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-not-allowed"
                       : testResult === "success"
-                      ? "bg-emerald-600 text-white"
+                      ? "bg-emerald-600 text-[var(--color-text-primary)]"
                       : testResult === "error"
-                      ? "bg-red-600 text-white"
-                      : "bg-gray-700 hover:bg-gray-600 text-gray-200"
+                      ? "bg-red-600 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
                   )}
                 >
                   {isTesting ? (
@@ -374,7 +374,7 @@ const BraveAPIKeySetupWizard: React.FC = () => {
           {/* Step 4: Verify */}
           {currentStep === 4 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-white mb-4">
+              <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-4">
                 Pre-Flight Verification
               </h2>
 
@@ -386,15 +386,15 @@ const BraveAPIKeySetupWizard: React.FC = () => {
                       "flex items-center gap-3 p-3 rounded-lg border",
                       check.passed
                         ? "bg-emerald-950/30 border-emerald-800"
-                        : "bg-gray-800/50 border-gray-700"
+                        : "bg-[var(--color-surface-2)]/50 border-[var(--color-border)]"
                     )}
                   >
                     <span
                       className={cn(
                         "w-5 h-5 rounded-full flex items-center justify-center text-xs",
                         check.passed
-                          ? "bg-emerald-600 text-white"
-                          : "bg-gray-600 text-gray-300"
+                          ? "bg-emerald-600 text-[var(--color-text-primary)]"
+                          : "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
                       )}
                     >
                       {check.passed ? "✓" : "○"}
@@ -402,7 +402,7 @@ const BraveAPIKeySetupWizard: React.FC = () => {
                     <span
                       className={cn(
                         "text-sm",
-                        check.passed ? "text-emerald-300" : "text-gray-400"
+                        check.passed ? "text-emerald-300" : "text-[var(--color-text-secondary)]"
                       )}
                     >
                       {check.label}
@@ -426,7 +426,7 @@ const BraveAPIKeySetupWizard: React.FC = () => {
                     </div>
                   </div>
 
-                  <button className="mt-4 w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-colors">
+                  <button className="mt-4 w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-primary)] font-medium rounded-lg transition-colors">
                     Launch Discovery Run
                   </button>
                 </div>
@@ -457,8 +457,8 @@ const BraveAPIKeySetupWizard: React.FC = () => {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
               currentStep === 1
-                ? "text-gray-600 cursor-not-allowed"
-                : "text-gray-300 hover:text-white hover:bg-gray-800"
+                ? "text-[var(--color-text-muted)] cursor-not-allowed"
+                : "text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             ← Back
@@ -471,8 +471,8 @@ const BraveAPIKeySetupWizard: React.FC = () => {
               className={cn(
                 "px-6 py-2 text-sm font-medium rounded-lg transition-colors",
                 !canProceed()
-                  ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-500 text-white"
+                  ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-500 text-[var(--color-text-primary)]"
               )}
             >
               Continue →
@@ -482,7 +482,7 @@ const BraveAPIKeySetupWizard: React.FC = () => {
       </div>
 
       {/* ── Footer ── */}
-      <div className="max-w-2xl mx-auto mt-8 pt-4 border-t border-gray-800 text-xs text-gray-600 flex justify-between">
+      <div className="max-w-2xl mx-auto mt-8 pt-4 border-t border-[var(--color-border)] text-xs text-[var(--color-text-muted)] flex justify-between">
         <span>BraveAPIKeySetupWizard v1.0 — OpenClaw Horizon UI</span>
         <span>Step {currentStep} of 4</span>
       </div>

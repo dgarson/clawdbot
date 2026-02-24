@@ -58,6 +58,8 @@ export interface UseGatewayReturn {
 
 export type AuthProfileStatus = 'connected' | 'not_connected' | 'expired' | 'error';
 
+export type RuntimeId = 'pi' | 'claude-sdk';
+
 export interface AuthProvider {
   id: string;
   name: string;
@@ -66,6 +68,7 @@ export interface AuthProvider {
   authKind: 'api_key' | 'oauth' | 'device_code' | 'token';
   docsUrl?: string;
   popular?: boolean;
+  runtimes?: RuntimeId[];
   status: AuthProfileStatus;
   profileId?: string;
 }

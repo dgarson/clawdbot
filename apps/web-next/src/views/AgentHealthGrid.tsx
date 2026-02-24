@@ -90,7 +90,7 @@ export default function AgentHealthGrid() {
       case "ACTIVE": return "text-green-400";
       case "IDLE": return "text-amber-400";
       case "ERROR": return "text-red-400";
-      case "COMPLETE": return "text-gray-400";
+      case "COMPLETE": return "text-[var(--color-text-secondary)]";
     }
   };
 
@@ -99,12 +99,12 @@ export default function AgentHealthGrid() {
       case "W1": return "bg-blue-500/20 text-blue-400";
       case "W2": return "bg-violet-500/20 text-violet-400";
       case "W3": return "bg-indigo-500/20 text-indigo-400";
-      default: return "bg-gray-500/20 text-gray-400";
+      default: return "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]";
     }
   };
 
   return (
-    <div className="p-6 bg-gray-900/950 min-h-full text-gray-100 font-sans">
+    <div className="p-6 bg-[var(--color-surface-1)]/950 min-h-full text-[var(--color-text-primary)] font-sans">
       <header className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-3">
@@ -114,13 +114,13 @@ export default function AgentHealthGrid() {
               Live
             </span>
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">
             Last updated: {lastUpdated.toLocaleTimeString()}
           </p>
         </div>
         <button
           onClick={refreshData}
-          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-sm transition-colors"
+          className="px-4 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded-lg text-sm transition-colors"
         >
           Refresh
         </button>
@@ -128,22 +128,22 @@ export default function AgentHealthGrid() {
 
       <div className="flex flex-col gap-6">
         {/* Summary Bar */}
-        <div className="grid grid-cols-4 gap-4 p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
+        <div className="grid grid-cols-4 gap-4 p-4 bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] rounded-xl">
           <div className="text-center">
             <div className="text-2xl font-bold text-indigo-400">{agents.length}</div>
-            <div className="text-xs text-gray-500 uppercase">Total Agents</div>
+            <div className="text-xs text-[var(--color-text-muted)] uppercase">Total Agents</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-400">{stats.active}</div>
-            <div className="text-xs text-gray-500 uppercase">Active</div>
+            <div className="text-xs text-[var(--color-text-muted)] uppercase">Active</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-amber-400">{stats.idle}</div>
-            <div className="text-xs text-gray-500 uppercase">Idle</div>
+            <div className="text-xs text-[var(--color-text-muted)] uppercase">Idle</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-red-400">{stats.error}</div>
-            <div className="text-xs text-gray-500 uppercase">Errors</div>
+            <div className="text-xs text-[var(--color-text-muted)] uppercase">Errors</div>
           </div>
         </div>
 
@@ -156,8 +156,8 @@ export default function AgentHealthGrid() {
               className={cn(
                 "px-3 py-1 rounded-md text-sm font-medium transition-all border",
                 filter === f
-                  ? "bg-indigo-600 border-indigo-500 text-white"
-                  : "bg-gray-900 border-gray-800 text-gray-400 hover:border-gray-700"
+                  ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                  : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)]"
               )}
             >
               {f.charAt(0) + f.slice(1).toLowerCase()}
@@ -170,7 +170,7 @@ export default function AgentHealthGrid() {
           {filteredAgents.map((agent) => (
             <div
               key={agent.id}
-              className="p-4 bg-gray-950 border border-gray-800 rounded-xl hover:border-gray-700 transition-colors flex flex-col gap-3"
+              className="p-4 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-xl hover:border-[var(--color-border)] transition-colors flex flex-col gap-3"
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -190,7 +190,7 @@ export default function AgentHealthGrid() {
                   <Sparkline data={agent.heartbeat} />
                 </div>
                 <div className="text-right">
-                  <div className="text-[10px] text-gray-500 uppercase">Errors</div>
+                  <div className="text-[10px] text-[var(--color-text-muted)] uppercase">Errors</div>
                   <div className={cn("text-xs font-bold", 
                     agent.errorRate < 1 ? "text-green-400" : agent.errorRate < 5 ? "text-amber-400" : "text-red-400"
                   )}>
@@ -200,16 +200,16 @@ export default function AgentHealthGrid() {
               </div>
 
               <div className="flex justify-between items-center text-[10px]">
-                <span className="text-gray-500">Velocity</span>
-                <span className="font-mono text-gray-300">{agent.tokenVelocity.toLocaleString()} tok/s</span>
+                <span className="text-[var(--color-text-muted)]">Velocity</span>
+                <span className="font-mono text-[var(--color-text-primary)]">{agent.tokenVelocity.toLocaleString()} tok/s</span>
               </div>
 
               <div className="space-y-1">
-                <div className="flex justify-between text-[10px] text-gray-500">
+                <div className="flex justify-between text-[10px] text-[var(--color-text-muted)]">
                   <span>Task Progress</span>
                   <span>{Math.round(agent.progress)}%</span>
                 </div>
-                <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+                <div className="w-full h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div
                     className="h-full bg-indigo-500 transition-all duration-500"
                     style={{ width: `${agent.progress}%` }}

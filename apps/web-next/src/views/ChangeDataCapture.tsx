@@ -186,7 +186,7 @@ type Tab = typeof TABS[number];
 
 const statusColor: Record<ConnectorStatus, string> = {
   running:      "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
-  paused:       "text-zinc-400 bg-zinc-400/10 border-zinc-400/30",
+  paused:       "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30",
   failed:       "text-rose-400 bg-rose-400/10 border-rose-400/30",
   syncing:      "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
   initializing: "text-amber-400 bg-amber-400/10 border-amber-400/30",
@@ -226,16 +226,16 @@ export default function ChangeDataCapture(): React.ReactElement {
     .reduce((a, c) => a + c.eventsPerSec, 0);
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div>
           <h1 className="text-lg font-semibold">Change Data Capture</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">Real-time database event streaming via Debezium-compatible connectors</p>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">Real-time database event streaming via Debezium-compatible connectors</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-xs text-zinc-400">
-            <span className="text-white font-semibold">{totalEPS.toLocaleString()}</span> events/s
+          <div className="text-xs text-[var(--color-text-secondary)]">
+            <span className="text-[var(--color-text-primary)] font-semibold">{totalEPS.toLocaleString()}</span> events/s
           </div>
           <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
             + Connector
@@ -244,7 +244,7 @@ export default function ChangeDataCapture(): React.ReactElement {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 px-6 pt-3 border-b border-zinc-800 shrink-0">
+      <div className="flex gap-1 px-6 pt-3 border-b border-[var(--color-border)] shrink-0">
         {TABS.map((t) => (
           <button
             key={t}
@@ -253,7 +253,7 @@ export default function ChangeDataCapture(): React.ReactElement {
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
                 ? "text-indigo-400 border-indigo-500"
-                : "text-zinc-400 border-transparent hover:text-white"
+                : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}
@@ -271,35 +271,35 @@ export default function ChangeDataCapture(): React.ReactElement {
         {tab === "Connectors" && (
           <div className="h-full flex">
             {/* List */}
-            <div className="w-72 border-r border-zinc-800 overflow-y-auto">
+            <div className="w-72 border-r border-[var(--color-border)] overflow-y-auto">
               {CONNECTORS.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => setSelectedConnector(c)}
                   className={cn(
-                    "w-full text-left px-4 py-4 border-b border-zinc-800/50 transition-colors",
-                    selectedConnector.id === c.id ? "bg-indigo-600/10" : "hover:bg-zinc-800/40"
+                    "w-full text-left px-4 py-4 border-b border-[var(--color-border)]/50 transition-colors",
+                    selectedConnector.id === c.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/40"
                   )}
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-1.5">
                       <span>{dbEmoji[c.sourceType]}</span>
-                      <span className="text-xs font-medium text-white truncate max-w-[120px]">{c.name}</span>
+                      <span className="text-xs font-medium text-[var(--color-text-primary)] truncate max-w-[120px]">{c.name}</span>
                     </div>
                     <span className={cn("text-[10px] px-1 py-0.5 rounded border shrink-0", statusColor[c.status])}>
                       {c.status}
                     </span>
                   </div>
-                  <div className="text-[10px] text-zinc-500 font-mono truncate">{c.targetTopic}</div>
+                  <div className="text-[10px] text-[var(--color-text-muted)] font-mono truncate">{c.targetTopic}</div>
                   {c.status === "running" && (
-                    <div className="text-[10px] text-zinc-400 mt-1">{c.eventsPerSec} ev/s · lag {c.lag}ms</div>
+                    <div className="text-[10px] text-[var(--color-text-secondary)] mt-1">{c.eventsPerSec} ev/s · lag {c.lag}ms</div>
                   )}
                   {c.status === "syncing" && (
                     <div className="mt-2">
-                      <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
+                      <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mb-1">
                         <span>Snapshot</span><span>{c.snapshotProgress}%</span>
                       </div>
-                      <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${c.snapshotProgress}%` }} />
                       </div>
                     </div>
@@ -316,7 +316,7 @@ export default function ChangeDataCapture(): React.ReactElement {
                     <span className="text-2xl">{dbEmoji[selectedConnector.sourceType]}</span>
                     <div>
                       <h2 className="text-lg font-bold">{selectedConnector.name}</h2>
-                      <div className="text-xs text-zinc-500 font-mono">{selectedConnector.source}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] font-mono">{selectedConnector.source}</div>
                     </div>
                     <span className={cn("text-xs px-2 py-0.5 rounded border", statusColor[selectedConnector.status])}>
                       {selectedConnector.status}
@@ -339,7 +339,7 @@ export default function ChangeDataCapture(): React.ReactElement {
               {selectedConnector.errorMessage && (
                 <div className="bg-rose-400/10 border border-rose-400/30 rounded-lg p-4">
                   <div className="text-xs font-medium text-rose-400 mb-1">Error</div>
-                  <div className="text-xs text-zinc-300">{selectedConnector.errorMessage}</div>
+                  <div className="text-xs text-[var(--color-text-primary)]">{selectedConnector.errorMessage}</div>
                 </div>
               )}
 
@@ -350,34 +350,34 @@ export default function ChangeDataCapture(): React.ReactElement {
                   { label: "Lag", value: selectedConnector.lag > 0 ? `${selectedConnector.lag}ms` : "—" },
                   { label: "Last Event", value: selectedConnector.lastEventAt.slice(11, 19) },
                 ].map((m) => (
-                  <div key={m.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500">{m.label}</div>
+                  <div key={m.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)]">{m.label}</div>
                     <div className="text-sm font-semibold mt-1">{m.value}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                <div className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mb-3">Target Topic</div>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                <div className="text-xs text-[var(--color-text-secondary)] font-semibold uppercase tracking-wider mb-3">Target Topic</div>
                 <div className="font-mono text-sm text-indigo-300 break-all">{selectedConnector.targetTopic}</div>
               </div>
 
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                <div className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mb-3">Captured Tables</div>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                <div className="text-xs text-[var(--color-text-secondary)] font-semibold uppercase tracking-wider mb-3">Captured Tables</div>
                 <div className="flex flex-wrap gap-2">
                   {selectedConnector.tables.map((t) => (
-                    <span key={t} className="text-xs px-2 py-1 rounded bg-zinc-800 border border-zinc-700 font-mono text-zinc-300">{t}</span>
+                    <span key={t} className="text-xs px-2 py-1 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] font-mono text-[var(--color-text-primary)]">{t}</span>
                   ))}
                 </div>
               </div>
 
               {selectedConnector.snapshotProgress < 100 && (
-                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                  <div className="flex justify-between text-xs text-zinc-400 mb-2">
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                  <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mb-2">
                     <span>Snapshot Progress</span>
                     <span className="text-indigo-300">{selectedConnector.snapshotProgress}%</span>
                   </div>
-                  <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${selectedConnector.snapshotProgress}%` }} />
                   </div>
                 </div>
@@ -390,8 +390,8 @@ export default function ChangeDataCapture(): React.ReactElement {
         {tab === "Event Log" && (
           <div className="h-full flex flex-col overflow-hidden">
             {/* Filter bar */}
-            <div className="flex items-center gap-2 px-6 py-3 border-b border-zinc-800 shrink-0">
-              <span className="text-xs text-zinc-500">Op:</span>
+            <div className="flex items-center gap-2 px-6 py-3 border-b border-[var(--color-border)] shrink-0">
+              <span className="text-xs text-[var(--color-text-muted)]">Op:</span>
               {(["all", "INSERT", "UPDATE", "DELETE", "DDL"] as const).map((op) => (
                 <button
                   key={op}
@@ -400,55 +400,55 @@ export default function ChangeDataCapture(): React.ReactElement {
                     "px-2 py-1 text-[10px] rounded border transition-colors",
                     eventFilter === op
                       ? "bg-indigo-600/20 border-indigo-500 text-indigo-300"
-                      : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                      : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
                   {op}
                 </button>
               ))}
-              <span className="ml-auto text-xs text-zinc-500">{filteredEvents.length} events</span>
+              <span className="ml-auto text-xs text-[var(--color-text-muted)]">{filteredEvents.length} events</span>
             </div>
 
-            <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/50">
+            <div className="flex-1 overflow-y-auto divide-y divide-[var(--color-border)]/50">
               {filteredEvents.map((ev) => (
                 <div
                   key={ev.id}
                   onClick={() => setSelectedEvent(selectedEvent?.id === ev.id ? null : ev)}
-                  className="px-6 py-3 cursor-pointer hover:bg-zinc-800/30 transition-colors"
+                  className="px-6 py-3 cursor-pointer hover:bg-[var(--color-surface-2)]/30 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <span className={cn("text-[10px] px-1.5 py-0.5 rounded font-mono font-bold", opColor[ev.op])}>
                       {ev.op}
                     </span>
-                    <span className="text-xs font-mono text-zinc-200">{ev.table}</span>
-                    <span className="text-xs text-zinc-500">{ev.connectorName}</span>
-                    <span className="text-xs text-zinc-600 font-mono ml-auto">{ev.lsn}</span>
-                    <span className="text-xs text-zinc-500">{ev.timestamp.slice(11, 19)}</span>
+                    <span className="text-xs font-mono text-[var(--color-text-primary)]">{ev.table}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{ev.connectorName}</span>
+                    <span className="text-xs text-[var(--color-text-muted)] font-mono ml-auto">{ev.lsn}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{ev.timestamp.slice(11, 19)}</span>
                   </div>
                   {selectedEvent?.id === ev.id && (
                     <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                       {ev.before && (
-                        <div className="bg-zinc-800/60 rounded-lg p-3">
+                        <div className="bg-[var(--color-surface-2)]/60 rounded-lg p-3">
                           <div className="text-[10px] uppercase tracking-wider text-rose-400 mb-2 font-semibold">Before</div>
                           <div className="space-y-1">
                             {Object.entries(ev.before).map(([k, v]) => (
                               <div key={k} className="flex gap-2 text-xs">
-                                <span className="text-zinc-500 font-mono w-24 shrink-0">{k}:</span>
-                                <span className="text-zinc-200 break-all">{v}</span>
+                                <span className="text-[var(--color-text-muted)] font-mono w-24 shrink-0">{k}:</span>
+                                <span className="text-[var(--color-text-primary)] break-all">{v}</span>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
                       {ev.after && (
-                        <div className="bg-zinc-800/60 rounded-lg p-3">
+                        <div className="bg-[var(--color-surface-2)]/60 rounded-lg p-3">
                           <div className="text-[10px] uppercase tracking-wider text-emerald-400 mb-2 font-semibold">After</div>
                           <div className="space-y-1">
                             {Object.entries(ev.after).map(([k, v]) => (
                               <div key={k} className="flex gap-2 text-xs">
-                                <span className="text-zinc-500 font-mono w-24 shrink-0">{k}:</span>
+                                <span className="text-[var(--color-text-muted)] font-mono w-24 shrink-0">{k}:</span>
                                 <span className={cn("break-all",
-                                  ev.before && ev.before[k] !== v ? "text-amber-300" : "text-zinc-200"
+                                  ev.before && ev.before[k] !== v ? "text-amber-300" : "text-[var(--color-text-primary)]"
                                 )}>{v}</span>
                               </div>
                             ))}
@@ -467,7 +467,7 @@ export default function ChangeDataCapture(): React.ReactElement {
         {tab === "Throughput" && (
           <div className="h-full overflow-y-auto p-6 space-y-6">
             {/* Stacked bar chart */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
               <h3 className="text-sm font-medium mb-4">Event Throughput (last 35 minutes)</h3>
               <div className="flex items-end gap-2 h-40">
                 {THROUGHPUT.map((point) => {
@@ -484,7 +484,7 @@ export default function ChangeDataCapture(): React.ReactElement {
                           <div key={si} className={cn("w-full rounded-sm", seg.color)} style={{ height: Math.max(2, Math.round(seg.val * scale)) }} />
                         ))}
                       </div>
-                      <div className="text-[10px] text-zinc-500">{point.time}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">{point.time}</div>
                     </div>
                   );
                 })}
@@ -497,18 +497,18 @@ export default function ChangeDataCapture(): React.ReactElement {
                 ].map((l) => (
                   <div key={l.label} className="flex items-center gap-1.5">
                     <div className={cn("w-2.5 h-2.5 rounded-sm", l.color)} />
-                    <span className="text-xs text-zinc-400">{l.label}</span>
+                    <span className="text-xs text-[var(--color-text-secondary)]">{l.label}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Per-connector stats */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="px-5 py-3 border-b border-zinc-800">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="px-5 py-3 border-b border-[var(--color-border)]">
                 <h3 className="text-sm font-medium">Per-Connector Throughput</h3>
               </div>
-              <div className="divide-y divide-zinc-800">
+              <div className="divide-y divide-[var(--color-border)]">
                 {CONNECTORS.map((c) => (
                   <div key={c.id} className="px-5 py-3 flex items-center gap-4">
                     <span>{dbEmoji[c.sourceType]}</span>
@@ -516,14 +516,14 @@ export default function ChangeDataCapture(): React.ReactElement {
                       <div className="text-sm">{c.name}</div>
                     </div>
                     <div className="w-40">
-                      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div
-                          className={cn("h-full rounded-full", c.status === "failed" || c.status === "paused" ? "bg-zinc-600" : "bg-emerald-500")}
+                          className={cn("h-full rounded-full", c.status === "failed" || c.status === "paused" ? "bg-[var(--color-surface-3)]" : "bg-emerald-500")}
                           style={{ width: `${Math.min(100, (c.eventsPerSec / totalEPS) * 100)}%` }}
                         />
                       </div>
                     </div>
-                    <div className="w-20 text-right text-sm font-mono">{c.eventsPerSec} <span className="text-xs text-zinc-500">ev/s</span></div>
+                    <div className="w-20 text-right text-sm font-mono">{c.eventsPerSec} <span className="text-xs text-[var(--color-text-muted)]">ev/s</span></div>
                   </div>
                 ))}
               </div>
@@ -542,12 +542,12 @@ export default function ChangeDataCapture(): React.ReactElement {
               { label: "Kafka Bootstrap Servers", value: "kafka-01:9092, kafka-02:9092", desc: "Target Kafka cluster endpoints" },
               { label: "Schema Registry URL", value: "http://127.0.0.1:8081", desc: "Confluent Schema Registry for Avro serialization" },
             ].map((s) => (
-              <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex items-center gap-4">
+              <div key={s.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 flex items-center gap-4">
                 <div className="flex-1">
                   <div className="text-sm font-medium">{s.label}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">{s.desc}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{s.desc}</div>
                 </div>
-                <div className="text-sm font-mono text-zinc-300 text-right">{s.value}</div>
+                <div className="text-sm font-mono text-[var(--color-text-primary)] text-right">{s.value}</div>
                 <button className="text-xs text-indigo-400 hover:text-indigo-300 shrink-0">Edit</button>
               </div>
             ))}

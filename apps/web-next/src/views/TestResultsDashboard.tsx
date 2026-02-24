@@ -233,9 +233,9 @@ function statusIcon(status: TestStatus | SuiteStatus): string {
 function statusTextColor(status: TestStatus | SuiteStatus): string {
   if (status === "passed" || status === "success") {return "text-emerald-400"}
   if (status === "failed") {return "text-rose-400"}
-  if (status === "skipped") {return "text-zinc-400"}
+  if (status === "skipped") {return "text-[var(--color-text-secondary)]"}
   if (status === "partial") {return "text-amber-400"}
-  return "text-zinc-400"
+  return "text-[var(--color-text-secondary)]"
 }
 
 function coverageColor(pct: number, threshold: number): string {
@@ -290,18 +290,18 @@ export default function TestResultsDashboard() {
       <div className="space-y-5">
         {/* Branch picker */}
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-zinc-400 text-sm">Branch:</span>
+          <span className="text-[var(--color-text-secondary)] text-sm">Branch:</span>
           <select
             value={selectedBranch}
             onChange={e => setSelectedBranch(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-md px-3 py-1.5 outline-none focus:border-indigo-500 transition-colors"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 outline-none focus:border-indigo-500 transition-colors"
           >
             <option value="feat/horizon-admin">feat/horizon-admin</option>
             <option value="main">main</option>
             <option value="fix/payment-retry">fix/payment-retry</option>
             <option value="fix/auth-mfa">fix/auth-mfa</option>
           </select>
-          <span className="text-zinc-500 text-xs font-mono">
+          <span className="text-[var(--color-text-muted)] text-xs font-mono">
             {latestRunMeta.runId} · {latestRunMeta.repo}
           </span>
         </div>
@@ -309,16 +309,16 @@ export default function TestResultsDashboard() {
         {/* Summary cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
-            { label: "Total Tests", value: String(latestRunMeta.total), color: "text-white", icon: "◎" },
+            { label: "Total Tests", value: String(latestRunMeta.total), color: "text-[var(--color-text-primary)]", icon: "◎" },
             { label: "Passed", value: String(latestRunMeta.passed), color: "text-emerald-400", icon: "✓" },
             { label: "Failed", value: String(latestRunMeta.failed), color: "text-rose-400", icon: "✗" },
-            { label: "Skipped", value: String(latestRunMeta.skipped), color: "text-zinc-400", icon: "–" },
+            { label: "Skipped", value: String(latestRunMeta.skipped), color: "text-[var(--color-text-secondary)]", icon: "–" },
             { label: "Duration", value: formatDuration(latestRunMeta.duration), color: "text-indigo-400", icon: "⏱" },
           ].map(card => (
-            <div key={card.label} className="bg-zinc-900 border border-zinc-700 rounded-lg p-4">
+            <div key={card.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center gap-1.5 mb-2">
                 <span className={cn("text-xs", card.color)}>{card.icon}</span>
-                <span className="text-zinc-400 text-xs">{card.label}</span>
+                <span className="text-[var(--color-text-secondary)] text-xs">{card.label}</span>
               </div>
               <div className={cn("text-2xl font-bold tabular-nums", card.color)}>{card.value}</div>
             </div>
@@ -326,23 +326,23 @@ export default function TestResultsDashboard() {
         </div>
 
         {/* Pass rate bar */}
-        <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="flex justify-between text-xs mb-2">
-            <span className="text-zinc-400">Pass rate</span>
-            <span className="text-white font-semibold">{passRate}%</span>
+            <span className="text-[var(--color-text-secondary)]">Pass rate</span>
+            <span className="text-[var(--color-text-primary)] font-semibold">{passRate}%</span>
           </div>
-          <div className="h-2.5 bg-zinc-800 rounded-full overflow-hidden flex">
+          <div className="h-2.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden flex">
             <div className="bg-emerald-400 h-full transition-all" style={{ width: `${passPct}%` }} />
             <div className="bg-rose-400 h-full transition-all" style={{ width: `${failPct}%` }} />
-            <div className="bg-zinc-600 h-full transition-all" style={{ width: `${skipPct}%` }} />
+            <div className="bg-[var(--color-surface-3)] h-full transition-all" style={{ width: `${skipPct}%` }} />
           </div>
           <div className="flex gap-5 mt-2.5 text-xs">
             {[
               { color: "bg-emerald-400", label: `Passed (${latestRunMeta.passed})` },
               { color: "bg-rose-400", label: `Failed (${latestRunMeta.failed})` },
-              { color: "bg-zinc-600", label: `Skipped (${latestRunMeta.skipped})` },
+              { color: "bg-[var(--color-surface-3)]", label: `Skipped (${latestRunMeta.skipped})` },
             ].map(item => (
-              <span key={item.label} className="flex items-center gap-1.5 text-zinc-400">
+              <span key={item.label} className="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
                 <span className={cn("w-2 h-2 rounded-full inline-block", item.color)} />
                 {item.label}
               </span>
@@ -351,13 +351,13 @@ export default function TestResultsDashboard() {
         </div>
 
         {/* Test suites table */}
-        <div className="bg-zinc-900 border border-zinc-700 rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-700 flex items-center justify-between">
-            <h3 className="text-white font-medium text-sm">Test Suites</h3>
-            <span className="text-zinc-500 text-xs">{testSuites.length} suites · click to expand</span>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+            <h3 className="text-[var(--color-text-primary)] font-medium text-sm">Test Suites</h3>
+            <span className="text-[var(--color-text-muted)] text-xs">{testSuites.length} suites · click to expand</span>
           </div>
           {/* Column headers */}
-          <div className="grid grid-cols-12 px-4 py-2 text-xs text-zinc-500 border-b border-zinc-800">
+          <div className="grid grid-cols-12 px-4 py-2 text-xs text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
             <span className="col-span-4">Suite</span>
             <span className="col-span-1 text-right">Tests</span>
             <span className="col-span-2 text-right text-emerald-400/60">Passed</span>
@@ -365,41 +365,41 @@ export default function TestResultsDashboard() {
             <span className="col-span-1 text-right">Duration</span>
             <span className="col-span-2 text-right">Status</span>
           </div>
-          <div className="divide-y divide-zinc-800">
+          <div className="divide-y divide-[var(--color-border)]">
             {testSuites.map(suite => (
               <div key={suite.id}>
                 <button
                   onClick={() => toggleSuite(suite.id)}
-                  className="w-full grid grid-cols-12 px-4 py-3.5 text-sm hover:bg-zinc-800/50 transition-colors text-left items-center"
+                  className="w-full grid grid-cols-12 px-4 py-3.5 text-sm hover:bg-[var(--color-surface-2)]/50 transition-colors text-left items-center"
                 >
-                  <span className="col-span-4 flex items-center gap-2 text-white font-medium">
-                    <span className="text-zinc-500 text-xs w-3">{expandedSuites.has(suite.id) ? "▼" : "▶"}</span>
+                  <span className="col-span-4 flex items-center gap-2 text-[var(--color-text-primary)] font-medium">
+                    <span className="text-[var(--color-text-muted)] text-xs w-3">{expandedSuites.has(suite.id) ? "▼" : "▶"}</span>
                     {suite.name}
                   </span>
-                  <span className="col-span-1 text-right text-zinc-300 tabular-nums">{suite.tests}</span>
+                  <span className="col-span-1 text-right text-[var(--color-text-primary)] tabular-nums">{suite.tests}</span>
                   <span className="col-span-2 text-right text-emerald-400 tabular-nums">{suite.passed}</span>
-                  <span className={cn("col-span-2 text-right tabular-nums", suite.failed > 0 ? "text-rose-400" : "text-zinc-500")}>
+                  <span className={cn("col-span-2 text-right tabular-nums", suite.failed > 0 ? "text-rose-400" : "text-[var(--color-text-muted)]")}>
                     {suite.failed}
                   </span>
-                  <span className="col-span-1 text-right text-zinc-400 text-xs">{formatDuration(suite.duration)}</span>
+                  <span className="col-span-1 text-right text-[var(--color-text-secondary)] text-xs">{formatDuration(suite.duration)}</span>
                   <span className={cn("col-span-2 text-right text-xs font-semibold", statusTextColor(suite.status))}>
                     {statusIcon(suite.status)} {suite.status}
                   </span>
                 </button>
 
                 {expandedSuites.has(suite.id) && (
-                  <div className="bg-zinc-950/60 border-t border-zinc-800">
-                    <div className="grid grid-cols-12 px-8 py-2 text-xs text-zinc-500 border-b border-zinc-800/50">
+                  <div className="bg-[var(--color-surface-0)]/60 border-t border-[var(--color-border)]">
+                    <div className="grid grid-cols-12 px-8 py-2 text-xs text-[var(--color-text-muted)] border-b border-[var(--color-border)]/50">
                       <span className="col-span-6">Test Case</span>
                       <span className="col-span-2 text-right">Duration</span>
                       <span className="col-span-4 text-right">Status</span>
                     </div>
-                    <div className="divide-y divide-zinc-800/40">
+                    <div className="divide-y divide-[var(--color-border)]/40">
                       {suite.testCases.map(tc => (
                         <div key={tc.id} className="px-8 py-2.5">
                           <div className="grid grid-cols-12 text-xs items-start">
-                            <span className="col-span-6 text-zinc-300 leading-relaxed pr-2">{tc.name}</span>
-                            <span className="col-span-2 text-right text-zinc-500 tabular-nums">{formatMs(tc.duration)}</span>
+                            <span className="col-span-6 text-[var(--color-text-primary)] leading-relaxed pr-2">{tc.name}</span>
+                            <span className="col-span-2 text-right text-[var(--color-text-muted)] tabular-nums">{formatMs(tc.duration)}</span>
                             <span className={cn("col-span-4 text-right font-semibold", statusTextColor(tc.status))}>
                               {statusIcon(tc.status)} {tc.status}
                             </span>
@@ -438,14 +438,14 @@ export default function TestResultsDashboard() {
           <div className="bg-amber-400/10 border border-amber-400/20 text-amber-400 text-xs px-3 py-1.5 rounded-md">
             ⚠ {medSeverity} medium severity (25–49%)
           </div>
-          <div className="bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs px-3 py-1.5 rounded-md">
+          <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs px-3 py-1.5 rounded-md">
             {flakyTests.length - highSeverity - medSeverity} low severity (&lt;25%)
           </div>
-          <span className="text-zinc-500 text-xs ml-auto">Sorted by flakiness rate ↓</span>
+          <span className="text-[var(--color-text-muted)] text-xs ml-auto">Sorted by flakiness rate ↓</span>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-700 rounded-lg overflow-hidden">
-          <div className="grid grid-cols-12 px-4 py-3 text-xs text-zinc-500 border-b border-zinc-700">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+          <div className="grid grid-cols-12 px-4 py-3 text-xs text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
             <span className="col-span-3">Test Name</span>
             <span className="col-span-2">Suite</span>
             <span className="col-span-1 text-right">Flakiness</span>
@@ -454,20 +454,20 @@ export default function TestResultsDashboard() {
             <span className="col-span-1 text-right">Last Pass</span>
             <span className="col-span-2 text-right">Suggested Fix</span>
           </div>
-          <div className="divide-y divide-zinc-800">
+          <div className="divide-y divide-[var(--color-border)]">
             {flakyTests.map(test => {
               const severity =
                 test.flakinessRate >= 70 ? "text-rose-400" :
                 test.flakinessRate >= 40 ? "text-amber-400" :
-                "text-zinc-300"
+                "text-[var(--color-text-primary)]"
 
               return (
                 <div
                   key={test.id}
-                  className="grid grid-cols-12 px-4 py-3.5 text-xs hover:bg-zinc-800/30 transition-colors items-center"
+                  className="grid grid-cols-12 px-4 py-3.5 text-xs hover:bg-[var(--color-surface-2)]/30 transition-colors items-center"
                 >
-                  <span className="col-span-3 text-zinc-300 leading-relaxed pr-2">{test.name}</span>
-                  <span className="col-span-2 text-zinc-400 pr-1">{test.suite}</span>
+                  <span className="col-span-3 text-[var(--color-text-primary)] leading-relaxed pr-2">{test.name}</span>
+                  <span className="col-span-2 text-[var(--color-text-secondary)] pr-1">{test.suite}</span>
                   <div className="col-span-1 flex justify-end">
                     <span className={cn("font-bold text-sm tabular-nums", severity)}>
                       {test.flakinessRate}%
@@ -485,14 +485,14 @@ export default function TestResultsDashboard() {
                       />
                     ))}
                   </div>
-                  <span className="col-span-1 text-right text-zinc-500 tabular-nums">
+                  <span className="col-span-1 text-right text-[var(--color-text-muted)] tabular-nums">
                     {test.lastFailure.slice(4, 10)}
                   </span>
-                  <span className="col-span-1 text-right text-zinc-500 tabular-nums">
+                  <span className="col-span-1 text-right text-[var(--color-text-muted)] tabular-nums">
                     {test.lastPass.slice(4, 10)}
                   </span>
                   <div className="col-span-2 flex justify-end">
-                    <span className="bg-zinc-800 border border-zinc-700 text-indigo-400 rounded px-2 py-1 text-xs leading-tight text-right">
+                    <span className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-indigo-400 rounded px-2 py-1 text-xs leading-tight text-right">
                       {test.suggestedAction}
                     </span>
                   </div>
@@ -526,12 +526,12 @@ export default function TestResultsDashboard() {
             <div
               key={card.label}
               className={cn(
-                "bg-zinc-900 rounded-lg p-4 border",
+                "bg-[var(--color-surface-1)] rounded-lg p-4 border",
                 card.passing ? "border-emerald-700/40" : "border-rose-700/40"
               )}
             >
               <div className="flex items-start justify-between mb-2">
-                <span className="text-zinc-400 text-xs leading-tight">{card.label}</span>
+                <span className="text-[var(--color-text-secondary)] text-xs leading-tight">{card.label}</span>
                 <span className={cn("text-xs font-semibold", card.passing ? "text-emerald-400" : "text-rose-400")}>
                   {card.passing ? "✓ OK" : "✗ FAIL"}
                 </span>
@@ -539,19 +539,19 @@ export default function TestResultsDashboard() {
               <div className={cn("text-2xl font-bold tabular-nums", card.passing ? "text-emerald-400" : "text-rose-400")}>
                 {card.value}
               </div>
-              <div className="text-zinc-500 text-xs mt-1">Threshold: {card.threshold}</div>
+              <div className="text-[var(--color-text-muted)] text-xs mt-1">Threshold: {card.threshold}</div>
             </div>
           ))}
         </div>
 
         {/* Coverage trend bar chart */}
-        <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-5">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="text-white text-sm font-medium">Coverage Trend — Last 8 Builds</h3>
-            <span className="text-zinc-500 text-xs">Overall line coverage %</span>
+            <h3 className="text-[var(--color-text-primary)] text-sm font-medium">Coverage Trend — Last 8 Builds</h3>
+            <span className="text-[var(--color-text-muted)] text-xs">Overall line coverage %</span>
           </div>
           {/* Y-axis labels + threshold line hint */}
-          <div className="text-xs text-zinc-500 mb-3 flex items-center gap-2">
+          <div className="text-xs text-[var(--color-text-muted)] mb-3 flex items-center gap-2">
             <span className="w-6 h-px bg-amber-400/50 inline-block" />
             <span className="text-amber-400/70">80% threshold</span>
           </div>
@@ -565,7 +565,7 @@ export default function TestResultsDashboard() {
 
               return (
                 <div key={b.build} className="flex-1 flex flex-col items-center justify-end h-full gap-1">
-                  <span className={cn("text-xs tabular-nums", isLatest ? "text-indigo-400 font-semibold" : "text-zinc-500")}>
+                  <span className={cn("text-xs tabular-nums", isLatest ? "text-indigo-400 font-semibold" : "text-[var(--color-text-muted)]")}>
                     {b.coverage}%
                   </span>
                   <div
@@ -575,7 +575,7 @@ export default function TestResultsDashboard() {
                     )}
                     style={{ height: `${barH}%` }}
                   />
-                  <span className={cn("text-xs truncate w-full text-center", isLatest ? "text-indigo-400" : "text-zinc-600")}>
+                  <span className={cn("text-xs truncate w-full text-center", isLatest ? "text-indigo-400" : "text-[var(--color-text-muted)]")}>
                     {b.build}
                   </span>
                 </div>
@@ -585,11 +585,11 @@ export default function TestResultsDashboard() {
         </div>
 
         {/* Module breakdown table */}
-        <div className="bg-zinc-900 border border-zinc-700 rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-700">
-            <h3 className="text-white font-medium text-sm">Coverage by Module</h3>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-[var(--color-border)]">
+            <h3 className="text-[var(--color-text-primary)] font-medium text-sm">Coverage by Module</h3>
           </div>
-          <div className="grid grid-cols-12 px-4 py-2 text-xs text-zinc-500 border-b border-zinc-800">
+          <div className="grid grid-cols-12 px-4 py-2 text-xs text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
             <span className="col-span-3">Module</span>
             <span className="col-span-2 text-right">Line%</span>
             <span className="col-span-2 text-right">Branch%</span>
@@ -597,10 +597,10 @@ export default function TestResultsDashboard() {
             <span className="col-span-2 text-right">Statement%</span>
             <span className="col-span-1 text-right">Δ</span>
           </div>
-          <div className="divide-y divide-zinc-800">
+          <div className="divide-y divide-[var(--color-border)]">
             {coverageModules.map(mod => (
-              <div key={mod.id} className="grid grid-cols-12 px-4 py-3 hover:bg-zinc-800/30 transition-colors items-center">
-                <span className="col-span-3 font-mono text-zinc-300 text-xs">{mod.module}</span>
+              <div key={mod.id} className="grid grid-cols-12 px-4 py-3 hover:bg-[var(--color-surface-2)]/30 transition-colors items-center">
+                <span className="col-span-3 font-mono text-[var(--color-text-primary)] text-xs">{mod.module}</span>
                 <span className={cn("col-span-2 text-right text-xs tabular-nums font-medium", coverageColor(mod.line, threshold))}>
                   {mod.line}%
                 </span>
@@ -615,7 +615,7 @@ export default function TestResultsDashboard() {
                 </span>
                 <span className={cn(
                   "col-span-1 text-right text-xs font-semibold tabular-nums",
-                  mod.change > 0 ? "text-emerald-400" : mod.change < 0 ? "text-rose-400" : "text-zinc-500"
+                  mod.change > 0 ? "text-emerald-400" : mod.change < 0 ? "text-rose-400" : "text-[var(--color-text-muted)]"
                 )}>
                   {mod.change > 0 ? "↑" : mod.change < 0 ? "↓" : "–"}
                   {mod.change !== 0 ? ` ${Math.abs(mod.change)}%` : ""}
@@ -636,16 +636,16 @@ export default function TestResultsDashboard() {
     return (
       <div className="space-y-5">
         {/* Stacked bar chart */}
-        <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-5">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white text-sm font-medium">Run Results — Last {historyRuns.length} Runs</h3>
+            <h3 className="text-[var(--color-text-primary)] text-sm font-medium">Run Results — Last {historyRuns.length} Runs</h3>
             <div className="flex gap-4 text-xs">
               {[
                 { color: "bg-emerald-500/70", label: "Passed" },
                 { color: "bg-rose-400/70", label: "Failed" },
-                { color: "bg-zinc-600/70", label: "Skipped" },
+                { color: "bg-[var(--color-surface-3)]/70", label: "Skipped" },
               ].map(item => (
-                <span key={item.label} className="flex items-center gap-1.5 text-zinc-400">
+                <span key={item.label} className="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
                   <span className={cn("w-2.5 h-2.5 rounded-sm inline-block", item.color)} />
                   {item.label}
                 </span>
@@ -667,7 +667,7 @@ export default function TestResultsDashboard() {
                   <div style={{ height: `${barH}px` }} className="flex flex-col">
                     {skipH > 0 && (
                       <div
-                        className="bg-zinc-600/60 w-full flex-shrink-0"
+                        className="bg-[var(--color-surface-3)]/60 w-full flex-shrink-0"
                         style={{ height: `${skipH}px` }}
                         title={`Skip: ${run.skipped}`}
                       />
@@ -687,7 +687,7 @@ export default function TestResultsDashboard() {
                       />
                     )}
                   </div>
-                  <span className="text-zinc-600 text-xs text-center mt-1 truncate block">{run.runId}</span>
+                  <span className="text-[var(--color-text-muted)] text-xs text-center mt-1 truncate block">{run.runId}</span>
                 </div>
               )
             })}
@@ -695,12 +695,12 @@ export default function TestResultsDashboard() {
         </div>
 
         {/* History table */}
-        <div className="bg-zinc-900 border border-zinc-700 rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-700 flex items-center justify-between">
-            <h3 className="text-white font-medium text-sm">Run History</h3>
-            <span className="text-zinc-500 text-xs">Click row to view diff</span>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+            <h3 className="text-[var(--color-text-primary)] font-medium text-sm">Run History</h3>
+            <span className="text-[var(--color-text-muted)] text-xs">Click row to view diff</span>
           </div>
-          <div className="grid grid-cols-12 px-4 py-2 text-xs text-zinc-500 border-b border-zinc-800">
+          <div className="grid grid-cols-12 px-4 py-2 text-xs text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
             <span className="col-span-1">Run</span>
             <span className="col-span-3">Branch</span>
             <span className="col-span-1">Commit</span>
@@ -711,7 +711,7 @@ export default function TestResultsDashboard() {
             <span className="col-span-1 text-right">Skip</span>
             <span className="col-span-1 text-right">Trigger</span>
           </div>
-          <div className="divide-y divide-zinc-800">
+          <div className="divide-y divide-[var(--color-border)]">
             {historyRuns.map((run, idx) => {
               const prev = historyRuns[idx + 1]
               const failDiff = prev ? run.failed - prev.failed : 0
@@ -720,31 +720,31 @@ export default function TestResultsDashboard() {
                 <div key={run.id}>
                   <button
                     onClick={() => toggleHistory(run.id)}
-                    className="w-full grid grid-cols-12 px-4 py-3 text-xs hover:bg-zinc-800/40 transition-colors text-left items-center"
+                    className="w-full grid grid-cols-12 px-4 py-3 text-xs hover:bg-[var(--color-surface-2)]/40 transition-colors text-left items-center"
                   >
                     <span className="col-span-1 text-indigo-400 font-mono font-medium">{run.runId}</span>
-                    <span className="col-span-3 text-zinc-300 truncate pr-2">{run.branch}</span>
-                    <span className="col-span-1 font-mono text-zinc-500">{run.commit}</span>
-                    <span className="col-span-2 text-zinc-400">{run.started}</span>
-                    <span className="col-span-1 text-right text-zinc-300 tabular-nums">{formatDuration(run.duration)}</span>
+                    <span className="col-span-3 text-[var(--color-text-primary)] truncate pr-2">{run.branch}</span>
+                    <span className="col-span-1 font-mono text-[var(--color-text-muted)]">{run.commit}</span>
+                    <span className="col-span-2 text-[var(--color-text-secondary)]">{run.started}</span>
+                    <span className="col-span-1 text-right text-[var(--color-text-primary)] tabular-nums">{formatDuration(run.duration)}</span>
                     <span className="col-span-1 text-right text-emerald-400 tabular-nums">{run.passed}</span>
-                    <span className={cn("col-span-1 text-right tabular-nums", run.failed > 0 ? "text-rose-400" : "text-zinc-500")}>
+                    <span className={cn("col-span-1 text-right tabular-nums", run.failed > 0 ? "text-rose-400" : "text-[var(--color-text-muted)]")}>
                       {run.failed}
                     </span>
-                    <span className="col-span-1 text-right text-zinc-500 tabular-nums">{run.skipped}</span>
-                    <span className="col-span-1 text-right text-zinc-500">{run.triggeredBy}</span>
+                    <span className="col-span-1 text-right text-[var(--color-text-muted)] tabular-nums">{run.skipped}</span>
+                    <span className="col-span-1 text-right text-[var(--color-text-muted)]">{run.triggeredBy}</span>
                   </button>
 
                   {expandedHistory.has(run.id) && (
-                    <div className="bg-zinc-950/60 border-t border-zinc-800 px-8 py-4 text-xs space-y-2">
-                      <div className="text-zinc-300 font-medium">Diff from previous run</div>
+                    <div className="bg-[var(--color-surface-0)]/60 border-t border-[var(--color-border)] px-8 py-4 text-xs space-y-2">
+                      <div className="text-[var(--color-text-primary)] font-medium">Diff from previous run</div>
                       {prev ? (
                         <div className="space-y-1.5">
                           {failDiff > 0 && (
                             <div className="flex items-center gap-2 text-rose-300">
                               <span className="text-rose-400">+{failDiff}</span>
                               <span>new test failures vs {prev.runId}</span>
-                              <span className="font-mono text-zinc-500">(commit {prev.commit} → {run.commit})</span>
+                              <span className="font-mono text-[var(--color-text-muted)]">(commit {prev.commit} → {run.commit})</span>
                             </div>
                           )}
                           {failDiff < 0 && (
@@ -754,16 +754,16 @@ export default function TestResultsDashboard() {
                             </div>
                           )}
                           {failDiff === 0 && (
-                            <div className="text-zinc-400">No change in failure count vs {prev.runId}</div>
+                            <div className="text-[var(--color-text-secondary)]">No change in failure count vs {prev.runId}</div>
                           )}
-                          <div className="text-zinc-500">
+                          <div className="text-[var(--color-text-muted)]">
                             Pass rate: {((run.passed / (run.passed + run.failed + run.skipped)) * 100).toFixed(1)}%
                             {" "}({run.passed} / {run.passed + run.failed + run.skipped}) ·{" "}
                             Duration: {formatDuration(run.duration)}
                           </div>
                         </div>
                       ) : (
-                        <div className="text-zinc-500">No previous run to compare against.</div>
+                        <div className="text-[var(--color-text-muted)]">No previous run to compare against.</div>
                       )}
                     </div>
                   )}
@@ -779,17 +779,17 @@ export default function TestResultsDashboard() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-6">
       {/* Page header */}
       <div className="mb-6">
-        <h1 className="text-white text-xl font-semibold tracking-tight">Test Results Dashboard</h1>
-        <p className="text-zinc-400 text-sm mt-1">
+        <h1 className="text-[var(--color-text-primary)] text-xl font-semibold tracking-tight">Test Results Dashboard</h1>
+        <p className="text-[var(--color-text-secondary)] text-sm mt-1">
           CI/CD test results, coverage tracking, and flakiness analysis for {latestRunMeta.repo}
         </p>
       </div>
 
       {/* Tab bar */}
-      <div className="flex items-end gap-0.5 border-b border-zinc-800 mb-6">
+      <div className="flex items-end gap-0.5 border-b border-[var(--color-border)] mb-6">
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -798,7 +798,7 @@ export default function TestResultsDashboard() {
               "relative flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors",
               activeTab === tab.id
                 ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-zinc-400 hover:text-zinc-300 hover:border-zinc-700"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
             )}
           >
             {tab.label}

@@ -80,8 +80,8 @@ interface StatCardProps {
 
 function StatCard({ label, value, sub, accent }: StatCardProps) {
   return (
-    <div className="rounded-xl bg-zinc-800 border border-zinc-700 p-5 flex flex-col gap-1 min-w-0">
-      <span className="text-xs font-medium uppercase tracking-widest text-zinc-400">
+    <div className="rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] p-5 flex flex-col gap-1 min-w-0">
+      <span className="text-xs font-medium uppercase tracking-widest text-[var(--color-text-secondary)]">
         {label}
       </span>
       <span
@@ -90,7 +90,7 @@ function StatCard({ label, value, sub, accent }: StatCardProps) {
       >
         {value}
       </span>
-      {sub && <span className="text-xs text-zinc-500 mt-0.5">{sub}</span>}
+      {sub && <span className="text-xs text-[var(--color-text-muted)] mt-0.5">{sub}</span>}
     </div>
   );
 }
@@ -106,20 +106,20 @@ function ProgressBar({ used, total }: ProgressBarProps) {
   const pctDisplay = Math.round(pct * 100);
 
   return (
-    <div className="rounded-xl bg-zinc-800 border border-zinc-700 p-5">
+    <div className="rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] p-5">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-zinc-300">Daily Usage</span>
-        <span className="text-sm tabular-nums text-zinc-400">
+        <span className="text-sm font-medium text-[var(--color-text-primary)]">Daily Usage</span>
+        <span className="text-sm tabular-nums text-[var(--color-text-secondary)]">
           {used.toLocaleString()} / {total.toLocaleString()} queries ({pctDisplay}%)
         </span>
       </div>
-      <div className="h-4 w-full rounded-full bg-zinc-700 overflow-hidden">
+      <div className="h-4 w-full rounded-full bg-[var(--color-surface-3)] overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700"
           style={{ width: `${pctDisplay}%`, backgroundColor: color }}
         />
       </div>
-      <div className="flex justify-between mt-1.5 text-xs text-zinc-500">
+      <div className="flex justify-between mt-1.5 text-xs text-[var(--color-text-muted)]">
         <span>0</span>
         <span>{(total / 2).toLocaleString()}</span>
         <span>{total.toLocaleString()}</span>
@@ -162,8 +162,8 @@ function HourlyChart({ buckets, currentHour }: HourlyChartProps) {
   const xLabels = [0, 6, 12, 18, 23];
 
   return (
-    <div className="rounded-xl bg-zinc-800 border border-zinc-700 p-5">
-      <span className="text-sm font-medium text-zinc-300">Hourly Burn Rate</span>
+    <div className="rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] p-5">
+      <span className="text-sm font-medium text-[var(--color-text-primary)]">Hourly Burn Rate</span>
       <div className="mt-3 overflow-x-auto">
         <svg
           viewBox={`0 0 ${W} ${H}`}
@@ -265,12 +265,12 @@ interface TopRunsTableProps {
 
 function TopRunsTable({ runs }: TopRunsTableProps) {
   return (
-    <div className="rounded-xl bg-zinc-800 border border-zinc-700 p-5">
-      <span className="text-sm font-medium text-zinc-300">Top Consuming Discovery Runs</span>
+    <div className="rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] p-5">
+      <span className="text-sm font-medium text-[var(--color-text-primary)]">Top Consuming Discovery Runs</span>
       <div className="mt-3 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wider text-zinc-500 border-b border-zinc-700">
+            <tr className="text-left text-xs uppercase tracking-wider text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
               <th className="pb-2 pr-4 font-medium">Run ID</th>
               <th className="pb-2 pr-4 font-medium text-right">Queries</th>
               <th className="pb-2 font-medium">Timestamp</th>
@@ -281,15 +281,15 @@ function TopRunsTable({ runs }: TopRunsTableProps) {
               <tr
                 key={run.id}
                 className={cn(
-                  "border-b border-zinc-700/50 last:border-0",
+                  "border-b border-[var(--color-border)]/50 last:border-0",
                   i === 0 && "text-indigo-300"
                 )}
               >
-                <td className="py-2 pr-4 font-mono text-xs text-zinc-300">{run.id}</td>
+                <td className="py-2 pr-4 font-mono text-xs text-[var(--color-text-primary)]">{run.id}</td>
                 <td className="py-2 pr-4 text-right tabular-nums font-semibold">
                   {run.queriesUsed}
                 </td>
-                <td className="py-2 text-zinc-400 text-xs">{run.timestamp}</td>
+                <td className="py-2 text-[var(--color-text-secondary)] text-xs">{run.timestamp}</td>
               </tr>
             ))}
           </tbody>
@@ -338,12 +338,12 @@ export default function BraveSearchQuotaTracker() {
   });
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-zinc-100 p-6 space-y-5">
+    <div className="min-h-screen bg-[var(--color-surface-1)] text-[var(--color-text-primary)] p-6 space-y-5">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Brave Search Quota</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">Last refreshed: {timeStr}</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Last refreshed: {timeStr}</p>
         </div>
         <button
           onClick={refresh}

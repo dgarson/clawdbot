@@ -54,14 +54,14 @@ const statusBadge: Record<EndpointStatus, string> = {
   healthy:  "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
   degraded: "bg-amber-500/20 text-amber-400 border border-amber-500/30",
   down:     "bg-rose-500/20 text-rose-400 border border-rose-500/30",
-  unknown:  "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
+  unknown:  "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border border-[var(--color-surface-3)]/30",
 };
 
 const statusDot: Record<EndpointStatus, string> = {
   healthy:  "bg-emerald-400",
   degraded: "bg-amber-400",
   down:     "bg-rose-400 animate-pulse",
-  unknown:  "bg-zinc-400",
+  unknown:  "bg-[var(--color-surface-3)]",
 };
 
 const methodColor: Record<HttpMethod, string> = {
@@ -70,7 +70,7 @@ const methodColor: Record<HttpMethod, string> = {
   PUT:    "bg-amber-500/20 text-amber-400",
   DELETE: "bg-rose-500/20 text-rose-400",
   PATCH:  "bg-violet-500/20 text-violet-400",
-  HEAD:   "bg-zinc-500/20 text-zinc-400",
+  HEAD:   "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
 };
 
 const alertSeverityColor: Record<AlertSeverity, string> = {
@@ -158,14 +158,14 @@ export default function EndpointMonitor() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Endpoint Monitor</h1>
-            <p className="text-zinc-400 text-sm mt-1">Uptime, latency, and incident tracking for API endpoints</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Endpoint Monitor</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">Uptime, latency, and incident tracking for API endpoints</p>
           </div>
           <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition-colors">
             + Add Endpoint
@@ -174,22 +174,22 @@ export default function EndpointMonitor() {
 
         {/* Status bar */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-center gap-3">
             <div className="w-3 h-3 rounded-full bg-emerald-400" />
-            <div><p className="text-xs text-zinc-500">Healthy</p><p className="text-2xl font-bold text-emerald-400">{healthyCount}</p></div>
+            <div><p className="text-xs text-[var(--color-text-muted)]">Healthy</p><p className="text-2xl font-bold text-emerald-400">{healthyCount}</p></div>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-center gap-3">
             <div className="w-3 h-3 rounded-full bg-amber-400" />
-            <div><p className="text-xs text-zinc-500">Degraded</p><p className="text-2xl font-bold text-amber-400">{degradedCount}</p></div>
+            <div><p className="text-xs text-[var(--color-text-muted)]">Degraded</p><p className="text-2xl font-bold text-amber-400">{degradedCount}</p></div>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-3">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-center gap-3">
             <div className="w-3 h-3 rounded-full bg-rose-400 animate-pulse" />
-            <div><p className="text-xs text-zinc-500">Down</p><p className="text-2xl font-bold text-rose-400">{downCount}</p></div>
+            <div><p className="text-xs text-[var(--color-text-muted)]">Down</p><p className="text-2xl font-bold text-rose-400">{downCount}</p></div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-zinc-800">
+        <div className="flex gap-1 border-b border-[var(--color-border)]">
           {tabs.map(t => (
             <button
               key={t.id}
@@ -197,8 +197,8 @@ export default function EndpointMonitor() {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
                 tab === t.id
-                  ? "border-indigo-500 text-white"
-                  : "border-transparent text-zinc-400 hover:text-zinc-200"
+                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.label}
@@ -217,7 +217,7 @@ export default function EndpointMonitor() {
                   onClick={() => { setStatusFilter(f === "all" ? "all" : f); setSelectedEndpoint(null); }}
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                    statusFilter === f ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                    statusFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -226,40 +226,40 @@ export default function EndpointMonitor() {
             </div>
 
             {selectedEndpoint ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-5">
-                <button onClick={() => setSelectedEndpoint(null)} className="text-zinc-400 hover:text-white text-sm">← Back</button>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 space-y-5">
+                <button onClick={() => setSelectedEndpoint(null)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-sm">← Back</button>
                 <div className="flex items-center gap-3">
                   <div className={cn("w-3 h-3 rounded-full", statusDot[selectedEndpoint.status])} />
-                  <h2 className="text-xl font-bold text-white">{selectedEndpoint.name}</h2>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedEndpoint.name}</h2>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusBadge[selectedEndpoint.status])}>{selectedEndpoint.status}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={cn("text-xs px-2 py-0.5 rounded font-medium", methodColor[selectedEndpoint.method])}>{selectedEndpoint.method}</span>
-                  <code className="text-xs text-zinc-400 bg-zinc-800/80 px-2 py-1 rounded">{selectedEndpoint.url}</code>
+                  <code className="text-xs text-[var(--color-text-secondary)] bg-[var(--color-surface-2)]/80 px-2 py-1 rounded">{selectedEndpoint.url}</code>
                 </div>
 
                 {/* Latency stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { label: "Latency (p50)", value: `${selectedEndpoint.latencyMs}ms`, color: "text-white" },
-                    { label: "Latency (p95)", value: `${selectedEndpoint.p95Ms}ms`,   color: selectedEndpoint.p95Ms > 1000 ? "text-amber-400" : "text-white" },
-                    { label: "Latency (p99)", value: `${selectedEndpoint.p99Ms}ms`,   color: selectedEndpoint.p99Ms > 2000 ? "text-rose-400" : "text-white" },
+                    { label: "Latency (p50)", value: `${selectedEndpoint.latencyMs}ms`, color: "text-[var(--color-text-primary)]" },
+                    { label: "Latency (p95)", value: `${selectedEndpoint.p95Ms}ms`,   color: selectedEndpoint.p95Ms > 1000 ? "text-amber-400" : "text-[var(--color-text-primary)]" },
+                    { label: "Latency (p99)", value: `${selectedEndpoint.p99Ms}ms`,   color: selectedEndpoint.p99Ms > 2000 ? "text-rose-400" : "text-[var(--color-text-primary)]" },
                     { label: "Success Rate",  value: `${selectedEndpoint.successRate}%`, color: selectedEndpoint.successRate < 99 ? "text-rose-400" : "text-emerald-400" },
                     { label: "Uptime (30d)",  value: `${selectedEndpoint.uptime30d}%`, color: "text-emerald-400" },
-                    { label: "Response Code", value: selectedEndpoint.responseCode || "N/A", color: selectedEndpoint.responseCode >= 500 ? "text-rose-400" : "text-white" },
-                    { label: "Last Checked",  value: selectedEndpoint.lastChecked,   color: "text-zinc-400" },
-                    { label: "Region",        value: selectedEndpoint.region,        color: "text-zinc-400" },
+                    { label: "Response Code", value: selectedEndpoint.responseCode || "N/A", color: selectedEndpoint.responseCode >= 500 ? "text-rose-400" : "text-[var(--color-text-primary)]" },
+                    { label: "Last Checked",  value: selectedEndpoint.lastChecked,   color: "text-[var(--color-text-secondary)]" },
+                    { label: "Region",        value: selectedEndpoint.region,        color: "text-[var(--color-text-secondary)]" },
                   ].map(m => (
-                    <div key={m.label} className="bg-zinc-800/60 rounded-lg p-3">
-                      <p className="text-xs text-zinc-500">{m.label}</p>
+                    <div key={m.label} className="bg-[var(--color-surface-2)]/60 rounded-lg p-3">
+                      <p className="text-xs text-[var(--color-text-muted)]">{m.label}</p>
                       <p className={cn("text-sm font-semibold mt-0.5", m.color)}>{m.value}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Latency chart (sparkline) */}
-                <div className="bg-zinc-800/40 rounded-xl p-4">
-                  <h3 className="text-sm font-semibold text-zinc-300 mb-3">Latency Over Time</h3>
+                <div className="bg-[var(--color-surface-2)]/40 rounded-xl p-4">
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Latency Over Time</h3>
                   <div className="flex items-end gap-1 h-20">
                     {latencyHistory.map((pt, i) => (
                       <div key={i} className="flex-1 flex flex-col items-stretch gap-0">
@@ -278,20 +278,20 @@ export default function EndpointMonitor() {
                       </div>
                     ))}
                   </div>
-                  <div className="flex justify-between text-xs text-zinc-600 mt-1">
+                  <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
                     <span>{latencyHistory[0].time}</span>
                     <span>{latencyHistory[latencyHistory.length - 1].time}</span>
                   </div>
                   <div className="flex gap-4 mt-2">
-                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-indigo-500" /><span className="text-xs text-zinc-400">p50</span></div>
-                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-rose-500/40" /><span className="text-xs text-zinc-400">p99</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-indigo-500" /><span className="text-xs text-[var(--color-text-secondary)]">p50</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-rose-500/40" /><span className="text-xs text-[var(--color-text-secondary)]">p99</span></div>
                   </div>
                 </div>
 
                 {/* Tags */}
                 <div className="flex gap-2 flex-wrap">
                   {selectedEndpoint.tags.map(tag => (
-                    <span key={tag} className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">{tag}</span>
+                    <span key={tag} className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-2 py-0.5 rounded">{tag}</span>
                   ))}
                 </div>
               </div>
@@ -301,30 +301,30 @@ export default function EndpointMonitor() {
                   <button
                     key={ep.id}
                     onClick={() => setSelectedEndpoint(ep)}
-                    className="w-full text-left bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-xl p-4 transition-colors"
+                    className="w-full text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] hover:border-[var(--color-surface-3)] rounded-xl p-4 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", statusDot[ep.status])} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
                           <span className={cn("text-xs px-1.5 py-0.5 rounded font-medium", methodColor[ep.method])}>{ep.method}</span>
-                          <span className="text-sm font-semibold text-white">{ep.name}</span>
+                          <span className="text-sm font-semibold text-[var(--color-text-primary)]">{ep.name}</span>
                           <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusBadge[ep.status])}>{ep.status}</span>
                         </div>
-                        <p className="text-xs text-zinc-500 truncate">{ep.url}</p>
+                        <p className="text-xs text-[var(--color-text-muted)] truncate">{ep.url}</p>
                       </div>
                       <div className="flex items-center gap-6 flex-shrink-0 text-xs">
                         <div className="text-right">
-                          <p className="text-zinc-500">p50</p>
-                          <p className={cn("font-medium", ep.latencyMs > 500 ? "text-rose-400" : ep.latencyMs > 200 ? "text-amber-400" : "text-white")}>{ep.status === "down" ? "—" : `${ep.latencyMs}ms`}</p>
+                          <p className="text-[var(--color-text-muted)]">p50</p>
+                          <p className={cn("font-medium", ep.latencyMs > 500 ? "text-rose-400" : ep.latencyMs > 200 ? "text-amber-400" : "text-[var(--color-text-primary)]")}>{ep.status === "down" ? "—" : `${ep.latencyMs}ms`}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-zinc-500">Uptime</p>
+                          <p className="text-[var(--color-text-muted)]">Uptime</p>
                           <p className={cn("font-medium", ep.uptime30d < 99 ? "text-amber-400" : "text-emerald-400")}>{ep.uptime30d}%</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-zinc-500">Checked</p>
-                          <p className="text-zinc-400">{ep.lastChecked}</p>
+                          <p className="text-[var(--color-text-muted)]">Checked</p>
+                          <p className="text-[var(--color-text-secondary)]">{ep.lastChecked}</p>
                         </div>
                       </div>
                     </div>
@@ -340,33 +340,33 @@ export default function EndpointMonitor() {
           <div className="space-y-3">
             {incidents.map(inc => (
               <div key={inc.id} className={cn(
-                "bg-zinc-900 border rounded-xl p-4",
-                !inc.endTime ? "border-rose-500/30" : "border-zinc-800"
+                "bg-[var(--color-surface-1)] border rounded-xl p-4",
+                !inc.endTime ? "border-rose-500/30" : "border-[var(--color-border)]"
               )}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     {!inc.endTime && <div className="w-2.5 h-2.5 rounded-full bg-rose-400 animate-pulse" />}
                     <span className={cn(
                       "text-xs px-2 py-0.5 rounded-full font-medium",
-                      !inc.endTime ? "bg-rose-500/20 text-rose-400" : "bg-zinc-500/20 text-zinc-400"
+                      !inc.endTime ? "bg-rose-500/20 text-rose-400" : "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]"
                     )}>
                       {!inc.endTime ? "ONGOING" : "RESOLVED"}
                     </span>
-                    <span className="text-sm font-semibold text-white">{inc.endpointName}</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{inc.endpointName}</span>
                   </div>
-                  <span className="text-xs text-zinc-500">Duration: {inc.duration}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">Duration: {inc.duration}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mt-3">
-                  <div className="bg-zinc-800/50 rounded p-2">
-                    <p className="text-xs text-zinc-500">Impact</p>
-                    <p className="text-xs text-zinc-300 mt-0.5">{inc.impact}</p>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                    <p className="text-xs text-[var(--color-text-muted)]">Impact</p>
+                    <p className="text-xs text-[var(--color-text-primary)] mt-0.5">{inc.impact}</p>
                   </div>
-                  <div className="bg-zinc-800/50 rounded p-2">
-                    <p className="text-xs text-zinc-500">Root Cause</p>
-                    <p className="text-xs text-zinc-300 mt-0.5">{inc.rootCause}</p>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                    <p className="text-xs text-[var(--color-text-muted)]">Root Cause</p>
+                    <p className="text-xs text-[var(--color-text-primary)] mt-0.5">{inc.rootCause}</p>
                   </div>
                 </div>
-                <p className="text-xs text-zinc-600 mt-2">Started: {inc.startTime}{inc.endTime ? ` · Resolved: ${inc.endTime}` : ""}</p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-2">Started: {inc.startTime}{inc.endTime ? ` · Resolved: ${inc.endTime}` : ""}</p>
               </div>
             ))}
           </div>
@@ -376,19 +376,19 @@ export default function EndpointMonitor() {
         {tab === "alerts" && (
           <div className="space-y-3">
             {alertRules.map(rule => (
-              <div key={rule.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-4">
-                <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", rule.enabled ? "bg-emerald-400" : "bg-zinc-500")} />
+              <div key={rule.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-center gap-4">
+                <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", rule.enabled ? "bg-emerald-400" : "bg-[var(--color-surface-3)]")} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-semibold text-white">{rule.name}</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{rule.name}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded border font-medium", alertSeverityColor[rule.severity])}>{rule.severity}</span>
                   </div>
-                  <p className="text-xs text-zinc-400">{rule.condition}</p>
-                  {rule.lastFired && <p className="text-xs text-zinc-600 mt-0.5">Last fired: {rule.lastFired}</p>}
+                  <p className="text-xs text-[var(--color-text-secondary)]">{rule.condition}</p>
+                  {rule.lastFired && <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Last fired: {rule.lastFired}</p>}
                 </div>
                 <button className={cn(
                   "text-xs px-3 py-1.5 rounded-lg font-medium flex-shrink-0 transition-colors",
-                  rule.enabled ? "bg-zinc-700 hover:bg-zinc-600 text-zinc-300" : "bg-indigo-600 hover:bg-indigo-500 text-white"
+                  rule.enabled ? "bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
                 )}>
                   {rule.enabled ? "Disable" : "Enable"}
                 </button>

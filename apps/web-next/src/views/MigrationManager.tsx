@@ -157,7 +157,7 @@ const STATUS_CONFIG: Record<MigrationStatus, { label: string; color: string; bg:
   applied:      { label: "Applied",      color: "text-emerald-400", bg: "bg-emerald-900/30 border-emerald-800", icon: "✅" },
   pending:      { label: "Pending",      color: "text-amber-400",   bg: "bg-amber-900/30 border-amber-800",    icon: "⏳" },
   failed:       { label: "Failed",       color: "text-rose-400",    bg: "bg-rose-900/30 border-rose-800",      icon: "❌" },
-  "rolled-back": { label: "Rolled Back", color: "text-zinc-400",    bg: "bg-zinc-800 border-zinc-700",         icon: "↩️" },
+  "rolled-back": { label: "Rolled Back", color: "text-[var(--color-text-secondary)]",    bg: "bg-[var(--color-surface-2)] border-[var(--color-border)]",         icon: "↩️" },
   running:      { label: "Running",      color: "text-sky-400",     bg: "bg-sky-900/30 border-sky-800",        icon: "🔄" },
 };
 
@@ -191,12 +191,12 @@ export default function MigrationManager() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Migration Manager</h1>
-            <p className="text-zinc-400 text-sm mt-1">Database migration tracking — clawdbot PostgreSQL</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Migration Manager</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">Database migration tracking — clawdbot PostgreSQL</p>
           </div>
           <div className="flex items-center gap-2">
             <div className={cn("px-3 py-1.5 text-sm rounded-lg border font-mono", pending > 0 ? "border-amber-800 text-amber-400 bg-amber-900/20" : "border-emerald-800 text-emerald-400 bg-emerald-900/20")}>
@@ -209,24 +209,24 @@ export default function MigrationManager() {
           {[
             { label: "Applied",  value: applied,            color: "text-emerald-400", bg: "border-emerald-900 bg-emerald-900/10" },
             { label: "Pending",  value: pending,            color: "text-amber-400",   bg: "border-amber-900 bg-amber-900/10" },
-            { label: "Total",    value: MIGRATIONS.length,  color: "text-white",       bg: "border-zinc-800 bg-zinc-900/50" },
+            { label: "Total",    value: MIGRATIONS.length,  color: "text-[var(--color-text-primary)]",       bg: "border-[var(--color-border)] bg-[var(--color-surface-1)]/50" },
           ].map(s => (
             <div key={s.label} className={cn("border rounded-lg p-4", s.bg)}>
               <div className={cn("text-3xl font-bold", s.color)}>{s.value}</div>
-              <div className="text-xs text-zinc-500 mt-0.5">{s.label}</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{s.label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="flex gap-1 border-b border-zinc-800 mb-5">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-5">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
-              tab === t.id ? "text-white bg-zinc-800 border border-b-0 border-zinc-700" : "text-zinc-400 hover:text-white"
+              tab === t.id ? "text-[var(--color-text-primary)] bg-[var(--color-surface-2)] border border-b-0 border-[var(--color-border)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t.label}
@@ -244,11 +244,11 @@ export default function MigrationManager() {
                 onClick={() => setStatusFilter(s)}
                 className={cn(
                   "px-3 py-1 text-xs rounded-lg border transition-colors",
-                  statusFilter === s ? "bg-zinc-700 border-zinc-600 text-white" : "border-zinc-800 text-zinc-500 hover:text-white"
+                  statusFilter === s ? "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {s === "all" ? "All" : STATUS_CONFIG[s].label}
-                <span className="ml-1 text-zinc-600">
+                <span className="ml-1 text-[var(--color-text-muted)]">
                   ({s === "all" ? MIGRATIONS.length : MIGRATIONS.filter(m => m.status === s).length})
                 </span>
               </button>
@@ -261,15 +261,15 @@ export default function MigrationManager() {
                 key={m.id}
                 onClick={() => setSelectedMigration(selectedMigration?.id === m.id ? null : m)}
                 className={cn(
-                  "bg-zinc-900 border rounded-lg p-4 cursor-pointer transition-colors",
-                  selectedMigration?.id === m.id ? "border-indigo-600" : "border-zinc-800 hover:border-zinc-700"
+                  "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
+                  selectedMigration?.id === m.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start gap-3">
                   <span className="text-lg shrink-0 mt-0.5">{STATUS_CONFIG[m.status].icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-mono text-xs text-zinc-500">{m.version}</span>
+                      <span className="font-mono text-xs text-[var(--color-text-muted)]">{m.version}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded border", STATUS_CONFIG[m.status].color, STATUS_CONFIG[m.status].bg)}>
                         {STATUS_CONFIG[m.status].label}
                       </span>
@@ -277,11 +277,11 @@ export default function MigrationManager() {
                         {TYPE_CONFIG[m.type].icon} {TYPE_CONFIG[m.type].label}
                       </span>
                       {!m.reversible && <span className="text-xs text-orange-400">⚠️ Irreversible</span>}
-                      <span className="text-xs text-zinc-500 ml-auto">by {m.author}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] ml-auto">by {m.author}</span>
                     </div>
-                    <div className="font-mono text-sm text-white">{m.name}</div>
-                    <div className="text-xs text-zinc-500 mt-0.5">{m.description}</div>
-                    <div className="flex items-center gap-4 mt-1 text-xs text-zinc-600">
+                    <div className="font-mono text-sm text-[var(--color-text-primary)]">{m.name}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{m.description}</div>
+                    <div className="flex items-center gap-4 mt-1 text-xs text-[var(--color-text-muted)]">
                       {m.appliedAt && <span>Applied {new Date(m.appliedAt).toLocaleDateString()}</span>}
                       {m.duration && <span>⏱️ {m.duration >= 1000 ? `${(m.duration/1000).toFixed(1)}s` : `${m.duration}ms`}</span>}
                       <span>Tables: {m.affectedTables.join(", ")}</span>
@@ -290,19 +290,19 @@ export default function MigrationManager() {
                 </div>
 
                 {selectedMigration?.id === m.id && (
-                  <div className="mt-4 border-t border-zinc-800 pt-4 space-y-3" onClick={e => e.stopPropagation()}>
+                  <div className="mt-4 border-t border-[var(--color-border)] pt-4 space-y-3" onClick={e => e.stopPropagation()}>
                     {/* SQL buttons */}
                     <div className="flex gap-2 mb-3">
                       <button
                         onClick={() => setShowSql(showSql === "up" ? null : "up")}
-                        className={cn("px-3 py-1.5 text-xs rounded-lg border transition-colors", showSql === "up" ? "bg-indigo-600 border-indigo-500 text-white" : "border-zinc-700 text-zinc-400 hover:text-white")}
+                        className={cn("px-3 py-1.5 text-xs rounded-lg border transition-colors", showSql === "up" ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
                       >
                         ▲ UP Migration SQL
                       </button>
                       {m.reversible && (
                         <button
                           onClick={() => setShowSql(showSql === "down" ? null : "down")}
-                          className={cn("px-3 py-1.5 text-xs rounded-lg border transition-colors", showSql === "down" ? "bg-rose-700 border-rose-600 text-white" : "border-zinc-700 text-zinc-400 hover:text-white")}
+                          className={cn("px-3 py-1.5 text-xs rounded-lg border transition-colors", showSql === "down" ? "bg-rose-700 border-rose-600 text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
                         >
                           ▼ DOWN (Rollback) SQL
                         </button>
@@ -310,26 +310,26 @@ export default function MigrationManager() {
                     </div>
 
                     {showSql && (
-                      <pre className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre">
+                      <pre className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg p-4 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre">
                         {showSql === "up" ? m.upSql : m.downSql}
                       </pre>
                     )}
 
                     <div className="grid grid-cols-3 gap-3 text-xs">
                       <div>
-                        <div className="text-zinc-500 mb-1">Checksum</div>
-                        <div className="font-mono text-zinc-300">{m.checksum}</div>
+                        <div className="text-[var(--color-text-muted)] mb-1">Checksum</div>
+                        <div className="font-mono text-[var(--color-text-primary)]">{m.checksum}</div>
                       </div>
                       <div>
-                        <div className="text-zinc-500 mb-1">Environments</div>
+                        <div className="text-[var(--color-text-muted)] mb-1">Environments</div>
                         <div className="flex gap-1 flex-wrap">
                           {m.environment.map(env => (
-                            <span key={env} className="text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300">{env}</span>
+                            <span key={env} className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-primary)]">{env}</span>
                           ))}
                         </div>
                       </div>
                       <div>
-                        <div className="text-zinc-500 mb-1">Reversible</div>
+                        <div className="text-[var(--color-text-muted)] mb-1">Reversible</div>
                         <div className={m.reversible ? "text-emerald-400" : "text-rose-400"}>
                           {m.reversible ? "✅ Yes" : "❌ No"}
                         </div>
@@ -338,10 +338,10 @@ export default function MigrationManager() {
 
                     {m.status === "pending" && (
                       <div className="flex gap-2 mt-2">
-                        <button className="px-4 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors">
+                        <button className="px-4 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">
                           ▶ Apply Migration
                         </button>
-                        <button className="px-4 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 transition-colors">
+                        <button className="px-4 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">
                           Dry Run
                         </button>
                       </div>
@@ -366,9 +366,9 @@ export default function MigrationManager() {
             <div className="bg-amber-900/20 border border-amber-900 rounded-lg p-4 flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-amber-300">{pending} pending migrations</div>
-                <div className="text-xs text-zinc-400 mt-0.5">Run migrations to bring the database up to date</div>
+                <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">Run migrations to bring the database up to date</div>
               </div>
-              <button className="px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg text-sm font-medium text-white transition-colors">
+              <button className="px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg text-sm font-medium text-[var(--color-text-primary)] transition-colors">
                 ▶ Run Pending
               </button>
             </div>
@@ -379,27 +379,27 @@ export default function MigrationManager() {
               key={run.id}
               onClick={() => setSelectedRun(selectedRun?.id === run.id ? null : run)}
               className={cn(
-                "bg-zinc-900 border rounded-lg p-4 cursor-pointer transition-colors",
-                selectedRun?.id === run.id ? "border-indigo-600" : "border-zinc-800 hover:border-zinc-700"
+                "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
+                selectedRun?.id === run.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
               )}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                   <span className="text-emerald-400 font-bold">✓</span>
                   <div>
-                    <div className="text-sm font-medium text-white">
+                    <div className="text-sm font-medium text-[var(--color-text-primary)]">
                       {run.migrationsApplied} applied, {run.migrationsSkipped} skipped
                     </div>
-                    <div className="text-xs text-zinc-500">{new Date(run.startedAt).toLocaleString()} · {run.environment} · by {run.triggeredBy}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">{new Date(run.startedAt).toLocaleString()} · {run.environment} · by {run.triggeredBy}</div>
                   </div>
                 </div>
-                <span className="text-xs text-zinc-500">{run.id}</span>
+                <span className="text-xs text-[var(--color-text-muted)]">{run.id}</span>
               </div>
 
               {selectedRun?.id === run.id && (
-                <div className="mt-3 bg-zinc-950 border border-zinc-800 rounded-lg p-3 font-mono text-xs space-y-0.5">
+                <div className="mt-3 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg p-3 font-mono text-xs space-y-0.5">
                   {run.log.map((line, i) => (
-                    <div key={i} className={cn("", line.includes("✓") ? "text-emerald-400" : line.includes("▶") ? "text-indigo-400" : "text-zinc-500")}>
+                    <div key={i} className={cn("", line.includes("✓") ? "text-emerald-400" : line.includes("▶") ? "text-indigo-400" : "text-[var(--color-text-muted)]")}>
                       {line}
                     </div>
                   ))}
@@ -413,23 +413,23 @@ export default function MigrationManager() {
       {/* Schema Info */}
       {tab === "schema" && (
         <div className="space-y-4">
-          <div className="text-sm text-zinc-400 mb-4">Tables touched by tracked migrations</div>
+          <div className="text-sm text-[var(--color-text-secondary)] mb-4">Tables touched by tracked migrations</div>
           {Array.from(new Set(MIGRATIONS.flatMap(m => m.affectedTables))).map(table => {
             const tableMigrations = MIGRATIONS.filter(m => m.affectedTables.includes(table));
             const lastApplied = tableMigrations.filter(m => m.status === "applied").toSorted((a, b) => (b.version > a.version ? 1 : -1))[0];
             return (
-              <div key={table} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div key={table} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <div className="font-mono text-white text-sm">{table}</div>
-                    <div className="text-xs text-zinc-500 mt-0.5">{tableMigrations.length} migrations · last modified {lastApplied?.appliedAt ? new Date(lastApplied.appliedAt).toLocaleDateString() : "never"}</div>
+                    <div className="font-mono text-[var(--color-text-primary)] text-sm">{table}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{tableMigrations.length} migrations · last modified {lastApplied?.appliedAt ? new Date(lastApplied.appliedAt).toLocaleDateString() : "never"}</div>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {tableMigrations.map(m => (
-                    <div key={m.id} className="flex items-center gap-1.5 bg-zinc-800 rounded px-2 py-1 text-xs">
+                    <div key={m.id} className="flex items-center gap-1.5 bg-[var(--color-surface-2)] rounded px-2 py-1 text-xs">
                       <span>{STATUS_CONFIG[m.status].icon}</span>
-                      <span className="font-mono text-zinc-300">{m.name}</span>
+                      <span className="font-mono text-[var(--color-text-primary)]">{m.name}</span>
                       <span className={cn(TYPE_CONFIG[m.type].color)}>{TYPE_CONFIG[m.type].icon}</span>
                     </div>
                   ))}

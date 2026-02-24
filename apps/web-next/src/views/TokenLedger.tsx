@@ -119,26 +119,26 @@ const PROVIDER_COLORS: Record<string, string> = {
 function CostBarChart({ summaries }: { summaries: DailySummary[] }) {
   const maxCost = Math.max(...summaries.map(s => s.totalCost));
   return (
-    <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-      <h3 className="text-sm font-semibold text-white mb-4">Daily Cost — Last 7 Days</h3>
+    <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-4">
+      <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Daily Cost — Last 7 Days</h3>
       <div className="flex items-end gap-2 h-20">
         {[...summaries].toReversed().map(day => (
           <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
-            <span className="text-[9px] text-zinc-500 font-mono">${day.totalCost.toFixed(2)}</span>
+            <span className="text-[9px] text-[var(--color-text-muted)] font-mono">${day.totalCost.toFixed(2)}</span>
             <div
               className="w-full bg-indigo-500 rounded-t transition-all"
               style={{ height: `${barH(day.totalCost, maxCost)}px` }}
               role="presentation"
             />
-            <span className="text-[9px] text-zinc-600">
+            <span className="text-[9px] text-[var(--color-text-muted)]">
               {new Date(day.date).toLocaleDateString([], { weekday: "short" })}
             </span>
           </div>
         ))}
       </div>
-      <div className="mt-3 flex items-center justify-between text-xs text-zinc-500">
-        <span>Total 7d: <span className="text-white font-mono font-semibold">${summaries.reduce((a, s) => a + s.totalCost, 0).toFixed(2)}</span></span>
-        <span>Avg/day: <span className="text-white font-mono">${(summaries.reduce((a, s) => a + s.totalCost, 0) / summaries.length).toFixed(2)}</span></span>
+      <div className="mt-3 flex items-center justify-between text-xs text-[var(--color-text-muted)]">
+        <span>Total 7d: <span className="text-[var(--color-text-primary)] font-mono font-semibold">${summaries.reduce((a, s) => a + s.totalCost, 0).toFixed(2)}</span></span>
+        <span>Avg/day: <span className="text-[var(--color-text-primary)] font-mono">${(summaries.reduce((a, s) => a + s.totalCost, 0) / summaries.length).toFixed(2)}</span></span>
       </div>
     </div>
   );
@@ -196,24 +196,24 @@ export default function TokenLedger() {
   const today = DAILY_SUMMARIES[0];
 
   return (
-    <main className="flex flex-col h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Token Ledger">
+    <main className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden" role="main" aria-label="Token Ledger">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h1 className="text-lg font-bold text-white">Token Ledger</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">Full token consumption and cost accounting across agents and models</p>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Token Ledger</h1>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Full token consumption and cost accounting across agents and models</p>
           </div>
           {/* Today KPIs */}
           <div className="flex items-center gap-5 text-xs">
             {[
-              { label: "Today cost",   value: `$${today.totalCost.toFixed(3)}`,       color: "text-white" },
-              { label: "Input tokens", value: fmtTokens(today.totalInputTokens),       color: "text-zinc-300" },
+              { label: "Today cost",   value: `$${today.totalCost.toFixed(3)}`,       color: "text-[var(--color-text-primary)]" },
+              { label: "Input tokens", value: fmtTokens(today.totalInputTokens),       color: "text-[var(--color-text-primary)]" },
               { label: "Cache hits",   value: fmtTokens(today.totalCacheRead),         color: "text-emerald-400" },
             ].map(k => (
               <div key={k.label} className="text-center">
                 <p className={cn("text-lg font-bold font-mono", k.color)}>{k.value}</p>
-                <p className="text-zinc-500">{k.label}</p>
+                <p className="text-[var(--color-text-muted)]">{k.label}</p>
               </div>
             ))}
           </div>
@@ -230,7 +230,7 @@ export default function TokenLedger() {
               className={cn(
                 "px-4 py-1.5 rounded-lg text-sm transition-colors",
                 "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                tab === t.id ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"
+                tab === t.id ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.label}
@@ -249,7 +249,7 @@ export default function TokenLedger() {
                 value={agentFilter}
                 onChange={e => setAgentFilter(e.target.value)}
                 aria-label="Filter by agent"
-                className={cn("bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white", "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none")}
+                className={cn("bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]", "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none")}
               >
                 <option value="all">All agents</option>
                 {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -258,52 +258,52 @@ export default function TokenLedger() {
                 value={modelFilter}
                 onChange={e => setModelFilter(e.target.value)}
                 aria-label="Filter by model"
-                className={cn("bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white", "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none")}
+                className={cn("bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]", "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none")}
               >
                 <option value="all">All models</option>
                 {models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
-              <div className="flex items-center gap-4 ml-auto text-xs text-zinc-400">
-                <span>Input: <span className="text-white font-mono">{fmtTokens(totals.input)}</span></span>
-                <span>Output: <span className="text-white font-mono">{fmtTokens(totals.output)}</span></span>
+              <div className="flex items-center gap-4 ml-auto text-xs text-[var(--color-text-secondary)]">
+                <span>Input: <span className="text-[var(--color-text-primary)] font-mono">{fmtTokens(totals.input)}</span></span>
+                <span>Output: <span className="text-[var(--color-text-primary)] font-mono">{fmtTokens(totals.output)}</span></span>
                 <span>Cost: <span className="text-emerald-400 font-mono font-bold">{fmtCost(totals.cost)}</span></span>
               </div>
             </div>
 
             {/* Table */}
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
+            <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm" role="table" aria-label="Token ledger">
                   <thead>
-                    <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                      <th className="text-left p-3 text-zinc-500 font-medium">Time</th>
-                      <th className="text-left p-3 text-zinc-500 font-medium">Agent</th>
-                      <th className="text-left p-3 text-zinc-500 font-medium">Model</th>
-                      <th className="text-left p-3 text-zinc-500 font-medium">Task</th>
-                      <th className="text-right p-3 text-zinc-500 font-medium">Input</th>
-                      <th className="text-right p-3 text-zinc-500 font-medium">Output</th>
-                      <th className="text-right p-3 text-zinc-500 font-medium">Cache</th>
-                      <th className="text-right p-3 text-zinc-500 font-medium">Cost</th>
+                    <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
+                      <th className="text-left p-3 text-[var(--color-text-muted)] font-medium">Time</th>
+                      <th className="text-left p-3 text-[var(--color-text-muted)] font-medium">Agent</th>
+                      <th className="text-left p-3 text-[var(--color-text-muted)] font-medium">Model</th>
+                      <th className="text-left p-3 text-[var(--color-text-muted)] font-medium">Task</th>
+                      <th className="text-right p-3 text-[var(--color-text-muted)] font-medium">Input</th>
+                      <th className="text-right p-3 text-[var(--color-text-muted)] font-medium">Output</th>
+                      <th className="text-right p-3 text-[var(--color-text-muted)] font-medium">Cache</th>
+                      <th className="text-right p-3 text-[var(--color-text-muted)] font-medium">Cost</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredEntries.map(entry => (
-                      <tr key={entry.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                        <td className="p-3 text-xs text-zinc-500 whitespace-nowrap">{relTime(entry.timestamp)}</td>
-                        <td className="p-3 text-white text-xs">{entry.agentName}</td>
+                      <tr key={entry.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30 transition-colors">
+                        <td className="p-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">{relTime(entry.timestamp)}</td>
+                        <td className="p-3 text-[var(--color-text-primary)] text-xs">{entry.agentName}</td>
                         <td className="p-3">
                           <div className="flex items-center gap-1.5">
-                            <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", PROVIDER_COLORS[entry.provider] ?? "bg-zinc-500")} aria-hidden="true" />
-                            <span className="text-xs text-zinc-300">{entry.modelName}</span>
+                            <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", PROVIDER_COLORS[entry.provider] ?? "bg-[var(--color-surface-3)]")} aria-hidden="true" />
+                            <span className="text-xs text-[var(--color-text-primary)]">{entry.modelName}</span>
                           </div>
                         </td>
-                        <td className="p-3 text-xs text-zinc-500">{entry.taskType}</td>
-                        <td className="p-3 text-right text-xs font-mono text-zinc-300">{fmtTokens(entry.inputTokens)}</td>
-                        <td className="p-3 text-right text-xs font-mono text-zinc-300">{fmtTokens(entry.outputTokens)}</td>
+                        <td className="p-3 text-xs text-[var(--color-text-muted)]">{entry.taskType}</td>
+                        <td className="p-3 text-right text-xs font-mono text-[var(--color-text-primary)]">{fmtTokens(entry.inputTokens)}</td>
+                        <td className="p-3 text-right text-xs font-mono text-[var(--color-text-primary)]">{fmtTokens(entry.outputTokens)}</td>
                         <td className="p-3 text-right text-xs font-mono text-emerald-500">
                           {entry.cacheReadTokens > 0 ? fmtTokens(entry.cacheReadTokens) : "—"}
                         </td>
-                        <td className="p-3 text-right text-xs font-mono text-white font-semibold">{fmtCost(entry.totalCost)}</td>
+                        <td className="p-3 text-right text-xs font-mono text-[var(--color-text-primary)] font-semibold">{fmtCost(entry.totalCost)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -318,22 +318,22 @@ export default function TokenLedger() {
             <CostBarChart summaries={DAILY_SUMMARIES} />
 
             {/* Daily rows */}
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
-              <div className="px-4 py-3 border-b border-zinc-800">
-                <h3 className="text-sm font-semibold text-white">Daily Totals</h3>
+            <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] overflow-hidden">
+              <div className="px-4 py-3 border-b border-[var(--color-border)]">
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Daily Totals</h3>
               </div>
-              <div className="divide-y divide-zinc-800">
+              <div className="divide-y divide-[var(--color-border)]">
                 {DAILY_SUMMARIES.map(day => (
                   <div key={day.date} className="px-4 py-3 flex items-center gap-4">
-                    <span className="text-sm text-zinc-300 w-24 font-mono">
+                    <span className="text-sm text-[var(--color-text-primary)] w-24 font-mono">
                       {new Date(day.date).toLocaleDateString([], { month: "short", day: "numeric" })}
                     </span>
                     <div className="flex-1 flex items-center gap-6 text-xs">
-                      <span className="text-zinc-400">In: <span className="text-white font-mono">{fmtTokens(day.totalInputTokens)}</span></span>
-                      <span className="text-zinc-400">Out: <span className="text-white font-mono">{fmtTokens(day.totalOutputTokens)}</span></span>
-                      <span className="text-zinc-400">Cache: <span className="text-emerald-400 font-mono">{fmtTokens(day.totalCacheRead)}</span></span>
+                      <span className="text-[var(--color-text-secondary)]">In: <span className="text-[var(--color-text-primary)] font-mono">{fmtTokens(day.totalInputTokens)}</span></span>
+                      <span className="text-[var(--color-text-secondary)]">Out: <span className="text-[var(--color-text-primary)] font-mono">{fmtTokens(day.totalOutputTokens)}</span></span>
+                      <span className="text-[var(--color-text-secondary)]">Cache: <span className="text-emerald-400 font-mono">{fmtTokens(day.totalCacheRead)}</span></span>
                     </div>
-                    <span className="text-sm font-bold font-mono text-white">${day.totalCost.toFixed(3)}</span>
+                    <span className="text-sm font-bold font-mono text-[var(--color-text-primary)]">${day.totalCost.toFixed(3)}</span>
                   </div>
                 ))}
               </div>
@@ -344,8 +344,8 @@ export default function TokenLedger() {
         {tab === "breakdown" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
             {/* By agent */}
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-              <h3 className="text-sm font-semibold text-white mb-4">Cost by Agent (Today)</h3>
+            <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-4">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Cost by Agent (Today)</h3>
               <div className="space-y-3">
                 {Object.entries(today.byAgent)
                   .toSorted(([, a], [, b]) => b - a)
@@ -354,10 +354,10 @@ export default function TokenLedger() {
                     return (
                       <div key={agentId}>
                         <div className="flex items-center justify-between mb-1 text-xs">
-                          <span className="text-zinc-300 capitalize">{agentId}</span>
-                          <span className="text-white font-mono">{fmtCost(cost)}</span>
+                          <span className="text-[var(--color-text-primary)] capitalize">{agentId}</span>
+                          <span className="text-[var(--color-text-primary)] font-mono">{fmtCost(cost)}</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                        <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                           <div
                             className="h-full bg-indigo-500 rounded-full"
                             style={{ width: `${(cost / maxCost) * 100}%` }}
@@ -371,8 +371,8 @@ export default function TokenLedger() {
             </div>
 
             {/* By model */}
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-              <h3 className="text-sm font-semibold text-white mb-4">Cost by Model (Today)</h3>
+            <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-4">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Cost by Model (Today)</h3>
               <div className="space-y-3">
                 {Object.entries(today.byModel)
                   .toSorted(([, a], [, b]) => b - a)
@@ -381,10 +381,10 @@ export default function TokenLedger() {
                     return (
                       <div key={modelId}>
                         <div className="flex items-center justify-between mb-1 text-xs">
-                          <span className="text-zinc-300">{modelId}</span>
-                          <span className="text-white font-mono">{fmtCost(cost)}</span>
+                          <span className="text-[var(--color-text-primary)]">{modelId}</span>
+                          <span className="text-[var(--color-text-primary)] font-mono">{fmtCost(cost)}</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                        <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                           <div
                             className="h-full bg-emerald-500 rounded-full"
                             style={{ width: `${(cost / maxCost) * 100}%` }}

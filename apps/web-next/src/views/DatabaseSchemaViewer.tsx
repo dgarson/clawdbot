@@ -315,7 +315,7 @@ const Badge: React.FC<{
     success: "bg-emerald-400/20 text-emerald-400 border-emerald-400/30",
     warning: "bg-amber-400/20 text-amber-400 border-amber-400/30",
     error: "bg-rose-400/20 text-rose-400 border-rose-400/30",
-    info: "bg-zinc-700/50 text-zinc-300 border-zinc-600",
+    info: "bg-[var(--color-surface-3)]/50 text-[var(--color-text-primary)] border-[var(--color-surface-3)]",
   };
 
   return (
@@ -347,10 +347,10 @@ const TablesTab: React.FC = () => {
   return (
     <div className="flex h-full gap-4">
       {/* Left Panel - Table List */}
-      <div className="w-64 flex-shrink-0 flex flex-col bg-zinc-900 rounded-lg border border-zinc-800">
-        <div className="p-3 border-b border-zinc-800">
-          <h3 className="text-sm font-semibold text-white">Tables</h3>
-          <p className="text-xs text-zinc-400 mt-1">{sampleTables.length} tables</p>
+      <div className="w-64 flex-shrink-0 flex flex-col bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)]">
+        <div className="p-3 border-b border-[var(--color-border)]">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Tables</h3>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-1">{sampleTables.length} tables</p>
         </div>
         <div className="flex-1 overflow-y-auto p-2">
           {sampleTables.map((t) => (
@@ -360,8 +360,8 @@ const TablesTab: React.FC = () => {
               className={cn(
                 "w-full text-left px-3 py-2 rounded-md text-sm transition-all duration-150",
                 selectedTable === t.name
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
               )}
             >
               <div className="font-medium">{t.name}</div>
@@ -373,45 +373,45 @@ const TablesTab: React.FC = () => {
 
       {/* Right Panel - Table Details */}
       <div className="flex-1 overflow-y-auto">
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)]">
           {/* Table Header */}
-          <div className="p-4 border-b border-zinc-800">
-            <h2 className="text-xl font-semibold text-white">{table.name}</h2>
+          <div className="p-4 border-b border-[var(--color-border)]">
+            <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">{table.name}</h2>
             <div className="flex gap-4 mt-2">
               <div className="flex items-center gap-2">
-                <span className="text-zinc-400 text-sm">Rows:</span>
-                <span className="text-white font-medium">{table.rowCount.toLocaleString()}</span>
+                <span className="text-[var(--color-text-secondary)] text-sm">Rows:</span>
+                <span className="text-[var(--color-text-primary)] font-medium">{table.rowCount.toLocaleString()}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-zinc-400 text-sm">Size:</span>
-                <span className="text-white font-medium">{table.sizeKB} KB</span>
+                <span className="text-[var(--color-text-secondary)] text-sm">Size:</span>
+                <span className="text-[var(--color-text-primary)] font-medium">{table.sizeKB} KB</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-zinc-400 text-sm">Columns:</span>
-                <span className="text-white font-medium">{table.columns.length}</span>
+                <span className="text-[var(--color-text-secondary)] text-sm">Columns:</span>
+                <span className="text-[var(--color-text-primary)] font-medium">{table.columns.length}</span>
               </div>
             </div>
           </div>
 
           {/* Columns Table */}
-          <div className="p-4 border-b border-zinc-800">
-            <h3 className="text-sm font-semibold text-white mb-3">Columns</h3>
+          <div className="p-4 border-b border-[var(--color-border)]">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Columns</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-700">
-                    <th className="text-left py-2 px-3 text-zinc-400 font-medium">Name</th>
-                    <th className="text-left py-2 px-3 text-zinc-400 font-medium">Type</th>
-                    <th className="text-center py-2 px-3 text-zinc-400 font-medium">Nullable</th>
-                    <th className="text-left py-2 px-3 text-zinc-400 font-medium">Default</th>
-                    <th className="text-center py-2 px-3 text-zinc-400 font-medium">Attributes</th>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="text-left py-2 px-3 text-[var(--color-text-secondary)] font-medium">Name</th>
+                    <th className="text-left py-2 px-3 text-[var(--color-text-secondary)] font-medium">Type</th>
+                    <th className="text-center py-2 px-3 text-[var(--color-text-secondary)] font-medium">Nullable</th>
+                    <th className="text-left py-2 px-3 text-[var(--color-text-secondary)] font-medium">Default</th>
+                    <th className="text-center py-2 px-3 text-[var(--color-text-secondary)] font-medium">Attributes</th>
                   </tr>
                 </thead>
                 <tbody>
                   {table.columns.map((col) => (
-                    <tr key={col.name} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-                      <td className="py-2 px-3 text-white font-mono text-xs">{col.name}</td>
-                      <td className="py-2 px-3 text-zinc-400 font-mono text-xs">{col.type}</td>
+                    <tr key={col.name} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30">
+                      <td className="py-2 px-3 text-[var(--color-text-primary)] font-mono text-xs">{col.name}</td>
+                      <td className="py-2 px-3 text-[var(--color-text-secondary)] font-mono text-xs">{col.type}</td>
                       <td className="py-2 px-3 text-center">
                         {col.nullable ? (
                           <span className="text-emerald-400">Yes</span>
@@ -419,7 +419,7 @@ const TablesTab: React.FC = () => {
                           <span className="text-rose-400">No</span>
                         )}
                       </td>
-                      <td className="py-2 px-3 text-zinc-500 font-mono text-xs">
+                      <td className="py-2 px-3 text-[var(--color-text-muted)] font-mono text-xs">
                         {col.default || "-"}
                       </td>
                       <td className="py-2 px-3">
@@ -438,15 +438,15 @@ const TablesTab: React.FC = () => {
           </div>
 
           {/* Constraints */}
-          <div className="p-4 border-b border-zinc-800">
-            <h3 className="text-sm font-semibold text-white mb-3">Constraints</h3>
+          <div className="p-4 border-b border-[var(--color-border)]">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Constraints</h3>
             <div className="grid grid-cols-2 gap-4">
               {/* Primary Keys */}
-              <div className="bg-zinc-950/50 rounded p-3">
+              <div className="bg-[var(--color-surface-0)]/50 rounded p-3">
                 <h4 className="text-xs font-medium text-indigo-400 mb-2">Primary Keys</h4>
                 <div className="flex flex-wrap gap-1">
                   {getPrimaryKeys(table).map((col) => (
-                    <span key={col.name} className="text-xs text-white font-mono">
+                    <span key={col.name} className="text-xs text-[var(--color-text-primary)] font-mono">
                       {col.name}
                     </span>
                   ))}
@@ -454,14 +454,14 @@ const TablesTab: React.FC = () => {
               </div>
 
               {/* Foreign Keys */}
-              <div className="bg-zinc-950/50 rounded p-3">
+              <div className="bg-[var(--color-surface-0)]/50 rounded p-3">
                 <h4 className="text-xs font-medium text-amber-400 mb-2">Foreign Keys</h4>
                 <div className="space-y-1">
                   {getForeignKeys(table).map((col) => (
                     <div key={col.name} className="text-xs">
-                      <span className="text-white font-mono">{col.name}</span>
-                      <span className="text-zinc-500"> → </span>
-                      <span className="text-zinc-400 font-mono">
+                      <span className="text-[var(--color-text-primary)] font-mono">{col.name}</span>
+                      <span className="text-[var(--color-text-muted)]"> → </span>
+                      <span className="text-[var(--color-text-secondary)] font-mono">
                         {col.references?.table}.{col.references?.column}
                       </span>
                     </div>
@@ -470,11 +470,11 @@ const TablesTab: React.FC = () => {
               </div>
 
               {/* Unique Constraints */}
-              <div className="bg-zinc-950/50 rounded p-3">
+              <div className="bg-[var(--color-surface-0)]/50 rounded p-3">
                 <h4 className="text-xs font-medium text-emerald-400 mb-2">Unique Constraints</h4>
                 <div className="flex flex-wrap gap-1">
                   {getUniqueConstraints(table).map((col) => (
-                    <span key={col.name} className="text-xs text-white font-mono">
+                    <span key={col.name} className="text-xs text-[var(--color-text-primary)] font-mono">
                       {col.name}
                     </span>
                   ))}
@@ -482,14 +482,14 @@ const TablesTab: React.FC = () => {
               </div>
 
               {/* Check Constraints */}
-              <div className="bg-zinc-950/50 rounded p-3">
+              <div className="bg-[var(--color-surface-0)]/50 rounded p-3">
                 <h4 className="text-xs font-medium text-rose-400 mb-2">Check Constraints</h4>
                 <div className="space-y-1">
                   {getCheckConstraints(table).map((col) => (
                     <div key={col.name} className="text-xs">
-                      <span className="text-white font-mono">{col.name}</span>
-                      <span className="text-zinc-500"> ∈ </span>
-                      <span className="text-zinc-400">{col.type.replace(/^enum\('(.+)'\)$/, "$1").split("','").join(", ")}</span>
+                      <span className="text-[var(--color-text-primary)] font-mono">{col.name}</span>
+                      <span className="text-[var(--color-text-muted)]"> ∈ </span>
+                      <span className="text-[var(--color-text-secondary)]">{col.type.replace(/^enum\('(.+)'\)$/, "$1").split("','").join(", ")}</span>
                     </div>
                   ))}
                 </div>
@@ -499,14 +499,14 @@ const TablesTab: React.FC = () => {
 
           {/* Sample Data Preview */}
           {sampleDataByTable[table.name] && (
-            <div className="p-4 border-b border-zinc-800">
-              <h3 className="text-sm font-semibold text-white mb-3">Sample Data (First 3 Rows)</h3>
+            <div className="p-4 border-b border-[var(--color-border)]">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Sample Data (First 3 Rows)</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-zinc-700">
+                    <tr className="border-b border-[var(--color-border)]">
                       {Object.keys(sampleDataByTable[table.name][0]).map((key) => (
-                        <th key={key} className="text-left py-2 px-2 text-zinc-400 font-medium">
+                        <th key={key} className="text-left py-2 px-2 text-[var(--color-text-secondary)] font-medium">
                           {key}
                         </th>
                       ))}
@@ -514,9 +514,9 @@ const TablesTab: React.FC = () => {
                   </thead>
                   <tbody>
                     {sampleDataByTable[table.name].map((row, idx) => (
-                      <tr key={idx} className="border-b border-zinc-800/50">
+                      <tr key={idx} className="border-b border-[var(--color-border)]/50">
                         {Object.entries(row).map(([key, value]) => (
-                          <td key={key} className="py-2 px-2 text-zinc-300 font-mono">
+                          <td key={key} className="py-2 px-2 text-[var(--color-text-primary)] font-mono">
                             {value}
                           </td>
                         ))}
@@ -586,21 +586,21 @@ const RelationshipsTab: React.FC = () => {
   };
 
   return (
-    <div className="h-full relative bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden">
+    <div className="h-full relative bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden">
       <div className="absolute top-4 left-4 z-10">
-        <h3 className="text-sm font-semibold text-white">Entity Relationship Diagram</h3>
-        <p className="text-xs text-zinc-400 mt-1">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Entity Relationship Diagram</h3>
+        <p className="text-xs text-[var(--color-text-secondary)] mt-1">
           {sampleRelationships.length} relationships • {sampleTables.length} tables
         </p>
       </div>
 
       {/* Legend */}
-      <div className="absolute top-4 right-4 z-10 bg-zinc-950/80 rounded p-2 text-xs">
-        <div className="flex items-center gap-2 text-zinc-400">
+      <div className="absolute top-4 right-4 z-10 bg-[var(--color-surface-0)]/80 rounded p-2 text-xs">
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
           <div className="w-3 h-0.5 bg-indigo-500/60"></div>
           <span>One-to-Many</span>
         </div>
-        <div className="flex items-center gap-2 text-zinc-400 mt-1">
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] mt-1">
           <div className="w-3 h-0.5 bg-yellow-500/60"></div>
           <span>One-to-One</span>
         </div>
@@ -678,7 +678,7 @@ const RelationshipsTab: React.FC = () => {
           return (
             <div
               key={table.name}
-              className="absolute bg-zinc-950 border-2 border-zinc-700 rounded-lg shadow-lg overflow-hidden"
+              className="absolute bg-[var(--color-surface-0)] border-2 border-[var(--color-border)] rounded-lg shadow-lg overflow-hidden"
               style={{
                 left: pos.left,
                 top: pos.top,
@@ -687,10 +687,10 @@ const RelationshipsTab: React.FC = () => {
               }}
             >
               {/* Table Header */}
-              <div className="bg-zinc-800 px-3 py-2 border-b border-zinc-700">
+              <div className="bg-[var(--color-surface-2)] px-3 py-2 border-b border-[var(--color-border)]">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-white">{table.name}</span>
-                  <span className="text-xs text-zinc-500">{table.rowCount}</span>
+                  <span className="text-sm font-semibold text-[var(--color-text-primary)]">{table.name}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{table.rowCount}</span>
                 </div>
               </div>
 
@@ -701,15 +701,15 @@ const RelationshipsTab: React.FC = () => {
                     <div className="flex items-center gap-1">
                       {col.isPrimaryKey && <span className="text-indigo-400 text-xs">🔑</span>}
                       {col.isForeignKey && !col.isPrimaryKey && <span className="text-amber-400 text-xs">→</span>}
-                      <span className="text-xs text-zinc-300 font-mono truncate max-w-24">
+                      <span className="text-xs text-[var(--color-text-primary)] font-mono truncate max-w-24">
                         {col.name}
                       </span>
                     </div>
-                    <span className="text-xs text-zinc-500">{col.type.split("(")[0]}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{col.type.split("(")[0]}</span>
                   </div>
                 ))}
                 {table.columns.length > 5 && (
-                  <div className="text-xs text-zinc-500 py-0.5">+{table.columns.length - 5} more</div>
+                  <div className="text-xs text-[var(--color-text-muted)] py-0.5">+{table.columns.length - 5} more</div>
                 )}
               </div>
             </div>
@@ -732,13 +732,13 @@ const MigrationsTab: React.FC = () => {
     <div className="h-full overflow-y-auto">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Applied Migrations */}
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800">
-          <div className="p-4 border-b border-zinc-800">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)]">
+          <div className="p-4 border-b border-[var(--color-border)]">
             <div className="flex items-center gap-2">
               <span className="text-emerald-400">✓</span>
-              <h3 className="text-sm font-semibold text-white">Applied Migrations</h3>
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Applied Migrations</h3>
             </div>
-            <p className="text-xs text-zinc-400 mt-1">{appliedMigrations.length} migrations applied</p>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-1">{appliedMigrations.length} migrations applied</p>
           </div>
           <div className="p-2 max-h-96 overflow-y-auto">
             {appliedMigrations.map((migration, idx) => (
@@ -746,33 +746,33 @@ const MigrationsTab: React.FC = () => {
                 key={migration.version}
                 className={cn(
                   "p-3 rounded-md mb-2",
-                  idx % 2 === 0 ? "bg-zinc-950/50" : "bg-zinc-950/30"
+                  idx % 2 === 0 ? "bg-[var(--color-surface-0)]/50" : "bg-[var(--color-surface-0)]/30"
                 )}
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="text-xs text-zinc-500 font-mono">{migration.version}</div>
-                    <div className="text-sm text-white font-medium mt-1">{migration.name}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] font-mono">{migration.version}</div>
+                    <div className="text-sm text-[var(--color-text-primary)] font-medium mt-1">{migration.name}</div>
                   </div>
                   <div className="text-right">
                     <Badge variant="success">Applied</Badge>
-                    <div className="text-xs text-zinc-500 mt-1">{migration.executionTime}ms</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-1">{migration.executionTime}ms</div>
                   </div>
                 </div>
-                <div className="text-xs text-zinc-400 mt-2">{migration.appliedAt ?? "—"}</div>
+                <div className="text-xs text-[var(--color-text-secondary)] mt-2">{migration.appliedAt ?? "—"}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Pending Migrations */}
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800">
-          <div className="p-4 border-b border-zinc-800">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)]">
+          <div className="p-4 border-b border-[var(--color-border)]">
             <div className="flex items-center gap-2">
               <span className="text-amber-400">⏳</span>
-              <h3 className="text-sm font-semibold text-white">Pending Migrations</h3>
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Pending Migrations</h3>
             </div>
-            <p className="text-xs text-zinc-400 mt-1">{pendingMigrations.length} migrations pending</p>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-1">{pendingMigrations.length} migrations pending</p>
           </div>
           <div className="p-2 max-h-96 overflow-y-auto">
             {pendingMigrations.map((migration, idx) => (
@@ -780,13 +780,13 @@ const MigrationsTab: React.FC = () => {
                 key={migration.version}
                 className={cn(
                   "p-3 rounded-md mb-2",
-                  idx % 2 === 0 ? "bg-zinc-950/50" : "bg-zinc-950/30"
+                  idx % 2 === 0 ? "bg-[var(--color-surface-0)]/50" : "bg-[var(--color-surface-0)]/30"
                 )}
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="text-xs text-zinc-500 font-mono">{migration.version}</div>
-                    <div className="text-sm text-white font-medium mt-1">{migration.name}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] font-mono">{migration.version}</div>
+                    <div className="text-sm text-[var(--color-text-primary)] font-medium mt-1">{migration.name}</div>
                   </div>
                   <Badge variant="warning">Pending</Badge>
                 </div>
@@ -796,31 +796,31 @@ const MigrationsTab: React.FC = () => {
         </div>
 
         {/* Rollback Log */}
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 lg:col-span-2">
-          <div className="p-4 border-b border-zinc-800">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] lg:col-span-2">
+          <div className="p-4 border-b border-[var(--color-border)]">
             <div className="flex items-center gap-2">
               <span className="text-rose-400">↩</span>
-              <h3 className="text-sm font-semibold text-white">Rollback Log</h3>
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Rollback Log</h3>
             </div>
-            <p className="text-xs text-zinc-400 mt-1">{sampleRollbackLog.length} rollbacks recorded</p>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-1">{sampleRollbackLog.length} rollbacks recorded</p>
           </div>
           <div className="p-2">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-700">
-                  <th className="text-left py-2 px-3 text-zinc-400 font-medium">Version</th>
-                  <th className="text-left py-2 px-3 text-zinc-400 font-medium">Name</th>
-                  <th className="text-left py-2 px-3 text-zinc-400 font-medium">Rolled Back At</th>
-                  <th className="text-left py-2 px-3 text-zinc-400 font-medium">Reason</th>
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="text-left py-2 px-3 text-[var(--color-text-secondary)] font-medium">Version</th>
+                  <th className="text-left py-2 px-3 text-[var(--color-text-secondary)] font-medium">Name</th>
+                  <th className="text-left py-2 px-3 text-[var(--color-text-secondary)] font-medium">Rolled Back At</th>
+                  <th className="text-left py-2 px-3 text-[var(--color-text-secondary)] font-medium">Reason</th>
                 </tr>
               </thead>
               <tbody>
                 {sampleRollbackLog.map((rollback) => (
-                  <tr key={rollback.version} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-                    <td className="py-2 px-3 text-zinc-500 font-mono text-xs">{rollback.version}</td>
-                    <td className="py-2 px-3 text-white font-medium">{rollback.name}</td>
-                    <td className="py-2 px-3 text-zinc-400 text-xs">{rollback.rolledBackAt}</td>
-                    <td className="py-2 px-3 text-zinc-400 text-xs">{rollback.reason}</td>
+                  <tr key={rollback.version} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30">
+                    <td className="py-2 px-3 text-[var(--color-text-muted)] font-mono text-xs">{rollback.version}</td>
+                    <td className="py-2 px-3 text-[var(--color-text-primary)] font-medium">{rollback.name}</td>
+                    <td className="py-2 px-3 text-[var(--color-text-secondary)] text-xs">{rollback.rolledBackAt}</td>
+                    <td className="py-2 px-3 text-[var(--color-text-secondary)] text-xs">{rollback.reason}</td>
                   </tr>
                 ))}
               </tbody>
@@ -904,18 +904,18 @@ const SearchTab: React.FC = () => {
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search tables, columns, or types..."
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-3 text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
           />
           {query && (
             <button
               onClick={() => handleSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             >
               ✕
             </button>
           )}
         </div>
-        <p className="text-xs text-zinc-500 mt-2">
+        <p className="text-xs text-[var(--color-text-muted)] mt-2">
           Search across {sampleTables.length} tables, {sampleTables.reduce((a, t) => a + t.columns.length, 0)} columns
         </p>
       </div>
@@ -924,41 +924,41 @@ const SearchTab: React.FC = () => {
       <div className="flex-1 overflow-y-auto">
         {!hasSearched ? (
           <div className="text-center py-12">
-            <div className="text-zinc-500 text-4xl mb-4">🔍</div>
-            <p className="text-zinc-400">Enter a search term to find tables and columns</p>
+            <div className="text-[var(--color-text-muted)] text-4xl mb-4">🔍</div>
+            <p className="text-[var(--color-text-secondary)]">Enter a search term to find tables and columns</p>
           </div>
         ) : results.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-zinc-500 text-4xl mb-4">📭</div>
-            <p className="text-zinc-400">No results found for "{query}"</p>
+            <div className="text-[var(--color-text-muted)] text-4xl mb-4">📭</div>
+            <p className="text-[var(--color-text-secondary)]">No results found for "{query}"</p>
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-[var(--color-text-secondary)]">
               Found {results.length} result{results.length !== 1 ? "s" : ""} in {Object.keys(groupedResults).length} table{Object.keys(groupedResults).length !== 1 ? "s" : ""}
             </p>
             {Object.entries(groupedResults).map(([tableName, cols]) => (
-              <div key={tableName} className="bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden">
-                <div className="p-3 bg-zinc-800/50 border-b border-zinc-800">
+              <div key={tableName} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden">
+                <div className="p-3 bg-[var(--color-surface-2)]/50 border-b border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-white">{tableName}</span>
-                    <span className="text-xs text-zinc-500">{cols.length} match{cols.length !== 1 ? "es" : ""}</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{tableName}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{cols.length} match{cols.length !== 1 ? "es" : ""}</span>
                   </div>
                 </div>
                 <div className="p-2">
                   {cols.map((result, idx) => (
                     <div
                       key={`${result.tableName}-${result.columnName}-${idx}`}
-                      className="flex items-center justify-between py-2 px-3 hover:bg-zinc-800/30 rounded"
+                      className="flex items-center justify-between py-2 px-3 hover:bg-[var(--color-surface-2)]/30 rounded"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-zinc-500 font-mono">{result.columnName}</span>
+                        <span className="text-xs text-[var(--color-text-muted)] font-mono">{result.columnName}</span>
                         {result.matchType === "table" && <Badge variant="primary">Table</Badge>}
                         {result.matchType === "column" && <Badge variant="info">Column</Badge>}
                         {result.matchType === "type" && <Badge variant="warning">Type</Badge>}
                       </div>
                       {result.matchType !== "table" && (
-                        <span className="text-xs text-zinc-500">
+                        <span className="text-xs text-[var(--color-text-muted)]">
                           {sampleTables
                             .find((t) => t.name === result.tableName)
                             ?.columns.find((c) => c.name === result.columnName)?.type}
@@ -993,15 +993,15 @@ const DatabaseSchemaViewer: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Database Schema Viewer</h1>
-        <p className="text-zinc-400 mt-1">Explore your database structure, relationships, and migrations</p>
+        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Database Schema Viewer</h1>
+        <p className="text-[var(--color-text-secondary)] mt-1">Explore your database structure, relationships, and migrations</p>
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-zinc-800">
+      <div className="mb-6 border-b border-[var(--color-border)]">
         <nav className="flex gap-1">
           {tabs.map((tab) => (
             <button
@@ -1011,7 +1011,7 @@ const DatabaseSchemaViewer: React.FC = () => {
                 "px-4 py-2 text-sm font-medium border-b-2 transition-all duration-150",
                 activeTab === tab.id
                   ? "text-indigo-400 border-indigo-500"
-                  : "text-zinc-400 border-transparent hover:text-white hover:border-zinc-600"
+                  : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
               )}
             >
               {tab.label}

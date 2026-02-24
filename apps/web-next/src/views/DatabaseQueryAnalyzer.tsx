@@ -202,22 +202,22 @@ export default function DatabaseQueryAnalyzer() {
   const PlanNode = ({ node, depth = 0 }: { node: ExecutionPlanNode, depth?: number }) => (
     <div className="flex flex-col gap-1">
       <div className={cn(
-        "flex items-center gap-3 p-2 rounded border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800/50 transition-colors",
+        "flex items-center gap-3 p-2 rounded border border-[var(--color-border)] bg-[var(--color-surface-1)]/50 hover:bg-[var(--color-surface-2)]/50 transition-colors",
         depth > 0 && "ml-6 border-l-indigo-500/30"
       )}>
         <div className="flex flex-col">
           <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">{node.operation}</span>
-          {node.table && <span className="text-[10px] text-zinc-500 font-mono">{node.table}</span>}
+          {node.table && <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{node.table}</span>}
         </div>
         <div className="flex-1" />
         <div className="flex gap-4 text-[10px]">
           <div className="flex flex-col items-end">
-            <span className="text-zinc-500 uppercase">Cost</span>
-            <span className="text-zinc-300">{node.cost.toLocaleString()}</span>
+            <span className="text-[var(--color-text-muted)] uppercase">Cost</span>
+            <span className="text-[var(--color-text-primary)]">{node.cost.toLocaleString()}</span>
           </div>
           <div className="flex flex-col items-end">
-            <span className="text-zinc-500 uppercase">Rows</span>
-            <span className="text-zinc-300">{node.rows.toLocaleString()}</span>
+            <span className="text-[var(--color-text-muted)] uppercase">Rows</span>
+            <span className="text-[var(--color-text-primary)]">{node.rows.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -228,21 +228,21 @@ export default function DatabaseQueryAnalyzer() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">ClawDB <span className="text-indigo-500">Analyzer</span></h1>
-          <p className="text-zinc-500 text-sm">Performance metrics and query optimization suite</p>
+          <p className="text-[var(--color-text-muted)] text-sm">Performance metrics and query optimization suite</p>
         </div>
-        <div className="flex items-center gap-2 bg-zinc-900 p-1 rounded-lg border border-zinc-800">
+        <div className="flex items-center gap-2 bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)]">
           {["queries", "trends", "tables", "locks"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={cn(
                 "px-4 py-1.5 rounded-md text-xs font-medium capitalize transition-all",
-                activeTab === tab ? "bg-indigo-500 text-white shadow-lg" : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                activeTab === tab ? "bg-indigo-500 text-[var(--color-text-primary)] shadow-lg" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               {tab}
@@ -256,12 +256,12 @@ export default function DatabaseQueryAnalyzer() {
           <>
             {/* List */}
             <div className={cn("flex flex-col gap-4", selectedQuery ? "col-span-4" : "col-span-12")}>
-              <div className="flex items-center gap-4 bg-zinc-900 p-3 rounded-xl border border-zinc-800">
-                <span className="text-xs font-bold text-zinc-500 uppercase ml-2">Database</span>
+              <div className="flex items-center gap-4 bg-[var(--color-surface-1)] p-3 rounded-xl border border-[var(--color-border)]">
+                <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase ml-2">Database</span>
                 <select 
                   value={dbFilter}
                   onChange={(e) => setDbFilter(e.target.value)}
-                  className="bg-zinc-950 border border-zinc-800 rounded px-3 py-1 text-xs outline-none focus:border-indigo-500 transition-colors"
+                  className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-3 py-1 text-xs outline-none focus:border-indigo-500 transition-colors"
                 >
                   <option value="ALL">All Databases</option>
                   {DATABASES.map(db => <option key={db} value={db}>{db}</option>)}
@@ -277,7 +277,7 @@ export default function DatabaseQueryAnalyzer() {
                       "flex flex-col gap-3 p-4 rounded-xl border transition-all text-left group",
                       selectedQuery?.id === q.id 
                         ? "bg-indigo-500/10 border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.1)]" 
-                        : "bg-zinc-900 border-zinc-800 hover:border-zinc-700"
+                        : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)]"
                     )}
                   >
                     <div className="flex items-start justify-between">
@@ -291,9 +291,9 @@ export default function DatabaseQueryAnalyzer() {
                           )}>
                             {q.type}
                           </span>
-                          <span className="text-xs text-zinc-500 font-mono truncate">{q.database}</span>
+                          <span className="text-xs text-[var(--color-text-muted)] font-mono truncate">{q.database}</span>
                         </div>
-                        <p className="text-sm font-mono text-zinc-300 line-clamp-2 mt-1 leading-relaxed">
+                        <p className="text-sm font-mono text-[var(--color-text-primary)] line-clamp-2 mt-1 leading-relaxed">
                           {q.sql}
                         </p>
                       </div>
@@ -301,23 +301,23 @@ export default function DatabaseQueryAnalyzer() {
                         <span className={cn("text-lg font-bold font-mono", getLatencyColor(q.p95))}>
                           {q.p95.toFixed(1)}ms
                         </span>
-                        <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">p95 Latency</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-bold">p95 Latency</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-zinc-800/50">
+                    <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border)]/50">
                       <div className="flex gap-4">
                         <div className="flex flex-col">
-                          <span className="text-[10px] text-zinc-500 uppercase">p50</span>
-                          <span className="text-xs text-zinc-300 font-mono">{q.p50}ms</span>
+                          <span className="text-[10px] text-[var(--color-text-muted)] uppercase">p50</span>
+                          <span className="text-xs text-[var(--color-text-primary)] font-mono">{q.p50}ms</span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[10px] text-zinc-500 uppercase">p99</span>
-                          <span className="text-xs text-zinc-300 font-mono">{q.p99}ms</span>
+                          <span className="text-[10px] text-[var(--color-text-muted)] uppercase">p99</span>
+                          <span className="text-xs text-[var(--color-text-primary)] font-mono">{q.p99}ms</span>
                         </div>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-zinc-500 uppercase">Calls</span>
-                        <span className="text-xs text-zinc-300 font-mono">{(q.calls / 1000).toFixed(1)}k</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)] uppercase">Calls</span>
+                        <span className="text-xs text-[var(--color-text-primary)] font-mono">{(q.calls / 1000).toFixed(1)}k</span>
                       </div>
                     </div>
                   </button>
@@ -328,23 +328,23 @@ export default function DatabaseQueryAnalyzer() {
             {/* Detail */}
             {selectedQuery && (
               <div className="col-span-8 flex flex-col gap-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
-                  <div className="p-6 border-b border-zinc-800 bg-zinc-900/50">
+                <div className="bg-[var(--color-surface-1)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
+                  <div className="p-6 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500">Query Context</h2>
+                      <h2 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)]">Query Context</h2>
                       <button 
                         onClick={() => setSelectedQuery(null)}
-                        className="text-zinc-500 hover:text-white transition-colors"
+                        className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
                       >
                         ✕
                       </button>
                     </div>
-                    <div className="p-4 bg-zinc-950 rounded-lg border border-zinc-800 font-mono text-sm leading-relaxed text-indigo-300 whitespace-pre-wrap">
+                    <div className="p-4 bg-[var(--color-surface-0)] rounded-lg border border-[var(--color-border)] font-mono text-sm leading-relaxed text-indigo-300 whitespace-pre-wrap">
                       {selectedQuery.sql.split(" ").map((word, i) => (
                         <span key={i} className={cn(
                           ["SELECT", "FROM", "WHERE", "JOIN", "ON", "GROUP", "BY", "ORDER", "LIMIT", "INSERT", "UPDATE", "DELETE", "SET", "VALUES", "AND", "OR"].includes(word.toUpperCase()) 
                             ? "text-indigo-400 font-bold" 
-                            : "text-zinc-300"
+                            : "text-[var(--color-text-primary)]"
                         )}>
                           {word}{" "}
                         </span>
@@ -354,41 +354,41 @@ export default function DatabaseQueryAnalyzer() {
 
                   <div className="p-6 grid grid-cols-2 gap-8">
                     <div>
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">Execution Plan</h3>
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)] mb-4">Execution Plan</h3>
                       <PlanNode node={selectedQuery.plan} />
                     </div>
 
                     <div className="flex flex-col gap-8">
                       <div>
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">Index Statistics</h3>
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)] mb-4">Index Statistics</h3>
                         {selectedQuery.indexUsage.length > 0 ? (
                           <div className="flex flex-col gap-2">
                             {selectedQuery.indexUsage.map((idx, i) => (
-                              <div key={i} className="p-3 bg-zinc-950 rounded border border-zinc-800">
+                              <div key={i} className="p-3 bg-[var(--color-surface-0)] rounded border border-[var(--color-border)]">
                                 <div className="text-xs font-mono text-indigo-400 font-bold mb-2">{idx.indexName}</div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div className="flex flex-col">
-                                    <span className="text-[10px] text-zinc-500 uppercase">Scans</span>
-                                    <span className="text-sm text-zinc-300">{idx.scans.toLocaleString()}</span>
+                                    <span className="text-[10px] text-[var(--color-text-muted)] uppercase">Scans</span>
+                                    <span className="text-sm text-[var(--color-text-primary)]">{idx.scans.toLocaleString()}</span>
                                   </div>
                                   <div className="flex flex-col">
-                                    <span className="text-[10px] text-zinc-500 uppercase">Block Reads</span>
-                                    <span className="text-sm text-zinc-300">{idx.reads.toLocaleString()}</span>
+                                    <span className="text-[10px] text-[var(--color-text-muted)] uppercase">Block Reads</span>
+                                    <span className="text-sm text-[var(--color-text-primary)]">{idx.reads.toLocaleString()}</span>
                                   </div>
                                 </div>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="p-8 bg-zinc-950 rounded border border-dashed border-zinc-800 flex flex-col items-center justify-center gap-2">
+                          <div className="p-8 bg-[var(--color-surface-0)] rounded border border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-2">
                             <span className="text-rose-400 text-xs font-bold">MISSING INDEXES</span>
-                            <span className="text-[10px] text-zinc-600">Query is performing sequential scans</span>
+                            <span className="text-[10px] text-[var(--color-text-muted)]">Query is performing sequential scans</span>
                           </div>
                         )}
                       </div>
 
                       <div>
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">Latency Distribution</h3>
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)] mb-4">Latency Distribution</h3>
                         <div className="flex flex-col gap-3">
                           {[
                             { label: "p50", value: selectedQuery.p50 },
@@ -397,10 +397,10 @@ export default function DatabaseQueryAnalyzer() {
                           ].map(p => (
                             <div key={p.label} className="flex flex-col gap-1">
                               <div className="flex justify-between text-[10px] uppercase font-bold px-1">
-                                <span className="text-zinc-500">{p.label}</span>
+                                <span className="text-[var(--color-text-muted)]">{p.label}</span>
                                 <span className={getLatencyColor(p.value)}>{p.value}ms</span>
                               </div>
-                              <div className="h-1.5 w-full bg-zinc-950 rounded-full overflow-hidden border border-zinc-800">
+                              <div className="h-1.5 w-full bg-[var(--color-surface-0)] rounded-full overflow-hidden border border-[var(--color-border)]">
                                 <div 
                                   className={cn("h-full transition-all duration-500", p.label === "p50" ? "bg-emerald-500" : p.label === "p95" ? "bg-amber-500" : "bg-rose-500")}
                                   style={{ width: `${Math.min(100, (p.value / selectedQuery.p99) * 100)}%` }}
@@ -420,11 +420,11 @@ export default function DatabaseQueryAnalyzer() {
 
         {activeTab === "trends" && (
           <div className="col-span-12 flex flex-col gap-6">
-            <div className="bg-zinc-900 p-8 rounded-2xl border border-zinc-800">
+            <div className="bg-[var(--color-surface-1)] p-8 rounded-2xl border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-lg font-bold">Query Load Trends</h2>
-                  <p className="text-sm text-zinc-500 italic">Aggregated requests per hour (Last 24h)</p>
+                  <p className="text-sm text-[var(--color-text-muted)] italic">Aggregated requests per hour (Last 24h)</p>
                 </div>
                 <div className="flex gap-4">
                   {[
@@ -435,7 +435,7 @@ export default function DatabaseQueryAnalyzer() {
                   ].map(leg => (
                     <div key={leg.label} className="flex items-center gap-2">
                       <div className={cn("w-2 h-2 rounded-full", leg.color)} />
-                      <span className="text-[10px] uppercase font-bold text-zinc-400">{leg.label}</span>
+                      <span className="text-[10px] uppercase font-bold text-[var(--color-text-secondary)]">{leg.label}</span>
                     </div>
                   ))}
                 </div>
@@ -443,7 +443,7 @@ export default function DatabaseQueryAnalyzer() {
 
               <div className="h-64 flex items-end gap-1.5 relative">
                 {/* Y-Axis mock */}
-                <div className="absolute -left-12 top-0 bottom-0 flex flex-col justify-between text-[10px] text-zinc-600 font-mono">
+                <div className="absolute -left-12 top-0 bottom-0 flex flex-col justify-between text-[10px] text-[var(--color-text-muted)] font-mono">
                   <span>8k</span>
                   <span>6k</span>
                   <span>4k</span>
@@ -462,13 +462,13 @@ export default function DatabaseQueryAnalyzer() {
                         <div className="bg-emerald-400 w-full" style={{ height: `${(t.insert / total) * 100}%` }} />
                         <div className="bg-indigo-500 w-full flex-1" />
                       </div>
-                      <div className="absolute bottom-[-24px] left-1/2 -translate-x-1/2 text-[9px] text-zinc-600 font-mono whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-[-24px] left-1/2 -translate-x-1/2 text-[9px] text-[var(--color-text-muted)] font-mono whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                         {t.hour}
                       </div>
                       
                       {/* Tooltip */}
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-zinc-950 border border-zinc-800 rounded shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none min-w-[120px]">
-                        <div className="text-[10px] font-bold text-zinc-400 mb-1 border-b border-zinc-800 pb-1">{t.hour}</div>
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none min-w-[120px]">
+                        <div className="text-[10px] font-bold text-[var(--color-text-secondary)] mb-1 border-b border-[var(--color-border)] pb-1">{t.hour}</div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
                           <span className="text-indigo-400">SELECT</span><span className="text-right">{t.select.toLocaleString()}</span>
                           <span className="text-emerald-400">INSERT</span><span className="text-right">{t.insert.toLocaleString()}</span>
@@ -489,11 +489,11 @@ export default function DatabaseQueryAnalyzer() {
                 { label: "CPU Load", value: "42%", sub: "cluster", trend: "+2.1%" },
                 { label: "Active Conns", value: "842", sub: "connections", trend: "+124" }
               ].map((stat, i) => (
-                <div key={i} className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800">
-                  <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">{stat.label}</div>
+                <div key={i} className="bg-[var(--color-surface-1)] p-6 rounded-2xl border border-[var(--color-border)]">
+                  <div className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-1">{stat.label}</div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-2xl font-bold">{stat.value}</span>
-                    <span className="text-xs text-zinc-600">{stat.sub}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{stat.sub}</span>
                   </div>
                   <div className={cn("text-[10px] font-bold mt-2", stat.trend.startsWith("+") ? "text-rose-400" : "text-emerald-400")}>
                     {stat.trend} from last period
@@ -506,10 +506,10 @@ export default function DatabaseQueryAnalyzer() {
 
         {activeTab === "tables" && (
           <div className="col-span-12 flex flex-col gap-6">
-            <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
+            <div className="bg-[var(--color-surface-1)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-zinc-950 border-b border-zinc-800 text-[10px] uppercase tracking-widest font-bold text-zinc-500">
+                  <tr className="bg-[var(--color-surface-0)] border-b border-[var(--color-border)] text-[10px] uppercase tracking-widest font-bold text-[var(--color-text-muted)]">
                     <th className="px-6 py-4">Table / Database</th>
                     <th className="px-6 py-4">Rows</th>
                     <th className="px-6 py-4">Size</th>
@@ -518,19 +518,19 @@ export default function DatabaseQueryAnalyzer() {
                     <th className="px-6 py-4">Performance</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-[var(--color-border)]">
                   {MOCK_TABLES.map((table, i) => (
-                    <tr key={i} className="hover:bg-zinc-800/30 transition-colors group">
+                    <tr key={i} className="hover:bg-[var(--color-surface-2)]/30 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <span className="text-sm font-bold group-hover:text-indigo-400 transition-colors">{table.name}</span>
-                          <span className="text-[10px] text-zinc-500 font-mono">{table.database}</span>
+                          <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{table.database}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-xs text-zinc-300 font-mono">
+                      <td className="px-6 py-4 text-xs text-[var(--color-text-primary)] font-mono">
                         {table.rows > 1000000 ? (table.rows / 1000000).toFixed(1) + "M" : table.rows.toLocaleString()}
                       </td>
-                      <td className="px-6 py-4 text-xs text-zinc-300 font-mono">{table.size}</td>
+                      <td className="px-6 py-4 text-xs text-[var(--color-text-primary)] font-mono">{table.size}</td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1.5 w-32">
                           <div className="flex justify-between text-[9px] font-bold">
@@ -538,7 +538,7 @@ export default function DatabaseQueryAnalyzer() {
                               {table.indexHitRate}%
                             </span>
                           </div>
-                          <div className="h-1 bg-zinc-950 rounded-full overflow-hidden border border-zinc-800/50">
+                          <div className="h-1 bg-[var(--color-surface-0)] rounded-full overflow-hidden border border-[var(--color-border)]/50">
                             <div 
                               className={cn("h-full transition-all duration-700", table.indexHitRate > 90 ? "bg-emerald-500" : "bg-rose-500")}
                               style={{ width: `${table.indexHitRate}%` }}
@@ -580,39 +580,39 @@ export default function DatabaseQueryAnalyzer() {
         {activeTab === "locks" && (
           <div className="col-span-12 grid grid-cols-2 gap-6">
             <div className="flex flex-col gap-6">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 mb-2">Active & Recent Lock Events</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)] mb-2">Active & Recent Lock Events</h2>
               {MOCK_LOCKS.map((lock) => (
                 <div key={lock.id} className={cn(
-                  "p-6 rounded-2xl border bg-zinc-900 flex flex-col gap-4",
-                  lock.isDeadlock ? "border-rose-500/50 bg-rose-500/5" : "border-zinc-800"
+                  "p-6 rounded-2xl border bg-[var(--color-surface-1)] flex flex-col gap-4",
+                  lock.isDeadlock ? "border-rose-500/50 bg-rose-500/5" : "border-[var(--color-border)]"
                 )}>
                   <div className="flex items-start justify-between">
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
                         <span className={cn(
                           "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
-                          lock.isDeadlock ? "bg-rose-500 text-white" : "bg-amber-500/20 text-amber-400"
+                          lock.isDeadlock ? "bg-rose-500 text-[var(--color-text-primary)]" : "bg-amber-500/20 text-amber-400"
                         )}>
                           {lock.isDeadlock ? "Deadlock Detected" : lock.type}
                         </span>
-                        <span className="text-xs text-zinc-500 font-mono">{lock.database}</span>
+                        <span className="text-xs text-[var(--color-text-muted)] font-mono">{lock.database}</span>
                       </div>
-                      <span className="text-[10px] text-zinc-600 font-mono">{lock.timestamp}</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{lock.timestamp}</span>
                     </div>
                     <div className="flex flex-col items-end">
                       <span className="text-xl font-bold font-mono text-rose-400">{lock.waitMs}ms</span>
-                      <span className="text-[10px] text-zinc-500 uppercase font-bold">Wait Time</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)] uppercase font-bold">Wait Time</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                  <div className="flex items-center gap-4 bg-[var(--color-surface-0)] p-4 rounded-xl border border-[var(--color-border)]">
                     <div className="flex flex-col gap-1 flex-1">
-                      <span className="text-[9px] text-zinc-500 uppercase font-bold">Blocked Query</span>
+                      <span className="text-[9px] text-[var(--color-text-muted)] uppercase font-bold">Blocked Query</span>
                       <span className="text-xs font-mono text-indigo-400">{lock.blockedQueryId}</span>
                     </div>
-                    <div className="text-zinc-700">←</div>
+                    <div className="text-[var(--color-text-muted)]">←</div>
                     <div className="flex flex-col gap-1 flex-1 text-right">
-                      <span className="text-[9px] text-zinc-500 uppercase font-bold">Blocking Query</span>
+                      <span className="text-[9px] text-[var(--color-text-muted)] uppercase font-bold">Blocking Query</span>
                       <span className="text-xs font-mono text-amber-400">{lock.blockingQueryId}</span>
                     </div>
                   </div>
@@ -620,15 +620,15 @@ export default function DatabaseQueryAnalyzer() {
               ))}
             </div>
 
-            <div className="bg-zinc-900 p-8 rounded-2xl border border-zinc-800">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 mb-6">Lock Wait Stats</h2>
+            <div className="bg-[var(--color-surface-1)] p-8 rounded-2xl border border-[var(--color-border)]">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-[var(--color-text-muted)] mb-6">Lock Wait Stats</h2>
               <div className="flex flex-col gap-8">
                 <div>
                   <div className="flex justify-between items-end mb-4">
                     <span className="text-2xl font-bold">1.2s</span>
-                    <span className="text-[10px] text-zinc-500 uppercase font-bold">Avg Wait Time</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)] uppercase font-bold">Avg Wait Time</span>
                   </div>
-                  <div className="h-2 w-full bg-zinc-950 rounded-full overflow-hidden flex">
+                  <div className="h-2 w-full bg-[var(--color-surface-0)] rounded-full overflow-hidden flex">
                     <div className="bg-emerald-500 w-[60%]" />
                     <div className="bg-amber-500 w-[25%]" />
                     <div className="bg-rose-500 w-[15%]" />
@@ -644,17 +644,17 @@ export default function DatabaseQueryAnalyzer() {
                     <div key={stat.label} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={cn("w-2 h-2 rounded-full", stat.color)} />
-                        <span className="text-xs text-zinc-300 font-medium">{stat.label}</span>
+                        <span className="text-xs text-[var(--color-text-primary)] font-medium">{stat.label}</span>
                       </div>
-                      <span className="text-xs font-mono text-zinc-500">{stat.count} events</span>
+                      <span className="text-xs font-mono text-[var(--color-text-muted)]">{stat.count} events</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="mt-4 p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-xl">
                   <h4 className="text-[10px] font-bold text-indigo-400 uppercase mb-2">Recommendation</h4>
-                  <p className="text-xs text-zinc-400 leading-relaxed italic">
-                    Detected high wait times on <span className="text-white font-bold">production_main</span>. 
+                  <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed italic">
+                    Detected high wait times on <span className="text-[var(--color-text-primary)] font-bold">production_main</span>. 
                     Consider breaking up long transactions in the user session cleanup worker.
                   </p>
                 </div>
@@ -665,7 +665,7 @@ export default function DatabaseQueryAnalyzer() {
       </div>
 
       {/* Footer */}
-      <div className="mt-12 pt-6 border-t border-zinc-900 flex justify-between items-center text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
+      <div className="mt-12 pt-6 border-t border-[var(--color-border)] flex justify-between items-center text-[10px] text-[var(--color-text-muted)] font-bold uppercase tracking-widest">
         <div className="flex gap-6">
           <span>Cluster: US-EAST-1</span>
           <span>Status: <span className="text-emerald-500">Healthy</span></span>

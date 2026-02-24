@@ -94,7 +94,7 @@ const deptColor: Record<CostCenter, string> = {
   sales:       "bg-amber-500",
   support:     "bg-sky-500",
   data:        "bg-emerald-500",
-  infra:       "bg-zinc-500",
+  infra:       "bg-[var(--color-surface-3)]",
 };
 
 const lineIcon: Record<ServiceLine, string> = {
@@ -120,19 +120,19 @@ export default function CostAttributionDashboard() {
   const maxMonthTotal = Math.max(...MONTHLY_ALLOCATION.map(m => m.engineering + m.marketing + m.sales + m.support + m.data + m.infra));
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-white">Cost Attribution</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">Infrastructure spend by team, service, and anomaly detection</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Cost Attribution</h1>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">Infrastructure spend by team, service, and anomaly detection</p>
           </div>
           <div className="flex items-center gap-2">
             {(["month", "quarter", "ytd"] as Period[]).map(p => (
               <button key={p} onClick={() => setPeriod(p)}
                 className={cn("px-3 py-1.5 rounded text-xs font-medium uppercase transition-colors",
-                  period === p ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                  period === p ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}>
                 {p}
               </button>
             ))}
@@ -141,15 +141,15 @@ export default function CostAttributionDashboard() {
         {/* Stats */}
         <div className="flex gap-5 mt-3">
           {[
-            { label: "Total Spent", value: `$${(totalSpent / 1000).toFixed(0)}K`, color: "text-white" },
-            { label: "Budget", value: `$${(totalBudget / 1000).toFixed(0)}K`, color: "text-zinc-300" },
+            { label: "Total Spent", value: `$${(totalSpent / 1000).toFixed(0)}K`, color: "text-[var(--color-text-primary)]" },
+            { label: "Budget", value: `$${(totalBudget / 1000).toFixed(0)}K`, color: "text-[var(--color-text-primary)]" },
             { label: "Budget Used", value: `${Math.round((totalSpent / totalBudget) * 100)}%`, color: totalSpent > totalBudget ? "text-rose-400" : "text-emerald-400" },
             { label: "Over Budget", value: overBudget.length, color: overBudget.length > 0 ? "text-rose-400" : "text-emerald-400" },
             { label: "Open Anomalies", value: openAnomalies.length, color: openAnomalies.length > 0 ? "text-amber-400" : "text-emerald-400" },
           ].map(s => (
             <div key={s.label}>
               <span className={cn("text-base font-bold", s.color)}>{s.value}</span>
-              <span className="text-zinc-500 text-xs ml-1.5">{s.label}</span>
+              <span className="text-[var(--color-text-muted)] text-xs ml-1.5">{s.label}</span>
             </div>
           ))}
         </div>
@@ -158,10 +158,10 @@ export default function CostAttributionDashboard() {
           {(["teams", "services", "anomalies", "trend"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={cn("px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors",
-                tab === t ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800")}>
+                tab === t ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]")}>
               {t.charAt(0).toUpperCase() + t.slice(1)}
               {t === "anomalies" && openAnomalies.length > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-amber-500 text-[9px] font-bold text-white">{openAnomalies.length}</span>
+                <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-amber-500 text-[9px] font-bold text-[var(--color-text-primary)]">{openAnomalies.length}</span>
               )}
             </button>
           ))}
@@ -173,34 +173,34 @@ export default function CostAttributionDashboard() {
         {tab === "teams" && (
           <div className="flex h-full">
             {/* Left */}
-            <div className="w-[48%] flex-none border-r border-zinc-800 overflow-y-auto">
+            <div className="w-[48%] flex-none border-r border-[var(--color-border)] overflow-y-auto">
               {TEAM_COSTS.toSorted((a, b) => b.spent - a.spent).map(team => {
                 const pct = Math.round((team.spent / team.budget) * 100);
                 const over = team.spent > team.budget;
                 return (
                   <button key={team.id} onClick={() => setSelected(team)} className={cn(
-                    "w-full text-left px-4 py-3.5 border-b border-zinc-800/60 hover:bg-zinc-900 transition-colors",
-                    selected?.id === team.id && "bg-zinc-900 border-l-2 border-l-indigo-500"
+                    "w-full text-left px-4 py-3.5 border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface-1)] transition-colors",
+                    selected?.id === team.id && "bg-[var(--color-surface-1)] border-l-2 border-l-indigo-500"
                   )}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className={cn("w-2 h-2 rounded-full flex-none", deptColor[team.department])} />
-                        <span className="text-sm font-medium text-white truncate">{team.team}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{team.team}</span>
                       </div>
                       <div className="flex items-center gap-3 flex-none text-xs">
-                        <span className={cn("font-bold", over ? "text-rose-400" : "text-white")}>${(team.spent / 1000).toFixed(1)}K</span>
-                        <span className="text-zinc-600">of ${(team.budget / 1000).toFixed(0)}K</span>
+                        <span className={cn("font-bold", over ? "text-rose-400" : "text-[var(--color-text-primary)]")}>${(team.spent / 1000).toFixed(1)}K</span>
+                        <span className="text-[var(--color-text-muted)]">of ${(team.budget / 1000).toFixed(0)}K</span>
                       </div>
                     </div>
                     <div className="mt-2 px-4">
-                      <div className="w-full bg-zinc-800 rounded-full h-1.5">
+                      <div className="w-full bg-[var(--color-surface-2)] rounded-full h-1.5">
                         <div
                           className={cn("h-1.5 rounded-full", over ? "bg-rose-500" : pct > 80 ? "bg-amber-500" : "bg-indigo-500")}
                           style={{ width: `${Math.min(100, pct)}%` }}
                         />
                       </div>
                       <div className="flex justify-between text-[10px] mt-1">
-                        <span className={over ? "text-rose-400 font-semibold" : "text-zinc-600"}>{pct}% used</span>
+                        <span className={over ? "text-rose-400 font-semibold" : "text-[var(--color-text-muted)]"}>{pct}% used</span>
                         <span className={cn("font-medium", team.trend > 0 ? "text-rose-400" : "text-emerald-400")}>
                           {team.trend > 0 ? "↑" : "↓"}{Math.abs(team.trend)}% MoM
                         </span>
@@ -217,48 +217,48 @@ export default function CostAttributionDashboard() {
                   <div>
                     <div className="flex items-center gap-2">
                       <div className={cn("w-3 h-3 rounded-full", deptColor[selected.department])} />
-                      <h2 className="text-base font-semibold text-white">{selected.team}</h2>
+                      <h2 className="text-base font-semibold text-[var(--color-text-primary)]">{selected.team}</h2>
                     </div>
-                    <p className="text-xs text-zinc-500 mt-1">Owner: {selected.owner} · Dept: {selected.department}</p>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-1">Owner: {selected.owner} · Dept: {selected.department}</p>
                   </div>
                   {/* Budget overview */}
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { label: "Spent", value: `$${(selected.spent / 1000).toFixed(1)}K`, color: selected.spent > selected.budget ? "text-rose-400" : "text-white" },
-                      { label: "Budget", value: `$${(selected.budget / 1000).toFixed(0)}K`, color: "text-zinc-300" },
+                      { label: "Spent", value: `$${(selected.spent / 1000).toFixed(1)}K`, color: selected.spent > selected.budget ? "text-rose-400" : "text-[var(--color-text-primary)]" },
+                      { label: "Budget", value: `$${(selected.budget / 1000).toFixed(0)}K`, color: "text-[var(--color-text-primary)]" },
                       { label: "Forecast", value: `$${(selected.forecast / 1000).toFixed(1)}K`, color: selected.forecast > selected.budget ? "text-amber-400" : "text-emerald-400" },
                     ].map(m => (
-                      <div key={m.label} className="bg-zinc-900 rounded-lg p-3 border border-zinc-800 text-center">
+                      <div key={m.label} className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)] text-center">
                         <div className={cn("text-xl font-bold", m.color)}>{m.value}</div>
-                        <div className="text-xs text-zinc-500">{m.label}</div>
+                        <div className="text-xs text-[var(--color-text-muted)]">{m.label}</div>
                       </div>
                     ))}
                   </div>
                   {/* Progress */}
-                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
                     <div className="flex justify-between text-xs mb-2">
-                      <span className="text-zinc-400">Budget utilization</span>
-                      <span className={cn("font-semibold", selected.spent > selected.budget ? "text-rose-400" : "text-white")}>{Math.round((selected.spent / selected.budget) * 100)}%</span>
+                      <span className="text-[var(--color-text-secondary)]">Budget utilization</span>
+                      <span className={cn("font-semibold", selected.spent > selected.budget ? "text-rose-400" : "text-[var(--color-text-primary)]")}>{Math.round((selected.spent / selected.budget) * 100)}%</span>
                     </div>
-                    <div className="w-full bg-zinc-800 rounded-full h-3">
+                    <div className="w-full bg-[var(--color-surface-2)] rounded-full h-3">
                       <div
                         className={cn("h-3 rounded-full relative", selected.spent > selected.budget ? "bg-rose-500" : selected.spent / selected.budget > 0.8 ? "bg-amber-500" : "bg-indigo-500")}
                         style={{ width: `${Math.min(100, (selected.spent / selected.budget) * 100)}%` }}
                       />
                     </div>
                     {/* Forecast marker */}
-                    <div className="mt-2 text-[10px] text-zinc-500">
+                    <div className="mt-2 text-[10px] text-[var(--color-text-muted)]">
                       Forecast: ${(selected.forecast / 1000).toFixed(1)}K — {selected.forecast > selected.budget ? <span className="text-amber-400">will exceed budget by ${((selected.forecast - selected.budget) / 1000).toFixed(1)}K</span> : <span className="text-emerald-400">on track</span>}
                     </div>
                   </div>
                   {/* Top services */}
-                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs font-medium text-zinc-400 mb-3">Top Cost Drivers</div>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-3">Top Cost Drivers</div>
                     <div className="space-y-1.5">
                       {selected.topServices.map((svc, i) => (
                         <div key={svc} className="flex items-center gap-2">
-                          <span className="text-xs text-zinc-600">{i + 1}.</span>
-                          <span className="text-xs text-zinc-300">{svc}</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">{i + 1}.</span>
+                          <span className="text-xs text-[var(--color-text-primary)]">{svc}</span>
                         </div>
                       ))}
                     </div>
@@ -279,30 +279,30 @@ export default function CostAttributionDashboard() {
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-3">
               {SERVICE_COSTS.toSorted((a, b) => b.cost - a.cost).map(svc => (
-                <div key={svc.id} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                <div key={svc.id} className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2">
                         <span>{lineIcon[svc.line]}</span>
-                        <span className="font-medium text-white text-sm">{svc.service}</span>
+                        <span className="font-medium text-[var(--color-text-primary)] text-sm">{svc.service}</span>
                       </div>
-                      <div className="text-[10px] text-zinc-600 mt-1 ml-6">
+                      <div className="text-[10px] text-[var(--color-text-muted)] mt-1 ml-6">
                         {svc.unitCount.toLocaleString()} {svc.unit}
                       </div>
                       <div className="flex flex-wrap gap-1 mt-2 ml-6">
                         {svc.topConsumers.map(c => (
-                          <span key={c} className="px-1.5 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-400">{c}</span>
+                          <span key={c} className="px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] text-[10px] text-[var(--color-text-secondary)]">{c}</span>
                         ))}
                       </div>
                     </div>
                     <div className="text-right flex-none">
-                      <div className="text-lg font-bold text-white">${(svc.cost / 1000).toFixed(1)}K</div>
+                      <div className="text-lg font-bold text-[var(--color-text-primary)]">${(svc.cost / 1000).toFixed(1)}K</div>
                       <div className={cn("text-xs font-medium", svc.trend > 10 ? "text-rose-400" : svc.trend > 0 ? "text-amber-400" : "text-emerald-400")}>
                         {svc.trend > 0 ? "↑" : "↓"}{Math.abs(svc.trend)}% MoM
                       </div>
                     </div>
                   </div>
-                  <div className="mt-3 w-full bg-zinc-800 rounded-full h-1.5">
+                  <div className="mt-3 w-full bg-[var(--color-surface-2)] rounded-full h-1.5">
                     <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${(svc.cost / maxServiceCost) * 100}%` }} />
                   </div>
                 </div>
@@ -316,31 +316,31 @@ export default function CostAttributionDashboard() {
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-3">
               {ANOMALIES.map(anomaly => (
-                <div key={anomaly.id} className={cn("bg-zinc-900 rounded-xl p-4 border",
+                <div key={anomaly.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border",
                   anomaly.status === "open" ? "border-rose-500/40" :
-                  anomaly.status === "acknowledged" ? "border-amber-500/30" : "border-zinc-800"
+                  anomaly.status === "acknowledged" ? "border-amber-500/30" : "border-[var(--color-border)]"
                 )}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className={cn("px-1.5 py-0.5 rounded border text-[10px] font-medium", anomalyStatusBadge[anomaly.status])}>{anomaly.status.toUpperCase()}</span>
-                        <span className="text-sm font-medium text-white">{anomaly.service}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{anomaly.service}</span>
                       </div>
-                      <div className="text-xs text-zinc-500 mt-1">{anomaly.team} · Detected {anomaly.detectedAt}</div>
-                      <p className="text-xs text-zinc-400 mt-2">{anomaly.rootCause}</p>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-1">{anomaly.team} · Detected {anomaly.detectedAt}</div>
+                      <p className="text-xs text-[var(--color-text-secondary)] mt-2">{anomaly.rootCause}</p>
                     </div>
                     <div className="text-right flex-none">
                       <div className={cn("text-lg font-bold", anomaly.deviation > 0 ? "text-rose-400" : "text-emerald-400")}>
                         {anomaly.deviation > 0 ? "+" : ""}{anomaly.deviation.toFixed(1)}%
                       </div>
-                      <div className="text-xs text-zinc-500">${(anomaly.actualCost / 1000).toFixed(1)}K actual</div>
-                      <div className="text-xs text-zinc-600">vs ${(anomaly.expectedCost / 1000).toFixed(1)}K expected</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">${(anomaly.actualCost / 1000).toFixed(1)}K actual</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">vs ${(anomaly.expectedCost / 1000).toFixed(1)}K expected</div>
                     </div>
                   </div>
                   {anomaly.status === "open" && (
                     <div className="flex gap-2 mt-3">
                       <button className="px-2.5 py-1 rounded text-xs bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25 transition-colors">Acknowledge</button>
-                      <button className="px-2.5 py-1 rounded text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors">Investigate</button>
+                      <button className="px-2.5 py-1 rounded text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] transition-colors">Investigate</button>
                     </div>
                   )}
                 </div>
@@ -352,8 +352,8 @@ export default function CostAttributionDashboard() {
         {/* Trend Tab */}
         {tab === "trend" && (
           <div className="overflow-y-auto h-full p-5">
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-              <div className="text-sm font-medium text-zinc-300 mb-4">Monthly Cost by Department (7 months)</div>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+              <div className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Monthly Cost by Department (7 months)</div>
               <div className="flex items-end gap-2 h-48">
                 {MONTHLY_ALLOCATION.map((m) => {
                   const total = m.engineering + m.marketing + m.sales + m.support + m.data + m.infra;
@@ -361,20 +361,20 @@ export default function CostAttributionDashboard() {
                   const segments = [
                     { key: "engineering", val: m.engineering, color: "bg-indigo-500" },
                     { key: "data", val: m.data, color: "bg-emerald-500" },
-                    { key: "infra", val: m.infra, color: "bg-zinc-500" },
+                    { key: "infra", val: m.infra, color: "bg-[var(--color-surface-3)]" },
                     { key: "marketing", val: m.marketing, color: "bg-purple-500" },
                     { key: "sales", val: m.sales, color: "bg-amber-500" },
                     { key: "support", val: m.support, color: "bg-sky-500" },
                   ];
                   return (
                     <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
-                      <div className="text-[10px] text-zinc-500">${(total / 1000).toFixed(0)}K</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">${(total / 1000).toFixed(0)}K</div>
                       <div className="w-full flex flex-col-reverse gap-px rounded overflow-hidden" style={{ height: `${heightPct}%` }}>
                         {segments.map(seg => (
                           <div key={seg.key} className={seg.color} style={{ flex: seg.val }} />
                         ))}
                       </div>
-                      <div className="text-[10px] text-zinc-500">{m.month}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">{m.month}</div>
                     </div>
                   );
                 })}
@@ -383,14 +383,14 @@ export default function CostAttributionDashboard() {
                 {[
                   { label: "Engineering", color: "bg-indigo-500" },
                   { label: "Data", color: "bg-emerald-500" },
-                  { label: "Infra", color: "bg-zinc-500" },
+                  { label: "Infra", color: "bg-[var(--color-surface-3)]" },
                   { label: "Marketing", color: "bg-purple-500" },
                   { label: "Sales", color: "bg-amber-500" },
                   { label: "Support", color: "bg-sky-500" },
                 ].map(l => (
                   <div key={l.label} className="flex items-center gap-1.5">
                     <div className={cn("w-2 h-2 rounded-sm", l.color)} />
-                    <span className="text-zinc-500">{l.label}</span>
+                    <span className="text-[var(--color-text-muted)]">{l.label}</span>
                   </div>
                 ))}
               </div>

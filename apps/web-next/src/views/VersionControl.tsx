@@ -153,7 +153,7 @@ const KIND_CONFIG: Record<CommitKind, { color: string; bg: string; border: strin
   fix: { color: "text-rose-400", bg: "bg-rose-900/30", border: "border-rose-700/50" },
   refactor: { color: "text-purple-400", bg: "bg-purple-900/30", border: "border-purple-700/50" },
   docs: { color: "text-blue-400", bg: "bg-blue-900/30", border: "border-blue-700/50" },
-  chore: { color: "text-zinc-400", bg: "bg-zinc-800/50", border: "border-zinc-700" },
+  chore: { color: "text-[var(--color-text-secondary)]", bg: "bg-[var(--color-surface-2)]/50", border: "border-[var(--color-border)]" },
   test: { color: "text-emerald-400", bg: "bg-emerald-900/30", border: "border-emerald-700/50" },
   style: { color: "text-amber-400", bg: "bg-amber-900/30", border: "border-amber-700/50" },
 };
@@ -161,14 +161,14 @@ const KIND_CONFIG: Record<CommitKind, { color: string; bg: string; border: strin
 const PR_STATUS_CONFIG: Record<PRStatus, { label: string; color: string; bg: string; border: string }> = {
   open: { label: "Open", color: "text-emerald-400", bg: "bg-emerald-900/20", border: "border-emerald-700/50" },
   merged: { label: "Merged", color: "text-purple-400", bg: "bg-purple-900/20", border: "border-purple-700/50" },
-  closed: { label: "Closed", color: "text-zinc-400", bg: "bg-zinc-800/50", border: "border-zinc-700" },
-  draft: { label: "Draft", color: "text-zinc-400", bg: "bg-zinc-800/50", border: "border-zinc-700" },
+  closed: { label: "Closed", color: "text-[var(--color-text-secondary)]", bg: "bg-[var(--color-surface-2)]/50", border: "border-[var(--color-border)]" },
+  draft: { label: "Draft", color: "text-[var(--color-text-secondary)]", bg: "bg-[var(--color-surface-2)]/50", border: "border-[var(--color-border)]" },
 };
 
 const BRANCH_STATUS_CONFIG: Record<BranchStatus, { label: string; color: string }> = {
   ahead: { label: "Ahead", color: "text-emerald-400" },
   behind: { label: "Behind", color: "text-amber-400" },
-  synced: { label: "Synced", color: "text-zinc-400" },
+  synced: { label: "Synced", color: "text-[var(--color-text-secondary)]" },
   diverged: { label: "Diverged", color: "text-rose-400" },
 };
 
@@ -189,15 +189,15 @@ export default function VersionControl() {
   const openPRs = PRS.filter((p) => p.status === "open" || p.status === "draft").length;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-zinc-800">
+      <div className="flex-shrink-0 px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl font-bold text-white">Version Control</h1>
-            <p className="text-sm text-zinc-400 font-mono">dgarson/clawdbot · master</p>
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Version Control</h1>
+            <p className="text-sm text-[var(--color-text-secondary)] font-mono">dgarson/clawdbot · master</p>
           </div>
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-sm">
+          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm">
             + New PR
           </button>
         </div>
@@ -205,28 +205,28 @@ export default function VersionControl() {
         {/* Stats */}
         <div className="grid grid-cols-5 gap-3 mb-4">
           {[
-            { label: "Commits", value: COMMITS.length, color: "text-white" },
+            { label: "Commits", value: COMMITS.length, color: "text-[var(--color-text-primary)]" },
             { label: "Branches", value: BRANCHES.length, color: "text-blue-400" },
             { label: "Open PRs", value: openPRs, color: "text-emerald-400" },
             { label: "Additions", value: `+${totalAdditions.toLocaleString()}`, color: "text-emerald-400" },
             { label: "Deletions", value: `-${totalDeletions.toLocaleString()}`, color: "text-rose-400" },
           ].map((s) => (
-            <div key={s.label} className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
+            <div key={s.label} className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
               <div className={cn("text-lg font-bold font-mono", s.color)}>{s.value}</div>
-              <div className="text-xs text-zinc-500">{s.label}</div>
+              <div className="text-xs text-[var(--color-text-muted)]">{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-0 border-b border-zinc-800 -mb-4">
+        <div className="flex gap-0 border-b border-[var(--color-border)] -mb-4">
           {(["commits", "branches", "prs"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={cn(
                 "px-4 py-2 text-sm capitalize border-b-2 -mb-px transition-colors",
-                activeTab === tab ? "border-indigo-500 text-white font-medium" : "border-transparent text-zinc-500 hover:text-zinc-300"
+                activeTab === tab ? "border-indigo-500 text-[var(--color-text-primary)] font-medium" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {tab === "commits" ? `Commits (${COMMITS.length})` : tab === "branches" ? `Branches (${BRANCHES.length})` : `Pull Requests (${PRS.length})`}
@@ -246,7 +246,7 @@ export default function VersionControl() {
                   placeholder="Search commits, SHA, author…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-1.5 text-sm w-80 placeholder:text-zinc-500"
+                  className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-1.5 text-sm w-80 placeholder:text-[var(--color-text-muted)]"
                 />
               </div>
               <div className="space-y-1">
@@ -259,24 +259,24 @@ export default function VersionControl() {
                       onClick={() => setSelectedCommit(isSelected ? null : commit)}
                       className={cn(
                         "w-full text-left px-4 py-3 rounded-lg border flex items-center gap-4 transition-all",
-                        isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-zinc-900/50 border-zinc-800 hover:border-zinc-600"
+                        isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-[var(--color-surface-1)]/50 border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       {/* SHA */}
-                      <span className="font-mono text-xs text-zinc-500 w-16 flex-shrink-0">{commit.shortSha}</span>
+                      <span className="font-mono text-xs text-[var(--color-text-muted)] w-16 flex-shrink-0">{commit.shortSha}</span>
                       {/* Kind badge */}
                       <span className={cn("text-[10px] px-1.5 py-0.5 rounded border flex-shrink-0", kc.bg, kc.color, kc.border)}>
                         {commit.kind}
                       </span>
                       {/* Message */}
-                      <span className="flex-1 text-sm text-zinc-200 truncate">{commit.message.replace(/^[a-z]+: /, "")}</span>
+                      <span className="flex-1 text-sm text-[var(--color-text-primary)] truncate">{commit.message.replace(/^[a-z]+: /, "")}</span>
                       {/* Author */}
-                      <span className="text-xs text-zinc-500 flex-shrink-0">{commit.authorEmoji} {commit.author}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] flex-shrink-0">{commit.authorEmoji} {commit.author}</span>
                       {/* Stats */}
                       <span className="text-xs text-emerald-400 flex-shrink-0">+{commit.additions.toLocaleString()}</span>
                       <span className="text-xs text-rose-400 flex-shrink-0">-{commit.deletions.toLocaleString()}</span>
                       {/* Time */}
-                      <span className="text-xs text-zinc-600 flex-shrink-0 w-16 text-right">{commit.timestamp.slice(11, 16)} UTC</span>
+                      <span className="text-xs text-[var(--color-text-muted)] flex-shrink-0 w-16 text-right">{commit.timestamp.slice(11, 16)} UTC</span>
                       {/* Verified */}
                       {commit.verified && <span className="text-emerald-400 text-xs flex-shrink-0">✓</span>}
                     </button>
@@ -293,11 +293,11 @@ export default function VersionControl() {
                 return (
                   <div
                     key={branch.name}
-                    className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 flex items-center gap-4"
+                    className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl px-4 py-3 flex items-center gap-4"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-mono text-white font-medium truncate">{branch.name}</span>
+                        <span className="text-sm font-mono text-[var(--color-text-primary)] font-medium truncate">{branch.name}</span>
                         {branch.isProtected && (
                           <span className="text-[10px] bg-amber-900/30 text-amber-400 border border-amber-700/50 px-1.5 py-0.5 rounded flex-shrink-0">🔒 Protected</span>
                         )}
@@ -305,7 +305,7 @@ export default function VersionControl() {
                           <span className="text-[10px] bg-indigo-900/30 text-indigo-400 border border-indigo-700/50 px-1.5 py-0.5 rounded flex-shrink-0">Megabranch</span>
                         )}
                       </div>
-                      <div className="text-xs text-zinc-500">
+                      <div className="text-xs text-[var(--color-text-muted)]">
                         Last commit: <span className="font-mono">{branch.lastCommit}</span> · {branch.author}
                       </div>
                     </div>
@@ -319,9 +319,9 @@ export default function VersionControl() {
                       <span className={cn("text-xs font-medium", bsc.color)}>{bsc.label}</span>
                     </div>
                     <div className="flex gap-1 flex-shrink-0">
-                      <button className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded text-xs">Checkout</button>
+                      <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-2 py-1 rounded text-xs">Checkout</button>
                       {branch.name !== "master" && (
-                        <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded text-xs">PR</button>
+                        <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-2 py-1 rounded text-xs">PR</button>
                       )}
                     </div>
                   </div>
@@ -341,7 +341,7 @@ export default function VersionControl() {
                     onClick={() => setSelectedPR(isSelected ? null : pr)}
                     className={cn(
                       "w-full text-left p-4 rounded-xl border transition-all",
-                      isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-zinc-900 border-zinc-800 hover:border-zinc-600"
+                      isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                     )}
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -349,11 +349,11 @@ export default function VersionControl() {
                         <span className={cn("text-xs px-2 py-0.5 rounded-full border", prc.bg, prc.color, prc.border)}>
                           {prc.label}
                         </span>
-                        <span className="text-sm font-medium text-white">{pr.title}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{pr.title}</span>
                       </div>
-                      <span className="text-xs text-zinc-500 flex-shrink-0 ml-4">#{pr.number}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] flex-shrink-0 ml-4">#{pr.number}</span>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-zinc-400">
+                    <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
                       <span>{pr.authorEmoji} {pr.author}</span>
                       <span className="font-mono">{pr.head} → {pr.base}</span>
                       <span className="text-emerald-400">+{pr.additions.toLocaleString()}</span>
@@ -364,7 +364,7 @@ export default function VersionControl() {
                     </div>
                     <div className="flex flex-wrap gap-1 mt-2">
                       {pr.labels.map((l) => (
-                        <span key={l} className="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">
+                        <span key={l} className="text-[10px] bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-1.5 py-0.5 rounded">
                           {l}
                         </span>
                       ))}
@@ -378,45 +378,45 @@ export default function VersionControl() {
 
         {/* Detail sidebar */}
         {selectedCommit && activeTab === "commits" && (
-          <div className="flex-shrink-0 w-72 border-l border-zinc-800 bg-zinc-900/40 overflow-y-auto p-4">
+          <div className="flex-shrink-0 w-72 border-l border-[var(--color-border)] bg-[var(--color-surface-1)]/40 overflow-y-auto p-4">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-white">Commit Detail</span>
-              <button onClick={() => setSelectedCommit(null)} className="text-zinc-500 hover:text-white">✕</button>
+              <span className="text-sm font-semibold text-[var(--color-text-primary)]">Commit Detail</span>
+              <button onClick={() => setSelectedCommit(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">✕</button>
             </div>
             <div className="space-y-3 text-sm">
               <div>
-                <div className="text-xs text-zinc-500 mb-1">SHA</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">SHA</div>
                 <div className="font-mono text-indigo-400">{selectedCommit.sha}</div>
               </div>
               <div>
-                <div className="text-xs text-zinc-500 mb-1">Message</div>
-                <div className="text-zinc-300 leading-relaxed">{selectedCommit.message}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Message</div>
+                <div className="text-[var(--color-text-primary)] leading-relaxed">{selectedCommit.message}</div>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-zinc-800/50 rounded p-2">
-                  <div className="text-xs text-zinc-500">Author</div>
-                  <div className="text-zinc-300">{selectedCommit.authorEmoji} {selectedCommit.author}</div>
+                <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                  <div className="text-xs text-[var(--color-text-muted)]">Author</div>
+                  <div className="text-[var(--color-text-primary)]">{selectedCommit.authorEmoji} {selectedCommit.author}</div>
                 </div>
-                <div className="bg-zinc-800/50 rounded p-2">
-                  <div className="text-xs text-zinc-500">Branch</div>
-                  <div className="font-mono text-xs text-zinc-300 truncate">{selectedCommit.branch}</div>
+                <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                  <div className="text-xs text-[var(--color-text-muted)]">Branch</div>
+                  <div className="font-mono text-xs text-[var(--color-text-primary)] truncate">{selectedCommit.branch}</div>
                 </div>
-                <div className="bg-zinc-800/50 rounded p-2">
-                  <div className="text-xs text-zinc-500">Additions</div>
+                <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                  <div className="text-xs text-[var(--color-text-muted)]">Additions</div>
                   <div className="text-emerald-400 font-bold">+{selectedCommit.additions.toLocaleString()}</div>
                 </div>
-                <div className="bg-zinc-800/50 rounded p-2">
-                  <div className="text-xs text-zinc-500">Deletions</div>
+                <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                  <div className="text-xs text-[var(--color-text-muted)]">Deletions</div>
                   <div className="text-rose-400 font-bold">-{selectedCommit.deletions.toLocaleString()}</div>
                 </div>
               </div>
-              <div className="bg-zinc-800/50 rounded p-2">
-                <div className="text-xs text-zinc-500 mb-1">Files Changed</div>
-                <div className="text-white font-medium">{selectedCommit.filesChanged} files</div>
+              <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Files Changed</div>
+                <div className="text-[var(--color-text-primary)] font-medium">{selectedCommit.filesChanged} files</div>
               </div>
-              <div className="bg-zinc-800/50 rounded p-2">
-                <div className="text-xs text-zinc-500 mb-1">Time</div>
-                <div className="text-zinc-300 text-xs">{selectedCommit.timestamp.replace("T", " ").replace("Z", " UTC")}</div>
+              <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Time</div>
+                <div className="text-[var(--color-text-primary)] text-xs">{selectedCommit.timestamp.replace("T", " ").replace("Z", " UTC")}</div>
               </div>
               {selectedCommit.verified && (
                 <div className="bg-emerald-900/20 border border-emerald-700/50 rounded p-2 flex items-center gap-2">
@@ -425,8 +425,8 @@ export default function VersionControl() {
                 </div>
               )}
               <div className="flex gap-2 pt-1">
-                <button className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-1.5 rounded text-xs">Browse files</button>
-                <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-1.5 rounded text-xs">Revert</button>
+                <button className="flex-1 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] py-1.5 rounded text-xs">Browse files</button>
+                <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] py-1.5 rounded text-xs">Revert</button>
               </div>
             </div>
           </div>

@@ -180,8 +180,8 @@ function SpanRow({
     <button
       onClick={onSelect}
       className={cn(
-        "w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-zinc-800/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-        selected && "bg-zinc-800"
+        "w-full text-left flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--color-surface-2)]/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
+        selected && "bg-[var(--color-surface-2)]"
       )}
     >
       {/* indent */}
@@ -189,9 +189,9 @@ function SpanRow({
       {/* kind dot */}
       <span className={cn("w-2 h-2 rounded-full shrink-0", KIND_COLORS[span.kind])} />
       {/* name */}
-      <span className="text-xs text-zinc-300 truncate shrink-0 w-44">{span.name}</span>
+      <span className="text-xs text-[var(--color-text-primary)] truncate shrink-0 w-44">{span.name}</span>
       {/* waterfall bar */}
-      <div className="flex-1 relative h-4 bg-zinc-800 rounded overflow-hidden">
+      <div className="flex-1 relative h-4 bg-[var(--color-surface-2)] rounded overflow-hidden">
         <div
           className={cn("absolute h-full rounded opacity-80", KIND_COLORS[span.kind])}
           style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
@@ -240,22 +240,22 @@ export default function AgentTracer() {
   const selectedSpan = spans.find((s) => s.id === selectedSpanId) ?? null;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="shrink-0 border-b border-zinc-800 px-6 py-4">
-        <h1 className="text-lg font-semibold text-white">Agent Tracer</h1>
-        <p className="text-xs text-zinc-500 mt-0.5">Distributed trace viewer — spans, events, timing</p>
+      <div className="shrink-0 border-b border-[var(--color-border)] px-6 py-4">
+        <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Agent Tracer</h1>
+        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Distributed trace viewer — spans, events, timing</p>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
         {/* Trace list */}
-        <aside className="w-72 shrink-0 border-r border-zinc-800 flex flex-col overflow-hidden">
+        <aside className="w-72 shrink-0 border-r border-[var(--color-border)] flex flex-col overflow-hidden">
           {/* Filters */}
-          <div className="shrink-0 p-3 border-b border-zinc-800 space-y-2">
+          <div className="shrink-0 p-3 border-b border-[var(--color-border)] space-y-2">
             <select
               value={agentFilter}
               onChange={(e) => setAgentFilter(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               aria-label="Filter by agent"
             >
               <option value="all">All agents</option>
@@ -271,8 +271,8 @@ export default function AgentTracer() {
                   className={cn(
                     "px-2 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                     statusFilter === s
-                      ? "bg-indigo-600 text-white"
-                      : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -282,7 +282,7 @@ export default function AgentTracer() {
           </div>
 
           {/* Trace list */}
-          <ul className="flex-1 overflow-y-auto divide-y divide-zinc-800/50" role="listbox" aria-label="Traces">
+          <ul className="flex-1 overflow-y-auto divide-y divide-[var(--color-border)]/50" role="listbox" aria-label="Traces">
             {filtered.map((trace) => (
               <li key={trace.id}>
                 <button
@@ -293,24 +293,24 @@ export default function AgentTracer() {
                     setSelectedSpanId(null);
                   }}
                   className={cn(
-                    "w-full text-left px-4 py-3 hover:bg-zinc-800/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                    trace.id === selectedTraceId && "bg-zinc-800 border-l-2 border-indigo-500"
+                    "w-full text-left px-4 py-3 hover:bg-[var(--color-surface-2)]/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
+                    trace.id === selectedTraceId && "bg-[var(--color-surface-2)] border-l-2 border-indigo-500"
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-medium text-zinc-200 leading-tight">{trace.name}</span>
+                    <span className="text-xs font-medium text-[var(--color-text-primary)] leading-tight">{trace.name}</span>
                     <span className={cn("shrink-0 text-xs font-medium", STATUS_COLORS[trace.status])}>
                       {trace.status}
                     </span>
                   </div>
-                  <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+                  <div className="mt-1 flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
                     <span>{trace.agent}</span>
                     <span>·</span>
                     <span>{formatMs(trace.totalMs)}</span>
                     <span>·</span>
                     <span>{trace.spanCount} spans</span>
                   </div>
-                  <div className="mt-0.5 text-xs text-zinc-600">{trace.startedAt}</div>
+                  <div className="mt-0.5 text-xs text-[var(--color-text-muted)]">{trace.startedAt}</div>
                 </button>
               </li>
             ))}
@@ -320,19 +320,19 @@ export default function AgentTracer() {
         {/* Trace detail: waterfall + span detail */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Trace summary bar */}
-          <div className="shrink-0 border-b border-zinc-800 px-5 py-3 flex items-center gap-6">
+          <div className="shrink-0 border-b border-[var(--color-border)] px-5 py-3 flex items-center gap-6">
             <div>
-              <div className="text-sm font-semibold text-white">{selectedTrace.name}</div>
-              <div className="text-xs text-zinc-500">{selectedTrace.startedAt} · {selectedTrace.agent}</div>
+              <div className="text-sm font-semibold text-[var(--color-text-primary)]">{selectedTrace.name}</div>
+              <div className="text-xs text-[var(--color-text-muted)]">{selectedTrace.startedAt} · {selectedTrace.agent}</div>
             </div>
             <div className="flex items-center gap-4 ml-auto">
               <div className="text-center">
-                <div className="text-lg font-bold text-white">{formatMs(selectedTrace.totalMs)}</div>
-                <div className="text-xs text-zinc-500">Duration</div>
+                <div className="text-lg font-bold text-[var(--color-text-primary)]">{formatMs(selectedTrace.totalMs)}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">Duration</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-bold text-white">{selectedTrace.spanCount}</div>
-                <div className="text-xs text-zinc-500">Spans</div>
+                <div className="text-lg font-bold text-[var(--color-text-primary)]">{selectedTrace.spanCount}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">Spans</div>
               </div>
               <span className={cn("px-2 py-0.5 rounded text-xs font-medium ring-1", STATUS_BG[selectedTrace.status])}>
                 {selectedTrace.status}
@@ -345,10 +345,10 @@ export default function AgentTracer() {
             {/* Waterfall */}
             <div className="flex-1 overflow-y-auto">
               {/* Time ruler */}
-              <div className="flex items-center gap-2 px-3 py-1 border-b border-zinc-800/50 sticky top-0 bg-zinc-950 z-10">
+              <div className="flex items-center gap-2 px-3 py-1 border-b border-[var(--color-border)]/50 sticky top-0 bg-[var(--color-surface-0)] z-10">
                 <div className="w-2 shrink-0" />
                 <div className="w-44 shrink-0" />
-                <div className="flex-1 flex justify-between text-xs text-zinc-600 px-1">
+                <div className="flex-1 flex justify-between text-xs text-[var(--color-text-muted)] px-1">
                   <span>0</span>
                   <span>{formatMs(totalMs / 4)}</span>
                   <span>{formatMs(totalMs / 2)}</span>
@@ -372,43 +372,43 @@ export default function AgentTracer() {
 
             {/* Span detail */}
             {selectedSpan && (
-              <aside className="w-72 shrink-0 border-l border-zinc-800 overflow-y-auto">
-                <div className="p-4 border-b border-zinc-800">
+              <aside className="w-72 shrink-0 border-l border-[var(--color-border)] overflow-y-auto">
+                <div className="p-4 border-b border-[var(--color-border)]">
                   <div className="flex items-center gap-2">
                     <span className={cn("w-2.5 h-2.5 rounded-full", KIND_COLORS[selectedSpan.kind])} />
-                    <span className="text-xs font-semibold text-white truncate">{selectedSpan.name}</span>
+                    <span className="text-xs font-semibold text-[var(--color-text-primary)] truncate">{selectedSpan.name}</span>
                   </div>
                   <div className="mt-2 flex items-center gap-2">
                     <span className={cn("text-xs px-1.5 py-0.5 rounded ring-1", STATUS_BG[selectedSpan.status])}>
                       {selectedSpan.status}
                     </span>
-                    <span className="text-xs text-zinc-400">{selectedSpan.kind}</span>
+                    <span className="text-xs text-[var(--color-text-secondary)]">{selectedSpan.kind}</span>
                   </div>
                 </div>
 
                 <div className="p-4 space-y-4">
                   {/* Timing */}
                   <div>
-                    <div className="text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wide">Timing</div>
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2 uppercase tracking-wide">Timing</div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs">
-                        <span className="text-zinc-500">Start</span>
-                        <span className="text-zinc-300">{formatMs(selectedSpan.startMs)}</span>
+                        <span className="text-[var(--color-text-muted)]">Start</span>
+                        <span className="text-[var(--color-text-primary)]">{formatMs(selectedSpan.startMs)}</span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span className="text-zinc-500">Duration</span>
-                        <span className="text-zinc-300 font-medium">{formatMs(selectedSpan.durationMs)}</span>
+                        <span className="text-[var(--color-text-muted)]">Duration</span>
+                        <span className="text-[var(--color-text-primary)] font-medium">{formatMs(selectedSpan.durationMs)}</span>
                       </div>
                       {selectedSpan.tokens !== undefined && (
                         <div className="flex justify-between text-xs">
-                          <span className="text-zinc-500">Tokens</span>
-                          <span className="text-zinc-300">{selectedSpan.tokens.toLocaleString()}</span>
+                          <span className="text-[var(--color-text-muted)]">Tokens</span>
+                          <span className="text-[var(--color-text-primary)]">{selectedSpan.tokens.toLocaleString()}</span>
                         </div>
                       )}
                       {selectedSpan.model && (
                         <div className="flex justify-between text-xs">
-                          <span className="text-zinc-500">Model</span>
-                          <span className="text-zinc-300">{selectedSpan.model}</span>
+                          <span className="text-[var(--color-text-muted)]">Model</span>
+                          <span className="text-[var(--color-text-primary)]">{selectedSpan.model}</span>
                         </div>
                       )}
                     </div>
@@ -417,12 +417,12 @@ export default function AgentTracer() {
                   {/* Tags */}
                   {Object.keys(selectedSpan.tags).length > 0 && (
                     <div>
-                      <div className="text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wide">Tags</div>
+                      <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2 uppercase tracking-wide">Tags</div>
                       <div className="space-y-1">
                         {Object.entries(selectedSpan.tags).map(([k, v]) => (
                           <div key={k} className="flex justify-between text-xs gap-2">
-                            <span className="text-zinc-500 truncate">{k}</span>
-                            <span className="text-zinc-300 truncate font-mono">{v}</span>
+                            <span className="text-[var(--color-text-muted)] truncate">{k}</span>
+                            <span className="text-[var(--color-text-primary)] truncate font-mono">{v}</span>
                           </div>
                         ))}
                       </div>
@@ -432,7 +432,7 @@ export default function AgentTracer() {
                   {/* Events */}
                   {selectedSpan.events.length > 0 && (
                     <div>
-                      <div className="text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wide">Events</div>
+                      <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2 uppercase tracking-wide">Events</div>
                       <ul className="space-y-2">
                         {selectedSpan.events.map((ev, i) => (
                           <li key={i} className="text-xs">
@@ -443,10 +443,10 @@ export default function AgentTracer() {
                                   ev.level === "error" ? "bg-rose-400" : ev.level === "warn" ? "bg-amber-400" : "bg-emerald-400"
                                 )}
                               />
-                              <span className="text-zinc-400 font-medium">{ev.name}</span>
-                              <span className="text-zinc-600 ml-auto">+{formatMs(ev.offsetMs)}</span>
+                              <span className="text-[var(--color-text-secondary)] font-medium">{ev.name}</span>
+                              <span className="text-[var(--color-text-muted)] ml-auto">+{formatMs(ev.offsetMs)}</span>
                             </div>
-                            <p className="text-zinc-500 mt-0.5 pl-3">{ev.message}</p>
+                            <p className="text-[var(--color-text-muted)] mt-0.5 pl-3">{ev.message}</p>
                           </li>
                         ))}
                       </ul>
@@ -458,11 +458,11 @@ export default function AgentTracer() {
           </div>
 
           {/* Legend */}
-          <div className="shrink-0 border-t border-zinc-800 px-5 py-2 flex items-center gap-4 flex-wrap">
+          <div className="shrink-0 border-t border-[var(--color-border)] px-5 py-2 flex items-center gap-4 flex-wrap">
             {(Object.keys(KIND_COLORS) as SpanKind[]).map((k) => (
               <div key={k} className="flex items-center gap-1.5">
                 <span className={cn("w-2 h-2 rounded-full", KIND_COLORS[k])} />
-                <span className="text-xs text-zinc-500 capitalize">{k}</span>
+                <span className="text-xs text-[var(--color-text-muted)] capitalize">{k}</span>
               </div>
             ))}
           </div>

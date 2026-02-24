@@ -84,16 +84,16 @@ const SESSIONS: ContextSession[] = [
 const ROLE_COLORS: Record<MessageRole, string> = {
   system: "bg-amber-500/10 border-amber-500/30 text-amber-400",
   user: "bg-indigo-500/10 border-indigo-500/30 text-indigo-400",
-  assistant: "bg-zinc-800/60 border-zinc-700 text-zinc-400",
+  assistant: "bg-[var(--color-surface-2)]/60 border-[var(--color-border)] text-[var(--color-text-secondary)]",
   tool: "bg-emerald-500/5 border-emerald-500/20 text-emerald-400",
 };
 
 const BUCKET_COLORS: Record<TokenBucket, string> = {
   system: "bg-amber-500",
   user: "bg-indigo-500",
-  assistant: "bg-zinc-500",
+  assistant: "bg-[var(--color-surface-3)]",
   tool: "bg-emerald-500",
-  overhead: "bg-zinc-700",
+  overhead: "bg-[var(--color-surface-3)]",
 };
 
 function countByRole(messages: ContextMessage[]): Record<TokenBucket, number> {
@@ -127,17 +127,17 @@ export default function ContextWindowViewer() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="shrink-0 border-b border-zinc-800 px-5 py-3">
-        <h1 className="text-sm font-semibold text-white">Context Window Viewer</h1>
-        <p className="text-xs text-zinc-500 mt-0.5">Inspect token usage and message breakdown per session</p>
+      <div className="shrink-0 border-b border-[var(--color-border)] px-5 py-3">
+        <h1 className="text-sm font-semibold text-[var(--color-text-primary)]">Context Window Viewer</h1>
+        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Inspect token usage and message breakdown per session</p>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
         {/* Session list */}
-        <aside className="w-60 shrink-0 border-r border-zinc-800 flex flex-col overflow-hidden">
-          <ul className="flex-1 overflow-y-auto divide-y divide-zinc-800/50" role="listbox" aria-label="Sessions">
+        <aside className="w-60 shrink-0 border-r border-[var(--color-border)] flex flex-col overflow-hidden">
+          <ul className="flex-1 overflow-y-auto divide-y divide-[var(--color-border)]/50" role="listbox" aria-label="Sessions">
             {SESSIONS.map((s) => {
               const pct = Math.round((s.usedTokens / s.contextLimit) * 100);
               return (
@@ -147,18 +147,18 @@ export default function ContextWindowViewer() {
                     aria-selected={s.id === selectedId}
                     onClick={() => setSelectedId(s.id)}
                     className={cn(
-                      "w-full text-left px-4 py-3 hover:bg-zinc-800/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                      s.id === selectedId && "bg-zinc-800 border-l-2 border-indigo-500"
+                      "w-full text-left px-4 py-3 hover:bg-[var(--color-surface-2)]/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
+                      s.id === selectedId && "bg-[var(--color-surface-2)] border-l-2 border-indigo-500"
                     )}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-semibold text-zinc-200">{s.agent}</span>
+                      <span className="text-xs font-semibold text-[var(--color-text-primary)]">{s.agent}</span>
                       <span className={cn("text-xs font-medium", pct > 80 ? "text-rose-400" : pct > 60 ? "text-amber-400" : "text-emerald-400")}>
                         {pct}%
                       </span>
                     </div>
-                    <div className="text-xs text-zinc-500 mt-0.5 truncate">{s.model}</div>
-                    <div className="mt-1.5 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5 truncate">{s.model}</div>
+                    <div className="mt-1.5 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                       <div
                         className={cn("h-full rounded-full", pct > 80 ? "bg-rose-500" : pct > 60 ? "bg-amber-500" : "bg-emerald-500")}
                         style={{ width: `${pct}%` }}
@@ -169,7 +169,7 @@ export default function ContextWindowViewer() {
                         aria-label={`Context usage: ${pct}%`}
                       />
                     </div>
-                    <div className="mt-1 flex items-center justify-between text-xs text-zinc-600">
+                    <div className="mt-1 flex items-center justify-between text-xs text-[var(--color-text-muted)]">
                       <span>{s.usedTokens.toLocaleString()} / {(s.contextLimit / 1000).toFixed(0)}k</span>
                       <span>{s.messages.length} msgs</span>
                     </div>
@@ -183,11 +183,11 @@ export default function ContextWindowViewer() {
         {/* Session detail */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Usage header */}
-          <div className="shrink-0 border-b border-zinc-800 px-5 py-4 space-y-3">
+          <div className="shrink-0 border-b border-[var(--color-border)] px-5 py-4 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-semibold text-white">{session.agent} — {session.model}</div>
-                <div className="text-xs text-zinc-500">{session.startedAt}</div>
+                <div className="text-sm font-semibold text-[var(--color-text-primary)]">{session.agent} — {session.model}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">{session.startedAt}</div>
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -195,7 +195,7 @@ export default function ContextWindowViewer() {
                   aria-pressed={showImportant}
                   className={cn(
                     "px-3 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                    showImportant ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                    showImportant ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   ★ Important only
@@ -205,13 +205,13 @@ export default function ContextWindowViewer() {
 
             {/* Token distribution bar */}
             <div>
-              <div className="flex items-center justify-between text-xs text-zinc-500 mb-1">
+              <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] mb-1">
                 <span>Token distribution</span>
-                <span className={cn("font-medium", utilPct > 80 ? "text-rose-400" : utilPct > 60 ? "text-amber-400" : "text-zinc-300")}>
+                <span className={cn("font-medium", utilPct > 80 ? "text-rose-400" : utilPct > 60 ? "text-amber-400" : "text-[var(--color-text-primary)]")}>
                   {session.usedTokens.toLocaleString()} / {session.contextLimit.toLocaleString()} ({utilPct}%)
                 </span>
               </div>
-              <div className="h-3 bg-zinc-800 rounded-full overflow-hidden flex" role="img" aria-label="Token distribution by role">
+              <div className="h-3 bg-[var(--color-surface-2)] rounded-full overflow-hidden flex" role="img" aria-label="Token distribution by role">
                 {(Object.entries(buckets) as Array<[TokenBucket, number]>).map(([bucket, count]) => {
                   const pct = (count / session.usedTokens) * utilPct;
                   return pct > 0 ? (
@@ -228,7 +228,7 @@ export default function ContextWindowViewer() {
                 {(Object.entries(buckets) as Array<[TokenBucket, number]>).map(([bucket, count]) => (
                   <div key={bucket} className="flex items-center gap-1">
                     <span className={cn("w-2 h-2 rounded-full", BUCKET_COLORS[bucket])} />
-                    <span className="text-xs text-zinc-500">{bucket} {count.toLocaleString()}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{bucket} {count.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
@@ -263,13 +263,13 @@ export default function ContextWindowViewer() {
                       {msg.important && <span className="text-indigo-400">★</span>}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-zinc-300 font-mono leading-relaxed whitespace-pre-wrap">
+                      <p className="text-[var(--color-text-primary)] font-mono leading-relaxed whitespace-pre-wrap">
                         {expanded ? msg.content : preview}
                       </p>
                     </div>
                     <div className="shrink-0 flex flex-col items-end gap-0.5">
-                      <span className="text-zinc-600">{msg.tokens.toLocaleString()}tok</span>
-                      <span className="text-zinc-700">{expanded ? "▲" : "▼"}</span>
+                      <span className="text-[var(--color-text-muted)]">{msg.tokens.toLocaleString()}tok</span>
+                      <span className="text-[var(--color-text-muted)]">{expanded ? "▲" : "▼"}</span>
                     </div>
                   </div>
                 </div>

@@ -135,19 +135,19 @@ const STATUS_CONFIG: Record<ChangeStatus, { label: string; color: string; icon: 
   pending: { label: 'Pending', color: 'text-amber-400 bg-amber-400/10 border-amber-400/20', icon: Clock },
   approved: { label: 'Approved', color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20', icon: CheckCircle },
   'in-progress': { label: 'In Progress', color: 'text-blue-400 bg-blue-400/10 border-blue-400/20', icon: GitBranch },
-  completed: { label: 'Completed', color: 'text-zinc-400 bg-zinc-400/10 border-zinc-400/20', icon: CheckCircle },
+  completed: { label: 'Completed', color: 'text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20', icon: CheckCircle },
   rejected: { label: 'Rejected', color: 'text-red-400 bg-red-400/10 border-red-400/20', icon: XCircle },
 };
 
 const PRIORITY_CONFIG: Record<ChangePriority, string> = {
-  low: 'text-zinc-400 bg-zinc-400/10',
+  low: 'text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10',
   medium: 'text-amber-400 bg-amber-400/10',
   high: 'text-orange-400 bg-orange-400/10',
   critical: 'text-red-400 bg-red-400/10',
 };
 
 const TYPE_CONFIG: Record<ChangeType, string> = {
-  standard: 'text-zinc-300 bg-zinc-700',
+  standard: 'text-[var(--color-text-primary)] bg-[var(--color-surface-3)]',
   normal: 'text-blue-300 bg-blue-900/40',
   emergency: 'text-red-300 bg-red-900/40',
 };
@@ -180,13 +180,13 @@ function ChangeCard({ change, selected, onSelect }: ChangeCardProps) {
         'w-full text-left p-4 border rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500',
         selected
           ? 'border-violet-500 bg-violet-500/5'
-          : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 hover:bg-zinc-900'
+          : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 hover:border-[var(--color-border)] hover:bg-[var(--color-surface-1)]'
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="text-xs font-mono text-zinc-500">{change.id}</span>
+            <span className="text-xs font-mono text-[var(--color-text-muted)]">{change.id}</span>
             <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded', TYPE_CONFIG[change.type])}>
               {change.type.toUpperCase()}
             </span>
@@ -194,8 +194,8 @@ function ChangeCard({ change, selected, onSelect }: ChangeCardProps) {
               {change.priority}
             </span>
           </div>
-          <p className="text-sm font-medium text-zinc-100 truncate">{change.title}</p>
-          <div className="flex items-center gap-3 mt-2 text-xs text-zinc-500">
+          <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{change.title}</p>
+          <div className="flex items-center gap-3 mt-2 text-xs text-[var(--color-text-muted)]">
             <span className="flex items-center gap-1">
               <User className="w-3 h-3" />
               {change.assignee}
@@ -213,12 +213,12 @@ function ChangeCard({ change, selected, onSelect }: ChangeCardProps) {
       </div>
       <div className="mt-2 flex flex-wrap gap-1">
         {change.impactedSystems.slice(0, 3).map((sys) => (
-          <span key={sys} className="text-[10px] px-1.5 py-0.5 bg-zinc-800 text-zinc-400 rounded border border-zinc-700">
+          <span key={sys} className="text-[10px] px-1.5 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded border border-[var(--color-border)]">
             {sys}
           </span>
         ))}
         {change.impactedSystems.length > 3 && (
-          <span className="text-[10px] px-1.5 py-0.5 bg-zinc-800 text-zinc-500 rounded">
+          <span className="text-[10px] px-1.5 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-muted)] rounded">
             +{change.impactedSystems.length - 3}
           </span>
         )}
@@ -252,19 +252,19 @@ export default function ChangeManagementBoard() {
   };
 
   return (
-    <div className="flex h-full bg-zinc-950 text-zinc-100">
+    <div className="flex h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Left panel */}
-      <div className="w-[380px] shrink-0 border-r border-zinc-800 flex flex-col">
+      <div className="w-[380px] shrink-0 border-r border-[var(--color-border)] flex flex-col">
         {/* Header */}
-        <div className="p-4 border-b border-zinc-800">
+        <div className="p-4 border-b border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <GitBranch className="w-4 h-4 text-violet-400" />
-              <h1 className="text-sm font-semibold text-zinc-100">Change Management</h1>
+              <h1 className="text-sm font-semibold text-[var(--color-text-primary)]">Change Management</h1>
             </div>
             <button
               type="button"
-              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
             >
               <Plus className="w-3 h-3" />
               New Change
@@ -277,11 +277,11 @@ export default function ChangeManagementBoard() {
               { label: 'Pending', value: stats.pending, color: 'text-amber-400' },
               { label: 'Approved', value: stats.approved, color: 'text-emerald-400' },
               { label: 'Active', value: stats.inProgress, color: 'text-blue-400' },
-              { label: 'Done', value: stats.completed, color: 'text-zinc-400' },
+              { label: 'Done', value: stats.completed, color: 'text-[var(--color-text-secondary)]' },
             ].map(({ label, value, color }) => (
-              <div key={label} className="text-center p-2 bg-zinc-900 rounded-lg border border-zinc-800">
+              <div key={label} className="text-center p-2 bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)]">
                 <p className={cn('text-lg font-bold', color)}>{value}</p>
-                <p className="text-[10px] text-zinc-500">{label}</p>
+                <p className="text-[10px] text-[var(--color-text-muted)]">{label}</p>
               </div>
             ))}
           </div>
@@ -292,7 +292,7 @@ export default function ChangeManagementBoard() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search changes..."
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 mb-2"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-violet-500 mb-2"
           />
 
           {/* Status filters */}
@@ -305,8 +305,8 @@ export default function ChangeManagementBoard() {
                 className={cn(
                   'text-[10px] px-2 py-1 rounded-lg font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-violet-500',
                   statusFilter === s
-                    ? 'bg-violet-600 text-white'
-                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                    ? 'bg-violet-600 text-[var(--color-text-primary)]'
+                    : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]'
                 )}
               >
                 {s === 'all' ? 'All' : s}
@@ -344,12 +344,12 @@ export default function ChangeManagementBoard() {
             <div className="flex items-start justify-between mb-6">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-mono text-zinc-500">{selected.id}</span>
+                  <span className="text-xs font-mono text-[var(--color-text-muted)]">{selected.id}</span>
                   <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded', TYPE_CONFIG[selected.type])}>
                     {selected.type.toUpperCase()}
                   </span>
                 </div>
-                <h2 className="text-xl font-semibold text-zinc-100">{selected.title}</h2>
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">{selected.title}</h2>
               </div>
               <span className={cn(
                 'flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-xl border font-medium',
@@ -360,20 +360,20 @@ export default function ChangeManagementBoard() {
               </span>
             </div>
 
-            <p className="text-sm text-zinc-300 mb-6 leading-relaxed">{selected.description}</p>
+            <p className="text-sm text-[var(--color-text-primary)] mb-6 leading-relaxed">{selected.description}</p>
 
             {/* Meta grid */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               {[
                 { label: 'Priority', value: selected.priority, cls: PRIORITY_CONFIG[selected.priority] },
                 { label: 'Risk Level', value: selected.riskLevel, cls: RISK_CONFIG[selected.riskLevel] },
-                { label: 'Requester', value: selected.requester, cls: 'text-zinc-300' },
-                { label: 'Assignee', value: selected.assignee, cls: 'text-zinc-300' },
-                { label: 'Scheduled', value: formatDate(selected.scheduledDate), cls: 'text-zinc-300' },
-                { label: 'Created', value: formatDate(selected.created), cls: 'text-zinc-300' },
+                { label: 'Requester', value: selected.requester, cls: 'text-[var(--color-text-primary)]' },
+                { label: 'Assignee', value: selected.assignee, cls: 'text-[var(--color-text-primary)]' },
+                { label: 'Scheduled', value: formatDate(selected.scheduledDate), cls: 'text-[var(--color-text-primary)]' },
+                { label: 'Created', value: formatDate(selected.created), cls: 'text-[var(--color-text-primary)]' },
               ].map(({ label, value, cls }) => (
-                <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">{label}</p>
+                <div key={label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+                  <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">{label}</p>
                   <p className={cn('text-sm font-medium capitalize', cls)}>{value}</p>
                 </div>
               ))}
@@ -381,13 +381,13 @@ export default function ChangeManagementBoard() {
 
             {/* Impacted Systems */}
             <div className="mb-6">
-              <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <p className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Tag className="w-3 h-3" />
                 Impacted Systems
               </p>
               <div className="flex flex-wrap gap-2">
                 {selected.impactedSystems.map((sys) => (
-                  <span key={sys} className="text-xs px-2.5 py-1 bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-lg">
+                  <span key={sys} className="text-xs px-2.5 py-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg">
                     {sys}
                   </span>
                 ))}
@@ -396,21 +396,21 @@ export default function ChangeManagementBoard() {
 
             {/* Approvals */}
             <div>
-              <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3">
+              <p className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
                 Approvals ({selected.approvals.filter((a) => a.status === 'approved').length}/{selected.approvals.length})
               </p>
               <div className="space-y-2">
                 {selected.approvals.map((approval) => (
-                  <div key={approval.name} className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-lg">
+                  <div key={approval.name} className="flex items-center justify-between p-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-violet-600/20 border border-violet-600/30 flex items-center justify-center text-xs font-medium text-violet-300">
                         {approval.name[0]}
                       </div>
-                      <span className="text-sm text-zinc-200">{approval.name}</span>
+                      <span className="text-sm text-[var(--color-text-primary)]">{approval.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {approval.date && (
-                        <span className="text-xs text-zinc-500">{formatDate(approval.date)}</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">{formatDate(approval.date)}</span>
                       )}
                       <span className={cn(
                         'flex items-center gap-1 text-xs px-2 py-0.5 rounded-lg font-medium',
@@ -439,7 +439,7 @@ export default function ChangeManagementBoard() {
             <div className="mt-6 flex gap-3">
               {selected.status === 'pending' && (
                 <>
-                  <button type="button" className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                  <button type="button" className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
                     Approve
                   </button>
                   <button type="button" className="flex-1 py-2.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm font-medium rounded-lg border border-red-600/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500">
@@ -448,19 +448,19 @@ export default function ChangeManagementBoard() {
                 </>
               )}
               {selected.status === 'approved' && (
-                <button type="button" className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                <button type="button" className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                   Start Implementation
                 </button>
               )}
               {selected.status === 'in-progress' && (
-                <button type="button" className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+                <button type="button" className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
                   Mark Complete
                 </button>
               )}
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-zinc-600">
+          <div className="flex items-center justify-center h-full text-[var(--color-text-muted)]">
             <div className="text-center">
               <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-20" />
               <p className="text-sm">Select a change request to view details</p>

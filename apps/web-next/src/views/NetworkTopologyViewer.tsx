@@ -102,20 +102,20 @@ function nodeTypeColor(t: NodeType) {
     case "database": return "bg-amber-500/20 text-amber-300";
     case "cache": return "bg-emerald-500/20 text-emerald-300";
     case "queue": return "bg-orange-500/20 text-orange-300";
-    case "external": return "bg-zinc-500/20 text-zinc-300";
+    case "external": return "bg-[var(--color-surface-3)]/20 text-[var(--color-text-primary)]";
   }
 }
 function nodeStatusDot(s: NodeStatus) {
   if (s === "healthy") {return "bg-emerald-400";}
   if (s === "degraded") {return "bg-amber-400";}
   if (s === "down") {return "bg-rose-400";}
-  return "bg-zinc-400";
+  return "bg-[var(--color-surface-3)]";
 }
 function nodeStatusText(s: NodeStatus) {
   if (s === "healthy") {return "text-emerald-400";}
   if (s === "degraded") {return "text-amber-400";}
   if (s === "down") {return "text-rose-400";}
-  return "text-zinc-400";
+  return "text-[var(--color-text-secondary)]";
 }
 function linkStatusColor(s: NetworkLink["status"]) {
   if (s === "active") {return "bg-emerald-500/10 text-emerald-400";}
@@ -135,10 +135,10 @@ function ResourceBar({ label, value, warn = 70, crit = 90 }: { label: string; va
   return (
     <div>
       <div className="flex justify-between text-xs mb-0.5">
-        <span className="text-zinc-500">{label}</span>
-        <span className={value >= crit ? "text-rose-400" : value >= warn ? "text-amber-400" : "text-zinc-400"}>{value}%</span>
+        <span className="text-[var(--color-text-muted)]">{label}</span>
+        <span className={value >= crit ? "text-rose-400" : value >= warn ? "text-amber-400" : "text-[var(--color-text-secondary)]"}>{value}%</span>
       </div>
-      <div className="h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+      <div className="h-1.5 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
         <div className={cn("h-full rounded-full", color)} style={{ width: `${value}%` }} />
       </div>
     </div>
@@ -202,54 +202,54 @@ export default function NetworkTopologyViewer() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Network Topology Viewer</h1>
-          <p className="text-zinc-400 text-sm mt-1">Real-time service mesh topology and connectivity health</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Network Topology Viewer</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Real-time service mesh topology and connectivity health</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 transition-colors">Export Map</button>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors">⟳ Refresh</button>
+          <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Export Map</button>
+          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">⟳ Refresh</button>
         </div>
       </div>
 
       {/* KPI row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Healthy Nodes</div>
-          <div className="text-2xl font-bold text-emerald-400">{healthyCount}<span className="text-zinc-500 text-sm font-normal">/{NODES.length}</span></div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Healthy Nodes</div>
+          <div className="text-2xl font-bold text-emerald-400">{healthyCount}<span className="text-[var(--color-text-muted)] text-sm font-normal">/{NODES.length}</span></div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Degraded / Down</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Degraded / Down</div>
           <div className="text-2xl font-bold">
             <span className="text-amber-400">{degradedCount}</span>
-            <span className="text-zinc-500 text-sm font-normal"> / </span>
+            <span className="text-[var(--color-text-muted)] text-sm font-normal"> / </span>
             <span className="text-rose-400">{downCount}</span>
           </div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Total RPS</div>
-          <div className="text-2xl font-bold text-white">{(totalRps / 1000).toFixed(1)}k</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Total RPS</div>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">{(totalRps / 1000).toFixed(1)}k</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Active / Down Links</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Active / Down Links</div>
           <div className="text-2xl font-bold">
             <span className="text-emerald-400">{activeLinks}</span>
-            <span className="text-zinc-500 text-sm font-normal"> / </span>
+            <span className="text-[var(--color-text-muted)] text-sm font-normal"> / </span>
             <span className="text-rose-400">{downLinks}</span>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-zinc-800 mb-6">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => { setTab(t.id); setSelectedNode(null); }}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200")}
+            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             {t.label}
           </button>
@@ -262,16 +262,16 @@ export default function NetworkTopologyViewer() {
           {/* Region summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {regionSummaries.map(r => (
-              <div key={r.name} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+              <div key={r.name} className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
                 <div className="flex justify-between items-start mb-2">
-                  <div className="font-medium text-zinc-200">{r.name}</div>
+                  <div className="font-medium text-[var(--color-text-primary)]">{r.name}</div>
                   <div className={cn("text-xs px-2 py-0.5 rounded-full", r.healthyCount === r.nodeCount ? "bg-emerald-400/10 text-emerald-400" : "bg-amber-400/10 text-amber-400")}>
                     {r.healthyCount}/{r.nodeCount} healthy
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div><span className="text-zinc-500">RPS: </span><span className="text-zinc-200">{r.rps.toLocaleString()}</span></div>
-                  <div><span className="text-zinc-500">Avg latency: </span><span className="text-zinc-200">{r.avgLatencyMs}ms</span></div>
+                  <div><span className="text-[var(--color-text-muted)]">RPS: </span><span className="text-[var(--color-text-primary)]">{r.rps.toLocaleString()}</span></div>
+                  <div><span className="text-[var(--color-text-muted)]">Avg latency: </span><span className="text-[var(--color-text-primary)]">{r.avgLatencyMs}ms</span></div>
                 </div>
               </div>
             ))}
@@ -285,7 +285,7 @@ export default function NetworkTopologyViewer() {
               <div key={type}>
                 <div className="flex items-center gap-2 mb-3">
                   <div className={cn("text-xs px-2 py-0.5 rounded-full capitalize font-medium", nodeTypeColor(type))}>{type}</div>
-                  <div className="flex-1 h-px bg-zinc-800" />
+                  <div className="flex-1 h-px bg-[var(--color-surface-2)]" />
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {nodes.map(n => (
@@ -293,19 +293,19 @@ export default function NetworkTopologyViewer() {
                       key={n.id}
                       onClick={() => { setSelectedNode(n); setTab("nodes"); }}
                       className={cn(
-                        "bg-zinc-900 rounded-xl p-3 border transition-all text-left hover:border-zinc-500",
-                        n.status === "down" ? "border-rose-500/50" : n.status === "degraded" ? "border-amber-500/30" : "border-zinc-800",
+                        "bg-[var(--color-surface-1)] rounded-xl p-3 border transition-all text-left hover:border-[var(--color-surface-3)]",
+                        n.status === "down" ? "border-rose-500/50" : n.status === "degraded" ? "border-amber-500/30" : "border-[var(--color-border)]",
                       )}
                       style={{ minWidth: 160 }}
                     >
                       <div className="flex items-center gap-2 mb-1.5">
                         <div className={cn("w-2 h-2 rounded-full", nodeStatusDot(n.status))} />
-                        <span className="text-sm font-medium text-zinc-200 truncate">{n.name}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{n.name}</span>
                       </div>
-                      <div className="text-xs text-zinc-500">{n.host}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">{n.host}</div>
                       <div className="flex gap-3 mt-2 text-xs">
-                        <span className="text-zinc-400">{n.rps.toLocaleString()} rps</span>
-                        <span className={n.latencyMs > 100 ? "text-rose-400" : "text-zinc-500"}>{n.latencyMs}ms</span>
+                        <span className="text-[var(--color-text-secondary)]">{n.rps.toLocaleString()} rps</span>
+                        <span className={n.latencyMs > 100 ? "text-rose-400" : "text-[var(--color-text-muted)]"}>{n.latencyMs}ms</span>
                       </div>
                     </button>
                   ))}
@@ -320,19 +320,19 @@ export default function NetworkTopologyViewer() {
       {tab === "nodes" && !selectedNode && (
         <div>
           <div className="flex flex-wrap gap-3 mb-4">
-            <select value={filterType} onChange={e => setFilterType(e.target.value as NodeType | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterType} onChange={e => setFilterType(e.target.value as NodeType | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Types</option>
               {(["gateway", "loadbalancer", "service", "database", "cache", "queue", "external"] as NodeType[]).map(t => (
                 <option key={t} value={t} className="capitalize">{t}</option>
               ))}
             </select>
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as NodeStatus | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as NodeStatus | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Status</option>
               <option value="healthy">Healthy</option>
               <option value="degraded">Degraded</option>
               <option value="down">Down</option>
             </select>
-            <select value={filterRegion} onChange={e => setFilterRegion(e.target.value)} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterRegion} onChange={e => setFilterRegion(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Regions</option>
               {regions.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
@@ -343,25 +343,25 @@ export default function NetworkTopologyViewer() {
               <div
                 key={n.id}
                 onClick={() => setSelectedNode(n)}
-                className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 hover:border-zinc-600 cursor-pointer transition-colors"
+                className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)] hover:border-[var(--color-surface-3)] cursor-pointer transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={cn("w-2.5 h-2.5 rounded-full", nodeStatusDot(n.status))} />
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-zinc-200">{n.name}</span>
+                        <span className="font-medium text-[var(--color-text-primary)]">{n.name}</span>
                         <span className={cn("text-xs px-1.5 py-0.5 rounded-full capitalize", nodeTypeColor(n.type))}>{n.type}</span>
                         <span className={cn("text-xs capitalize", nodeStatusText(n.status))}>{n.status}</span>
                       </div>
-                      <div className="text-xs text-zinc-500 mt-0.5">{n.host}:{n.port} · v{n.version} · {n.region}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{n.host}:{n.port} · v{n.version} · {n.region}</div>
                     </div>
                   </div>
                   <div className="grid grid-cols-4 gap-4 text-right text-xs">
-                    <div><div className="text-zinc-200">{n.rps.toLocaleString()}</div><div className="text-zinc-500">rps</div></div>
-                    <div><div className={n.latencyMs > 100 ? "text-rose-400" : "text-zinc-200"}>{n.latencyMs}ms</div><div className="text-zinc-500">latency</div></div>
-                    <div><div className={n.errorRate > 1 ? "text-rose-400" : "text-zinc-200"}>{n.errorRate}%</div><div className="text-zinc-500">errors</div></div>
-                    <div><div className="text-zinc-200">{n.connections}</div><div className="text-zinc-500">conns</div></div>
+                    <div><div className="text-[var(--color-text-primary)]">{n.rps.toLocaleString()}</div><div className="text-[var(--color-text-muted)]">rps</div></div>
+                    <div><div className={n.latencyMs > 100 ? "text-rose-400" : "text-[var(--color-text-primary)]"}>{n.latencyMs}ms</div><div className="text-[var(--color-text-muted)]">latency</div></div>
+                    <div><div className={n.errorRate > 1 ? "text-rose-400" : "text-[var(--color-text-primary)]"}>{n.errorRate}%</div><div className="text-[var(--color-text-muted)]">errors</div></div>
+                    <div><div className="text-[var(--color-text-primary)]">{n.connections}</div><div className="text-[var(--color-text-muted)]">conns</div></div>
                   </div>
                 </div>
               </div>
@@ -373,14 +373,14 @@ export default function NetworkTopologyViewer() {
       {/* Node Detail */}
       {tab === "nodes" && selectedNode && (
         <div>
-          <button onClick={() => setSelectedNode(null)} className="flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-200 mb-4 transition-colors">
+          <button onClick={() => setSelectedNode(null)} className="flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] mb-4 transition-colors">
             ← Back to nodes
           </button>
           <div className="grid md:grid-cols-2 gap-5">
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
               <div className="flex items-center gap-2 mb-4">
                 <div className={cn("w-3 h-3 rounded-full", nodeStatusDot(selectedNode.status))} />
-                <h2 className="text-xl font-bold text-white">{selectedNode.name}</h2>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedNode.name}</h2>
                 <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", nodeTypeColor(selectedNode.type))}>{selectedNode.type}</span>
               </div>
               <div className="space-y-2 text-sm">
@@ -392,20 +392,20 @@ export default function NetworkTopologyViewer() {
                   { label: "Connections", value: selectedNode.connections.toLocaleString() },
                 ].map(row => (
                   <div key={row.label} className="flex justify-between">
-                    <span className="text-zinc-500">{row.label}</span>
-                    <span className={cn("font-medium", row.label === "Status" ? nodeStatusText(selectedNode.status) : "text-zinc-200")}>{row.value}</span>
+                    <span className="text-[var(--color-text-muted)]">{row.label}</span>
+                    <span className={cn("font-medium", row.label === "Status" ? nodeStatusText(selectedNode.status) : "text-[var(--color-text-primary)]")}>{row.value}</span>
                   </div>
                 ))}
               </div>
               <div className="mt-4 flex flex-wrap gap-1">
                 {selectedNode.tags.map(tag => (
-                  <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-300">{tag}</span>
+                  <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-surface-3)] text-[var(--color-text-primary)]">{tag}</span>
                 ))}
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-              <h3 className="text-sm font-medium text-zinc-300 mb-4">Performance Metrics</h3>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Performance Metrics</h3>
               <div className="grid grid-cols-2 gap-4 mb-5">
                 {[
                   { label: "RPS", value: selectedNode.rps.toLocaleString(), sub: "requests/sec" },
@@ -413,9 +413,9 @@ export default function NetworkTopologyViewer() {
                   { label: "Error Rate", value: `${selectedNode.errorRate}%`, sub: "error rate" },
                   { label: "Connections", value: selectedNode.connections.toLocaleString(), sub: "active" },
                 ].map(m => (
-                  <div key={m.label} className="bg-zinc-800 rounded-lg p-3">
-                    <div className="text-xl font-bold text-white">{m.value}</div>
-                    <div className="text-xs text-zinc-500">{m.sub}</div>
+                  <div key={m.label} className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                    <div className="text-xl font-bold text-[var(--color-text-primary)]">{m.value}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">{m.sub}</div>
                   </div>
                 ))}
               </div>
@@ -429,25 +429,25 @@ export default function NetworkTopologyViewer() {
           </div>
 
           {/* Connections */}
-          <div className="mt-5 bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Connections</h3>
+          <div className="mt-5 bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Connections</h3>
             <div className="space-y-2">
               {LINKS.filter(l => l.source === selectedNode.id || l.target === selectedNode.id).map(l => {
                 const other = l.source === selectedNode.id ? nodeMap[l.target] : nodeMap[l.source];
                 const dir = l.source === selectedNode.id ? "→" : "←";
                 if (!other) {return null;}
                 return (
-                  <div key={l.id} className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+                  <div key={l.id} className="flex items-center justify-between p-3 bg-[var(--color-surface-2)] rounded-lg">
                     <div className="flex items-center gap-2">
-                      <span className="text-zinc-500 text-sm">{dir}</span>
+                      <span className="text-[var(--color-text-muted)] text-sm">{dir}</span>
                       <div className={cn("w-2 h-2 rounded-full", nodeStatusDot(other.status))} />
-                      <span className="text-sm text-zinc-200">{other.name}</span>
-                      <span className="text-xs text-zinc-500">{linkTypeEmoji(l.type)} {l.type.toUpperCase()}</span>
+                      <span className="text-sm text-[var(--color-text-primary)]">{other.name}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{linkTypeEmoji(l.type)} {l.type.toUpperCase()}</span>
                       {l.encrypted && <span className="text-xs text-emerald-400">🔒</span>}
                     </div>
                     <div className="flex gap-4 text-xs text-right">
-                      <span className="text-zinc-400">{l.rps.toLocaleString()} rps</span>
-                      <span className={l.latencyMs > 100 ? "text-rose-400" : "text-zinc-400"}>{l.latencyMs}ms</span>
+                      <span className="text-[var(--color-text-secondary)]">{l.rps.toLocaleString()} rps</span>
+                      <span className={l.latencyMs > 100 ? "text-rose-400" : "text-[var(--color-text-secondary)]"}>{l.latencyMs}ms</span>
                       <span className={cn("px-1.5 py-0.5 rounded-full", linkStatusColor(l.status))}>{l.status}</span>
                     </div>
                   </div>
@@ -465,23 +465,23 @@ export default function NetworkTopologyViewer() {
             const src = nodeMap[l.source];
             const tgt = nodeMap[l.target];
             return (
-              <div key={l.id} className={cn("bg-zinc-900 rounded-xl p-4 border", l.status === "down" ? "border-rose-500/40" : l.status === "degraded" ? "border-amber-500/30" : "border-zinc-800")}>
+              <div key={l.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border", l.status === "down" ? "border-rose-500/40" : l.status === "degraded" ? "border-amber-500/30" : "border-[var(--color-border)]")}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-zinc-200">{src?.name ?? l.source}</span>
-                        <span className="text-zinc-500">→</span>
-                        <span className="text-sm text-zinc-200">{tgt?.name ?? l.target}</span>
-                        <span className="text-xs text-zinc-500">{linkTypeEmoji(l.type)} {l.type.toUpperCase()}</span>
+                        <span className="text-sm text-[var(--color-text-primary)]">{src?.name ?? l.source}</span>
+                        <span className="text-[var(--color-text-muted)]">→</span>
+                        <span className="text-sm text-[var(--color-text-primary)]">{tgt?.name ?? l.target}</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">{linkTypeEmoji(l.type)} {l.type.toUpperCase()}</span>
                         {l.encrypted && <span className="text-xs text-emerald-400">🔒</span>}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 text-xs">
-                    <span className="text-zinc-400">{l.rps.toLocaleString()} rps</span>
-                    <span className={l.latencyMs > 100 ? "text-rose-400" : "text-zinc-400"}>{l.latencyMs}ms</span>
-                    <span className={l.errorRate > 1 ? "text-rose-400" : "text-zinc-500"}>{l.errorRate}% err</span>
+                    <span className="text-[var(--color-text-secondary)]">{l.rps.toLocaleString()} rps</span>
+                    <span className={l.latencyMs > 100 ? "text-rose-400" : "text-[var(--color-text-secondary)]"}>{l.latencyMs}ms</span>
+                    <span className={l.errorRate > 1 ? "text-rose-400" : "text-[var(--color-text-muted)]"}>{l.errorRate}% err</span>
                     <span className={cn("px-2 py-0.5 rounded-full", linkStatusColor(l.status))}>{l.status}</span>
                   </div>
                 </div>
@@ -495,11 +495,11 @@ export default function NetworkTopologyViewer() {
       {tab === "traffic" && (
         <div className="space-y-5">
           {TRAFFIC_FLOWS.map(flow => (
-            <div key={flow.label} className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
+            <div key={flow.label} className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="font-semibold text-zinc-100">{flow.label}</h3>
-                  <div className="flex gap-4 text-xs text-zinc-500 mt-1">
+                  <h3 className="font-semibold text-[var(--color-text-primary)]">{flow.label}</h3>
+                  <div className="flex gap-4 text-xs text-[var(--color-text-muted)] mt-1">
                     <span>{flow.rps.toLocaleString()} rps</span>
                     <span>p99: {flow.p99Ms}ms</span>
                   </div>
@@ -514,14 +514,14 @@ export default function NetworkTopologyViewer() {
                         "px-3 py-1.5 rounded-lg text-xs font-medium border",
                         n?.status === "down" ? "border-rose-500 bg-rose-500/10 text-rose-300" :
                         n?.status === "degraded" ? "border-amber-500 bg-amber-500/10 text-amber-300" :
-                        "border-zinc-700 bg-zinc-800 text-zinc-200",
+                        "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-text-primary)]",
                       )}>
                         <div className="flex items-center gap-1.5">
-                          <div className={cn("w-1.5 h-1.5 rounded-full", n ? nodeStatusDot(n.status) : "bg-zinc-500")} />
+                          <div className={cn("w-1.5 h-1.5 rounded-full", n ? nodeStatusDot(n.status) : "bg-[var(--color-surface-3)]")} />
                           {n?.name ?? nodeId}
                         </div>
                       </div>
-                      {i < flow.path.length - 1 && <span className="text-zinc-600">→</span>}
+                      {i < flow.path.length - 1 && <span className="text-[var(--color-text-muted)]">→</span>}
                     </React.Fragment>
                   );
                 })}
@@ -530,8 +530,8 @@ export default function NetworkTopologyViewer() {
           ))}
 
           {/* Aggregate traffic matrix */}
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Service-to-Service Traffic Matrix</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Service-to-Service Traffic Matrix</h3>
             <div className="space-y-2">
               {LINKS.filter(l => {
                 const src = nodeMap[l.source];
@@ -545,10 +545,10 @@ export default function NetworkTopologyViewer() {
                 return (
                   <div key={l.id}>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-zinc-400">{src?.name ?? l.source} → {tgt?.name ?? l.target}</span>
-                      <span className={cn(l.status === "down" ? "text-rose-400" : l.status === "degraded" ? "text-amber-400" : "text-zinc-400")}>{l.rps.toLocaleString()} rps</span>
+                      <span className="text-[var(--color-text-secondary)]">{src?.name ?? l.source} → {tgt?.name ?? l.target}</span>
+                      <span className={cn(l.status === "down" ? "text-rose-400" : l.status === "degraded" ? "text-amber-400" : "text-[var(--color-text-secondary)]")}>{l.rps.toLocaleString()} rps</span>
                     </div>
-                    <div className="h-2 bg-zinc-700 rounded-full overflow-hidden">
+                    <div className="h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                       <div
                         className={cn("h-full rounded-full", l.status === "down" ? "bg-rose-500" : l.status === "degraded" ? "bg-amber-500" : "bg-indigo-500")}
                         style={{ width: `${pct}%` }}

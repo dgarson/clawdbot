@@ -118,8 +118,8 @@ function ScoreGauge({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold text-white">{score}</span>
-        <span className="text-xs text-gray-400">/ 100</span>
+        <span className="text-3xl font-bold text-[var(--color-text-primary)]">{score}</span>
+        <span className="text-xs text-[var(--color-text-secondary)]">/ 100</span>
       </div>
     </div>
   );
@@ -134,7 +134,7 @@ function ReviewItemCard({ item, onFix }: { item: ReviewItem; onFix: (id: string)
     return (
       <div className="flex items-center gap-3 px-4 py-3 bg-green-500/5 border border-green-500/20 rounded-xl opacity-60">
         <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
-        <span className="text-sm text-gray-400 line-through">{item.title}</span>
+        <span className="text-sm text-[var(--color-text-secondary)] line-through">{item.title}</span>
         <span className="ml-auto text-xs text-green-400">Fixed ✓</span>
       </div>
     );
@@ -154,21 +154,21 @@ function ReviewItemCard({ item, onFix }: { item: ReviewItem; onFix: (id: string)
               {config.label}
             </span>
             {item.file && (
-              <span className="text-xs font-mono text-gray-500 bg-gray-800 px-1.5 py-0.5 rounded">{item.file}</span>
+              <span className="text-xs font-mono text-[var(--color-text-muted)] bg-[var(--color-surface-2)] px-1.5 py-0.5 rounded">{item.file}</span>
             )}
           </div>
-          <p className="text-sm font-medium text-white mt-1">{item.title}</p>
+          <p className="text-sm font-medium text-[var(--color-text-primary)] mt-1">{item.title}</p>
         </div>
         {expanded ? (
-          <ChevronUp className="w-4 h-4 text-gray-500 flex-shrink-0" />
+          <ChevronUp className="w-4 h-4 text-[var(--color-text-muted)] flex-shrink-0" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0" />
+          <ChevronDown className="w-4 h-4 text-[var(--color-text-muted)] flex-shrink-0" />
         )}
       </button>
 
       {expanded && (
         <div className="px-4 pb-4">
-          <p className="text-sm text-gray-300 mb-3 leading-relaxed">{item.description}</p>
+          <p className="text-sm text-[var(--color-text-primary)] mb-3 leading-relaxed">{item.description}</p>
           {item.fixable && (
             <button
               type="button"
@@ -219,23 +219,23 @@ export default function AgentConfigReview() {
   }, {} as Record<ReviewSeverity, number>);
 
   return (
-    <div className="min-h-screen bg-gray-950 p-8">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-3">
             <Search className="w-6 h-6 text-violet-400" />
             Config Review
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">
             AI-powered analysis of your agent's configuration
           </p>
         </div>
 
         {/* Agent selector + run button */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="flex-1 bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <p className="text-xs text-gray-500 mb-2">Select Agent to Review</p>
+          <div className="flex-1 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
+            <p className="text-xs text-[var(--color-text-muted)] mb-2">Select Agent to Review</p>
             <div className="flex flex-wrap gap-2">
               {MOCK_AGENTS.map((agent) => (
                 <button
@@ -246,7 +246,7 @@ export default function AgentConfigReview() {
                     'flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all',
                     selectedAgentId === agent.id
                       ? 'bg-violet-600/15 text-violet-300 border border-violet-500/50'
-                      : 'bg-gray-800 text-gray-400 hover:text-white border border-gray-700'
+                      : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)]'
                   )}
                 >
                   <span>{agent.emoji}</span>
@@ -263,8 +263,8 @@ export default function AgentConfigReview() {
             className={cn(
               'flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all flex-shrink-0',
               reviewing
-                ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                : 'bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-900/30'
+                ? 'bg-[var(--color-surface-2)] text-[var(--color-text-muted)] cursor-not-allowed'
+                : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] shadow-lg shadow-violet-900/30'
             )}
           >
             {reviewing ? (
@@ -277,15 +277,15 @@ export default function AgentConfigReview() {
 
         {/* Reviewing state */}
         {reviewing && (
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 p-8 text-center mb-6">
+          <div className="bg-[var(--color-surface-1)] rounded-2xl border border-[var(--color-border)] p-8 text-center mb-6">
             <RefreshCw className="w-10 h-10 text-violet-400 animate-spin mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Analyzing {selectedAgent?.name}'s configuration...</h3>
-            <p className="text-sm text-gray-400">Checking SOUL.md, AGENTS.md, tool access, model selection, and more.</p>
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">Analyzing {selectedAgent?.name}'s configuration...</h3>
+            <p className="text-sm text-[var(--color-text-secondary)]">Checking SOUL.md, AGENTS.md, tool access, model selection, and more.</p>
             <div className="mt-4 flex justify-center gap-2">
               {['Checking files', 'Analyzing personality', 'Reviewing tools', 'Scoring'].map((step, i) => (
                 <div key={step} className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" style={{ animationDelay: `${i * 200}ms` }} />
-                  <span className="text-xs text-gray-500">{step}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{step}</span>
                 </div>
               ))}
             </div>
@@ -296,13 +296,13 @@ export default function AgentConfigReview() {
         {reviewResult && !reviewing && (
           <div className="space-y-6">
             {/* Score + summary */}
-            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6">
+            <div className="bg-[var(--color-surface-1)] rounded-2xl border border-[var(--color-border)] p-6">
               <div className="flex items-center gap-6">
                 <ScoreGauge score={reviewResult.score} />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-2xl">{selectedAgent?.emoji}</span>
-                    <h2 className="text-xl font-bold text-white">{selectedAgent?.name}</h2>
+                    <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedAgent?.name}</h2>
                     <span className={cn(
                       'text-sm px-2.5 py-0.5 rounded-full font-medium',
                       reviewResult.score >= 80 ? 'bg-green-500/15 text-green-400' :
@@ -312,7 +312,7 @@ export default function AgentConfigReview() {
                       {reviewResult.score >= 80 ? 'Excellent' : reviewResult.score >= 60 ? 'Good' : 'Needs Work'}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed mb-4">{reviewResult.summary}</p>
+                  <p className="text-sm text-[var(--color-text-primary)] leading-relaxed mb-4">{reviewResult.summary}</p>
                   {/* Issue summary pills */}
                   <div className="flex flex-wrap gap-2">
                     {(Object.entries(counts) as [ReviewSeverity, number][]).map(([severity, count]) => {
@@ -333,7 +333,7 @@ export default function AgentConfigReview() {
             {/* Filter + item list */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <h3 className="text-sm font-semibold text-white">Review Items</h3>
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Review Items</h3>
                 <div className="flex gap-1 ml-auto">
                   {(['all', 'good', 'suggestion', 'warning', 'issue'] as const).map((f) => (
                     <button
@@ -342,7 +342,7 @@ export default function AgentConfigReview() {
                       onClick={() => setFilterSeverity(f)}
                       className={cn(
                         'px-3 py-1 rounded-lg text-xs capitalize transition-all',
-                        filterSeverity === f ? 'bg-violet-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
+                        filterSeverity === f ? 'bg-violet-600 text-[var(--color-text-primary)]' : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                       )}
                     >
                       {f}
@@ -363,7 +363,7 @@ export default function AgentConfigReview() {
               <button
                 type="button"
                 onClick={handleReview}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm border border-gray-700 transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] rounded-xl text-sm border border-[var(--color-border)] transition-all"
               >
                 <RefreshCw className="w-4 h-4" />
                 Re-run Review
@@ -374,12 +374,12 @@ export default function AgentConfigReview() {
 
         {/* Empty state */}
         {!reviewResult && !reviewing && (
-          <div className="bg-gray-900/50 rounded-2xl border border-gray-800 border-dashed p-16 text-center">
+          <div className="bg-[var(--color-surface-1)]/50 rounded-2xl border border-[var(--color-border)] border-dashed p-16 text-center">
             <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
               <Wand2 className="w-8 h-8 text-violet-400" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">AI Config Review</h3>
-            <p className="text-sm text-gray-400 max-w-md mx-auto mb-6">
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">AI Config Review</h3>
+            <p className="text-sm text-[var(--color-text-secondary)] max-w-md mx-auto mb-6">
               Select an agent above and click "Run Review" to get AI-powered feedback on their configuration, 
               personality, tool access, and potential issues.
             </p>
@@ -391,7 +391,7 @@ export default function AgentConfigReview() {
                 return (
                   <div key={type} className="flex flex-col items-center gap-1">
                     <Icon className={cn('w-5 h-5', colors[i])} />
-                    <span className="text-gray-500 text-xs">{type}</span>
+                    <span className="text-[var(--color-text-muted)] text-xs">{type}</span>
                   </div>
                 );
               })}

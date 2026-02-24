@@ -127,23 +127,23 @@ export default function AgentWaveScheduler() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-950 text-gray-200 p-6 overflow-hidden">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 overflow-hidden">
       {/* Header */}
       <header className="flex items-center justify-between mb-8 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-white">Discovery Wave Scheduler</h1>
-          <p className="text-sm text-gray-500 mt-1">Assign agents to sequential discovery waves and monitor capacity.</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Discovery Wave Scheduler</h1>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">Assign agents to sequential discovery waves and monitor capacity.</p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={handleAutoBalance}
-            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
+            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm font-medium transition-colors"
           >
             Auto-balance
           </button>
           <button
             onClick={handleReset}
-            className="px-4 py-2 rounded-lg border border-gray-800 hover:bg-gray-900 text-gray-400 text-sm font-medium transition-colors"
+            className="px-4 py-2 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] text-sm font-medium transition-colors"
           >
             Reset All
           </button>
@@ -155,13 +155,13 @@ export default function AgentWaveScheduler() {
         {/* Unassigned Pool */}
         <section
           className={cn(
-            "flex flex-col rounded-xl bg-gray-900/50 border border-gray-800 p-4 transition-all",
+            "flex flex-col rounded-xl bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] p-4 transition-all",
             selectedAgentId && "ring-1 ring-indigo-500/30"
           )}
         >
           <div className="flex items-center justify-between mb-4 px-1">
-            <h2 className="font-semibold text-white">Unassigned Pool</h2>
-            <span className="text-xs text-gray-500">{unassignedAgents.length} agents</span>
+            <h2 className="font-semibold text-[var(--color-text-primary)]">Unassigned Pool</h2>
+            <span className="text-xs text-[var(--color-text-muted)]">{unassignedAgents.length} agents</span>
           </div>
 
           <div
@@ -181,7 +181,7 @@ export default function AgentWaveScheduler() {
             ))}
             {unassignedAgents.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center py-12 text-center">
-                <p className="text-gray-700 text-sm italic">No unassigned agents</p>
+                <p className="text-[var(--color-text-muted)] text-sm italic">No unassigned agents</p>
               </div>
             )}
           </div>
@@ -202,14 +202,14 @@ export default function AgentWaveScheduler() {
             <section
               key={wave.id}
               className={cn(
-                "flex flex-col rounded-xl bg-gray-900/50 border border-gray-800 p-4 transition-all overflow-hidden",
+                "flex flex-col rounded-xl bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] p-4 transition-all overflow-hidden",
                 selectedAgentId && waveAssignments[selectedAgentId] !== wave.id && "ring-1 ring-indigo-500/20"
               )}
             >
               {/* Wave Header */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h2 className="font-semibold text-white">{wave.name}</h2>
+                  <h2 className="font-semibold text-[var(--color-text-primary)]">{wave.name}</h2>
                   <div className={cn(
                     "text-xs px-2 py-0.5 rounded-full border",
                     isFull ? "bg-amber-400/10 border-amber-400/20 text-amber-400" : "bg-emerald-400/10 border-emerald-400/20 text-emerald-400"
@@ -221,21 +221,21 @@ export default function AgentWaveScheduler() {
                 {/* Wave Config */}
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] text-gray-500 uppercase tracking-wider">Start Time</label>
+                    <label className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Start Time</label>
                     <input
                       type="time"
                       value={wave.startTime}
                       onChange={(e) => updateWaveConfig(wave.id, { startTime: e.target.value })}
-                      className="w-full bg-gray-950 border border-gray-800 rounded px-2 py-1 text-xs text-gray-300 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] text-gray-500 uppercase tracking-wider">Stagger (m)</label>
+                    <label className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Stagger (m)</label>
                     <input
                       type="number"
                       value={wave.staggerInterval}
                       onChange={(e) => updateWaveConfig(wave.id, { staggerInterval: parseInt(e.target.value) || 0 })}
-                      className="w-full bg-gray-950 border border-gray-800 rounded px-2 py-1 text-xs text-gray-300 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                 </div>
@@ -258,8 +258,8 @@ export default function AgentWaveScheduler() {
                   />
                 ))}
                 {agentsInWave.length === 0 && !selectedAgentId && (
-                  <div className="h-full flex flex-col items-center justify-center py-8 text-center border-2 border-dashed border-gray-800 rounded-lg">
-                    <p className="text-gray-700 text-xs">No agents assigned</p>
+                  <div className="h-full flex flex-col items-center justify-center py-8 text-center border-2 border-dashed border-[var(--color-border)] rounded-lg">
+                    <p className="text-[var(--color-text-muted)] text-xs">No agents assigned</p>
                   </div>
                 )}
                 {selectedAgentId && waveAssignments[selectedAgentId] !== wave.id && agentsInWave.length === 0 && (
@@ -270,14 +270,14 @@ export default function AgentWaveScheduler() {
               </div>
 
               {/* Wave Summary Footer */}
-              <div className="mt-auto pt-4 border-t border-gray-800 space-y-3">
+              <div className="mt-auto pt-4 border-t border-[var(--color-border)] space-y-3">
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Est. Cost</span>
-                  <span className="text-white font-mono">${totalCost.toFixed(2)}</span>
+                  <span className="text-[var(--color-text-muted)]">Est. Cost</span>
+                  <span className="text-[var(--color-text-primary)] font-mono">${totalCost.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Total Tokens</span>
-                  <span className="text-white font-mono">{totalTokens.toLocaleString()}</span>
+                  <span className="text-[var(--color-text-muted)]">Total Tokens</span>
+                  <span className="text-[var(--color-text-primary)] font-mono">{totalTokens.toLocaleString()}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {Object.entries(modelMix).map(([model, count]) => (
@@ -304,12 +304,12 @@ export default function AgentWaveScheduler() {
       
       {/* Selection Overlay (Mobile) */}
       {selectedAgentId && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-200 z-50">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-indigo-600 text-[var(--color-text-primary)] px-6 py-3 rounded-full shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-200 z-50">
           <span className="text-sm font-medium">Assigning {SEED_AGENTS.find(a => a.id === selectedAgentId)?.name}</span>
           <div className="w-px h-4 bg-white/20" />
           <button 
             onClick={() => setSelectedAgentId(null)}
-            className="text-xs uppercase tracking-widest font-bold hover:text-white/80"
+            className="text-xs uppercase tracking-widest font-bold hover:text-[var(--color-text-primary)]/80"
           >
             Cancel
           </button>
@@ -342,7 +342,7 @@ function AgentCard({
         "group relative rounded-xl border p-3 transition-all cursor-pointer",
         isSelected
           ? "bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-500/20 translate-y-[-2px]"
-          : "bg-gray-900 border-gray-800 hover:border-gray-700 hover:bg-gray-800/80"
+          : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/80"
       )}
       role="button"
       aria-pressed={isSelected}
@@ -356,17 +356,17 @@ function AgentCard({
     >
       <div className="flex items-start justify-between mb-2">
         <div>
-          <h3 className={cn("text-sm font-semibold", isSelected ? "text-white" : "text-gray-200")}>
+          <h3 className={cn("text-sm font-semibold", isSelected ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)]")}>
             {agent.name}
           </h3>
-          <p className={cn("text-[10px] mt-0.5", isSelected ? "text-indigo-200" : "text-gray-500")}>
+          <p className={cn("text-[10px] mt-0.5", isSelected ? "text-indigo-200" : "text-[var(--color-text-muted)]")}>
             {agent.domain}
           </p>
         </div>
         <div
           className={cn(
             "text-[9px] px-1.5 py-0.5 rounded border transition-colors",
-            isSelected ? "bg-white/10 border-white/20 text-white" : cn(modelStyle.bg, modelStyle.border, modelStyle.color)
+            isSelected ? "bg-white/10 border-white/20 text-[var(--color-text-primary)]" : cn(modelStyle.bg, modelStyle.border, modelStyle.color)
           )}
         >
           {agent.preferredModel}
@@ -374,10 +374,10 @@ function AgentCard({
       </div>
 
       <div className="flex items-center justify-between text-[10px] font-mono mt-3">
-        <span className={isSelected ? "text-indigo-200" : "text-gray-500"}>
+        <span className={isSelected ? "text-indigo-200" : "text-[var(--color-text-muted)]"}>
           ${agent.estTokenCost.toFixed(2)}
         </span>
-        <span className={isSelected ? "text-indigo-200" : "text-gray-500"}>
+        <span className={isSelected ? "text-indigo-200" : "text-[var(--color-text-muted)]"}>
           {agent.estTokens.toLocaleString()} tkn
         </span>
       </div>

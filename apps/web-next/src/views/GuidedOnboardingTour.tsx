@@ -135,7 +135,7 @@ function Stepper({ current, completed, onNavigate }: StepperProps) {
               <div
                 className={cn(
                   'flex-1 h-0.5 mx-1 transition-colors duration-300',
-                  completed.has((idx) as StepId) ? 'bg-violet-600' : 'bg-zinc-700'
+                  completed.has((idx) as StepId) ? 'bg-violet-600' : 'bg-[var(--color-surface-3)]'
                 )}
               />
             )}
@@ -155,16 +155,16 @@ function Stepper({ current, completed, onNavigate }: StepperProps) {
                     ? 'bg-violet-600 border-violet-600'
                     : isCurrent
                     ? 'bg-transparent border-violet-500'
-                    : 'bg-zinc-800 border-zinc-700'
+                    : 'bg-[var(--color-surface-2)] border-[var(--color-border)]'
                 )}
               >
                 {isDone ? (
-                  <Check size={14} className="text-white" />
+                  <Check size={14} className="text-[var(--color-text-primary)]" />
                 ) : (
                   <span
                     className={cn(
                       'text-xs font-bold',
-                      isCurrent ? 'text-violet-400' : 'text-zinc-500'
+                      isCurrent ? 'text-violet-400' : 'text-[var(--color-text-muted)]'
                     )}
                   >
                     {step}
@@ -177,8 +177,8 @@ function Stepper({ current, completed, onNavigate }: StepperProps) {
                   isDone
                     ? 'text-violet-400'
                     : isCurrent
-                    ? 'text-white'
-                    : 'text-zinc-500'
+                    ? 'text-[var(--color-text-primary)]'
+                    : 'text-[var(--color-text-muted)]'
                 )}
               >
                 {label}
@@ -214,19 +214,19 @@ function Step1Gateway({ onSuccess }: Step1Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1">Connect to your Gateway</h2>
-        <p className="text-zinc-400 text-sm">
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-1">Connect to your Gateway</h2>
+        <p className="text-[var(--color-text-secondary)] text-sm">
           OpenClaw routes all messages through the Gateway. Let's verify it's reachable.
         </p>
       </div>
 
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-zinc-300">Gateway URL</label>
+        <label className="block text-sm font-medium text-[var(--color-text-primary)]">Gateway URL</label>
         <input
           type="text"
           value={url}
           onChange={(e) => { setUrl(e.target.value); setStatus('idle'); }}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
+          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500 transition-colors"
           placeholder="http://localhost:9999"
         />
       </div>
@@ -237,8 +237,8 @@ function Step1Gateway({ onSuccess }: Step1Props) {
         className={cn(
           'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
           status === 'success'
-            ? 'bg-emerald-600 text-white cursor-default'
-            : 'bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-60 disabled:cursor-not-allowed'
+            ? 'bg-emerald-600 text-[var(--color-text-primary)] cursor-default'
+            : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] disabled:opacity-60 disabled:cursor-not-allowed'
         )}
       >
         {status === 'loading' ? (
@@ -291,8 +291,8 @@ function Step2Channel({ onSuccess }: Step2Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1">Configure a Channel</h2>
-        <p className="text-zinc-400 text-sm">
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-1">Configure a Channel</h2>
+        <p className="text-[var(--color-text-secondary)] text-sm">
           Choose where your agents will send and receive messages.
         </p>
       </div>
@@ -308,11 +308,11 @@ function Step2Channel({ onSuccess }: Step2Props) {
               'flex flex-col items-center gap-2 py-4 rounded-lg border transition-all duration-200',
               selected === ch.id
                 ? 'border-violet-500 bg-violet-950/30'
-                : 'border-zinc-700 bg-zinc-800/50 hover:border-zinc-600'
+                : 'border-[var(--color-border)] bg-[var(--color-surface-2)]/50 hover:border-[var(--color-surface-3)]'
             )}
           >
             <span className="text-2xl">{ch.emoji}</span>
-            <span className="text-xs font-medium text-zinc-300">{ch.label}</span>
+            <span className="text-xs font-medium text-[var(--color-text-primary)]">{ch.label}</span>
           </button>
         ))}
       </div>
@@ -320,7 +320,7 @@ function Step2Channel({ onSuccess }: Step2Props) {
       {/* Token field */}
       {selected && (
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-zinc-300">
+          <label className="block text-sm font-medium text-[var(--color-text-primary)]">
             {CHANNEL_OPTIONS.find((c) => c.id === selected)?.label} Bot Token
           </label>
           <div className="flex gap-2">
@@ -329,7 +329,7 @@ function Step2Channel({ onSuccess }: Step2Props) {
               value={token}
               onChange={(e) => { setToken(e.target.value); setStatus('idle'); }}
               placeholder="Paste your bot token here…"
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
+              className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500 transition-colors"
             />
             <button
               onClick={verify}
@@ -337,8 +337,8 @@ function Step2Channel({ onSuccess }: Step2Props) {
               className={cn(
                 'flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap',
                 status === 'success'
-                  ? 'bg-emerald-600 text-white cursor-default'
-                  : 'bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                  ? 'bg-emerald-600 text-[var(--color-text-primary)] cursor-default'
+                  : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] disabled:opacity-50 disabled:cursor-not-allowed'
               )}
             >
               {status === 'loading' ? (
@@ -388,25 +388,25 @@ function Step3Agent({ onSuccess }: Step3Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1">Create Your First Agent</h2>
-        <p className="text-zinc-400 text-sm">Give your agent a name, a face, and a role.</p>
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-1">Create Your First Agent</h2>
+        <p className="text-[var(--color-text-secondary)] text-sm">Give your agent a name, a face, and a role.</p>
       </div>
 
       {/* Name */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-300">Agent Name</label>
+        <label className="block text-sm font-medium text-[var(--color-text-primary)]">Agent Name</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Aria, Helper, Codebot…"
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-violet-500 transition-colors"
+          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500 transition-colors"
         />
       </div>
 
       {/* Emoji picker */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-300">Pick an Avatar</label>
+        <label className="block text-sm font-medium text-[var(--color-text-primary)]">Pick an Avatar</label>
         {/* M9: responsive pass */}
         <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
           {AGENT_EMOJIS.map((e) => (
@@ -417,7 +417,7 @@ function Step3Agent({ onSuccess }: Step3Props) {
                 'text-2xl p-2.5 rounded-lg border transition-all duration-150',
                 emoji === e
                   ? 'border-violet-500 bg-violet-950/30'
-                  : 'border-zinc-700 bg-zinc-800/60 hover:border-zinc-600'
+                  : 'border-[var(--color-border)] bg-[var(--color-surface-2)]/60 hover:border-[var(--color-surface-3)]'
               )}
             >
               {e}
@@ -428,7 +428,7 @@ function Step3Agent({ onSuccess }: Step3Props) {
 
       {/* Role selector */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-300">Role</label>
+        <label className="block text-sm font-medium text-[var(--color-text-primary)]">Role</label>
         <div className="grid grid-cols-2 gap-2">
           {AGENT_ROLES.map((r) => (
             <button
@@ -438,7 +438,7 @@ function Step3Agent({ onSuccess }: Step3Props) {
                 'text-sm px-4 py-2.5 rounded-lg border font-medium transition-all duration-150',
                 role === r
                   ? 'border-violet-500 bg-violet-950/30 text-violet-300'
-                  : 'border-zinc-700 bg-zinc-800/60 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+                  : 'border-[var(--color-border)] bg-[var(--color-surface-2)]/60 text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]'
               )}
             >
               {r}
@@ -454,24 +454,24 @@ function Step3Agent({ onSuccess }: Step3Props) {
             'flex items-center gap-4 p-4 rounded-xl border transition-all duration-300',
             status === 'success'
               ? 'border-emerald-700 bg-emerald-950/30'
-              : 'border-zinc-700 bg-zinc-800/50'
+              : 'border-[var(--color-border)] bg-[var(--color-surface-2)]/50'
           )}
         >
-          <div className="w-12 h-12 rounded-full bg-zinc-700 flex items-center justify-center text-2xl flex-shrink-0">
+          <div className="w-12 h-12 rounded-full bg-[var(--color-surface-3)] flex items-center justify-center text-2xl flex-shrink-0">
             {emoji}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-white font-semibold">{name}</span>
+              <span className="text-[var(--color-text-primary)] font-semibold">{name}</span>
               {status === 'success' && (
                 <span className="text-xs bg-emerald-600/20 text-emerald-400 border border-emerald-700 rounded-full px-2 py-0.5">
                   Active
                 </span>
               )}
             </div>
-            <span className="text-zinc-400 text-sm">{role}</span>
+            <span className="text-[var(--color-text-secondary)] text-sm">{role}</span>
           </div>
-          <Bot size={18} className="text-zinc-500 flex-shrink-0" />
+          <Bot size={18} className="text-[var(--color-text-muted)] flex-shrink-0" />
         </div>
       )}
 
@@ -481,8 +481,8 @@ function Step3Agent({ onSuccess }: Step3Props) {
         className={cn(
           'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
           status === 'success'
-            ? 'bg-emerald-600 text-white cursor-default'
-            : 'bg-violet-600 hover:bg-violet-500 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+            ? 'bg-emerald-600 text-[var(--color-text-primary)] cursor-default'
+            : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] disabled:opacity-50 disabled:cursor-not-allowed'
         )}
       >
         {status === 'loading' ? (
@@ -548,19 +548,19 @@ function Step4TestMessage({ agentName, agentEmoji, onSuccess }: Step4Props) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-semibold text-white mb-1">Send a Test Message</h2>
-        <p className="text-zinc-400 text-sm">
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-1">Send a Test Message</h2>
+        <p className="text-[var(--color-text-secondary)] text-sm">
           Say hello to your new agent and confirm everything's working.
         </p>
       </div>
 
       {/* Agent header */}
-      <div className="flex items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
-        <div className="w-9 h-9 rounded-full bg-zinc-700 flex items-center justify-center text-xl flex-shrink-0">
+      <div className="flex items-center gap-3 p-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl">
+        <div className="w-9 h-9 rounded-full bg-[var(--color-surface-3)] flex items-center justify-center text-xl flex-shrink-0">
           {agentEmoji}
         </div>
         <div>
-          <div className="text-white text-sm font-semibold">{agentName}</div>
+          <div className="text-[var(--color-text-primary)] text-sm font-semibold">{agentName}</div>
           <div className="flex items-center gap-1.5 text-xs text-emerald-400">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Online
@@ -569,9 +569,9 @@ function Step4TestMessage({ agentName, agentEmoji, onSuccess }: Step4Props) {
       </div>
 
       {/* Chat area */}
-      <div className="min-h-[160px] max-h-[240px] overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 p-4 space-y-3">
+      <div className="min-h-[160px] max-h-[240px] overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-0)] p-4 space-y-3">
         {messages.length === 0 && (
-          <div className="flex items-center justify-center h-full text-zinc-600 text-sm pt-8">
+          <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm pt-8">
             <MessageSquare size={16} className="mr-2" />
             Type a message to get started…
           </div>
@@ -585,8 +585,8 @@ function Step4TestMessage({ agentName, agentEmoji, onSuccess }: Step4Props) {
               className={cn(
                 'max-w-[78%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed',
                 m.from === 'user'
-                  ? 'bg-violet-600 text-white rounded-br-sm'
-                  : 'bg-zinc-800 text-zinc-200 rounded-bl-sm'
+                  ? 'bg-violet-600 text-[var(--color-text-primary)] rounded-br-sm'
+                  : 'bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded-bl-sm'
               )}
             >
               {m.text}
@@ -595,10 +595,10 @@ function Step4TestMessage({ agentName, agentEmoji, onSuccess }: Step4Props) {
         ))}
         {sending && (
           <div className="flex justify-start">
-            <div className="bg-zinc-800 rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="bg-[var(--color-surface-2)] rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-surface-3)] animate-bounce" style={{ animationDelay: '0ms' }} />
+              <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-surface-3)] animate-bounce" style={{ animationDelay: '150ms' }} />
+              <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-surface-3)] animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
           </div>
         )}
@@ -614,12 +614,12 @@ function Step4TestMessage({ agentName, agentEmoji, onSuccess }: Step4Props) {
           onKeyDown={handleKey}
           disabled={replySent || sending}
           placeholder="Message your agent…"
-          className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-violet-500 transition-colors disabled:opacity-50"
+          className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500 transition-colors disabled:opacity-50"
         />
         <button
           onClick={send}
           disabled={!input.trim() || sending || replySent}
-          className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-semibold transition-all duration-150"
+          className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-[var(--color-text-primary)] rounded-lg text-sm font-semibold transition-all duration-150"
         >
           <Send size={15} />
           Send
@@ -651,21 +651,21 @@ function Step5Complete({ agentName, channelId }: Step5Props) {
       <ConfettiBurst />
 
       <div className="text-center space-y-1">
-        <h2 className="text-2xl font-bold text-white">You're all set! 🎉</h2>
-        <p className="text-zinc-400 text-sm">
+        <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">You're all set! 🎉</h2>
+        <p className="text-[var(--color-text-secondary)] text-sm">
           OpenClaw is configured and your first agent is live.
         </p>
       </div>
 
       {/* Summary card */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-3">
-        <div className="text-sm font-semibold text-zinc-200 mb-1">Setup complete ✓</div>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 space-y-3">
+        <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Setup complete ✓</div>
         {checklist.map((item) => (
           <div key={item.label} className="flex items-center gap-3 text-sm">
             <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
-              <Check size={12} className="text-white" />
+              <Check size={12} className="text-[var(--color-text-primary)]" />
             </div>
-            <span className="text-zinc-300">{item.label}</span>
+            <span className="text-[var(--color-text-primary)]">{item.label}</span>
           </div>
         ))}
       </div>
@@ -674,7 +674,7 @@ function Step5Complete({ agentName, channelId }: Step5Props) {
       <div className="flex gap-3">
         <a
           href="/dashboard"
-          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-violet-600 hover:bg-violet-500 active:scale-95 text-white rounded-lg text-sm font-semibold transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-violet-600 hover:bg-violet-500 active:scale-95 text-[var(--color-text-primary)] rounded-lg text-sm font-semibold transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           <LayoutDashboard size={16} />
           Open Dashboard
@@ -683,7 +683,7 @@ function Step5Complete({ agentName, channelId }: Step5Props) {
           href="https://docs.openclaw.ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-zinc-800 hover:bg-zinc-700 active:scale-95 border border-zinc-700 text-zinc-300 hover:text-white rounded-lg text-sm font-semibold transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] active:scale-95 border border-[var(--color-border)] text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] rounded-lg text-sm font-semibold transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           <BookOpen size={16} />
           Explore Docs
@@ -698,7 +698,7 @@ function Step5Complete({ agentName, channelId }: Step5Props) {
 
 function OnboardingSkeleton() {
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-3 sm:p-4 md:p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] flex items-center justify-center p-3 sm:p-4 md:p-6">
       <div className="w-full max-w-2xl">
         {/* Header skeleton */}
         <div className="text-center mb-8">
@@ -707,12 +707,12 @@ function OnboardingSkeleton() {
           <Skeleton variant="text" className="h-3 w-44 mx-auto mt-2" />
         </div>
         {/* Card skeleton */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
           {/* Stepper skeleton */}
           <div className="flex items-center gap-0 w-full mb-6 sm:mb-8">
             {Array.from({ length: 5 }).map((_, i) => (
               <React.Fragment key={i}>
-                {i > 0 && <div className="flex-1 h-0.5 mx-1 bg-zinc-700" />}
+                {i > 0 && <div className="flex-1 h-0.5 mx-1 bg-[var(--color-surface-3)]" />}
                 <div className="flex flex-col items-center gap-1.5">
                   <Skeleton variant="circle" className="w-8 h-8" />
                   <Skeleton variant="text" className="h-2.5 w-12 hidden sm:block" />
@@ -733,7 +733,7 @@ function OnboardingSkeleton() {
             <Skeleton variant="rect" className="h-10 w-36 rounded-lg" />
           </div>
           {/* Nav skeleton */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-zinc-800">
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-[var(--color-border)]">
             <Skeleton variant="rect" className="h-8 w-16 rounded-lg" />
             <Skeleton variant="text" className="h-3 w-16" />
             <Skeleton variant="rect" className="h-8 w-16 rounded-lg" />
@@ -781,21 +781,21 @@ export default function GuidedOnboardingTour({ isLoading = false }: { isLoading?
 
   // M9: responsive pass — full-width with padding on mobile
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-3 sm:p-4 md:p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] flex items-center justify-center p-3 sm:p-4 md:p-6">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-violet-600/20 border border-violet-700 mb-4">
             <Bot size={22} className="text-violet-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Welcome to OpenClaw</h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Welcome to OpenClaw</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">
             Let's get you set up in about 5 minutes.
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
           {/* Stepper */}
           <Stepper
             current={currentStep}
@@ -839,22 +839,22 @@ export default function GuidedOnboardingTour({ isLoading = false }: { isLoading?
 
           {/* Navigation bar */}
           {currentStep < 5 && (
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-zinc-800">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[var(--color-border)]">
               <button
                 onClick={goBack}
                 disabled={currentStep === 1}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft size={16} />
                 Back
               </button>
-              <span className="text-xs text-zinc-600">
+              <span className="text-xs text-[var(--color-text-muted)]">
                 Step {currentStep} of 5
               </span>
               <button
                 onClick={() => navigateTo((currentStep + 1) as StepId)}
                 disabled={!completed.has(currentStep)}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 Next
                 <ChevronRight size={16} />
@@ -864,7 +864,7 @@ export default function GuidedOnboardingTour({ isLoading = false }: { isLoading?
         </div>
 
         {/* Footer hint */}
-        <p className="text-center text-xs text-zinc-600 mt-4">
+        <p className="text-center text-xs text-[var(--color-text-muted)] mt-4">
           You can revisit any completed step by clicking the step dots above.
         </p>
       </div>

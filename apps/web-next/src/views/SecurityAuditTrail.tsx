@@ -523,7 +523,7 @@ function severityBorderBg(severity: Severity): string {
     case "low":
       return "bg-sky-400/10 border-sky-400/30";
     case "info":
-      return "bg-zinc-700/40 border-zinc-600/30";
+      return "bg-[var(--color-surface-3)]/40 border-[var(--color-surface-3)]/30";
   }
 }
 
@@ -538,7 +538,7 @@ function severityText(severity: Severity): string {
     case "low":
       return "text-sky-400";
     case "info":
-      return "text-zinc-400";
+      return "text-[var(--color-text-secondary)]";
   }
 }
 
@@ -553,7 +553,7 @@ function severityDot(severity: Severity): string {
     case "low":
       return "bg-sky-400";
     case "info":
-      return "bg-zinc-500";
+      return "bg-[var(--color-surface-3)]";
   }
 }
 
@@ -708,8 +708,8 @@ function TabButton({ label, tabId, active, onClick, count }: TabButtonProps) {
       className={cn(
         "relative px-5 py-3 text-sm font-medium transition-colors duration-150 border-b-2",
         active
-          ? "text-white border-indigo-500"
-          : "text-zinc-400 border-transparent hover:text-zinc-200 hover:border-zinc-600"
+          ? "text-[var(--color-text-primary)] border-indigo-500"
+          : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
       )}
     >
       {label}
@@ -719,7 +719,7 @@ function TabButton({ label, tabId, active, onClick, count }: TabButtonProps) {
             "ml-2 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full",
             active
               ? "bg-indigo-500/30 text-indigo-300"
-              : "bg-zinc-700 text-zinc-400"
+              : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
           )}
         >
           {count}
@@ -797,10 +797,10 @@ function EventsTab({
       {/* Left: filters + list */}
       <div className={cn("flex flex-col gap-4", selectedEvent ? "w-1/2" : "w-full")}>
         {/* Filters */}
-        <div className="flex flex-wrap gap-4 items-end bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+        <div className="flex flex-wrap gap-4 items-end bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
           {/* Severity filter */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+            <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
               Severity
             </span>
             <div className="flex flex-wrap gap-1">
@@ -811,8 +811,8 @@ function EventsTab({
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filters.severity === s
-                      ? "bg-indigo-500 text-white"
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+                      ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {s === "all"
@@ -825,7 +825,7 @@ function EventsTab({
 
           {/* Category filter */}
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+            <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
               Category
             </span>
             <div className="flex flex-wrap gap-1">
@@ -836,8 +836,8 @@ function EventsTab({
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filters.category === c
-                      ? "bg-indigo-500 text-white"
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+                      ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {c === "all" ? "All" : titleCase(c)}
@@ -849,7 +849,7 @@ function EventsTab({
           {/* Date range */}
           <div className="flex gap-2 items-end ml-auto">
             <div className="flex flex-col gap-1">
-              <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                 From
               </span>
               <input
@@ -858,11 +858,11 @@ function EventsTab({
                 onChange={(ev) =>
                   onFilterChange({ ...filters, dateStart: ev.target.value })
                 }
-                className="bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                 To
               </span>
               <input
@@ -871,12 +871,12 @@ function EventsTab({
                 onChange={(ev) =>
                   onFilterChange({ ...filters, dateEnd: ev.target.value })
                 }
-                className="bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
           </div>
 
-          <span className="text-xs text-zinc-600 self-end pb-1">
+          <span className="text-xs text-[var(--color-text-muted)] self-end pb-1">
             {filtered.length} event{filtered.length !== 1 ? "s" : ""}
           </span>
         </div>
@@ -895,12 +895,12 @@ function EventsTab({
                 "w-full text-left rounded-lg border px-4 py-3 transition-all duration-150",
                 selectedEvent?.id === event.id
                   ? "bg-indigo-500/10 border-indigo-500/50"
-                  : "bg-zinc-900 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700"
+                  : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)] hover:border-[var(--color-border)]"
               )}
             >
               <div className="flex items-center gap-3 min-w-0">
                 <SeverityBadge severity={event.severity} />
-                <span className="text-xs text-zinc-500 font-mono shrink-0">
+                <span className="text-xs text-[var(--color-text-muted)] font-mono shrink-0">
                   {formatTs(event.timestamp)}
                 </span>
                 <span
@@ -915,28 +915,28 @@ function EventsTab({
                 </span>
               </div>
               <div className="mt-1.5 flex items-center gap-2 min-w-0">
-                <span className="text-white text-sm font-semibold shrink-0">
+                <span className="text-[var(--color-text-primary)] text-sm font-semibold shrink-0">
                   {event.action}
                 </span>
-                <span className="text-zinc-500 text-xs shrink-0">on</span>
+                <span className="text-[var(--color-text-muted)] text-xs shrink-0">on</span>
                 <span className="text-indigo-300 text-xs font-mono truncate">
                   {event.resource}
                 </span>
               </div>
-              <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
+              <div className="mt-1 flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                 <span>
                   {event.actorType === "user" ? "👤" : "⚙️"} {event.actor}
                 </span>
                 <span>·</span>
                 <span>{event.ipAddress}</span>
                 <span>·</span>
-                <span className="text-zinc-600">{titleCase(event.category)}</span>
+                <span className="text-[var(--color-text-muted)]">{titleCase(event.category)}</span>
               </div>
             </button>
           ))}
 
           {filtered.length === 0 && (
-            <div className="flex items-center justify-center h-32 text-zinc-600 text-sm">
+            <div className="flex items-center justify-center h-32 text-[var(--color-text-muted)] text-sm">
               No events match the current filters
             </div>
           )}
@@ -946,21 +946,21 @@ function EventsTab({
       {/* Right: detail panel */}
       {selectedEvent !== null && (
         <div
-          className="w-1/2 bg-zinc-900 rounded-xl border border-zinc-800 p-5 flex flex-col gap-5 overflow-y-auto"
+          className="w-1/2 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5 flex flex-col gap-5 overflow-y-auto"
           style={{ maxHeight: "calc(100vh - 240px)" }}
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="text-white font-semibold text-base">
+              <h3 className="text-[var(--color-text-primary)] font-semibold text-base">
                 {selectedEvent.action}
               </h3>
-              <p className="text-zinc-600 text-xs mt-0.5 font-mono">
+              <p className="text-[var(--color-text-muted)] text-xs mt-0.5 font-mono">
                 {selectedEvent.id}
               </p>
             </div>
             <button
               onClick={() => onSelectEvent(null)}
-              className="text-zinc-600 hover:text-zinc-300 text-xl leading-none shrink-0"
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xl leading-none shrink-0"
             >
               ✕
             </button>
@@ -991,9 +991,9 @@ function EventsTab({
                 { label: "Category", value: titleCase(selectedEvent.category) },
               ] as Array<{ label: string; value: string }>
             ).map(({ label, value }) => (
-              <div key={label} className="bg-zinc-800/50 rounded-lg p-3">
-                <p className="text-zinc-500 text-xs mb-1">{label}</p>
-                <p className="text-zinc-100 text-sm font-medium font-mono break-all">
+              <div key={label} className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
+                <p className="text-[var(--color-text-muted)] text-xs mb-1">{label}</p>
+                <p className="text-[var(--color-text-primary)] text-sm font-medium font-mono break-all">
                   {value}
                 </p>
               </div>
@@ -1001,10 +1001,10 @@ function EventsTab({
           </div>
 
           <div>
-            <p className="text-zinc-500 text-xs mb-2 font-medium uppercase tracking-wider">
+            <p className="text-[var(--color-text-muted)] text-xs mb-2 font-medium uppercase tracking-wider">
               Raw Payload
             </p>
-            <pre className="bg-zinc-950 rounded-lg p-4 text-xs text-emerald-300 font-mono overflow-x-auto border border-zinc-800 whitespace-pre-wrap">
+            <pre className="bg-[var(--color-surface-0)] rounded-lg p-4 text-xs text-emerald-300 font-mono overflow-x-auto border border-[var(--color-border)] whitespace-pre-wrap">
               {JSON.stringify(
                 JSON.parse(selectedEvent.payload) as Record<string, unknown>,
                 null,
@@ -1064,7 +1064,7 @@ function AnomaliesTab({ anomalies, onStatusChange }: AnomaliesTabProps) {
               <p className={cn("text-2xl font-bold", summaryValueClasses[s])}>
                 {count}
               </p>
-              <p className="text-zinc-400 text-sm mt-1">{summaryLabels[s]}</p>
+              <p className="text-[var(--color-text-secondary)] text-sm mt-1">{summaryLabels[s]}</p>
             </div>
           );
         })}
@@ -1075,7 +1075,7 @@ function AnomaliesTab({ anomalies, onStatusChange }: AnomaliesTabProps) {
         {anomalies.map((anomaly) => (
           <div
             key={anomaly.id}
-            className="bg-zinc-900 rounded-xl border border-zinc-800 p-5"
+            className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
@@ -1096,16 +1096,16 @@ function AnomaliesTab({ anomalies, onStatusChange }: AnomaliesTabProps) {
                   >
                     {anomalyStatusLabel(anomaly.status)}
                   </span>
-                  <span className="text-zinc-700 text-xs font-mono ml-auto">
+                  <span className="text-[var(--color-text-muted)] text-xs font-mono ml-auto">
                     {anomaly.id}
                   </span>
                 </div>
 
-                <p className="text-zinc-300 text-sm mt-2 leading-relaxed">
+                <p className="text-[var(--color-text-primary)] text-sm mt-2 leading-relaxed">
                   {anomaly.details}
                 </p>
 
-                <div className="flex items-center gap-4 mt-3 text-xs text-zinc-500">
+                <div className="flex items-center gap-4 mt-3 text-xs text-[var(--color-text-muted)]">
                   <span>👤 {anomaly.affectedUser}</span>
                   <span>·</span>
                   <span>Detected {formatTs(anomaly.detectedAt)}</span>
@@ -1115,9 +1115,9 @@ function AnomaliesTab({ anomalies, onStatusChange }: AnomaliesTabProps) {
               <div className="flex flex-col items-end gap-3 shrink-0">
                 {/* Confidence score */}
                 <div className="text-right">
-                  <p className="text-xs text-zinc-500 mb-1.5">Confidence</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mb-1.5">Confidence</p>
                   <div className="flex items-center gap-2">
-                    <div className="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="w-24 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                       <div
                         className={cn(
                           "h-full rounded-full",
@@ -1145,7 +1145,7 @@ function AnomaliesTab({ anomalies, onStatusChange }: AnomaliesTabProps) {
                       nextAnomalyStatus(anomaly.status)
                     )
                   }
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700 hover:text-white transition-colors whitespace-nowrap"
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border border-[var(--color-border)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] transition-colors whitespace-nowrap"
                 >
                   {nextAnomalyStatusLabel(anomaly.status)}
                 </button>
@@ -1183,16 +1183,16 @@ function ComplianceTab({ frameworks }: ComplianceTabProps) {
         return (
           <div
             key={fw.id}
-            className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden"
+            className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden"
           >
             {/* Framework header — clickable */}
             <button
               onClick={() => setExpandedId(isExpanded ? null : fw.id)}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-zinc-800/50 transition-colors"
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-[var(--color-surface-2)]/50 transition-colors"
             >
               <div className="flex items-center gap-4">
-                <span className="text-white font-semibold">{fw.name}</span>
-                <span className="text-zinc-500 text-sm">
+                <span className="text-[var(--color-text-primary)] font-semibold">{fw.name}</span>
+                <span className="text-[var(--color-text-muted)] text-sm">
                   {fw.controls.length} controls
                 </span>
               </div>
@@ -1205,7 +1205,7 @@ function ComplianceTab({ frameworks }: ComplianceTabProps) {
                 </span>
                 {/* Avg coverage bar */}
                 <div className="flex items-center gap-2">
-                  <div className="w-28 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-28 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className={cn(
                         "h-full rounded-full",
@@ -1214,13 +1214,13 @@ function ComplianceTab({ frameworks }: ComplianceTabProps) {
                       style={{ width: `${avgCoverage}%` }}
                     />
                   </div>
-                  <span className="text-zinc-300 text-xs font-medium w-10 text-right tabular-nums">
+                  <span className="text-[var(--color-text-primary)] text-xs font-medium w-10 text-right tabular-nums">
                     {avgCoverage}%
                   </span>
                 </div>
                 <span
                   className={cn(
-                    "text-zinc-400 text-xs transition-transform duration-200",
+                    "text-[var(--color-text-secondary)] text-xs transition-transform duration-200",
                     isExpanded ? "rotate-180" : "rotate-0"
                   )}
                 >
@@ -1231,23 +1231,23 @@ function ComplianceTab({ frameworks }: ComplianceTabProps) {
 
             {/* Controls table */}
             {isExpanded && (
-              <div className="border-t border-zinc-800 overflow-x-auto">
+              <div className="border-t border-[var(--color-border)] overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-zinc-950/50">
-                      <th className="text-left px-5 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider whitespace-nowrap">
+                    <tr className="bg-[var(--color-surface-0)]/50">
+                      <th className="text-left px-5 py-2.5 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider whitespace-nowrap">
                         Control ID
                       </th>
-                      <th className="text-left px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                      <th className="text-left px-4 py-2.5 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                         Name
                       </th>
-                      <th className="text-left px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider w-48">
+                      <th className="text-left px-4 py-2.5 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider w-48">
                         Coverage
                       </th>
-                      <th className="text-left px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider whitespace-nowrap">
+                      <th className="text-left px-4 py-2.5 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider whitespace-nowrap">
                         Last Tested
                       </th>
-                      <th className="text-left px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                      <th className="text-left px-4 py-2.5 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                         Status
                       </th>
                     </tr>
@@ -1257,19 +1257,19 @@ function ComplianceTab({ frameworks }: ComplianceTabProps) {
                       <tr
                         key={ctrl.id}
                         className={cn(
-                          "border-t border-zinc-800/50",
-                          idx % 2 !== 0 ? "bg-zinc-950/20" : "bg-transparent"
+                          "border-t border-[var(--color-border)]/50",
+                          idx % 2 !== 0 ? "bg-[var(--color-surface-0)]/20" : "bg-transparent"
                         )}
                       >
                         <td className="px-5 py-3 font-mono text-indigo-300 text-xs whitespace-nowrap">
                           {ctrl.id}
                         </td>
-                        <td className="px-4 py-3 text-zinc-200 whitespace-nowrap">
+                        <td className="px-4 py-3 text-[var(--color-text-primary)] whitespace-nowrap">
                           {ctrl.name}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden min-w-16">
+                            <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden min-w-16">
                               <div
                                 className={cn(
                                   "h-full rounded-full",
@@ -1278,12 +1278,12 @@ function ComplianceTab({ frameworks }: ComplianceTabProps) {
                                 style={{ width: `${ctrl.coverage}%` }}
                               />
                             </div>
-                            <span className="text-xs text-zinc-400 w-9 text-right tabular-nums">
+                            <span className="text-xs text-[var(--color-text-secondary)] w-9 text-right tabular-nums">
                               {ctrl.coverage}%
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-zinc-400 text-xs font-mono whitespace-nowrap">
+                        <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs font-mono whitespace-nowrap">
                           {ctrl.lastTested}
                         </td>
                         <td className="px-4 py-3">
@@ -1351,8 +1351,8 @@ function ExportTab({ state, onChange }: ExportTabProps) {
       {/* Left column */}
       <div className="flex flex-col gap-5">
         {/* Format selector */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
-          <h3 className="text-white font-semibold text-sm mb-4">
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5">
+          <h3 className="text-[var(--color-text-primary)] font-semibold text-sm mb-4">
             Export Format
           </h3>
           <div className="flex flex-col gap-2">
@@ -1364,7 +1364,7 @@ function ExportTab({ state, onChange }: ExportTabProps) {
                   "flex items-start gap-3 p-3 rounded-lg border text-left transition-colors",
                   state.format === fmt
                     ? "bg-indigo-500/10 border-indigo-500/50"
-                    : "bg-zinc-800/30 border-zinc-700/50 hover:bg-zinc-800 hover:border-zinc-600"
+                    : "bg-[var(--color-surface-2)]/30 border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)] hover:border-[var(--color-surface-3)]"
                 )}
               >
                 {/* Radio dot */}
@@ -1373,7 +1373,7 @@ function ExportTab({ state, onChange }: ExportTabProps) {
                     "w-4 h-4 rounded-full border-2 mt-0.5 shrink-0 flex items-center justify-center",
                     state.format === fmt
                       ? "border-indigo-500 bg-indigo-500"
-                      : "border-zinc-600"
+                      : "border-[var(--color-surface-3)]"
                   )}
                 >
                   {state.format === fmt && (
@@ -1384,12 +1384,12 @@ function ExportTab({ state, onChange }: ExportTabProps) {
                   <p
                     className={cn(
                       "text-sm font-medium",
-                      state.format === fmt ? "text-white" : "text-zinc-300"
+                      state.format === fmt ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)]"
                     )}
                   >
                     {fmt}
                   </p>
-                  <p className="text-zinc-500 text-xs mt-0.5">
+                  <p className="text-[var(--color-text-muted)] text-xs mt-0.5">
                     {FORMAT_DESCRIPTIONS[fmt]}
                   </p>
                 </div>
@@ -1399,29 +1399,29 @@ function ExportTab({ state, onChange }: ExportTabProps) {
         </div>
 
         {/* Date range */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
-          <h3 className="text-white font-semibold text-sm mb-4">Date Range</h3>
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5">
+          <h3 className="text-[var(--color-text-primary)] font-semibold text-sm mb-4">Date Range</h3>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
-              <p className="text-xs text-zinc-500 mb-1.5">Start Date</p>
+              <p className="text-xs text-[var(--color-text-muted)] mb-1.5">Start Date</p>
               <input
                 type="date"
                 value={state.dateStart}
                 onChange={(e) =>
                   onChange({ ...state, dateStart: e.target.value })
                 }
-                className="w-full bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div>
-              <p className="text-xs text-zinc-500 mb-1.5">End Date</p>
+              <p className="text-xs text-[var(--color-text-muted)] mb-1.5">End Date</p>
               <input
                 type="date"
                 value={state.dateEnd}
                 onChange={(e) =>
                   onChange({ ...state, dateEnd: e.target.value })
                 }
-                className="w-full bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
           </div>
@@ -1430,7 +1430,7 @@ function ExportTab({ state, onChange }: ExportTabProps) {
               <button
                 key={range}
                 onClick={() => handleQuickRange(range)}
-                className="px-3 py-1 text-xs rounded bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700 hover:text-zinc-200 transition-colors"
+                className="px-3 py-1 text-xs rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] transition-colors"
               >
                 Last {range}
               </button>
@@ -1442,8 +1442,8 @@ function ExportTab({ state, onChange }: ExportTabProps) {
       {/* Right column */}
       <div className="flex flex-col gap-5">
         {/* Saved presets */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
-          <h3 className="text-white font-semibold text-sm mb-4">
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5">
+          <h3 className="text-[var(--color-text-primary)] font-semibold text-sm mb-4">
             Saved Presets
           </h3>
           <div className="flex flex-col gap-2">
@@ -1454,14 +1454,14 @@ function ExportTab({ state, onChange }: ExportTabProps) {
                 className={cn(
                   "flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left text-sm transition-colors",
                   state.preset === preset
-                    ? "bg-indigo-500/10 border-indigo-500/40 text-white"
-                    : "bg-zinc-800/30 border-zinc-700/50 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 hover:border-zinc-600"
+                    ? "bg-indigo-500/10 border-indigo-500/40 text-[var(--color-text-primary)]"
+                    : "bg-[var(--color-surface-2)]/30 border-[var(--color-border)]/50 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
                 )}
               >
                 <span
                   className={cn(
                     "w-2 h-2 rounded-full shrink-0",
-                    state.preset === preset ? "bg-indigo-400" : "bg-zinc-600"
+                    state.preset === preset ? "bg-indigo-400" : "bg-[var(--color-surface-3)]"
                   )}
                 />
                 {preset}
@@ -1471,18 +1471,18 @@ function ExportTab({ state, onChange }: ExportTabProps) {
         </div>
 
         {/* Generate */}
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
-          <h3 className="text-white font-semibold text-sm mb-4">
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5">
+          <h3 className="text-[var(--color-text-primary)] font-semibold text-sm mb-4">
             Generate Export
           </h3>
-          <div className="bg-zinc-950/60 rounded-lg p-3 mb-4 text-xs text-zinc-500 border border-zinc-800/80 space-y-1">
+          <div className="bg-[var(--color-surface-0)]/60 rounded-lg p-3 mb-4 text-xs text-[var(--color-text-muted)] border border-[var(--color-border)]/80 space-y-1">
             <p>
               Format:{" "}
-              <span className="text-zinc-300 font-medium">{state.format}</span>
+              <span className="text-[var(--color-text-primary)] font-medium">{state.format}</span>
             </p>
             <p>
               Range:{" "}
-              <span className="text-zinc-300 font-medium">
+              <span className="text-[var(--color-text-primary)] font-medium">
                 {state.dateStart || "—"} → {state.dateEnd || "—"}
               </span>
             </p>
@@ -1502,7 +1502,7 @@ function ExportTab({ state, onChange }: ExportTabProps) {
               "w-full py-3 rounded-lg text-sm font-semibold transition-all duration-200",
               state.isExporting
                 ? "bg-indigo-600/40 text-indigo-300 cursor-not-allowed"
-                : "bg-indigo-600 hover:bg-indigo-500 text-white"
+                : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
             )}
           >
             {state.isExporting ? (
@@ -1515,7 +1515,7 @@ function ExportTab({ state, onChange }: ExportTabProps) {
             )}
           </button>
           {!state.isExporting && state.preset !== "" && (
-            <p className="text-center text-xs text-zinc-600 mt-3">
+            <p className="text-center text-xs text-[var(--color-text-muted)] mt-3">
               Will include all matching events in {state.format} format.
             </p>
           )}
@@ -1583,15 +1583,15 @@ export default function SecurityAuditTrail() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] tracking-tight">
               Security Audit Trail
             </h1>
-            <p className="text-zinc-500 text-sm mt-1">
+            <p className="text-[var(--color-text-muted)] text-sm mt-1">
               Real-time event log, anomaly detection, and compliance coverage
             </p>
           </div>
@@ -1609,7 +1609,7 @@ export default function SecurityAuditTrail() {
                 label: "Total Events",
                 value: String(MOCK_EVENTS.length),
                 sub: "last 24h",
-                color: "text-white",
+                color: "text-[var(--color-text-primary)]",
               },
               {
                 label: "Critical",
@@ -1638,21 +1638,21 @@ export default function SecurityAuditTrail() {
           ).map(({ label, value, sub, color }) => (
             <div
               key={label}
-              className="bg-zinc-900 rounded-xl border border-zinc-800 px-5 py-4"
+              className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] px-5 py-4"
             >
-              <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">
+              <p className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-1">
                 {label}
               </p>
               <p className={cn("text-3xl font-bold tabular-nums", color)}>
                 {value}
               </p>
-              <p className="text-zinc-600 text-xs mt-1">{sub}</p>
+              <p className="text-[var(--color-text-muted)] text-xs mt-1">{sub}</p>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-zinc-800 mb-6">
+        <div className="flex border-b border-[var(--color-border)] mb-6">
           {tabs.map((t) => (
             <TabButton
               key={t.id}

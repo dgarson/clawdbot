@@ -217,24 +217,24 @@ const RUNS: WorkflowRun[] = [
 const statusColor: Record<WorkflowStatus, string> = {
   active: "text-emerald-400 bg-emerald-400/10",
   paused: "text-amber-400 bg-amber-400/10",
-  completed: "text-zinc-400 bg-zinc-400/10",
+  completed: "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10",
   failed: "text-rose-400 bg-rose-400/10",
   draft: "text-indigo-400 bg-indigo-400/10",
 }
 
 const stepStatusColor: Record<StepStatus, string> = {
-  pending: "bg-zinc-700 text-zinc-400",
+  pending: "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
   running: "bg-indigo-500/20 text-indigo-400",
   completed: "bg-emerald-400/10 text-emerald-400",
   failed: "bg-rose-400/10 text-rose-400",
-  skipped: "bg-zinc-700/50 text-zinc-500",
+  skipped: "bg-[var(--color-surface-3)]/50 text-[var(--color-text-muted)]",
 }
 
 const runStatusColor: Record<RunStatus, string> = {
   running: "text-indigo-400",
   completed: "text-emerald-400",
   failed: "text-rose-400",
-  cancelled: "text-zinc-400",
+  cancelled: "text-[var(--color-text-secondary)]",
 }
 
 const stepTypeIcon: Record<WorkflowStep["type"], string> = {
@@ -269,7 +269,7 @@ function fmtTime(iso?: string): string {
 
 function ProgressBar({ value, color }: { value: number; color: string }) {
   return (
-    <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+    <div className="w-full h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
       <div className={cn("h-full rounded-full", color)} style={{ width: `${Math.min(value, 100)}%` }} />
     </div>
   )
@@ -277,10 +277,10 @@ function ProgressBar({ value, color }: { value: number; color: string }) {
 
 function StatCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-      <div className="text-xs text-zinc-400 mb-1">{label}</div>
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+      <div className="text-xs text-[var(--color-text-secondary)] mb-1">{label}</div>
       <div className={cn("text-2xl font-bold", color)}>{value}</div>
-      <div className="text-xs text-zinc-500 mt-1">{sub}</div>
+      <div className="text-xs text-[var(--color-text-muted)] mt-1">{sub}</div>
     </div>
   )
 }
@@ -334,12 +334,12 @@ export default function WorkflowOrchestrator() {
   }))
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Workflow Orchestrator</h1>
-          <p className="text-zinc-400 text-sm mt-1">Automate, monitor and manage multi-step workflows</p>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Automate, monitor and manage multi-step workflows</p>
         </div>
         <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm font-medium transition-colors">
           + New Workflow
@@ -351,11 +351,11 @@ export default function WorkflowOrchestrator() {
         <StatCard label="Active Workflows" value={WORKFLOWS.filter(w => w.status === "active").length.toString()} sub="2 paused, 1 draft" color="text-emerald-400" />
         <StatCard label="Today's Runs" value={totalRuns.toString()} sub={`${runningRuns} currently running`} color="text-indigo-400" />
         <StatCard label="Success Rate" value={`${((successRuns / totalRuns) * 100).toFixed(1)}%`} sub={`${failedRuns} failed today`} color="text-emerald-400" />
-        <StatCard label="Avg Duration" value="42m" sub="across all workflows" color="text-zinc-300" />
+        <StatCard label="Avg Duration" value="42m" sub="across all workflows" color="text-[var(--color-text-primary)]" />
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-zinc-800 pb-0">
+      <div className="flex gap-1 mb-6 border-b border-[var(--color-border)] pb-0">
         {tabs.map(t => (
           <button
             key={t.id}
@@ -363,8 +363,8 @@ export default function WorkflowOrchestrator() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-white bg-zinc-900"
-                : "border-transparent text-zinc-400 hover:text-zinc-300"
+                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t.emoji} {t.label}
@@ -380,7 +380,7 @@ export default function WorkflowOrchestrator() {
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]"
             >
               <option value="all">All Statuses</option>
               <option value="active">Active</option>
@@ -391,7 +391,7 @@ export default function WorkflowOrchestrator() {
             <select
               value={triggerFilter}
               onChange={e => setTriggerFilter(e.target.value)}
-              className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]"
             >
               <option value="all">All Triggers</option>
               <option value="schedule">Schedule</option>
@@ -399,16 +399,16 @@ export default function WorkflowOrchestrator() {
               <option value="webhook">Webhook</option>
               <option value="manual">Manual</option>
             </select>
-            <span className="text-sm text-zinc-400 self-center">{filteredWorkflows.length} workflows</span>
+            <span className="text-sm text-[var(--color-text-secondary)] self-center">{filteredWorkflows.length} workflows</span>
           </div>
 
           {/* Workflow list */}
           <div className="space-y-3">
             {filteredWorkflows.map(wf => (
-              <div key={wf.id} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+              <div key={wf.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
                 <button
                   onClick={() => setSelectedWorkflow(selectedWorkflow === wf.id ? null : wf.id)}
-                  className="w-full text-left p-4 hover:bg-zinc-800/50 transition-colors"
+                  className="w-full text-left p-4 hover:bg-[var(--color-surface-2)]/50 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
@@ -418,43 +418,43 @@ export default function WorkflowOrchestrator() {
                           {wf.status}
                         </span>
                         {wf.tags.slice(0, 2).map(tag => (
-                          <span key={tag} className="text-xs px-1.5 py-0.5 bg-zinc-800 text-zinc-400 rounded">
+                          <span key={tag} className="text-xs px-1.5 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded">
                             {tag}
                           </span>
                         ))}
                       </div>
-                      <p className="text-sm text-zinc-400 truncate">{wf.description}</p>
+                      <p className="text-sm text-[var(--color-text-secondary)] truncate">{wf.description}</p>
                     </div>
                     <div className="flex items-center gap-6 shrink-0 text-sm">
                       <div className="text-center">
-                        <div className="text-zinc-400 text-xs mb-0.5">Trigger</div>
-                        <div className="text-zinc-300">{triggerIcon[wf.trigger]} {wf.trigger}</div>
+                        <div className="text-[var(--color-text-secondary)] text-xs mb-0.5">Trigger</div>
+                        <div className="text-[var(--color-text-primary)]">{triggerIcon[wf.trigger]} {wf.trigger}</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-zinc-400 text-xs mb-0.5">Success</div>
+                        <div className="text-[var(--color-text-secondary)] text-xs mb-0.5">Success</div>
                         <div className={wf.successRate >= 98 ? "text-emerald-400" : wf.successRate >= 95 ? "text-amber-400" : "text-rose-400"}>
                           {wf.totalRuns > 0 ? `${wf.successRate}%` : "—"}
                         </div>
                       </div>
                       <div className="text-center">
-                        <div className="text-zinc-400 text-xs mb-0.5">Avg Time</div>
-                        <div className="text-zinc-300">{fmtDuration(wf.avgDuration)}</div>
+                        <div className="text-[var(--color-text-secondary)] text-xs mb-0.5">Avg Time</div>
+                        <div className="text-[var(--color-text-primary)]">{fmtDuration(wf.avgDuration)}</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-zinc-400 text-xs mb-0.5">Total Runs</div>
-                        <div className="text-zinc-300">{wf.totalRuns.toLocaleString()}</div>
+                        <div className="text-[var(--color-text-secondary)] text-xs mb-0.5">Total Runs</div>
+                        <div className="text-[var(--color-text-primary)]">{wf.totalRuns.toLocaleString()}</div>
                       </div>
-                      <span className="text-zinc-600">{selectedWorkflow === wf.id ? "▲" : "▼"}</span>
+                      <span className="text-[var(--color-text-muted)]">{selectedWorkflow === wf.id ? "▲" : "▼"}</span>
                     </div>
                   </div>
                 </button>
 
                 {/* Expanded: Steps */}
                 {selectedWorkflow === wf.id && (
-                  <div className="border-t border-zinc-800 p-4 bg-zinc-950">
+                  <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-surface-0)]">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-medium text-zinc-300">Steps ({wf.steps.length})</h3>
-                      <div className="flex gap-2 text-xs text-zinc-400">
+                      <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Steps ({wf.steps.length})</h3>
+                      <div className="flex gap-2 text-xs text-[var(--color-text-secondary)]">
                         {wf.schedule && <span>🕐 {wf.schedule}</span>}
                         {wf.lastRun && <span>Last: {fmtTime(wf.lastRun)}</span>}
                         {wf.nextRun && <span>Next: {fmtTime(wf.nextRun)}</span>}
@@ -469,8 +469,8 @@ export default function WorkflowOrchestrator() {
                             "border-emerald-500/50 bg-emerald-400/5": step.status === "completed",
                             "border-indigo-500/50 bg-indigo-400/5 animate-pulse": step.status === "running",
                             "border-rose-500/50 bg-rose-400/5": step.status === "failed",
-                            "border-zinc-700 bg-zinc-900": step.status === "pending",
-                            "border-zinc-700/30 bg-zinc-900/30": step.status === "skipped",
+                            "border-[var(--color-border)] bg-[var(--color-surface-1)]": step.status === "pending",
+                            "border-[var(--color-border)]/30 bg-[var(--color-surface-1)]/30": step.status === "skipped",
                           })}>
                             <div className="flex items-center gap-1">
                               <span>{stepTypeIcon[step.type]}</span>
@@ -478,15 +478,15 @@ export default function WorkflowOrchestrator() {
                                 "text-emerald-400": step.status === "completed",
                                 "text-indigo-400": step.status === "running",
                                 "text-rose-400": step.status === "failed",
-                                "text-zinc-400": step.status === "pending",
-                                "text-zinc-600": step.status === "skipped",
+                                "text-[var(--color-text-secondary)]": step.status === "pending",
+                                "text-[var(--color-text-muted)]": step.status === "skipped",
                               })}>{step.name}</span>
                             </div>
-                            {step.duration && <div className="text-zinc-500 mt-0.5">{step.duration < 1000 ? `${step.duration}ms` : `${(step.duration / 1000).toFixed(1)}s`}</div>}
+                            {step.duration && <div className="text-[var(--color-text-muted)] mt-0.5">{step.duration < 1000 ? `${step.duration}ms` : `${(step.duration / 1000).toFixed(1)}s`}</div>}
                             {step.retries > 0 && <div className="text-amber-400/70 mt-0.5">↺ {step.retries}/{step.maxRetries}</div>}
                           </div>
                           {idx < wf.steps.length - 1 && (
-                            <span className="text-zinc-600 shrink-0">→</span>
+                            <span className="text-[var(--color-text-muted)] shrink-0">→</span>
                           )}
                         </React.Fragment>
                       ))}
@@ -494,7 +494,7 @@ export default function WorkflowOrchestrator() {
 
                     {/* Owner + Actions */}
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-zinc-500">Owner: {wf.owner}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">Owner: {wf.owner}</span>
                       <div className="flex gap-2">
                         {wf.status === "active" && (
                           <button className="px-3 py-1 text-xs bg-amber-400/10 text-amber-400 hover:bg-amber-400/20 rounded-md transition-colors">
@@ -509,7 +509,7 @@ export default function WorkflowOrchestrator() {
                         <button className="px-3 py-1 text-xs bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-md transition-colors">
                           ▶ Run Now
                         </button>
-                        <button className="px-3 py-1 text-xs bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded-md transition-colors">
+                        <button className="px-3 py-1 text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] rounded-md transition-colors">
                           ✏️ Edit
                         </button>
                       </div>
@@ -525,17 +525,17 @@ export default function WorkflowOrchestrator() {
       {/* Run History Tab */}
       {tab === "runs" && (
         <div className="space-y-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left p-3 text-zinc-400 font-medium">Run ID</th>
-                  <th className="text-left p-3 text-zinc-400 font-medium">Workflow</th>
-                  <th className="text-left p-3 text-zinc-400 font-medium">Triggered By</th>
-                  <th className="text-left p-3 text-zinc-400 font-medium">Started</th>
-                  <th className="text-left p-3 text-zinc-400 font-medium">Duration</th>
-                  <th className="text-left p-3 text-zinc-400 font-medium">Steps</th>
-                  <th className="text-left p-3 text-zinc-400 font-medium">Status</th>
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Run ID</th>
+                  <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Workflow</th>
+                  <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Triggered By</th>
+                  <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Started</th>
+                  <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Duration</th>
+                  <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Steps</th>
+                  <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -545,20 +545,20 @@ export default function WorkflowOrchestrator() {
                     <React.Fragment key={r.id}>
                       <tr
                         onClick={() => setSelectedRun(selectedRun === r.id ? null : r.id)}
-                        className="border-b border-zinc-800/50 hover:bg-zinc-800/30 cursor-pointer transition-colors"
+                        className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30 cursor-pointer transition-colors"
                       >
-                        <td className="p-3 font-mono text-xs text-zinc-400">{r.id}</td>
-                        <td className="p-3 text-zinc-300">{wf?.name ?? r.workflowId}</td>
-                        <td className="p-3 text-zinc-400 text-xs">
+                        <td className="p-3 font-mono text-xs text-[var(--color-text-secondary)]">{r.id}</td>
+                        <td className="p-3 text-[var(--color-text-primary)]">{wf?.name ?? r.workflowId}</td>
+                        <td className="p-3 text-[var(--color-text-secondary)] text-xs">
                           {triggerIcon[r.triggerType]} {r.triggeredBy}
                         </td>
-                        <td className="p-3 text-zinc-400 text-xs">{fmtTime(r.startedAt)}</td>
-                        <td className="p-3 text-zinc-300">{fmtDuration(r.duration)}</td>
+                        <td className="p-3 text-[var(--color-text-secondary)] text-xs">{fmtTime(r.startedAt)}</td>
+                        <td className="p-3 text-[var(--color-text-primary)]">{fmtDuration(r.duration)}</td>
                         <td className="p-3">
                           <div className="flex items-center gap-1.5">
                             <span className="text-emerald-400">{r.stepsCompleted}</span>
-                            <span className="text-zinc-600">/</span>
-                            <span className="text-zinc-300">{r.stepsTotal}</span>
+                            <span className="text-[var(--color-text-muted)]">/</span>
+                            <span className="text-[var(--color-text-primary)]">{r.stepsTotal}</span>
                             {r.stepsFailed > 0 && <span className="text-rose-400">({r.stepsFailed} failed)</span>}
                           </div>
                         </td>
@@ -570,7 +570,7 @@ export default function WorkflowOrchestrator() {
                         </td>
                       </tr>
                       {selectedRun === r.id && r.error && (
-                        <tr className="border-b border-zinc-800/50">
+                        <tr className="border-b border-[var(--color-border)]/50">
                           <td colSpan={7} className="px-3 pb-3">
                             <div className="bg-rose-400/5 border border-rose-400/20 rounded-md p-3">
                               <div className="text-xs text-rose-400 font-medium mb-1">Error Details</div>
@@ -580,12 +580,12 @@ export default function WorkflowOrchestrator() {
                         </tr>
                       )}
                       {selectedRun === r.id && r.status === "running" && (
-                        <tr className="border-b border-zinc-800/50">
+                        <tr className="border-b border-[var(--color-border)]/50">
                           <td colSpan={7} className="px-3 pb-3">
                             <div className="bg-indigo-400/5 border border-indigo-400/20 rounded-md p-3">
                               <div className="text-xs text-indigo-400 font-medium mb-2">Progress</div>
                               <ProgressBar value={(r.stepsCompleted / r.stepsTotal) * 100} color="bg-indigo-500" />
-                              <div className="text-xs text-zinc-400 mt-1">{r.stepsCompleted} of {r.stepsTotal} steps complete</div>
+                              <div className="text-xs text-[var(--color-text-secondary)] mt-1">{r.stepsCompleted} of {r.stepsTotal} steps complete</div>
                             </div>
                           </td>
                         </tr>
@@ -605,7 +605,7 @@ export default function WorkflowOrchestrator() {
           <div className="flex gap-4">
             {/* Workflow selector */}
             <div className="w-64 space-y-2">
-              <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider px-2">Select Workflow</div>
+              <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider px-2">Select Workflow</div>
               {WORKFLOWS.map(wf => (
                 <button
                   key={wf.id}
@@ -614,11 +614,11 @@ export default function WorkflowOrchestrator() {
                     "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
                     selectedWorkflow === wf.id
                       ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-                      : "bg-zinc-900 text-zinc-300 hover:bg-zinc-800 border border-zinc-800"
+                      : "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] border border-[var(--color-border)]"
                   )}
                 >
                   <div className="font-medium truncate">{wf.name}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">{wf.steps.length} steps</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{wf.steps.length} steps</div>
                 </button>
               ))}
             </div>
@@ -626,7 +626,7 @@ export default function WorkflowOrchestrator() {
             {/* Step editor */}
             <div className="flex-1">
               {workflow ? (
-                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="font-medium">{workflow.name}</h2>
                     <button className="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-400 rounded-md transition-colors">
@@ -635,8 +635,8 @@ export default function WorkflowOrchestrator() {
                   </div>
                   <div className="space-y-2">
                     {workflow.steps.map((step, idx) => (
-                      <div key={step.id} className="flex items-center gap-3 bg-zinc-800 border border-zinc-700 rounded-md p-3">
-                        <span className="text-zinc-500 text-sm w-5 text-center">{idx + 1}</span>
+                      <div key={step.id} className="flex items-center gap-3 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md p-3">
+                        <span className="text-[var(--color-text-muted)] text-sm w-5 text-center">{idx + 1}</span>
                         <span className="text-lg">{stepTypeIcon[step.type]}</span>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
@@ -645,29 +645,29 @@ export default function WorkflowOrchestrator() {
                               {step.status}
                             </span>
                           </div>
-                          <div className="text-xs text-zinc-500 mt-0.5 font-mono">{step.config}</div>
+                          <div className="text-xs text-[var(--color-text-muted)] mt-0.5 font-mono">{step.config}</div>
                         </div>
-                        <div className="text-xs text-zinc-500">
+                        <div className="text-xs text-[var(--color-text-muted)]">
                           Retries: {step.maxRetries}
                         </div>
                         <div className="flex gap-1">
-                          <button className="p-1 hover:bg-zinc-700 rounded text-zinc-400">✏️</button>
-                          <button className="p-1 hover:bg-zinc-700 rounded text-zinc-400">🗑️</button>
+                          <button className="p-1 hover:bg-[var(--color-surface-3)] rounded text-[var(--color-text-secondary)]">✏️</button>
+                          <button className="p-1 hover:bg-[var(--color-surface-3)] rounded text-[var(--color-text-secondary)]">🗑️</button>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="flex gap-2 mt-4 pt-4 border-t border-zinc-800">
+                  <div className="flex gap-2 mt-4 pt-4 border-t border-[var(--color-border)]">
                     <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm transition-colors">
                       Save Changes
                     </button>
-                    <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm text-zinc-300 transition-colors">
+                    <button className="px-4 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-md text-sm text-[var(--color-text-primary)] transition-colors">
                       Discard
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center text-zinc-500">
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-12 text-center text-[var(--color-text-muted)]">
                   Select a workflow to view and edit its steps
                 </div>
               )}
@@ -680,8 +680,8 @@ export default function WorkflowOrchestrator() {
       {tab === "analytics" && (
         <div className="space-y-6">
           {/* Daily volume chart */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Daily Run Volume (Last 7 Days)</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Daily Run Volume (Last 7 Days)</h3>
             <div className="flex items-end gap-3 h-36">
               {dailyVolume.map(d => (
                 <div key={d.day} className="flex-1 flex flex-col items-center gap-1">
@@ -695,26 +695,26 @@ export default function WorkflowOrchestrator() {
                       style={{ height: `${((d.runs - d.failed) / maxVol) * 120}px` }}
                     />
                   </div>
-                  <div className="text-xs text-zinc-400">{d.day}</div>
-                  <div className="text-xs text-zinc-300 font-mono">{d.runs}</div>
+                  <div className="text-xs text-[var(--color-text-secondary)]">{d.day}</div>
+                  <div className="text-xs text-[var(--color-text-primary)] font-mono">{d.runs}</div>
                 </div>
               ))}
             </div>
-            <div className="flex gap-4 mt-2 text-xs text-zinc-400">
+            <div className="flex gap-4 mt-2 text-xs text-[var(--color-text-secondary)]">
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-indigo-500 inline-block" /> Success</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-rose-400/60 inline-block" /> Failed</span>
             </div>
           </div>
 
           {/* Workflow performance table */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Workflow Performance</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Workflow Performance</h3>
             <div className="space-y-3">
               {wfStats.map(ws => (
                 <div key={ws.name} className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-300">{ws.name}</span>
-                    <div className="flex items-center gap-4 text-xs text-zinc-400">
+                    <span className="text-[var(--color-text-primary)]">{ws.name}</span>
+                    <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
                       <span>{ws.runs.toLocaleString()} runs</span>
                       <span>{fmtDuration(ws.avgDuration)} avg</span>
                       <span className={cn("font-medium", ws.rate >= 98 ? "text-emerald-400" : ws.rate >= 95 ? "text-amber-400" : "text-rose-400")}>
@@ -733,17 +733,17 @@ export default function WorkflowOrchestrator() {
 
           {/* Summary stats */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
               <div className="text-3xl font-bold text-indigo-400">4,241</div>
-              <div className="text-sm text-zinc-400 mt-1">Total Runs This Month</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Total Runs This Month</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
               <div className="text-3xl font-bold text-emerald-400">98.6%</div>
-              <div className="text-sm text-zinc-400 mt-1">Overall Success Rate</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Overall Success Rate</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-zinc-300">127h</div>
-              <div className="text-sm text-zinc-400 mt-1">Total Compute Time</div>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
+              <div className="text-3xl font-bold text-[var(--color-text-primary)]">127h</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Total Compute Time</div>
             </div>
           </div>
         </div>

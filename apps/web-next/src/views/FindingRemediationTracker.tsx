@@ -143,7 +143,7 @@ const severityColors: Record<string, string> = {
   high: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
   medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
   low: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  info: 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+  info: 'bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/30'
 };
 
 const statusIcons: Record<string, React.ReactNode> = {
@@ -194,51 +194,51 @@ export default function FindingRemediationTracker() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-2">Finding Remediation Tracker</h1>
-        <p className="text-gray-400">Track and manage remediation status of security findings</p>
+        <p className="text-[var(--color-text-secondary)]">Track and manage remediation status of security findings</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="text-2xl font-bold">{stats.total}</div>
-          <div className="text-sm text-gray-400">Total</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Total</div>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="text-2xl font-bold text-red-400">{stats.open}</div>
-          <div className="text-sm text-gray-400">Open</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Open</div>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="text-2xl font-bold text-yellow-400">{stats.inProgress}</div>
-          <div className="text-sm text-gray-400">In Progress</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">In Progress</div>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="text-2xl font-bold text-green-400">{stats.fixed}</div>
-          <div className="text-sm text-gray-400">Fixed</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Fixed</div>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="text-2xl font-bold text-purple-400">{stats.acceptedRisk}</div>
-          <div className="text-sm text-gray-400">Accepted Risk</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Accepted Risk</div>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="text-2xl font-bold text-red-500">{stats.critical}</div>
-          <div className="text-sm text-gray-400">Critical</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Critical</div>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
           <input
             type="text"
             placeholder="Search findings..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-gray-700"
+            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[var(--color-border)]"
           />
         </div>
         
@@ -246,7 +246,7 @@ export default function FindingRemediationTracker() {
           <select
             value={filterSeverity}
             onChange={(e) => setFilterSeverity(e.target.value)}
-            className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-700"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-border)]"
           >
             <option value="all">All Severities</option>
             <option value="critical">Critical</option>
@@ -259,7 +259,7 @@ export default function FindingRemediationTracker() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-700"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--color-border)]"
           >
             <option value="all">All Statuses</option>
             <option value="open">Open</option>
@@ -268,12 +268,12 @@ export default function FindingRemediationTracker() {
             <option value="accepted_risk">Accepted Risk</option>
           </select>
 
-          <button className="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm hover:bg-gray-800">
+          <button className="flex items-center gap-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm hover:bg-[var(--color-surface-2)]">
             <Filter className="w-4 h-4" />
             More
           </button>
 
-          <button className="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm hover:bg-gray-800">
+          <button className="flex items-center gap-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm hover:bg-[var(--color-surface-2)]">
             <Download className="w-4 h-4" />
             Export
           </button>
@@ -281,9 +281,9 @@ export default function FindingRemediationTracker() {
       </div>
 
       {/* Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-800/50 text-left text-sm text-gray-400">
+          <thead className="bg-[var(--color-surface-2)]/50 text-left text-sm text-[var(--color-text-secondary)]">
             <tr>
               <th className="p-4 w-8"></th>
               <th className="p-4">Finding</th>
@@ -295,14 +295,14 @@ export default function FindingRemediationTracker() {
               <th className="p-4 w-8"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800">
+          <tbody className="divide-y divide-[var(--color-border)]">
             {filteredItems.map((item) => (
               <React.Fragment key={item.id}>
-                <tr className="hover:bg-gray-800/30">
+                <tr className="hover:bg-[var(--color-surface-2)]/30">
                   <td className="p-4">
                     <button
                       onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
-                      className="text-gray-400 hover:text-gray-200"
+                      className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     >
                       {expandedItem === item.id ? (
                         <ChevronDown className="w-4 h-4" />
@@ -314,7 +314,7 @@ export default function FindingRemediationTracker() {
                   <td className="p-4">
                     <div>
                       <div className="font-medium">{item.title}</div>
-                      <div className="text-sm text-gray-500">{item.findingId} • {item.category}</div>
+                      <div className="text-sm text-[var(--color-text-muted)]">{item.findingId} • {item.category}</div>
                     </div>
                   </td>
                   <td className="p-4">
@@ -328,59 +328,59 @@ export default function FindingRemediationTracker() {
                       <span className="text-sm">{statusLabels[item.status]}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-sm text-gray-300">
+                  <td className="p-4 text-sm text-[var(--color-text-primary)]">
                     {item.assignee || '-'}
                   </td>
-                  <td className="p-4 text-sm text-gray-300">
+                  <td className="p-4 text-sm text-[var(--color-text-primary)]">
                     {item.target}
                   </td>
                   <td className="p-4 text-sm">
                     {item.dueDate ? (
-                      <span className={new Date(item.dueDate) < new Date() ? 'text-red-400' : 'text-gray-300'}>
+                      <span className={new Date(item.dueDate) < new Date() ? 'text-red-400' : 'text-[var(--color-text-primary)]'}>
                         {formatDate(item.dueDate)}
                       </span>
                     ) : (
-                      <span className="text-gray-500">-</span>
+                      <span className="text-[var(--color-text-muted)]">-</span>
                     )}
                   </td>
                   <td className="p-4">
-                    <button className="text-gray-400 hover:text-gray-200">
+                    <button className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
                 {expandedItem === item.id && (
                   <tr>
-                    <td colSpan={8} className="bg-gray-800/20 p-4">
+                    <td colSpan={8} className="bg-[var(--color-surface-2)]/20 p-4">
                       <div className="ml-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <h4 className="text-sm font-medium text-gray-400 mb-2">Details</h4>
+                          <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Details</h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-gray-500">Created</span>
+                              <span className="text-[var(--color-text-muted)]">Created</span>
                               <span>{formatDate(item.createdAt)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-500">Updated</span>
+                              <span className="text-[var(--color-text-muted)]">Updated</span>
                               <span>{formatDate(item.updatedAt)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-500">Category</span>
+                              <span className="text-[var(--color-text-muted)]">Category</span>
                               <span>{item.category}</span>
                             </div>
                           </div>
                         </div>
                         <div>
-                          <h4 className="text-sm font-medium text-gray-400 mb-2">Notes</h4>
-                          <p className="text-sm text-gray-300">
+                          <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Notes</h4>
+                          <p className="text-sm text-[var(--color-text-primary)]">
                             {item.notes || 'No notes added.'}
                           </p>
                           <div className="mt-4 flex gap-2">
-                            <button className="flex items-center gap-1 text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded">
+                            <button className="flex items-center gap-1 text-xs bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] px-3 py-1.5 rounded">
                               <Eye className="w-3 h-3" />
                               View Finding
                             </button>
-                            <button className="flex items-center gap-1 text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded">
+                            <button className="flex items-center gap-1 text-xs bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] px-3 py-1.5 rounded">
                               <RefreshCw className="w-3 h-3" />
                               Update Status
                             </button>
@@ -406,13 +406,13 @@ export default function FindingRemediationTracker() {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between mt-4 text-sm text-gray-400">
+      <div className="flex items-center justify-between mt-4 text-sm text-[var(--color-text-secondary)]">
         <div>Showing {filteredItems.length} of {items.length} items</div>
         <div className="flex gap-2">
-          <button className="px-3 py-1 bg-gray-900 border border-gray-800 rounded hover:bg-gray-800" disabled>
+          <button className="px-3 py-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded hover:bg-[var(--color-surface-2)]" disabled>
             Previous
           </button>
-          <button className="px-3 py-1 bg-gray-900 border border-gray-800 rounded hover:bg-gray-800">
+          <button className="px-3 py-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded hover:bg-[var(--color-surface-2)]">
             Next
           </button>
         </div>

@@ -47,21 +47,21 @@ function formatDate(isoString: string): string {
 function parseMarkdown(line: string, key: number): React.ReactNode {
   if (line.startsWith("## ")) {
     return (
-      <h4 key={key} className="text-lg font-semibold text-gray-100 mt-4 mb-2">
+      <h4 key={key} className="text-lg font-semibold text-[var(--color-text-primary)] mt-4 mb-2">
         {line.replace("## ", "")}
       </h4>
     );
   }
   if (line.startsWith("### ")) {
     return (
-      <h5 key={key} className="text-sm font-medium text-gray-300 mt-3 mb-1">
+      <h5 key={key} className="text-sm font-medium text-[var(--color-text-primary)] mt-3 mb-1">
         {line.replace("### ", "")}
       </h5>
     );
   }
   if (line.trim().startsWith("- ")) {
     return (
-      <li key={key} className="text-gray-400 ml-4">
+      <li key={key} className="text-[var(--color-text-secondary)] ml-4">
         {line.trim().substring(2)}
       </li>
     );
@@ -69,10 +69,10 @@ function parseMarkdown(line: string, key: number): React.ReactNode {
   if (line.includes("`") && !line.startsWith("```")) {
     const parts = line.split(/(`[^`]+`)/g);
     return (
-      <p key={key} className="text-gray-400 my-1">
+      <p key={key} className="text-[var(--color-text-secondary)] my-1">
         {parts.map((part, j) =>
           part.startsWith("`") && part.endsWith("`") ? (
-            <code key={j} className="bg-gray-800 px-1.5 py-0.5 rounded text-blue-300 text-xs">
+            <code key={j} className="bg-[var(--color-surface-2)] px-1.5 py-0.5 rounded text-blue-300 text-xs">
               {part.slice(1, -1)}
             </code>
           ) : (
@@ -83,7 +83,7 @@ function parseMarkdown(line: string, key: number): React.ReactNode {
     );
   }
   if (line.trim()) {
-    return <p key={key} className="text-gray-400 my-1">{line}</p>;
+    return <p key={key} className="text-[var(--color-text-secondary)] my-1">{line}</p>;
   }
   return null;
 }
@@ -247,18 +247,18 @@ export default function DiscoveryFindingsSearch() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-xl font-semibold text-gray-100 mb-4">
+          <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-4">
             Discovery Findings Search
           </h1>
           
           {/* Search Bar */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -268,10 +268,10 @@ export default function DiscoveryFindingsSearch() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search findings across all waves..."
-              className="block w-full pl-10 pr-12 py-3 bg-gray-900 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="block w-full pl-10 pr-12 py-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-xs text-gray-500 bg-gray-800 border border-gray-700 rounded">
+              <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded">
                 ⌘K
               </kbd>
             </div>
@@ -284,9 +284,9 @@ export default function DiscoveryFindingsSearch() {
           {/* Sidebar */}
           <aside className="lg:w-64 flex-shrink-0 space-y-6">
             {/* Filters */}
-            <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+            <div className="bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-medium text-gray-100">Filters</h2>
+                <h2 className="font-medium text-[var(--color-text-primary)]">Filters</h2>
                 {hasActiveFilters && (
                   <button
                     onClick={clearAllFilters}
@@ -299,7 +299,7 @@ export default function DiscoveryFindingsSearch() {
 
               {/* Wave Filter */}
               <div className="mb-5">
-                <h3 className="text-sm font-medium text-gray-400 mb-2">Wave</h3>
+                <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Wave</h3>
                 <div className="flex gap-2">
                   {WAVES.map((wave) => (
                     <button
@@ -309,7 +309,7 @@ export default function DiscoveryFindingsSearch() {
                         "px-3 py-1.5 text-sm rounded-md border transition-colors",
                         selectedWaves.includes(wave)
                           ? "bg-blue-500/20 border-blue-500/30 text-blue-400"
-                          : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
+                          : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       {wave}
@@ -320,7 +320,7 @@ export default function DiscoveryFindingsSearch() {
 
               {/* Agent Filter */}
               <div className="mb-5">
-                <h3 className="text-sm font-medium text-gray-400 mb-2">Agent</h3>
+                <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Agent</h3>
                 <div className="flex flex-wrap gap-2">
                   {AGENTS.map((agent) => (
                     <button
@@ -330,7 +330,7 @@ export default function DiscoveryFindingsSearch() {
                         "px-3 py-1.5 text-xs rounded-md border transition-colors",
                         selectedAgents.includes(agent)
                           ? "bg-purple-500/20 border-purple-500/30 text-purple-400"
-                          : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
+                          : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       {agent}
@@ -341,7 +341,7 @@ export default function DiscoveryFindingsSearch() {
 
               {/* Domain Filter */}
               <div className="mb-5">
-                <h3 className="text-sm font-medium text-gray-400 mb-2">Domain</h3>
+                <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Domain</h3>
                 <div className="flex flex-wrap gap-2">
                   {DOMAINS.map((domain) => (
                     <button
@@ -351,7 +351,7 @@ export default function DiscoveryFindingsSearch() {
                         "px-3 py-1.5 text-xs rounded-md border transition-colors",
                         selectedDomains.includes(domain)
                           ? "bg-green-500/20 border-green-500/30 text-green-400"
-                          : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
+                          : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       {domain}
@@ -362,7 +362,7 @@ export default function DiscoveryFindingsSearch() {
 
               {/* Severity Filter */}
               <div className="mb-5">
-                <h3 className="text-sm font-medium text-gray-400 mb-2">Severity</h3>
+                <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Severity</h3>
                 <div className="flex flex-wrap gap-2">
                   {SEVERITIES.map((severity) => (
                     <button
@@ -372,7 +372,7 @@ export default function DiscoveryFindingsSearch() {
                         "px-3 py-1.5 text-xs rounded-md border capitalize transition-colors",
                         selectedSeverities.includes(severity)
                           ? severityColors[severity]
-                          : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
+                          : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       {severity}
@@ -383,20 +383,20 @@ export default function DiscoveryFindingsSearch() {
 
               {/* Date Range Filter */}
               <div>
-                <h3 className="text-sm font-medium text-gray-400 mb-2">Date Range</h3>
+                <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Date Range</h3>
                 <div className="space-y-2">
                   <input
                     type="date"
                     value={dateRange.start}
                     onChange={(e) => setDateRange((prev) => ({ ...prev, start: e.target.value }))}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                     aria-label="Start date"
                   />
                   <input
                     type="date"
                     value={dateRange.end}
                     onChange={(e) => setDateRange((prev) => ({ ...prev, end: e.target.value }))}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                     aria-label="End date"
                   />
                 </div>
@@ -408,19 +408,19 @@ export default function DiscoveryFindingsSearch() {
           <main className="flex-1 min-w-0">
             {/* Sort and Results Count */}
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-gray-400">
-                Showing <span className="text-gray-200 font-medium">{filteredFindings.length}</span> of{" "}
-                <span className="text-gray-200 font-medium">{FINDINGS.length}</span> findings
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                Showing <span className="text-[var(--color-text-primary)] font-medium">{filteredFindings.length}</span> of{" "}
+                <span className="text-[var(--color-text-primary)] font-medium">{FINDINGS.length}</span> findings
               </p>
               <div className="flex items-center gap-2">
-                <label htmlFor="sort-select" className="text-sm text-gray-400">
+                <label htmlFor="sort-select" className="text-sm text-[var(--color-text-secondary)]">
                   Sort by:
                 </label>
                 <select
                   id="sort-select"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                  className="bg-gray-800 border border-gray-700 rounded-md text-sm text-gray-200 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md text-sm text-[var(--color-text-primary)] px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="relevance">Relevance</option>
                   <option value="newest">Newest</option>
@@ -443,10 +443,10 @@ export default function DiscoveryFindingsSearch() {
                   <article
                     key={finding.id}
                     className={cn(
-                      "bg-gray-900/50 border rounded-lg overflow-hidden transition-colors",
+                      "bg-[var(--color-surface-1)]/50 border rounded-lg overflow-hidden transition-colors",
                       expandedFindingId === finding.id
                         ? "border-blue-500/30"
-                        : "border-gray-800 hover:border-gray-700"
+                        : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                     )}
                   >
                     {/* Finding Summary - Always Visible */}
@@ -460,16 +460,16 @@ export default function DiscoveryFindingsSearch() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <span className="text-sm text-gray-500">{finding.agentName}</span>
-                            <span className="text-gray-700">•</span>
-                            <span className="text-sm text-gray-500">{finding.domain}</span>
-                            <span className="text-gray-700">•</span>
-                            <span className="text-sm text-gray-500">Wave {finding.wave}</span>
+                            <span className="text-sm text-[var(--color-text-muted)]">{finding.agentName}</span>
+                            <span className="text-[var(--color-text-muted)]">•</span>
+                            <span className="text-sm text-[var(--color-text-muted)]">{finding.domain}</span>
+                            <span className="text-[var(--color-text-muted)]">•</span>
+                            <span className="text-sm text-[var(--color-text-muted)]">Wave {finding.wave}</span>
                           </div>
-                          <h3 className="text-base font-medium text-gray-100 mb-1">
+                          <h3 className="text-base font-medium text-[var(--color-text-primary)] mb-1">
                             {highlightMatch(finding.title, debouncedQuery)}
                           </h3>
-                          <p className="text-sm text-gray-400 line-clamp-2">
+                          <p className="text-sm text-[var(--color-text-secondary)] line-clamp-2">
                             {highlightMatch(finding.excerpt, debouncedQuery)}
                           </p>
                         </div>
@@ -482,7 +482,7 @@ export default function DiscoveryFindingsSearch() {
                           >
                             {finding.severity}
                           </span>
-                          <time className="text-xs text-gray-500" dateTime={finding.timestamp}>
+                          <time className="text-xs text-[var(--color-text-muted)]" dateTime={finding.timestamp}>
                             {formatDate(finding.timestamp)}
                           </time>
                         </div>
@@ -491,13 +491,13 @@ export default function DiscoveryFindingsSearch() {
 
                     {/* Expanded Detail View */}
                     {expandedFindingId === finding.id && (
-                      <div className="border-t border-gray-800 p-4 bg-gray-900/30">
+                      <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-surface-1)]/30">
                         <div className="prose prose-invert prose-sm max-w-none">
                           {finding.content.split("\n").map((line, i) => parseMarkdown(line, i))}
                         </div>
-                        <div className="mt-4 pt-4 border-t border-gray-800 flex flex-wrap gap-2">
+                        <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex flex-wrap gap-2">
                           {finding.tags.map((tag) => (
-                            <span key={tag} className="px-2 py-1 text-xs bg-gray-800 text-gray-400 rounded">
+                            <span key={tag} className="px-2 py-1 text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded">
                               {tag}
                             </span>
                           ))}

@@ -408,7 +408,7 @@ const CATEGORY_CONFIG: Record<PromptCategory, { label: string; emoji: string; co
   code:      { label: "Code",      emoji: "💻", color: "text-emerald-400" },
   research:  { label: "Research",  emoji: "📚", color: "text-amber-400" },
   agent:     { label: "Agent",     emoji: "🤖", color: "text-cyan-400" },
-  system:    { label: "System",    emoji: "⚙️", color: "text-zinc-400" },
+  system:    { label: "System",    emoji: "⚙️", color: "text-[var(--color-text-secondary)]" },
   creative:  { label: "Creative",  emoji: "✨", color: "text-pink-400" },
   personal:  { label: "Personal",  emoji: "👤", color: "text-orange-400" },
 };
@@ -453,35 +453,35 @@ function UsePromptModal({ prompt, onClose }: UsePromptModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="use-prompt-title">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 flex-none">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)] flex-none">
           <div>
-            <h2 id="use-prompt-title" className="text-sm font-semibold text-white">{prompt.title}</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">{prompt.description}</p>
+            <h2 id="use-prompt-title" className="text-sm font-semibold text-[var(--color-text-primary)]">{prompt.title}</h2>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{prompt.description}</p>
           </div>
-          <button onClick={onClose} aria-label="Close" className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
+          <button onClick={onClose} aria-label="Close" className="p-1.5 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
             <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" d="M4 4l8 8M12 4l-8 8" /></svg>
           </button>
         </div>
 
-        <div className="flex flex-1 min-h-0 divide-x divide-zinc-800">
+        <div className="flex flex-1 min-h-0 divide-x divide-[var(--color-border)]">
           {/* Variables panel */}
           {prompt.variables.length > 0 && (
             <div className="w-52 flex-none overflow-y-auto px-4 py-4 space-y-4">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Variables</p>
+              <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Variables</p>
               {prompt.variables.map((v) => (
                 <div key={v.name}>
-                  <label htmlFor={`var-${v.name}`} className="block text-xs font-medium text-zinc-400 mb-1">
+                  <label htmlFor={`var-${v.name}`} className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
                     {`{{${v.name}}}`}
-                    <span className="text-zinc-600 font-normal ml-1">— {v.description}</span>
+                    <span className="text-[var(--color-text-muted)] font-normal ml-1">— {v.description}</span>
                   </label>
                   <textarea
                     id={`var-${v.name}`}
                     value={values[v.name] ?? ""}
                     onChange={(e) => setValues((prev) => ({ ...prev, [v.name]: e.target.value }))}
                     rows={2}
-                    className="w-full px-2 py-1.5 text-xs bg-zinc-950 border border-zinc-700 rounded-md text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none font-mono"
+                    className="w-full px-2 py-1.5 text-xs bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-md text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none font-mono"
                   />
                 </div>
               ))}
@@ -491,12 +491,12 @@ function UsePromptModal({ prompt, onClose }: UsePromptModalProps) {
           {/* Preview */}
           <div className="flex-1 overflow-y-auto px-5 py-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Preview</p>
+              <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Preview</p>
               <button
                 onClick={handleCopy}
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                  copied ? "bg-emerald-600 text-white" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700"
+                  copied ? "bg-emerald-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)]"
                 )}
               >
                 {copied ? (
@@ -506,7 +506,7 @@ function UsePromptModal({ prompt, onClose }: UsePromptModalProps) {
                 )}
               </button>
             </div>
-            <pre className="text-xs text-zinc-300 font-mono leading-relaxed whitespace-pre-wrap bg-zinc-950 rounded-lg border border-zinc-800 p-4 overflow-x-auto">
+            <pre className="text-xs text-[var(--color-text-primary)] font-mono leading-relaxed whitespace-pre-wrap bg-[var(--color-surface-0)] rounded-lg border border-[var(--color-border)] p-4 overflow-x-auto">
               {result.split(/\{\{(\w+)\}\}/).map((part, i) =>
                 i % 2 === 1
                   ? <mark key={i} className="bg-amber-500/20 text-amber-300 rounded px-0.5 not-italic">{`{{${part}}}`}</mark>
@@ -517,11 +517,11 @@ function UsePromptModal({ prompt, onClose }: UsePromptModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex gap-2 px-5 py-4 border-t border-zinc-800 flex-none">
-          <button onClick={handleCopy} className={cn("flex-1 py-2 text-sm font-medium rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors", copied ? "bg-emerald-600 text-white" : "bg-indigo-600 text-white hover:bg-indigo-500")}>
+        <div className="flex gap-2 px-5 py-4 border-t border-[var(--color-border)] flex-none">
+          <button onClick={handleCopy} className={cn("flex-1 py-2 text-sm font-medium rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors", copied ? "bg-emerald-600 text-[var(--color-text-primary)]" : "bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500")}>
             {copied ? "✓ Copied to clipboard" : "Copy Prompt"}
           </button>
-          <button onClick={onClose} className="py-2 px-4 text-sm font-medium rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
+          <button onClick={onClose} className="py-2 px-4 text-sm font-medium rounded-lg bg-[var(--color-surface-2)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
             Close
           </button>
         </div>
@@ -549,27 +549,27 @@ function PromptCard({ prompt, selected, onSelect, onFavorite, onUse }: PromptCar
       aria-selected={selected}
       className={cn(
         "flex flex-col rounded-xl border transition-colors cursor-pointer",
-        selected ? "bg-zinc-900 border-indigo-500/40 ring-1 ring-indigo-500/20" : "bg-zinc-900 border-zinc-800 hover:border-zinc-700"
+        selected ? "bg-[var(--color-surface-1)] border-indigo-500/40 ring-1 ring-indigo-500/20" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)]"
       )}
       onClick={onSelect}
     >
       <div className="flex items-start gap-3 p-4">
-        <div className="flex-none h-9 w-9 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-lg">
+        <div className="flex-none h-9 w-9 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center text-lg">
           {catCfg.emoji}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-white leading-tight">{prompt.title}</span>
+            <span className="text-sm font-semibold text-[var(--color-text-primary)] leading-tight">{prompt.title}</span>
             {prompt.isBuiltIn && (
-              <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-zinc-700/60 text-zinc-400 ring-1 ring-zinc-600/30">Built-in</span>
+              <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-[var(--color-surface-3)]/60 text-[var(--color-text-secondary)] ring-1 ring-zinc-600/30">Built-in</span>
             )}
           </div>
-          <p className="text-xs text-zinc-500 mt-0.5 line-clamp-2 leading-relaxed">{prompt.description}</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5 line-clamp-2 leading-relaxed">{prompt.description}</p>
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onFavorite(); }}
           aria-label={prompt.isFavorite ? "Remove from favorites" : "Add to favorites"}
-          className="flex-none p-1 text-zinc-600 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded transition-colors"
+          className="flex-none p-1 text-[var(--color-text-muted)] hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded transition-colors"
         >
           <svg className={cn("h-4 w-4", prompt.isFavorite && "text-amber-400 fill-amber-400")} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 2l1.5 3.5H13l-2.8 2.2 1 3.3L8 9l-3.2 2 1-3.3L3 5.5h3.5z" />
@@ -580,25 +580,25 @@ function PromptCard({ prompt, selected, onSelect, onFavorite, onUse }: PromptCar
       {/* Category + tags */}
       <div className="px-4 pb-3 flex flex-wrap items-center gap-1.5">
         <span className={cn("text-xs font-medium", catCfg.color)}>{catCfg.label}</span>
-        <span className="text-zinc-800">·</span>
+        <span className="text-[var(--color-text-muted)]">·</span>
         {prompt.variables.length > 0 && (
-          <span className="text-xs text-zinc-600">{prompt.variables.length} variable{prompt.variables.length !== 1 ? "s" : ""}</span>
+          <span className="text-xs text-[var(--color-text-muted)]">{prompt.variables.length} variable{prompt.variables.length !== 1 ? "s" : ""}</span>
         )}
         {prompt.tags.slice(0, 3).map((t) => (
-          <span key={t} className="px-1.5 py-0.5 text-xs rounded bg-zinc-800 text-zinc-600 border border-zinc-700/50">{t}</span>
+          <span key={t} className="px-1.5 py-0.5 text-xs rounded bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border border-[var(--color-border)]/50">{t}</span>
         ))}
       </div>
 
       {/* Stats + action */}
       <div className="px-4 pb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3 text-xs text-zinc-600">
+        <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
           <span>{prompt.usageCount} uses</span>
           {prompt.lastUsedAt && <span>Last: {relTime(prompt.lastUsedAt)}</span>}
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onUse(); }}
           aria-label={`Use prompt: ${prompt.title}`}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
         >
           Use Prompt →
         </button>
@@ -661,35 +661,35 @@ export default function PromptLibrary() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-lg font-semibold text-white">Prompt Library</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Prompt Library</h1>
+            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
               Reusable prompts with variable interpolation for agents and chats
             </p>
           </div>
           <button
             aria-label="Create new prompt"
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
           >
             <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" d="M8 3v10M3 8h10" /></svg>
             New Prompt
           </button>
         </div>
-        <div className="flex items-center gap-4 mt-3 text-xs text-zinc-500">
-          <span><span className="text-zinc-300 font-semibold">{stats.total}</span> prompts</span>
+        <div className="flex items-center gap-4 mt-3 text-xs text-[var(--color-text-muted)]">
+          <span><span className="text-[var(--color-text-primary)] font-semibold">{stats.total}</span> prompts</span>
           <span><span className="text-amber-400 font-semibold">{stats.favorites}</span> favorites</span>
           <span><span className="text-indigo-400 font-semibold">{stats.custom}</span> custom</span>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex-none px-6 py-3 border-b border-zinc-800 flex items-center gap-3 flex-wrap">
+      <div className="flex-none px-6 py-3 border-b border-[var(--color-border)] flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-48 max-w-sm">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500 pointer-events-none" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--color-text-muted)] pointer-events-none" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <circle cx="7" cy="7" r="4.5" /><path strokeLinecap="round" d="M10.5 10.5l3 3" />
           </svg>
           <input
@@ -699,7 +699,7 @@ export default function PromptLibrary() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search prompts… (⌘F)"
             aria-label="Search prompt library"
-            className="w-full pl-8 pr-3 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-8 pr-3 py-1.5 text-sm bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
@@ -707,7 +707,7 @@ export default function PromptLibrary() {
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value as SortOrder)}
           aria-label="Sort order"
-          className="py-1.5 pl-2 pr-6 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
+          className="py-1.5 pl-2 pr-6 text-sm bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
         >
           <option value="usage">Most Used</option>
           <option value="recent">Recently Used</option>
@@ -716,7 +716,7 @@ export default function PromptLibrary() {
       </div>
 
       {/* Category tabs */}
-      <div className="flex-none px-6 py-2 border-b border-zinc-800">
+      <div className="flex-none px-6 py-2 border-b border-[var(--color-border)]">
         <div role="tablist" aria-label="Filter by category" className="flex items-center gap-1 overflow-x-auto pb-px">
           {categories.map((cat) => {
             const isAll = cat === "all";
@@ -731,13 +731,13 @@ export default function PromptLibrary() {
                 onClick={() => setCategoryFilter(cat)}
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                  categoryFilter === cat ? "bg-indigo-600 text-white" : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                  categoryFilter === cat ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
                 {isFav && "⭐"}
                 {cfg && cfg.emoji}
                 <span className="capitalize">{isAll ? "All" : isFav ? "Favorites" : cfg?.label}</span>
-                <span className={cn("px-1.5 py-0.5 rounded-full text-xs tabular-nums", categoryFilter === cat ? "bg-indigo-500" : "bg-zinc-700 text-zinc-500")}>
+                <span className={cn("px-1.5 py-0.5 rounded-full text-xs tabular-nums", categoryFilter === cat ? "bg-indigo-500" : "bg-[var(--color-surface-3)] text-[var(--color-text-muted)]")}>
                   {count}
                 </span>
               </button>
@@ -755,8 +755,8 @@ export default function PromptLibrary() {
         {sorted.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
             <span className="text-4xl">📭</span>
-            <p className="text-sm font-medium text-zinc-300">No prompts found</p>
-            <p className="text-xs text-zinc-600">Try a different search or category</p>
+            <p className="text-sm font-medium text-[var(--color-text-primary)]">No prompts found</p>
+            <p className="text-xs text-[var(--color-text-muted)]">Try a different search or category</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">

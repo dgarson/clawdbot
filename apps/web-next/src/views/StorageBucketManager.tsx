@@ -137,9 +137,9 @@ function providerColor(p: Bucket["provider"]): string {
 
 function classColor(c: StorageClass): string {
   const map: Record<StorageClass, string> = {
-    standard:    "text-white",
+    standard:    "text-[var(--color-text-primary)]",
     infrequent:  "text-amber-400",
-    archive:     "text-zinc-400",
+    archive:     "text-[var(--color-text-secondary)]",
     intelligent: "text-indigo-400",
   };
   return map[c];
@@ -147,7 +147,7 @@ function classColor(c: StorageClass): string {
 
 function accessColor(a: AccessLevel): string {
   const map: Record<AccessLevel, string> = {
-    "private":        "text-zinc-400",
+    "private":        "text-[var(--color-text-secondary)]",
     "public-read":    "text-rose-400",
     "authenticated":  "text-emerald-400",
   };
@@ -172,9 +172,9 @@ function BucketsTab() {
           { label: "Total Objects", value: fmtNum(buckets.reduce((a, b) => a + b.objectCount, 0)) },
           { label: "Monthly Cost", value: "$" + totalCost.toFixed(2) },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-            <div className="text-2xl font-bold text-white">{s.value}</div>
-            <div className="text-sm text-zinc-400 mt-1">{s.label}</div>
+          <div key={s.label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
+            <div className="text-2xl font-bold text-[var(--color-text-primary)]">{s.value}</div>
+            <div className="text-sm text-[var(--color-text-secondary)] mt-1">{s.label}</div>
           </div>
         ))}
       </div>
@@ -185,7 +185,7 @@ function BucketsTab() {
             key={bucket.id}
             className={cn(
               "rounded-xl border p-4 cursor-pointer transition-all",
-              selected?.id === bucket.id ? "border-indigo-500 bg-indigo-500/5" : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
+              selected?.id === bucket.id ? "border-indigo-500 bg-indigo-500/5" : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
             )}
             onClick={() => setSelected(selected?.id === bucket.id ? null : bucket)}
           >
@@ -193,65 +193,65 @@ function BucketsTab() {
               <span className="text-xl">🪣</span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-white">{bucket.name}</span>
+                  <span className="font-medium text-[var(--color-text-primary)]">{bucket.name}</span>
                   <span className={cn("text-xs px-1.5 py-0.5 rounded border", providerColor(bucket.provider))}>
                     {bucket.provider.toUpperCase()}
                   </span>
                   <span className={cn("text-xs", accessColor(bucket.access))}>{bucket.access}</span>
                 </div>
-                <div className="text-xs text-zinc-500 mt-0.5">{bucket.region}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{bucket.region}</div>
               </div>
               <div className="text-right">
-                <div className="text-sm font-semibold text-white">{fmtBytes(bucket.sizeBytes)}</div>
-                <div className="text-xs text-zinc-500">{fmtNum(bucket.objectCount)} objects</div>
+                <div className="text-sm font-semibold text-[var(--color-text-primary)]">{fmtBytes(bucket.sizeBytes)}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">{fmtNum(bucket.objectCount)} objects</div>
               </div>
               <div className="text-right w-20">
                 <div className="text-sm text-emerald-400">${bucket.monthlyCost.toFixed(2)}</div>
-                <div className="text-xs text-zinc-500">/month</div>
+                <div className="text-xs text-[var(--color-text-muted)]">/month</div>
               </div>
             </div>
 
             {selected?.id === bucket.id && (
-              <div className="mt-4 border-t border-zinc-800 pt-4 grid grid-cols-2 gap-4">
+              <div className="mt-4 border-t border-[var(--color-border)] pt-4 grid grid-cols-2 gap-4">
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Storage class</span>
+                    <span className="text-[var(--color-text-muted)]">Storage class</span>
                     <span className={classColor(bucket.storageClass)}>{bucket.storageClass}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Versioning</span>
-                    <span className={bucket.versioning ? "text-emerald-400" : "text-zinc-500"}>
+                    <span className="text-[var(--color-text-muted)]">Versioning</span>
+                    <span className={bucket.versioning ? "text-emerald-400" : "text-[var(--color-text-muted)]"}>
                       {bucket.versioning ? "enabled" : "disabled"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Encryption</span>
+                    <span className="text-[var(--color-text-muted)]">Encryption</span>
                     <span className={bucket.encryption ? "text-emerald-400" : "text-rose-400"}>
                       {bucket.encryption ? "AES-256" : "none"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Lifecycle rules</span>
-                    <span className={bucket.lifecycle ? "text-indigo-400" : "text-zinc-500"}>
+                    <span className="text-[var(--color-text-muted)]">Lifecycle rules</span>
+                    <span className={bucket.lifecycle ? "text-indigo-400" : "text-[var(--color-text-muted)]"}>
                       {bucket.lifecycle ? "configured" : "none"}
                     </span>
                   </div>
                 </div>
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Created</span>
-                    <span className="text-zinc-300">{bucket.createdAt}</span>
+                    <span className="text-[var(--color-text-muted)]">Created</span>
+                    <span className="text-[var(--color-text-primary)]">{bucket.createdAt}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Last modified</span>
-                    <span className="text-zinc-300">{bucket.lastModified}</span>
+                    <span className="text-[var(--color-text-muted)]">Last modified</span>
+                    <span className="text-[var(--color-text-primary)]">{bucket.lastModified}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Total size</span>
-                    <span className="text-zinc-300">{fmtBytes(bucket.sizeBytes)}</span>
+                    <span className="text-[var(--color-text-muted)]">Total size</span>
+                    <span className="text-[var(--color-text-primary)]">{fmtBytes(bucket.sizeBytes)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Monthly cost</span>
+                    <span className="text-[var(--color-text-muted)]">Monthly cost</span>
                     <span className="text-emerald-400">${bucket.monthlyCost.toFixed(2)}</span>
                   </div>
                 </div>
@@ -283,7 +283,7 @@ function ObjectsTab() {
         <select
           value={bucket}
           onChange={(e) => setBucket(e.target.value)}
-          className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
         >
           {buckets.map((b) => (
             <option key={b.id} value={b.id}>{b.name}</option>
@@ -293,12 +293,12 @@ function ObjectsTab() {
           value={prefix}
           onChange={(e) => setPrefix(e.target.value)}
           placeholder="Filter by prefix..."
-          className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
+          className="flex-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
         />
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as "key" | "size" | "modified")}
-          className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
         >
           <option value="modified">Sort: Recent</option>
           <option value="size">Sort: Size</option>
@@ -306,27 +306,27 @@ function ObjectsTab() {
         </select>
       </div>
 
-      <div className="rounded-xl border border-zinc-800 overflow-hidden">
+      <div className="rounded-xl border border-[var(--color-border)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900">
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Key</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Size</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Class</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Modified</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Type</th>
+            <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]">
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Key</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Size</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Class</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Modified</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Type</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800">
+          <tbody className="divide-y divide-[var(--color-border)]">
             {filtered.map((obj) => (
-              <tr key={obj.key} className="bg-zinc-950 hover:bg-zinc-900 transition-colors">
-                <td className="px-4 py-3 font-mono text-xs text-zinc-300 max-w-xs truncate">{obj.key}</td>
-                <td className="px-4 py-3 text-xs text-zinc-300">{fmtBytes(obj.size)}</td>
+              <tr key={obj.key} className="bg-[var(--color-surface-0)] hover:bg-[var(--color-surface-1)] transition-colors">
+                <td className="px-4 py-3 font-mono text-xs text-[var(--color-text-primary)] max-w-xs truncate">{obj.key}</td>
+                <td className="px-4 py-3 text-xs text-[var(--color-text-primary)]">{fmtBytes(obj.size)}</td>
                 <td className="px-4 py-3 text-xs">
                   <span className={classColor(obj.storageClass)}>{obj.storageClass}</span>
                 </td>
-                <td className="px-4 py-3 text-xs text-zinc-400">{obj.lastModified.slice(0, 10)}</td>
-                <td className="px-4 py-3 text-xs text-zinc-500 truncate max-w-xs">{obj.contentType}</td>
+                <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{obj.lastModified.slice(0, 10)}</td>
+                <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] truncate max-w-xs">{obj.contentType}</td>
               </tr>
             ))}
           </tbody>
@@ -341,32 +341,32 @@ function LifecycleTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-zinc-400">
+      <p className="text-sm text-[var(--color-text-secondary)]">
         Lifecycle rules automatically transition or expire objects based on age and prefix.
       </p>
       {rules.map((rule) => (
-        <div key={rule.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+        <div key={rule.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className={cn("w-2 h-2 rounded-full", rule.enabled ? "bg-emerald-400" : "bg-zinc-600")} />
-            <span className="font-medium text-white">{rule.name}</span>
-            {!rule.enabled && <span className="text-xs text-zinc-500">(disabled)</span>}
+            <div className={cn("w-2 h-2 rounded-full", rule.enabled ? "bg-emerald-400" : "bg-[var(--color-surface-3)]")} />
+            <span className="font-medium text-[var(--color-text-primary)]">{rule.name}</span>
+            {!rule.enabled && <span className="text-xs text-[var(--color-text-muted)]">(disabled)</span>}
           </div>
           <div className="grid grid-cols-4 gap-4 text-xs">
             <div>
-              <div className="text-zinc-500 mb-0.5">Prefix</div>
+              <div className="text-[var(--color-text-muted)] mb-0.5">Prefix</div>
               <div className="font-mono text-indigo-300">{rule.prefix}</div>
             </div>
             <div>
-              <div className="text-zinc-500 mb-0.5">Transition after</div>
-              <div className="text-zinc-300">{rule.transition} days</div>
+              <div className="text-[var(--color-text-muted)] mb-0.5">Transition after</div>
+              <div className="text-[var(--color-text-primary)]">{rule.transition} days</div>
             </div>
             <div>
-              <div className="text-zinc-500 mb-0.5">Transition to</div>
+              <div className="text-[var(--color-text-muted)] mb-0.5">Transition to</div>
               <div className={classColor(rule.transitionClass)}>{rule.transitionClass}</div>
             </div>
             <div>
-              <div className="text-zinc-500 mb-0.5">Expiration</div>
-              <div className={rule.expiration ? "text-rose-400" : "text-zinc-500"}>
+              <div className="text-[var(--color-text-muted)] mb-0.5">Expiration</div>
+              <div className={rule.expiration ? "text-rose-400" : "text-[var(--color-text-muted)]"}>
                 {rule.expiration ? rule.expiration + " days" : "never"}
               </div>
             </div>
@@ -390,24 +390,24 @@ function CostTab() {
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Total Monthly", value: "$" + total.toFixed(2), color: "text-white" },
+          { label: "Total Monthly", value: "$" + total.toFixed(2), color: "text-[var(--color-text-primary)]" },
           { label: "Projected Annual", value: "$" + (total * 12).toFixed(0), color: "text-amber-400" },
-          { label: "Avg per Bucket", value: "$" + (total / buckets.length).toFixed(2), color: "text-zinc-300" },
+          { label: "Avg per Bucket", value: "$" + (total / buckets.length).toFixed(2), color: "text-[var(--color-text-primary)]" },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+          <div key={s.label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
             <div className={cn("text-2xl font-bold", s.color)}>{s.value}</div>
-            <div className="text-sm text-zinc-400 mt-1">{s.label}</div>
+            <div className="text-sm text-[var(--color-text-secondary)] mt-1">{s.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">Cost by Bucket</h3>
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Cost by Bucket</h3>
         <div className="space-y-3">
           {sorted.map((b) => (
             <div key={b.id} className="flex items-center gap-3">
-              <span className="text-xs text-zinc-300 w-40 truncate">{b.name}</span>
-              <div className="flex-1 bg-zinc-800 rounded-full h-2">
+              <span className="text-xs text-[var(--color-text-primary)] w-40 truncate">{b.name}</span>
+              <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                 <div
                   className="h-2 rounded-full bg-indigo-500"
                   style={{ width: (b.monthlyCost / sorted[0].monthlyCost * 100) + "%" }}
@@ -419,15 +419,15 @@ function CostTab() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">Cost by Provider</h3>
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Cost by Provider</h3>
         <div className="space-y-3">
           {Object.entries(byProvider).map(([provider, cost]) => (
             <div key={provider} className="flex items-center gap-3">
               <span className={cn("text-xs px-2 py-0.5 rounded border w-16 text-center capitalize", providerColor(provider as Bucket["provider"]))}>
                 {provider}
               </span>
-              <div className="flex-1 bg-zinc-800 rounded-full h-2">
+              <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                 <div
                   className="h-2 rounded-full bg-amber-500"
                   style={{ width: (cost / total * 100) + "%" }}
@@ -451,15 +451,15 @@ export default function StorageBucketManager() {
   const [tab, setTab] = useState<Tab>("Buckets");
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1">Storage Bucket Manager</h1>
-        <p className="text-zinc-400 text-sm">
+        <p className="text-[var(--color-text-secondary)] text-sm">
           Manage S3, GCS, and Azure Blob storage buckets — {buckets.length} buckets, {fmtBytes(buckets.reduce((a, b) => a + b.sizeBytes, 0))} total
         </p>
       </div>
 
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
+      <div className="flex gap-1 mb-6 border-b border-[var(--color-border)]">
         {TABS.map((t) => (
           <button
             key={t}
@@ -468,7 +468,7 @@ export default function StorageBucketManager() {
               "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
               tab === t
                 ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-zinc-400 hover:text-white"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}

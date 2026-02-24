@@ -79,7 +79,7 @@ const RETENTION: RetentionCohort[] = [
 ];
 
 const FUNNEL_METRICS: FunnelMetric[] = [
-  { label: "Total Visitors", value: "48.2K", subValue: "This month", trend: "up", trendPct: 12, color: "text-zinc-100" },
+  { label: "Total Visitors", value: "48.2K", subValue: "This month", trend: "up", trendPct: 12, color: "text-[var(--color-text-primary)]" },
   { label: "Sign-Up Rate", value: "20.0%", subValue: "9.6K users", trend: "up", trendPct: 8, color: "text-indigo-400" },
   { label: "Activation Rate", value: "56.0%", subValue: "5.4K users", trend: "down", trendPct: 4, color: "text-amber-400" },
   { label: "Paid Conversion", value: "11.3%", subValue: "612 paying", trend: "up", trendPct: 22, color: "text-emerald-400" },
@@ -87,7 +87,7 @@ const FUNNEL_METRICS: FunnelMetric[] = [
 
 function stageBg(s: JourneyStage) {
   const m: Record<JourneyStage, string> = {
-    awareness: "bg-zinc-700 text-zinc-300",
+    awareness: "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]",
     activation: "bg-indigo-500/10 text-indigo-400",
     engagement: "bg-cyan-500/10 text-cyan-400",
     retention: "bg-emerald-500/10 text-emerald-400",
@@ -102,12 +102,12 @@ function dropReasonBg(r: DropReason) {
   if (r === "technical") {return "bg-rose-500/10 text-rose-400";}
   if (r === "value-gap") {return "bg-indigo-500/10 text-indigo-400";}
   if (r === "competitor") {return "bg-red-500/10 text-red-400";}
-  return "bg-zinc-700 text-zinc-300";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]";
 }
 function trendColor(t: TrendDir) {
   if (t === "up") {return "text-emerald-400";}
   if (t === "down") {return "text-rose-400";}
-  return "text-zinc-400";
+  return "text-[var(--color-text-secondary)]";
 }
 function trendArrow(t: TrendDir) {
   if (t === "up") {return "↑";}
@@ -115,11 +115,11 @@ function trendArrow(t: TrendDir) {
   return "→";
 }
 function retentionColor(v: number | null) {
-  if (v === null) {return "bg-zinc-800 text-zinc-600";}
+  if (v === null) {return "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]";}
   if (v >= 60) {return "bg-emerald-700/60 text-emerald-300";}
   if (v >= 40) {return "bg-indigo-700/60 text-indigo-300";}
   if (v >= 25) {return "bg-amber-700/60 text-amber-300";}
-  return "bg-zinc-700 text-zinc-400";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 
 export default function UserJourneyAnalytics() {
@@ -130,18 +130,18 @@ export default function UserJourneyAnalytics() {
   const maxUsers = JOURNEY_STEPS[0].users;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+      <div className="border-b border-[var(--color-border)] px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">User Journey Analytics</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Funnel analysis, path exploration, and retention cohorts</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Funnel analysis, path exploration, and retention cohorts</p>
         </div>
         <div className="flex items-center gap-3">
           <select
             value={platform}
             onChange={e => setPlatform(e.target.value as Platform | "all")}
-            className="bg-zinc-800 text-sm rounded-lg px-2 py-1.5 text-zinc-300 outline-none"
+            className="bg-[var(--color-surface-2)] text-sm rounded-lg px-2 py-1.5 text-[var(--color-text-primary)] outline-none"
           >
             <option value="all">All Platforms</option>
             <option value="web">Web</option>
@@ -151,7 +151,7 @@ export default function UserJourneyAnalytics() {
           <select
             value={segment}
             onChange={e => setSegment(e.target.value as Segment)}
-            className="bg-zinc-800 text-sm rounded-lg px-2 py-1.5 text-zinc-300 outline-none"
+            className="bg-[var(--color-surface-2)] text-sm rounded-lg px-2 py-1.5 text-[var(--color-text-primary)] outline-none"
           >
             <option value="all">All Users</option>
             <option value="new">New Users</option>
@@ -163,7 +163,7 @@ export default function UserJourneyAnalytics() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-zinc-800 px-6">
+      <div className="border-b border-[var(--color-border)] px-6">
         <div className="flex gap-6">
           {(["funnel", "paths", "retention", "segments"] as const).map(t => (
             <button
@@ -171,7 +171,7 @@ export default function UserJourneyAnalytics() {
               onClick={() => setTab(t)}
               className={cn(
                 "py-3 text-sm font-medium border-b-2 capitalize transition-colors",
-                tab === t ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200"
+                tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t}
@@ -187,10 +187,10 @@ export default function UserJourneyAnalytics() {
             {/* Summary metrics */}
             <div className="grid grid-cols-4 gap-4 mb-6">
               {FUNNEL_METRICS.map((m, i) => (
-                <div key={i} className="bg-zinc-900 rounded-xl p-5">
+                <div key={i} className="bg-[var(--color-surface-1)] rounded-xl p-5">
                   <div className={cn("text-2xl font-bold", m.color)}>{m.value}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">{m.label}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">{m.subValue}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{m.label}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{m.subValue}</div>
                   <div className={cn("text-xs mt-1", trendColor(m.trend))}>
                     {trendArrow(m.trend)} {m.trendPct}% vs last month
                   </div>
@@ -199,31 +199,31 @@ export default function UserJourneyAnalytics() {
             </div>
 
             {/* Funnel visualization */}
-            <div className="bg-zinc-900 rounded-xl p-5">
-              <h3 className="text-sm font-medium text-zinc-300 mb-4">Conversion Funnel</h3>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Conversion Funnel</h3>
               <div className="space-y-2">
                 {JOURNEY_STEPS.map((step, i) => {
                   const width = (step.users / maxUsers) * 100;
                   return (
                     <div key={step.id} className="group">
                       <div className="flex items-center gap-3 mb-1">
-                        <div className="w-40 text-xs text-zinc-400 truncate">{step.name}</div>
+                        <div className="w-40 text-xs text-[var(--color-text-secondary)] truncate">{step.name}</div>
                         <div className="flex-1 relative">
-                          <div className="h-7 bg-zinc-800 rounded overflow-hidden">
+                          <div className="h-7 bg-[var(--color-surface-2)] rounded overflow-hidden">
                             <div
                               className={cn("h-full rounded flex items-center px-2",
                                 i === 0 ? "bg-indigo-600" : width > 60 ? "bg-indigo-600" : width > 30 ? "bg-indigo-700" : "bg-indigo-800"
                               )}
                               style={{ width: `${width}%` }}
                             >
-                              <span className="text-xs text-white font-medium whitespace-nowrap">
+                              <span className="text-xs text-[var(--color-text-primary)] font-medium whitespace-nowrap">
                                 {step.users.toLocaleString()}
                               </span>
                             </div>
                           </div>
                         </div>
                         <div className="w-16 text-right">
-                          <div className="text-xs text-zinc-300">{i === 0 ? "—" : `${step.conversionRate.toFixed(0)}%`}</div>
+                          <div className="text-xs text-[var(--color-text-primary)]">{i === 0 ? "—" : `${step.conversionRate.toFixed(0)}%`}</div>
                         </div>
                         <div className="w-16 text-right">
                           <span className={cn("text-xs px-1.5 py-0.5 rounded", stageBg(step.stage))}>{step.stage}</span>
@@ -255,20 +255,20 @@ export default function UserJourneyAnalytics() {
         {/* PATHS TAB */}
         {tab === "paths" && (
           <div className="p-6">
-            <div className="bg-zinc-900 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-zinc-800">
-                <h3 className="text-sm font-medium text-zinc-300">Top User Paths to Conversion</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">Most common sequences leading to sign-up</p>
+            <div className="bg-[var(--color-surface-1)] rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-[var(--color-border)]">
+                <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Top User Paths to Conversion</h3>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Most common sequences leading to sign-up</p>
               </div>
-              <div className="divide-y divide-zinc-800">
+              <div className="divide-y divide-[var(--color-border)]">
                 {SESSION_PATHS.map((sp, i) => (
-                  <div key={i} className="px-5 py-4 hover:bg-zinc-800/50 transition-colors">
+                  <div key={i} className="px-5 py-4 hover:bg-[var(--color-surface-2)]/50 transition-colors">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm text-zinc-200 font-mono text-xs bg-zinc-800 px-2 py-0.5 rounded">{sp.path}</span>
+                          <span className="text-sm text-[var(--color-text-primary)] font-mono text-xs bg-[var(--color-surface-2)] px-2 py-0.5 rounded">{sp.path}</span>
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-zinc-500">
+                        <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
                           <span>{sp.sessions.toLocaleString()} sessions</span>
                           <span>~{sp.avgDuration}s avg</span>
                           <span className={sp.completedGoal ? "text-emerald-400" : "text-rose-400"}>
@@ -277,11 +277,11 @@ export default function UserJourneyAnalytics() {
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-sm font-medium text-zinc-100">{sp.pct}%</div>
-                        <div className="text-xs text-zinc-500">of sessions</div>
+                        <div className="text-sm font-medium text-[var(--color-text-primary)]">{sp.pct}%</div>
+                        <div className="text-xs text-[var(--color-text-muted)]">of sessions</div>
                       </div>
                     </div>
-                    <div className="mt-2 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="mt-2 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                       <div
                         className={cn("h-full rounded-full", sp.completedGoal ? "bg-emerald-500" : "bg-rose-500")}
                         style={{ width: `${sp.pct * 3}%` }}
@@ -297,25 +297,25 @@ export default function UserJourneyAnalytics() {
         {/* RETENTION TAB */}
         {tab === "retention" && (
           <div className="p-6">
-            <div className="bg-zinc-900 rounded-xl p-5">
-              <h3 className="text-sm font-medium text-zinc-300 mb-1">Retention Cohort Analysis</h3>
-              <p className="text-xs text-zinc-500 mb-4">% of users still active at Day N since signup</p>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-1">Retention Cohort Analysis</h3>
+              <p className="text-xs text-[var(--color-text-muted)] mb-4">% of users still active at Day N since signup</p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr>
-                      <th className="text-left text-xs text-zinc-400 font-medium pb-2 pr-4">Cohort</th>
-                      <th className="text-center text-xs text-zinc-400 font-medium pb-2 px-2">Day 0</th>
-                      <th className="text-center text-xs text-zinc-400 font-medium pb-2 px-2">Day 7</th>
-                      <th className="text-center text-xs text-zinc-400 font-medium pb-2 px-2">Day 14</th>
-                      <th className="text-center text-xs text-zinc-400 font-medium pb-2 px-2">Day 21</th>
-                      <th className="text-center text-xs text-zinc-400 font-medium pb-2 px-2">Day 28</th>
+                      <th className="text-left text-xs text-[var(--color-text-secondary)] font-medium pb-2 pr-4">Cohort</th>
+                      <th className="text-center text-xs text-[var(--color-text-secondary)] font-medium pb-2 px-2">Day 0</th>
+                      <th className="text-center text-xs text-[var(--color-text-secondary)] font-medium pb-2 px-2">Day 7</th>
+                      <th className="text-center text-xs text-[var(--color-text-secondary)] font-medium pb-2 px-2">Day 14</th>
+                      <th className="text-center text-xs text-[var(--color-text-secondary)] font-medium pb-2 px-2">Day 21</th>
+                      <th className="text-center text-xs text-[var(--color-text-secondary)] font-medium pb-2 px-2">Day 28</th>
                     </tr>
                   </thead>
                   <tbody>
                     {RETENTION.map((row, i) => (
                       <tr key={i}>
-                        <td className="text-xs text-zinc-400 pr-4 py-1">{row.week}</td>
+                        <td className="text-xs text-[var(--color-text-secondary)] pr-4 py-1">{row.week}</td>
                         {[row.day0, row.day7, row.day14, row.day21, row.day28].map((v, j) => (
                           <td key={j} className="px-2 py-1">
                             <div className={cn(
@@ -331,11 +331,11 @@ export default function UserJourneyAnalytics() {
                   </tbody>
                 </table>
               </div>
-              <div className="mt-4 flex gap-4 text-xs text-zinc-500">
+              <div className="mt-4 flex gap-4 text-xs text-[var(--color-text-muted)]">
                 <span><span className="inline-block w-3 h-3 bg-emerald-700/60 rounded mr-1" />≥ 60%</span>
                 <span><span className="inline-block w-3 h-3 bg-indigo-700/60 rounded mr-1" />40–60%</span>
                 <span><span className="inline-block w-3 h-3 bg-amber-700/60 rounded mr-1" />25–40%</span>
-                <span><span className="inline-block w-3 h-3 bg-zinc-700 rounded mr-1" />&lt; 25%</span>
+                <span><span className="inline-block w-3 h-3 bg-[var(--color-surface-3)] rounded mr-1" />&lt; 25%</span>
               </div>
             </div>
           </div>
@@ -351,27 +351,27 @@ export default function UserJourneyAnalytics() {
                 { name: "Power Users", count: "612", icon: "⚡", desc: "Paid plan, daily active", convRate: "100%", retDay7: "89%" },
                 { name: "Churned Users", count: "1,180", icon: "💤", desc: "Active before, inactive 30+ days", convRate: "3.1%", retDay7: "18%" },
               ].map((seg, i) => (
-                <div key={i} className="bg-zinc-900 rounded-xl p-5">
+                <div key={i} className="bg-[var(--color-surface-1)] rounded-xl p-5">
                   <div className="flex items-center gap-3 mb-3">
                     <span className="text-2xl">{seg.icon}</span>
                     <div>
-                      <div className="text-sm font-medium text-zinc-100">{seg.name}</div>
-                      <div className="text-xs text-zinc-500">{seg.desc}</div>
+                      <div className="text-sm font-medium text-[var(--color-text-primary)]">{seg.name}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">{seg.desc}</div>
                     </div>
                     <div className="ml-auto text-xl font-bold text-indigo-400">{seg.count}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="bg-zinc-800 rounded-lg p-3">
-                      <div className="text-zinc-100 font-medium">{seg.convRate}</div>
-                      <div className="text-xs text-zinc-500">Conversion Rate</div>
+                    <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                      <div className="text-[var(--color-text-primary)] font-medium">{seg.convRate}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">Conversion Rate</div>
                     </div>
-                    <div className="bg-zinc-800 rounded-lg p-3">
-                      <div className="text-zinc-100 font-medium">{seg.retDay7}</div>
-                      <div className="text-xs text-zinc-500">Day 7 Retention</div>
+                    <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                      <div className="text-[var(--color-text-primary)] font-medium">{seg.retDay7}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">Day 7 Retention</div>
                     </div>
                   </div>
                   <div className="mt-3">
-                    <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                       <div className="h-full bg-indigo-500 rounded-full" style={{ width: seg.retDay7 }} />
                     </div>
                   </div>
@@ -379,18 +379,18 @@ export default function UserJourneyAnalytics() {
               ))}
             </div>
 
-            <div className="mt-4 bg-zinc-900 rounded-xl p-5">
-              <h3 className="text-sm font-medium text-zinc-300 mb-4">Drop-off Reasons by Stage</h3>
+            <div className="mt-4 bg-[var(--color-surface-1)] rounded-xl p-5">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Drop-off Reasons by Stage</h3>
               <div className="space-y-3">
                 {(["friction", "confusion", "value-gap", "technical", "competitor"] as DropReason[]).map((reason, i) => {
                   const steps = JOURNEY_STEPS.filter(s => s.topDropReason === reason);
                   return (
                     <div key={i} className="flex items-center gap-3">
                       <span className={cn("text-xs px-2 py-0.5 rounded w-24 text-center", dropReasonBg(reason))}>{reason}</span>
-                      <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(steps.length / JOURNEY_STEPS.length) * 100}%` }} />
                       </div>
-                      <span className="text-xs text-zinc-500 w-16 text-right">{steps.length} step{steps.length > 1 ? "s" : ""}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] w-16 text-right">{steps.length} step{steps.length > 1 ? "s" : ""}</span>
                     </div>
                   );
                 })}

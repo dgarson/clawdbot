@@ -109,10 +109,10 @@ function LatencyBar({ ms }: { ms: number }) {
   const color = ms < 50 ? 'bg-emerald-500' : ms < 100 ? 'bg-amber-500' : 'bg-red-500';
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="flex-1 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
         <div className={cn('h-full rounded-full transition-all', color)} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs text-zinc-300 font-mono w-12 text-right">{ms}ms</span>
+      <span className="text-xs text-[var(--color-text-primary)] font-mono w-12 text-right">{ms}ms</span>
     </div>
   );
 }
@@ -127,15 +127,15 @@ export default function MultiRegionFailoverManager() {
   };
 
   return (
-    <div className="flex h-full bg-zinc-950 text-zinc-100">
+    <div className="flex h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Left panel */}
-      <div className="w-[340px] shrink-0 border-r border-zinc-800 flex flex-col">
-        <div className="p-4 border-b border-zinc-800">
+      <div className="w-[340px] shrink-0 border-r border-[var(--color-border)] flex flex-col">
+        <div className="p-4 border-b border-[var(--color-border)]">
           <div className="flex items-center gap-2 mb-1">
             <Globe className="w-4 h-4 text-violet-400" />
             <h1 className="text-sm font-semibold">Multi-Region Failover</h1>
           </div>
-          <p className="text-xs text-zinc-500">Monitor regions and trigger failover</p>
+          <p className="text-xs text-[var(--color-text-muted)]">Monitor regions and trigger failover</p>
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -151,20 +151,20 @@ export default function MultiRegionFailoverManager() {
                   'w-full text-left p-3 border rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500',
                   selected.id === region.id
                     ? 'border-violet-500 bg-violet-500/5'
-                    : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700'
+                    : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 hover:border-[var(--color-border)]'
                 )}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <div className={cn('w-2 h-2 rounded-full', cfg.dot)} />
-                    <span className="text-sm font-medium text-zinc-100">{region.name}</span>
+                    <span className="text-sm font-medium text-[var(--color-text-primary)]">{region.name}</span>
                   </div>
                   <span className={cn('text-[10px] font-medium px-2 py-0.5 rounded-lg border', cfg.color)}>
                     {cfg.label}
                   </span>
                 </div>
                 <LatencyBar ms={region.latencyMs} />
-                <div className="flex items-center justify-between mt-1.5 text-xs text-zinc-500">
+                <div className="flex items-center justify-between mt-1.5 text-xs text-[var(--color-text-muted)]">
                   <span>{region.uptime}% uptime</span>
                   {unhealthy > 0 && (
                     <span className="flex items-center gap-1 text-orange-400">
@@ -185,8 +185,8 @@ export default function MultiRegionFailoverManager() {
           {/* Header */}
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h2 className="text-lg font-semibold text-zinc-100">{selected.name}</h2>
-              <p className="text-xs text-zinc-500 mt-0.5">{selected.location} · Last checked {formatRelativeTime(selected.lastCheck)}</p>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{selected.name}</h2>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{selected.location} · Last checked {formatRelativeTime(selected.lastCheck)}</p>
             </div>
             <span className={cn('flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-xl border font-medium', STATUS_CONFIG[selected.status].color)}>
               <div className={cn('w-2 h-2 rounded-full', STATUS_CONFIG[selected.status].dot)} />
@@ -202,17 +202,17 @@ export default function MultiRegionFailoverManager() {
               { label: 'Error Rate', value: `${selected.errorRate}%`, icon: XCircle, color: selected.errorRate > 0.1 ? 'text-red-400' : 'text-emerald-400' },
               { label: 'Uptime', value: `${selected.uptime}%`, icon: CheckCircle, color: selected.uptime > 99 ? 'text-emerald-400' : 'text-amber-400' },
             ].map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-center">
+              <div key={label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-3 text-center">
                 <Icon className={cn('w-4 h-4 mx-auto mb-1', color)} />
                 <p className={cn('text-lg font-bold', color)}>{value}</p>
-                <p className="text-[10px] text-zinc-500">{label}</p>
+                <p className="text-[10px] text-[var(--color-text-muted)]">{label}</p>
               </div>
             ))}
           </div>
 
           {/* Services */}
           <div className="mb-6">
-            <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <p className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <Server className="w-3 h-3" />
               Services
             </p>
@@ -222,7 +222,7 @@ export default function MultiRegionFailoverManager() {
                   'flex items-center justify-between p-3 rounded-lg border',
                   svc.healthy ? 'border-emerald-800/50 bg-emerald-900/10' : 'border-red-800/50 bg-red-900/10'
                 )}>
-                  <span className="text-sm text-zinc-200">{svc.name}</span>
+                  <span className="text-sm text-[var(--color-text-primary)]">{svc.name}</span>
                   {svc.healthy
                     ? <CheckCircle className="w-4 h-4 text-emerald-400" />
                     : <XCircle className="w-4 h-4 text-red-400" />}
@@ -233,11 +233,11 @@ export default function MultiRegionFailoverManager() {
 
           {/* Failover actions */}
           {selected.status !== 'primary' && (
-            <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+            <div className="p-4 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm font-medium text-zinc-100 mb-1">Promote to Primary</p>
-                  <p className="text-xs text-zinc-500">Route all traffic to this region. Current primary will become standby.</p>
+                  <p className="text-sm font-medium text-[var(--color-text-primary)] mb-1">Promote to Primary</p>
+                  <p className="text-xs text-[var(--color-text-muted)]">Route all traffic to this region. Current primary will become standby.</p>
                 </div>
                 <button
                   type="button"
@@ -246,8 +246,8 @@ export default function MultiRegionFailoverManager() {
                   className={cn(
                     'flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500',
                     failing
-                      ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
-                      : 'bg-violet-600 hover:bg-violet-500 text-white'
+                      ? 'bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-not-allowed'
+                      : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]'
                   )}
                 >
                   {failing ? (

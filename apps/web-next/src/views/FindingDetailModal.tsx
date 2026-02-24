@@ -217,9 +217,9 @@ const SEVERITY_CONFIG: Record<
   },
   info: {
     label: 'Info',
-    badge: 'bg-zinc-800 text-zinc-400 border border-zinc-700',
-    bar: 'bg-zinc-500',
-    ring: 'text-zinc-400',
+    badge: 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)]',
+    bar: 'bg-[var(--color-surface-3)]',
+    ring: 'text-[var(--color-text-secondary)]',
     icon: Info,
     urgency: '💡 Informational — no immediate action required.',
   },
@@ -280,7 +280,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
         'inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900',
         copied
           ? 'bg-green-900/40 text-green-400'
-          : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white'
+          : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]'
       )}
     >
       {copied ? (
@@ -325,15 +325,15 @@ function SourceChip({ source }: { source: SourceItem }) {
   const isLink = source.type === 'url';
 
   const baseClasses =
-    'group inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:bg-zinc-750 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 max-w-full';
+    'group inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] transition-colors hover:border-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 max-w-full';
 
   const inner = (
     <>
-      <Icon className="w-3.5 h-3.5 shrink-0 text-zinc-500 group-hover:text-zinc-300" aria-hidden="true" />
+      <Icon className="w-3.5 h-3.5 shrink-0 text-[var(--color-text-muted)] group-hover:text-[var(--color-text-primary)]" aria-hidden="true" />
       <span className="truncate font-mono text-xs">{source.label}</span>
       {isLink && (
         <ExternalLink
-          className="w-3 h-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-500"
+          className="w-3 h-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-text-muted)]"
           aria-hidden="true"
         />
       )}
@@ -346,7 +346,7 @@ function SourceChip({ source }: { source: SourceItem }) {
         {copied ? (
           <Check className="w-3 h-3 text-green-400" aria-hidden="true" />
         ) : (
-          <Copy className="w-3 h-3 text-zinc-500 hover:text-white" aria-hidden="true" />
+          <Copy className="w-3 h-3 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]" aria-hidden="true" />
         )}
       </button>
     </>
@@ -442,18 +442,18 @@ function ConfidenceGauge({ score }: { score: number }) {
         </svg>
         <div className={cn('absolute inset-0 flex flex-col items-center justify-center', color)}>
           <span className="text-2xl font-bold leading-none">{clampedScore}</span>
-          <span className="text-xs text-zinc-500 mt-0.5">/ 100</span>
+          <span className="text-xs text-[var(--color-text-muted)] mt-0.5">/ 100</span>
         </div>
       </div>
 
       {/* Bar + label */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-white">Confidence Score</span>
+          <span className="text-sm font-medium text-[var(--color-text-primary)]">Confidence Score</span>
           <span className={cn('text-sm font-bold tabular-nums', color)}>{clampedScore}%</span>
         </div>
         <div
-          className="h-2 w-full rounded-full bg-zinc-800 overflow-hidden"
+          className="h-2 w-full rounded-full bg-[var(--color-surface-2)] overflow-hidden"
           role="progressbar"
           aria-valuenow={clampedScore}
           aria-valuemin={0}
@@ -465,7 +465,7 @@ function ConfidenceGauge({ score }: { score: number }) {
             style={{ width: `${clampedScore}%` }}
           />
         </div>
-        <p className="mt-1.5 text-xs text-zinc-500">
+        <p className="mt-1.5 text-xs text-[var(--color-text-muted)]">
           {clampedScore >= 90 ? 'Very High' : clampedScore >= 70 ? 'High' : clampedScore >= 50 ? 'Moderate' : 'Low'}{' '}
           confidence
         </p>
@@ -532,7 +532,7 @@ export default function FindingDetailModal() {
   return (
     <div
       ref={modalRef}
-      className="min-h-screen bg-zinc-950 text-white"
+      className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="finding-title"
@@ -541,7 +541,7 @@ export default function FindingDetailModal() {
       {/* ── Skip-to-content link (visible on focus) ─────────────────────── */}
       <a
         href="#finding-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-violet-600 focus:px-4 focus:py-2 focus:text-white focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-violet-600 focus:px-4 focus:py-2 focus:text-[var(--color-text-primary)] focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none"
         onClick={handleSkipToContent}
         onKeyDown={handleSkipToContent as unknown as React.KeyboardEventHandler}
       >
@@ -550,7 +550,7 @@ export default function FindingDetailModal() {
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <header
-        className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur-sm"
+        className="sticky top-0 z-10 border-b border-[var(--color-border)] bg-[var(--color-surface-0)]/95 backdrop-blur-sm"
         role="banner"
       >
         <div className="mx-auto max-w-5xl px-4 py-4 sm:px-6">
@@ -558,7 +558,7 @@ export default function FindingDetailModal() {
             {/* Back button */}
             <button
               aria-label="Back to Discovery Findings"
-              className="shrink-0 mt-0.5 inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:bg-zinc-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+              className="shrink-0 mt-0.5 inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-2 text-sm text-[var(--color-text-primary)] transition-colors hover:border-[var(--color-surface-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Back</span>
@@ -568,19 +568,19 @@ export default function FindingDetailModal() {
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <SeverityBadge severity={finding.severity} size="md" />
-                <span className="text-zinc-600" aria-hidden="true">•</span>
-                <span className="inline-flex items-center gap-1 text-xs text-zinc-500 font-mono">
+                <span className="text-[var(--color-text-muted)]" aria-hidden="true">•</span>
+                <span className="inline-flex items-center gap-1 text-xs text-[var(--color-text-muted)] font-mono">
                   <Hash className="w-3 h-3" aria-hidden="true" />
                   <span aria-label={`Finding ID: ${finding.id}`}>{finding.id}</span>
                 </span>
               </div>
               <h1
                 id="finding-title"
-                className="text-xl font-bold text-white leading-tight sm:text-2xl"
+                className="text-xl font-bold text-[var(--color-text-primary)] leading-tight sm:text-2xl"
               >
                 {finding.title}
               </h1>
-              <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+              <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-[var(--color-text-muted)]">
                 <span className="inline-flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" aria-hidden="true" />
                   <time dateTime={finding.timestamp} aria-label={`Detected on ${formattedDate}`}>
@@ -637,28 +637,28 @@ export default function FindingDetailModal() {
         {/* ── Section 1: Evidence Panel ──────────────────────────────────── */}
         <section
           aria-labelledby="evidence-heading"
-          className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden"
+          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] overflow-hidden"
         >
           <button
             id="evidence-toggle"
-            className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-zinc-800/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500"
+            className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[var(--color-surface-2)]/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500"
             aria-expanded={evidenceExpanded}
             aria-controls="evidence-body"
             onClick={() => setEvidenceExpanded((v) => !v)}
           >
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-violet-400" aria-hidden="true" />
-              <h2 id="evidence-heading" className="text-sm font-semibold text-zinc-200">
+              <h2 id="evidence-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
                 Evidence
               </h2>
-              <span className="text-xs text-zinc-500 ml-1">— raw agent output</span>
+              <span className="text-xs text-[var(--color-text-muted)] ml-1">— raw agent output</span>
             </div>
             <div className="flex items-center gap-2">
               <CopyButton text={finding.evidence} label="evidence" />
               {evidenceExpanded ? (
-                <ChevronUp className="w-4 h-4 text-zinc-500" aria-hidden="true" />
+                <ChevronUp className="w-4 h-4 text-[var(--color-text-muted)]" aria-hidden="true" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-zinc-500" aria-hidden="true" />
+                <ChevronDown className="w-4 h-4 text-[var(--color-text-muted)]" aria-hidden="true" />
               )}
             </div>
           </button>
@@ -671,7 +671,7 @@ export default function FindingDetailModal() {
           >
             <div className="px-5 pb-5">
               <pre
-                className="rounded-lg bg-zinc-950 border border-zinc-800 p-4 text-xs text-zinc-300 font-mono leading-relaxed overflow-x-auto whitespace-pre-wrap break-words"
+                className="rounded-lg bg-[var(--color-surface-0)] border border-[var(--color-border)] p-4 text-xs text-[var(--color-text-primary)] font-mono leading-relaxed overflow-x-auto whitespace-pre-wrap break-words"
                 tabIndex={0}
                 aria-label="Raw evidence output from discovery agent"
               >
@@ -684,14 +684,14 @@ export default function FindingDetailModal() {
         {/* ── Section 2: Sources ─────────────────────────────────────────── */}
         <section
           aria-labelledby="sources-heading"
-          className="rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-5"
+          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] px-5 py-5"
         >
           <div className="flex items-center gap-2 mb-4">
             <Link2 className="w-4 h-4 text-violet-400" aria-hidden="true" />
-            <h2 id="sources-heading" className="text-sm font-semibold text-zinc-200">
+            <h2 id="sources-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
               Sources
             </h2>
-            <span className="ml-auto text-xs text-zinc-500">
+            <span className="ml-auto text-xs text-[var(--color-text-muted)]">
               {finding.sources.length} source{finding.sources.length !== 1 ? 's' : ''}
             </span>
           </div>
@@ -711,16 +711,16 @@ export default function FindingDetailModal() {
         {/* ── Section 3: Confidence ──────────────────────────────────────── */}
         <section
           aria-labelledby="confidence-heading"
-          className="rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-5"
+          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] px-5 py-5"
         >
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-4 h-4 text-violet-400" aria-hidden="true" />
-            <h2 id="confidence-heading" className="text-sm font-semibold text-zinc-200">
+            <h2 id="confidence-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
               Confidence
             </h2>
           </div>
           <ConfidenceGauge score={finding.confidence} />
-          <p className="mt-4 text-sm text-zinc-400 leading-relaxed border-t border-zinc-800 pt-4">
+          <p className="mt-4 text-sm text-[var(--color-text-secondary)] leading-relaxed border-t border-[var(--color-border)] pt-4">
             {finding.confidenceExplanation}
           </p>
         </section>
@@ -728,11 +728,11 @@ export default function FindingDetailModal() {
         {/* ── Section 4: Agent Attribution ───────────────────────────────── */}
         <section
           aria-labelledby="agents-heading"
-          className="rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-5"
+          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] px-5 py-5"
         >
           <div className="flex items-center gap-2 mb-4">
             <Bot className="w-4 h-4 text-violet-400" aria-hidden="true" />
-            <h2 id="agents-heading" className="text-sm font-semibold text-zinc-200">
+            <h2 id="agents-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
               Agent Attribution
             </h2>
           </div>
@@ -744,7 +744,7 @@ export default function FindingDetailModal() {
             {finding.agents.map((agent) => (
               <li
                 key={agent.id}
-                className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3"
+                className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-0)] px-4 py-3"
               >
                 <span
                   className="text-2xl"
@@ -754,8 +754,8 @@ export default function FindingDetailModal() {
                   {agent.emoji}
                 </span>
                 <div>
-                  <div className="text-sm font-medium text-white">{agent.name}</div>
-                  <div className="text-xs text-zinc-500 font-mono">{agent.id}</div>
+                  <div className="text-sm font-medium text-[var(--color-text-primary)]">{agent.name}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] font-mono">{agent.id}</div>
                 </div>
               </li>
             ))}
@@ -765,13 +765,13 @@ export default function FindingDetailModal() {
         {/* ── Section 5: Remediation ─────────────────────────────────────── */}
         <section
           aria-labelledby="remediation-heading"
-          className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden"
+          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] overflow-hidden"
         >
           {/* Summary always visible */}
           <div className="px-5 py-5">
             <div className="flex items-center gap-2 mb-3">
               <CheckCircle2 className="w-4 h-4 text-violet-400" aria-hidden="true" />
-              <h2 id="remediation-heading" className="text-sm font-semibold text-zinc-200">
+              <h2 id="remediation-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
                 Remediation
               </h2>
             </div>
@@ -794,7 +794,7 @@ export default function FindingDetailModal() {
               {config.urgency}
             </div>
 
-            <p className="text-sm text-zinc-300 leading-relaxed mb-4">
+            <p className="text-sm text-[var(--color-text-primary)] leading-relaxed mb-4">
               {finding.remediationSummary}
             </p>
 
@@ -821,9 +821,9 @@ export default function FindingDetailModal() {
 
           {/* Detail (collapsible) */}
           <div id="remediation-detail" hidden={!remediationExpanded}>
-            <div className="px-5 pb-5 border-t border-zinc-800 pt-4">
+            <div className="px-5 pb-5 border-t border-[var(--color-border)] pt-4">
               <pre
-                className="text-sm text-zinc-300 font-mono leading-relaxed whitespace-pre-wrap break-words bg-zinc-950 border border-zinc-800 rounded-lg p-4 overflow-x-auto"
+                className="text-sm text-[var(--color-text-primary)] font-mono leading-relaxed whitespace-pre-wrap break-words bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg p-4 overflow-x-auto"
                 tabIndex={0}
                 aria-label="Detailed remediation steps"
               >
@@ -851,8 +851,8 @@ export default function FindingDetailModal() {
                 resolved
                   ? 'bg-green-900/40 text-green-400 border border-green-800 cursor-default'
                   : resolving
-                    ? 'bg-violet-700 text-white opacity-70 cursor-wait focus-visible:ring-violet-500'
-                    : 'bg-violet-600 hover:bg-violet-500 text-white focus-visible:ring-violet-500'
+                    ? 'bg-violet-700 text-[var(--color-text-primary)] opacity-70 cursor-wait focus-visible:ring-violet-500'
+                    : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] focus-visible:ring-violet-500'
               )}
             >
               {resolved ? (
@@ -881,11 +881,11 @@ export default function FindingDetailModal() {
         {/* ── Section 6: Similar Findings ────────────────────────────────── */}
         <section
           aria-labelledby="similar-heading"
-          className="rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-5"
+          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] px-5 py-5"
         >
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="w-4 h-4 text-violet-400" aria-hidden="true" />
-            <h2 id="similar-heading" className="text-sm font-semibold text-zinc-200">
+            <h2 id="similar-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
               Similar Findings
             </h2>
           </div>
@@ -904,15 +904,15 @@ export default function FindingDetailModal() {
               return (
                 <li key={sf.id}>
                   <button
-                    className="group w-full flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-left hover:border-zinc-700 hover:bg-zinc-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+                    className="group w-full flex items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-0)] px-4 py-3 text-left hover:border-[var(--color-border)] hover:bg-[var(--color-surface-1)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
                     aria-label={`View finding: ${sf.title}, severity ${SEVERITY_CONFIG[sf.severity].label}, detected ${sfDate}`}
                   >
                     <SeverityBadge severity={sf.severity} size="sm" />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-zinc-200 group-hover:text-white truncate transition-colors">
+                      <div className="text-sm font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-text-primary)] truncate transition-colors">
                         {sf.title}
                       </div>
-                      <div className="text-xs text-zinc-500 mt-0.5 flex items-center gap-1">
+                      <div className="text-xs text-[var(--color-text-muted)] mt-0.5 flex items-center gap-1">
                         <Hash className="w-3 h-3" aria-hidden="true" />
                         <span className="font-mono">{sf.id}</span>
                         <span aria-hidden="true">·</span>
@@ -920,7 +920,7 @@ export default function FindingDetailModal() {
                       </div>
                     </div>
                     <ExternalLink
-                      className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0"
+                      className="w-3.5 h-3.5 text-[var(--color-text-muted)] group-hover:text-[var(--color-text-secondary)] transition-colors shrink-0"
                       aria-hidden="true"
                     />
                   </button>

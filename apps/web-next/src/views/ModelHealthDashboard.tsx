@@ -193,7 +193,7 @@ const STATUS_CONFIG: Record<ModelStatus, { label: string; color: string; dot: st
 };
 
 const SEVERITY_CONFIG = {
-  low: { color: "text-zinc-400", bg: "bg-zinc-800 border-zinc-700" },
+  low: { color: "text-[var(--color-text-secondary)]", bg: "bg-[var(--color-surface-2)] border-[var(--color-border)]" },
   medium: { color: "text-amber-400", bg: "bg-amber-900/20 border-amber-700/50" },
   high: { color: "text-orange-400", bg: "bg-orange-900/20 border-orange-700/50" },
   critical: { color: "text-rose-400", bg: "bg-rose-900/20 border-rose-700/50" },
@@ -224,17 +224,17 @@ export default function ModelHealthDashboard() {
   const ep = selectedEndpoint;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-zinc-800">
+      <div className="flex-shrink-0 px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl font-bold text-white">Model Health Dashboard</h1>
-            <p className="text-sm text-zinc-400">Real-time status of LLM endpoints and providers</p>
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Model Health Dashboard</h1>
+            <p className="text-sm text-[var(--color-text-secondary)]">Real-time status of LLM endpoints and providers</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="text-xs text-zinc-500">Last updated: 02:15:00 UTC</div>
-            <button className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded text-sm">⟳</button>
+            <div className="text-xs text-[var(--color-text-muted)]">Last updated: 02:15:00 UTC</div>
+            <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm">⟳</button>
           </div>
         </div>
 
@@ -247,9 +247,9 @@ export default function ModelHealthDashboard() {
             { label: "Total Req/Min", value: totalRPM.toLocaleString(), color: "text-indigo-400" },
             { label: "Active Incidents", value: ENDPOINTS.reduce((s, e) => s + e.incidents.filter((i) => !i.resolvedAt).length, 0), color: "text-orange-400" },
           ].map((s) => (
-            <div key={s.label} className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
+            <div key={s.label} className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
               <div className={cn("text-xl font-bold", s.color)}>{s.value}</div>
-              <div className="text-xs text-zinc-500">{s.label}</div>
+              <div className="text-xs text-[var(--color-text-muted)]">{s.label}</div>
             </div>
           ))}
         </div>
@@ -262,7 +262,7 @@ export default function ModelHealthDashboard() {
               onClick={() => setFilterStatus(s as ModelStatus | "all")}
               className={cn(
                 "px-3 py-1 rounded text-xs capitalize",
-                filterStatus === s ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                filterStatus === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {s === "all" ? "All Providers" : s}
@@ -273,7 +273,7 @@ export default function ModelHealthDashboard() {
 
       <div className="flex-1 overflow-hidden flex">
         {/* Endpoint list */}
-        <div className="flex-shrink-0 w-72 border-r border-zinc-800 overflow-y-auto p-3 space-y-2">
+        <div className="flex-shrink-0 w-72 border-r border-[var(--color-border)] overflow-y-auto p-3 space-y-2">
           {filtered.map((endpoint) => {
             const sc = STATUS_CONFIG[endpoint.status];
             const isSelected = selectedEndpoint?.id === endpoint.id;
@@ -283,15 +283,15 @@ export default function ModelHealthDashboard() {
                 onClick={() => setSelectedEndpoint(endpoint)}
                 className={cn(
                   "w-full text-left p-3 rounded-xl border transition-all",
-                  isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-zinc-900 border-zinc-800 hover:border-zinc-600"
+                  isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                 )}
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span>{PROVIDER_EMOJI[endpoint.provider]}</span>
                     <div>
-                      <div className="text-sm font-semibold text-white">{endpoint.name}</div>
-                      <div className="text-[10px] text-zinc-500">{endpoint.region}</div>
+                      <div className="text-sm font-semibold text-[var(--color-text-primary)]">{endpoint.name}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">{endpoint.region}</div>
                     </div>
                   </div>
                   <span className={cn("flex items-center gap-1 text-xs", sc.color)}>
@@ -301,16 +301,16 @@ export default function ModelHealthDashboard() {
                 </div>
                 <div className="grid grid-cols-3 gap-1 text-[10px]">
                   <div>
-                    <div className="text-zinc-600">P50</div>
-                    <div className="text-zinc-300">{endpoint.p50Ms > 0 ? `${endpoint.p50Ms}ms` : "—"}</div>
+                    <div className="text-[var(--color-text-muted)]">P50</div>
+                    <div className="text-[var(--color-text-primary)]">{endpoint.p50Ms > 0 ? `${endpoint.p50Ms}ms` : "—"}</div>
                   </div>
                   <div>
-                    <div className="text-zinc-600">RPM</div>
+                    <div className="text-[var(--color-text-muted)]">RPM</div>
                     <div className="text-indigo-400">{endpoint.requestsPerMin}</div>
                   </div>
                   <div>
-                    <div className="text-zinc-600">Errors</div>
-                    <div className={endpoint.errorRate > 2 ? "text-rose-400" : "text-zinc-300"}>{endpoint.errorRate}%</div>
+                    <div className="text-[var(--color-text-muted)]">Errors</div>
+                    <div className={endpoint.errorRate > 2 ? "text-rose-400" : "text-[var(--color-text-primary)]"}>{endpoint.errorRate}%</div>
                   </div>
                 </div>
                 {endpoint.incidents.some((i) => !i.resolvedAt) && (
@@ -330,8 +330,8 @@ export default function ModelHealthDashboard() {
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{PROVIDER_EMOJI[ep.provider]}</span>
                 <div>
-                  <h2 className="text-xl font-bold text-white">{ep.name}</h2>
-                  <div className="text-sm text-zinc-400 font-mono">{ep.model}</div>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{ep.name}</h2>
+                  <div className="text-sm text-[var(--color-text-secondary)] font-mono">{ep.model}</div>
                 </div>
               </div>
               <div className={cn("flex items-center gap-2 px-3 py-1.5 rounded-full border", STATUS_CONFIG[ep.status].bg, STATUS_CONFIG[ep.status].border)}>
@@ -352,16 +352,16 @@ export default function ModelHealthDashboard() {
                 { label: "Tokens/Sec", value: ep.tokensPerSec > 0 ? ep.tokensPerSec.toString() : "—", color: "text-blue-400" },
                 { label: "Context", value: `${(ep.contextWindow / 1000).toFixed(0)}K`, color: "text-purple-400" },
               ].map((s) => (
-                <div key={s.label} className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
-                  <div className="text-xs text-zinc-500 mb-1">{s.label}</div>
+                <div key={s.label} className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">{s.label}</div>
                   <div className={cn("text-lg font-bold", s.color)}>{s.value}</div>
                 </div>
               ))}
             </div>
 
             {/* Hourly request chart */}
-            <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 mb-5">
-              <div className="text-sm font-medium text-white mb-3">Requests / Hour (last 24h)</div>
+            <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4 mb-5">
+              <div className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Requests / Hour (last 24h)</div>
               <div className="flex items-end gap-1 h-24">
                 {ep.hourlyRequests.map((v, i) => {
                   const maxV = Math.max(...ep.hourlyRequests);
@@ -381,23 +381,23 @@ export default function ModelHealthDashboard() {
                   );
                 })}
               </div>
-              <div className="flex justify-between text-[9px] text-zinc-600 mt-1">
+              <div className="flex justify-between text-[9px] text-[var(--color-text-muted)] mt-1">
                 <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>Now</span>
               </div>
             </div>
 
             {/* Latency distribution */}
             {ep.latencyBuckets.length > 0 && (
-              <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 mb-5">
-                <div className="text-sm font-medium text-white mb-3">Latency Distribution</div>
+              <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4 mb-5">
+                <div className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Latency Distribution</div>
                 <div className="space-y-2">
                   {ep.latencyBuckets.map((b) => (
                     <div key={b.label}>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-zinc-400">{b.label}</span>
-                        <span className="text-zinc-300">{b.count.toLocaleString()} req · {b.pct}%</span>
+                        <span className="text-[var(--color-text-secondary)]">{b.label}</span>
+                        <span className="text-[var(--color-text-primary)]">{b.count.toLocaleString()} req · {b.pct}%</span>
                       </div>
-                      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full bg-indigo-500/60"
                           style={{ width: `${b.pct}%` }}
@@ -411,7 +411,7 @@ export default function ModelHealthDashboard() {
 
             {/* Incidents */}
             <div>
-              <div className="text-sm font-medium text-white mb-3">
+              <div className="text-sm font-medium text-[var(--color-text-primary)] mb-3">
                 Incidents {ep.incidents.length > 0 ? `(${ep.incidents.length})` : "— None"}
               </div>
               {ep.incidents.length === 0 ? (
@@ -428,8 +428,8 @@ export default function ModelHealthDashboard() {
                           <span className={cn("text-sm font-medium", sv.color)}>{inc.title}</span>
                           <span className={cn("text-xs capitalize px-2 py-0.5 rounded", sv.bg, sv.color, "border")}>{inc.severity}</span>
                         </div>
-                        <div className="text-xs text-zinc-400 mb-2">{inc.impact}</div>
-                        <div className="text-[10px] text-zinc-500">
+                        <div className="text-xs text-[var(--color-text-secondary)] mb-2">{inc.impact}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">
                           Started: {inc.startedAt.slice(11, 19)} UTC
                           {inc.resolvedAt ? ` · Resolved: ${inc.resolvedAt.slice(11, 19)} UTC` : " · Ongoing"}
                         </div>

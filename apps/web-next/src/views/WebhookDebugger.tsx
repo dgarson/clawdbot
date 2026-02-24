@@ -91,14 +91,14 @@ const DELIVERIES: WebhookDelivery[] = [
 const statusBadge: Record<WebhookStatus, string> = {
   delivered: "bg-emerald-500/15 border-emerald-500/30 text-emerald-400",
   failed:    "bg-rose-500/15 border-rose-500/40 text-rose-400",
-  pending:   "bg-zinc-700/50 border-zinc-600 text-zinc-400",
+  pending:   "bg-[var(--color-surface-3)]/50 border-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
   retrying:  "bg-amber-500/15 border-amber-500/30 text-amber-400",
 };
 
 const statusDot: Record<WebhookStatus, string> = {
   delivered: "bg-emerald-400",
   failed:    "bg-rose-400",
-  pending:   "bg-zinc-500",
+  pending:   "bg-[var(--color-surface-3)]",
   retrying:  "bg-amber-400 animate-pulse",
 };
 
@@ -114,11 +114,11 @@ const eventColor: Record<EventType, string> = {
 };
 
 const responseCodeColor = (code: number | null) => {
-  if (!code) {return "text-zinc-500";}
+  if (!code) {return "text-[var(--color-text-muted)]";}
   if (code >= 200 && code < 300) {return "text-emerald-400";}
   if (code >= 400 && code < 500) {return "text-amber-400";}
   if (code >= 500) {return "text-rose-400";}
-  return "text-zinc-400";
+  return "text-[var(--color-text-secondary)]";
 };
 
 const ALL_EVENT_TYPES: EventType[] = ["order.created", "order.updated", "payment.succeeded", "payment.failed", "user.created", "user.deleted", "subscription.renewed", "refund.issued"];
@@ -141,13 +141,13 @@ export default function WebhookDebugger() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-white">Webhook Debugger</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">{ENDPOINTS.filter(e => e.active).length} active endpoints · {DELIVERIES.length} recent deliveries</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Webhook Debugger</h1>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{ENDPOINTS.filter(e => e.active).length} active endpoints · {DELIVERIES.length} recent deliveries</p>
           </div>
           <div className="flex items-center gap-2">
             {failedCount > 0 && (
@@ -164,11 +164,11 @@ export default function WebhookDebugger() {
             { label: "Delivered", value: DELIVERIES.filter(d => d.status === "delivered").length, color: "text-emerald-400" },
             { label: "Failed", value: DELIVERIES.filter(d => d.status === "failed").length, color: "text-rose-400" },
             { label: "Retrying", value: DELIVERIES.filter(d => d.status === "retrying").length, color: "text-amber-400" },
-            { label: "Total Deliveries", value: ENDPOINTS.reduce((s, e) => s + e.deliveryCount, 0).toLocaleString(), color: "text-zinc-300" },
+            { label: "Total Deliveries", value: ENDPOINTS.reduce((s, e) => s + e.deliveryCount, 0).toLocaleString(), color: "text-[var(--color-text-primary)]" },
           ].map(s => (
             <div key={s.label}>
               <span className={cn("text-base font-bold", s.color)}>{s.value}</span>
-              <span className="text-zinc-500 text-xs ml-1.5">{s.label}</span>
+              <span className="text-[var(--color-text-muted)] text-xs ml-1.5">{s.label}</span>
             </div>
           ))}
         </div>
@@ -177,10 +177,10 @@ export default function WebhookDebugger() {
           {(["deliveries", "endpoints", "test", "logs"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={cn("px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors",
-                tab === t ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800")}>
+                tab === t ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]")}>
               {t.charAt(0).toUpperCase() + t.slice(1)}
               {t === "deliveries" && failedCount > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-rose-500 text-[9px] font-bold text-white">{failedCount}</span>
+                <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-rose-500 text-[9px] font-bold text-[var(--color-text-primary)]">{failedCount}</span>
               )}
             </button>
           ))}
@@ -192,12 +192,12 @@ export default function WebhookDebugger() {
         {tab === "deliveries" && (
           <div className="flex h-full">
             {/* Left */}
-            <div className="w-[44%] flex-none border-r border-zinc-800 flex flex-col">
-              <div className="flex-none px-4 py-2.5 border-b border-zinc-800 flex items-center gap-1">
+            <div className="w-[44%] flex-none border-r border-[var(--color-border)] flex flex-col">
+              <div className="flex-none px-4 py-2.5 border-b border-[var(--color-border)] flex items-center gap-1">
                 {(["all", "delivered", "failed", "retrying"] as const).map(s => (
                   <button key={s} onClick={() => setStatusFilter(s)}
                     className={cn("px-2 py-0.5 rounded text-xs capitalize transition-colors",
-                      statusFilter === s ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                      statusFilter === s ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}>
                     {s}
                   </button>
                 ))}
@@ -207,8 +207,8 @@ export default function WebhookDebugger() {
                   const ep = ENDPOINTS.find(e => e.id === d.endpointId);
                   return (
                     <button key={d.id} onClick={() => setSelected(d)} className={cn(
-                      "w-full text-left px-4 py-3 border-b border-zinc-800/60 hover:bg-zinc-900 transition-colors",
-                      selected?.id === d.id && "bg-zinc-900 border-l-2 border-l-indigo-500"
+                      "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface-1)] transition-colors",
+                      selected?.id === d.id && "bg-[var(--color-surface-1)] border-l-2 border-l-indigo-500"
                     )}>
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
@@ -222,8 +222,8 @@ export default function WebhookDebugger() {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-1 pl-3.5 text-[10px] text-zinc-600">
-                        <span className="font-mono text-zinc-500 truncate">{ep?.url.replace("https://", "").slice(0, 32)}</span>
+                      <div className="flex items-center gap-2 mt-1 pl-3.5 text-[10px] text-[var(--color-text-muted)]">
+                        <span className="font-mono text-[var(--color-text-muted)] truncate">{ep?.url.replace("https://", "").slice(0, 32)}</span>
                         {d.responseTime && <span>{d.responseTime}ms</span>}
                         <span>att. {d.attempt}/{d.maxAttempts}</span>
                         <span className="ml-auto">{d.sentAt}</span>
@@ -243,25 +243,25 @@ export default function WebhookDebugger() {
                       <span className={cn("font-medium", eventColor[selected.eventType])}>{selected.eventType}</span>
                       <span className={cn("px-2 py-0.5 rounded border text-xs", statusBadge[selected.status])}>{selected.status}</span>
                     </div>
-                    <div className="font-mono text-xs text-zinc-500 mt-1">{selected.eventId}</div>
+                    <div className="font-mono text-xs text-[var(--color-text-muted)] mt-1">{selected.eventId}</div>
                   </div>
                   {/* Meta */}
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
-                      <div className="text-zinc-500">Response Code</div>
+                    <div className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
+                      <div className="text-[var(--color-text-muted)]">Response Code</div>
                       <div className={cn("text-lg font-bold mt-0.5", responseCodeColor(selected.responseCode))}>{selected.responseCode ?? "—"}</div>
                     </div>
-                    <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
-                      <div className="text-zinc-500">Response Time</div>
-                      <div className={cn("text-lg font-bold mt-0.5", selected.responseTime && selected.responseTime > 2000 ? "text-rose-400" : "text-white")}>{selected.responseTime ? `${selected.responseTime}ms` : "—"}</div>
+                    <div className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
+                      <div className="text-[var(--color-text-muted)]">Response Time</div>
+                      <div className={cn("text-lg font-bold mt-0.5", selected.responseTime && selected.responseTime > 2000 ? "text-rose-400" : "text-[var(--color-text-primary)]")}>{selected.responseTime ? `${selected.responseTime}ms` : "—"}</div>
                     </div>
-                    <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
-                      <div className="text-zinc-500">Attempt</div>
-                      <div className="text-lg font-bold text-white mt-0.5">{selected.attempt} / {selected.maxAttempts}</div>
+                    <div className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
+                      <div className="text-[var(--color-text-muted)]">Attempt</div>
+                      <div className="text-lg font-bold text-[var(--color-text-primary)] mt-0.5">{selected.attempt} / {selected.maxAttempts}</div>
                     </div>
-                    <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
-                      <div className="text-zinc-500">Sent At</div>
-                      <div className="text-sm font-medium text-zinc-300 mt-0.5">{selected.sentAt}</div>
+                    <div className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
+                      <div className="text-[var(--color-text-muted)]">Sent At</div>
+                      <div className="text-sm font-medium text-[var(--color-text-primary)] mt-0.5">{selected.sentAt}</div>
                     </div>
                   </div>
                   {selected.nextRetry && (
@@ -277,13 +277,13 @@ export default function WebhookDebugger() {
                       {(["request", "response", "headers"] as const).map(s => (
                         <button key={s} onClick={() => setExpandSection(s)}
                           className={cn("px-2.5 py-1 rounded text-xs font-medium capitalize transition-colors",
-                            expandSection === s ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                            expandSection === s ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}>
                           {s}
                         </button>
                       ))}
                     </div>
-                    <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-                      <pre className="text-[11px] font-mono text-zinc-300 p-4 overflow-x-auto max-h-64 leading-relaxed">
+                    <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+                      <pre className="text-[11px] font-mono text-[var(--color-text-primary)] p-4 overflow-x-auto max-h-64 leading-relaxed">
                         {expandSection === "request" && selected.requestBody}
                         {expandSection === "response" && selected.responseBody}
                         {expandSection === "headers" && JSON.stringify(selected.requestHeaders, null, 2)}
@@ -301,35 +301,35 @@ export default function WebhookDebugger() {
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-4">
               {ENDPOINTS.map(ep => (
-                <div key={ep.id} className={cn("bg-zinc-900 rounded-xl p-5 border",
-                  ep.active ? "border-zinc-800" : "border-zinc-800/40 opacity-60"
+                <div key={ep.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-5 border",
+                  ep.active ? "border-[var(--color-border)]" : "border-[var(--color-border)]/40 opacity-60"
                 )}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <div className={cn("w-2 h-2 rounded-full", ep.active ? "bg-emerald-400" : "bg-zinc-600")} />
-                        <span className="font-mono text-sm text-white truncate">{ep.url}</span>
+                        <div className={cn("w-2 h-2 rounded-full", ep.active ? "bg-emerald-400" : "bg-[var(--color-surface-3)]")} />
+                        <span className="font-mono text-sm text-[var(--color-text-primary)] truncate">{ep.url}</span>
                       </div>
-                      <p className="text-xs text-zinc-500 mt-1 pl-4">{ep.description}</p>
+                      <p className="text-xs text-[var(--color-text-muted)] mt-1 pl-4">{ep.description}</p>
                     </div>
                     <div className="flex items-center gap-3 flex-none">
                       <div className="text-right text-xs">
                         <div className={cn("font-bold", ep.successRate >= 95 ? "text-emerald-400" : ep.successRate >= 80 ? "text-amber-400" : "text-rose-400")}>{ep.successRate}%</div>
-                        <div className="text-zinc-600">success rate</div>
+                        <div className="text-[var(--color-text-muted)]">success rate</div>
                       </div>
                       <div className="text-right text-xs">
-                        <div className="text-white font-semibold">{ep.deliveryCount.toLocaleString()}</div>
-                        <div className="text-zinc-600">deliveries</div>
+                        <div className="text-[var(--color-text-primary)] font-semibold">{ep.deliveryCount.toLocaleString()}</div>
+                        <div className="text-[var(--color-text-muted)]">deliveries</div>
                       </div>
-                      <button className="px-2.5 py-1 rounded text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors">Edit</button>
+                      <button className="px-2.5 py-1 rounded text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] transition-colors">Edit</button>
                     </div>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-1.5 pl-4">
                     {ep.events.map(ev => (
-                      <span key={ev} className={cn("px-2 py-0.5 rounded bg-zinc-800 text-[10px] font-mono", eventColor[ev])}>{ev}</span>
+                      <span key={ev} className={cn("px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[10px] font-mono", eventColor[ev])}>{ev}</span>
                     ))}
                   </div>
-                  <div className="flex items-center gap-3 mt-2 pl-4 text-[10px] text-zinc-600">
+                  <div className="flex items-center gap-3 mt-2 pl-4 text-[10px] text-[var(--color-text-muted)]">
                     <span>Method: {ep.method}</span>
                     <span>·</span>
                     <span>Last delivery: {ep.lastDelivery}</span>
@@ -346,14 +346,14 @@ export default function WebhookDebugger() {
         {tab === "test" && (
           <div className="overflow-y-auto h-full p-5">
             <div className="max-w-xl">
-              <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 space-y-4">
-                <h2 className="text-sm font-semibold text-white">Send Test Webhook</h2>
+              <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)] space-y-4">
+                <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Send Test Webhook</h2>
                 <div>
-                  <label className="text-xs text-zinc-500 mb-1.5 block">Endpoint</label>
+                  <label className="text-xs text-[var(--color-text-muted)] mb-1.5 block">Endpoint</label>
                   <select
                     value={testState.endpointId}
                     onChange={e => setTestState(p => ({ ...p, endpointId: e.target.value }))}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                   >
                     {ENDPOINTS.filter(e => e.active).map(e => (
                       <option key={e.id} value={e.id}>{e.url}</option>
@@ -361,11 +361,11 @@ export default function WebhookDebugger() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-500 mb-1.5 block">Event Type</label>
+                  <label className="text-xs text-[var(--color-text-muted)] mb-1.5 block">Event Type</label>
                   <select
                     value={testState.eventType}
                     onChange={e => setTestState(p => ({ ...p, eventType: e.target.value as EventType }))}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                   >
                     {ALL_EVENT_TYPES.map(ev => (
                       <option key={ev} value={ev}>{ev}</option>
@@ -373,8 +373,8 @@ export default function WebhookDebugger() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-zinc-500 mb-1.5 block">Sample Payload</label>
-                  <div className="bg-zinc-950 rounded-lg border border-zinc-800 p-3 font-mono text-[11px] text-zinc-400">
+                  <label className="text-xs text-[var(--color-text-muted)] mb-1.5 block">Sample Payload</label>
+                  <div className="bg-[var(--color-surface-0)] rounded-lg border border-[var(--color-border)] p-3 font-mono text-[11px] text-[var(--color-text-secondary)]">
                     {JSON.stringify({ id: "evt_test_001", type: testState.eventType, created: Date.now(), data: { test: true } }, null, 2)}
                   </div>
                 </div>
@@ -382,10 +382,10 @@ export default function WebhookDebugger() {
                   onClick={handleTest}
                   disabled={testState.status === "sending"}
                   className={cn("w-full py-2.5 rounded-lg text-sm font-medium transition-colors",
-                    testState.status === "sending" ? "bg-zinc-700 text-zinc-400 cursor-wait" :
-                    testState.status === "success" ? "bg-emerald-600 text-white" :
-                    testState.status === "error" ? "bg-rose-600 text-white" :
-                    "bg-indigo-600 hover:bg-indigo-500 text-white"
+                    testState.status === "sending" ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-wait" :
+                    testState.status === "success" ? "bg-emerald-600 text-[var(--color-text-primary)]" :
+                    testState.status === "error" ? "bg-rose-600 text-[var(--color-text-primary)]" :
+                    "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
                   )}>
                   {testState.status === "sending" ? "Sending..." :
                    testState.status === "success" ? "✓ Delivered Successfully" :
@@ -395,7 +395,7 @@ export default function WebhookDebugger() {
                 {testState.status === "success" && (
                   <div className="bg-emerald-500/10 rounded-lg border border-emerald-500/30 p-3 text-xs">
                     <div className="text-emerald-400 font-semibold mb-1">Test delivery successful</div>
-                    <div className="text-zinc-400">Response: 200 OK · 124ms · <span className="font-mono">{"{ received: true }"}</span></div>
+                    <div className="text-[var(--color-text-secondary)]">Response: 200 OK · 124ms · <span className="font-mono">{"{ received: true }"}</span></div>
                   </div>
                 )}
               </div>
@@ -415,11 +415,11 @@ export default function WebhookDebugger() {
                 <div key={entry.id} className={cn("flex items-start gap-3 px-3 py-1.5 rounded",
                   entry.level === "ERROR" ? "bg-rose-500/5 border-l-2 border-rose-500/40" :
                   entry.level === "WARN" ? "bg-amber-500/5 border-l-2 border-amber-500/30" :
-                  "bg-zinc-900/50"
+                  "bg-[var(--color-surface-1)]/50"
                 )}>
-                  <span className="text-zinc-600 flex-none">{entry.time}</span>
+                  <span className="text-[var(--color-text-muted)] flex-none">{entry.time}</span>
                   <span className={cn("flex-none font-bold", entry.level === "ERROR" ? "text-rose-400" : entry.level === "WARN" ? "text-amber-400" : "text-sky-400")}>[{entry.level}]</span>
-                  <span className={entry.level === "ERROR" ? "text-rose-300" : entry.level === "WARN" ? "text-amber-300" : "text-zinc-400"}>{entry.msg}</span>
+                  <span className={entry.level === "ERROR" ? "text-rose-300" : entry.level === "WARN" ? "text-amber-300" : "text-[var(--color-text-secondary)]"}>{entry.msg}</span>
                 </div>
               ))}
             </div>

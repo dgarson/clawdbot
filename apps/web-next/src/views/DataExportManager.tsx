@@ -205,9 +205,9 @@ function ExportCard({ config, onExport, progress }: ExportCardProps) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-zinc-800 bg-zinc-900 p-5",
+        "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5",
         "flex flex-col gap-3 transition-colors",
-        "hover:border-zinc-700"
+        "hover:border-[var(--color-border)]"
       )}
     >
       {/* Header */}
@@ -216,13 +216,13 @@ function ExportCard({ config, onExport, progress }: ExportCardProps) {
           {config.icon}
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-semibold text-white">{config.title}</h3>
-          <p className="text-xs text-zinc-400">{config.description}</p>
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{config.title}</h3>
+          <p className="text-xs text-[var(--color-text-secondary)]">{config.description}</p>
         </div>
       </div>
 
       {/* Stats */}
-      <p className="text-xs text-zinc-500">{config.stats}</p>
+      <p className="text-xs text-[var(--color-text-muted)]">{config.stats}</p>
 
       {/* Format selector */}
       <fieldset>
@@ -239,7 +239,7 @@ function ExportCard({ config, onExport, progress }: ExportCardProps) {
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
                 selectedFormat === fmt
                   ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/40"
-                  : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-600 hover:text-zinc-300"
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {FORMAT_LABELS[fmt]}
@@ -263,8 +263,8 @@ function ExportCard({ config, onExport, progress }: ExportCardProps) {
                   "rounded-md px-2 py-0.5 text-xs transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
                   selectedRange === range
-                    ? "bg-zinc-700 text-white"
-                    : "text-zinc-500 hover:text-zinc-300"
+                    ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {DATE_RANGE_LABELS[range]}
@@ -277,7 +277,7 @@ function ExportCard({ config, onExport, progress }: ExportCardProps) {
       {/* Progress bar */}
       {isExporting && (
         <div className="w-full" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label={`Exporting ${config.title}`}>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-surface-2)]">
             <div
               className="h-full rounded-full bg-indigo-500 transition-all duration-200 ease-out"
               style={{ width: `${progress}%` }}
@@ -297,13 +297,13 @@ function ExportCard({ config, onExport, progress }: ExportCardProps) {
             "rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
             isExporting
-              ? "cursor-not-allowed bg-zinc-800 text-zinc-500"
-              : "bg-indigo-600 text-white hover:bg-indigo-500 active:bg-indigo-700"
+              ? "cursor-not-allowed bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
+              : "bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 active:bg-indigo-700"
           )}
         >
           {isExporting ? "Exporting…" : "Export Now"}
         </button>
-        <span className="text-xs text-zinc-600">Last: {config.lastExported}</span>
+        <span className="text-xs text-[var(--color-text-muted)]">Last: {config.lastExported}</span>
       </div>
     </div>
   );
@@ -352,34 +352,34 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="fixed inset-0 m-auto w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-0 text-white shadow-2xl backdrop:bg-black/60"
+      className="fixed inset-0 m-auto w-full max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-0 text-[var(--color-text-primary)] shadow-2xl backdrop:bg-black/60"
       aria-labelledby="schedule-modal-title"
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6">
-        <h2 id="schedule-modal-title" className="text-base font-semibold text-white">
+        <h2 id="schedule-modal-title" className="text-base font-semibold text-[var(--color-text-primary)]">
           Add Scheduled Export
         </h2>
 
         {/* Name */}
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-zinc-400">Name</span>
+          <span className="text-xs font-medium text-[var(--color-text-secondary)]">Name</span>
           <input
             type="text"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Weekly Sessions Backup"
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </label>
 
         {/* Export Type */}
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-zinc-400">Export Type</span>
+          <span className="text-xs font-medium text-[var(--color-text-secondary)]">Export Type</span>
           <select
             value={exportType}
             onChange={(e) => setExportType(e.target.value)}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             {EXPORT_TYPES.map((t) => (
               <option key={t.id} value={t.title}>
@@ -391,11 +391,11 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
 
         {/* Frequency */}
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-zinc-400">Frequency</span>
+          <span className="text-xs font-medium text-[var(--color-text-secondary)]">Frequency</span>
           <select
             value={frequency}
             onChange={(e) => setFrequency(e.target.value as Frequency)}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
@@ -405,11 +405,11 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
 
         {/* Format */}
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-zinc-400">Format</span>
+          <span className="text-xs font-medium text-[var(--color-text-secondary)]">Format</span>
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value as ExportFormat)}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="json">JSON</option>
             <option value="csv">CSV</option>
@@ -419,11 +419,11 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
 
         {/* Destination */}
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-zinc-400">Destination</span>
+          <span className="text-xs font-medium text-[var(--color-text-secondary)]">Destination</span>
           <select
             value={destination}
             onChange={(e) => setDestination(e.target.value as Destination)}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="local">Local Storage</option>
             <option value="s3">S3 (coming soon)</option>
@@ -435,13 +435,13 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-750 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-2 text-sm text-[var(--color-text-primary)] transition-colors hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition-colors hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
             Save Schedule
           </button>
@@ -516,19 +516,19 @@ export default function DataExportManager() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       <div className="mx-auto max-w-6xl px-6 py-8">
         {/* Page header */}
         <header className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight text-white">Data Export Manager</h1>
-          <p className="mt-1 text-sm text-zinc-400">
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">Data Export Manager</h1>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
             Back up your data, schedule automatic exports, and download past archives.
           </p>
         </header>
 
         {/* ── Section 1: Export Types ───────────────────────────────────── */}
         <section aria-labelledby="export-types-heading" className="mb-10">
-          <h2 id="export-types-heading" className="mb-4 text-lg font-semibold text-white">
+          <h2 id="export-types-heading" className="mb-4 text-lg font-semibold text-[var(--color-text-primary)]">
             Export Types
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -546,50 +546,50 @@ export default function DataExportManager() {
         {/* ── Section 2: Scheduled Exports ─────────────────────────────── */}
         <section aria-labelledby="scheduled-heading" className="mb-10">
           <div className="mb-4 flex items-center justify-between">
-            <h2 id="scheduled-heading" className="text-lg font-semibold text-white">
+            <h2 id="scheduled-heading" className="text-lg font-semibold text-[var(--color-text-primary)]">
               Scheduled Exports
             </h2>
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+              className="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-[var(--color-text-primary)] transition-colors hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
             >
               + Add Schedule
             </button>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-zinc-800">
+          <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-zinc-800 bg-zinc-900/60">
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/60">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     Name
                   </th>
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     Type
                   </th>
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     Frequency
                   </th>
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     Last Run
                   </th>
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     Next Run
                   </th>
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     Enabled
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {schedules.map((sched) => (
-                  <tr key={sched.id} className="border-b border-zinc-800/60 last:border-0">
-                    <td className="px-4 py-3 font-medium text-white">{sched.name}</td>
-                    <td className="px-4 py-3 text-zinc-400">{sched.exportType}</td>
-                    <td className="px-4 py-3 text-zinc-400">{FREQUENCY_LABELS[sched.frequency]}</td>
-                    <td className="px-4 py-3 text-zinc-500">{sched.lastRun}</td>
-                    <td className="px-4 py-3 text-zinc-500">{sched.nextRun}</td>
+                  <tr key={sched.id} className="border-b border-[var(--color-border)]/60 last:border-0">
+                    <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">{sched.name}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{sched.exportType}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{FREQUENCY_LABELS[sched.frequency]}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-muted)]">{sched.lastRun}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-muted)]">{sched.nextRun}</td>
                     <td className="px-4 py-3">
                       <button
                         type="button"
@@ -600,7 +600,7 @@ export default function DataExportManager() {
                         className={cn(
                           "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors",
                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
-                          sched.enabled ? "bg-indigo-600" : "bg-zinc-700"
+                          sched.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
                         )}
                       >
                         <span
@@ -615,7 +615,7 @@ export default function DataExportManager() {
                 ))}
                 {schedules.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-sm text-zinc-600">
+                    <td colSpan={6} className="px-4 py-8 text-center text-sm text-[var(--color-text-muted)]">
                       No scheduled exports yet.
                     </td>
                   </tr>
@@ -627,44 +627,44 @@ export default function DataExportManager() {
 
         {/* ── Section 3: Recent Exports ────────────────────────────────── */}
         <section aria-labelledby="recent-heading">
-          <h2 id="recent-heading" className="mb-4 text-lg font-semibold text-white">
+          <h2 id="recent-heading" className="mb-4 text-lg font-semibold text-[var(--color-text-primary)]">
             Recent Exports
           </h2>
 
-          <div className="overflow-hidden rounded-xl border border-zinc-800">
+          <div className="overflow-hidden rounded-xl border border-[var(--color-border)]">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-zinc-800 bg-zinc-900/60">
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/60">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     Export Type
                   </th>
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     Format
                   </th>
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     Size
                   </th>
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     Status
                   </th>
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     Timestamp
                   </th>
-                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+                  <th scope="col" className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {recentExports.map((job) => (
-                  <tr key={job.id} className="border-b border-zinc-800/60 last:border-0">
-                    <td className="px-4 py-3 font-medium text-white">{job.exportType}</td>
+                  <tr key={job.id} className="border-b border-[var(--color-border)]/60 last:border-0">
+                    <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">{job.exportType}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-xs font-medium text-zinc-300">
+                      <span className="rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 text-xs font-medium text-[var(--color-text-primary)]">
                         {FORMAT_LABELS[job.format]}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-zinc-400">{job.size}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{job.size}</td>
                     <td className="px-4 py-3">
                       <span
                         className={cn(
@@ -675,18 +675,18 @@ export default function DataExportManager() {
                         {statusLabel(job.status)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-zinc-500">{job.timestamp}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-muted)]">{job.timestamp}</td>
                     <td className="px-4 py-3 text-right">
                       {job.downloadable ? (
                         <button
                           type="button"
-                          className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                          className="rounded-md bg-[var(--color-surface-2)] px-2.5 py-1 text-xs font-medium text-[var(--color-text-primary)] transition-colors hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                           aria-label={`Download ${job.exportType} export from ${job.timestamp}`}
                         >
                           Download
                         </button>
                       ) : (
-                        <span className="text-xs text-zinc-700">—</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">—</span>
                       )}
                     </td>
                   </tr>

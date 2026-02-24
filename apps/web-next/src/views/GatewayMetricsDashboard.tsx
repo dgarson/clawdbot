@@ -174,20 +174,20 @@ function MetricCard({
   sparkMax: number;
   status?: 'good' | 'warn' | 'bad';
 }) {
-  const statusColor = status === 'good' ? 'text-green-400' : status === 'warn' ? 'text-amber-400' : status === 'bad' ? 'text-red-400' : 'text-white';
+  const statusColor = status === 'good' ? 'text-green-400' : status === 'warn' ? 'text-amber-400' : status === 'bad' ? 'text-red-400' : 'text-[var(--color-text-primary)]';
   const TrendIcon = trend === 'up' ? ArrowUp : trend === 'down' ? ArrowDown : CircleDot;
-  const trendColor = trend === 'up' ? 'text-green-400' : trend === 'down' ? 'text-red-400' : 'text-zinc-400';
+  const trendColor = trend === 'up' ? 'text-green-400' : trend === 'down' ? 'text-red-400' : 'text-[var(--color-text-secondary)]';
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-      <div className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-2" id={`metric-${label.replace(/\s+/g, '-').toLowerCase()}`}>{label}</div>
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+      <div className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide font-medium mb-2" id={`metric-${label.replace(/\s+/g, '-').toLowerCase()}`}>{label}</div>
       {/* aria-atomic="true" + aria-label ensure the full value (number + unit) is announced atomically — WCAG 4.1.3 */}
       <div
         className={cn('text-2xl font-bold mb-1', statusColor)}
         aria-atomic="true"
         aria-label={`${label}: ${value}${unit ? ' ' + unit : ''}`}
       >
-        {value}{unit && <span className="text-base font-normal text-zinc-400 ml-0.5">{unit}</span>}
+        {value}{unit && <span className="text-base font-normal text-[var(--color-text-secondary)] ml-0.5">{unit}</span>}
       </div>
       <div className="flex items-center gap-1 text-xs mb-3">
         <TrendIcon className={cn('w-3 h-3', trendColor)} aria-hidden="true" />
@@ -251,12 +251,12 @@ export default function GatewayMetricsDashboard() {
       {/* Skip link — WCAG 2.4.1 */}
       <a
         href="#gateway-metrics-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
 
-      <div className="min-h-screen bg-zinc-950 text-white">
+      <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
         <main id="gateway-metrics-main" className="p-6 space-y-6 max-w-7xl mx-auto">
 
           {/* Live status announcements — WCAG 4.1.3 */}
@@ -267,21 +267,21 @@ export default function GatewayMetricsDashboard() {
           {/* Header */}
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
                 <Activity className="w-6 h-6 text-violet-400" aria-hidden="true" />
                 Gateway Metrics Dashboard
               </h1>
-              <p className="text-sm text-zinc-400 mt-0.5">
+              <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
                 Real-time performance and health monitoring across all gateway nodes
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 text-sm text-zinc-400 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={autoRefresh}
                   onChange={(e) => setAutoRefresh(e.target.checked)}
-                  className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                  className="rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                 />
                 Auto-refresh (15s)
               </label>
@@ -289,7 +289,7 @@ export default function GatewayMetricsDashboard() {
                 onClick={doRefresh}
                 disabled={refreshing}
                 aria-label={refreshing ? 'Refreshing metrics…' : 'Refresh metrics now'}
-                className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium text-sm disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] rounded-lg font-medium text-sm disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               >
                 <RefreshCw className={cn('w-4 h-4', refreshing && 'animate-spin')} aria-hidden="true" />
                 Refresh
@@ -301,28 +301,28 @@ export default function GatewayMetricsDashboard() {
           <div
             aria-live="polite"
             aria-label={`Last updated: ${lastUpdated.toLocaleTimeString()}`}
-            className="text-xs text-zinc-500 flex items-center gap-1.5"
+            className="text-xs text-[var(--color-text-muted)] flex items-center gap-1.5"
           >
             <Clock className="w-3 h-3" aria-hidden="true" />
             Last updated: <time dateTime={lastUpdated.toISOString()}>{lastUpdated.toLocaleTimeString()}</time>
-            {autoRefresh && <span className="text-zinc-600">· auto-refresh on</span>}
+            {autoRefresh && <span className="text-[var(--color-text-muted)]">· auto-refresh on</span>}
           </div>
 
           {/* Fleet overview */}
           <section aria-label="Fleet health overview">
             <div className="grid grid-cols-4 gap-4">
               {[
-                { label: 'Total Nodes', value: GATEWAY_NODES.length, icon: Server, color: 'text-zinc-300' },
+                { label: 'Total Nodes', value: GATEWAY_NODES.length, icon: Server, color: 'text-[var(--color-text-primary)]' },
                 { label: 'Healthy', value: totalHealthy, icon: CheckCircle2, color: 'text-green-400' },
                 { label: 'Degraded', value: totalDegraded, icon: AlertTriangle, color: 'text-amber-400' },
                 { label: 'Down', value: totalDown, icon: WifiOff, color: 'text-red-400' },
               ].map(({ label, value, icon: Icon, color }) => (
-                <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-4">
-                  <div className={cn('p-2.5 rounded-lg bg-zinc-800', color)}>
+                <div key={label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-center gap-4">
+                  <div className={cn('p-2.5 rounded-lg bg-[var(--color-surface-2)]', color)}>
                     <Icon className="w-5 h-5" aria-hidden="true" />
                   </div>
                   <div>
-                    <div className="text-xs text-zinc-400 uppercase tracking-wide">{label}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">{label}</div>
                     <div className={cn('text-2xl font-bold mt-0.5', color)}>{value}</div>
                   </div>
                 </div>
@@ -332,7 +332,7 @@ export default function GatewayMetricsDashboard() {
 
           {/* Real-time metrics */}
           <section aria-label="Real-time metrics" aria-live="polite">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
               <BarChart2 className="w-5 h-5 text-violet-400" aria-hidden="true" />
               Live Metrics
             </h2>
@@ -380,54 +380,54 @@ export default function GatewayMetricsDashboard() {
 
           {/* Node table */}
           <section aria-label="Gateway node health table">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
               <Server className="w-5 h-5 text-violet-400" aria-hidden="true" />
               Node Health
             </h2>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <caption className="sr-only">Gateway node health — {GATEWAY_NODES.length} nodes</caption>
-                  <thead className="bg-zinc-800/50">
+                  <thead className="bg-[var(--color-surface-2)]/50">
                     <tr>
-                      <th scope="col" className="text-left text-zinc-400 font-medium px-4 py-3">Node</th>
-                      <th scope="col" className="text-left text-zinc-400 font-medium px-4 py-3">Region</th>
-                      <th scope="col" className="text-left text-zinc-400 font-medium px-4 py-3">Status</th>
-                      <th scope="col" className="text-right text-zinc-400 font-medium px-4 py-3">RPS</th>
-                      <th scope="col" className="text-right text-zinc-400 font-medium px-4 py-3">P50 Latency</th>
-                      <th scope="col" className="text-right text-zinc-400 font-medium px-4 py-3">P99 Latency</th>
-                      <th scope="col" className="text-right text-zinc-400 font-medium px-4 py-3">Error Rate</th>
-                      <th scope="col" className="text-right text-zinc-400 font-medium px-4 py-3">Uptime</th>
+                      <th scope="col" className="text-left text-[var(--color-text-secondary)] font-medium px-4 py-3">Node</th>
+                      <th scope="col" className="text-left text-[var(--color-text-secondary)] font-medium px-4 py-3">Region</th>
+                      <th scope="col" className="text-left text-[var(--color-text-secondary)] font-medium px-4 py-3">Status</th>
+                      <th scope="col" className="text-right text-[var(--color-text-secondary)] font-medium px-4 py-3">RPS</th>
+                      <th scope="col" className="text-right text-[var(--color-text-secondary)] font-medium px-4 py-3">P50 Latency</th>
+                      <th scope="col" className="text-right text-[var(--color-text-secondary)] font-medium px-4 py-3">P99 Latency</th>
+                      <th scope="col" className="text-right text-[var(--color-text-secondary)] font-medium px-4 py-3">Error Rate</th>
+                      <th scope="col" className="text-right text-[var(--color-text-secondary)] font-medium px-4 py-3">Uptime</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/50">
+                  <tbody className="divide-y divide-[var(--color-border)]/50">
                     {GATEWAY_NODES.map((node) => (
                       <tr
                         key={node.id}
                         className={cn(
-                          'hover:bg-zinc-800/30 transition-colors',
+                          'hover:bg-[var(--color-surface-2)]/30 transition-colors',
                           node.status === 'down' && 'opacity-60'
                         )}
                       >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <Server className="w-4 h-4 text-zinc-500 flex-shrink-0" aria-hidden="true" />
-                            <span className="font-medium text-white">{node.name}</span>
+                            <Server className="w-4 h-4 text-[var(--color-text-muted)] flex-shrink-0" aria-hidden="true" />
+                            <span className="font-medium text-[var(--color-text-primary)]">{node.name}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <code className="text-xs text-zinc-400">{node.region}</code>
+                          <code className="text-xs text-[var(--color-text-secondary)]">{node.region}</code>
                         </td>
                         <td className="px-4 py-3">
                           <GatewayStatusBadge status={node.status} />
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <span className="text-white font-medium">{node.status === 'down' ? '—' : formatRps(node.requestsPerSec)}</span>
+                          <span className="text-[var(--color-text-primary)] font-medium">{node.status === 'down' ? '—' : formatRps(node.requestsPerSec)}</span>
                         </td>
                         <td className="px-4 py-3 text-right">
                           <span className={cn(
                             'font-medium',
-                            node.latencyP50 === 0 ? 'text-zinc-500' :
+                            node.latencyP50 === 0 ? 'text-[var(--color-text-muted)]' :
                             node.latencyP50 < 60 ? 'text-green-400' :
                             node.latencyP50 < 100 ? 'text-amber-400' : 'text-red-400'
                           )}>
@@ -437,7 +437,7 @@ export default function GatewayMetricsDashboard() {
                         <td className="px-4 py-3 text-right">
                           <span className={cn(
                             'font-medium',
-                            node.latencyP99 === 0 ? 'text-zinc-500' :
+                            node.latencyP99 === 0 ? 'text-[var(--color-text-muted)]' :
                             node.latencyP99 < 200 ? 'text-green-400' :
                             node.latencyP99 < 400 ? 'text-amber-400' : 'text-red-400'
                           )}>
@@ -475,7 +475,7 @@ export default function GatewayMetricsDashboard() {
           {/* Alerts */}
           <section aria-label="Active alerts" aria-live="polite" aria-relevant="additions">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-amber-400" aria-hidden="true" />
                 Alerts
                 {unresolvedAlerts > 0 && (
@@ -486,9 +486,9 @@ export default function GatewayMetricsDashboard() {
               </h2>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl divide-y divide-zinc-800/50">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl divide-y divide-[var(--color-border)]/50">
               {alerts.length === 0 ? (
-                <div className="px-4 py-6 text-center text-zinc-500 text-sm">No alerts</div>
+                <div className="px-4 py-6 text-center text-[var(--color-text-muted)] text-sm">No alerts</div>
               ) : (
                 alerts.map((alert) => {
                   const sev = ALERT_SEVERITY[alert.severity];
@@ -502,14 +502,14 @@ export default function GatewayMetricsDashboard() {
                         {sev.label}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-zinc-200">{alert.message}</p>
-                        <p className="text-xs text-zinc-500 mt-0.5">{timeAgo(alert.timestamp)}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{alert.message}</p>
+                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{timeAgo(alert.timestamp)}</p>
                       </div>
                       {!alert.resolved && (
                         <button
                           onClick={() => setAlerts((prev) => prev.map((a) => a.id === alert.id ? { ...a, resolved: true } : a))}
                           aria-label={`Dismiss alert: ${alert.message}`}
-                          className="text-xs text-zinc-400 hover:text-white px-2 py-1 rounded border border-zinc-700 hover:border-zinc-500 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                          className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] px-2 py-1 rounded border border-[var(--color-border)] hover:border-[var(--color-surface-3)] flex-shrink-0 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                         >
                           Dismiss
                         </button>
@@ -529,7 +529,7 @@ export default function GatewayMetricsDashboard() {
 
           {/* Throughput trends summary */}
           <section aria-label="Throughput and latency trends">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-violet-400" aria-hidden="true" />
               Trend Summary (last 5 min)
             </h2>
@@ -550,16 +550,16 @@ export default function GatewayMetricsDashboard() {
                   icon: TrendingDown,
                 },
               ].map(({ label, values, peak, unit, icon: Icon }) => (
-                <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                <div key={label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
                       <Icon className="w-4 h-4 text-violet-400" aria-hidden="true" />
                       {label}
                     </h3>
-                    <span className="text-xs text-zinc-500">Peak: {peak} {unit}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">Peak: {peak} {unit}</span>
                   </div>
                   <SparkBar values={values} max={peak * 1.2} label={label} />
-                  <div className="mt-2 flex items-center justify-between text-xs text-zinc-500">
+                  <div className="mt-2 flex items-center justify-between text-xs text-[var(--color-text-muted)]">
                     <span>5 min ago</span>
                     <span>now</span>
                   </div>

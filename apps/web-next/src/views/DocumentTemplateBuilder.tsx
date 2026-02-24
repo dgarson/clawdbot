@@ -220,12 +220,12 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
   const requiredFilled = selectedTemplate.fields.filter(f => f.required).every(f => fieldValues[f.name]?.trim());
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div>
           <h1 className="text-lg font-semibold">Document Template Builder</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">Create, fill, and export document templates with merge fields</p>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">Create, fill, and export document templates with merge fields</p>
         </div>
         <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
           + New Template
@@ -233,7 +233,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 px-6 pt-3 border-b border-zinc-800 shrink-0">
+      <div className="flex gap-1 px-6 pt-3 border-b border-[var(--color-border)] shrink-0">
         {TABS.map((t) => (
           <button
             key={t}
@@ -242,12 +242,12 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
                 ? "text-indigo-400 border-indigo-500"
-                : "text-zinc-400 border-transparent hover:text-white"
+                : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}
             {t === "Builder" && (
-              <span className="ml-1.5 text-[10px] text-zinc-500">{selectedTemplate.name}</span>
+              <span className="ml-1.5 text-[10px] text-[var(--color-text-muted)]">{selectedTemplate.name}</span>
             )}
           </button>
         ))}
@@ -263,7 +263,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                 placeholder="Search templates..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
               />
               <div className="flex gap-1">
                 {(["all", "contract", "invoice", "report", "onboarding", "notification"] as const).map((cat) => (
@@ -274,7 +274,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                       "px-2.5 py-1.5 text-xs rounded-md border transition-colors",
                       categoryFilter === cat
                         ? "bg-indigo-600/20 border-indigo-500 text-indigo-300"
-                        : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                        : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                     )}
                   >
                     {cat === "all" ? "All" : cat}
@@ -289,8 +289,8 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                   key={tmpl.id}
                   onClick={() => { setSelectedTemplate(tmpl); setFieldValues({}); setTab("Builder"); }}
                   className={cn(
-                    "bg-zinc-900 border rounded-lg p-5 cursor-pointer transition-colors",
-                    selectedTemplate.id === tmpl.id ? "border-indigo-500/60" : "border-zinc-800 hover:border-zinc-700"
+                    "bg-[var(--color-surface-1)] border rounded-lg p-5 cursor-pointer transition-colors",
+                    selectedTemplate.id === tmpl.id ? "border-indigo-500/60" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                   )}
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -298,15 +298,15 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                       <div className="flex items-center gap-2">
                         <span className="text-xl">{categoryEmoji[tmpl.category]}</span>
                         <h3 className="font-semibold">{tmpl.name}</h3>
-                        <span className="text-xs text-zinc-500">v{tmpl.version}</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">v{tmpl.version}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 mt-1">{tmpl.description}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)] mt-1">{tmpl.description}</p>
                     </div>
                     <span className={cn("text-[10px] px-1.5 py-0.5 rounded border shrink-0", categoryColor[tmpl.category])}>
                       {tmpl.category}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-zinc-500">
+                  <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
                     <span>{tmpl.fields.length} fields</span>
                     <span>{tmpl.usageCount} uses</span>
                     <span>Updated {tmpl.updatedAt}</span>
@@ -320,13 +320,13 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                     </button>
                     <button
                       onClick={(e) => e.stopPropagation()}
-                      className="px-2.5 py-1 text-xs border border-zinc-700 text-zinc-400 rounded hover:border-zinc-600 transition-colors"
+                      className="px-2.5 py-1 text-xs border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:border-[var(--color-surface-3)] transition-colors"
                     >
                       Edit Template
                     </button>
                     <button
                       onClick={(e) => e.stopPropagation()}
-                      className="px-2.5 py-1 text-xs border border-zinc-700 text-zinc-400 rounded hover:border-zinc-600 transition-colors"
+                      className="px-2.5 py-1 text-xs border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:border-[var(--color-surface-3)] transition-colors"
                     >
                       Duplicate
                     </button>
@@ -341,13 +341,13 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
         {tab === "Builder" && (
           <div className="space-y-4">
             {/* Template selector */}
-            <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-lg p-3">
+            <div className="flex items-center gap-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
               <span className="text-xl">{categoryEmoji[selectedTemplate.category]}</span>
               <div className="flex-1">
                 <div className="text-sm font-semibold">{selectedTemplate.name}</div>
-                <div className="text-xs text-zinc-400">{selectedTemplate.description}</div>
+                <div className="text-xs text-[var(--color-text-secondary)]">{selectedTemplate.description}</div>
               </div>
-              <div className="text-xs text-zinc-500">
+              <div className="text-xs text-[var(--color-text-muted)]">
                 {filledCount}/{selectedTemplate.fields.length} fields filled
               </div>
               <button
@@ -361,18 +361,18 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
             {/* Field grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {selectedTemplate.fields.map((field) => (
-                <div key={field.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                <div key={field.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <label className="text-sm font-medium">{field.label}</label>
                     {field.required && <span className="text-rose-400 text-xs">*</span>}
-                    <span className="text-[10px] px-1 py-0.5 rounded bg-zinc-800 text-zinc-500 font-mono">{`{{${field.name}}}`}</span>
+                    <span className="text-[10px] px-1 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-muted)] font-mono">{`{{${field.name}}}`}</span>
                   </div>
-                  <div className="text-xs text-zinc-500 mb-2">{field.description}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-2">{field.description}</div>
                   {field.type === "select" && field.options ? (
                     <select
                       value={fieldValues[field.name] ?? field.defaultValue}
                       onChange={(e) => updateValue(field.name, e.target.value)}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded px-2.5 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                     >
                       {field.options.map((opt) => (
                         <option key={opt} value={opt}>{opt}</option>
@@ -388,7 +388,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                             "px-3 py-1 text-xs rounded border transition-colors",
                             (fieldValues[field.name] ?? field.defaultValue) === v
                               ? "bg-indigo-600/20 border-indigo-500 text-indigo-300"
-                              : "border-zinc-700 text-zinc-400"
+                              : "border-[var(--color-border)] text-[var(--color-text-secondary)]"
                           )}
                         >
                           {v}
@@ -401,7 +401,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                       value={fieldValues[field.name] ?? field.defaultValue}
                       onChange={(e) => updateValue(field.name, e.target.value)}
                       placeholder={field.defaultValue || `Enter ${field.label.toLowerCase()}...`}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded px-2.5 py-1.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
                     />
                   )}
                 </div>
@@ -416,14 +416,14 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                 className={cn(
                   "px-5 py-2 text-sm font-medium rounded-lg transition-colors",
                   requiredFilled
-                    ? "bg-indigo-600 hover:bg-indigo-500 text-white"
-                    : "bg-zinc-700 text-zinc-500 cursor-not-allowed"
+                    ? "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
+                    : "bg-[var(--color-surface-3)] text-[var(--color-text-muted)] cursor-not-allowed"
                 )}
               >
                 Generate Preview →
               </button>
               {!requiredFilled && (
-                <span className="text-xs text-zinc-500">Fill all required fields to continue</span>
+                <span className="text-xs text-[var(--color-text-muted)]">Fill all required fields to continue</span>
               )}
             </div>
           </div>
@@ -435,19 +435,19 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold">{selectedTemplate.name}</h3>
-                <div className="text-xs text-zinc-400">Generated preview with field values applied</div>
+                <div className="text-xs text-[var(--color-text-secondary)]">Generated preview with field values applied</div>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setTab("Builder")}
-                  className="px-3 py-1.5 text-xs border border-zinc-700 text-zinc-400 hover:border-zinc-600 rounded-md transition-colors"
+                  className="px-3 py-1.5 text-xs border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] rounded-md transition-colors"
                 >
                   ← Edit Fields
                 </button>
                 <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
                   Export as PDF
                 </button>
-                <button className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-md transition-colors">
+                <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded-md transition-colors">
                   Copy Text
                 </button>
               </div>
@@ -455,17 +455,17 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
 
             {/* Document preview */}
             <div className="bg-white rounded-lg p-8 shadow-2xl">
-              <pre className="font-sans text-sm text-zinc-900 whitespace-pre-wrap leading-relaxed">{previewText}</pre>
+              <pre className="font-sans text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed">{previewText}</pre>
             </div>
 
             {/* Field values summary */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <div className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mb-3">Applied Values</div>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+              <div className="text-xs text-[var(--color-text-secondary)] font-semibold uppercase tracking-wider mb-3">Applied Values</div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {selectedTemplate.fields.map((f) => (
                   <div key={f.id} className="text-xs">
-                    <span className="text-zinc-500 font-mono">{`{{${f.name}}}`}: </span>
-                    <span className="text-zinc-200">{fieldValues[f.name] || f.defaultValue || "—"}</span>
+                    <span className="text-[var(--color-text-muted)] font-mono">{`{{${f.name}}}`}: </span>
+                    <span className="text-[var(--color-text-primary)]">{fieldValues[f.name] || f.defaultValue || "—"}</span>
                   </div>
                 ))}
               </div>
@@ -476,19 +476,19 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
         {/* ── HISTORY ── */}
         {tab === "History" && (
           <div className="space-y-3">
-            <div className="text-xs text-zinc-400">Recently generated documents</div>
+            <div className="text-xs text-[var(--color-text-secondary)]">Recently generated documents</div>
             {HISTORY.map((doc, idx) => (
-              <div key={idx} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex items-center gap-4">
+              <div key={idx} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 flex items-center gap-4">
                 <span className="text-xl">{categoryEmoji[TEMPLATES.find(t => t.id === doc.templateId)?.category ?? "notification"]}</span>
                 <div className="flex-1">
                   <div className="text-sm font-medium">{doc.templateName}</div>
                   <div className="flex gap-3 mt-1 flex-wrap">
                     {Object.entries(doc.values).map(([k, v]) => (
-                      <span key={k} className="text-[10px] text-zinc-500"><span className="font-mono">{k}:</span> {v}</span>
+                      <span key={k} className="text-[10px] text-[var(--color-text-muted)]"><span className="font-mono">{k}:</span> {v}</span>
                     ))}
                   </div>
                 </div>
-                <div className="text-xs text-zinc-500">{doc.generatedAt.slice(0, 16).replace("T", " ")}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">{doc.generatedAt.slice(0, 16).replace("T", " ")}</div>
                 <button className="text-xs text-indigo-400 hover:text-indigo-300">Reopen</button>
               </div>
             ))}

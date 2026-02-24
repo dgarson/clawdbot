@@ -91,7 +91,7 @@ const TOP_CUSTOMERS: TopCustomer[] = [
 ]
 
 const planColor: Record<PlanTier, string> = {
-  free: "text-zinc-400 bg-zinc-400/10",
+  free: "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10",
   starter: "text-blue-400 bg-blue-400/10",
   pro: "text-indigo-400 bg-indigo-400/10",
   enterprise: "text-amber-400 bg-amber-400/10",
@@ -104,8 +104,8 @@ function fmtMoney(n: number): string {
 }
 
 function retentionColor(pct: number): string {
-  if (pct === 0) {return "bg-zinc-800 text-zinc-600"}
-  if (pct >= 80) {return "bg-emerald-500/80 text-white"}
+  if (pct === 0) {return "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"}
+  if (pct >= 80) {return "bg-emerald-500/80 text-[var(--color-text-primary)]"}
   if (pct >= 70) {return "bg-emerald-600/60 text-emerald-100"}
   if (pct >= 60) {return "bg-amber-500/60 text-amber-100"}
   return "bg-rose-500/60 text-rose-100"
@@ -141,19 +141,19 @@ export default function RevenueAnalyticsDashboard() {
   const customer = selectedCustomer ? TOP_CUSTOMERS.find(c => c.id === selectedCustomer) : null
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Revenue Analytics</h1>
-          <p className="text-zinc-400 text-sm mt-1">MRR, ARR, churn, retention, and plan performance</p>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">MRR, ARR, churn, retention, and plan performance</p>
         </div>
         <div className="flex gap-2">
           {(["mtd", "qtd", "ytd"] as MetricPeriod[]).map(p => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={cn("px-3 py-1.5 text-sm rounded-md transition-colors uppercase font-mono", period === p ? "bg-indigo-500 text-white" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700")}
+              className={cn("px-3 py-1.5 text-sm rounded-md transition-colors uppercase font-mono", period === p ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]")}
             >
               {p}
             </button>
@@ -163,36 +163,36 @@ export default function RevenueAnalyticsDashboard() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Current MRR</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Current MRR</div>
           <div className="text-2xl font-bold text-indigo-400">{fmtMoney(latestMonth.mrr)}</div>
-          <div className="text-xs text-zinc-500 mt-1">
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">
             <span className={parseFloat(mrrGrowth) > 0 ? "text-emerald-400" : "text-rose-400"}>
               {parseFloat(mrrGrowth) > 0 ? "↑" : "↓"} {Math.abs(parseFloat(mrrGrowth))}%
             </span> vs last month
           </div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">ARR</div>
-          <div className="text-2xl font-bold text-white">{fmtMoney(latestMonth.arr)}</div>
-          <div className="text-xs text-zinc-500 mt-1">annualized run rate</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">ARR</div>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">{fmtMoney(latestMonth.arr)}</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">annualized run rate</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Paying Customers</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Paying Customers</div>
           <div className="text-2xl font-bold text-emerald-400">{latestMonth.customers.toLocaleString()}</div>
-          <div className="text-xs text-zinc-500 mt-1">ARPU: {fmtMoney(latestMonth.arpu)}/mo</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">ARPU: {fmtMoney(latestMonth.arpu)}/mo</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Net MRR Movement</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Net MRR Movement</div>
           <div className="text-2xl font-bold text-emerald-400">
             +{fmtMoney(latestMonth.newMrr + latestMonth.expansionMrr + latestMonth.contractionMrr + latestMonth.churnMrr)}
           </div>
-          <div className="text-xs text-zinc-500 mt-1">this month</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">this month</div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
+      <div className="flex gap-1 mb-6 border-b border-[var(--color-border)]">
         {tabs.map(t => (
           <button
             key={t.id}
@@ -200,8 +200,8 @@ export default function RevenueAnalyticsDashboard() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-white bg-zinc-900"
-                : "border-transparent text-zinc-400 hover:text-zinc-300"
+                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t.emoji} {t.label}
@@ -213,8 +213,8 @@ export default function RevenueAnalyticsDashboard() {
       {tab === "mrr" && (
         <div className="space-y-6">
           {/* MRR trend */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">MRR Growth Trend</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">MRR Growth Trend</h3>
             <div className="flex items-end gap-2 h-40">
               {MONTHLY_METRICS.map(m => (
                 <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
@@ -224,25 +224,25 @@ export default function RevenueAnalyticsDashboard() {
                       style={{ height: `${(m.mrr / maxMrr) * 120}px` }}
                     />
                   </div>
-                  <div className="text-xs text-zinc-500 text-center" style={{ fontSize: "9px" }}>{m.month}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] text-center" style={{ fontSize: "9px" }}>{m.month}</div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Net MRR movement */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Net MRR Movement — {latestMonth.month}</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Net MRR Movement — {latestMonth.month}</h3>
             <div className="space-y-3">
               {netMrrComponents.map(c => (
                 <div key={c.label} className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="text-zinc-400">{c.label} MRR</span>
+                    <span className="text-[var(--color-text-secondary)]">{c.label} MRR</span>
                     <span className={cn("font-mono font-medium", c.value > 0 ? "text-emerald-400" : "text-rose-400")}>
                       {c.value > 0 ? "+" : ""}{fmtMoney(c.value)}
                     </span>
                   </div>
-                  <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className={cn("h-full rounded-full", c.color)}
                       style={{ width: `${(Math.abs(c.value) / maxComponent) * 100}%` }}
@@ -254,29 +254,29 @@ export default function RevenueAnalyticsDashboard() {
           </div>
 
           {/* Historical table */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left p-3 text-zinc-400 font-medium">Month</th>
-                  <th className="text-right p-3 text-zinc-400 font-medium">MRR</th>
-                  <th className="text-right p-3 text-zinc-400 font-medium">New</th>
-                  <th className="text-right p-3 text-zinc-400 font-medium">Expansion</th>
-                  <th className="text-right p-3 text-zinc-400 font-medium">Churn</th>
-                  <th className="text-right p-3 text-zinc-400 font-medium">Customers</th>
-                  <th className="text-right p-3 text-zinc-400 font-medium">ARPU</th>
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Month</th>
+                  <th className="text-right p-3 text-[var(--color-text-secondary)] font-medium">MRR</th>
+                  <th className="text-right p-3 text-[var(--color-text-secondary)] font-medium">New</th>
+                  <th className="text-right p-3 text-[var(--color-text-secondary)] font-medium">Expansion</th>
+                  <th className="text-right p-3 text-[var(--color-text-secondary)] font-medium">Churn</th>
+                  <th className="text-right p-3 text-[var(--color-text-secondary)] font-medium">Customers</th>
+                  <th className="text-right p-3 text-[var(--color-text-secondary)] font-medium">ARPU</th>
                 </tr>
               </thead>
               <tbody>
                 {[...MONTHLY_METRICS].toReversed().map(m => (
-                  <tr key={m.month} className="border-b border-zinc-800/50 hover:bg-zinc-800/20">
-                    <td className="p-3 text-zinc-300">{m.month}</td>
+                  <tr key={m.month} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/20">
+                    <td className="p-3 text-[var(--color-text-primary)]">{m.month}</td>
                     <td className="p-3 text-right font-mono text-indigo-400">{fmtMoney(m.mrr)}</td>
                     <td className="p-3 text-right text-emerald-400 font-mono">+{fmtMoney(m.newMrr)}</td>
                     <td className="p-3 text-right text-blue-400 font-mono">+{fmtMoney(m.expansionMrr)}</td>
                     <td className="p-3 text-right text-rose-400 font-mono">{fmtMoney(m.churnMrr)}</td>
-                    <td className="p-3 text-right text-zinc-300">{m.customers}</td>
-                    <td className="p-3 text-right text-zinc-300">{fmtMoney(m.arpu)}</td>
+                    <td className="p-3 text-right text-[var(--color-text-primary)]">{m.customers}</td>
+                    <td className="p-3 text-right text-[var(--color-text-primary)]">{fmtMoney(m.arpu)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -289,40 +289,40 @@ export default function RevenueAnalyticsDashboard() {
       {tab === "plans" && (
         <div className="space-y-4">
           {PLAN_REVENUE.filter(p => p.mrr > 0).map(p => (
-            <div key={p.plan} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <div key={p.plan} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className={cn("text-sm font-bold px-2 py-0.5 rounded-full", planColor[p.plan])}>
                     {p.plan.toUpperCase()}
                   </span>
-                  <span className="text-zinc-400">{p.customers} accounts</span>
+                  <span className="text-[var(--color-text-secondary)]">{p.customers} accounts</span>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold text-indigo-400">{fmtMoney(p.mrr)}/mo</div>
-                  <div className="text-xs text-zinc-500">{fmtMoney(p.arr)} ARR</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">{fmtMoney(p.arr)} ARR</div>
                 </div>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                 <div>
-                  <div className="text-xs text-zinc-500 mb-0.5">Avg Contract</div>
-                  <div className="text-zinc-300">{fmtMoney(p.avgContractValue)}/yr</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Avg Contract</div>
+                  <div className="text-[var(--color-text-primary)]">{fmtMoney(p.avgContractValue)}/yr</div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-500 mb-0.5">Churn Rate</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Churn Rate</div>
                   <div className={cn("font-medium", p.churnRate > 10 ? "text-rose-400" : p.churnRate > 5 ? "text-amber-400" : "text-emerald-400")}>
                     {p.churnRate}%/mo
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-500 mb-0.5">Growth Rate</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Growth Rate</div>
                   <div className="text-emerald-400 font-medium">+{p.growthRate}% YoY</div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-500 mb-0.5">% of ARR</div>
-                  <div className="text-zinc-300">{Math.round((p.arr / MONTHLY_METRICS[MONTHLY_METRICS.length-1].arr) * 100)}%</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">% of ARR</div>
+                  <div className="text-[var(--color-text-primary)]">{Math.round((p.arr / MONTHLY_METRICS[MONTHLY_METRICS.length-1].arr) * 100)}%</div>
                 </div>
               </div>
-              <div className="mt-3 w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="mt-3 w-full h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-indigo-500 rounded-full"
                   style={{ width: `${(p.arr / MONTHLY_METRICS[MONTHLY_METRICS.length-1].arr) * 100}%` }}
@@ -336,27 +336,27 @@ export default function RevenueAnalyticsDashboard() {
       {/* Retention Tab */}
       {tab === "retention" && (
         <div className="space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-            <div className="p-3 border-b border-zinc-800">
-              <h3 className="text-sm font-medium text-zinc-300">Cohort Retention (%)</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+            <div className="p-3 border-b border-[var(--color-border)]">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Cohort Retention (%)</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800">
-                    <th className="text-left p-3 text-zinc-400 font-medium">Cohort</th>
-                    <th className="text-center p-2 text-zinc-400 font-medium">Month 0</th>
-                    <th className="text-center p-2 text-zinc-400 font-medium">Month 1</th>
-                    <th className="text-center p-2 text-zinc-400 font-medium">Month 2</th>
-                    <th className="text-center p-2 text-zinc-400 font-medium">Month 3</th>
-                    <th className="text-center p-2 text-zinc-400 font-medium">Month 6</th>
-                    <th className="text-center p-2 text-zinc-400 font-medium">Month 12</th>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Cohort</th>
+                    <th className="text-center p-2 text-[var(--color-text-secondary)] font-medium">Month 0</th>
+                    <th className="text-center p-2 text-[var(--color-text-secondary)] font-medium">Month 1</th>
+                    <th className="text-center p-2 text-[var(--color-text-secondary)] font-medium">Month 2</th>
+                    <th className="text-center p-2 text-[var(--color-text-secondary)] font-medium">Month 3</th>
+                    <th className="text-center p-2 text-[var(--color-text-secondary)] font-medium">Month 6</th>
+                    <th className="text-center p-2 text-[var(--color-text-secondary)] font-medium">Month 12</th>
                   </tr>
                 </thead>
                 <tbody>
                   {COHORT_RETENTION.map(c => (
-                    <tr key={c.cohort} className="border-b border-zinc-800/50">
-                      <td className="p-3 text-zinc-300 font-medium">{c.cohort}</td>
+                    <tr key={c.cohort} className="border-b border-[var(--color-border)]/50">
+                      <td className="p-3 text-[var(--color-text-primary)] font-medium">{c.cohort}</td>
                       {[c.month0, c.month1, c.month2, c.month3, c.month6, c.month12].map((pct, i) => (
                         <td key={i} className="p-1 text-center">
                           <div className={cn("rounded py-1.5 text-xs font-mono font-medium mx-1", retentionColor(pct))}>
@@ -372,17 +372,17 @@ export default function RevenueAnalyticsDashboard() {
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
               <div className="text-3xl font-bold text-emerald-400">84%</div>
-              <div className="text-sm text-zinc-400 mt-1">Month 1 Retention</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Month 1 Retention</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
               <div className="text-3xl font-bold text-amber-400">69%</div>
-              <div className="text-sm text-zinc-400 mt-1">Month 6 Retention</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Month 6 Retention</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
               <div className="text-3xl font-bold text-rose-400">61%</div>
-              <div className="text-sm text-zinc-400 mt-1">Month 12 Retention</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Month 12 Retention</div>
             </div>
           </div>
         </div>
@@ -392,10 +392,10 @@ export default function RevenueAnalyticsDashboard() {
       {tab === "customers" && (
         <div className="space-y-3">
           {TOP_CUSTOMERS.map(c => (
-            <div key={c.id} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+            <div key={c.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
               <button
                 onClick={() => setSelectedCustomer(selectedCustomer === c.id ? null : c.id)}
-                className="w-full text-left p-4 hover:bg-zinc-800/50 transition-colors"
+                className="w-full text-left p-4 hover:bg-[var(--color-surface-2)]/50 transition-colors"
               >
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
@@ -404,47 +404,47 @@ export default function RevenueAnalyticsDashboard() {
                       <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", planColor[c.plan])}>
                         {c.plan}
                       </span>
-                      <span className={cn("text-sm", c.trend === "up" ? "text-emerald-400" : c.trend === "down" ? "text-rose-400" : "text-zinc-500")}>
+                      <span className={cn("text-sm", c.trend === "up" ? "text-emerald-400" : c.trend === "down" ? "text-rose-400" : "text-[var(--color-text-muted)]")}>
                         {c.trend === "up" ? "↑" : c.trend === "down" ? "↓" : "→"}
                       </span>
                     </div>
-                    <div className="text-xs text-zinc-500">Renewal: {c.renewalDate}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Renewal: {c.renewalDate}</div>
                   </div>
                   <div className="flex items-center gap-6 shrink-0 text-sm">
                     <div className="text-center">
-                      <div className="text-xs text-zinc-500 mb-0.5">ARR</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-0.5">ARR</div>
                       <div className="text-indigo-400 font-mono font-medium">{fmtMoney(c.arr)}</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-xs text-zinc-500 mb-0.5">Expansion</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Expansion</div>
                       <div className="text-emerald-400 font-mono">+{fmtMoney(c.expansionPotential)}</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-xs text-zinc-500 mb-0.5">Health</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Health</div>
                       <div className={cn("font-bold", c.healthScore >= 80 ? "text-emerald-400" : c.healthScore >= 65 ? "text-amber-400" : "text-rose-400")}>
                         {c.healthScore}
                       </div>
                     </div>
-                    <span className="text-zinc-600">{selectedCustomer === c.id ? "▲" : "▼"}</span>
+                    <span className="text-[var(--color-text-muted)]">{selectedCustomer === c.id ? "▲" : "▼"}</span>
                   </div>
                 </div>
               </button>
 
               {selectedCustomer === c.id && (
-                <div className="border-t border-zinc-800 p-4 bg-zinc-950">
+                <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-surface-0)]">
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                      <div className="text-xs text-zinc-500 mb-1">Contract Start</div>
-                      <div className="text-zinc-300">{c.contractStart}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-1">Contract Start</div>
+                      <div className="text-[var(--color-text-primary)]">{c.contractStart}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-zinc-500 mb-1">Renewal Date</div>
-                      <div className={cn("font-medium", new Date(c.renewalDate) < new Date("2026-06-01") ? "text-amber-400" : "text-zinc-300")}>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-1">Renewal Date</div>
+                      <div className={cn("font-medium", new Date(c.renewalDate) < new Date("2026-06-01") ? "text-amber-400" : "text-[var(--color-text-primary)]")}>
                         {c.renewalDate}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-zinc-500 mb-1">Expansion Potential</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-1">Expansion Potential</div>
                       <div className="text-emerald-400 font-medium">{fmtMoney(c.expansionPotential)}</div>
                     </div>
                   </div>
@@ -452,7 +452,7 @@ export default function RevenueAnalyticsDashboard() {
                     <button className="px-3 py-1 text-xs bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-md transition-colors">
                       View in CRM
                     </button>
-                    <button className="px-3 py-1 text-xs bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded-md transition-colors">
+                    <button className="px-3 py-1 text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] rounded-md transition-colors">
                       Create Task
                     </button>
                     {c.expansionPotential > 0 && (

@@ -117,14 +117,14 @@ const severityColor: Record<CVE["severity"], string> = {
   critical: "text-rose-400 bg-rose-400/10 border-rose-400/30",
   high: "text-amber-400 bg-amber-400/10 border-amber-400/30",
   medium: "text-yellow-300 bg-yellow-300/10 border-yellow-300/30",
-  low: "text-zinc-400 bg-zinc-400/10 border-zinc-400/30",
+  low: "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30",
 };
 
 const severityRingColor: Record<CVE["severity"], string> = {
   critical: "border-rose-400",
   high: "border-amber-400",
   medium: "border-yellow-300",
-  low: "border-zinc-500",
+  low: "border-[var(--color-surface-3)]",
 };
 
 function SeverityDonut({ counts }: { counts: { critical: number; high: number; medium: number; low: number } }) {
@@ -156,16 +156,16 @@ function SeverityDonut({ counts }: { counts: { critical: number; high: number; m
           className="w-32 h-32 rounded-full"
           style={{ background: gradient }}
         />
-        <div className="absolute inset-3 rounded-full bg-zinc-900 flex items-center justify-center">
-          <span className="text-2xl font-bold text-white">{total}</span>
+        <div className="absolute inset-3 rounded-full bg-[var(--color-surface-1)] flex items-center justify-center">
+          <span className="text-2xl font-bold text-[var(--color-text-primary)]">{total}</span>
         </div>
       </div>
       <div className="flex flex-col gap-2">
         {(["critical", "high", "medium", "low"] as CVE["severity"][]).map((sev) => (
           <div key={sev} className="flex items-center gap-2">
             <div className={cn("w-3 h-3 rounded-full", severityRingColor[sev], "border-2 bg-transparent")} />
-            <span className="text-sm text-zinc-400 capitalize w-16">{sev}</span>
-            <span className="text-sm font-medium text-white">{counts[sev]}</span>
+            <span className="text-sm text-[var(--color-text-secondary)] capitalize w-16">{sev}</span>
+            <span className="text-sm font-medium text-[var(--color-text-primary)]">{counts[sev]}</span>
           </div>
         ))}
       </div>
@@ -177,37 +177,37 @@ function RepositoriesTab() {
   const [expanded, setExpanded] = useState<string | null>(null);
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-2 text-xs text-zinc-500 uppercase tracking-wide font-medium">
+      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-2 text-xs text-[var(--color-text-muted)] uppercase tracking-wide font-medium">
         <span>Repository</span><span>Visibility</span><span>Images</span><span>Size</span><span>Last Push</span><span>Pulls</span>
       </div>
       {repos.map((r) => (
         <div key={r.name}>
           <button
             onClick={() => setExpanded(expanded === r.name ? null : r.name)}
-            className="w-full grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors text-left items-center"
+            className="w-full grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg hover:border-[var(--color-border)] transition-colors text-left items-center"
           >
-            <span className="text-white font-medium text-sm">{r.name}</span>
+            <span className="text-[var(--color-text-primary)] font-medium text-sm">{r.name}</span>
             <span>
-              <span className={cn("text-xs px-2 py-0.5 rounded-full border", r.visibility === "public" ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10" : "text-zinc-400 border-zinc-600 bg-zinc-800")}>
+              <span className={cn("text-xs px-2 py-0.5 rounded-full border", r.visibility === "public" ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10" : "text-[var(--color-text-secondary)] border-[var(--color-surface-3)] bg-[var(--color-surface-2)]")}>
                 {r.visibility}
               </span>
             </span>
-            <span className="text-zinc-300 text-sm">{r.imageCount}</span>
-            <span className="text-zinc-300 text-sm">{r.totalSize}</span>
-            <span className="text-zinc-400 text-sm">{r.lastPush}</span>
-            <span className="text-zinc-300 text-sm">{r.pulls.toLocaleString()}</span>
+            <span className="text-[var(--color-text-primary)] text-sm">{r.imageCount}</span>
+            <span className="text-[var(--color-text-primary)] text-sm">{r.totalSize}</span>
+            <span className="text-[var(--color-text-secondary)] text-sm">{r.lastPush}</span>
+            <span className="text-[var(--color-text-primary)] text-sm">{r.pulls.toLocaleString()}</span>
           </button>
           {expanded === r.name && (
-            <div className="ml-8 mt-1 mb-2 border border-zinc-800 rounded-lg bg-zinc-950 overflow-hidden">
-              <div className="grid grid-cols-[1fr_1fr_2fr_1fr] gap-4 px-4 py-2 text-xs text-zinc-500 uppercase tracking-wide font-medium border-b border-zinc-800">
+            <div className="ml-8 mt-1 mb-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface-0)] overflow-hidden">
+              <div className="grid grid-cols-[1fr_1fr_2fr_1fr] gap-4 px-4 py-2 text-xs text-[var(--color-text-muted)] uppercase tracking-wide font-medium border-b border-[var(--color-border)]">
                 <span>Tag</span><span>Size</span><span>Digest</span><span>Pushed</span>
               </div>
               {r.tags.map((t) => (
-                <div key={t.tag} className="grid grid-cols-[1fr_1fr_2fr_1fr] gap-4 px-4 py-2.5 border-b border-zinc-800/50 last:border-0">
+                <div key={t.tag} className="grid grid-cols-[1fr_1fr_2fr_1fr] gap-4 px-4 py-2.5 border-b border-[var(--color-border)]/50 last:border-0">
                   <span className="text-indigo-400 text-sm font-mono">{t.tag}</span>
-                  <span className="text-zinc-300 text-sm">{t.size}</span>
-                  <span className="text-zinc-500 text-xs font-mono truncate">{t.digest}</span>
-                  <span className="text-zinc-400 text-sm">{t.pushedAt}</span>
+                  <span className="text-[var(--color-text-primary)] text-sm">{t.size}</span>
+                  <span className="text-[var(--color-text-muted)] text-xs font-mono truncate">{t.digest}</span>
+                  <span className="text-[var(--color-text-secondary)] text-sm">{t.pushedAt}</span>
                 </div>
               ))}
             </div>
@@ -227,33 +227,33 @@ function ImagesTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <label className="text-sm text-zinc-400">Filter by repo:</label>
+        <label className="text-sm text-[var(--color-text-secondary)]">Filter by repo:</label>
         <select
           value={repoFilter}
           onChange={(e) => setRepoFilter(e.target.value)}
-          className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-md px-3 py-1.5 outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 outline-none focus:border-indigo-500"
         >
           <option value="all">All repositories</option>
           {repoNames.map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
       </div>
-      <div className="border border-zinc-800 rounded-lg overflow-hidden">
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-4 py-2 text-xs text-zinc-500 uppercase tracking-wide font-medium bg-zinc-900 border-b border-zinc-800">
+      <div className="border border-[var(--color-border)] rounded-lg overflow-hidden">
+        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-4 py-2 text-xs text-[var(--color-text-muted)] uppercase tracking-wide font-medium bg-[var(--color-surface-1)] border-b border-[var(--color-border)]">
           <span>Image</span><span>Size</span><span>Arch</span><span>OS</span><span>Created</span><span>Layers</span>
         </div>
         {filtered.map((img) => {
           const key = `${img.repo}:${img.tag}`;
           return (
             <React.Fragment key={key}>
-              <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-4 py-3 border-b border-zinc-800/50 items-center hover:bg-zinc-900/50">
+              <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-4 py-3 border-b border-[var(--color-border)]/50 items-center hover:bg-[var(--color-surface-1)]/50">
                 <div>
-                  <div className="text-white text-sm font-medium">{key}</div>
-                  <div className="text-zinc-600 text-xs font-mono truncate mt-0.5">{img.digest}</div>
+                  <div className="text-[var(--color-text-primary)] text-sm font-medium">{key}</div>
+                  <div className="text-[var(--color-text-muted)] text-xs font-mono truncate mt-0.5">{img.digest}</div>
                 </div>
-                <span className="text-zinc-300 text-sm">{img.size}</span>
-                <span className="text-zinc-300 text-sm font-mono">{img.arch}</span>
-                <span className="text-zinc-300 text-sm">{img.os}</span>
-                <span className="text-zinc-400 text-sm">{img.created}</span>
+                <span className="text-[var(--color-text-primary)] text-sm">{img.size}</span>
+                <span className="text-[var(--color-text-primary)] text-sm font-mono">{img.arch}</span>
+                <span className="text-[var(--color-text-primary)] text-sm">{img.os}</span>
+                <span className="text-[var(--color-text-secondary)] text-sm">{img.created}</span>
                 <button
                   onClick={() => setLayerView(layerView === key ? null : key)}
                   className="text-indigo-400 text-sm hover:text-indigo-300 text-left"
@@ -262,22 +262,22 @@ function ImagesTab() {
                 </button>
               </div>
               {layerView === key && (
-                <div className="px-4 py-3 bg-zinc-950 border-b border-zinc-800">
-                  <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wide">Layer Stack</div>
+                <div className="px-4 py-3 bg-[var(--color-surface-0)] border-b border-[var(--color-border)]">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-2 uppercase tracking-wide">Layer Stack</div>
                   <div className="flex flex-col gap-1">
                     {img.layers.map((layer, idx) => {
                       const maxBytes = Math.max(...img.layers.map((l) => l.bytes));
                       const pct = maxBytes > 0 ? (layer.bytes / maxBytes) * 100 : 0;
                       return (
                         <div key={idx} className="flex items-center gap-3">
-                          <span className="text-xs text-zinc-500 w-6 text-right">{idx}</span>
-                          <div className="flex-1 h-5 bg-zinc-800 rounded overflow-hidden">
+                          <span className="text-xs text-[var(--color-text-muted)] w-6 text-right">{idx}</span>
+                          <div className="flex-1 h-5 bg-[var(--color-surface-2)] rounded overflow-hidden">
                             <div
                               className="h-full bg-indigo-500/60 rounded"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
-                          <span className="text-xs text-zinc-400 w-16 text-right">{layer.size}</span>
+                          <span className="text-xs text-[var(--color-text-secondary)] w-16 text-right">{layer.size}</span>
                         </div>
                       );
                     })}
@@ -299,32 +299,32 @@ function VulnerabilitiesTab() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-        <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wide mb-4">Severity Breakdown</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-6">
+        <h3 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wide mb-4">Severity Breakdown</h3>
         <SeverityDonut counts={counts} />
       </div>
       <div className="space-y-2">
-        <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wide mb-3">All Vulnerabilities</h3>
+        <h3 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wide mb-3">All Vulnerabilities</h3>
         {cves.map((c) => (
-          <div key={c.id} className="border border-zinc-800 rounded-lg overflow-hidden">
+          <div key={c.id} className="border border-[var(--color-border)] rounded-lg overflow-hidden">
             <button
               onClick={() => setExpandedCve(expandedCve === c.id ? null : c.id)}
-              className="w-full flex items-center gap-4 px-4 py-3 bg-zinc-900 hover:bg-zinc-900/80 transition-colors text-left"
+              className="w-full flex items-center gap-4 px-4 py-3 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-1)]/80 transition-colors text-left"
             >
               <span className={cn("text-xs px-2 py-0.5 rounded border font-medium uppercase", severityColor[c.severity])}>
                 {c.severity}
               </span>
-              <span className="text-white text-sm font-mono font-medium">{c.id}</span>
-              <span className="text-zinc-400 text-sm flex-1 truncate">{c.description}</span>
-              <span className={cn("text-xs px-2 py-0.5 rounded", c.fixAvailable ? "text-emerald-400 bg-emerald-400/10" : "text-zinc-500 bg-zinc-800")}>
+              <span className="text-[var(--color-text-primary)] text-sm font-mono font-medium">{c.id}</span>
+              <span className="text-[var(--color-text-secondary)] text-sm flex-1 truncate">{c.description}</span>
+              <span className={cn("text-xs px-2 py-0.5 rounded", c.fixAvailable ? "text-emerald-400 bg-emerald-400/10" : "text-[var(--color-text-muted)] bg-[var(--color-surface-2)]")}>
                 {c.fixAvailable ? "fix available" : "no fix"}
               </span>
             </button>
             {expandedCve === c.id && (
-              <div className="px-4 py-4 bg-zinc-950 border-t border-zinc-800 space-y-3">
-                <p className="text-sm text-zinc-300">{c.description}</p>
+              <div className="px-4 py-4 bg-[var(--color-surface-0)] border-t border-[var(--color-border)] space-y-3">
+                <p className="text-sm text-[var(--color-text-primary)]">{c.description}</p>
                 <div>
-                  <span className="text-xs text-zinc-500 uppercase tracking-wide">Affected Packages</span>
+                  <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Affected Packages</span>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {c.packages.map((p) => (
                       <span key={p} className="text-xs font-mono text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded">{p}</span>
@@ -332,7 +332,7 @@ function VulnerabilitiesTab() {
                   </div>
                 </div>
                 <div>
-                  <span className="text-xs text-zinc-500 uppercase tracking-wide">Affected Images</span>
+                  <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Affected Images</span>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {c.affectedImages.map((img) => (
                       <span key={img} className="text-xs font-mono text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 px-2 py-0.5 rounded">{img}</span>
@@ -351,63 +351,63 @@ function VulnerabilitiesTab() {
 function SettingsTab() {
   return (
     <div className="space-y-6">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 space-y-4">
-        <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wide">Registry Configuration</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-6 space-y-4">
+        <h3 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">Registry Configuration</h3>
         <div className="grid grid-cols-[1fr_2fr] gap-y-3 gap-x-6 text-sm">
-          <span className="text-zinc-500">Primary Mirror</span>
-          <span className="text-white font-mono">https://registry.internal.acme.io</span>
-          <span className="text-zinc-500">Secondary Mirror</span>
-          <span className="text-white font-mono">https://registry-us-west.acme.io</span>
-          <span className="text-zinc-500">Upstream Proxy</span>
-          <span className="text-white font-mono">https://registry-1.docker.io</span>
-          <span className="text-zinc-500">GC Schedule</span>
-          <span className="text-white font-mono">0 3 * * 0 (Sundays at 03:00 UTC)</span>
-          <span className="text-zinc-500">GC Policy</span>
-          <span className="text-zinc-300">Delete untagged manifests older than 30 days</span>
-          <span className="text-zinc-500">Storage Quota</span>
+          <span className="text-[var(--color-text-muted)]">Primary Mirror</span>
+          <span className="text-[var(--color-text-primary)] font-mono">https://registry.internal.acme.io</span>
+          <span className="text-[var(--color-text-muted)]">Secondary Mirror</span>
+          <span className="text-[var(--color-text-primary)] font-mono">https://registry-us-west.acme.io</span>
+          <span className="text-[var(--color-text-muted)]">Upstream Proxy</span>
+          <span className="text-[var(--color-text-primary)] font-mono">https://registry-1.docker.io</span>
+          <span className="text-[var(--color-text-muted)]">GC Schedule</span>
+          <span className="text-[var(--color-text-primary)] font-mono">0 3 * * 0 (Sundays at 03:00 UTC)</span>
+          <span className="text-[var(--color-text-muted)]">GC Policy</span>
+          <span className="text-[var(--color-text-primary)]">Delete untagged manifests older than 30 days</span>
+          <span className="text-[var(--color-text-muted)]">Storage Quota</span>
           <div className="space-y-1">
-            <span className="text-white">28.9 GB / 50 GB</span>
-            <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+            <span className="text-[var(--color-text-primary)]">28.9 GB / 50 GB</span>
+            <div className="w-full h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
               <div className="h-full bg-indigo-500 rounded-full" style={{ width: "57.8%" }} />
             </div>
-            <span className="text-xs text-zinc-500">57.8% used</span>
+            <span className="text-xs text-[var(--color-text-muted)]">57.8% used</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 space-y-4">
-        <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wide">Credentials</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-6 space-y-4">
+        <h3 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">Credentials</h3>
         <div className="grid grid-cols-[1fr_2fr] gap-y-3 gap-x-6 text-sm">
-          <span className="text-zinc-500">Push Token</span>
-          <span className="text-white font-mono">oci_pat_••••••••••••••••••••a4f8</span>
-          <span className="text-zinc-500">Pull Token</span>
-          <span className="text-white font-mono">oci_read_••••••••••••••••••••7b2e</span>
-          <span className="text-zinc-500">Robot Account</span>
-          <span className="text-white font-mono">robot$acme-ci-pipeline</span>
-          <span className="text-zinc-500">Token Expiry</span>
+          <span className="text-[var(--color-text-muted)]">Push Token</span>
+          <span className="text-[var(--color-text-primary)] font-mono">oci_pat_••••••••••••••••••••a4f8</span>
+          <span className="text-[var(--color-text-muted)]">Pull Token</span>
+          <span className="text-[var(--color-text-primary)] font-mono">oci_read_••••••••••••••••••••7b2e</span>
+          <span className="text-[var(--color-text-muted)]">Robot Account</span>
+          <span className="text-[var(--color-text-primary)] font-mono">robot$acme-ci-pipeline</span>
+          <span className="text-[var(--color-text-muted)]">Token Expiry</span>
           <span className="text-amber-400">2026-04-15 (52 days remaining)</span>
         </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 space-y-4">
-        <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wide">Webhooks</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-6 space-y-4">
+        <h3 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">Webhooks</h3>
         <div className="space-y-3">
           {[
             { url: "https://ci.acme.io/hooks/registry-push", events: ["push", "tag"], status: "active" },
             { url: "https://slack.acme.io/webhooks/registry-alerts", events: ["push", "vulnerability_scan"], status: "active" },
             { url: "https://deploy.acme.io/api/trigger", events: ["push"], status: "inactive" },
           ].map((wh) => (
-            <div key={wh.url} className="flex items-center gap-4 p-3 bg-zinc-950 border border-zinc-800 rounded-lg">
-              <span className={cn("w-2 h-2 rounded-full", wh.status === "active" ? "bg-emerald-400" : "bg-zinc-600")} />
+            <div key={wh.url} className="flex items-center gap-4 p-3 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg">
+              <span className={cn("w-2 h-2 rounded-full", wh.status === "active" ? "bg-emerald-400" : "bg-[var(--color-surface-3)]")} />
               <div className="flex-1 min-w-0">
-                <div className="text-sm text-white font-mono truncate">{wh.url}</div>
+                <div className="text-sm text-[var(--color-text-primary)] font-mono truncate">{wh.url}</div>
                 <div className="flex gap-2 mt-1">
                   {wh.events.map((e) => (
-                    <span key={e} className="text-xs text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded">{e}</span>
+                    <span key={e} className="text-xs text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-2 py-0.5 rounded">{e}</span>
                   ))}
                 </div>
               </div>
-              <span className={cn("text-xs px-2 py-0.5 rounded capitalize", wh.status === "active" ? "text-emerald-400 bg-emerald-400/10" : "text-zinc-500 bg-zinc-800")}>
+              <span className={cn("text-xs px-2 py-0.5 rounded capitalize", wh.status === "active" ? "text-emerald-400 bg-emerald-400/10" : "text-[var(--color-text-muted)] bg-[var(--color-surface-2)]")}>
                 {wh.status}
               </span>
             </div>
@@ -422,14 +422,14 @@ export default function ContainerRegistry() {
   const [tab, setTab] = useState<Tab>("repositories");
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Container Registry</h1>
-          <p className="text-sm text-zinc-500 mt-1">Manage repositories, images, and vulnerability scans</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Container Registry</h1>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">Manage repositories, images, and vulnerability scans</p>
         </div>
 
-        <div className="flex gap-1 border-b border-zinc-800 pb-px">
+        <div className="flex gap-1 border-b border-[var(--color-border)] pb-px">
           {TABS.map((t) => (
             <button
               key={t.key}
@@ -438,7 +438,7 @@ export default function ContainerRegistry() {
                 "px-4 py-2 text-sm font-medium transition-colors rounded-t-md border-b-2",
                 tab === t.key
                   ? "text-indigo-400 border-indigo-500 bg-indigo-500/5"
-                  : "text-zinc-500 border-transparent hover:text-zinc-300 hover:border-zinc-700"
+                  : "text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
               )}
             >
               {t.label}

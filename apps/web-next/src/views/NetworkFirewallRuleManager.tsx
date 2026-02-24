@@ -100,7 +100,7 @@ const actionColor: Record<RuleAction, string> = {
 
 const statusDot: Record<RuleStatus, string> = {
   active:   "bg-emerald-400",
-  disabled: "bg-zinc-500",
+  disabled: "bg-[var(--color-surface-3)]",
   review:   "bg-amber-400",
 };
 
@@ -132,13 +132,13 @@ export default function NetworkFirewallRuleManager() {
   const reviewRules = RULES.filter(r => r.status === "review");
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-white">Firewall Rule Manager</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">Network access control — {RULES.length} rules across {SECURITY_GROUPS.length} security groups</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Firewall Rule Manager</h1>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">Network access control — {RULES.length} rules across {SECURITY_GROUPS.length} security groups</p>
           </div>
           <div className="flex items-center gap-3">
             {reviewRules.length > 0 && (
@@ -160,7 +160,7 @@ export default function NetworkFirewallRuleManager() {
           ].map(s => (
             <div key={s.label} className="text-center">
               <div className={cn("text-base font-bold", s.color)}>{s.value}</div>
-              <div className="text-xs text-zinc-500">{s.label}</div>
+              <div className="text-xs text-[var(--color-text-muted)]">{s.label}</div>
             </div>
           ))}
         </div>
@@ -169,7 +169,7 @@ export default function NetworkFirewallRuleManager() {
           {(["rules", "groups", "policies", "audit"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={cn("px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors",
-                tab === t ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800")}>
+                tab === t ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]")}>
               {t === "groups" ? "Security Groups" : t === "audit" ? "Audit Log" : t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
@@ -181,23 +181,23 @@ export default function NetworkFirewallRuleManager() {
         {tab === "rules" && (
           <div className="flex h-full">
             {/* Left: Rules list */}
-            <div className="w-[52%] flex-none border-r border-zinc-800 flex flex-col">
+            <div className="w-[52%] flex-none border-r border-[var(--color-border)] flex flex-col">
               {/* Filters */}
-              <div className="flex-none px-4 py-2.5 border-b border-zinc-800 flex items-center gap-2">
-                <span className="text-xs text-zinc-500">Direction:</span>
+              <div className="flex-none px-4 py-2.5 border-b border-[var(--color-border)] flex items-center gap-2">
+                <span className="text-xs text-[var(--color-text-muted)]">Direction:</span>
                 {(["all", "inbound", "outbound"] as const).map(d => (
                   <button key={d} onClick={() => setDirFilter(d)}
                     className={cn("px-2 py-0.5 rounded text-xs capitalize transition-colors",
-                      dirFilter === d ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                      dirFilter === d ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}>
                     {d}
                   </button>
                 ))}
-                <span className="text-zinc-700">|</span>
-                <span className="text-xs text-zinc-500">Action:</span>
+                <span className="text-[var(--color-text-muted)]">|</span>
+                <span className="text-xs text-[var(--color-text-muted)]">Action:</span>
                 {(["all", "allow", "deny", "log"] as const).map(a => (
                   <button key={a} onClick={() => setActionFilter(a)}
                     className={cn("px-2 py-0.5 rounded text-xs capitalize transition-colors",
-                      actionFilter === a ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                      actionFilter === a ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}>
                     {a}
                   </button>
                 ))}
@@ -205,13 +205,13 @@ export default function NetworkFirewallRuleManager() {
               <div className="flex-1 overflow-y-auto">
                 {filteredRules.map(rule => (
                   <button key={rule.id} onClick={() => setSelected(rule)} className={cn(
-                    "w-full text-left px-4 py-3 border-b border-zinc-800/60 hover:bg-zinc-900 transition-colors",
-                    selected?.id === rule.id && "bg-zinc-900 border-l-2 border-l-indigo-500"
+                    "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface-1)] transition-colors",
+                    selected?.id === rule.id && "bg-[var(--color-surface-1)] border-l-2 border-l-indigo-500"
                   )}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className={cn("w-1.5 h-1.5 rounded-full flex-none mt-0.5", statusDot[rule.status])} />
-                        <span className="text-sm font-medium text-white truncate">{rule.name}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{rule.name}</span>
                       </div>
                       <div className="flex items-center gap-1.5 flex-none">
                         <span className={cn("px-1.5 py-0.5 rounded border text-[10px] font-medium", actionColor[rule.action])}>
@@ -223,14 +223,14 @@ export default function NetworkFirewallRuleManager() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3 mt-1.5 pl-3.5">
-                      <span className="text-[11px] text-zinc-500 font-mono">{rule.sourceIp} → {rule.destIp}:{rule.portRange}</span>
+                      <span className="text-[11px] text-[var(--color-text-muted)] font-mono">{rule.sourceIp} → {rule.destIp}:{rule.portRange}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-1 pl-3.5">
-                      <span className="text-[10px] text-zinc-600">Priority {rule.priority}</span>
-                      <span className="text-[10px] text-zinc-600">·</span>
-                      <span className="text-[10px] text-zinc-600">{formatHits(rule.hitCount)} hits</span>
-                      <span className="text-[10px] text-zinc-600">·</span>
-                      <span className="text-[10px] text-zinc-600">Last hit {rule.lastHit}</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)]">Priority {rule.priority}</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)]">·</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)]">{formatHits(rule.hitCount)} hits</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)]">·</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)]">Last hit {rule.lastHit}</span>
                     </div>
                   </button>
                 ))}
@@ -244,12 +244,12 @@ export default function NetworkFirewallRuleManager() {
                     <div>
                       <div className="flex items-center gap-2">
                         <div className={cn("w-2 h-2 rounded-full", statusDot[selected.status])} />
-                        <h2 className="text-base font-semibold text-white">{selected.name}</h2>
+                        <h2 className="text-base font-semibold text-[var(--color-text-primary)]">{selected.name}</h2>
                       </div>
-                      <p className="text-xs text-zinc-400 mt-1">{selected.description}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)] mt-1">{selected.description}</p>
                     </div>
                     <div className="flex gap-2">
-                      <button className="px-2.5 py-1 rounded text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors">Edit</button>
+                      <button className="px-2.5 py-1 rounded text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] transition-colors">Edit</button>
                       {selected.status === "active"
                         ? <button className="px-2.5 py-1 rounded text-xs bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 transition-colors">Disable</button>
                         : <button className="px-2.5 py-1 rounded text-xs bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 transition-colors">Enable</button>
@@ -260,48 +260,48 @@ export default function NetworkFirewallRuleManager() {
                   <div className="flex flex-wrap gap-2">
                     <span className={cn("px-2 py-1 rounded border text-xs font-medium", actionColor[selected.action])}>{selected.action.toUpperCase()}</span>
                     <span className={cn("px-2 py-1 rounded border text-xs font-medium", directionBadge[selected.direction])}>{selected.direction}</span>
-                    <span className="px-2 py-1 rounded border border-zinc-700 text-xs text-zinc-400">{selected.protocol}</span>
-                    <span className="px-2 py-1 rounded border border-zinc-700 text-xs text-zinc-400">Priority {selected.priority}</span>
+                    <span className="px-2 py-1 rounded border border-[var(--color-border)] text-xs text-[var(--color-text-secondary)]">{selected.protocol}</span>
+                    <span className="px-2 py-1 rounded border border-[var(--color-border)] text-xs text-[var(--color-text-secondary)]">Priority {selected.priority}</span>
                     {selected.status === "review" && (
                       <span className="px-2 py-1 rounded border border-amber-500/40 text-xs text-amber-400 bg-amber-500/10">⚠ Under Review</span>
                     )}
                   </div>
                   {/* Routing */}
-                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs font-medium text-zinc-400 mb-3">Traffic Pattern</div>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-3">Traffic Pattern</div>
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 bg-zinc-800 rounded-lg p-3 text-center">
-                        <div className="text-[10px] text-zinc-500 mb-1">Source</div>
-                        <div className="font-mono text-xs text-white">{selected.sourceIp}</div>
+                      <div className="flex-1 bg-[var(--color-surface-2)] rounded-lg p-3 text-center">
+                        <div className="text-[10px] text-[var(--color-text-muted)] mb-1">Source</div>
+                        <div className="font-mono text-xs text-[var(--color-text-primary)]">{selected.sourceIp}</div>
                       </div>
                       <div className="text-center">
                         <div className={cn("text-lg", selected.action === "deny" ? "text-rose-400" : selected.action === "log" ? "text-sky-400" : "text-emerald-400")}>
                           {selected.action === "deny" ? "✕" : "→"}
                         </div>
-                        <div className="text-[10px] text-zinc-500">{selected.protocol}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">{selected.protocol}</div>
                       </div>
-                      <div className="flex-1 bg-zinc-800 rounded-lg p-3 text-center">
-                        <div className="text-[10px] text-zinc-500 mb-1">Destination</div>
-                        <div className="font-mono text-xs text-white">{selected.destIp}:{selected.portRange}</div>
+                      <div className="flex-1 bg-[var(--color-surface-2)] rounded-lg p-3 text-center">
+                        <div className="text-[10px] text-[var(--color-text-muted)] mb-1">Destination</div>
+                        <div className="font-mono text-xs text-[var(--color-text-primary)]">{selected.destIp}:{selected.portRange}</div>
                       </div>
                     </div>
                   </div>
                   {/* Hit rate */}
-                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs font-medium text-zinc-400 mb-3">Activity</div>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-3">Activity</div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <div className="text-xs text-zinc-500">Total Hits</div>
-                        <div className="text-xl font-bold text-white mt-0.5">{formatHits(selected.hitCount)}</div>
+                        <div className="text-xs text-[var(--color-text-muted)]">Total Hits</div>
+                        <div className="text-xl font-bold text-[var(--color-text-primary)] mt-0.5">{formatHits(selected.hitCount)}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-zinc-500">Last Hit</div>
-                        <div className="text-sm font-medium text-zinc-300 mt-0.5">{selected.lastHit}</div>
+                        <div className="text-xs text-[var(--color-text-muted)]">Last Hit</div>
+                        <div className="text-sm font-medium text-[var(--color-text-primary)] mt-0.5">{selected.lastHit}</div>
                       </div>
                     </div>
                     <div className="mt-3">
-                      <div className="text-[10px] text-zinc-600 mb-1">Relative traffic volume</div>
-                      <div className="w-full bg-zinc-800 rounded-full h-1.5">
+                      <div className="text-[10px] text-[var(--color-text-muted)] mb-1">Relative traffic volume</div>
+                      <div className="w-full bg-[var(--color-surface-2)] rounded-full h-1.5">
                         <div
                           className={cn("h-1.5 rounded-full", selected.action === "deny" ? "bg-rose-500" : selected.action === "log" ? "bg-sky-500" : "bg-emerald-500")}
                           style={{ width: `${Math.min(100, (selected.hitCount / 30000000) * 100)}%` }}
@@ -310,23 +310,23 @@ export default function NetworkFirewallRuleManager() {
                     </div>
                   </div>
                   {/* Tags & metadata */}
-                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs font-medium text-zinc-400 mb-3">Metadata</div>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-3">Metadata</div>
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div><span className="text-zinc-500">Created by: </span><span className="text-zinc-300">{selected.createdBy}</span></div>
-                      <div><span className="text-zinc-500">Created: </span><span className="text-zinc-300">{selected.createdAt}</span></div>
-                      <div><span className="text-zinc-500">Rule ID: </span><span className="font-mono text-zinc-300">{selected.id}</span></div>
-                      <div><span className="text-zinc-500">Status: </span><span className="text-zinc-300 capitalize">{selected.status}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Created by: </span><span className="text-[var(--color-text-primary)]">{selected.createdBy}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Created: </span><span className="text-[var(--color-text-primary)]">{selected.createdAt}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Rule ID: </span><span className="font-mono text-[var(--color-text-primary)]">{selected.id}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Status: </span><span className="text-[var(--color-text-primary)] capitalize">{selected.status}</span></div>
                     </div>
                     <div className="flex flex-wrap gap-1.5 mt-3">
                       {selected.tags.map(tag => (
-                        <span key={tag} className="px-2 py-0.5 rounded bg-zinc-800 text-xs text-zinc-400">{tag}</span>
+                        <span key={tag} className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-xs text-[var(--color-text-secondary)]">{tag}</span>
                       ))}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-zinc-600 text-sm">Select a rule</div>
+                <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">Select a rule</div>
               )}
             </div>
           </div>
@@ -337,25 +337,25 @@ export default function NetworkFirewallRuleManager() {
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-3">
               {SECURITY_GROUPS.map(sg => (
-                <div key={sg.id} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 hover:border-zinc-700 transition-colors">
+                <div key={sg.id} className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)] hover:border-[var(--color-border)] transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={cn("w-2 h-2 rounded-full", sg.status === "active" ? "bg-emerald-400" : "bg-zinc-600")} />
+                      <div className={cn("w-2 h-2 rounded-full", sg.status === "active" ? "bg-emerald-400" : "bg-[var(--color-surface-3)]")} />
                       <div>
-                        <div className="font-medium text-white text-sm">{sg.name}</div>
-                        <div className="text-xs text-zinc-500 mt-0.5">{sg.vpc} · {sg.region}</div>
+                        <div className="font-medium text-[var(--color-text-primary)] text-sm">{sg.name}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{sg.vpc} · {sg.region}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-right">
                       <div>
-                        <div className="text-sm font-semibold text-white">{sg.ruleCount}</div>
-                        <div className="text-[10px] text-zinc-500">rules</div>
+                        <div className="text-sm font-semibold text-[var(--color-text-primary)]">{sg.ruleCount}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">rules</div>
                       </div>
                       <div>
-                        <div className={cn("text-sm font-semibold", sg.attachedResources === 0 ? "text-amber-400" : "text-white")}>{sg.attachedResources}</div>
-                        <div className="text-[10px] text-zinc-500">attached</div>
+                        <div className={cn("text-sm font-semibold", sg.attachedResources === 0 ? "text-amber-400" : "text-[var(--color-text-primary)]")}>{sg.attachedResources}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">attached</div>
                       </div>
-                      <div className="text-[10px] text-zinc-600">modified {sg.lastModified}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">modified {sg.lastModified}</div>
                       {sg.status === "unused" && (
                         <span className="px-2 py-0.5 rounded border border-amber-500/40 text-[10px] text-amber-400 bg-amber-500/10">Unused</span>
                       )}
@@ -367,7 +367,7 @@ export default function NetworkFirewallRuleManager() {
                     <div className="bg-rose-500" style={{ width: "25%" }} />
                     <div className="bg-sky-500" style={{ width: "15%" }} />
                   </div>
-                  <div className="flex gap-4 mt-1.5 text-[10px] text-zinc-600">
+                  <div className="flex gap-4 mt-1.5 text-[10px] text-[var(--color-text-muted)]">
                     <span><span className="text-emerald-400">■</span> Allow</span>
                     <span><span className="text-rose-400">■</span> Deny</span>
                     <span><span className="text-sky-400">■</span> Log</span>
@@ -383,33 +383,33 @@ export default function NetworkFirewallRuleManager() {
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-4">
               {POLICIES.map(pol => (
-                <div key={pol.id} className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
+                <div key={pol.id} className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold text-white">{pol.name}</h3>
-                      <p className="text-xs text-zinc-400 mt-1">{pol.description}</p>
+                      <h3 className="font-semibold text-[var(--color-text-primary)]">{pol.name}</h3>
+                      <p className="text-xs text-[var(--color-text-secondary)] mt-1">{pol.description}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={cn("px-2 py-1 rounded border text-xs font-medium", actionColor[pol.defaultAction])}>
                         Default: {pol.defaultAction.toUpperCase()}
                       </span>
-                      <button className="px-2.5 py-1 rounded text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors">Edit</button>
+                      <button className="px-2.5 py-1 rounded text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] transition-colors">Edit</button>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 mt-4">
                     <div className="flex-none">
-                      <div className="text-xl font-bold text-white">{pol.ruleCount}</div>
-                      <div className="text-[10px] text-zinc-500">rules</div>
+                      <div className="text-xl font-bold text-[var(--color-text-primary)]">{pol.ruleCount}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">rules</div>
                     </div>
                     <div className="flex-1">
-                      <div className="text-[10px] text-zinc-500 mb-1.5">Applied to</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)] mb-1.5">Applied to</div>
                       <div className="flex flex-wrap gap-1.5">
                         {pol.appliedTo.map(sg => (
-                          <span key={sg} className="px-2 py-0.5 rounded bg-zinc-800 text-xs font-mono text-zinc-300">{sg}</span>
+                          <span key={sg} className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-xs font-mono text-[var(--color-text-primary)]">{sg}</span>
                         ))}
                       </div>
                     </div>
-                    <div className="text-[10px] text-zinc-600 flex-none">Updated {pol.lastUpdated}</div>
+                    <div className="text-[10px] text-[var(--color-text-muted)] flex-none">Updated {pol.lastUpdated}</div>
                   </div>
                 </div>
               ))}
@@ -422,27 +422,27 @@ export default function NetworkFirewallRuleManager() {
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-2">
               {AUDIT_EVENTS.map(ev => (
-                <div key={ev.id} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 hover:border-zinc-700 transition-colors">
+                <div key={ev.id} className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)] hover:border-[var(--color-border)] transition-colors">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono text-zinc-500">{ev.timestamp}</span>
+                        <span className="text-[10px] font-mono text-[var(--color-text-muted)]">{ev.timestamp}</span>
                         <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium",
                           ev.action.includes("CREATED") ? "bg-emerald-500/15 text-emerald-400" :
                           ev.action.includes("DISABLED") ? "bg-amber-500/15 text-amber-400" :
                           ev.action.includes("MODIFIED") ? "bg-sky-500/15 text-sky-400" :
                           "bg-indigo-500/15 text-indigo-400"
                         )}>{ev.action}</span>
-                        <span className="text-xs text-white font-medium truncate">{ev.resource}</span>
+                        <span className="text-xs text-[var(--color-text-primary)] font-medium truncate">{ev.resource}</span>
                       </div>
                       <div className="flex items-center gap-4 mt-2 text-[11px]">
-                        <span className="text-zinc-500">by <span className="text-zinc-300">{ev.user}</span></span>
-                        <span className="text-zinc-500">from <span className="font-mono text-zinc-400">{ev.ip}</span></span>
+                        <span className="text-[var(--color-text-muted)]">by <span className="text-[var(--color-text-primary)]">{ev.user}</span></span>
+                        <span className="text-[var(--color-text-muted)]">from <span className="font-mono text-[var(--color-text-secondary)]">{ev.ip}</span></span>
                       </div>
                       {ev.before !== "-" && (
                         <div className="flex items-center gap-2 mt-2 text-[10px] font-mono">
                           <span className="text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded">- {ev.before}</span>
-                          <span className="text-zinc-600">→</span>
+                          <span className="text-[var(--color-text-muted)]">→</span>
                           <span className="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">+ {ev.after}</span>
                         </div>
                       )}

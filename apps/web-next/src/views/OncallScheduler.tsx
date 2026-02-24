@@ -151,21 +151,21 @@ export default function OncallScheduler() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">On-Call Scheduler</h1>
-          <p className="text-sm text-zinc-400 mt-1">Manage rotation coverage for the squad</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">Manage rotation coverage for the squad</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => { setWeekOffset((w) => w - 1); setSwapTarget(null); }}
-            className="px-3 py-1.5 rounded-md bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white text-sm font-medium transition-colors"
+            className="px-3 py-1.5 rounded-md bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] text-sm font-medium transition-colors"
           >
             ← Prev
           </button>
-          <div className="text-sm font-medium text-zinc-300 min-w-[180px] text-center">
+          <div className="text-sm font-medium text-[var(--color-text-primary)] min-w-[180px] text-center">
             {formatDate(viewMonday)} – {formatDate(addDays(viewMonday, 6))}
             {isCurrentWeek && (
               <span className="ml-2 text-xs text-indigo-400 font-semibold">(This week)</span>
@@ -173,14 +173,14 @@ export default function OncallScheduler() {
           </div>
           <button
             onClick={() => { setWeekOffset((w) => w + 1); setSwapTarget(null); }}
-            className="px-3 py-1.5 rounded-md bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white text-sm font-medium transition-colors"
+            className="px-3 py-1.5 rounded-md bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] text-sm font-medium transition-colors"
           >
             Next →
           </button>
           {!isCurrentWeek && (
             <button
               onClick={() => { setWeekOffset(0); setSwapTarget(null); }}
-              className="px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-500 text-sm font-medium transition-colors"
+              className="px-3 py-1.5 rounded-md bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 text-sm font-medium transition-colors"
             >
               Today
             </button>
@@ -191,10 +191,10 @@ export default function OncallScheduler() {
       <div className="flex gap-6">
         {/* Calendar Grid */}
         <div className="flex-1">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
             {/* Day headers */}
-            <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-zinc-800">
-              <div className="p-3 text-xs font-semibold text-zinc-500 uppercase">Shift</div>
+            <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-[var(--color-border)]">
+              <div className="p-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase">Shift</div>
               {DAY_NAMES.map((name, i) => {
                 const dayDate = addDays(viewMonday, i)
                 const isToday = isSameDay(dayDate, today)
@@ -202,14 +202,14 @@ export default function OncallScheduler() {
                   <div
                     key={name}
                     className={cn(
-                      "p-3 text-center border-l border-zinc-800",
+                      "p-3 text-center border-l border-[var(--color-border)]",
                       isToday ? "bg-indigo-500/10" : ""
                     )}
                   >
-                    <div className={cn("text-xs font-semibold uppercase", isToday ? "text-indigo-400" : "text-zinc-400")}>
+                    <div className={cn("text-xs font-semibold uppercase", isToday ? "text-indigo-400" : "text-[var(--color-text-secondary)]")}>
                       {name}
                     </div>
-                    <div className={cn("text-lg font-bold mt-0.5", isToday ? "text-indigo-300" : "text-zinc-200")}>
+                    <div className={cn("text-lg font-bold mt-0.5", isToday ? "text-indigo-300" : "text-[var(--color-text-primary)]")}>
                       {dayDate.getDate()}
                     </div>
                   </div>
@@ -221,13 +221,13 @@ export default function OncallScheduler() {
             {PERIODS.map((period) => (
               <div
                 key={period}
-                className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-zinc-800 last:border-b-0"
+                className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-[var(--color-border)] last:border-b-0"
               >
                 <div className="p-3 flex items-center justify-center">
-                  <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
                     {period}
                   </span>
-                  <span className="ml-1.5 text-[10px] text-zinc-600">
+                  <span className="ml-1.5 text-[10px] text-[var(--color-text-muted)]">
                     {period === "AM" ? "0–12" : "12–24"}
                   </span>
                 </div>
@@ -243,11 +243,11 @@ export default function OncallScheduler() {
                       key={`${dayIdx}-${period}`}
                       onClick={() => handleBlockClick(dayIdx, period)}
                       className={cn(
-                        "border-l border-zinc-800 p-2 min-h-[72px] transition-all text-left relative group",
-                        isToday ? "bg-indigo-500/5" : "bg-zinc-900",
-                        isSelected ? "ring-2 ring-indigo-500 ring-inset bg-zinc-800" : "",
+                        "border-l border-[var(--color-border)] p-2 min-h-[72px] transition-all text-left relative group",
+                        isToday ? "bg-indigo-500/5" : "bg-[var(--color-surface-1)]",
+                        isSelected ? "ring-2 ring-indigo-500 ring-inset bg-[var(--color-surface-2)]" : "",
                         isNow ? "bg-indigo-500/10" : "",
-                        "hover:bg-zinc-800/80 cursor-pointer"
+                        "hover:bg-[var(--color-surface-2)]/80 cursor-pointer"
                       )}
                     >
                       <div className="flex items-center gap-1.5">
@@ -264,8 +264,8 @@ export default function OncallScheduler() {
                           <span className="text-[10px] text-green-400 font-semibold uppercase">Live</span>
                         </div>
                       )}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-900/60">
-                        <span className="text-[10px] text-zinc-400 font-medium">Click to swap</span>
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--color-surface-1)]/60">
+                        <span className="text-[10px] text-[var(--color-text-secondary)] font-medium">Click to swap</span>
                       </div>
                     </button>
                   )
@@ -276,13 +276,13 @@ export default function OncallScheduler() {
 
           {/* Swap Panel */}
           {swapTarget && (
-            <div className="mt-4 bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <div className="mt-4 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h3 className="text-sm font-semibold text-white">
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
                     Swap Shift — {DAY_NAMES[swapTarget.day]} {swapTarget.period}
                   </h3>
-                  <p className="text-xs text-zinc-500 mt-0.5">
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                     Currently assigned: {AGENTS[getBlock(swapTarget.day, swapTarget.period).agentIndex].name}
                   </p>
                 </div>
@@ -295,14 +295,14 @@ export default function OncallScheduler() {
                       "px-3 py-1 rounded-md text-xs font-medium border transition-colors",
                       overrideTarget
                         ? "bg-red-500/20 border-red-500/50 text-red-400"
-                        : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-white"
+                        : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
                     {overrideTarget ? "Cancel Override" : "Override"}
                   </button>
                   <button
                     onClick={() => { setSwapTarget(null); setOverrideTarget(null); }}
-                    className="px-3 py-1 rounded-md bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white text-xs font-medium transition-colors"
+                    className="px-3 py-1 rounded-md bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-xs font-medium transition-colors"
                   >
                     Close
                   </button>
@@ -323,20 +323,20 @@ export default function OncallScheduler() {
                       className={cn(
                         "flex flex-col items-center gap-2 p-3 rounded-lg border transition-all",
                         isCurrent
-                          ? "border-zinc-700 bg-zinc-800/50 opacity-50 cursor-not-allowed"
+                          ? "border-[var(--color-border)] bg-[var(--color-surface-2)]/50 opacity-50 cursor-not-allowed"
                           : overrideTarget
                             ? "border-red-500/30 bg-red-500/5 hover:bg-red-500/10 hover:border-red-500/50 cursor-pointer"
-                            : "border-zinc-700 bg-zinc-800/50 hover:bg-zinc-800 hover:border-zinc-600 cursor-pointer"
+                            : "border-[var(--color-border)] bg-[var(--color-surface-2)]/50 hover:bg-[var(--color-surface-2)] hover:border-[var(--color-surface-3)] cursor-pointer"
                       )}
                     >
-                      <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white", agent.bgClass)}>
+                      <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-[var(--color-text-primary)]", agent.bgClass)}>
                         {agent.name[0]}
                       </div>
-                      <span className={cn("text-xs font-medium", isCurrent ? "text-zinc-600" : "text-zinc-300")}>
+                      <span className={cn("text-xs font-medium", isCurrent ? "text-[var(--color-text-muted)]" : "text-[var(--color-text-primary)]")}>
                         {agent.name}
                       </span>
                       {isCurrent && (
-                        <span className="text-[10px] text-zinc-600">Current</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">Current</span>
                       )}
                     </button>
                   )
@@ -355,15 +355,15 @@ export default function OncallScheduler() {
           )}
 
           {/* Color Legend */}
-          <div className="mt-4 bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+          <div className="mt-4 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+            <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
               Agent Legend
             </h3>
             <div className="flex flex-wrap gap-4">
               {AGENTS.map((agent) => (
                 <div key={agent.name} className="flex items-center gap-2">
                   <div className={cn("w-3 h-3 rounded-full", agent.bgClass)} />
-                  <span className="text-sm text-zinc-300 font-medium">{agent.name}</span>
+                  <span className="text-sm text-[var(--color-text-primary)] font-medium">{agent.name}</span>
                 </div>
               ))}
             </div>
@@ -373,15 +373,15 @@ export default function OncallScheduler() {
         {/* Right Sidebar */}
         <div className="w-72 shrink-0 space-y-4">
           {/* Who's On Call Now */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+            <h2 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
               On Call Now
             </h2>
             {oncallAgent ? (
               <div className="flex flex-col items-center text-center">
                 <div
                   className={cn(
-                    "w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white mb-3",
+                    "w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-[var(--color-text-primary)] mb-3",
                     oncallAgent.bgClass
                   )}
                 >
@@ -394,51 +394,51 @@ export default function OncallScheduler() {
                   <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                   <span className="text-xs text-green-400 font-semibold">Active</span>
                 </div>
-                <div className="mt-3 w-full pt-3 border-t border-zinc-800">
-                  <div className="text-xs text-zinc-500">Current period</div>
-                  <div className="text-sm font-semibold text-zinc-200 mt-0.5">
+                <div className="mt-3 w-full pt-3 border-t border-[var(--color-border)]">
+                  <div className="text-xs text-[var(--color-text-muted)]">Current period</div>
+                  <div className="text-sm font-semibold text-[var(--color-text-primary)] mt-0.5">
                     {currentPeriod === "AM" ? "00:00 – 12:00" : "12:00 – 24:00"}
                   </div>
                 </div>
               </div>
             ) : (
               <div className="text-center py-4">
-                <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl text-zinc-600">?</span>
+                <div className="w-16 h-16 rounded-full bg-[var(--color-surface-2)] flex items-center justify-center mx-auto mb-3">
+                  <span className="text-2xl text-[var(--color-text-muted)]">?</span>
                 </div>
-                <p className="text-sm text-zinc-500">Navigate to current week</p>
+                <p className="text-sm text-[var(--color-text-muted)]">Navigate to current week</p>
               </div>
             )}
           </div>
 
           {/* Next Handoff */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+            <h2 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
               Next Handoff
             </h2>
-            <div className="text-lg font-bold text-white">{getNextHandoff(today)}</div>
-            <div className="mt-2 text-xs text-zinc-500">
+            <div className="text-lg font-bold text-[var(--color-text-primary)]">{getNextHandoff(today)}</div>
+            <div className="mt-2 text-xs text-[var(--color-text-muted)]">
               {currentPeriod === "AM" ? "PM shift begins at noon" : "AM shift begins at midnight"}
             </div>
-            <div className="mt-3 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+            <div className="mt-3 h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
               <div
                 className="h-full rounded-full bg-indigo-500 transition-all"
                 style={{ width: `${((today.getHours() % 12) / 12) * 100}%` }}
               />
             </div>
             <div className="flex justify-between mt-1">
-              <span className="text-[10px] text-zinc-600">
+              <span className="text-[10px] text-[var(--color-text-muted)]">
                 {currentPeriod === "AM" ? "00:00" : "12:00"}
               </span>
-              <span className="text-[10px] text-zinc-600">
+              <span className="text-[10px] text-[var(--color-text-muted)]">
                 {currentPeriod === "AM" ? "12:00" : "24:00"}
               </span>
             </div>
           </div>
 
           {/* Escalation Chain */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+            <h2 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
               Escalation Chain
             </h2>
             <div className="space-y-2">
@@ -447,17 +447,17 @@ export default function OncallScheduler() {
                   key={agent.name}
                   className={cn(
                     "flex items-center gap-3 p-2 rounded-lg transition-colors",
-                    idx === 0 ? "bg-zinc-800/80" : "bg-transparent"
+                    idx === 0 ? "bg-[var(--color-surface-2)]/80" : "bg-transparent"
                   )}
                 >
-                  <div className="text-xs font-mono text-zinc-600 w-4 text-right">
+                  <div className="text-xs font-mono text-[var(--color-text-muted)] w-4 text-right">
                     {idx === 0 ? "→" : `L${idx}`}
                   </div>
-                  <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white", agent.bgClass)}>
+                  <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-[var(--color-text-primary)]", agent.bgClass)}>
                     {agent.name[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={cn("text-sm font-medium truncate", idx === 0 ? "text-white" : "text-zinc-400")}>
+                    <div className={cn("text-sm font-medium truncate", idx === 0 ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)]")}>
                       {agent.name}
                     </div>
                   </div>
@@ -470,8 +470,8 @@ export default function OncallScheduler() {
           </div>
 
           {/* Week Stats */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+            <h2 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
               Week Coverage
             </h2>
             <div className="space-y-2">
@@ -481,10 +481,10 @@ export default function OncallScheduler() {
                 return (
                   <div key={agent.name}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-zinc-400">{agent.name}</span>
-                      <span className="text-xs text-zinc-500">{shiftCount} shifts</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">{agent.name}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{shiftCount} shifts</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                       <div
                         className={cn("h-full rounded-full transition-all", agent.bgClass)}
                         style={{ width: `${pct}%` }}

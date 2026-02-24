@@ -167,18 +167,18 @@ function statusColor(s: SLAStatus) {
   if (s === "compliant") {return "text-emerald-400";}
   if (s === "at-risk") {return "text-amber-400";}
   if (s === "breached") {return "text-rose-400";}
-  return "text-zinc-400";
+  return "text-[var(--color-text-secondary)]";
 }
 function statusBg(s: SLAStatus) {
   if (s === "compliant") {return "bg-emerald-400/10 text-emerald-400";}
   if (s === "at-risk") {return "bg-amber-400/10 text-amber-400";}
   if (s === "breached") {return "bg-rose-400/10 text-rose-400";}
-  return "bg-zinc-700 text-zinc-400";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 function tierBadge(t: SLATier) {
   if (t === "platinum") {return "bg-indigo-500/20 text-indigo-300";}
   if (t === "gold") {return "bg-amber-400/20 text-amber-300";}
-  if (t === "silver") {return "bg-zinc-400/20 text-zinc-300";}
+  if (t === "silver") {return "bg-[var(--color-surface-3)]/20 text-[var(--color-text-primary)]";}
   return "bg-orange-700/20 text-orange-300";
 }
 function severityColor(s: IncidentSeverity) {
@@ -202,12 +202,12 @@ function MetricBar({ label, target, actual, unit, invert = false }: { label: str
   return (
     <div>
       <div className="flex justify-between text-xs mb-1">
-        <span className="text-zinc-400">{label}</span>
+        <span className="text-[var(--color-text-secondary)]">{label}</span>
         <span className={good ? "text-emerald-400" : "text-rose-400"}>
-          {actual}{unit} <span className="text-zinc-500">/ {target}{unit} target</span>
+          {actual}{unit} <span className="text-[var(--color-text-muted)]">/ {target}{unit} target</span>
         </span>
       </div>
-      <div className="h-2 bg-zinc-700 rounded-full overflow-hidden">
+      <div className="h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
         <div className={cn("h-full rounded-full transition-all", good ? "bg-emerald-500" : "bg-rose-500")} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -233,7 +233,7 @@ function UptimeTrendChart({ points }: { points: TrendPoint[] }) {
                 title={`${p.value}%`}
               />
             </div>
-            <span className="text-[10px] text-zinc-500">{p.date}</span>
+            <span className="text-[10px] text-[var(--color-text-muted)]">{p.date}</span>
           </div>
         );
       })}
@@ -272,16 +272,16 @@ export default function SLAComplianceTracker() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">SLA Compliance Tracker</h1>
-          <p className="text-zinc-400 text-sm mt-1">Service Level Agreement monitoring across all customer contracts</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">SLA Compliance Tracker</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Service Level Agreement monitoring across all customer contracts</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 transition-colors">Export Report</button>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors">+ New Contract</button>
+          <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Export Report</button>
+          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Contract</button>
         </div>
       </div>
 
@@ -293,31 +293,31 @@ export default function SLAComplianceTracker() {
           { label: "Breached", value: breachedCount, total: totalContracts, color: "text-rose-400" },
           { label: "Avg Health", value: `${avgHealth}%`, total: null, color: "text-indigo-400" },
         ].map(k => (
-          <div key={k.label} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-            <div className="text-xs text-zinc-500 mb-1">{k.label}</div>
+          <div key={k.label} className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+            <div className="text-xs text-[var(--color-text-muted)] mb-1">{k.label}</div>
             <div className={cn("text-2xl font-bold", k.color)}>{k.value}</div>
-            {k.total !== null && <div className="text-xs text-zinc-500 mt-1">of {k.total} contracts</div>}
+            {k.total !== null && <div className="text-xs text-[var(--color-text-muted)] mt-1">of {k.total} contracts</div>}
           </div>
         ))}
       </div>
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Credits Issued (YTD)</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Credits Issued (YTD)</div>
           <div className="text-2xl font-bold text-rose-400">${totalCreditsUsed.toLocaleString()}</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Open Incidents</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Open Incidents</div>
           <div className="text-2xl font-bold text-amber-400">{openIncidents}</div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-zinc-800 mb-6">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => { setTab(t.id); setSelectedContract(null); }}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200")}
+            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             {t.label}
           </button>
@@ -329,8 +329,8 @@ export default function SLAComplianceTracker() {
         <div className="space-y-6">
           {/* Status distribution */}
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-              <h3 className="text-sm font-medium text-zinc-300 mb-4">Contract Status Distribution</h3>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Contract Status Distribution</h3>
               <div className="space-y-3">
                 {(["compliant", "at-risk", "breached", "paused"] as SLAStatus[]).map(s => {
                   const count = CONTRACTS.filter(c => c.status === s).length;
@@ -338,12 +338,12 @@ export default function SLAComplianceTracker() {
                   return (
                     <div key={s}>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="capitalize text-zinc-400">{s.replace("-", " ")}</span>
+                        <span className="capitalize text-[var(--color-text-secondary)]">{s.replace("-", " ")}</span>
                         <span className={statusColor(s)}>{count} contracts ({pct.toFixed(0)}%)</span>
                       </div>
-                      <div className="h-2 bg-zinc-700 rounded-full overflow-hidden">
+                      <div className="h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                         <div
-                          className={cn("h-full rounded-full", s === "compliant" ? "bg-emerald-500" : s === "at-risk" ? "bg-amber-500" : s === "breached" ? "bg-rose-500" : "bg-zinc-500")}
+                          className={cn("h-full rounded-full", s === "compliant" ? "bg-emerald-500" : s === "at-risk" ? "bg-amber-500" : s === "breached" ? "bg-rose-500" : "bg-[var(--color-surface-3)]")}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -353,10 +353,10 @@ export default function SLAComplianceTracker() {
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-              <h3 className="text-sm font-medium text-zinc-300 mb-4">Portfolio Uptime Trend</h3>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Portfolio Uptime Trend</h3>
               <UptimeTrendChart points={UPTIME_TREND} />
-              <div className="flex gap-4 mt-3 text-xs text-zinc-500">
+              <div className="flex gap-4 mt-3 text-xs text-[var(--color-text-muted)]">
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" />≥ 99.9%</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-rose-500 inline-block" />Below target</span>
               </div>
@@ -364,8 +364,8 @@ export default function SLAComplianceTracker() {
           </div>
 
           {/* Tier breakdown */}
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Contract Health by Tier</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Contract Health by Tier</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(["platinum", "gold", "silver", "bronze"] as SLATier[]).map(tier => {
                 const tierContracts = CONTRACTS.filter(c => c.tier === tier);
@@ -373,12 +373,12 @@ export default function SLAComplianceTracker() {
                 const avgH = tierContracts.length > 0 ? Math.round(tierContracts.reduce((s, c) => s + c.healthScore, 0) / tierContracts.length) : 0;
                 const allGood = tierContracts.every(c => c.status === "compliant");
                 return (
-                  <div key={tier} className="bg-zinc-800 rounded-lg p-4 text-center">
+                  <div key={tier} className="bg-[var(--color-surface-2)] rounded-lg p-4 text-center">
                     <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full capitalize", tierBadge(tier))}>{tier}</span>
-                    <div className="text-2xl font-bold text-white mt-3">{tierContracts.length}</div>
-                    <div className="text-xs text-zinc-500">contracts</div>
+                    <div className="text-2xl font-bold text-[var(--color-text-primary)] mt-3">{tierContracts.length}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">contracts</div>
                     <div className={cn("text-lg font-semibold mt-2", allGood ? "text-emerald-400" : "text-amber-400")}>{avgH}%</div>
-                    <div className="text-xs text-zinc-500">avg health</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">avg health</div>
                   </div>
                 );
               })}
@@ -386,17 +386,17 @@ export default function SLAComplianceTracker() {
           </div>
 
           {/* Recent violations */}
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Recent Violations</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Recent Violations</h3>
             <div className="space-y-3">
               {CONTRACTS.flatMap(c => c.violations.map(v => ({ ...v, customer: c.customer, tier: c.tier }))).toSorted((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map(v => (
-                <div key={v.id} className="flex items-start justify-between p-3 bg-zinc-800 rounded-lg">
+                <div key={v.id} className="flex items-start justify-between p-3 bg-[var(--color-surface-2)] rounded-lg">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-zinc-200">{v.customer}</span>
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">{v.customer}</span>
                       <span className={cn("text-xs px-1.5 py-0.5 rounded-full capitalize", tierBadge(v.tier as SLATier))}>{v.tier}</span>
                     </div>
-                    <div className="text-xs text-zinc-400">{v.date} · {v.duration} · {v.impact}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{v.date} · {v.duration} · {v.impact}</div>
                   </div>
                   <div className="text-rose-400 text-sm font-medium">-${v.penalty.toLocaleString()}</div>
                 </div>
@@ -413,7 +413,7 @@ export default function SLAComplianceTracker() {
             <select
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value as SLAStatus | "all")}
-              className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]"
             >
               <option value="all">All Status</option>
               <option value="compliant">Compliant</option>
@@ -424,7 +424,7 @@ export default function SLAComplianceTracker() {
             <select
               value={filterTier}
               onChange={e => setFilterTier(e.target.value as SLATier | "all")}
-              className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]"
             >
               <option value="all">All Tiers</option>
               <option value="platinum">Platinum</option>
@@ -439,20 +439,20 @@ export default function SLAComplianceTracker() {
               <div
                 key={c.id}
                 onClick={() => setSelectedContract(c)}
-                className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 hover:border-zinc-600 cursor-pointer transition-colors"
+                className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)] hover:border-[var(--color-surface-3)] cursor-pointer transition-colors"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-zinc-100">{c.customer}</span>
+                      <span className="font-semibold text-[var(--color-text-primary)]">{c.customer}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", tierBadge(c.tier))}>{c.tier}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded-full", statusBg(c.status))}>{c.status.replace("-", " ")}</span>
                     </div>
-                    <div className="text-xs text-zinc-500 mt-1">{c.contactName} · Renewal {c.renewalDate}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-1">{c.contactName} · Renewal {c.renewalDate}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-bold text-white">{c.healthScore}%</div>
-                    <div className="text-xs text-zinc-500">health score</div>
+                    <div className="text-lg font-bold text-[var(--color-text-primary)]">{c.healthScore}%</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">health score</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
@@ -465,7 +465,7 @@ export default function SLAComplianceTracker() {
                     return (
                       <div key={m.label} className="text-center">
                         <div className={cn("text-sm font-medium", ok ? "text-emerald-400" : "text-rose-400")}>{m.val}{m.unit}</div>
-                        <div className="text-xs text-zinc-500">{m.label}</div>
+                        <div className="text-xs text-[var(--color-text-muted)]">{m.label}</div>
                       </div>
                     );
                   })}
@@ -479,23 +479,23 @@ export default function SLAComplianceTracker() {
       {/* Contract Detail */}
       {tab === "contracts" && selectedContract && (
         <div>
-          <button onClick={() => setSelectedContract(null)} className="flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-200 mb-4 transition-colors">
+          <button onClick={() => setSelectedContract(null)} className="flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] mb-4 transition-colors">
             ← Back to contracts
           </button>
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 mb-5">
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)] mb-5">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h2 className="text-xl font-bold text-white">{selectedContract.customer}</h2>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedContract.customer}</h2>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", tierBadge(selectedContract.tier))}>{selectedContract.tier}</span>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full", statusBg(selectedContract.status))}>{selectedContract.status.replace("-", " ")}</span>
                 </div>
-                <div className="text-sm text-zinc-400">{selectedContract.contactName} · {selectedContract.contactEmail}</div>
-                <div className="text-xs text-zinc-500 mt-1">Contract: {selectedContract.startDate} → {selectedContract.renewalDate}</div>
+                <div className="text-sm text-[var(--color-text-secondary)]">{selectedContract.contactName} · {selectedContract.contactEmail}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-1">Contract: {selectedContract.startDate} → {selectedContract.renewalDate}</div>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-white">{selectedContract.healthScore}%</div>
-                <div className="text-xs text-zinc-500">health score</div>
+                <div className="text-3xl font-bold text-[var(--color-text-primary)]">{selectedContract.healthScore}%</div>
+                <div className="text-xs text-[var(--color-text-muted)]">health score</div>
               </div>
             </div>
             <div className="space-y-3">
@@ -512,23 +512,23 @@ export default function SLAComplianceTracker() {
             </div>
           </div>
 
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 mb-5">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">SLA Credits</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)] mb-5">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">SLA Credits</h3>
             <div className="flex items-center gap-4 mb-3">
               <div>
                 <div className="text-2xl font-bold text-rose-400">${selectedContract.creditsUsed.toLocaleString()}</div>
-                <div className="text-xs text-zinc-500">credits issued</div>
+                <div className="text-xs text-[var(--color-text-muted)]">credits issued</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-zinc-300">${selectedContract.creditsAvailable.toLocaleString()}</div>
-                <div className="text-xs text-zinc-500">credit limit</div>
+                <div className="text-2xl font-bold text-[var(--color-text-primary)]">${selectedContract.creditsAvailable.toLocaleString()}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">credit limit</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-emerald-400">${(selectedContract.creditsAvailable - selectedContract.creditsUsed).toLocaleString()}</div>
-                <div className="text-xs text-zinc-500">remaining</div>
+                <div className="text-xs text-[var(--color-text-muted)]">remaining</div>
               </div>
             </div>
-            <div className="h-3 bg-zinc-700 rounded-full overflow-hidden">
+            <div className="h-3 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
               <div
                 className="h-full bg-rose-500 rounded-full"
                 style={{ width: `${Math.min(100, (selectedContract.creditsUsed / selectedContract.creditsAvailable) * 100)}%` }}
@@ -537,17 +537,17 @@ export default function SLAComplianceTracker() {
           </div>
 
           {selectedContract.violations.length > 0 && (
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-              <h3 className="text-sm font-medium text-zinc-300 mb-4">Violations ({selectedContract.violations.length})</h3>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Violations ({selectedContract.violations.length})</h3>
               <div className="space-y-3">
                 {selectedContract.violations.map(v => (
-                  <div key={v.id} className="p-4 bg-zinc-800 rounded-lg border border-zinc-700">
+                  <div key={v.id} className="p-4 bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)]">
                     <div className="flex items-start justify-between mb-2">
-                      <div className="text-sm font-medium text-zinc-200">{v.date} — {v.duration}</div>
+                      <div className="text-sm font-medium text-[var(--color-text-primary)]">{v.date} — {v.duration}</div>
                       <div className="text-rose-400 font-medium text-sm">-${v.penalty.toLocaleString()}</div>
                     </div>
-                    <div className="text-xs text-zinc-400 mb-1"><span className="text-zinc-500">Impact:</span> {v.impact}</div>
-                    <div className="text-xs text-zinc-400"><span className="text-zinc-500">Root cause:</span> {v.rootCause}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mb-1"><span className="text-[var(--color-text-muted)]">Impact:</span> {v.impact}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]"><span className="text-[var(--color-text-muted)]">Root cause:</span> {v.rootCause}</div>
                     <div className={cn("text-xs mt-2", v.resolved ? "text-emerald-400" : "text-amber-400")}>{v.resolved ? "✓ Resolved" : "⏳ In progress"}</div>
                   </div>
                 ))}
@@ -561,7 +561,7 @@ export default function SLAComplianceTracker() {
       {tab === "incidents" && (
         <div className="space-y-3">
           {INCIDENTS.map(inc => (
-            <div key={inc.id} className={cn("bg-zinc-900 rounded-xl p-4 border transition-colors", inc.breached ? "border-rose-500/40" : "border-zinc-800")}>
+            <div key={inc.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border transition-colors", inc.breached ? "border-rose-500/40" : "border-[var(--color-border)]")}>
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -569,17 +569,17 @@ export default function SLAComplianceTracker() {
                     {inc.breached && <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400">SLA Breached</span>}
                     {!inc.resolvedAt && <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">Open</span>}
                   </div>
-                  <div className="font-medium text-zinc-100">{inc.title}</div>
-                  <div className="text-xs text-zinc-500 mt-1">{inc.customer}</div>
+                  <div className="font-medium text-[var(--color-text-primary)]">{inc.title}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-1">{inc.customer}</div>
                 </div>
-                <div className="text-right text-xs text-zinc-500">
+                <div className="text-right text-xs text-[var(--color-text-muted)]">
                   <div>Opened: {inc.openedAt}</div>
-                  <div className={cn("mt-1", inc.breached ? "text-rose-400" : "text-zinc-500")}>Deadline: {inc.slaDeadline}</div>
+                  <div className={cn("mt-1", inc.breached ? "text-rose-400" : "text-[var(--color-text-muted)]")}>Deadline: {inc.slaDeadline}</div>
                   {inc.resolvedAt && <div className="text-emerald-400 mt-1">Resolved: {inc.resolvedAt}</div>}
                 </div>
               </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-zinc-800">
-                <span className="text-xs text-zinc-500">Assignee: <span className="text-zinc-300">{inc.assignee}</span></span>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--color-border)]">
+                <span className="text-xs text-[var(--color-text-muted)]">Assignee: <span className="text-[var(--color-text-primary)]">{inc.assignee}</span></span>
                 <span className={cn("text-xs", inc.resolvedAt ? "text-emerald-400" : "text-amber-400")}>
                   {inc.resolvedAt ? "✓ Resolved" : "⏳ In progress"}
                 </span>
@@ -592,8 +592,8 @@ export default function SLAComplianceTracker() {
       {/* Credits & Penalties */}
       {tab === "credits" && (
         <div className="space-y-5">
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Credit Summary by Contract</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Credit Summary by Contract</h3>
             <div className="space-y-4">
               {CONTRACTS.filter(c => c.creditsUsed > 0 || c.creditsAvailable > 0).map(c => {
                 const usedPct = Math.min(100, (c.creditsUsed / c.creditsAvailable) * 100);
@@ -602,43 +602,43 @@ export default function SLAComplianceTracker() {
                   <div key={c.id}>
                     <div className="flex justify-between text-xs mb-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-zinc-300">{c.customer}</span>
+                        <span className="text-[var(--color-text-primary)]">{c.customer}</span>
                         <span className={cn("px-1.5 py-0.5 rounded-full capitalize", tierBadge(c.tier))}>{c.tier}</span>
                       </div>
-                      <span className={isHigh ? "text-rose-400" : "text-zinc-400"}>
+                      <span className={isHigh ? "text-rose-400" : "text-[var(--color-text-secondary)]"}>
                         ${c.creditsUsed.toLocaleString()} / ${c.creditsAvailable.toLocaleString()}
                       </span>
                     </div>
-                    <div className="h-3 bg-zinc-700 rounded-full overflow-hidden">
+                    <div className="h-3 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                       <div
                         className={cn("h-full rounded-full transition-all", isHigh ? "bg-rose-500" : "bg-indigo-500")}
                         style={{ width: `${usedPct}%` }}
                       />
                     </div>
-                    <div className="text-xs text-zinc-500 mt-1">{usedPct.toFixed(1)}% of credit limit used</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-1">{usedPct.toFixed(1)}% of credit limit used</div>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Penalty Log</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Penalty Log</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-700">
+                  <tr className="border-b border-[var(--color-border)]">
                     {["Customer", "Date", "Duration", "Penalty", "Status"].map(h => (
-                      <th key={h} className="pb-2 text-left text-xs text-zinc-500 font-medium">{h}</th>
+                      <th key={h} className="pb-2 text-left text-xs text-[var(--color-text-muted)] font-medium">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-[var(--color-border)]">
                   {CONTRACTS.flatMap(c => c.violations.map(v => ({ ...v, customer: c.customer }))).toSorted((a, b) => b.date.localeCompare(a.date)).map(v => (
                     <tr key={v.id}>
-                      <td className="py-2 text-zinc-200">{v.customer}</td>
-                      <td className="py-2 text-zinc-400">{v.date}</td>
-                      <td className="py-2 text-zinc-400">{v.duration}</td>
+                      <td className="py-2 text-[var(--color-text-primary)]">{v.customer}</td>
+                      <td className="py-2 text-[var(--color-text-secondary)]">{v.date}</td>
+                      <td className="py-2 text-[var(--color-text-secondary)]">{v.duration}</td>
                       <td className="py-2 text-rose-400 font-medium">-${v.penalty.toLocaleString()}</td>
                       <td className="py-2">
                         <span className={cn("text-xs", v.resolved ? "text-emerald-400" : "text-amber-400")}>{v.resolved ? "Resolved" : "Open"}</span>
@@ -648,8 +648,8 @@ export default function SLAComplianceTracker() {
                 </tbody>
               </table>
             </div>
-            <div className="mt-4 pt-4 border-t border-zinc-700 flex justify-between">
-              <span className="text-sm text-zinc-400">Total penalties YTD</span>
+            <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex justify-between">
+              <span className="text-sm text-[var(--color-text-secondary)]">Total penalties YTD</span>
               <span className="text-sm font-bold text-rose-400">-${totalCreditsUsed.toLocaleString()}</span>
             </div>
           </div>

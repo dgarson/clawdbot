@@ -116,14 +116,14 @@ const NODE_CONFIG: Record<NodeKind, { emoji: string; color: string; bg: string; 
   delay: { emoji: "⏱️", color: "text-purple-400", bg: "bg-purple-900/30", border: "border-purple-600/50", label: "Delay" },
   notify: { emoji: "🔔", color: "text-emerald-400", bg: "bg-emerald-900/30", border: "border-emerald-600/50", label: "Notify" },
   branch: { emoji: "🌿", color: "text-teal-400", bg: "bg-teal-900/30", border: "border-teal-600/50", label: "Branch" },
-  end: { emoji: "🏁", color: "text-zinc-400", bg: "bg-zinc-800/50", border: "border-zinc-600/50", label: "End" },
+  end: { emoji: "🏁", color: "text-[var(--color-text-secondary)]", bg: "bg-[var(--color-surface-2)]/50", border: "border-[var(--color-surface-3)]/50", label: "End" },
 };
 
 const STATUS_CONFIG: Record<WorkflowStatus, { label: string; color: string; dot: string }> = {
   active: { label: "Active", color: "text-emerald-400", dot: "bg-emerald-400" },
-  draft: { label: "Draft", color: "text-zinc-400", dot: "bg-zinc-400" },
+  draft: { label: "Draft", color: "text-[var(--color-text-secondary)]", dot: "bg-[var(--color-surface-3)]" },
   paused: { label: "Paused", color: "text-amber-400", dot: "bg-amber-400" },
-  archived: { label: "Archived", color: "text-zinc-600", dot: "bg-zinc-600" },
+  archived: { label: "Archived", color: "text-[var(--color-text-muted)]", dot: "bg-[var(--color-surface-3)]" },
 };
 
 const RUN_STATUS_CONFIG = {
@@ -148,17 +148,17 @@ export default function WorkflowBuilder() {
   const activeWfs = WORKFLOWS.filter((w) => w.status === "active").length;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-zinc-800">
+      <div className="flex-shrink-0 px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl font-bold text-white">Workflow Builder</h1>
-            <p className="text-sm text-zinc-400">Automate agent operations with visual workflows</p>
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Workflow Builder</h1>
+            <p className="text-sm text-[var(--color-text-secondary)]">Automate agent operations with visual workflows</p>
           </div>
           <button
             onClick={() => setIsAddingNode(!isAddingNode)}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-4 py-2 rounded-lg text-sm font-medium"
           >
             + New Workflow
           </button>
@@ -167,14 +167,14 @@ export default function WorkflowBuilder() {
         {/* Stats */}
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label: "Total Workflows", value: WORKFLOWS.length, color: "text-white" },
+            { label: "Total Workflows", value: WORKFLOWS.length, color: "text-[var(--color-text-primary)]" },
             { label: "Active", value: activeWfs, color: "text-emerald-400" },
             { label: "Total Runs", value: totalRuns, color: "text-indigo-400" },
             { label: "Success Rate", value: `${Math.round((successRuns / totalRuns) * 100)}%`, color: "text-emerald-400" },
           ].map((s) => (
-            <div key={s.label} className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
+            <div key={s.label} className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
               <div className={cn("text-xl font-bold", s.color)}>{s.value}</div>
-              <div className="text-xs text-zinc-500">{s.label}</div>
+              <div className="text-xs text-[var(--color-text-muted)]">{s.label}</div>
             </div>
           ))}
         </div>
@@ -182,9 +182,9 @@ export default function WorkflowBuilder() {
 
       <div className="flex-1 overflow-hidden flex">
         {/* Sidebar: workflow list */}
-        <div className="flex-shrink-0 w-64 border-r border-zinc-800 flex flex-col overflow-hidden">
-          <div className="p-3 border-b border-zinc-800">
-            <div className="text-xs text-zinc-500 font-medium uppercase tracking-wide px-1 mb-2">Workflows</div>
+        <div className="flex-shrink-0 w-64 border-r border-[var(--color-border)] flex flex-col overflow-hidden">
+          <div className="p-3 border-b border-[var(--color-border)]">
+            <div className="text-xs text-[var(--color-text-muted)] font-medium uppercase tracking-wide px-1 mb-2">Workflows</div>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {WORKFLOWS.map((workflow) => {
@@ -199,17 +199,17 @@ export default function WorkflowBuilder() {
                     "w-full text-left p-3 rounded-lg border transition-all",
                     isSelected
                       ? "bg-indigo-900/30 border-indigo-600/60"
-                      : "bg-zinc-900/50 border-zinc-800 hover:border-zinc-600"
+                      : "bg-[var(--color-surface-1)]/50 border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm font-medium text-white truncate">{workflow.name}</span>
+                    <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{workflow.name}</span>
                     <span className={cn("w-2 h-2 rounded-full flex-shrink-0 ml-2", ws.dot)} />
                   </div>
-                  <div className="text-xs text-zinc-500 mb-2 leading-relaxed truncate">{workflow.description}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-2 leading-relaxed truncate">{workflow.description}</div>
                   <div className="flex items-center gap-2 text-[10px]">
-                    <span className="bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">{workflow.nodes.length} nodes</span>
-                    <span className="bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">{workflow.runs.length} runs</span>
+                    <span className="bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-1.5 py-0.5 rounded">{workflow.nodes.length} nodes</span>
+                    <span className="bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-1.5 py-0.5 rounded">{workflow.runs.length} runs</span>
                     {lastRun && (
                       <span className={cn(
                         "px-1.5 py-0.5 rounded border",
@@ -226,8 +226,8 @@ export default function WorkflowBuilder() {
           </div>
 
           {/* Node palette */}
-          <div className="border-t border-zinc-800 p-3">
-            <div className="text-xs text-zinc-500 font-medium uppercase tracking-wide px-1 mb-2">Node Types</div>
+          <div className="border-t border-[var(--color-border)] p-3">
+            <div className="text-xs text-[var(--color-text-muted)] font-medium uppercase tracking-wide px-1 mb-2">Node Types</div>
             <div className="grid grid-cols-2 gap-1">
               {(Object.keys(NODE_CONFIG) as NodeKind[]).filter((k) => k !== "end").map((kind) => {
                 const nc = NODE_CONFIG[kind];
@@ -251,16 +251,16 @@ export default function WorkflowBuilder() {
         {/* Main panel */}
         <div className="flex-1 overflow-hidden flex flex-col">
           {/* Workflow header */}
-          <div className="flex-shrink-0 px-5 py-3 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between">
+          <div className="flex-shrink-0 px-5 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-3">
-                <h2 className="text-base font-semibold text-white">{wf.name}</h2>
+                <h2 className="text-base font-semibold text-[var(--color-text-primary)]">{wf.name}</h2>
                 <span className={cn("flex items-center gap-1.5 text-xs", st.color)}>
                   <span className={cn("w-1.5 h-1.5 rounded-full", st.dot)} />
                   {st.label}
                 </span>
               </div>
-              <div className="text-xs text-zinc-500 mt-0.5">{wf.triggerType} · {wf.nodes.length} nodes</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{wf.triggerType} · {wf.nodes.length} nodes</div>
             </div>
             <div className="flex items-center gap-2">
               {(["canvas", "runs", "settings"] as const).map((tab) => (
@@ -269,13 +269,13 @@ export default function WorkflowBuilder() {
                   onClick={() => setActiveTab(tab)}
                   className={cn(
                     "px-3 py-1.5 rounded text-sm capitalize",
-                    activeTab === tab ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                    activeTab === tab ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {tab}
                 </button>
               ))}
-              <button className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded text-sm ml-2">
+              <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm ml-2">
                 ▶ Run Now
               </button>
             </div>
@@ -285,7 +285,7 @@ export default function WorkflowBuilder() {
             {/* Canvas / content */}
             <div className="flex-1 overflow-auto">
               {activeTab === "canvas" && (
-                <div className="relative bg-zinc-950" style={{ height: 480, minWidth: 900 }}>
+                <div className="relative bg-[var(--color-surface-0)]" style={{ height: 480, minWidth: 900 }}>
                   {/* Grid background */}
                   <div
                     className="absolute inset-0 opacity-10"
@@ -313,7 +313,7 @@ export default function WorkflowBuilder() {
                         <div key={`${node.id}->${nextId}`} className="absolute inset-0 pointer-events-none">
                           {/* Horizontal segment from source */}
                           <div
-                            className="absolute bg-zinc-600"
+                            className="absolute bg-[var(--color-surface-3)]"
                             style={{
                               left: `calc(${x1}% + 68px)`,
                               top: `calc(${y1}% + 18px)`,
@@ -324,7 +324,7 @@ export default function WorkflowBuilder() {
                           {/* Vertical segment */}
                           {Math.abs(dy) > 3 && (
                             <div
-                              className="absolute bg-zinc-600"
+                              className="absolute bg-[var(--color-surface-3)]"
                               style={{
                                 left: `${midX}%`,
                                 top: `calc(${Math.min(y1, y2)}% + 18px)`,
@@ -335,7 +335,7 @@ export default function WorkflowBuilder() {
                           )}
                           {/* Horizontal segment to target */}
                           <div
-                            className="absolute bg-zinc-600"
+                            className="absolute bg-[var(--color-surface-3)]"
                             style={{
                               left: `${midX}%`,
                               top: `calc(${y2}% + 18px)`,
@@ -345,7 +345,7 @@ export default function WorkflowBuilder() {
                           />
                           {/* Arrow */}
                           <div
-                            className="absolute text-zinc-600 text-xs"
+                            className="absolute text-[var(--color-text-muted)] text-xs"
                             style={{
                               left: `calc(${x2}% - 6px)`,
                               top: `calc(${y2}% + 13px)`,
@@ -385,7 +385,7 @@ export default function WorkflowBuilder() {
                         <span className={cn("text-xs font-semibold leading-tight text-center", nc.color)}>
                           {node.label}
                         </span>
-                        <span className="text-[10px] text-zinc-500 text-center leading-tight">
+                        <span className="text-[10px] text-[var(--color-text-muted)] text-center leading-tight">
                           {nc.label}
                         </span>
                       </button>
@@ -396,7 +396,7 @@ export default function WorkflowBuilder() {
 
               {activeTab === "runs" && (
                 <div className="p-5 space-y-3">
-                  <div className="text-sm font-medium text-white mb-3">Run History</div>
+                  <div className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Run History</div>
                   {wf.runs.map((run) => {
                     const rs = RUN_STATUS_CONFIG[run.status];
                     const duration = run.completedAt
@@ -413,21 +413,21 @@ export default function WorkflowBuilder() {
                             <span className={cn("text-sm font-semibold", rs.color)}>
                               {rs.label}
                             </span>
-                            <span className="text-xs text-zinc-500">{run.id}</span>
+                            <span className="text-xs text-[var(--color-text-muted)]">{run.id}</span>
                           </div>
-                          <span className="text-xs text-zinc-500">{duration}</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">{duration}</span>
                         </div>
-                        <div className="text-xs text-zinc-400 mb-2">
-                          Triggered by <span className="text-zinc-300">{run.triggeredBy}</span> · {run.startedAt.slice(0, 16).replace("T", " ")}
+                        <div className="text-xs text-[var(--color-text-secondary)] mb-2">
+                          Triggered by <span className="text-[var(--color-text-primary)]">{run.triggeredBy}</span> · {run.startedAt.slice(0, 16).replace("T", " ")}
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="flex-1 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                             <div
                               className={cn("h-full rounded-full", run.status === "success" ? "bg-emerald-500" : run.status === "failed" ? "bg-rose-500" : "bg-amber-500")}
                               style={{ width: `${progressPct}%` }}
                             />
                           </div>
-                          <span className="text-xs text-zinc-500">{run.stepsCompleted}/{run.stepsTotal} steps</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">{run.stepsCompleted}/{run.stepsTotal} steps</span>
                         </div>
                       </div>
                     );
@@ -437,35 +437,35 @@ export default function WorkflowBuilder() {
 
               {activeTab === "settings" && (
                 <div className="p-5 max-w-lg space-y-4">
-                  <div className="text-sm font-medium text-white mb-3">Workflow Settings</div>
+                  <div className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Workflow Settings</div>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Name</label>
+                      <label className="text-xs text-[var(--color-text-secondary)] block mb-1">Name</label>
                       <input
                         type="text"
                         defaultValue={wf.name}
-                        className="bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm w-full"
+                        className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm w-full"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Description</label>
+                      <label className="text-xs text-[var(--color-text-secondary)] block mb-1">Description</label>
                       <textarea
                         defaultValue={wf.description}
-                        className="bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm w-full resize-none"
+                        className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm w-full resize-none"
                         rows={3}
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Trigger</label>
+                      <label className="text-xs text-[var(--color-text-secondary)] block mb-1">Trigger</label>
                       <input
                         type="text"
                         defaultValue={wf.triggerType}
-                        className="bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm w-full font-mono"
+                        className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm w-full font-mono"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-400 block mb-1">Status</label>
-                      <select className="bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm w-full" defaultValue={wf.status}>
+                      <label className="text-xs text-[var(--color-text-secondary)] block mb-1">Status</label>
+                      <select className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm w-full" defaultValue={wf.status}>
                         <option value="active">Active</option>
                         <option value="paused">Paused</option>
                         <option value="draft">Draft</option>
@@ -473,8 +473,8 @@ export default function WorkflowBuilder() {
                       </select>
                     </div>
                     <div className="flex gap-2 pt-2">
-                      <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm">Save Changes</button>
-                      <button className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded text-sm">Cancel</button>
+                      <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-4 py-2 rounded text-sm">Save Changes</button>
+                      <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-4 py-2 rounded text-sm">Cancel</button>
                     </div>
                   </div>
                 </div>
@@ -483,30 +483,30 @@ export default function WorkflowBuilder() {
 
             {/* Node detail panel */}
             {selectedNode && activeTab === "canvas" && (
-              <div className="flex-shrink-0 w-72 border-l border-zinc-800 bg-zinc-900 overflow-y-auto p-4">
+              <div className="flex-shrink-0 w-72 border-l border-[var(--color-border)] bg-[var(--color-surface-1)] overflow-y-auto p-4">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <div className={cn("text-xs font-medium mb-1", NODE_CONFIG[selectedNode.kind].color)}>
                       {NODE_CONFIG[selectedNode.kind].emoji} {NODE_CONFIG[selectedNode.kind].label}
                     </div>
-                    <h3 className="text-base font-semibold text-white">{selectedNode.label}</h3>
-                    <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{selectedNode.description}</p>
+                    <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{selectedNode.label}</h3>
+                    <p className="text-xs text-[var(--color-text-secondary)] mt-1 leading-relaxed">{selectedNode.description}</p>
                   </div>
-                  <button onClick={() => setSelectedNode(null)} className="text-zinc-500 hover:text-white ml-2">✕</button>
+                  <button onClick={() => setSelectedNode(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] ml-2">✕</button>
                 </div>
 
                 {/* Config */}
                 {Object.keys(selectedNode.config).length > 0 && (
                   <div className="mb-4">
-                    <div className="text-xs text-zinc-500 font-medium mb-2 uppercase tracking-wide">Configuration</div>
+                    <div className="text-xs text-[var(--color-text-muted)] font-medium mb-2 uppercase tracking-wide">Configuration</div>
                     <div className="space-y-2">
                       {Object.entries(selectedNode.config).map(([key, val]) => (
                         <div key={key}>
-                          <label className="text-[11px] text-zinc-500 block mb-1 capitalize">{key.replace(/([A-Z])/g, " $1")}</label>
+                          <label className="text-[11px] text-[var(--color-text-muted)] block mb-1 capitalize">{key.replace(/([A-Z])/g, " $1")}</label>
                           <input
                             type="text"
                             defaultValue={String(val)}
-                            className="bg-zinc-800 border border-zinc-700 text-white rounded px-2.5 py-1.5 text-xs w-full font-mono"
+                            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-2.5 py-1.5 text-xs w-full font-mono"
                           />
                         </div>
                       ))}
@@ -516,9 +516,9 @@ export default function WorkflowBuilder() {
 
                 {/* Connections */}
                 <div className="mb-4">
-                  <div className="text-xs text-zinc-500 font-medium mb-2 uppercase tracking-wide">Connections Out</div>
+                  <div className="text-xs text-[var(--color-text-muted)] font-medium mb-2 uppercase tracking-wide">Connections Out</div>
                   {selectedNode.nextIds.length === 0 ? (
-                    <div className="text-xs text-zinc-600">Terminal node — no outgoing connections</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Terminal node — no outgoing connections</div>
                   ) : (
                     <div className="space-y-1">
                       {selectedNode.nextIds.map((nextId) => {
@@ -527,10 +527,10 @@ export default function WorkflowBuilder() {
                           <button
                             key={nextId}
                             onClick={() => setSelectedNode(target)}
-                            className="flex items-center gap-2 bg-zinc-800 rounded px-2.5 py-1.5 w-full text-left hover:bg-zinc-700 transition-colors"
+                            className="flex items-center gap-2 bg-[var(--color-surface-2)] rounded px-2.5 py-1.5 w-full text-left hover:bg-[var(--color-surface-3)] transition-colors"
                           >
                             <span>{NODE_CONFIG[target.kind].emoji}</span>
-                            <span className="text-xs text-zinc-300">{target.label}</span>
+                            <span className="text-xs text-[var(--color-text-primary)]">{target.label}</span>
                             <span className={cn("text-[10px] ml-auto", NODE_CONFIG[target.kind].color)}>{NODE_CONFIG[target.kind].label}</span>
                           </button>
                         ) : null;
@@ -540,8 +540,8 @@ export default function WorkflowBuilder() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 pt-3 border-t border-zinc-800">
-                  <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-1.5 rounded text-xs">Save</button>
+                <div className="flex gap-2 pt-3 border-t border-[var(--color-border)]">
+                  <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] py-1.5 rounded text-xs">Save</button>
                   <button className="flex-1 bg-rose-900/40 hover:bg-rose-900/60 text-rose-400 border border-rose-700/50 py-1.5 rounded text-xs">Delete</button>
                 </div>
               </div>

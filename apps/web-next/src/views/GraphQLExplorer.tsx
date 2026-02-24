@@ -250,21 +250,21 @@ export default function GraphQLExplorer(): React.ReactElement {
   const opColor = opType === "mutation" ? "text-amber-400" : opType === "subscription" ? "text-emerald-400" : "text-indigo-400";
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div>
           <h1 className="text-lg font-semibold">GraphQL Explorer</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">Interactive GraphQL schema explorer and query runner</p>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">Interactive GraphQL schema explorer and query runner</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-xs text-zinc-500 font-mono">endpoint: /api/graphql</div>
+          <div className="text-xs text-[var(--color-text-muted)] font-mono">endpoint: /api/graphql</div>
           <div className="w-2 h-2 rounded-full bg-emerald-400" title="Connected" />
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 px-6 pt-3 border-b border-zinc-800 shrink-0">
+      <div className="flex gap-1 px-6 pt-3 border-b border-[var(--color-border)] shrink-0">
         {TABS.map((t) => (
           <button
             key={t}
@@ -273,7 +273,7 @@ export default function GraphQLExplorer(): React.ReactElement {
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
                 ? "text-indigo-400 border-indigo-500"
-                : "text-zinc-400 border-transparent hover:text-white"
+                : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}
@@ -286,9 +286,9 @@ export default function GraphQLExplorer(): React.ReactElement {
         {tab === "Explorer" && (
           <div className="h-full flex">
             {/* Left: Editor */}
-            <div className="flex-1 flex flex-col border-r border-zinc-800">
+            <div className="flex-1 flex flex-col border-r border-[var(--color-border)]">
               {/* Toolbar */}
-              <div className="flex items-center gap-3 px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
+              <div className="flex items-center gap-3 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
                 <div className={cn("text-xs font-mono font-bold uppercase", opColor)}>{opType}</div>
                 <div className="flex-1" />
                 <button
@@ -297,8 +297,8 @@ export default function GraphQLExplorer(): React.ReactElement {
                   className={cn(
                     "px-4 py-1.5 text-xs font-medium rounded-md transition-colors",
                     isRunning
-                      ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                      : "bg-indigo-600 hover:bg-indigo-500 text-white"
+                      ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-not-allowed"
+                      : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
                   )}
                 >
                   {isRunning ? "Running..." : "▶ Run"}
@@ -307,29 +307,29 @@ export default function GraphQLExplorer(): React.ReactElement {
 
               {/* Query area */}
               <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="px-3 py-1.5 bg-zinc-900/30 border-b border-zinc-800/50">
-                  <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">Query</span>
+                <div className="px-3 py-1.5 bg-[var(--color-surface-1)]/30 border-b border-[var(--color-border)]/50">
+                  <span className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold">Query</span>
                 </div>
                 <div className="flex-1 relative overflow-hidden">
                   <textarea
                     value={query}
                     onChange={(e) => { setQuery(e.target.value); setHasRun(false); }}
                     spellCheck={false}
-                    className="absolute inset-0 w-full h-full bg-transparent text-sm font-mono text-zinc-200 p-4 resize-none focus:outline-none leading-relaxed"
+                    className="absolute inset-0 w-full h-full bg-transparent text-sm font-mono text-[var(--color-text-primary)] p-4 resize-none focus:outline-none leading-relaxed"
                     style={{ tabSize: 2 }}
                   />
                 </div>
                 {/* Variables */}
-                <div className="border-t border-zinc-800">
-                  <div className="px-3 py-1.5 bg-zinc-900/30 border-b border-zinc-800/50">
-                    <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">Variables</span>
+                <div className="border-t border-[var(--color-border)]">
+                  <div className="px-3 py-1.5 bg-[var(--color-surface-1)]/30 border-b border-[var(--color-border)]/50">
+                    <span className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold">Variables</span>
                   </div>
                   <textarea
                     value={variables}
                     onChange={(e) => setVariables(e.target.value)}
                     spellCheck={false}
                     rows={4}
-                    className="w-full bg-transparent text-xs font-mono text-zinc-300 p-3 resize-none focus:outline-none"
+                    className="w-full bg-transparent text-xs font-mono text-[var(--color-text-primary)] p-3 resize-none focus:outline-none"
                   />
                 </div>
               </div>
@@ -337,12 +337,12 @@ export default function GraphQLExplorer(): React.ReactElement {
 
             {/* Right: Response */}
             <div className="w-96 flex flex-col">
-              <div className="px-3 py-1.5 bg-zinc-900/30 border-b border-zinc-800/50 flex items-center gap-2">
-                <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">Response</span>
+              <div className="px-3 py-1.5 bg-[var(--color-surface-1)]/30 border-b border-[var(--color-border)]/50 flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold">Response</span>
                 {hasRun && (
                   <>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">200 OK</span>
-                    <span className="text-[10px] text-zinc-500">42ms</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)]">42ms</span>
                   </>
                 )}
               </div>
@@ -351,17 +351,17 @@ export default function GraphQLExplorer(): React.ReactElement {
                   <div className="h-full flex items-center justify-center">
                     <div className="text-center">
                       <div className="text-3xl mb-3">▶</div>
-                      <div className="text-sm text-zinc-500">Run a query to see results</div>
+                      <div className="text-sm text-[var(--color-text-muted)]">Run a query to see results</div>
                     </div>
                   </div>
                 )}
                 {isRunning && (
                   <div className="h-full flex items-center justify-center">
-                    <div className="text-sm text-zinc-400 animate-pulse">Executing...</div>
+                    <div className="text-sm text-[var(--color-text-secondary)] animate-pulse">Executing...</div>
                   </div>
                 )}
                 {hasRun && !isRunning && (
-                  <pre className="text-xs font-mono text-zinc-200 leading-relaxed whitespace-pre-wrap">{MOCK_RESPONSE}</pre>
+                  <pre className="text-xs font-mono text-[var(--color-text-primary)] leading-relaxed whitespace-pre-wrap">{MOCK_RESPONSE}</pre>
                 )}
               </div>
             </div>
@@ -372,14 +372,14 @@ export default function GraphQLExplorer(): React.ReactElement {
         {tab === "Schema" && (
           <div className="h-full flex overflow-hidden">
             {/* Type list */}
-            <div className="w-56 border-r border-zinc-800 flex flex-col">
-              <div className="p-3 border-b border-zinc-800">
+            <div className="w-56 border-r border-[var(--color-border)] flex flex-col">
+              <div className="p-3 border-b border-[var(--color-border)]">
                 <input
                   type="text"
                   placeholder="Search schema..."
                   value={schemaSearch}
                   onChange={(e) => setSchemaSearch(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-2.5 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
                 />
               </div>
               <div className="flex-1 overflow-y-auto">
@@ -388,12 +388,12 @@ export default function GraphQLExplorer(): React.ReactElement {
                     key={type.name}
                     onClick={() => setSelectedType(type)}
                     className={cn(
-                      "w-full text-left px-4 py-3 text-sm border-b border-zinc-800/50 transition-colors",
-                      selectedType.name === type.name ? "bg-indigo-600/10 text-indigo-300" : "text-zinc-300 hover:bg-zinc-800/50"
+                      "w-full text-left px-4 py-3 text-sm border-b border-[var(--color-border)]/50 transition-colors",
+                      selectedType.name === type.name ? "bg-indigo-600/10 text-indigo-300" : "text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50"
                     )}
                   >
                     <div className="font-medium">{type.name}</div>
-                    <div className="text-[10px] text-zinc-500 mt-0.5">{type.kind}</div>
+                    <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{type.kind}</div>
                   </button>
                 ))}
               </div>
@@ -404,32 +404,32 @@ export default function GraphQLExplorer(): React.ReactElement {
               <div className="mb-4">
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl font-bold font-mono text-indigo-300">{selectedType.name}</h2>
-                  <span className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">{selectedType.kind}</span>
+                  <span className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)]">{selectedType.kind}</span>
                 </div>
-                <p className="text-sm text-zinc-400 mt-1">{selectedType.description}</p>
+                <p className="text-sm text-[var(--color-text-secondary)] mt-1">{selectedType.description}</p>
               </div>
 
               <div className="space-y-2">
                 {selectedType.fields.map((field) => (
-                  <div key={field.name} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                  <div key={field.name} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div>
-                        <span className="font-mono text-sm font-semibold text-white">{field.name}</span>
+                        <span className="font-mono text-sm font-semibold text-[var(--color-text-primary)]">{field.name}</span>
                         <span className="font-mono text-sm text-indigo-300 ml-2">{field.type}</span>
-                        {field.nullable && <span className="text-xs text-zinc-500 ml-2">(nullable)</span>}
+                        {field.nullable && <span className="text-xs text-[var(--color-text-muted)] ml-2">(nullable)</span>}
                       </div>
                     </div>
-                    <p className="text-xs text-zinc-400">{field.description}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{field.description}</p>
                     {field.args && field.args.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-zinc-800">
-                        <div className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold mb-2">Arguments</div>
+                      <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+                        <div className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold mb-2">Arguments</div>
                         <div className="space-y-1">
                           {field.args.map((arg) => (
                             <div key={arg.name} className="flex items-center gap-2 text-xs">
                               <span className="font-mono text-amber-300">{arg.name}</span>
-                              <span className="font-mono text-zinc-400">{arg.type}</span>
+                              <span className="font-mono text-[var(--color-text-secondary)]">{arg.type}</span>
                               {!arg.required && arg.defaultValue && (
-                                <span className="text-zinc-500">= {arg.defaultValue}</span>
+                                <span className="text-[var(--color-text-muted)]">= {arg.defaultValue}</span>
                               )}
                             </div>
                           ))}
@@ -451,17 +451,17 @@ export default function GraphQLExplorer(): React.ReactElement {
                 <div
                   key={h.id}
                   onClick={() => { setQuery(h.query); setTab("Explorer"); }}
-                  className="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-lg p-4 cursor-pointer transition-colors group"
+                  className="bg-[var(--color-surface-1)] border border-[var(--color-border)] hover:border-[var(--color-border)] rounded-lg p-4 cursor-pointer transition-colors group"
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <div className={cn("w-2 h-2 rounded-full shrink-0", h.status === "success" ? "bg-emerald-400" : "bg-rose-400")} />
-                    <span className="text-xs text-zinc-500">{h.timestamp.slice(0, 19).replace("T", " ")}</span>
-                    <span className="text-xs text-zinc-500">{h.duration}ms</span>
-                    <span className="text-xs text-zinc-500">{h.responseSize}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{h.timestamp.slice(0, 19).replace("T", " ")}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{h.duration}ms</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{h.responseSize}</span>
                     <span className={cn("text-xs ml-auto", h.status === "success" ? "text-emerald-400" : "text-rose-400")}>{h.status}</span>
                     <span className="text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">Load →</span>
                   </div>
-                  <pre className="text-xs font-mono text-zinc-400 truncate">{h.query}</pre>
+                  <pre className="text-xs font-mono text-[var(--color-text-secondary)] truncate">{h.query}</pre>
                 </div>
               ))}
             </div>
@@ -471,22 +471,22 @@ export default function GraphQLExplorer(): React.ReactElement {
         {/* ── SAVED ── */}
         {tab === "Saved" && (
           <div className="h-full flex overflow-hidden">
-            <div className="w-72 border-r border-zinc-800 overflow-y-auto">
+            <div className="w-72 border-r border-[var(--color-border)] overflow-y-auto">
               {SAVED_QUERIES.map((sq) => (
                 <button
                   key={sq.id}
                   onClick={() => setSelectedSavedQuery(sq)}
                   className={cn(
-                    "w-full text-left px-4 py-4 border-b border-zinc-800/50 transition-colors",
-                    selectedSavedQuery?.id === sq.id ? "bg-indigo-600/10" : "hover:bg-zinc-800/50"
+                    "w-full text-left px-4 py-4 border-b border-[var(--color-border)]/50 transition-colors",
+                    selectedSavedQuery?.id === sq.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/50"
                   )}
                 >
-                  <div className="text-sm font-medium text-white">{sq.name}</div>
+                  <div className="text-sm font-medium text-[var(--color-text-primary)]">{sq.name}</div>
                   <div className="flex items-center gap-2 mt-1">
                     <span className={cn("text-[10px] font-mono font-bold uppercase",
                       sq.type === "mutation" ? "text-amber-400" : sq.type === "subscription" ? "text-emerald-400" : "text-indigo-400"
                     )}>{sq.type}</span>
-                    <span className="text-[10px] text-zinc-500">{sq.lastRun.slice(0, 10)}</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)]">{sq.lastRun.slice(0, 10)}</span>
                   </div>
                 </button>
               ))}
@@ -503,21 +503,21 @@ export default function GraphQLExplorer(): React.ReactElement {
                       Open in Explorer
                     </button>
                   </div>
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-2 font-semibold">Query</div>
-                    <pre className="text-xs font-mono text-zinc-200 leading-relaxed">{selectedSavedQuery.query}</pre>
+                  <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                    <div className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2 font-semibold">Query</div>
+                    <pre className="text-xs font-mono text-[var(--color-text-primary)] leading-relaxed">{selectedSavedQuery.query}</pre>
                   </div>
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-2 font-semibold">Variables</div>
-                    <pre className="text-xs font-mono text-zinc-300 leading-relaxed">{selectedSavedQuery.variables}</pre>
+                  <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                    <div className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2 font-semibold">Variables</div>
+                    <pre className="text-xs font-mono text-[var(--color-text-primary)] leading-relaxed">{selectedSavedQuery.variables}</pre>
                   </div>
-                  <div className="text-xs text-zinc-500">Last run: {selectedSavedQuery.lastRun.slice(0, 19).replace("T", " ")}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Last run: {selectedSavedQuery.lastRun.slice(0, 19).replace("T", " ")}</div>
                 </div>
               ) : (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center">
                     <div className="text-3xl mb-3">📋</div>
-                    <div className="text-sm text-zinc-500">Select a saved query</div>
+                    <div className="text-sm text-[var(--color-text-muted)]">Select a saved query</div>
                   </div>
                 </div>
               )}

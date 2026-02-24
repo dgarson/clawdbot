@@ -399,7 +399,7 @@ export function ApiPlayground({ isLoading = false }: { isLoading?: boolean }) {
                   value={path}
                   onChange={(e) => setPath(e.target.value)}
                   aria-label="API path"
-                  className="flex-1 bg-transparent px-3 py-2 text-sm text-fg-primary placeholder-zinc-500
+                  className="flex-1 bg-transparent px-3 py-2 text-sm text-fg-primary placeholder-[var(--color-text-muted)]
                     focus-visible:outline-none"
                   placeholder="/endpoint"
                 />
@@ -428,7 +428,7 @@ export function ApiPlayground({ isLoading = false }: { isLoading?: boolean }) {
                       onChange={(e) => updateHeader(header.id, 'key', e.target.value)}
                       placeholder="Key"
                       aria-label={`Header key ${header.id}`}
-                      className="flex-1 bg-surface-2 border border-tok-border rounded px-2 py-1.5 text-sm text-fg-primary placeholder-zinc-500
+                      className="flex-1 bg-surface-2 border border-tok-border rounded px-2 py-1.5 text-sm text-fg-primary placeholder-[var(--color-text-muted)]
                         focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
                     />
                     <input
@@ -437,7 +437,7 @@ export function ApiPlayground({ isLoading = false }: { isLoading?: boolean }) {
                       onChange={(e) => updateHeader(header.id, 'value', e.target.value)}
                       placeholder="Value"
                       aria-label={`Header value ${header.id}`}
-                      className="flex-1 bg-surface-2 border border-tok-border rounded px-2 py-1.5 text-sm text-fg-primary placeholder-zinc-500
+                      className="flex-1 bg-surface-2 border border-tok-border rounded px-2 py-1.5 text-sm text-fg-primary placeholder-[var(--color-text-muted)]
                         focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
                     />
                     <button
@@ -466,7 +466,7 @@ export function ApiPlayground({ isLoading = false }: { isLoading?: boolean }) {
                   rows={8}
                   aria-label="Request body JSON"
                   className="w-full bg-surface-2 border border-tok-border rounded-md px-3 py-2 text-sm text-fg-primary font-mono
-                    placeholder-zinc-500 resize-none
+                    placeholder-[var(--color-text-muted)] resize-none
                     focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
                   placeholder='{"key": "value"}'
                 />

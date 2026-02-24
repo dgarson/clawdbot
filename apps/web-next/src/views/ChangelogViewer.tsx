@@ -31,13 +31,13 @@ const CHANGE_META: Record<ChangeType, { label: string; emoji: string; pillBg: st
   feature:     { label: "New Feature",     emoji: "✨", pillBg: "bg-emerald-500/20", pillText: "text-emerald-400" },
   improvement: { label: "Improvement",     emoji: "💎", pillBg: "bg-indigo-500/20",  pillText: "text-indigo-400" },
   bugfix:      { label: "Bug Fix",         emoji: "🐛", pillBg: "bg-amber-500/20",   pillText: "text-amber-400" },
-  deprecation: { label: "Deprecation",     emoji: "📦", pillBg: "bg-zinc-500/20",    pillText: "text-fg-secondary" },
+  deprecation: { label: "Deprecation",     emoji: "📦", pillBg: "bg-[var(--color-surface-3)]/20",    pillText: "text-fg-secondary" },
 };
 
 const RELEASE_TYPE_STYLES: Record<ReleaseType, { bg: string; text: string }> = {
   major: { bg: "bg-rose-500/20",    text: "text-rose-400" },
   minor: { bg: "bg-indigo-500/20",  text: "text-indigo-400" },
-  patch: { bg: "bg-zinc-500/20",    text: "text-fg-primary" },
+  patch: { bg: "bg-[var(--color-surface-3)]/20",    text: "text-fg-primary" },
 };
 
 const FILTER_OPTIONS: { value: ChangeType | "all"; label: string }[] = [
@@ -361,7 +361,7 @@ export default function ChangelogViewer({ isLoading = false }: { isLoading?: boo
               placeholder="Search releases..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-tok-border bg-surface-2 px-3 py-2 text-sm text-fg-primary placeholder-zinc-500 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-tok-border bg-surface-2 px-3 py-2 text-sm text-fg-primary placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
             />
           </div>
           <div className="flex flex-wrap gap-1.5">

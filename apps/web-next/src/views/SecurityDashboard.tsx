@@ -174,12 +174,12 @@ const THREAT_CONFIG: Record<ThreatLevel, { label: string; dot: string; badge: st
   high:     { label: "High",     dot: "bg-orange-500", badge: "bg-orange-500/15 text-orange-300 ring-1 ring-orange-500/25", text: "text-orange-400" },
   medium:   { label: "Medium",   dot: "bg-amber-500",  badge: "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/25",   text: "text-amber-400" },
   low:      { label: "Low",      dot: "bg-indigo-500", badge: "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/25", text: "text-indigo-400" },
-  info:     { label: "Info",     dot: "bg-zinc-500",   badge: "bg-zinc-500/15 text-zinc-400 ring-1 ring-zinc-500/25",       text: "text-zinc-400" },
+  info:     { label: "Info",     dot: "bg-[var(--color-surface-3)]",   badge: "bg-[var(--color-surface-3)]/15 text-[var(--color-text-secondary)] ring-1 ring-zinc-500/25",       text: "text-[var(--color-text-secondary)]" },
 };
 
 const BLOCKED_STATUS_CONFIG: Record<BlockedStatus, { label: string; badge: string }> = {
   active:  { label: "Active",  badge: "bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/25" },
-  expired: { label: "Expired", badge: "bg-zinc-700/50 text-zinc-500 ring-1 ring-zinc-600/25" },
+  expired: { label: "Expired", badge: "bg-[var(--color-surface-3)]/50 text-[var(--color-text-muted)] ring-1 ring-zinc-600/25" },
   manual:  { label: "Manual",  badge: "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/25" },
 };
 
@@ -226,8 +226,8 @@ function ScoreRing({ score }: { score: number }) {
         />
       </svg>
       <div className="text-center">
-        <p className="text-2xl font-bold text-white">{score}</p>
-        <p className="text-xs text-zinc-500">/ 100</p>
+        <p className="text-2xl font-bold text-[var(--color-text-primary)]">{score}</p>
+        <p className="text-xs text-[var(--color-text-muted)]">/ 100</p>
       </div>
     </div>
   );
@@ -243,12 +243,12 @@ function ThreatChart() {
 
   return (
     <div>
-      <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">30-Day Threat Activity</p>
+      <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">30-Day Threat Activity</p>
       <div className="flex items-end gap-px" aria-label="30-day threat history bar chart">
         {THREAT_HISTORY.map((v, i) => {
           const barH = max > 0 ? Math.max(2, (v / max) * H) : 2;
           const isToday = i === THREAT_HISTORY.length - 1;
-          const color = v === 0 ? "bg-zinc-800" : v >= 3 ? "bg-rose-500" : v >= 2 ? "bg-amber-500" : "bg-indigo-500";
+          const color = v === 0 ? "bg-[var(--color-surface-2)]" : v >= 3 ? "bg-rose-500" : v >= 2 ? "bg-amber-500" : "bg-indigo-500";
           return (
             <div
               key={i}
@@ -260,8 +260,8 @@ function ThreatChart() {
         })}
       </div>
       <div className="flex justify-between mt-1">
-        <span className="text-xs text-zinc-700">30 days ago</span>
-        <span className="text-xs text-zinc-700">Today</span>
+        <span className="text-xs text-[var(--color-text-muted)]">30 days ago</span>
+        <span className="text-xs text-[var(--color-text-muted)]">Today</span>
       </div>
     </div>
   );
@@ -302,13 +302,13 @@ export default function SecurityDashboard() {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-lg font-semibold text-white">Security Dashboard</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Threat detection, blocked IPs, and security posture</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Security Dashboard</h1>
+            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">Threat detection, blocked IPs, and security posture</p>
           </div>
           <div className="flex items-center gap-3 text-xs">
             {unresolvedCount > 0 && (
@@ -317,7 +317,7 @@ export default function SecurityDashboard() {
                 {unresolvedCount} unresolved
               </span>
             )}
-            <span className="text-zinc-600">Last scan: just now</span>
+            <span className="text-[var(--color-text-muted)]">Last scan: just now</span>
           </div>
         </div>
 
@@ -331,12 +331,12 @@ export default function SecurityDashboard() {
               onClick={() => setTab(t.id)}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                tab === t.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900"
+                tab === t.id ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]"
               )}
             >
               {t.label}
               {t.badge !== undefined && t.badge > 0 && (
-                <span className="px-1.5 py-0.5 text-xs font-semibold rounded-full bg-rose-500 text-white">
+                <span className="px-1.5 py-0.5 text-xs font-semibold rounded-full bg-rose-500 text-[var(--color-text-primary)]">
                   {t.badge}
                 </span>
               )}
@@ -351,14 +351,14 @@ export default function SecurityDashboard() {
         {tab === "overview" && (
           <div className="px-6 py-5 space-y-6">
             {/* Score section */}
-            <div className="flex flex-col sm:flex-row items-start gap-6 p-5 rounded-xl bg-zinc-900 border border-zinc-800">
+            <div className="flex flex-col sm:flex-row items-start gap-6 p-5 rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)]">
               <div className="flex flex-col items-center gap-2">
                 <ScoreRing score={SECURITY_SCORE.overall} />
-                <p className="text-sm font-semibold text-zinc-300">Security Score</p>
-                <p className="text-xs text-zinc-600 text-center">Good — a few improvements possible</p>
+                <p className="text-sm font-semibold text-[var(--color-text-primary)]">Security Score</p>
+                <p className="text-xs text-[var(--color-text-muted)] text-center">Good — a few improvements possible</p>
               </div>
               <div className="flex-1 space-y-3">
-                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Score Breakdown</p>
+                <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Score Breakdown</p>
                 {[
                   { label: "Authentication",   value: SECURITY_SCORE.authentication },
                   { label: "API Security",     value: SECURITY_SCORE.apiSecurity },
@@ -370,10 +370,10 @@ export default function SecurityDashboard() {
                   return (
                     <div key={label}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-zinc-400">{label}</span>
+                        <span className="text-xs text-[var(--color-text-secondary)]">{label}</span>
                         <span className={cn("text-xs font-mono font-semibold tabular-nums", textColor)}>{value}</span>
                       </div>
-                      <div className="h-1.5 w-full bg-zinc-800 rounded-full">
+                      <div className="h-1.5 w-full bg-[var(--color-surface-2)] rounded-full">
                         <div className={cn("h-1.5 rounded-full transition-all", color)} style={{ width: `${value}%` }} />
                       </div>
                     </div>
@@ -386,30 +386,30 @@ export default function SecurityDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { label: "Unresolved Events",  value: unresolvedCount.toString(), color: unresolvedCount > 0 ? "text-rose-400" : "text-emerald-400" },
-                { label: "Active Blocks",       value: activeBlocks.toString(),    color: activeBlocks > 0 ? "text-amber-400" : "text-zinc-300" },
-                { label: "Events (30d)",        value: THREAT_HISTORY.reduce((a, b) => a + b, 0).toString(), color: "text-zinc-300" },
-                { label: "Auth Failures (24h)", value: "4",                        color: "text-zinc-300" },
+                { label: "Active Blocks",       value: activeBlocks.toString(),    color: activeBlocks > 0 ? "text-amber-400" : "text-[var(--color-text-primary)]" },
+                { label: "Events (30d)",        value: THREAT_HISTORY.reduce((a, b) => a + b, 0).toString(), color: "text-[var(--color-text-primary)]" },
+                { label: "Auth Failures (24h)", value: "4",                        color: "text-[var(--color-text-primary)]" },
               ].map(({ label, value, color }) => (
-                <div key={label} className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-                  <p className="text-xs text-zinc-500">{label}</p>
+                <div key={label} className="p-4 rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)]">
+                  <p className="text-xs text-[var(--color-text-muted)]">{label}</p>
                   <p className={cn("text-2xl font-bold tabular-nums mt-1", color)}>{value}</p>
                 </div>
               ))}
             </div>
 
             {/* 30-day chart */}
-            <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800">
+            <div className="p-5 rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)]">
               <ThreatChart />
               <div className="flex items-center gap-4 mt-3">
                 {[
                   { color: "bg-rose-500",   label: "≥3 events" },
                   { color: "bg-amber-500",  label: "2 events" },
                   { color: "bg-indigo-500", label: "1 event" },
-                  { color: "bg-zinc-800",   label: "None" },
+                  { color: "bg-[var(--color-surface-2)]",   label: "None" },
                 ].map(({ color, label }) => (
                   <div key={label} className="flex items-center gap-1.5">
                     <div className={cn("h-2 w-4 rounded-sm", color)} />
-                    <span className="text-xs text-zinc-600">{label}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{label}</span>
                   </div>
                 ))}
               </div>
@@ -418,7 +418,7 @@ export default function SecurityDashboard() {
             {/* Recent unresolved events */}
             {unresolvedCount > 0 && (
               <div>
-                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3 flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
                   Unresolved Events
                 </p>
@@ -426,20 +426,20 @@ export default function SecurityDashboard() {
                   {events.filter((e) => !e.resolved).map((event) => {
                     const cfg = THREAT_CONFIG[event.threatLevel];
                     return (
-                      <div key={event.id} className="flex items-start gap-3 p-4 rounded-xl bg-zinc-900 border border-zinc-800">
+                      <div key={event.id} className="flex items-start gap-3 p-4 rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)]">
                         <span className={cn("flex-none h-2 w-2 rounded-full mt-1.5", cfg.dot)} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded-full ring-1", cfg.badge)}>{cfg.label}</span>
-                            <span className="text-sm font-semibold text-white">{event.type}</span>
+                            <span className="text-sm font-semibold text-[var(--color-text-primary)]">{event.type}</span>
                           </div>
-                          <p className="text-xs text-zinc-500 mt-0.5">{event.description}</p>
-                          <p className="text-xs text-zinc-600 mt-1">{relTime(event.timestamp)} {event.ip && `· ${event.ip}`} {event.country && `(${event.country})`}</p>
+                          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{event.description}</p>
+                          <p className="text-xs text-[var(--color-text-muted)] mt-1">{relTime(event.timestamp)} {event.ip && `· ${event.ip}`} {event.country && `(${event.country})`}</p>
                         </div>
                         <button
                           onClick={() => handleResolve(event.id)}
                           aria-label={`Mark ${event.type} as resolved`}
-                          className="flex-none py-1 px-2.5 text-xs font-medium rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+                          className="flex-none py-1 px-2.5 text-xs font-medium rounded-lg bg-[var(--color-surface-2)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
                         >
                           Resolve
                         </button>
@@ -464,7 +464,7 @@ export default function SecurityDashboard() {
                   aria-pressed={eventFilter === f}
                   className={cn(
                     "px-3 py-1 text-xs font-medium rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                    eventFilter === f ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-zinc-200"
+                    eventFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {f === "all" ? "All" : f === "unresolved" ? "Unresolved" : THREAT_CONFIG[f].label}
@@ -476,17 +476,17 @@ export default function SecurityDashboard() {
               {filteredEvents.map((event) => {
                 const cfg = THREAT_CONFIG[event.threatLevel];
                 return (
-                  <div key={event.id} className={cn("p-4 rounded-xl border transition-colors", event.resolved ? "bg-zinc-900 border-zinc-800 opacity-60" : "bg-zinc-900 border-zinc-700")}>
+                  <div key={event.id} className={cn("p-4 rounded-xl border transition-colors", event.resolved ? "bg-[var(--color-surface-1)] border-[var(--color-border)] opacity-60" : "bg-[var(--color-surface-1)] border-[var(--color-border)]")}>
                     <div className="flex items-start gap-3">
                       <span className={cn("flex-none h-2 w-2 rounded-full mt-1.5", cfg.dot)} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded-full ring-1", cfg.badge)}>{cfg.label}</span>
-                          <span className="text-sm font-semibold text-white">{event.type}</span>
+                          <span className="text-sm font-semibold text-[var(--color-text-primary)]">{event.type}</span>
                           {event.resolved && <span className="text-xs text-emerald-500">✓ Resolved</span>}
                         </div>
-                        <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{event.description}</p>
-                        <div className="flex items-center gap-3 mt-1.5 text-xs text-zinc-600">
+                        <p className="text-xs text-[var(--color-text-secondary)] mt-1 leading-relaxed">{event.description}</p>
+                        <div className="flex items-center gap-3 mt-1.5 text-xs text-[var(--color-text-muted)]">
                           <span>{relTime(event.timestamp)}</span>
                           {event.ip && <span>{event.ip}</span>}
                           {event.country && <span>({event.country})</span>}
@@ -498,7 +498,7 @@ export default function SecurityDashboard() {
                         <button
                           onClick={() => handleResolve(event.id)}
                           aria-label="Mark as resolved"
-                          className="flex-none py-1 px-2.5 text-xs font-medium rounded-lg bg-zinc-800 text-zinc-300 hover:bg-emerald-600/20 hover:text-emerald-300 border border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+                          className="flex-none py-1 px-2.5 text-xs font-medium rounded-lg bg-[var(--color-surface-2)] text-[var(--color-text-primary)] hover:bg-emerald-600/20 hover:text-emerald-300 border border-[var(--color-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
                         >
                           Resolve
                         </button>
@@ -510,7 +510,7 @@ export default function SecurityDashboard() {
               {filteredEvents.length === 0 && (
                 <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
                   <span className="text-3xl">✅</span>
-                  <p className="text-sm font-medium text-zinc-300">No events matching filter</p>
+                  <p className="text-sm font-medium text-[var(--color-text-primary)]">No events matching filter</p>
                 </div>
               )}
             </div>
@@ -521,10 +521,10 @@ export default function SecurityDashboard() {
         {tab === "blocked" && (
           <div className="px-6 py-5">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{blockedIPs.length} entries</p>
+              <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{blockedIPs.length} entries</p>
               <button
                 aria-label="Block new IP address"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--color-surface-2)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
               >
                 <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" d="M7 2v10M2 7h10" /></svg>
                 Block IP
@@ -534,16 +534,16 @@ export default function SecurityDashboard() {
               {blockedIPs.map((b) => {
                 const cfg = BLOCKED_STATUS_CONFIG[b.status];
                 return (
-                  <div key={b.id} className={cn("p-4 rounded-xl border", b.status === "active" ? "bg-zinc-900 border-zinc-700" : "bg-zinc-900 border-zinc-800 opacity-60")}>
+                  <div key={b.id} className={cn("p-4 rounded-xl border", b.status === "active" ? "bg-[var(--color-surface-1)] border-[var(--color-border)]" : "bg-[var(--color-surface-1)] border-[var(--color-border)] opacity-60")}>
                     <div className="flex items-start gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-mono font-semibold text-white">{b.ip}</span>
+                          <span className="text-sm font-mono font-semibold text-[var(--color-text-primary)]">{b.ip}</span>
                           <span className={cn("px-1.5 py-0.5 text-xs font-medium rounded-full", cfg.badge)}>{cfg.label}</span>
-                          <span className="text-xs text-zinc-600">{b.country}</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">{b.country}</span>
                         </div>
-                        <p className="text-xs text-zinc-500 mt-0.5">{b.reason}</p>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-zinc-600">
+                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{b.reason}</p>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-[var(--color-text-muted)]">
                           <span>Blocked {relTime(b.blockedAt)}</span>
                           <span>·</span>
                           <span>{fmtExpiry(b.expiresAt)}</span>
@@ -555,7 +555,7 @@ export default function SecurityDashboard() {
                         <button
                           onClick={() => handleUnblock(b.id)}
                           aria-label={`Unblock ${b.ip}`}
-                          className="flex-none py-1 px-2.5 text-xs font-medium rounded-lg bg-zinc-800 text-zinc-400 hover:text-rose-400 border border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 transition-colors"
+                          className="flex-none py-1 px-2.5 text-xs font-medium rounded-lg bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-rose-400 border border-[var(--color-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 transition-colors"
                         >
                           Unblock
                         </button>

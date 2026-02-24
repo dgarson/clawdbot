@@ -100,7 +100,7 @@ const SEV_COLORS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  draft:     "bg-zinc-700 text-zinc-400 border-zinc-600",
+  draft:     "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] border-[var(--color-surface-3)]",
   review:    "bg-amber-400/15 text-amber-400 border-amber-500/30",
   published: "bg-emerald-400/15 text-emerald-400 border-emerald-500/30",
 };
@@ -109,11 +109,11 @@ const PRIORITY_COLORS: Record<string, string> = {
   critical: "bg-rose-400/15 text-rose-400 border-rose-500/30",
   high:     "bg-amber-400/15 text-amber-400 border-amber-500/30",
   medium:   "bg-indigo-400/15 text-indigo-300 border-indigo-500/30",
-  low:      "bg-zinc-700 text-zinc-400 border-zinc-600",
+  low:      "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] border-[var(--color-surface-3)]",
 };
 
 const ACTION_STATUS_COLORS: Record<string, string> = {
-  open:        "bg-zinc-700 text-zinc-400",
+  open:        "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
   in_progress: "bg-indigo-500/20 text-indigo-300",
   done:        "bg-emerald-400/15 text-emerald-400",
 };
@@ -123,7 +123,7 @@ const TIMELINE_COLORS: Record<string, string> = {
   escalation:    "bg-amber-500",
   mitigation:    "bg-indigo-500",
   resolution:    "bg-emerald-500",
-  communication: "bg-zinc-500",
+  communication: "bg-[var(--color-surface-3)]",
 };
 
 type Tab = "overview" | "timeline" | "analysis" | "actions" | "all_incidents";
@@ -153,7 +153,7 @@ export default function IncidentPostmortem() {
   const progressPct = Math.round((doneCount / pm.actionItems.length) * 100);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -165,24 +165,24 @@ export default function IncidentPostmortem() {
               {pm.status}
             </span>
           </div>
-          <h1 className="text-xl font-bold text-white">{pm.title}</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">{pm.date} · Duration: {pm.duration} · {pm.affectedUsers.toLocaleString()} users affected</p>
+          <h1 className="text-xl font-bold text-[var(--color-text-primary)]">{pm.title}</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">{pm.date} · Duration: {pm.duration} · {pm.affectedUsers.toLocaleString()} users affected</p>
         </div>
         <div className="flex gap-2">
-          <button className="text-sm px-4 py-2 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-800 transition-colors">⬇ Export PDF</button>
-          <button className="text-sm px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors">✏️ Edit</button>
+          <button className="text-sm px-4 py-2 border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-2)] transition-colors">⬇ Export PDF</button>
+          <button className="text-sm px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors">✏️ Edit</button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)] w-fit">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
-              activeTab === t.id ? "bg-indigo-500 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              activeTab === t.id ? "bg-indigo-500 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t.emoji} {t.label}
@@ -199,52 +199,52 @@ export default function IncidentPostmortem() {
               { label: "Duration",         value: pm.duration,              color: "text-rose-400" },
               { label: "Users Affected",   value: pm.affectedUsers.toLocaleString(), color: "text-amber-400" },
               { label: "Services Impacted",value: pm.affectedServices.length, color: "text-indigo-300" },
-              { label: "Action Items",     value: pm.actionItems.length,   color: "text-white" },
+              { label: "Action Items",     value: pm.actionItems.length,   color: "text-[var(--color-text-primary)]" },
             ].map(m => (
-              <div key={m.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                <div className="text-xs text-zinc-400">{m.label}</div>
+              <div key={m.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                <div className="text-xs text-[var(--color-text-secondary)]">{m.label}</div>
                 <div className={cn("text-xl font-bold mt-1", m.color)}>{m.value}</div>
               </div>
             ))}
           </div>
 
           {/* Summary */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-white mb-3">Executive Summary</h3>
-            <p className="text-sm text-zinc-300 leading-relaxed">{pm.summary}</p>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Executive Summary</h3>
+            <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{pm.summary}</p>
           </div>
 
           {/* Affected services + timeline window */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <div className="text-xs font-medium text-zinc-400 mb-3">Affected Services</div>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+              <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-3">Affected Services</div>
               <div className="space-y-1.5">
                 {pm.affectedServices.map(s => (
                   <div key={s} className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-rose-500" />
-                    <span className="text-sm text-zinc-300 font-mono">{s}</span>
+                    <span className="text-sm text-[var(--color-text-primary)] font-mono">{s}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <div className="text-xs font-medium text-zinc-400 mb-3">Incident Window</div>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+              <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-3">Incident Window</div>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-zinc-400">Detected</span><span className="text-zinc-300">21:03 UTC</span></div>
-                <div className="flex justify-between"><span className="text-zinc-400">Mitigated</span><span className="text-zinc-300">22:10 UTC</span></div>
-                <div className="flex justify-between"><span className="text-zinc-400">Resolved</span><span className="text-zinc-300">23:37 UTC</span></div>
-                <div className="flex justify-between border-t border-zinc-800 pt-2"><span className="text-zinc-400">MTTR</span><span className="text-rose-400 font-semibold">2h 34m</span></div>
+                <div className="flex justify-between"><span className="text-[var(--color-text-secondary)]">Detected</span><span className="text-[var(--color-text-primary)]">21:03 UTC</span></div>
+                <div className="flex justify-between"><span className="text-[var(--color-text-secondary)]">Mitigated</span><span className="text-[var(--color-text-primary)]">22:10 UTC</span></div>
+                <div className="flex justify-between"><span className="text-[var(--color-text-secondary)]">Resolved</span><span className="text-[var(--color-text-primary)]">23:37 UTC</span></div>
+                <div className="flex justify-between border-t border-[var(--color-border)] pt-2"><span className="text-[var(--color-text-secondary)]">MTTR</span><span className="text-rose-400 font-semibold">2h 34m</span></div>
               </div>
             </div>
           </div>
 
           {/* Action items progress */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <div className="text-xs font-medium text-zinc-400">Action Item Progress</div>
-              <div className="text-xs text-zinc-400">{doneCount}/{pm.actionItems.length} done</div>
+              <div className="text-xs font-medium text-[var(--color-text-secondary)]">Action Item Progress</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">{doneCount}/{pm.actionItems.length} done</div>
             </div>
-            <div className="w-full bg-zinc-800 rounded-full h-2">
+            <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
               <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${progressPct}%` }} />
             </div>
             {openCount > 0 && (
@@ -253,14 +253,14 @@ export default function IncidentPostmortem() {
           </div>
 
           {/* Reviewers */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <div className="text-xs font-medium text-zinc-400 mb-2">Author & Reviewers</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Author & Reviewers</div>
             <div className="flex items-center gap-2 flex-wrap text-xs">
-              <span className="text-zinc-300">Author: <span className="text-indigo-300">{pm.author}</span></span>
-              <span className="text-zinc-600">|</span>
-              <span className="text-zinc-400">Reviewed by:</span>
+              <span className="text-[var(--color-text-primary)]">Author: <span className="text-indigo-300">{pm.author}</span></span>
+              <span className="text-[var(--color-text-muted)]">|</span>
+              <span className="text-[var(--color-text-secondary)]">Reviewed by:</span>
               {pm.reviewers.map(r => (
-                <span key={r} className="bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded">{r}</span>
+                <span key={r} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-2 py-0.5 rounded">{r}</span>
               ))}
             </div>
           </div>
@@ -274,7 +274,7 @@ export default function IncidentPostmortem() {
             {Object.entries(TIMELINE_COLORS).map(([type, color]) => (
               <div key={type} className="flex items-center gap-1.5">
                 <span className={cn("w-2.5 h-2.5 rounded-full", color)} />
-                <span className="text-zinc-400 capitalize">{type}</span>
+                <span className="text-[var(--color-text-secondary)] capitalize">{type}</span>
               </div>
             ))}
           </div>
@@ -283,14 +283,14 @@ export default function IncidentPostmortem() {
               <div key={i} className="flex gap-3 group">
                 <div className="flex flex-col items-center">
                   <div className={cn("w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0", TIMELINE_COLORS[entry.type])} />
-                  {i < pm.timeline.length - 1 && <div className="w-px flex-1 bg-zinc-800 mt-1" />}
+                  {i < pm.timeline.length - 1 && <div className="w-px flex-1 bg-[var(--color-surface-2)] mt-1" />}
                 </div>
                 <div className="pb-4">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-mono text-zinc-500">{entry.time}</span>
+                    <span className="text-xs font-mono text-[var(--color-text-muted)]">{entry.time}</span>
                     <span className="text-xs text-indigo-300">{entry.actor}</span>
                   </div>
-                  <div className="text-sm text-zinc-300 mt-0.5">{entry.action}</div>
+                  <div className="text-sm text-[var(--color-text-primary)] mt-0.5">{entry.action}</div>
                 </div>
               </div>
             ))}
@@ -301,30 +301,30 @@ export default function IncidentPostmortem() {
       {/* Root Cause Analysis */}
       {activeTab === "analysis" && (
         <div className="max-w-3xl space-y-5">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-white mb-3">Root Cause</h3>
-            <p className="text-sm text-zinc-300 leading-relaxed">{pm.rootCause}</p>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Root Cause</h3>
+            <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{pm.rootCause}</p>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-white mb-3">Contributing Factors</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Contributing Factors</h3>
             <div className="space-y-3">
               {pm.contributingFactors.map((f, i) => (
                 <div key={i} className="flex gap-3">
                   <span className="text-amber-400 font-bold text-sm flex-shrink-0">{i + 1}.</span>
-                  <p className="text-sm text-zinc-300 leading-relaxed">{f}</p>
+                  <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{f}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-white mb-3">Lessons Learned</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Lessons Learned</h3>
             <div className="space-y-2">
               {pm.lessonsLearned.map((l, i) => (
                 <div key={i} className="flex gap-2.5">
                   <span className="text-emerald-400 text-sm flex-shrink-0">→</span>
-                  <p className="text-sm text-zinc-300 leading-relaxed">{l}</p>
+                  <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{l}</p>
                 </div>
               ))}
             </div>
@@ -336,24 +336,24 @@ export default function IncidentPostmortem() {
       {activeTab === "actions" && (
         <div className="space-y-3 max-w-3xl">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-zinc-400">{pm.actionItems.length} action items — {doneCount} done, {openCount} open</div>
+            <div className="text-sm text-[var(--color-text-secondary)]">{pm.actionItems.length} action items — {doneCount} done, {openCount} open</div>
             <button className="text-xs px-3 py-1.5 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded hover:bg-indigo-500/30">+ Add Item</button>
           </div>
 
           {pm.actionItems.map(item => (
-            <div key={item.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <div key={item.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <div className={cn(
                   "mt-0.5 w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center",
-                  item.status === "done" ? "bg-emerald-500 border-emerald-400" : "border-zinc-600"
+                  item.status === "done" ? "bg-emerald-500 border-emerald-400" : "border-[var(--color-surface-3)]"
                 )}>
-                  {item.status === "done" && <span className="text-white text-xs">✓</span>}
+                  {item.status === "done" && <span className="text-[var(--color-text-primary)] text-xs">✓</span>}
                 </div>
                 <div className="flex-1">
-                  <p className={cn("text-sm", item.status === "done" ? "text-zinc-500 line-through" : "text-zinc-200")}>{item.description}</p>
+                  <p className={cn("text-sm", item.status === "done" ? "text-[var(--color-text-muted)] line-through" : "text-[var(--color-text-primary)]")}>{item.description}</p>
                   <div className="flex items-center gap-3 mt-2 flex-wrap">
-                    <span className="text-xs text-zinc-400">👤 {item.owner}</span>
-                    <span className="text-xs text-zinc-400">📅 {item.dueDate}</span>
+                    <span className="text-xs text-[var(--color-text-secondary)]">👤 {item.owner}</span>
+                    <span className="text-xs text-[var(--color-text-secondary)]">📅 {item.dueDate}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded border capitalize", PRIORITY_COLORS[item.priority])}>{item.priority}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded capitalize", ACTION_STATUS_COLORS[item.status])}>{item.status.replace("_"," ")}</span>
                   </div>
@@ -366,10 +366,10 @@ export default function IncidentPostmortem() {
 
       {/* All Incidents */}
       {activeTab === "all_incidents" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden max-w-3xl">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden max-w-3xl">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800 text-xs text-zinc-400">
+              <tr className="border-b border-[var(--color-border)] text-xs text-[var(--color-text-secondary)]">
                 <th className="px-4 py-3 text-left font-medium">Incident</th>
                 <th className="px-4 py-3 text-left font-medium">Severity</th>
                 <th className="px-4 py-3 text-left font-medium">Date</th>
@@ -377,22 +377,22 @@ export default function IncidentPostmortem() {
                 <th className="px-4 py-3 text-right font-medium">Users</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {ALL_INCIDENTS.map(inc => (
                 <tr
                   key={inc.id}
-                  className={cn("hover:bg-zinc-800/30 cursor-pointer transition-colors", inc.id === "pm1" && "bg-indigo-500/5")}
+                  className={cn("hover:bg-[var(--color-surface-2)]/30 cursor-pointer transition-colors", inc.id === "pm1" && "bg-indigo-500/5")}
                 >
                   <td className="px-4 py-3">
-                    <div className="text-sm text-white">{inc.title}</div>
+                    <div className="text-sm text-[var(--color-text-primary)]">{inc.title}</div>
                     {inc.id === "pm1" && <div className="text-xs text-indigo-400">← currently viewing</div>}
                   </td>
                   <td className="px-4 py-3">
                     <span className={cn("text-xs px-2 py-0.5 rounded border uppercase font-semibold", SEV_COLORS[inc.sev])}>{inc.sev}</span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-400">{inc.date}</td>
-                  <td className="px-4 py-3 text-xs text-zinc-400">{inc.duration}</td>
-                  <td className="px-4 py-3 text-right text-xs text-zinc-400">{inc.users.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{inc.date}</td>
+                  <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{inc.duration}</td>
+                  <td className="px-4 py-3 text-right text-xs text-[var(--color-text-secondary)]">{inc.users.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

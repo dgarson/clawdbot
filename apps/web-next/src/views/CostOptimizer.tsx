@@ -126,13 +126,13 @@ interface KpiCardProps {
 
 function KpiCard({ label, value, sub, subColor }: KpiCardProps) {
   return (
-    <div className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900 px-5 py-4">
-      <p className="text-xs font-medium uppercase tracking-wider text-zinc-400">
+    <div className="flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-5 py-4">
+      <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">
         {label}
       </p>
-      <p className="mt-1 text-2xl font-semibold text-white">{value}</p>
+      <p className="mt-1 text-2xl font-semibold text-[var(--color-text-primary)]">{value}</p>
       {sub && (
-        <p className={cn("mt-0.5 text-sm", subColor ?? "text-zinc-400")}>
+        <p className={cn("mt-0.5 text-sm", subColor ?? "text-[var(--color-text-secondary)]")}>
           {sub}
         </p>
       )}
@@ -313,7 +313,7 @@ export default function CostOptimizer() {
   // ---- JSX ----------------------------------------------------------------
 
   return (
-    <div className="flex h-full flex-col bg-zinc-950 text-white">
+    <div className="flex h-full flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* KPI Row */}
       <div className="flex flex-wrap gap-4 p-6 pb-0">
         <KpiCard
@@ -336,7 +336,7 @@ export default function CostOptimizer() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-zinc-800 px-6 pt-6">
+      <div className="flex gap-1 border-b border-[var(--color-border)] px-6 pt-6">
         {TAB_ITEMS.map((tab) => (
           <button
             key={tab.id}
@@ -346,8 +346,8 @@ export default function CostOptimizer() {
             className={cn(
               "rounded-t-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
               activeTab === tab.id
-                ? "bg-zinc-900 text-white"
-                : "text-zinc-400 hover:text-zinc-200"
+                ? "bg-[var(--color-surface-1)] text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
             onClick={() => setActiveTab(tab.id)}
           >
@@ -367,10 +367,10 @@ export default function CostOptimizer() {
           >
             {/* Category Breakdown */}
             <section aria-label="Cost breakdown by category">
-              <h2 className="mb-4 text-lg font-semibold text-white">
+              <h2 className="mb-4 text-lg font-semibold text-[var(--color-text-primary)]">
                 Category Breakdown
               </h2>
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
                 <div className="space-y-3">
                   {categoryBreakdown.map(({ category, cost, pct: p }) => (
                     <div key={category}>
@@ -378,11 +378,11 @@ export default function CostOptimizer() {
                         <span className={CATEGORY_TEXT_COLORS[category]}>
                           {CATEGORY_LABELS[category]}
                         </span>
-                        <span className="text-zinc-300">
+                        <span className="text-[var(--color-text-primary)]">
                           {centsToUsd(cost)} ({p}%)
                         </span>
                       </div>
-                      <div className="h-2.5 w-full rounded-full bg-zinc-800">
+                      <div className="h-2.5 w-full rounded-full bg-[var(--color-surface-2)]">
                         <div
                           className={cn(
                             "h-2.5 rounded-full transition-all",
@@ -399,7 +399,7 @@ export default function CostOptimizer() {
                     </div>
                   ))}
                 </div>
-                <p className="mt-4 text-right text-sm font-medium text-zinc-300">
+                <p className="mt-4 text-right text-sm font-medium text-[var(--color-text-primary)]">
                   Total: {centsToUsd(totalCostCents)}
                 </p>
               </div>
@@ -407,10 +407,10 @@ export default function CostOptimizer() {
 
             {/* 7-Day Cost Trend */}
             <section aria-label="7-day cost trend">
-              <h2 className="mb-4 text-lg font-semibold text-white">
+              <h2 className="mb-4 text-lg font-semibold text-[var(--color-text-primary)]">
                 7-Day Cost Trend
               </h2>
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
                 <div className="flex items-end gap-2" style={{ height: 160 }}>
                   {sevenDayTrend.map(({ date, total }) => {
                     const heightPct =
@@ -422,13 +422,13 @@ export default function CostOptimizer() {
                         className="flex flex-1 flex-col items-center justify-end"
                         style={{ height: "100%" }}
                       >
-                        <span className="mb-1 text-xs text-zinc-400">
+                        <span className="mb-1 text-xs text-[var(--color-text-secondary)]">
                           {total > 0 ? centsToUsd(total) : "—"}
                         </span>
                         <div
                           className={cn(
                             "w-full max-w-[40px] rounded-t bg-indigo-500 transition-all",
-                            total === 0 && "bg-zinc-700"
+                            total === 0 && "bg-[var(--color-surface-3)]"
                           )}
                           style={{
                             height: `${Math.max(heightPct, total > 0 ? 4 : 1)}%`,
@@ -439,7 +439,7 @@ export default function CostOptimizer() {
                           aria-valuemax={maxDayCost}
                           aria-label={`${date}: ${centsToUsd(total)}`}
                         />
-                        <span className="mt-1.5 text-xs text-zinc-500">
+                        <span className="mt-1.5 text-xs text-[var(--color-text-muted)]">
                           {dayLabel}
                         </span>
                       </div>
@@ -451,23 +451,23 @@ export default function CostOptimizer() {
 
             {/* Agent Cost Table */}
             <section aria-label="Agent cost breakdown">
-              <h2 className="mb-4 text-lg font-semibold text-white">
+              <h2 className="mb-4 text-lg font-semibold text-[var(--color-text-primary)]">
                 Cost by Agent
               </h2>
-              <div className="overflow-hidden rounded-lg border border-zinc-800">
+              <div className="overflow-hidden rounded-lg border border-[var(--color-border)]">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-800 bg-zinc-900/80">
-                      <th className="px-4 py-3 text-left font-medium text-zinc-400">
+                    <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/80">
+                      <th className="px-4 py-3 text-left font-medium text-[var(--color-text-secondary)]">
                         Agent
                       </th>
-                      <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                      <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">
                         Tokens
                       </th>
-                      <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                      <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">
                         Cost
                       </th>
-                      <th className="px-4 py-3 text-right font-medium text-zinc-400">
+                      <th className="px-4 py-3 text-right font-medium text-[var(--color-text-secondary)]">
                         % of Total
                       </th>
                     </tr>
@@ -476,18 +476,18 @@ export default function CostOptimizer() {
                     {agentRows.map((row) => (
                       <tr
                         key={row.agent}
-                        className="border-b border-zinc-800/60 bg-zinc-900 last:border-b-0"
+                        className="border-b border-[var(--color-border)]/60 bg-[var(--color-surface-1)] last:border-b-0"
                       >
-                        <td className="px-4 py-3 font-medium text-white">
+                        <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">
                           {row.agent}
                         </td>
-                        <td className="px-4 py-3 text-right tabular-nums text-zinc-300">
+                        <td className="px-4 py-3 text-right tabular-nums text-[var(--color-text-primary)]">
                           {row.tokens.toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-right tabular-nums text-zinc-300">
+                        <td className="px-4 py-3 text-right tabular-nums text-[var(--color-text-primary)]">
                           {centsToUsd(row.cost)}
                         </td>
-                        <td className="px-4 py-3 text-right tabular-nums text-zinc-300">
+                        <td className="px-4 py-3 text-right tabular-nums text-[var(--color-text-primary)]">
                           {row.pct}%
                         </td>
                       </tr>
@@ -508,7 +508,7 @@ export default function CostOptimizer() {
           >
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+              <span className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                 Status
               </span>
               {STATUS_CHIPS.map((chip) => (
@@ -518,15 +518,15 @@ export default function CostOptimizer() {
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                     statusFilter === chip.value
-                      ? "bg-indigo-500 text-white"
-                      : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                      ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                   onClick={() => setStatusFilter(chip.value)}
                 >
                   {chip.label}
                 </button>
               ))}
-              <span className="ml-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+              <span className="ml-2 text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                 Effort
               </span>
               {EFFORT_CHIPS.map((chip) => (
@@ -536,8 +536,8 @@ export default function CostOptimizer() {
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                     effortFilter === chip.value
-                      ? "bg-indigo-500 text-white"
-                      : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                      ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                   onClick={() => setEffortFilter(chip.value)}
                 >
@@ -549,7 +549,7 @@ export default function CostOptimizer() {
             {/* Cards */}
             <div className="space-y-4">
               {filteredOptimizations.length === 0 && (
-                <p className="py-8 text-center text-sm text-zinc-500">
+                <p className="py-8 text-center text-sm text-[var(--color-text-muted)]">
                   No optimizations match the current filters.
                 </p>
               )}
@@ -562,7 +562,7 @@ export default function CostOptimizer() {
                   <div
                     key={opt.id}
                     className={cn(
-                      "rounded-lg border border-zinc-800 bg-zinc-900 p-5 transition-opacity",
+                      "rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5 transition-opacity",
                       isDismissed && "opacity-50"
                     )}
                   >
@@ -573,8 +573,8 @@ export default function CostOptimizer() {
                             className={cn(
                               "text-base font-semibold",
                               isDismissed
-                                ? "text-zinc-500 line-through"
-                                : "text-white"
+                                ? "text-[var(--color-text-muted)] line-through"
+                                : "text-[var(--color-text-primary)]"
                             )}
                           >
                             {isApplied && (
@@ -588,14 +588,14 @@ export default function CostOptimizer() {
                             {opt.title}
                           </h3>
                         </div>
-                        <p className="text-sm leading-relaxed text-zinc-400">
+                        <p className="text-sm leading-relaxed text-[var(--color-text-secondary)]">
                           {opt.description}
                         </p>
                         <div className="flex flex-wrap items-center gap-2 pt-1">
                           {/* Category badge */}
                           <span
                             className={cn(
-                              "inline-flex items-center gap-1.5 rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs font-medium",
+                              "inline-flex items-center gap-1.5 rounded-full bg-[var(--color-surface-2)] px-2.5 py-0.5 text-xs font-medium",
                               CATEGORY_TEXT_COLORS[opt.category]
                             )}
                           >
@@ -626,7 +626,7 @@ export default function CostOptimizer() {
                           <p className="text-2xl font-bold tabular-nums text-emerald-400">
                             {centsToUsd(opt.estimatedSavings)}
                           </p>
-                          <p className="text-xs text-zinc-500">
+                          <p className="text-xs text-[var(--color-text-muted)]">
                             savings / month
                           </p>
                         </div>
@@ -635,14 +635,14 @@ export default function CostOptimizer() {
                             <button
                               onClick={() => handleApply(opt.id)}
                               aria-label={`Apply optimization: ${opt.title}`}
-                              className="rounded-md bg-indigo-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+                              className="rounded-md bg-indigo-500 px-3 py-1.5 text-xs font-medium text-[var(--color-text-primary)] transition-colors hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
                             >
                               Apply
                             </button>
                             <button
                               onClick={() => handleDismiss(opt.id)}
                               aria-label={`Dismiss optimization: ${opt.title}`}
-                              className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+                              className="rounded-md bg-[var(--color-surface-2)] px-3 py-1.5 text-xs font-medium text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
                             >
                               Dismiss
                             </button>
@@ -654,7 +654,7 @@ export default function CostOptimizer() {
                           </span>
                         )}
                         {isDismissed && (
-                          <span className="text-xs font-medium text-zinc-500">
+                          <span className="text-xs font-medium text-[var(--color-text-muted)]">
                             Dismissed
                           </span>
                         )}
@@ -666,8 +666,8 @@ export default function CostOptimizer() {
             </div>
 
             {/* Summary Footer */}
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-5 py-3 text-center text-sm text-zinc-400">
-              <span className="font-medium text-white">
+            <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)]/50 px-5 py-3 text-center text-sm text-[var(--color-text-secondary)]">
+              <span className="font-medium text-[var(--color-text-primary)]">
                 {appliedSummary.count}
               </span>{" "}
               optimization{appliedSummary.count !== 1 ? "s" : ""} applied,

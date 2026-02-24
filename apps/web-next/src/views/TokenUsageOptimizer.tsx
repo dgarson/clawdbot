@@ -420,12 +420,12 @@ interface KpiCardProps {
   valueClass?: string;
 }
 
-function KpiCard({ title, value, sub, trendLabel, trendUp, valueClass = "text-white" }: KpiCardProps) {
+function KpiCard({ title, value, sub, trendLabel, trendUp, valueClass = "text-[var(--color-text-primary)]" }: KpiCardProps) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col gap-2">
-      <span className="text-zinc-400 text-sm font-medium">{title}</span>
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 flex flex-col gap-2">
+      <span className="text-[var(--color-text-secondary)] text-sm font-medium">{title}</span>
       <span className={cn("text-3xl font-bold tracking-tight", valueClass)}>{value}</span>
-      {sub && <span className="text-zinc-500 text-xs">{sub}</span>}
+      {sub && <span className="text-[var(--color-text-muted)] text-xs">{sub}</span>}
       {trendLabel && (
         <span className={cn("text-xs font-medium", trendUp ? "text-emerald-400" : "text-rose-400")}>
           {trendUp ? "▲" : "▼"} {trendLabel}
@@ -561,10 +561,10 @@ function OverviewTab() {
       </div>
 
       {/* 24h Bar Chart */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-semibold">Token Usage — Last 24 Hours</h3>
-          <span className="text-zinc-500 text-xs font-mono">{formatTokens(totalHourly)} total</span>
+          <h3 className="text-[var(--color-text-primary)] font-semibold">Token Usage — Last 24 Hours</h3>
+          <span className="text-[var(--color-text-muted)] text-xs font-mono">{formatTokens(totalHourly)} total</span>
         </div>
         <div style={{ display: "flex", alignItems: "flex-end", gap: "3px", height: "120px", padding: "0 2px" }}>
           {HOURLY_USAGE.map((h) => {
@@ -603,8 +603,8 @@ function OverviewTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Model Breakdown */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h3 className="text-white font-semibold mb-4">Model Breakdown</h3>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h3 className="text-[var(--color-text-primary)] font-semibold mb-4">Model Breakdown</h3>
           {(Object.entries(modelTotals) as [ModelName, number][]).map(([model, tokens]) => (
             <HBar
               key={model}
@@ -615,9 +615,9 @@ function OverviewTab() {
               suffix={formatTokens(tokens)}
             />
           ))}
-          <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-4">
+          <div className="mt-3 pt-3 border-t border-[var(--color-border)] flex items-center gap-4">
             {(Object.keys(modelTotals) as ModelName[]).map((model) => (
-              <span key={model} className="flex items-center gap-1.5 text-xs text-zinc-500">
+              <span key={model} className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
                 <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", backgroundColor: getModelColor(model) }} />
                 {formatPercent((modelTotals[model] / totalTokens) * 100)}
               </span>
@@ -626,12 +626,12 @@ function OverviewTab() {
         </div>
 
         {/* Top Consumers */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h3 className="text-white font-semibold mb-4">Top Consumers</h3>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h3 className="text-[var(--color-text-primary)] font-semibold mb-4">Top Consumers</h3>
           <div className="space-y-3">
             {topConsumers.map((agent, i) => (
               <div key={agent.id} className="flex items-center gap-3">
-                <span className="text-zinc-600 font-mono text-xs" style={{ width: "16px", textAlign: "right", flexShrink: 0 }}>
+                <span className="text-[var(--color-text-muted)] font-mono text-xs" style={{ width: "16px", textAlign: "right", flexShrink: 0 }}>
                   {i + 1}
                 </span>
                 <div
@@ -653,8 +653,8 @@ function OverviewTab() {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-white text-sm font-medium">{agent.name}</span>
-                    <span className="text-zinc-400 text-sm font-mono">{formatTokens(agent.totalTokens)}</span>
+                    <span className="text-[var(--color-text-primary)] text-sm font-medium">{agent.name}</span>
+                    <span className="text-[var(--color-text-secondary)] text-sm font-mono">{formatTokens(agent.totalTokens)}</span>
                   </div>
                   <div style={{ height: "4px", backgroundColor: "#27272a", borderRadius: "2px", overflow: "hidden" }}>
                     <div
@@ -667,7 +667,7 @@ function OverviewTab() {
                     />
                   </div>
                 </div>
-                <span className="text-zinc-500 text-xs font-mono" style={{ flexShrink: 0, width: "48px", textAlign: "right" }}>
+                <span className="text-[var(--color-text-muted)] text-xs font-mono" style={{ flexShrink: 0, width: "48px", textAlign: "right" }}>
                   {formatCost(agent.cost)}
                 </span>
               </div>
@@ -743,7 +743,7 @@ function AnalysisTab() {
     return (
       <button
         onClick={() => toggleSort(field)}
-        className={cn("text-xs font-medium text-left transition-colors hover:text-white", active ? "text-indigo-400" : "text-zinc-500")}
+        className={cn("text-xs font-medium text-left transition-colors hover:text-[var(--color-text-primary)]", active ? "text-indigo-400" : "text-[var(--color-text-muted)]")}
       >
         {label} {active ? (sortDir === "asc" ? "▲" : "▼") : ""}
       </button>
@@ -756,12 +756,12 @@ function AnalysisTab() {
     <div className="space-y-4">
       {/* Filters */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-zinc-500 text-sm">Model:</span>
+        <span className="text-[var(--color-text-muted)] text-sm">Model:</span>
         <button
           onClick={() => setModelFilter("all")}
           className={cn(
             "px-3 py-1 rounded-lg text-sm border transition-colors",
-            modelFilter === "all" ? "bg-indigo-600 border-indigo-500 text-white" : "border-zinc-800 text-zinc-400 hover:text-white"
+            modelFilter === "all" ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           )}
         >
           All
@@ -772,7 +772,7 @@ function AnalysisTab() {
             onClick={() => setModelFilter(m)}
             className={cn(
               "px-3 py-1 rounded-lg text-sm border transition-colors",
-              modelFilter === m ? "bg-indigo-600 border-indigo-500 text-white" : "border-zinc-800 text-zinc-400 hover:text-white"
+              modelFilter === m ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {m}
@@ -781,7 +781,7 @@ function AnalysisTab() {
       </div>
 
       {/* Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
         {/* Header */}
         <div
           style={{
@@ -799,7 +799,7 @@ function AnalysisTab() {
           <SortBtn field="outputRatio" label="Output Ratio" />
           <SortBtn field="wastePercent" label="Waste %" />
           <SortBtn field="cost" label="Cost" />
-          <span className="text-xs font-medium text-zinc-500">Trend</span>
+          <span className="text-xs font-medium text-[var(--color-text-muted)]">Trend</span>
         </div>
 
         {sorted.map((agent) => {
@@ -809,7 +809,7 @@ function AnalysisTab() {
             <React.Fragment key={agent.id}>
               <button
                 onClick={() => setExpandedId(isExpanded ? null : agent.id)}
-                className="w-full hover:bg-zinc-800/50 transition-colors text-left"
+                className="w-full hover:bg-[var(--color-surface-2)]/50 transition-colors text-left"
                 style={{ borderBottom: "1px solid #27272a" }}
               >
                 <div
@@ -832,14 +832,14 @@ function AnalysisTab() {
                         flexShrink: 0,
                       }}
                     />
-                    <span className="text-white text-sm font-medium truncate">{agent.name}</span>
+                    <span className="text-[var(--color-text-primary)] text-sm font-medium truncate">{agent.name}</span>
                   </div>
                   {/* Total Tokens */}
-                  <span className="text-zinc-300 text-sm font-mono">{formatTokens(agent.totalTokens)}</span>
+                  <span className="text-[var(--color-text-primary)] text-sm font-mono">{formatTokens(agent.totalTokens)}</span>
                   {/* Sessions */}
-                  <span className="text-zinc-400 text-sm">{agent.sessions}</span>
+                  <span className="text-[var(--color-text-secondary)] text-sm">{agent.sessions}</span>
                   {/* Avg / Session */}
-                  <span className="text-zinc-300 text-sm font-mono">{formatTokens(avgPS)}</span>
+                  <span className="text-[var(--color-text-primary)] text-sm font-mono">{formatTokens(avgPS)}</span>
                   {/* Output Ratio */}
                   <div className="flex items-center gap-1.5">
                     <div style={{ width: "36px", height: "4px", backgroundColor: "#27272a", borderRadius: "2px", overflow: "hidden" }}>
@@ -852,7 +852,7 @@ function AnalysisTab() {
                         }}
                       />
                     </div>
-                    <span className="text-zinc-400 text-xs">{formatPercent(agent.outputRatio * 100)}</span>
+                    <span className="text-[var(--color-text-secondary)] text-xs">{formatPercent(agent.outputRatio * 100)}</span>
                   </div>
                   {/* Waste % */}
                   <span
@@ -864,7 +864,7 @@ function AnalysisTab() {
                     {formatPercent(agent.wastePercent)}
                   </span>
                   {/* Cost */}
-                  <span className="text-zinc-400 text-sm font-mono">{formatCost(agent.cost)}</span>
+                  <span className="text-[var(--color-text-secondary)] text-sm font-mono">{formatCost(agent.cost)}</span>
                   {/* Sparkline */}
                   <Sparkline data={agent.trend} barColor={getModelColor(agent.model)} height={24} />
                 </div>
@@ -880,28 +880,28 @@ function AnalysisTab() {
                 >
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div>
-                      <div className="text-zinc-500 text-xs mb-1">Input Tokens</div>
-                      <div className="text-white font-mono text-sm">{formatTokens(agent.inputTokens)}</div>
+                      <div className="text-[var(--color-text-muted)] text-xs mb-1">Input Tokens</div>
+                      <div className="text-[var(--color-text-primary)] font-mono text-sm">{formatTokens(agent.inputTokens)}</div>
                     </div>
                     <div>
-                      <div className="text-zinc-500 text-xs mb-1">Output Tokens</div>
-                      <div className="text-white font-mono text-sm">{formatTokens(agent.outputTokens)}</div>
+                      <div className="text-[var(--color-text-muted)] text-xs mb-1">Output Tokens</div>
+                      <div className="text-[var(--color-text-primary)] font-mono text-sm">{formatTokens(agent.outputTokens)}</div>
                     </div>
                     <div>
-                      <div className="text-zinc-500 text-xs mb-1">Model</div>
+                      <div className="text-[var(--color-text-muted)] text-xs mb-1">Model</div>
                       <div className="text-sm font-medium" style={{ color: getModelColor(agent.model) }}>
                         {agent.model}
                       </div>
                     </div>
                     <div>
-                      <div className="text-zinc-500 text-xs mb-1">Team</div>
-                      <div className="text-zinc-300 text-sm">{agent.teamId}</div>
+                      <div className="text-[var(--color-text-muted)] text-xs mb-1">Team</div>
+                      <div className="text-[var(--color-text-primary)] text-sm">{agent.teamId}</div>
                     </div>
                   </div>
 
                   {/* Token split visual */}
                   <div>
-                    <div className="text-zinc-500 text-xs mb-2">Token Split (Input vs Output)</div>
+                    <div className="text-[var(--color-text-muted)] text-xs mb-2">Token Split (Input vs Output)</div>
                     <div
                       style={{
                         height: "12px",
@@ -915,10 +915,10 @@ function AnalysisTab() {
                       <div style={{ flex: agent.outputTokens, backgroundColor: "#10b981" }} />
                     </div>
                     <div className="flex gap-4 mt-1.5">
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-xs text-[var(--color-text-muted)]">
                         <span style={{ color: "#6366f1" }}>●</span> Input {formatPercent((agent.inputTokens / agent.totalTokens) * 100)}
                       </span>
-                      <span className="text-xs text-zinc-500">
+                      <span className="text-xs text-[var(--color-text-muted)]">
                         <span style={{ color: "#10b981" }}>●</span> Output {formatPercent((agent.outputTokens / agent.totalTokens) * 100)}
                       </span>
                     </div>
@@ -930,7 +930,7 @@ function AnalysisTab() {
         })}
 
         {sorted.length === 0 && (
-          <div className="p-8 text-center text-zinc-500 text-sm">No agents match the current filter.</div>
+          <div className="p-8 text-center text-[var(--color-text-muted)] text-sm">No agents match the current filter.</div>
         )}
       </div>
     </div>
@@ -977,30 +977,30 @@ function OptimizationTab() {
   return (
     <div className="space-y-4">
       {/* Potential savings summary */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <div className="text-white font-semibold">Optimization Opportunities</div>
-            <div className="text-zinc-400 text-xs mt-0.5">
+            <div className="text-[var(--color-text-primary)] font-semibold">Optimization Opportunities</div>
+            <div className="text-[var(--color-text-secondary)] text-xs mt-0.5">
               {RECOMMENDATIONS.length} recommendations · {formatCost(totalPotentialCostSavings)}/mo potential savings
             </div>
           </div>
           <div className="flex items-center gap-6">
             <div>
-              <div className="text-zinc-500 text-xs">Applied</div>
+              <div className="text-[var(--color-text-muted)] text-xs">Applied</div>
               <div className="text-emerald-400 font-bold text-lg">{applied.size}</div>
             </div>
             <div>
-              <div className="text-zinc-500 text-xs">Savings Locked In</div>
-              <div className="text-white font-bold text-lg">{formatCost(appliedCostSavings)}<span className="text-zinc-500 text-xs font-normal">/mo</span></div>
+              <div className="text-[var(--color-text-muted)] text-xs">Savings Locked In</div>
+              <div className="text-[var(--color-text-primary)] font-bold text-lg">{formatCost(appliedCostSavings)}<span className="text-[var(--color-text-muted)] text-xs font-normal">/mo</span></div>
             </div>
           </div>
         </div>
         {applied.size > 0 && (
-          <div className="mt-3 pt-3 border-t border-zinc-800">
+          <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-zinc-500 text-xs">Progress toward potential</span>
-              <span className="text-zinc-400 text-xs">{formatPercent((appliedCostSavings / totalPotentialCostSavings) * 100)}</span>
+              <span className="text-[var(--color-text-muted)] text-xs">Progress toward potential</span>
+              <span className="text-[var(--color-text-secondary)] text-xs">{formatPercent((appliedCostSavings / totalPotentialCostSavings) * 100)}</span>
             </div>
             <div style={{ height: "6px", backgroundColor: "#27272a", borderRadius: "3px", overflow: "hidden" }}>
               <div
@@ -1012,7 +1012,7 @@ function OptimizationTab() {
                 }}
               />
             </div>
-            <div className="text-zinc-500 text-xs mt-1">
+            <div className="text-[var(--color-text-muted)] text-xs mt-1">
               {formatTokens(appliedTokenSavings)} tokens / month saved
             </div>
           </div>
@@ -1025,7 +1025,7 @@ function OptimizationTab() {
           onClick={() => setCategoryFilter("all")}
           className={cn(
             "px-3 py-1 rounded-lg text-sm border transition-colors",
-            categoryFilter === "all" ? "bg-indigo-600 border-indigo-500 text-white" : "border-zinc-800 text-zinc-400 hover:text-white"
+            categoryFilter === "all" ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           )}
         >
           All
@@ -1036,7 +1036,7 @@ function OptimizationTab() {
             onClick={() => setCategoryFilter(c)}
             className={cn(
               "px-3 py-1 rounded-lg text-sm border transition-colors capitalize",
-              categoryFilter === c ? "bg-indigo-600 border-indigo-500 text-white" : "border-zinc-800 text-zinc-400 hover:text-white"
+              categoryFilter === c ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {getCategoryIcon(c)} {c}
@@ -1052,8 +1052,8 @@ function OptimizationTab() {
             <div
               key={rec.id}
               className={cn(
-                "bg-zinc-900 border rounded-xl p-5 transition-colors",
-                isApplied ? "border-emerald-400/30" : "border-zinc-800"
+                "bg-[var(--color-surface-1)] border rounded-xl p-5 transition-colors",
+                isApplied ? "border-emerald-400/30" : "border-[var(--color-border)]"
               )}
             >
               <div className="flex items-start justify-between gap-4">
@@ -1071,20 +1071,20 @@ function OptimizationTab() {
                       </span>
                     )}
                   </div>
-                  <h4 className="text-white font-semibold text-sm mb-1">{rec.title}</h4>
-                  <p className="text-zinc-400 text-sm leading-relaxed">{rec.description}</p>
+                  <h4 className="text-[var(--color-text-primary)] font-semibold text-sm mb-1">{rec.title}</h4>
+                  <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed">{rec.description}</p>
                   <div className="flex items-center gap-4 mt-2.5 flex-wrap">
-                    <span className="text-zinc-500 text-xs">
+                    <span className="text-[var(--color-text-muted)] text-xs">
                       Est. cost savings:{" "}
                       <span className="text-emerald-400 font-semibold">{formatCost(rec.estimatedCostSavings)}/mo</span>
                     </span>
-                    <span className="text-zinc-500 text-xs">
+                    <span className="text-[var(--color-text-muted)] text-xs">
                       Tokens saved:{" "}
                       <span className="text-indigo-400 font-semibold">{formatTokens(rec.estimatedSavings)}</span>
                     </span>
-                    <span className="text-zinc-500 text-xs">
+                    <span className="text-[var(--color-text-muted)] text-xs">
                       Affects:{" "}
-                      <span className="text-zinc-300">{rec.agentIds.length} agent{rec.agentIds.length > 1 ? "s" : ""}</span>
+                      <span className="text-[var(--color-text-primary)]">{rec.agentIds.length} agent{rec.agentIds.length > 1 ? "s" : ""}</span>
                     </span>
                   </div>
                 </div>
@@ -1092,7 +1092,7 @@ function OptimizationTab() {
                   {isApplied ? (
                     <button
                       onClick={() => undoRec(rec.id)}
-                      className="px-3 py-1.5 border border-zinc-700 hover:border-zinc-600 text-zinc-400 hover:text-white text-sm rounded-lg transition-colors"
+                      className="px-3 py-1.5 border border-[var(--color-border)] hover:border-[var(--color-surface-3)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-sm rounded-lg transition-colors"
                     >
                       Undo
                     </button>
@@ -1100,13 +1100,13 @@ function OptimizationTab() {
                     <>
                       <button
                         onClick={() => applyRec(rec.id)}
-                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm rounded-lg transition-colors font-medium"
+                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded-lg transition-colors font-medium"
                       >
                         Apply
                       </button>
                       <button
                         onClick={() => dismissRec(rec.id)}
-                        className="px-2 py-1.5 text-zinc-600 hover:text-zinc-400 text-sm rounded-lg transition-colors"
+                        className="px-2 py-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] text-sm rounded-lg transition-colors"
                         title="Dismiss"
                         aria-label="Dismiss recommendation"
                       >
@@ -1120,8 +1120,8 @@ function OptimizationTab() {
           );
         })}
         {visible.length === 0 && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center">
-            <div className="text-zinc-500 text-sm">No recommendations in this category.</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-8 text-center">
+            <div className="text-[var(--color-text-muted)] text-sm">No recommendations in this category.</div>
           </div>
         )}
       </div>
@@ -1130,7 +1130,7 @@ function OptimizationTab() {
       {dismissed.size > 0 && (
         <button
           onClick={() => setDismissed(new Set())}
-          className="text-zinc-600 hover:text-zinc-400 text-xs transition-colors"
+          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] text-xs transition-colors"
         >
           {dismissed.size} recommendation{dismissed.size > 1 ? "s" : ""} dismissed — restore all
         </button>
@@ -1196,7 +1196,7 @@ function BudgetTab() {
           title="Remaining Budget"
           value={formatCost(totalBudget - totalActual)}
           sub={`${overBudgetAgents.length} agent${overBudgetAgents.length !== 1 ? "s" : ""} over budget`}
-          valueClass={totalBudget - totalActual < 0 ? "text-rose-400" : "text-white"}
+          valueClass={totalBudget - totalActual < 0 ? "text-rose-400" : "text-[var(--color-text-primary)]"}
         />
       </div>
 
@@ -1217,8 +1217,8 @@ function BudgetTab() {
       )}
 
       {/* Budget vs Actual Chart */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <h3 className="text-white font-semibold mb-4">Budget vs Actual — Per Agent</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+        <h3 className="text-[var(--color-text-primary)] font-semibold mb-4">Budget vs Actual — Per Agent</h3>
         <div className="space-y-4">
           {AGENTS.map((agent) => {
             const budget = budgets[agent.id] ?? 0;
@@ -1237,7 +1237,7 @@ function BudgetTab() {
                         backgroundColor: getModelColor(agent.model),
                       }}
                     />
-                    <span className="text-white text-sm font-medium">{agent.name}</span>
+                    <span className="text-[var(--color-text-primary)] text-sm font-medium">{agent.name}</span>
                     {isOver && (
                       <span className="text-xs text-rose-400 bg-rose-400/10 border border-rose-400/20 px-1.5 py-0.5 rounded-full">
                         Over
@@ -1245,8 +1245,8 @@ function BudgetTab() {
                     )}
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-zinc-500 text-xs font-mono">
-                      {formatCost(agent.cost)} <span className="text-zinc-700">/</span> {formatCost(budget)}
+                    <span className="text-[var(--color-text-muted)] text-xs font-mono">
+                      {formatCost(agent.cost)} <span className="text-[var(--color-text-muted)]">/</span> {formatCost(budget)}
                     </span>
                     <span className={cn("text-xs font-mono", isOver ? "text-rose-400" : utilPct > 75 ? "text-amber-400" : "text-emerald-400")}>
                       {formatPercent((agent.cost / (budget || 1)) * 100)}
@@ -1284,19 +1284,19 @@ function BudgetTab() {
         </div>
         {/* Legend */}
         <div className="flex items-center gap-4 mt-4 flex-wrap">
-          <span className="text-xs text-zinc-500 flex items-center gap-1.5">
+          <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1.5">
             <div style={{ width: "8px", height: "8px", backgroundColor: "#10b981", borderRadius: "2px" }} />
             Under 75%
           </span>
-          <span className="text-xs text-zinc-500 flex items-center gap-1.5">
+          <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1.5">
             <div style={{ width: "8px", height: "8px", backgroundColor: "#f59e0b", borderRadius: "2px" }} />
             75–100%
           </span>
-          <span className="text-xs text-zinc-500 flex items-center gap-1.5">
+          <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1.5">
             <div style={{ width: "8px", height: "8px", backgroundColor: "#f43f5e", borderRadius: "2px" }} />
             Over budget
           </span>
-          <span className="text-xs text-zinc-500 flex items-center gap-1.5">
+          <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1.5">
             <div style={{ width: "2px", height: "10px", backgroundColor: "#52525b", borderRadius: "1px" }} />
             Budget limit
           </span>
@@ -1304,10 +1304,10 @@ function BudgetTab() {
       </div>
 
       {/* Budget Allocation Editor */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-semibold">Budget Allocation Editor</h3>
-          <span className="text-zinc-500 text-xs">Click any budget to edit</span>
+          <h3 className="text-[var(--color-text-primary)] font-semibold">Budget Allocation Editor</h3>
+          <span className="text-[var(--color-text-muted)] text-xs">Click any budget to edit</span>
         </div>
         <div className="space-y-2">
           {AGENTS.map((agent) => {
@@ -1320,7 +1320,7 @@ function BudgetTab() {
                 key={agent.id}
                 className={cn(
                   "flex items-center gap-4 p-3 rounded-lg border transition-colors",
-                  isOver ? "border-rose-400/30 bg-rose-400/5" : "border-zinc-800 hover:border-zinc-700"
+                  isOver ? "border-rose-400/30 bg-rose-400/5" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div
@@ -1343,8 +1343,8 @@ function BudgetTab() {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="flex items-center gap-2">
-                    <span className="text-white text-sm font-medium">{agent.name}</span>
-                    <span className="text-zinc-600 text-xs hidden sm:inline">{agent.model}</span>
+                    <span className="text-[var(--color-text-primary)] text-sm font-medium">{agent.name}</span>
+                    <span className="text-[var(--color-text-muted)] text-xs hidden sm:inline">{agent.model}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     <div style={{ width: "80px", height: "3px", backgroundColor: "#27272a", borderRadius: "2px", overflow: "hidden" }}>
@@ -1356,20 +1356,20 @@ function BudgetTab() {
                         }}
                       />
                     </div>
-                    <span className="text-zinc-500 text-xs">{formatPercent(utilPct)} used</span>
+                    <span className="text-[var(--color-text-muted)] text-xs">{formatPercent(utilPct)} used</span>
                     {isOver && (
                       <span className="text-rose-400 text-xs">+{formatCost(agent.cost - budget)} over</span>
                     )}
                   </div>
                 </div>
 
-                <span className="text-zinc-500 text-xs font-mono hidden md:inline">
+                <span className="text-[var(--color-text-muted)] text-xs font-mono hidden md:inline">
                   Actual: {formatCost(agent.cost)}
                 </span>
 
                 {isEditing ? (
                   <div className="flex items-center gap-1">
-                    <span className="text-zinc-400 text-sm">$</span>
+                    <span className="text-[var(--color-text-secondary)] text-sm">$</span>
                     <input
                       type="number"
                       value={editValue}
@@ -1383,7 +1383,7 @@ function BudgetTab() {
                         }
                       }}
                       autoFocus
-                      className="bg-zinc-800 border border-indigo-500 text-white rounded px-2 py-1 text-sm font-mono w-20 outline-none"
+                      className="bg-[var(--color-surface-2)] border border-indigo-500 text-[var(--color-text-primary)] rounded px-2 py-1 text-sm font-mono w-20 outline-none"
                       min="0"
                       step="0.01"
                     />
@@ -1397,10 +1397,10 @@ function BudgetTab() {
                 ) : (
                   <button
                     onClick={() => startEdit(agent.id)}
-                    className="flex items-center gap-1.5 text-sm font-mono text-zinc-300 hover:text-white border border-zinc-700 hover:border-zinc-600 px-2 py-1 rounded transition-colors"
+                    className="flex items-center gap-1.5 text-sm font-mono text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)] hover:border-[var(--color-surface-3)] px-2 py-1 rounded transition-colors"
                   >
                     {formatCost(budget)}
-                    <span className="text-zinc-600 text-xs">✎</span>
+                    <span className="text-[var(--color-text-muted)] text-xs">✎</span>
                   </button>
                 )}
               </div>
@@ -1408,11 +1408,11 @@ function BudgetTab() {
           })}
         </div>
 
-        <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center justify-between">
-          <span className="text-zinc-500 text-sm">Total budget allocation</span>
+        <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex items-center justify-between">
+          <span className="text-[var(--color-text-muted)] text-sm">Total budget allocation</span>
           <div className="flex items-center gap-3">
-            <span className="text-zinc-500 text-xs font-mono">Actual: {formatCost(totalActual)}</span>
-            <span className="text-white font-semibold font-mono">{formatCost(totalBudget)}</span>
+            <span className="text-[var(--color-text-muted)] text-xs font-mono">Actual: {formatCost(totalActual)}</span>
+            <span className="text-[var(--color-text-primary)] font-semibold font-mono">{formatCost(totalBudget)}</span>
           </div>
         </div>
       </div>
@@ -1433,13 +1433,13 @@ export default function TokenUsageOptimizer() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Token Usage Optimizer</h1>
-            <p className="text-zinc-400 text-sm mt-1">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] tracking-tight">Token Usage Optimizer</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">
               Monitor, analyze, and optimize token consumption across all agents
             </p>
           </div>
@@ -1453,12 +1453,12 @@ export default function TokenUsageOptimizer() {
                 boxShadow: "0 0 6px #34d399",
               }}
             />
-            <span className="text-zinc-500 text-xs font-mono">Live · Updated just now</span>
+            <span className="text-[var(--color-text-muted)] text-xs font-mono">Live · Updated just now</span>
           </div>
         </div>
 
         {/* Tab navigation */}
-        <div className="flex items-center gap-0 border-b border-zinc-800">
+        <div className="flex items-center gap-0 border-b border-[var(--color-border)]">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -1466,8 +1466,8 @@ export default function TokenUsageOptimizer() {
               className={cn(
                 "px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors",
                 activeTab === tab.id
-                  ? "border-indigo-500 text-white"
-                  : "border-transparent text-zinc-400 hover:text-white hover:border-zinc-700"
+                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
               )}
             >
               {tab.label}

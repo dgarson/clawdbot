@@ -170,8 +170,8 @@ const AGENTS: AgentWorkloadData[] = [
 const STATUS_COLORS: Record<AgentStatus, string> = {
   online:  "bg-emerald-400",
   busy:    "bg-amber-400 animate-pulse",
-  idle:    "bg-zinc-500",
-  offline: "bg-zinc-700",
+  idle:    "bg-[var(--color-surface-3)]",
+  offline: "bg-[var(--color-surface-3)]",
 };
 
 const STATUS_LABELS: Record<AgentStatus, string> = {
@@ -237,7 +237,7 @@ function AgentCard({ agent, selected, onSelect }: AgentCardProps) {
         "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
         selected
           ? "border-indigo-500 bg-indigo-950/30"
-          : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"
+          : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-border)]"
       )}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -245,28 +245,28 @@ function AgentCard({ agent, selected, onSelect }: AgentCardProps) {
           <div className="relative shrink-0">
             <span className="text-2xl">{agent.agentEmoji}</span>
             <span
-              className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-zinc-900", STATUS_COLORS[agent.status])}
+              className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--color-border)]", STATUS_COLORS[agent.status])}
               aria-label={STATUS_LABELS[agent.status]}
             />
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-white">{agent.agentName}</p>
-            <p className="text-xs text-zinc-500 truncate">{agent.role}</p>
+            <p className="font-semibold text-[var(--color-text-primary)]">{agent.agentName}</p>
+            <p className="text-xs text-[var(--color-text-muted)] truncate">{agent.role}</p>
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-lg font-bold font-mono text-white">{agent.completedToday}</p>
-          <p className="text-[10px] text-zinc-600">done today</p>
+          <p className="text-lg font-bold font-mono text-[var(--color-text-primary)]">{agent.completedToday}</p>
+          <p className="text-[10px] text-[var(--color-text-muted)]">done today</p>
         </div>
       </div>
 
       {/* Token budget bar */}
       <div>
-        <div className="flex items-center justify-between text-[10px] text-zinc-500 mb-1">
+        <div className="flex items-center justify-between text-[10px] text-[var(--color-text-muted)] mb-1">
           <span>Token budget</span>
           <span className="font-mono">{fmtTokens(agent.tokensUsedToday)} / {fmtTokens(agent.tokenBudgetToday)}</span>
         </div>
-        <div className="h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+        <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
           <div
             className={cn("h-full rounded-full transition-all", budgetColor(bPct))}
             style={{ width: `${bPct}%` }}
@@ -321,19 +321,19 @@ export default function AgentWorkload() {
   ];
 
   return (
-    <main className="flex h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Agent Workload">
+    <main className="flex h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden" role="main" aria-label="Agent Workload">
       {/* Left: Agent cards */}
-      <div className="w-80 shrink-0 flex flex-col border-r border-zinc-800 overflow-hidden">
+      <div className="w-80 shrink-0 flex flex-col border-r border-[var(--color-border)] overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-zinc-800">
-          <h1 className="text-lg font-bold text-white">Agent Workload</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">
+        <div className="p-4 border-b border-[var(--color-border)]">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Agent Workload</h1>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
             {busyCount} busy · {totalActive} active items · {AGENTS.length} agents
           </p>
         </div>
 
         {/* Filters */}
-        <div className="p-3 border-b border-zinc-800">
+        <div className="p-3 border-b border-[var(--color-border)]">
           <div className="flex flex-wrap gap-1" role="group" aria-label="Filter by status">
             {statuses.map(s => (
               <button
@@ -345,7 +345,7 @@ export default function AgentWorkload() {
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   statusFilter === s.value
                     ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                    : "border-zinc-700 text-zinc-400 hover:text-white"
+                    : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {s.label}
@@ -378,19 +378,19 @@ export default function AgentWorkload() {
                 <span className="text-5xl">{selected.agentEmoji}</span>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h2 className="text-2xl font-bold text-white">{selected.agentName}</h2>
+                    <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">{selected.agentName}</h2>
                     <span className={cn(
                       "text-xs px-2 py-0.5 rounded-full border",
                       selected.status === "busy" ? "text-amber-400 bg-amber-400/10 border-amber-400/20" :
                       selected.status === "online" ? "text-emerald-400 bg-emerald-400/10 border-emerald-400/20" :
-                      selected.status === "idle" ? "text-zinc-400 bg-zinc-400/10 border-zinc-400/20" :
-                      "text-zinc-600 bg-zinc-600/10 border-zinc-600/20"
+                      selected.status === "idle" ? "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20" :
+                      "text-[var(--color-text-muted)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20"
                     )}>
                       {STATUS_LABELS[selected.status]}
                     </span>
                   </div>
-                  <p className="text-sm text-zinc-400">{selected.role}</p>
-                  <p className="text-xs text-zinc-600 mt-0.5">Last active: {relTime(selected.lastActive)}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{selected.role}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Last active: {relTime(selected.lastActive)}</p>
                 </div>
               </div>
             </div>
@@ -398,28 +398,28 @@ export default function AgentWorkload() {
             {/* KPI row */}
             <div className="grid grid-cols-4 gap-3">
               {[
-                { label: "Done Today",    value: String(selected.completedToday),                  color: "text-white" },
-                { label: "Queued",        value: String(selected.queuedCount),                     color: "text-zinc-300" },
+                { label: "Done Today",    value: String(selected.completedToday),                  color: "text-[var(--color-text-primary)]" },
+                { label: "Queued",        value: String(selected.queuedCount),                     color: "text-[var(--color-text-primary)]" },
                 { label: "Success Rate",  value: `${selected.successRateThisWeek}%`,               color: selected.successRateThisWeek >= 90 ? "text-emerald-400" : "text-amber-400" },
-                { label: "Avg Duration",  value: `${selected.avgSessionDurationMins}m`,            color: "text-zinc-300" },
+                { label: "Avg Duration",  value: `${selected.avgSessionDurationMins}m`,            color: "text-[var(--color-text-primary)]" },
               ].map(k => (
-                <div key={k.label} className="rounded-xl bg-zinc-900 border border-zinc-800 p-3 text-center">
+                <div key={k.label} className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-3 text-center">
                   <p className={cn("text-xl font-bold font-mono", k.color)}>{k.value}</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">{k.label}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{k.label}</p>
                 </div>
               ))}
             </div>
 
             {/* Token budget */}
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
+            <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-4">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-white">Token Budget (Today)</h3>
-                <span className="text-sm font-mono text-zinc-300">
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Token Budget (Today)</h3>
+                <span className="text-sm font-mono text-[var(--color-text-primary)]">
                   {fmtTokens(selected.tokensUsedToday)} / {fmtTokens(selected.tokenBudgetToday)}
-                  <span className="text-zinc-500 ml-2">({budgetPct(selected.tokensUsedToday, selected.tokenBudgetToday)}%)</span>
+                  <span className="text-[var(--color-text-muted)] ml-2">({budgetPct(selected.tokensUsedToday, selected.tokenBudgetToday)}%)</span>
                 </span>
               </div>
-              <div className="h-3 rounded-full bg-zinc-800 overflow-hidden">
+              <div className="h-3 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                 <div
                   className={cn("h-full rounded-full transition-all", budgetColor(budgetPct(selected.tokensUsedToday, selected.tokenBudgetToday)))}
                   style={{ width: `${budgetPct(selected.tokensUsedToday, selected.tokenBudgetToday)}%` }}
@@ -433,36 +433,36 @@ export default function AgentWorkload() {
             </div>
 
             {/* Active work items */}
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
-              <div className="px-4 py-3 border-b border-zinc-800">
-                <h3 className="text-sm font-semibold text-white">Active Work</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">
+            <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] overflow-hidden">
+              <div className="px-4 py-3 border-b border-[var(--color-border)]">
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Active Work</h3>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                   {selected.activeWorkItems.length} active · {selected.queuedCount} queued
                 </p>
               </div>
               {selected.activeWorkItems.length === 0 ? (
                 <div className="px-4 py-6 text-center">
                   <p className="text-2xl mb-1">😴</p>
-                  <p className="text-sm text-zinc-500">No active work items</p>
+                  <p className="text-sm text-[var(--color-text-muted)]">No active work items</p>
                 </div>
               ) : (
-                <div className="divide-y divide-zinc-800">
+                <div className="divide-y divide-[var(--color-border)]">
                   {selected.activeWorkItems.map(item => (
                     <div key={item.id} className="px-4 py-4">
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex items-center gap-2">
                           <span>{KIND_EMOJIS[item.kind]}</span>
-                          <p className="text-sm font-medium text-white">{item.title}</p>
+                          <p className="text-sm font-medium text-[var(--color-text-primary)]">{item.title}</p>
                         </div>
-                        <span className="text-xs text-zinc-500 shrink-0 font-mono">{fmtTokens(item.tokensBurned)}</span>
+                        <span className="text-xs text-[var(--color-text-muted)] shrink-0 font-mono">{fmtTokens(item.tokensBurned)}</span>
                       </div>
                       {item.progress !== undefined && (
                         <>
-                          <div className="flex items-center justify-between text-xs text-zinc-500 mb-1">
+                          <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] mb-1">
                             <span>{relTime(item.startedAt)}</span>
                             <span>{item.progress}%</span>
                           </div>
-                          <div className="h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                          <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                             <div
                               className="h-full rounded-full bg-indigo-500 transition-all"
                               style={{ width: `${item.progress}%` }}
@@ -475,7 +475,7 @@ export default function AgentWorkload() {
                         </>
                       )}
                       {item.estimatedCompletion && (
-                        <p className="text-[10px] text-zinc-600 mt-1">
+                        <p className="text-[10px] text-[var(--color-text-muted)] mt-1">
                           ETA: {new Date(item.estimatedCompletion).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </p>
                       )}
@@ -488,8 +488,8 @@ export default function AgentWorkload() {
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <p className="text-5xl mb-4">👥</p>
-            <p className="text-lg font-semibold text-white">Select an agent</p>
-            <p className="text-sm text-zinc-500 mt-1">Choose an agent to view their workload details</p>
+            <p className="text-lg font-semibold text-[var(--color-text-primary)]">Select an agent</p>
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">Choose an agent to view their workload details</p>
           </div>
         )}
       </div>

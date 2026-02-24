@@ -253,7 +253,7 @@ const TICKET_STATUSES: { value: TicketStatus; label: string; color: string }[] =
   { value: "open", label: "Open", color: "bg-amber-400/20 text-amber-400" },
   { value: "in-progress", label: "In Progress", color: "bg-indigo-500/20 text-indigo-400" },
   { value: "resolved", label: "Resolved", color: "bg-emerald-400/20 text-emerald-400" },
-  { value: "closed", label: "Closed", color: "bg-zinc-500/20 text-zinc-400" }
+  { value: "closed", label: "Closed", color: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]" }
 ];
 
 // Components
@@ -268,7 +268,7 @@ function StatusBadge({ status }: { status: TicketStatus }) {
 
 function PriorityBadge({ priority }: { priority: TicketPriority }) {
   const colors: Record<TicketPriority, string> = {
-    low: "bg-zinc-500/20 text-zinc-400",
+    low: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
     medium: "bg-indigo-500/20 text-indigo-400",
     high: "bg-amber-400/20 text-amber-400",
     urgent: "bg-rose-400/20 text-rose-400"
@@ -299,8 +299,8 @@ function CategoryChip({
         "px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-150",
         "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
         selected 
-          ? "bg-indigo-600 text-white" 
-          : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+          ? "bg-indigo-600 text-[var(--color-text-primary)]" 
+          : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
       )}
     >
       {label}
@@ -336,7 +336,7 @@ function HelpCenterTab() {
           type="button"
           onClick={() => setSelectedArticle(null)}
           className={cn(
-            "text-zinc-400 hover:text-white transition-colors duration-150",
+            "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors duration-150",
             "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
             "px-3 py-2 rounded-md -ml-3"
           )}
@@ -345,9 +345,9 @@ function HelpCenterTab() {
           ← Back to Articles
         </button>
         
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-6">
-          <h2 className="text-2xl font-semibold text-white mb-2">{selectedArticle.title}</h2>
-          <div className="flex items-center gap-4 text-sm text-zinc-500 mb-6">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-6">
+          <h2 className="text-2xl font-semibold text-[var(--color-text-primary)] mb-2">{selectedArticle.title}</h2>
+          <div className="flex items-center gap-4 text-sm text-[var(--color-text-muted)] mb-6">
             <span>{selectedArticle.views.toLocaleString()} views</span>
             <span>•</span>
             <span>Updated {selectedArticle.updatedAt}</span>
@@ -357,21 +357,21 @@ function HelpCenterTab() {
           
           <div className="prose prose-invert prose-zinc max-w-none">
             {selectedArticle.content.split("\n\n").map((paragraph, idx) => (
-              <p key={idx} className="text-zinc-300 leading-relaxed mb-4">{paragraph}</p>
+              <p key={idx} className="text-[var(--color-text-primary)] leading-relaxed mb-4">{paragraph}</p>
             ))}
           </div>
 
-          <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-zinc-800">
+          <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-[var(--color-border)]">
             {selectedArticle.tags.map(tag => (
-              <span key={tag} className="px-2 py-1 bg-zinc-800 text-zinc-400 text-xs rounded">
+              <span key={tag} className="px-2 py-1 bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] text-xs rounded">
                 {tag}
               </span>
             ))}
           </div>
         </div>
 
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-6">
-          <h3 className="text-lg font-medium text-white mb-4">Was this article helpful?</h3>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-6">
+          <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-4">Was this article helpful?</h3>
           <div className="flex gap-3">
             <button
               type="button"
@@ -383,7 +383,7 @@ function HelpCenterTab() {
                 "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                 feedbackState === "helpful"
                   ? "bg-emerald-400/20 text-emerald-400"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white",
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]",
                 feedbackState !== undefined && "opacity-50 cursor-not-allowed"
               )}
             >
@@ -400,7 +400,7 @@ function HelpCenterTab() {
                 "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                 feedbackState === "not-helpful"
                   ? "bg-rose-400/20 text-rose-400"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white",
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]",
                 feedbackState !== undefined && "opacity-50 cursor-not-allowed"
               )}
             >
@@ -422,7 +422,7 @@ function HelpCenterTab() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">🔍</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">🔍</span>
           <input
             type="search"
             placeholder="Search articles..."
@@ -430,8 +430,8 @@ function HelpCenterTab() {
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Search articles"
             className={cn(
-              "w-full pl-10 pr-4 py-2 bg-zinc-900 border border-zinc-800 rounded-md",
-              "text-white placeholder:text-zinc-500",
+              "w-full pl-10 pr-4 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-md",
+              "text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
               "transition-colors duration-150"
             )}
@@ -477,8 +477,8 @@ function HelpCenterTab() {
           <article
             key={article.id}
             className={cn(
-              "bg-zinc-900 border border-zinc-800 rounded-lg p-5 cursor-pointer",
-              "hover:border-zinc-700 transition-colors duration-150",
+              "bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 cursor-pointer",
+              "hover:border-[var(--color-border)] transition-colors duration-150",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
             )}
             onClick={() => setSelectedArticle(article)}
@@ -490,13 +490,13 @@ function HelpCenterTab() {
               <span className="text-xs font-medium text-indigo-400 uppercase tracking-wide">
                 {article.category.replace("-", " ")}
               </span>
-              <span className="text-xs text-zinc-500">{article.views.toLocaleString()} views</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{article.views.toLocaleString()} views</span>
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">{article.title}</h3>
-            <p className="text-zinc-400 text-sm line-clamp-2">{article.excerpt}</p>
+            <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">{article.title}</h3>
+            <p className="text-[var(--color-text-secondary)] text-sm line-clamp-2">{article.excerpt}</p>
             <div className="flex flex-wrap gap-1 mt-3">
               {article.tags.slice(0, 3).map(tag => (
-                <span key={tag} className="text-xs text-zinc-500">#{tag}</span>
+                <span key={tag} className="text-xs text-[var(--color-text-muted)]">#{tag}</span>
               ))}
             </div>
           </article>
@@ -505,7 +505,7 @@ function HelpCenterTab() {
 
       {filteredArticles.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-zinc-400 text-lg">No articles found matching your criteria.</p>
+          <p className="text-[var(--color-text-secondary)] text-lg">No articles found matching your criteria.</p>
           <button
             type="button"
             onClick={() => { setSelectedCategory(null); setSearchQuery(""); }}
@@ -529,7 +529,7 @@ function MyTicketsTab() {
           type="button"
           onClick={() => setSelectedTicket(null)}
           className={cn(
-            "text-zinc-400 hover:text-white transition-colors duration-150",
+            "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors duration-150",
             "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
             "px-3 py-2 rounded-md -ml-3"
           )}
@@ -538,11 +538,11 @@ function MyTicketsTab() {
           ← Back to Tickets
         </button>
 
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-6">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h2 className="text-xl font-semibold text-white">{selectedTicket.title}</h2>
-              <p className="text-zinc-500 text-sm mt-1">Ticket #{selectedTicket.id}</p>
+              <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">{selectedTicket.title}</h2>
+              <p className="text-[var(--color-text-muted)] text-sm mt-1">Ticket #{selectedTicket.id}</p>
             </div>
             <div className="flex gap-2">
               <StatusBadge status={selectedTicket.status} />
@@ -550,7 +550,7 @@ function MyTicketsTab() {
             </div>
           </div>
 
-          <div className="flex gap-4 text-sm text-zinc-500 mb-6">
+          <div className="flex gap-4 text-sm text-[var(--color-text-muted)] mb-6">
             <span>Category: <span className="capitalize">{selectedTicket.category.replace("-", " ")}</span></span>
             <span>•</span>
             <span>Created: {new Date(selectedTicket.createdAt).toLocaleDateString()}</span>
@@ -559,15 +559,15 @@ function MyTicketsTab() {
           </div>
 
           <div className="mb-6">
-            <h3 className="text-sm font-medium text-zinc-400 mb-2">Description</h3>
-            <p className="text-zinc-300 bg-zinc-950 p-4 rounded-md">{selectedTicket.description}</p>
+            <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Description</h3>
+            <p className="text-[var(--color-text-primary)] bg-[var(--color-surface-0)] p-4 rounded-md">{selectedTicket.description}</p>
           </div>
 
           {selectedTicket.agentResponse && (
             <div>
-              <h3 className="text-sm font-medium text-zinc-400 mb-2">Agent Response</h3>
+              <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Agent Response</h3>
               <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-md">
-                <p className="text-zinc-300">{selectedTicket.agentResponse}</p>
+                <p className="text-[var(--color-text-primary)]">{selectedTicket.agentResponse}</p>
               </div>
             </div>
           )}
@@ -580,12 +580,12 @@ function MyTicketsTab() {
     <div className="overflow-x-auto">
       <table className="w-full" role="table" aria-label="Support tickets">
         <thead>
-          <tr className="border-b border-zinc-800">
-            <th className="text-left py-3 px-4 text-sm font-medium text-zinc-400">Ticket</th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-zinc-400">Status</th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-zinc-400">Priority</th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-zinc-400">Category</th>
-            <th className="text-left py-3 px-4 text-sm font-medium text-zinc-400">Created</th>
+          <tr className="border-b border-[var(--color-border)]">
+            <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Ticket</th>
+            <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Status</th>
+            <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Priority</th>
+            <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Category</th>
+            <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Created</th>
           </tr>
         </thead>
         <tbody>
@@ -593,8 +593,8 @@ function MyTicketsTab() {
             <tr
               key={ticket.id}
               className={cn(
-                "border-b border-zinc-800 cursor-pointer",
-                "hover:bg-zinc-800/50 transition-colors duration-150",
+                "border-b border-[var(--color-border)] cursor-pointer",
+                "hover:bg-[var(--color-surface-2)]/50 transition-colors duration-150",
                 "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
               )}
               onClick={() => setSelectedTicket(ticket)}
@@ -604,8 +604,8 @@ function MyTicketsTab() {
             >
               <td className="py-3 px-4">
                 <div>
-                  <div className="text-white font-medium">{ticket.title}</div>
-                  <div className="text-xs text-zinc-500">{ticket.id}</div>
+                  <div className="text-[var(--color-text-primary)] font-medium">{ticket.title}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">{ticket.id}</div>
                 </div>
               </td>
               <td className="py-3 px-4">
@@ -614,8 +614,8 @@ function MyTicketsTab() {
               <td className="py-3 px-4">
                 <PriorityBadge priority={ticket.priority} />
               </td>
-              <td className="py-3 px-4 text-zinc-400 capitalize">{ticket.category.replace("-", " ")}</td>
-              <td className="py-3 px-4 text-zinc-500">{new Date(ticket.createdAt).toLocaleDateString()}</td>
+              <td className="py-3 px-4 text-[var(--color-text-secondary)] capitalize">{ticket.category.replace("-", " ")}</td>
+              <td className="py-3 px-4 text-[var(--color-text-muted)]">{new Date(ticket.createdAt).toLocaleDateString()}</td>
             </tr>
           ))}
         </tbody>
@@ -643,10 +643,10 @@ function NewTicketTab() {
 
   if (submitted) {
     return (
-      <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-8 text-center">
+      <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-8 text-center">
         <div className="text-4xl mb-4">✅</div>
-        <h2 className="text-xl font-semibold text-white mb-2">Ticket Submitted!</h2>
-        <p className="text-zinc-400 mb-6">
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">Ticket Submitted!</h2>
+        <p className="text-[var(--color-text-secondary)] mb-6">
           Your support ticket has been created. Our team will review it shortly.
         </p>
         <button
@@ -659,7 +659,7 @@ function NewTicketTab() {
             setDescription("");
           }}
           className={cn(
-            "px-4 py-2 bg-indigo-600 text-white rounded-md",
+            "px-4 py-2 bg-indigo-600 text-[var(--color-text-primary)] rounded-md",
             "hover:bg-indigo-500 transition-colors duration-150",
             "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
           )}
@@ -673,7 +673,7 @@ function NewTicketTab() {
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-zinc-300 mb-2">
+        <label htmlFor="title" className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
           Title <span className="text-rose-400">*</span>
         </label>
         <input
@@ -684,8 +684,8 @@ function NewTicketTab() {
           required
           placeholder="Brief description of your issue"
           className={cn(
-            "w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-md",
-            "text-white placeholder:text-zinc-500",
+            "w-full px-4 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-md",
+            "text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
             "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
             "transition-colors duration-150"
           )}
@@ -694,7 +694,7 @@ function NewTicketTab() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-zinc-300 mb-2">
+          <label htmlFor="category" className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
             Category <span className="text-rose-400">*</span>
           </label>
           <select
@@ -703,8 +703,8 @@ function NewTicketTab() {
             onChange={(e) => setCategory(e.target.value as ArticleCategory)}
             required
             className={cn(
-              "w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-md",
-              "text-white",
+              "w-full px-4 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-md",
+              "text-[var(--color-text-primary)]",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
               "transition-colors duration-150"
             )}
@@ -716,7 +716,7 @@ function NewTicketTab() {
         </div>
 
         <div>
-          <label htmlFor="priority" className="block text-sm font-medium text-zinc-300 mb-2">
+          <label htmlFor="priority" className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
             Priority <span className="text-rose-400">*</span>
           </label>
           <select
@@ -725,8 +725,8 @@ function NewTicketTab() {
             onChange={(e) => setPriority(e.target.value as TicketPriority)}
             required
             className={cn(
-              "w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-md",
-              "text-white",
+              "w-full px-4 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-md",
+              "text-[var(--color-text-primary)]",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
               "transition-colors duration-150"
             )}
@@ -739,7 +739,7 @@ function NewTicketTab() {
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-zinc-300 mb-2">
+        <label htmlFor="description" className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
           Description <span className="text-rose-400">*</span>
         </label>
         <textarea
@@ -751,13 +751,13 @@ function NewTicketTab() {
           rows={6}
           aria-describedby="char-count"
           className={cn(
-            "w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-md resize-none",
-            "text-white placeholder:text-zinc-500",
+            "w-full px-4 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-md resize-none",
+            "text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
             "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
             "transition-colors duration-150"
           )}
         />
-        <div id="char-count" className="text-right text-sm text-zinc-500 mt-1">
+        <div id="char-count" className="text-right text-sm text-[var(--color-text-muted)] mt-1">
           {charCount} / {maxChars}
         </div>
       </div>
@@ -766,7 +766,7 @@ function NewTicketTab() {
         type="submit"
         disabled={!title.trim() || !description.trim()}
         className={cn(
-          "w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white rounded-md font-medium",
+          "w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-[var(--color-text-primary)] rounded-md font-medium",
           "hover:bg-indigo-500 transition-colors duration-150",
           "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
           "disabled:opacity-50 disabled:cursor-not-allowed"
@@ -789,14 +789,14 @@ export default function SupportCenter() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-6xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Support Center</h1>
-          <p className="text-zinc-400">Find answers, manage your tickets, or get help from our team.</p>
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-2">Support Center</h1>
+          <p className="text-[var(--color-text-secondary)]">Find answers, manage your tickets, or get help from our team.</p>
         </header>
 
-        <div className="border-b border-zinc-800 mb-6" role="tablist">
+        <div className="border-b border-[var(--color-border)] mb-6" role="tablist">
           <nav className="flex gap-1" aria-label="Support sections">
             {tabs.map(tab => (
               <button
@@ -811,8 +811,8 @@ export default function SupportCenter() {
                   "flex items-center gap-2 px-4 py-3 border-b-2 transition-colors duration-150",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   activeTab === tab.id
-                    ? "border-indigo-500 text-white"
-                    : "border-transparent text-zinc-400 hover:text-white hover:border-zinc-700"
+                    ? "border-indigo-500 text-[var(--color-text-primary)]"
+                    : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
                 )}
               >
                 <span>{tab.icon}</span>

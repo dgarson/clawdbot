@@ -164,7 +164,7 @@ const MIGRATIONS: Migration[] = [
 const typeColor: Record<ColumnType, string> = {
   int: "text-sky-400", bigint: "text-sky-400", varchar: "text-emerald-400", text: "text-emerald-400",
   bool: "text-amber-400", timestamp: "text-violet-400", uuid: "text-indigo-400",
-  jsonb: "text-orange-400", decimal: "text-sky-400", float: "text-sky-400", date: "text-violet-400", bytea: "text-zinc-400",
+  jsonb: "text-orange-400", decimal: "text-sky-400", float: "text-sky-400", date: "text-violet-400", bytea: "text-[var(--color-text-secondary)]",
 };
 
 export default function DatabaseSchemaExplorer() {
@@ -183,12 +183,12 @@ export default function DatabaseSchemaExplorer() {
   const totalIndexes = TABLES.reduce((s, t) => s + t.indexes.length, 0);
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Database Schema Explorer</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">PostgreSQL 16 · prod-db-primary · schema: public</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">PostgreSQL 16 · prod-db-primary · schema: public</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/30">
@@ -199,30 +199,30 @@ export default function DatabaseSchemaExplorer() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-0 border-b border-zinc-800">
+      <div className="grid grid-cols-4 gap-0 border-b border-[var(--color-border)]">
         {[
           { label: "Tables", value: String(TABLES.length), sub: "in public schema" },
           { label: "Total Rows", value: totalRows.toLocaleString(), sub: "across all tables" },
           { label: "Total Indexes", value: String(totalIndexes), sub: "covering all tables" },
           { label: "Pending Migrations", value: String(MIGRATIONS.filter(m => m.status === "pending").length), sub: "awaiting apply" },
         ].map((stat, i) => (
-          <div key={i} className="px-6 py-3 border-r border-zinc-800 last:border-r-0">
-            <div className="text-xl font-bold text-white">{stat.value}</div>
-            <div className="text-xs font-medium text-zinc-400 mt-0.5">{stat.label}</div>
-            <div className="text-xs text-zinc-600 mt-0.5">{stat.sub}</div>
+          <div key={i} className="px-6 py-3 border-r border-[var(--color-border)] last:border-r-0">
+            <div className="text-xl font-bold text-[var(--color-text-primary)]">{stat.value}</div>
+            <div className="text-xs font-medium text-[var(--color-text-secondary)] mt-0.5">{stat.label}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{stat.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-[var(--color-border)] px-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id ? "border-indigo-500 text-white" : "border-transparent text-zinc-500 hover:text-zinc-300"
+              tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             <span>{t.emoji}</span>
@@ -236,8 +236,8 @@ export default function DatabaseSchemaExplorer() {
         {tab === "tables" && (
           <div className="flex h-full">
             {/* Table list */}
-            <div className="w-64 border-r border-zinc-800 overflow-y-auto">
-              <div className="p-2 text-xs text-zinc-500 uppercase tracking-wider border-b border-zinc-800 px-4 py-2">
+            <div className="w-64 border-r border-[var(--color-border)] overflow-y-auto">
+              <div className="p-2 text-xs text-[var(--color-text-muted)] uppercase tracking-wider border-b border-[var(--color-border)] px-4 py-2">
                 Tables ({TABLES.length})
               </div>
               {TABLES.map(table => (
@@ -245,12 +245,12 @@ export default function DatabaseSchemaExplorer() {
                   key={table.id}
                   onClick={() => setSelectedTable(table)}
                   className={cn(
-                    "w-full text-left px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-900 transition-colors",
-                    selectedTable?.id === table.id && "bg-zinc-800"
+                    "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-1)] transition-colors",
+                    selectedTable?.id === table.id && "bg-[var(--color-surface-2)]"
                   )}
                 >
-                  <div className="text-sm font-mono text-zinc-200">{table.name}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">
+                  <div className="text-sm font-mono text-[var(--color-text-primary)]">{table.name}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
                     {table.columns.length} cols · {table.rows.toLocaleString()} rows
                   </div>
                 </button>
@@ -261,54 +261,54 @@ export default function DatabaseSchemaExplorer() {
             <div className="flex-1 overflow-y-auto">
               {selectedTable ? (
                 <div>
-                  <div className="px-6 py-4 border-b border-zinc-800">
+                  <div className="px-6 py-4 border-b border-[var(--color-border)]">
                     <div className="flex items-center gap-3">
-                      <h2 className="font-mono text-sm font-semibold text-white">{selectedTable.schema}.{selectedTable.name}</h2>
-                      <span className="text-xs text-zinc-500">{selectedTable.size}</span>
-                      <span className="text-xs text-zinc-500">{selectedTable.rows.toLocaleString()} rows</span>
+                      <h2 className="font-mono text-sm font-semibold text-[var(--color-text-primary)]">{selectedTable.schema}.{selectedTable.name}</h2>
+                      <span className="text-xs text-[var(--color-text-muted)]">{selectedTable.size}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{selectedTable.rows.toLocaleString()} rows</span>
                     </div>
-                    <p className="text-xs text-zinc-500 mt-1">{selectedTable.description}</p>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-1">{selectedTable.description}</p>
                   </div>
                   <table className="w-full text-xs font-mono">
                     <thead>
-                      <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                        <th className="text-left px-4 py-2.5 text-zinc-500 font-medium">Column</th>
-                        <th className="text-left px-4 py-2.5 text-zinc-500 font-medium">Type</th>
-                        <th className="text-left px-4 py-2.5 text-zinc-500 font-medium">Nullable</th>
-                        <th className="text-left px-4 py-2.5 text-zinc-500 font-medium">Default</th>
-                        <th className="text-left px-4 py-2.5 text-zinc-500 font-medium">Constraints</th>
-                        <th className="text-left px-4 py-2.5 text-zinc-500 font-medium">References</th>
+                      <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
+                        <th className="text-left px-4 py-2.5 text-[var(--color-text-muted)] font-medium">Column</th>
+                        <th className="text-left px-4 py-2.5 text-[var(--color-text-muted)] font-medium">Type</th>
+                        <th className="text-left px-4 py-2.5 text-[var(--color-text-muted)] font-medium">Nullable</th>
+                        <th className="text-left px-4 py-2.5 text-[var(--color-text-muted)] font-medium">Default</th>
+                        <th className="text-left px-4 py-2.5 text-[var(--color-text-muted)] font-medium">Constraints</th>
+                        <th className="text-left px-4 py-2.5 text-[var(--color-text-muted)] font-medium">References</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedTable.columns.map(col => (
-                        <tr key={col.name} className={cn("border-b border-zinc-800/50 hover:bg-zinc-900/30 transition-colors", col.primary && "bg-indigo-500/3")}>
+                        <tr key={col.name} className={cn("border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-1)]/30 transition-colors", col.primary && "bg-indigo-500/3")}>
                           <td className="px-4 py-2.5">
                             <div className="flex items-center gap-1.5">
                               {col.primary && <span className="text-yellow-400 text-xs" title="Primary key">🔑</span>}
                               {col.unique && !col.primary && <span className="text-sky-400 text-xs" title="Unique">U</span>}
-                              {col.indexed && !col.primary && !col.unique && <span className="text-zinc-600 text-xs" title="Indexed">I</span>}
-                              <span className={cn("font-medium", col.primary ? "text-white" : "text-zinc-200")}>{col.name}</span>
+                              {col.indexed && !col.primary && !col.unique && <span className="text-[var(--color-text-muted)] text-xs" title="Indexed">I</span>}
+                              <span className={cn("font-medium", col.primary ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)]")}>{col.name}</span>
                             </div>
                           </td>
                           <td className="px-4 py-2.5">
                             <span className={typeColor[col.type]}>{col.type}</span>
                           </td>
                           <td className="px-4 py-2.5">
-                            <span className={col.nullable ? "text-zinc-500" : "text-zinc-400"}>
+                            <span className={col.nullable ? "text-[var(--color-text-muted)]" : "text-[var(--color-text-secondary)]"}>
                               {col.nullable ? "YES" : "NO"}
                             </span>
                           </td>
-                          <td className="px-4 py-2.5 text-zinc-500">{col.default || "—"}</td>
+                          <td className="px-4 py-2.5 text-[var(--color-text-muted)]">{col.default || "—"}</td>
                           <td className="px-4 py-2.5">
                             <div className="flex gap-1">
                               {col.primary && <span className="px-1 py-0.5 bg-yellow-500/10 text-yellow-400 rounded text-xs">PK</span>}
                               {col.unique && !col.primary && <span className="px-1 py-0.5 bg-sky-500/10 text-sky-400 rounded text-xs">UQ</span>}
-                              {col.indexed && !col.primary && <span className="px-1 py-0.5 bg-zinc-700/40 text-zinc-400 rounded text-xs">IDX</span>}
+                              {col.indexed && !col.primary && <span className="px-1 py-0.5 bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)] rounded text-xs">IDX</span>}
                               {col.fk && <span className="px-1 py-0.5 bg-indigo-500/10 text-indigo-400 rounded text-xs">FK</span>}
                             </div>
                           </td>
-                          <td className="px-4 py-2.5 text-zinc-500">
+                          <td className="px-4 py-2.5 text-[var(--color-text-muted)]">
                             {col.fk ? (
                               <button
                                 className="text-indigo-400 hover:text-indigo-300 transition-colors"
@@ -327,7 +327,7 @@ export default function DatabaseSchemaExplorer() {
                   </table>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-zinc-600 text-sm">Select a table</div>
+                <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">Select a table</div>
               )}
             </div>
           </div>
@@ -338,17 +338,17 @@ export default function DatabaseSchemaExplorer() {
           <div className="p-6">
             {TABLES.map(table => (
               <div key={table.id} className="mb-6">
-                <h3 className="font-mono text-sm font-medium text-zinc-300 mb-2">{table.name}</h3>
+                <h3 className="font-mono text-sm font-medium text-[var(--color-text-primary)] mb-2">{table.name}</h3>
                 <div className="space-y-1">
                   {table.indexes.map(idx => (
-                    <div key={idx.name} className="bg-zinc-900 rounded border border-zinc-800 px-4 py-3 flex items-center gap-4 text-xs font-mono">
-                      <span className="text-zinc-400 font-medium w-64 shrink-0">{idx.name}</span>
+                    <div key={idx.name} className="bg-[var(--color-surface-1)] rounded border border-[var(--color-border)] px-4 py-3 flex items-center gap-4 text-xs font-mono">
+                      <span className="text-[var(--color-text-secondary)] font-medium w-64 shrink-0">{idx.name}</span>
                       <span className="text-sky-400">{idx.type.toUpperCase()}</span>
-                      <span className={cn("px-1.5 py-0.5 rounded", idx.unique ? "bg-yellow-500/10 text-yellow-400" : "bg-zinc-700/30 text-zinc-500")}>
+                      <span className={cn("px-1.5 py-0.5 rounded", idx.unique ? "bg-yellow-500/10 text-yellow-400" : "bg-[var(--color-surface-3)]/30 text-[var(--color-text-muted)]")}>
                         {idx.unique ? "UNIQUE" : ""}
                       </span>
-                      <span className="text-zinc-300">({idx.columns.join(", ")})</span>
-                      <span className="ml-auto text-zinc-600">{idx.size}</span>
+                      <span className="text-[var(--color-text-primary)]">({idx.columns.join(", ")})</span>
+                      <span className="ml-auto text-[var(--color-text-muted)]">{idx.size}</span>
                     </div>
                   ))}
                 </div>
@@ -362,27 +362,27 @@ export default function DatabaseSchemaExplorer() {
           <div className="p-6">
             <div className="space-y-2">
               {RELATIONS.map(rel => (
-                <div key={rel.constraint} className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 flex items-center gap-4 font-mono text-xs">
-                  <div className="flex items-center gap-2 text-zinc-200">
+                <div key={rel.constraint} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 flex items-center gap-4 font-mono text-xs">
+                  <div className="flex items-center gap-2 text-[var(--color-text-primary)]">
                     <span className="font-medium">{rel.from}</span>
-                    <span className="text-zinc-600">.</span>
+                    <span className="text-[var(--color-text-muted)]">.</span>
                     <span className="text-indigo-400">{rel.fromCol}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-zinc-500">
+                  <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
                     <span>─── FK ──→</span>
                   </div>
-                  <div className="flex items-center gap-2 text-zinc-200">
+                  <div className="flex items-center gap-2 text-[var(--color-text-primary)]">
                     <span className="font-medium">{rel.to}</span>
-                    <span className="text-zinc-600">.</span>
+                    <span className="text-[var(--color-text-muted)]">.</span>
                     <span className="text-emerald-400">{rel.toCol}</span>
                   </div>
-                  <div className="ml-auto flex items-center gap-4 text-zinc-500">
-                    <span className="text-zinc-600">{rel.constraint}</span>
+                  <div className="ml-auto flex items-center gap-4 text-[var(--color-text-muted)]">
+                    <span className="text-[var(--color-text-muted)]">{rel.constraint}</span>
                     <span className={cn(
                       "px-2 py-0.5 rounded",
                       rel.onDelete === "CASCADE" ? "bg-rose-500/10 text-rose-400" :
                       rel.onDelete === "SET NULL" ? "bg-amber-500/10 text-amber-400" :
-                      "bg-zinc-700/30 text-zinc-400"
+                      "bg-[var(--color-surface-3)]/30 text-[var(--color-text-secondary)]"
                     )}>
                       ON DELETE {rel.onDelete}
                     </span>
@@ -402,7 +402,7 @@ export default function DatabaseSchemaExplorer() {
                   "rounded-lg border transition-colors",
                   migration.status === "pending" ? "bg-amber-500/5 border-amber-500/20" :
                   migration.status === "failed" ? "bg-rose-500/5 border-rose-500/20" :
-                  "bg-zinc-900 border-zinc-800"
+                  "bg-[var(--color-surface-1)] border-[var(--color-border)]"
                 )}>
                   <div
                     className="px-5 py-3 flex items-center gap-4 cursor-pointer"
@@ -414,24 +414,24 @@ export default function DatabaseSchemaExplorer() {
                       migration.status === "pending" ? "bg-amber-500/10 border-amber-500/30 text-amber-400" :
                       "bg-rose-500/10 border-rose-500/30 text-rose-400"
                     )}>{migration.status}</span>
-                    <span className="font-mono text-xs text-zinc-500">{migration.version}</span>
-                    <span className="font-mono text-sm text-zinc-200">{migration.name}</span>
-                    <span className="ml-auto text-xs text-zinc-500">{migration.appliedAt || "Not applied"}</span>
-                    <span className="text-xs text-zinc-600">{migration.duration || "—"}</span>
-                    <span className="text-xs text-zinc-600">{migration.author}</span>
-                    <span className="text-zinc-500 text-xs">{expandedMigration === migration.id ? "▲" : "▼"}</span>
+                    <span className="font-mono text-xs text-[var(--color-text-muted)]">{migration.version}</span>
+                    <span className="font-mono text-sm text-[var(--color-text-primary)]">{migration.name}</span>
+                    <span className="ml-auto text-xs text-[var(--color-text-muted)]">{migration.appliedAt || "Not applied"}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{migration.duration || "—"}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{migration.author}</span>
+                    <span className="text-[var(--color-text-muted)] text-xs">{expandedMigration === migration.id ? "▲" : "▼"}</span>
                   </div>
                   {expandedMigration === migration.id && (
-                    <div className="px-5 py-3 border-t border-zinc-800 font-mono text-xs space-y-1">
+                    <div className="px-5 py-3 border-t border-[var(--color-border)] font-mono text-xs space-y-1">
                       {migration.changes.map((change, i) => (
-                        <div key={i} className="text-zinc-400">
+                        <div key={i} className="text-[var(--color-text-secondary)]">
                           <span className="text-emerald-400">+</span> {change}
                         </div>
                       ))}
                       {migration.status === "pending" && (
                         <div className="mt-3 flex gap-2">
-                          <button className="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 rounded text-white transition-colors font-sans">Apply Migration</button>
-                          <button className="px-3 py-1.5 text-xs bg-zinc-800 border border-zinc-700 rounded text-zinc-300 hover:bg-zinc-700 transition-colors font-sans">Dry Run</button>
+                          <button className="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 rounded text-[var(--color-text-primary)] transition-colors font-sans">Apply Migration</button>
+                          <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] transition-colors font-sans">Dry Run</button>
                         </div>
                       )}
                     </div>

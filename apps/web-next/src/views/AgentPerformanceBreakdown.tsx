@@ -256,7 +256,7 @@ function getErrorColor(type: ErrorType): string {
     timeout: 'bg-orange-500',
     'tool-error': 'bg-red-500',
     auth: 'bg-purple-500',
-    other: 'bg-gray-500',
+    other: 'bg-[var(--color-surface-3)]',
   };
   return colors[type];
 }
@@ -267,13 +267,13 @@ function getErrorColor(type: ErrorType): string {
 
 function TopMetricCard({ label, value, icon: Icon }: { label: string; value: string; icon: React.ElementType }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
-      <div className="mt-0.5 p-2 bg-zinc-800 rounded-lg">
-        <Icon className="w-4 h-4 text-zinc-400" />
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-start gap-3">
+      <div className="mt-0.5 p-2 bg-[var(--color-surface-2)] rounded-lg">
+        <Icon className="w-4 h-4 text-[var(--color-text-secondary)]" />
       </div>
       <div>
-        <p className="text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1">{label}</p>
-        <span className="text-xl font-bold text-white">{value}</span>
+        <p className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wide mb-1">{label}</p>
+        <span className="text-xl font-bold text-[var(--color-text-primary)]">{value}</span>
       </div>
     </div>
   );
@@ -319,29 +319,29 @@ export default function AgentPerformanceBreakdown() {
   const maxToolUsage = getMaxToolUsage(MOCK_AGENTS);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
           <BarChart className="w-6 h-6 text-blue-400" />
           Agent Performance
         </h1>
         <div className="flex items-center gap-4">
-          <div className="flex gap-1 bg-zinc-800 rounded-lg p-0.5">
+          <div className="flex gap-1 bg-[var(--color-surface-2)] rounded-lg p-0.5">
             {(['1h', '24h', '7d', '30d'] as TimeRange[]).map((range) => (
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
                 className={cn(
                   'px-3 py-1 rounded-md text-xs font-medium transition-colors',
-                  timeRange === range ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300',
+                  timeRange === range ? 'bg-[var(--color-surface-3)] text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]',
                 )}
               >
                 {range}
               </button>
             ))}
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium text-white transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium text-[var(--color-text-primary)] transition-colors">
             <Download className="w-4 h-4" />
             Export CSV
           </button>
@@ -357,15 +357,15 @@ export default function AgentPerformanceBreakdown() {
       </div>
 
       {/* Agent Roster Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
           <Users className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-semibold text-white">Agent Roster</span>
+          <span className="text-sm font-semibold text-[var(--color-text-primary)]">Agent Roster</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-left text-xs text-zinc-400 uppercase tracking-wider border-b border-zinc-800">
+              <tr className="text-left text-xs text-[var(--color-text-secondary)] uppercase tracking-wider border-b border-[var(--color-border)]">
                 <th className="px-4 py-2">Agent</th>
                 <th className="px-4 py-2 cursor-pointer" onClick={() => handleSort('sessions')}>
                   Sessions {sortColumn === 'sessions' && (sortDirection === 'asc' ? <ChevronUp className="inline w-4" /> : <ChevronDown className="inline w-4" />)}
@@ -395,10 +395,10 @@ export default function AgentPerformanceBreakdown() {
                 <>
                   <tr
                     key={agent.name}
-                    className="border-b border-zinc-800 cursor-pointer hover:bg-zinc-800"
+                    className="border-b border-[var(--color-border)] cursor-pointer hover:bg-[var(--color-surface-2)]"
                     onClick={() => setExpandedAgent(expandedAgent === agent.name ? null : agent.name)}
                   >
-                    <td className="px-4 py-3 text-white">{agent.name}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-primary)]">{agent.name}</td>
                     <td className="px-4 py-3">{agent.sessions}</td>
                     <td className="px-4 py-3">{agent.tasksCompleted}</td>
                     <td className="px-4 py-3">{formatPercentage(agent.successRate)}</td>
@@ -409,11 +409,11 @@ export default function AgentPerformanceBreakdown() {
                   </tr>
                   {expandedAgent === agent.name && (
                     <tr>
-                      <td colSpan={8} className="px-4 py-3 bg-zinc-800">
+                      <td colSpan={8} className="px-4 py-3 bg-[var(--color-surface-2)]">
                         <div className="text-sm font-semibold mb-2">Task History</div>
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="text-left text-zinc-400">
+                            <tr className="text-left text-[var(--color-text-secondary)]">
                               <th>Status</th>
                               <th>Duration</th>
                               <th>Model</th>
@@ -442,15 +442,15 @@ export default function AgentPerformanceBreakdown() {
       </div>
 
       {/* Tool Usage Heatmap */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
         <div className="flex items-center gap-2 mb-4">
           <Tool className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-semibold text-white">Tool Usage Heatmap</span>
+          <span className="text-sm font-semibold text-[var(--color-text-primary)]">Tool Usage Heatmap</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-left text-zinc-400">
+              <tr className="text-left text-[var(--color-text-secondary)]">
                 <th className="pb-2">Agent</th>
                 {TOOLS.map((tool) => (
                   <th key={tool} className="pb-2 text-center">{tool}</th>
@@ -464,7 +464,7 @@ export default function AgentPerformanceBreakdown() {
                   {TOOLS.map((tool) => (
                     <td key={tool} className="py-1">
                       <div className={cn('h-6 w-12 mx-auto rounded', getHeatmapColor(agent.toolUsage[tool] || 0, maxToolUsage))}>
-                        <span className="flex items-center justify-center h-full text-white text-xs">{agent.toolUsage[tool] || 0}</span>
+                        <span className="flex items-center justify-center h-full text-[var(--color-text-primary)] text-xs">{agent.toolUsage[tool] || 0}</span>
                       </div>
                     </td>
                   ))}
@@ -478,10 +478,10 @@ export default function AgentPerformanceBreakdown() {
       {/* Error Breakdown and Model Usage */}
       <div className="grid grid-cols-2 gap-4">
         {/* Error Breakdown */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="w-4 h-4 text-red-400" />
-            <span className="text-sm font-semibold text-white">Error Breakdown</span>
+            <span className="text-sm font-semibold text-[var(--color-text-primary)]">Error Breakdown</span>
           </div>
           {MOCK_AGENTS.map((agent) => {
             const total = getTotalErrors(agent.errorBreakdown);
@@ -489,7 +489,7 @@ export default function AgentPerformanceBreakdown() {
             return (
               <div key={agent.name} className="mb-4">
                 <div className="text-sm font-medium mb-1">{agent.name} ({total} errors)</div>
-                <div className="h-4 bg-zinc-800 rounded overflow-hidden flex">
+                <div className="h-4 bg-[var(--color-surface-2)] rounded overflow-hidden flex">
                   {Object.entries(agent.errorBreakdown).map(([type, count]) => {
                     if (count === 0) return null;
                     const width = (count / total) * 100;
@@ -510,10 +510,10 @@ export default function AgentPerformanceBreakdown() {
         </div>
 
         {/* Model Usage Distribution */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-4">
             <PieChart className="w-4 h-4 text-green-400" />
-            <span className="text-sm font-semibold text-white">Model Usage Distribution</span>
+            <span className="text-sm font-semibold text-[var(--color-text-primary)]">Model Usage Distribution</span>
           </div>
           {MOCK_AGENTS.map((agent) => {
             const totalTokens = Object.values(agent.modelUsage).reduce((sum, { tokens }) => sum + tokens, 0);
@@ -523,8 +523,8 @@ export default function AgentPerformanceBreakdown() {
                 <div className="space-y-1">
                   {Object.entries(agent.modelUsage).map(([model, { tokens }]) => (
                     <div key={model} className="flex items-center gap-2">
-                      <div className="w-24 text-xs text-zinc-400 truncate">{model}</div>
-                      <div className="flex-1 h-2 bg-zinc-800 rounded">
+                      <div className="w-24 text-xs text-[var(--color-text-secondary)] truncate">{model}</div>
+                      <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded">
                         <div className="h-full bg-green-500 rounded" style={{ width: `${(tokens / totalTokens) * 100}%` }} />
                       </div>
                       <div className="w-16 text-xs text-right">{(tokens / 1000).toFixed(1)}k</div>

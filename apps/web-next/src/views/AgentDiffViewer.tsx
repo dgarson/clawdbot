@@ -191,7 +191,7 @@ function computeDiff(left: string, right: string): DiffLine[] {
 }
 
 const KIND_STYLES: Record<DiffKind, string> = {
-  unchanged: "bg-transparent text-zinc-400",
+  unchanged: "bg-transparent text-[var(--color-text-secondary)]",
   added: "bg-emerald-500/10 text-emerald-300 border-l-2 border-emerald-500",
   removed: "bg-rose-500/10 text-rose-300 border-l-2 border-rose-500 line-through decoration-rose-600",
   modified: "bg-amber-500/10 text-amber-300 border-l-2 border-amber-500",
@@ -211,7 +211,7 @@ function DiffStats({ lines }: { lines: DiffLine[] }) {
     <div className="flex items-center gap-3 text-xs">
       <span className="text-emerald-400">+{added} added</span>
       <span className="text-rose-400">−{removed} removed</span>
-      <span className="text-zinc-500">{lines.filter((l) => l.kind === "unchanged").length} unchanged</span>
+      <span className="text-[var(--color-text-muted)]">{lines.filter((l) => l.kind === "unchanged").length} unchanged</span>
     </div>
   );
 }
@@ -231,12 +231,12 @@ export default function AgentDiffViewer() {
   const agentGroups = Array.from(new Set(SNAPSHOTS.map((s) => s.agentName)));
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden font-mono text-xs">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden font-mono text-xs">
       {/* Header */}
-      <div className="shrink-0 border-b border-zinc-800 px-5 py-3 flex items-center gap-4 font-sans">
+      <div className="shrink-0 border-b border-[var(--color-border)] px-5 py-3 flex items-center gap-4 font-sans">
         <div>
-          <h1 className="text-sm font-semibold text-white">Agent Diff Viewer</h1>
-          <p className="text-xs text-zinc-500">Compare agent configurations across versions</p>
+          <h1 className="text-sm font-semibold text-[var(--color-text-primary)]">Agent Diff Viewer</h1>
+          <p className="text-xs text-[var(--color-text-muted)]">Compare agent configurations across versions</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <button
@@ -244,19 +244,19 @@ export default function AgentDiffViewer() {
             aria-pressed={hideUnchanged}
             className={cn(
               "px-3 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-              hideUnchanged ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+              hideUnchanged ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             Hide unchanged
           </button>
-          <div className="flex rounded overflow-hidden border border-zinc-700">
+          <div className="flex rounded overflow-hidden border border-[var(--color-border)]">
             {(["unified", "split"] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
                 className={cn(
                   "px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                  view === v ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                  view === v ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {v}
@@ -267,14 +267,14 @@ export default function AgentDiffViewer() {
       </div>
 
       {/* Selector row */}
-      <div className="shrink-0 border-b border-zinc-800 px-5 py-3 flex items-center gap-4 font-sans">
+      <div className="shrink-0 border-b border-[var(--color-border)] px-5 py-3 flex items-center gap-4 font-sans">
         {/* Left selector */}
         <div className="flex-1">
           <div className="text-xs text-rose-400 font-medium mb-1">← Base (removed)</div>
           <select
             value={leftId}
             onChange={(e) => setLeftId(e.target.value)}
-            className="w-full bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             aria-label="Select base snapshot"
           >
             {agentGroups.map((agent) => (
@@ -292,7 +292,7 @@ export default function AgentDiffViewer() {
         {/* Swap */}
         <button
           onClick={() => { const t = leftId; setLeftId(rightId); setRightId(t); }}
-          className="shrink-0 px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 rounded text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          className="shrink-0 px-2 py-1 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] rounded text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           aria-label="Swap left and right"
           title="Swap"
         >
@@ -305,7 +305,7 @@ export default function AgentDiffViewer() {
           <select
             value={rightId}
             onChange={(e) => setRightId(e.target.value)}
-            className="w-full bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             aria-label="Select head snapshot"
           >
             {agentGroups.map((agent) => (
@@ -339,10 +339,10 @@ export default function AgentDiffViewer() {
                 )}
               >
                 {/* line numbers */}
-                <span className="shrink-0 w-10 text-right pr-2 py-0.5 text-zinc-600 border-r border-zinc-800 select-none">
+                <span className="shrink-0 w-10 text-right pr-2 py-0.5 text-[var(--color-text-muted)] border-r border-[var(--color-border)] select-none">
                   {line.lineNo.left ?? ""}
                 </span>
-                <span className="shrink-0 w-10 text-right pr-2 py-0.5 text-zinc-600 border-r border-zinc-800 select-none">
+                <span className="shrink-0 w-10 text-right pr-2 py-0.5 text-[var(--color-text-muted)] border-r border-[var(--color-border)] select-none">
                   {line.lineNo.right ?? ""}
                 </span>
                 {/* prefix */}
@@ -358,8 +358,8 @@ export default function AgentDiffViewer() {
           /* Split view */
           <div className="flex h-full">
             {/* Left pane */}
-            <div className="flex-1 border-r border-zinc-800 overflow-y-auto">
-              <div className="px-3 py-1 border-b border-zinc-800 text-xs text-zinc-500 font-sans sticky top-0 bg-zinc-950 z-10">
+            <div className="flex-1 border-r border-[var(--color-border)] overflow-y-auto">
+              <div className="px-3 py-1 border-b border-[var(--color-border)] text-xs text-[var(--color-text-muted)] font-sans sticky top-0 bg-[var(--color-surface-0)] z-10">
                 {leftSnap.agentName} {leftSnap.version} — {leftSnap.label}
               </div>
               {diffLines
@@ -369,10 +369,10 @@ export default function AgentDiffViewer() {
                     key={i}
                     className={cn(
                       "flex items-start leading-5",
-                      line.kind === "removed" ? "bg-rose-500/10 text-rose-300" : "text-zinc-400"
+                      line.kind === "removed" ? "bg-rose-500/10 text-rose-300" : "text-[var(--color-text-secondary)]"
                     )}
                   >
-                    <span className="shrink-0 w-8 text-right pr-2 py-0.5 text-zinc-600 border-r border-zinc-800 select-none">
+                    <span className="shrink-0 w-8 text-right pr-2 py-0.5 text-[var(--color-text-muted)] border-r border-[var(--color-border)] select-none">
                       {line.lineNo.left ?? ""}
                     </span>
                     <span className="flex-1 py-0.5 px-2 whitespace-pre">{line.content || " "}</span>
@@ -381,7 +381,7 @@ export default function AgentDiffViewer() {
             </div>
             {/* Right pane */}
             <div className="flex-1 overflow-y-auto">
-              <div className="px-3 py-1 border-b border-zinc-800 text-xs text-zinc-500 font-sans sticky top-0 bg-zinc-950 z-10">
+              <div className="px-3 py-1 border-b border-[var(--color-border)] text-xs text-[var(--color-text-muted)] font-sans sticky top-0 bg-[var(--color-surface-0)] z-10">
                 {rightSnap.agentName} {rightSnap.version} — {rightSnap.label}
               </div>
               {diffLines
@@ -391,10 +391,10 @@ export default function AgentDiffViewer() {
                     key={i}
                     className={cn(
                       "flex items-start leading-5",
-                      line.kind === "added" ? "bg-emerald-500/10 text-emerald-300" : "text-zinc-400"
+                      line.kind === "added" ? "bg-emerald-500/10 text-emerald-300" : "text-[var(--color-text-secondary)]"
                     )}
                   >
-                    <span className="shrink-0 w-8 text-right pr-2 py-0.5 text-zinc-600 border-r border-zinc-800 select-none">
+                    <span className="shrink-0 w-8 text-right pr-2 py-0.5 text-[var(--color-text-muted)] border-r border-[var(--color-border)] select-none">
                       {line.lineNo.right ?? ""}
                     </span>
                     <span className="flex-1 py-0.5 px-2 whitespace-pre">{line.content || " "}</span>
@@ -406,7 +406,7 @@ export default function AgentDiffViewer() {
       </div>
 
       {/* Footer */}
-      <div className="shrink-0 border-t border-zinc-800 px-5 py-2 flex items-center gap-4 font-sans text-xs text-zinc-600">
+      <div className="shrink-0 border-t border-[var(--color-border)] px-5 py-2 flex items-center gap-4 font-sans text-xs text-[var(--color-text-muted)]">
         <span>
           {leftSnap.agentName} {leftSnap.version} ({leftSnap.timestamp}) → {rightSnap.agentName} {rightSnap.version} ({rightSnap.timestamp})
         </span>

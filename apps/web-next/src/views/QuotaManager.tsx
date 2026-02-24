@@ -246,17 +246,17 @@ export default function QuotaManager() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-white mb-2">Quota Manager</h1>
-          <p className="text-zinc-400">Manage resource quotas across agents and models</p>
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] mb-2">Quota Manager</h1>
+          <p className="text-[var(--color-text-secondary)]">Manage resource quotas across agents and models</p>
         </div>
 
         {/* Filter Bar */}
         <div className="mb-6 space-y-4">
           {/* Scope Tabs */}
-          <div className="flex gap-1 bg-zinc-900 p-1 rounded-lg w-fit">
+          <div className="flex gap-1 bg-[var(--color-surface-1)] p-1 rounded-lg w-fit">
             {(["all", "agent", "model", "global"] as const).map((scope) => (
               <button
                 key={scope}
@@ -264,8 +264,8 @@ export default function QuotaManager() {
                 className={cn(
                   "px-4 py-2 rounded-md text-sm font-medium transition-all duration-150",
                   scopeFilter === scope
-                    ? "bg-zinc-800 text-white shadow-sm"
-                    : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+                    ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)] shadow-sm"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50"
                 )}
               >
                 {scope === "all" ? "All" : scope.charAt(0).toUpperCase() + scope.slice(1)}
@@ -283,7 +283,7 @@ export default function QuotaManager() {
                   "px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150",
                   periodFilter === period
                     ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/30"
-                    : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-300"
+                    : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {period === "all" ? "All Periods" : period.charAt(0).toUpperCase() + period.slice(1)}
@@ -310,14 +310,14 @@ export default function QuotaManager() {
                     className={cn(
                       "text-left p-4 rounded-lg border transition-all duration-150",
                       isSelected
-                        ? "bg-zinc-800/50 border-indigo-500/50 shadow-lg shadow-indigo-500/5"
-                        : "bg-zinc-900 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/30"
+                        ? "bg-[var(--color-surface-2)]/50 border-indigo-500/50 shadow-lg shadow-indigo-500/5"
+                        : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/30"
                     )}
                   >
                     {/* Header */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-white">{quota.name}</span>
+                        <span className="font-medium text-[var(--color-text-primary)]">{quota.name}</span>
                         <span
                           className={cn(
                             "px-2 py-0.5 rounded text-xs border",
@@ -340,7 +340,7 @@ export default function QuotaManager() {
                     {/* Usage Bar */}
                     <div className="relative mb-2">
                       <div
-                        className="h-2 bg-zinc-800 rounded-full overflow-hidden"
+                        className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden"
                         role="progressbar"
                         aria-valuenow={quota.used}
                         aria-valuemin={0}
@@ -365,7 +365,7 @@ export default function QuotaManager() {
 
                     {/* Usage Text */}
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-zinc-400">
+                      <span className="text-[var(--color-text-secondary)]">
                         {formatNumber(quota.used)} / {formatNumber(quota.limit)} {formatUnit(quota.unit)}
                       </span>
                       <div className="flex items-center gap-2">
@@ -374,12 +374,12 @@ export default function QuotaManager() {
                             "px-1.5 py-0.5 rounded text-xs",
                             quota.hardLimit
                               ? "bg-rose-500/20 text-rose-400"
-                              : "bg-zinc-700 text-zinc-400"
+                              : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
                           )}
                         >
                           {quota.hardLimit ? "Hard" : "Soft"}
                         </span>
-                        <span className="text-zinc-500 text-xs">{Math.round(percentage)}%</span>
+                        <span className="text-[var(--color-text-muted)] text-xs">{Math.round(percentage)}%</span>
                       </div>
                     </div>
                   </button>
@@ -388,7 +388,7 @@ export default function QuotaManager() {
             </div>
 
             {filteredQuotas.length === 0 && (
-              <div className="text-center py-12 text-zinc-500">
+              <div className="text-center py-12 text-[var(--color-text-muted)]">
                 No quotas match the selected filters
               </div>
             )}
@@ -396,12 +396,12 @@ export default function QuotaManager() {
 
           {/* Right Column - Detail Panel */}
           <div className="lg:col-span-1">
-            <div className="sticky top-6 bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+            <div className="sticky top-6 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
               {selectedQuota ? (
                 <>
                   <div className="mb-5">
                     <div className="flex items-center gap-2 mb-1">
-                      <h2 className="text-lg font-semibold text-white">{selectedQuota.name}</h2>
+                      <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{selectedQuota.name}</h2>
                       <span
                         className={cn(
                           "px-2 py-0.5 rounded text-xs border",
@@ -411,49 +411,49 @@ export default function QuotaManager() {
                         {selectedQuota.scope}
                       </span>
                     </div>
-                    <p className="text-sm text-zinc-400 capitalize">
+                    <p className="text-sm text-[var(--color-text-secondary)] capitalize">
                       {selectedQuota.unit.replace("-", " ")} • {selectedQuota.period}
                     </p>
                   </div>
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 gap-4 mb-5">
-                    <div className="bg-zinc-950 rounded-lg p-3">
-                      <p className="text-xs text-zinc-500 mb-1">Used</p>
-                      <p className="text-lg font-medium text-white">
+                    <div className="bg-[var(--color-surface-0)] rounded-lg p-3">
+                      <p className="text-xs text-[var(--color-text-muted)] mb-1">Used</p>
+                      <p className="text-lg font-medium text-[var(--color-text-primary)]">
                         {formatNumber(selectedQuota.used)}
                       </p>
-                      <p className="text-xs text-zinc-500">{formatUnit(selectedQuota.unit)}</p>
+                      <p className="text-xs text-[var(--color-text-muted)]">{formatUnit(selectedQuota.unit)}</p>
                     </div>
-                    <div className="bg-zinc-950 rounded-lg p-3">
-                      <p className="text-xs text-zinc-500 mb-1">Limit</p>
-                      <p className="text-lg font-medium text-white">
+                    <div className="bg-[var(--color-surface-0)] rounded-lg p-3">
+                      <p className="text-xs text-[var(--color-text-muted)] mb-1">Limit</p>
+                      <p className="text-lg font-medium text-[var(--color-text-primary)]">
                         {formatNumber(selectedQuota.limit)}
                       </p>
-                      <p className="text-xs text-zinc-500">{formatUnit(selectedQuota.unit)}</p>
+                      <p className="text-xs text-[var(--color-text-muted)]">{formatUnit(selectedQuota.unit)}</p>
                     </div>
                   </div>
 
                   {/* Additional Info */}
                   <div className="space-y-3 mb-5">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-zinc-400">Alert Threshold</span>
-                      <span className="text-sm text-white">{selectedQuota.alertThreshold}%</span>
+                      <span className="text-sm text-[var(--color-text-secondary)]">Alert Threshold</span>
+                      <span className="text-sm text-[var(--color-text-primary)]">{selectedQuota.alertThreshold}%</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-zinc-400">Limit Type</span>
+                      <span className="text-sm text-[var(--color-text-secondary)]">Limit Type</span>
                       <span
                         className={cn(
                           "text-sm",
-                          selectedQuota.hardLimit ? "text-rose-400" : "text-zinc-400"
+                          selectedQuota.hardLimit ? "text-rose-400" : "text-[var(--color-text-secondary)]"
                         )}
                       >
                         {selectedQuota.hardLimit ? "Hard Limit" : "Soft Limit"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-zinc-400">Usage</span>
-                      <span className="text-sm text-white">
+                      <span className="text-sm text-[var(--color-text-secondary)]">Usage</span>
+                      <span className="text-sm text-[var(--color-text-primary)]">
                         {Math.round((selectedQuota.used / selectedQuota.limit) * 100)}%
                       </span>
                     </div>
@@ -463,7 +463,7 @@ export default function QuotaManager() {
                   {isEditing ? (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm text-zinc-400 mb-1.5">Limit</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1.5">Limit</label>
                         <input
                           type="number"
                           value={editForm.limit}
@@ -473,11 +473,11 @@ export default function QuotaManager() {
                               limit: Math.max(0, parseInt(e.target.value) || 0),
                             }))
                           }
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-md text-white text-sm focus:outline-none focus:border-indigo-500"
+                          className="w-full px-3 py-2 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-md text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-indigo-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-zinc-400 mb-1.5">Alert Threshold (%)</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1.5">Alert Threshold (%)</label>
                         <input
                           type="number"
                           value={editForm.alertThreshold}
@@ -487,19 +487,19 @@ export default function QuotaManager() {
                               alertThreshold: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)),
                             }))
                           }
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-md text-white text-sm focus:outline-none focus:border-indigo-500"
+                          className="w-full px-3 py-2 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-md text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-indigo-500"
                         />
                       </div>
                       <div className="flex gap-2 pt-2">
                         <button
                           onClick={handleSave}
-                          className="flex-1 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-md transition-colors"
+                          className="flex-1 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)] text-sm font-medium rounded-md transition-colors"
                         >
                           Save
                         </button>
                         <button
                           onClick={handleCancel}
-                          className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-md transition-colors"
+                          className="flex-1 px-4 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm font-medium rounded-md transition-colors"
                         >
                           Cancel
                         </button>
@@ -508,14 +508,14 @@ export default function QuotaManager() {
                   ) : (
                     <button
                       onClick={handleEdit}
-                      className="w-full px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-md border border-zinc-700 transition-colors"
+                      className="w-full px-4 py-2.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm font-medium rounded-md border border-[var(--color-border)] transition-colors"
                     >
                       Edit Quota
                     </button>
                   )}
                 </>
               ) : (
-                <div className="text-center py-8 text-zinc-500">
+                <div className="text-center py-8 text-[var(--color-text-muted)]">
                   <p className="mb-2">No quota selected</p>
                   <p className="text-sm">Select a quota from the list to view details</p>
                 </div>

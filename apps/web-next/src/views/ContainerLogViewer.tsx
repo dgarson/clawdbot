@@ -77,7 +77,7 @@ const LOG_ALERTS: LogAlert[] = [
 ];
 
 const levelColor: Record<LogLevel, string> = {
-  debug: "text-zinc-500",
+  debug: "text-[var(--color-text-muted)]",
   info: "text-sky-400",
   warn: "text-amber-400",
   error: "text-rose-400",
@@ -85,7 +85,7 @@ const levelColor: Record<LogLevel, string> = {
 };
 
 const levelBg: Record<LogLevel, string> = {
-  debug: "bg-zinc-700/30",
+  debug: "bg-[var(--color-surface-3)]/30",
   info: "bg-sky-500/5",
   warn: "bg-amber-500/5",
   error: "bg-rose-500/8",
@@ -93,7 +93,7 @@ const levelBg: Record<LogLevel, string> = {
 };
 
 const levelBadge: Record<LogLevel, string> = {
-  debug: "bg-zinc-700/40 text-zinc-500",
+  debug: "bg-[var(--color-surface-3)]/40 text-[var(--color-text-muted)]",
   info: "bg-sky-500/10 text-sky-400",
   warn: "bg-amber-500/10 text-amber-400",
   error: "bg-rose-500/10 text-rose-400",
@@ -104,7 +104,7 @@ const podStatusColor: Record<string, string> = {
   running: "bg-emerald-400",
   pending: "bg-amber-400 animate-pulse",
   failed: "bg-rose-400",
-  completed: "bg-zinc-500",
+  completed: "bg-[var(--color-surface-3)]",
 };
 
 export default function ContainerLogViewer() {
@@ -150,14 +150,14 @@ export default function ContainerLogViewer() {
         className={cn(
           "flex items-start gap-0 px-3 py-1 font-mono text-xs cursor-pointer hover:brightness-125 transition-all",
           levelBg[log.level],
-          expandedLog === log.id && "border-b border-zinc-700"
+          expandedLog === log.id && "border-b border-[var(--color-border)]"
         )}
         onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
       >
-        <span className="text-zinc-600 w-20 shrink-0 pt-0.5">{log.ts}</span>
+        <span className="text-[var(--color-text-muted)] w-20 shrink-0 pt-0.5">{log.ts}</span>
         <span className={cn("w-12 shrink-0 text-center mr-2 rounded px-1 pt-0.5", levelBadge[log.level])}>{log.level}</span>
         <span className="text-indigo-400 w-44 shrink-0 truncate pt-0.5" title={log.pod}>{log.pod.split("-").slice(0, 2).join("-")}</span>
-        <span className="text-zinc-500 w-20 shrink-0 pt-0.5">{log.container}</span>
+        <span className="text-[var(--color-text-muted)] w-20 shrink-0 pt-0.5">{log.container}</span>
         <span className={cn(
           levelColor[log.level],
           wrapLines ? "break-all" : "truncate",
@@ -166,32 +166,32 @@ export default function ContainerLogViewer() {
           {log.message}
         </span>
         {showFields && Object.keys(log.fields).length > 0 && (
-          <span className="text-zinc-600 ml-2 shrink-0 pt-0.5 text-xs">
+          <span className="text-[var(--color-text-muted)] ml-2 shrink-0 pt-0.5 text-xs">
             {Object.entries(log.fields).slice(0, 2).map(([k, v]) => (
               <span key={k} className="mr-2">
-                <span className="text-zinc-700">{k}=</span>
-                <span className="text-zinc-500">{v}</span>
+                <span className="text-[var(--color-text-muted)]">{k}=</span>
+                <span className="text-[var(--color-text-muted)]">{v}</span>
               </span>
             ))}
           </span>
         )}
       </div>
       {expandedLog === log.id && (
-        <div className="px-4 py-3 bg-zinc-900/80 border-b border-zinc-800 font-mono text-xs">
+        <div className="px-4 py-3 bg-[var(--color-surface-1)]/80 border-b border-[var(--color-border)] font-mono text-xs">
           <div className="grid grid-cols-2 gap-x-8 gap-y-1 mb-2">
-            <div><span className="text-zinc-600">pod: </span><span className="text-zinc-300">{log.pod}</span></div>
-            <div><span className="text-zinc-600">namespace: </span><span className="text-zinc-300">{log.namespace}</span></div>
-            <div><span className="text-zinc-600">container: </span><span className="text-zinc-300">{log.container}</span></div>
-            <div><span className="text-zinc-600">timestamp: </span><span className="text-zinc-300">{log.ts}</span></div>
+            <div><span className="text-[var(--color-text-muted)]">pod: </span><span className="text-[var(--color-text-primary)]">{log.pod}</span></div>
+            <div><span className="text-[var(--color-text-muted)]">namespace: </span><span className="text-[var(--color-text-primary)]">{log.namespace}</span></div>
+            <div><span className="text-[var(--color-text-muted)]">container: </span><span className="text-[var(--color-text-primary)]">{log.container}</span></div>
+            <div><span className="text-[var(--color-text-muted)]">timestamp: </span><span className="text-[var(--color-text-primary)]">{log.ts}</span></div>
           </div>
           {Object.keys(log.fields).length > 0 && (
             <div>
-              <div className="text-zinc-600 mb-1">fields:</div>
+              <div className="text-[var(--color-text-muted)] mb-1">fields:</div>
               <div className="grid grid-cols-2 gap-x-8 gap-y-1 ml-2">
                 {Object.entries(log.fields).map(([k, v]) => (
                   <div key={k}>
                     <span className="text-sky-600">{k}: </span>
-                    <span className="text-zinc-300">{v}</span>
+                    <span className="text-[var(--color-text-primary)]">{v}</span>
                   </div>
                 ))}
               </div>
@@ -203,12 +203,12 @@ export default function ContainerLogViewer() {
   );
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Container Log Viewer</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">Kubernetes · production cluster · {PODS.length} pods</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Kubernetes · production cluster · {PODS.length} pods</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/30">
@@ -219,31 +219,31 @@ export default function ContainerLogViewer() {
       </div>
 
       {/* Level summary */}
-      <div className="flex gap-0 border-b border-zinc-800">
+      <div className="flex gap-0 border-b border-[var(--color-border)]">
         {(["fatal", "error", "warn", "info", "debug"] as LogLevel[]).map(level => (
           <button
             key={level}
             onClick={() => setLevelFilter(levelFilter === level ? "all" : level)}
             className={cn(
               "flex-1 py-2 text-xs font-medium transition-colors border-b-2",
-              levelFilter === level ? "border-indigo-500 bg-indigo-500/5" : "border-transparent hover:bg-zinc-900"
+              levelFilter === level ? "border-indigo-500 bg-indigo-500/5" : "border-transparent hover:bg-[var(--color-surface-1)]"
             )}
           >
             <span className={levelColor[level]}>{level.toUpperCase()}</span>
-            <span className="text-zinc-600 ml-1">({levelCounts[level] || 0})</span>
+            <span className="text-[var(--color-text-muted)] ml-1">({levelCounts[level] || 0})</span>
           </button>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-[var(--color-border)] px-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id ? "border-indigo-500 text-white" : "border-transparent text-zinc-500 hover:text-zinc-300"
+              tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             <span>{t.emoji}</span>
@@ -257,11 +257,11 @@ export default function ContainerLogViewer() {
         {tab === "live" && (
           <div className="flex flex-col h-full">
             {/* Filters */}
-            <div className="flex items-center gap-2 px-4 py-2 border-b border-zinc-800 bg-zinc-900/40">
+            <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/40">
               <select
                 value={selectedPod}
                 onChange={e => setSelectedPod(e.target.value)}
-                className="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300 w-48"
+                className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] w-48"
               >
                 <option value="all">All pods</option>
                 {PODS.map(p => (
@@ -271,14 +271,14 @@ export default function ContainerLogViewer() {
               <select
                 value={namespaceFilter}
                 onChange={e => setNamespaceFilter(e.target.value)}
-                className="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300"
+                className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)]"
               >
                 <option value="all">All namespaces</option>
                 {namespaces.map(ns => (
                   <option key={ns} value={ns}>{ns}</option>
                 ))}
               </select>
-              <div className="flex items-center gap-3 ml-auto text-xs text-zinc-500">
+              <div className="flex items-center gap-3 ml-auto text-xs text-[var(--color-text-muted)]">
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={wrapLines} onChange={e => setWrapLines(e.target.checked)} className="w-3 h-3" />
                   Wrap
@@ -287,14 +287,14 @@ export default function ContainerLogViewer() {
                   <input type="checkbox" checked={showFields} onChange={e => setShowFields(e.target.checked)} className="w-3 h-3" />
                   Show fields
                 </label>
-                <button className="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 rounded border border-zinc-700 transition-colors">
+                <button className="px-2 py-1 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded border border-[var(--color-border)] transition-colors">
                   ⬇ Download
                 </button>
               </div>
             </div>
             {/* Log lines */}
             <div className="flex-1 overflow-y-auto">
-              <div className="divide-y divide-zinc-800/30">
+              <div className="divide-y divide-[var(--color-border)]/30">
                 {filteredLogs.map(renderLogLine)}
               </div>
             </div>
@@ -304,33 +304,33 @@ export default function ContainerLogViewer() {
         {/* SEARCH TAB */}
         {tab === "search" && (
           <div className="flex flex-col h-full">
-            <div className="p-4 border-b border-zinc-800">
+            <div className="p-4 border-b border-[var(--color-border)]">
               <input
                 type="text"
                 placeholder='Search logs... (e.g. "error", pod:api-server, "timeout")'
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded px-4 py-2.5 text-sm text-zinc-300 placeholder-zinc-600 outline-none focus:border-indigo-500 font-mono"
+                className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-4 py-2.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500 font-mono"
               />
-              <div className="flex items-center gap-2 mt-2 text-xs text-zinc-500">
-                <span className="px-2 py-0.5 bg-zinc-800 rounded font-mono">level:error</span>
-                <span className="px-2 py-0.5 bg-zinc-800 rounded font-mono">pod:api-server*</span>
-                <span className="px-2 py-0.5 bg-zinc-800 rounded font-mono">"connection refused"</span>
-                <span className="px-2 py-0.5 bg-zinc-800 rounded font-mono">container:envoy</span>
+              <div className="flex items-center gap-2 mt-2 text-xs text-[var(--color-text-muted)]">
+                <span className="px-2 py-0.5 bg-[var(--color-surface-2)] rounded font-mono">level:error</span>
+                <span className="px-2 py-0.5 bg-[var(--color-surface-2)] rounded font-mono">pod:api-server*</span>
+                <span className="px-2 py-0.5 bg-[var(--color-surface-2)] rounded font-mono">"connection refused"</span>
+                <span className="px-2 py-0.5 bg-[var(--color-surface-2)] rounded font-mono">container:envoy</span>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto">
               {searchQuery ? (
                 <div>
-                  <div className="px-4 py-2 text-xs text-zinc-500 border-b border-zinc-800">
+                  <div className="px-4 py-2 text-xs text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
                     {filteredLogs.length} results for "{searchQuery}"
                   </div>
-                  <div className="divide-y divide-zinc-800/30">
+                  <div className="divide-y divide-[var(--color-border)]/30">
                     {filteredLogs.map(renderLogLine)}
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-zinc-600 text-sm">
+                <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">
                   Enter a search query to filter logs
                 </div>
               )}
@@ -345,20 +345,20 @@ export default function ContainerLogViewer() {
               {PODS.map(pod => (
                 <div
                   key={pod.name}
-                  className="bg-zinc-900 rounded-lg border border-zinc-800 px-5 py-4 cursor-pointer hover:border-zinc-700 transition-colors"
+                  className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] px-5 py-4 cursor-pointer hover:border-[var(--color-border)] transition-colors"
                   onClick={() => { setTab("live"); setSelectedPod(pod.name); }}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
                       <div className={cn("w-2 h-2 rounded-full shrink-0", podStatusColor[pod.status])} />
                       <div>
-                        <span className="font-mono text-sm text-white">{pod.name}</span>
-                        <span className="text-xs text-zinc-500 ml-2">{pod.namespace}</span>
+                        <span className="font-mono text-sm text-[var(--color-text-primary)]">{pod.name}</span>
+                        <span className="text-xs text-[var(--color-text-muted)] ml-2">{pod.namespace}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-zinc-500">
+                    <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
                       {pod.restarts > 0 && (
-                        <span className={cn("font-medium", pod.restarts > 1 ? "text-amber-400" : "text-zinc-400")}>
+                        <span className={cn("font-medium", pod.restarts > 1 ? "text-amber-400" : "text-[var(--color-text-secondary)]")}>
                           {pod.restarts} restarts
                         </span>
                       )}
@@ -373,13 +373,13 @@ export default function ContainerLogViewer() {
                         pod.status === "running" ? "bg-emerald-500/10 text-emerald-400" :
                         pod.status === "failed" ? "bg-rose-500/10 text-rose-400" :
                         pod.status === "pending" ? "bg-amber-500/10 text-amber-400" :
-                        "bg-zinc-700/30 text-zinc-500"
+                        "bg-[var(--color-surface-3)]/30 text-[var(--color-text-muted)]"
                       )}>{pod.status}</span>
                     </div>
                   </div>
                   <div className="flex gap-2">
                     {pod.containers.map(c => (
-                      <span key={c} className="text-xs px-2 py-0.5 bg-zinc-800 rounded font-mono text-zinc-400">{c}</span>
+                      <span key={c} className="text-xs px-2 py-0.5 bg-[var(--color-surface-2)] rounded font-mono text-[var(--color-text-secondary)]">{c}</span>
                     ))}
                   </div>
                 </div>
@@ -392,8 +392,8 @@ export default function ContainerLogViewer() {
         {tab === "alerts" && (
           <div className="p-6 space-y-4">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-semibold text-zinc-300">Log Alerts</h2>
-              <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Log Alerts</h2>
+              <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
                 + New Alert
               </button>
             </div>
@@ -411,20 +411,20 @@ export default function ContainerLogViewer() {
             <div className="space-y-2">
               {LOG_ALERTS.map(alert => (
                 <div key={alert.id} className={cn(
-                  "bg-zinc-900 rounded-lg border px-5 py-4",
-                  alert.enabled ? "border-zinc-700" : "border-zinc-800 opacity-60"
+                  "bg-[var(--color-surface-1)] rounded-lg border px-5 py-4",
+                  alert.enabled ? "border-[var(--color-border)]" : "border-[var(--color-border)] opacity-60"
                 )}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className={cn("text-xs px-2 py-0.5 rounded font-medium", levelBadge[alert.level])}>{alert.level}</span>
-                      <span className="font-medium text-sm text-zinc-200">{alert.name}</span>
+                      <span className="font-medium text-sm text-[var(--color-text-primary)]">{alert.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-zinc-500">last: {alert.lastFired}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">last: {alert.lastFired}</span>
                       <label className="flex items-center gap-1.5 cursor-pointer">
                         <div className={cn(
                           "w-8 h-4 rounded-full transition-colors relative",
-                          alert.enabled ? "bg-indigo-600" : "bg-zinc-700"
+                          alert.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
                         )}>
                           <div className={cn(
                             "absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform",
@@ -434,8 +434,8 @@ export default function ContainerLogViewer() {
                       </label>
                     </div>
                   </div>
-                  <div className="mt-2 flex items-center gap-4 text-xs text-zinc-500">
-                    <span>Pattern: <span className="font-mono text-zinc-400">{alert.pattern}</span></span>
+                  <div className="mt-2 flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
+                    <span>Pattern: <span className="font-mono text-[var(--color-text-secondary)]">{alert.pattern}</span></span>
                     <span>Threshold: {alert.count} occurrences in {alert.window}</span>
                   </div>
                 </div>

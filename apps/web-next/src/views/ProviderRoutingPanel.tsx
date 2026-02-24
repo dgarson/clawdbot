@@ -315,10 +315,10 @@ export default function ProviderRoutingPanel() {
                     {routingRules.map((rule) => (
                       <tr key={rule.id} className={cn('border-b border-tok-border/50 hover:bg-surface-2/30 transition-colors', !rule.active && 'opacity-50')}>
                         <td className="px-4 py-3"><span className="text-fg-primary font-medium font-mono text-sm">{rule.model}</span></td>
-                        <td className="px-4 py-3"><span className="text-zinc-300">{rule.primaryProvider}</span></td>
+                        <td className="px-4 py-3"><span className="text-[var(--color-text-primary)]">{rule.primaryProvider}</span></td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <ArrowRight className="w-3.5 h-3.5 text-zinc-600" aria-hidden="true" />
+                            <ArrowRight className="w-3.5 h-3.5 text-[var(--color-text-muted)]" aria-hidden="true" />
                             <span className="text-fg-secondary">{rule.fallbackProvider}</span>
                           </div>
                         </td>
@@ -376,7 +376,7 @@ export default function ProviderRoutingPanel() {
                       <span className="text-fg-primary font-medium font-mono text-sm">{event.model}</span>
                     </div>
                     <div className="flex items-center gap-2 flex-1">
-                      <span className="text-zinc-300">{event.fromProvider}</span>
+                      <span className="text-[var(--color-text-primary)]">{event.fromProvider}</span>
                       <ArrowRight className="w-4 h-4 text-amber-400 flex-shrink-0" aria-hidden="true" />
                       <span className="text-violet-400 font-medium">{event.toProvider}</span>
                     </div>

@@ -88,7 +88,7 @@ const SUGGESTED_ACTIONS = [
 
 const ACTION_VARIANT_STYLES: Record<ActionButton["variant"], string> = {
   primary: "bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 border-indigo-500/20",
-  secondary: "bg-gray-500/15 text-gray-300 hover:bg-gray-500/25 border-gray-500/20",
+  secondary: "bg-[var(--color-surface-3)]/15 text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]/25 border-[var(--color-surface-3)]/20",
   warning: "bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 border-amber-500/20",
   success: "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border-emerald-500/20",
 };
@@ -102,7 +102,7 @@ const METRIC_STATUS_STYLES: Record<NonNullable<MetricCard["status"]>, string> = 
 const METRIC_TREND_ICONS: Record<NonNullable<MetricCard["trend"]>, { icon: string; color: string }> = {
   up: { icon: "\u2191", color: "text-rose-400" },
   down: { icon: "\u2193", color: "text-emerald-400" },
-  flat: { icon: "\u2192", color: "text-gray-400" },
+  flat: { icon: "\u2192", color: "text-[var(--color-text-secondary)]" },
 };
 
 const WARNING_SEVERITY_STYLES: Record<WarningCallout["severity"], { bg: string; border: string; icon: string }> = {
@@ -308,7 +308,7 @@ function TypingIndicator() {
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500/15 flex items-center justify-center">
         <Bot className="w-4 h-4 text-indigo-400" />
       </div>
-      <div className="bg-gray-800/60 border border-gray-700/50 rounded-2xl rounded-tl-sm px-4 py-3">
+      <div className="bg-[var(--color-surface-2)]/60 border border-[var(--color-border)]/50 rounded-2xl rounded-tl-sm px-4 py-3">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: "0ms" }} />
           <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -321,12 +321,12 @@ function TypingIndicator() {
 
 function InlineCodeBlock({ language, code }: { language: string; code: string }) {
   return (
-    <div className="my-2 rounded-lg overflow-hidden border border-gray-700/50">
-      <div className="flex items-center justify-between px-3 py-1.5 bg-gray-900/80 border-b border-gray-700/50">
-        <span className="text-[11px] font-mono text-gray-500 uppercase tracking-wider">{language}</span>
-        <Code className="w-3 h-3 text-gray-600" />
+    <div className="my-2 rounded-lg overflow-hidden border border-[var(--color-border)]/50">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-[var(--color-surface-1)]/80 border-b border-[var(--color-border)]/50">
+        <span className="text-[11px] font-mono text-[var(--color-text-muted)] uppercase tracking-wider">{language}</span>
+        <Code className="w-3 h-3 text-[var(--color-text-muted)]" />
       </div>
-      <pre className="px-3 py-2.5 bg-gray-950/60 text-[12px] leading-relaxed font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap">
+      <pre className="px-3 py-2.5 bg-[var(--color-surface-0)]/60 text-[12px] leading-relaxed font-mono text-[var(--color-text-primary)] overflow-x-auto whitespace-pre-wrap">
         {code}
       </pre>
     </div>
@@ -334,14 +334,14 @@ function InlineCodeBlock({ language, code }: { language: string; code: string })
 }
 
 function InlineMetricCard({ metric }: { metric: MetricCard }) {
-  const statusStyle = metric.status ? METRIC_STATUS_STYLES[metric.status] : "border-gray-700/50 bg-gray-800/30";
+  const statusStyle = metric.status ? METRIC_STATUS_STYLES[metric.status] : "border-[var(--color-border)]/50 bg-[var(--color-surface-2)]/30";
   const trendInfo = metric.trend ? METRIC_TREND_ICONS[metric.trend] : null;
 
   return (
     <div className={cn("rounded-lg border px-3 py-2.5", statusStyle)}>
-      <div className="text-[11px] text-gray-400 uppercase tracking-wider mb-1">{metric.label}</div>
+      <div className="text-[11px] text-[var(--color-text-secondary)] uppercase tracking-wider mb-1">{metric.label}</div>
       <div className="flex items-baseline gap-2">
-        <span className="text-lg font-semibold text-gray-100">{metric.value}</span>
+        <span className="text-lg font-semibold text-[var(--color-text-primary)]">{metric.value}</span>
         {trendInfo && (
           <span className={cn("text-xs font-medium", trendInfo.color)}>
             {trendInfo.icon}
@@ -349,7 +349,7 @@ function InlineMetricCard({ metric }: { metric: MetricCard }) {
         )}
       </div>
       {metric.subtext && (
-        <div className="text-[11px] text-gray-500 mt-0.5">{metric.subtext}</div>
+        <div className="text-[11px] text-[var(--color-text-muted)] mt-0.5">{metric.subtext}</div>
       )}
     </div>
   );
@@ -362,8 +362,8 @@ function InlineWarning({ warning }: { warning: WarningCallout }) {
     <div className={cn("rounded-lg border px-3 py-2.5 my-2 flex items-start gap-2.5", styles.bg, styles.border)}>
       <AlertTriangle className={cn("w-4 h-4 flex-shrink-0 mt-0.5", styles.icon)} />
       <div>
-        <div className="text-xs font-semibold text-gray-200">{warning.title}</div>
-        <div className="text-xs text-gray-400 mt-0.5 leading-relaxed">{warning.message}</div>
+        <div className="text-xs font-semibold text-[var(--color-text-primary)]">{warning.title}</div>
+        <div className="text-xs text-[var(--color-text-secondary)] mt-0.5 leading-relaxed">{warning.message}</div>
       </div>
     </div>
   );
@@ -409,7 +409,7 @@ function MessageBubble({
             <User className="w-4 h-4 text-indigo-300" />
           </div>
           <div className="bg-indigo-600/20 border border-indigo-500/20 rounded-2xl rounded-tr-sm px-4 py-2.5">
-            <p className="text-sm text-gray-100 leading-relaxed">{content.text}</p>
+            <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{content.text}</p>
             <div className="text-[10px] text-indigo-400/50 mt-1.5 text-right">
               {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </div>
@@ -426,13 +426,13 @@ function MessageBubble({
         <Bot className="w-4 h-4 text-indigo-400" />
       </div>
       <div className="flex-1 min-w-0 space-y-2">
-        <div className="bg-gray-800/60 border border-gray-700/50 rounded-2xl rounded-tl-sm px-4 py-3">
+        <div className="bg-[var(--color-surface-2)]/60 border border-[var(--color-border)]/50 rounded-2xl rounded-tl-sm px-4 py-3">
           {/* Text content with basic markdown-like rendering */}
-          <div className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
+          <div className="text-sm text-[var(--color-text-primary)] leading-relaxed whitespace-pre-wrap">
             {content.text.split(/(\*\*.*?\*\*|`[^`]+`)/g).map((segment, i) => {
               if (segment.startsWith("**") && segment.endsWith("**")) {
                 return (
-                  <strong key={i} className="font-semibold text-gray-100">
+                  <strong key={i} className="font-semibold text-[var(--color-text-primary)]">
                     {segment.slice(2, -2)}
                   </strong>
                 );
@@ -441,7 +441,7 @@ function MessageBubble({
                 return (
                   <code
                     key={i}
-                    className="px-1.5 py-0.5 rounded bg-gray-900/80 text-indigo-300 text-xs font-mono"
+                    className="px-1.5 py-0.5 rounded bg-[var(--color-surface-1)]/80 text-indigo-300 text-xs font-mono"
                   >
                     {segment.slice(1, -1)}
                   </code>
@@ -472,7 +472,7 @@ function MessageBubble({
 
           {/* Action buttons */}
           {content.actions && content.actions.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-700/30">
+            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-[var(--color-border)]/30">
               {content.actions.map((action, i) => (
                 <InlineActionButton
                   key={i}
@@ -484,7 +484,7 @@ function MessageBubble({
           )}
         </div>
 
-        <div className="text-[10px] text-gray-600 pl-1">
+        <div className="text-[10px] text-[var(--color-text-muted)] pl-1">
           {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </div>
       </div>
@@ -597,17 +597,17 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
         {/* Gradient border effect */}
         <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-indigo-500/40 via-purple-500/20 to-transparent" />
 
-        <div className="h-full flex flex-col bg-gray-900 border-l border-gray-800/80 shadow-2xl shadow-black/40">
+        <div className="h-full flex flex-col bg-[var(--color-surface-1)] border-l border-[var(--color-border)]/80 shadow-2xl shadow-black/40">
           {/* ── Header ─────────────────────────────────────────────────────── */}
-          <div className="flex-shrink-0 border-b border-gray-800/80">
+          <div className="flex-shrink-0 border-b border-[var(--color-border)]/80">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/20 flex items-center justify-center">
                   <Sparkles className="w-4 h-4 text-indigo-400" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold text-gray-100">AI Copilot</h2>
-                  <p className="text-[11px] text-gray-500">Operator assistant</p>
+                  <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">AI Copilot</h2>
+                  <p className="text-[11px] text-[var(--color-text-muted)]">Operator assistant</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -617,7 +617,7 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors"
+                  className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -630,7 +630,7 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
                 <div
                   key={chip.label}
                   className={cn(
-                    "flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-gray-700/50 flex-shrink-0",
+                    "flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[var(--color-border)]/50 flex-shrink-0",
                     chip.color
                   )}
                 >
@@ -657,8 +657,8 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/20 flex items-center justify-center mb-4">
                   <Sparkles className="w-6 h-6 text-indigo-400" />
                 </div>
-                <h3 className="text-sm font-semibold text-gray-200 mb-1">AI Copilot Ready</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">AI Copilot Ready</h3>
+                <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
                   Ask me anything about your agent fleet, costs, errors, or performance.
                   I can also draft reports and suggest optimizations.
                 </p>
@@ -679,9 +679,9 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
           </div>
 
           {/* ── Suggested Actions ──────────────────────────────────────────── */}
-          <div className="flex-shrink-0 border-t border-gray-800/50">
+          <div className="flex-shrink-0 border-t border-[var(--color-border)]/50">
             <div className="px-4 pt-3 pb-2">
-              <div className="text-[10px] uppercase tracking-wider text-gray-600 font-medium mb-2">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-medium mb-2">
                 Suggested
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -692,8 +692,8 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
                     disabled={isTyping}
                     className={cn(
                       "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium",
-                      "bg-gray-800/60 border border-gray-700/50 text-gray-400",
-                      "hover:bg-gray-700/60 hover:text-gray-200 hover:border-gray-600/60",
+                      "bg-[var(--color-surface-2)]/60 border border-[var(--color-border)]/50 text-[var(--color-text-secondary)]",
+                      "hover:bg-[var(--color-surface-3)]/60 hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]/60",
                       "transition-all duration-150",
                       "disabled:opacity-40 disabled:cursor-not-allowed"
                     )}
@@ -710,8 +710,8 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
               <div
                 className={cn(
                   "flex items-center gap-2 rounded-xl border transition-colors",
-                  "bg-gray-800/40 border-gray-700/50",
-                  "focus-within:border-indigo-500/40 focus-within:bg-gray-800/60"
+                  "bg-[var(--color-surface-2)]/40 border-[var(--color-border)]/50",
+                  "focus-within:border-indigo-500/40 focus-within:bg-[var(--color-surface-2)]/60"
                 )}
               >
                 <input
@@ -723,7 +723,7 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
                   placeholder="Ask the AI Copilot..."
                   disabled={isTyping}
                   className={cn(
-                    "flex-1 bg-transparent px-4 py-3 text-sm text-gray-200 placeholder:text-gray-600",
+                    "flex-1 bg-transparent px-4 py-3 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
                     "outline-none disabled:opacity-50"
                   )}
                 />
@@ -733,16 +733,16 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
                   className={cn(
                     "flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center mr-1 transition-all",
                     inputValue.trim() && !isTyping
-                      ? "bg-indigo-500 text-white hover:bg-indigo-400 shadow-lg shadow-indigo-500/20"
-                      : "bg-gray-700/40 text-gray-600 cursor-not-allowed"
+                      ? "bg-indigo-500 text-[var(--color-text-primary)] hover:bg-indigo-400 shadow-lg shadow-indigo-500/20"
+                      : "bg-[var(--color-surface-3)]/40 text-[var(--color-text-muted)] cursor-not-allowed"
                   )}
                 >
                   <Send className="w-4 h-4" />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-1 mt-2">
-                <Sparkles className="w-3 h-3 text-gray-700" />
-                <span className="text-[10px] text-gray-700">
+                <Sparkles className="w-3 h-3 text-[var(--color-text-muted)]" />
+                <span className="text-[10px] text-[var(--color-text-muted)]">
                   AI responses are simulated for demonstration purposes
                 </span>
               </div>

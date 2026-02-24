@@ -176,17 +176,17 @@ export default function DesignTokenManager() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Design Token Manager</h1>
-        <p className="text-zinc-400 text-sm mt-1">
+        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Design Token Manager</h1>
+        <p className="text-[var(--color-text-secondary)] text-sm mt-1">
           {allTokens.length} tokens across {TOKEN_GROUPS.length} groups · Horizon UI Design System
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-zinc-800 mb-6">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
         {tabs.map(t => (
           <button
             key={t.id}
@@ -194,8 +194,8 @@ export default function DesignTokenManager() {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
               tab === t.id
-                ? "text-white bg-zinc-800 border border-b-0 border-zinc-700"
-                : "text-zinc-400 hover:text-white"
+                ? "text-[var(--color-text-primary)] bg-[var(--color-surface-2)] border border-b-0 border-[var(--color-border)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t.emoji} {t.label}
@@ -214,7 +214,7 @@ export default function DesignTokenManager() {
                 placeholder="🔍 Search tokens..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
               />
             </div>
             <div className="space-y-0.5">
@@ -225,13 +225,13 @@ export default function DesignTokenManager() {
                   className={cn(
                     "w-full text-left px-3 py-2 rounded text-sm flex items-center gap-2 transition-colors",
                     selectedGroup === g.id && !searchQuery
-                      ? "bg-zinc-800 text-white"
-                      : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                      ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]"
+                      : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]"
                   )}
                 >
                   <span>{TYPE_EMOJI[g.type]}</span>
                   <span className="flex-1">{g.label}</span>
-                  <span className="text-xs text-zinc-600">{g.tokens.length}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{g.tokens.length}</span>
                 </button>
               ))}
             </div>
@@ -241,12 +241,12 @@ export default function DesignTokenManager() {
           <div className="flex-1">
             {displayGroup && (
               <div className="mb-4">
-                <div className="text-lg font-semibold text-white">{displayGroup.label}</div>
-                <div className="text-xs text-zinc-500 mt-0.5">{displayGroup.description}</div>
+                <div className="text-lg font-semibold text-[var(--color-text-primary)]">{displayGroup.label}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{displayGroup.description}</div>
               </div>
             )}
             {searchQuery && (
-              <div className="mb-3 text-xs text-zinc-500">
+              <div className="mb-3 text-xs text-[var(--color-text-muted)]">
                 {filteredTokens.length} result{filteredTokens.length !== 1 ? "s" : ""} for "{searchQuery}"
               </div>
             )}
@@ -257,76 +257,76 @@ export default function DesignTokenManager() {
                   key={token.id}
                   onClick={() => setSelectedToken(selectedToken?.id === token.id ? null : token)}
                   className={cn(
-                    "bg-zinc-900 border rounded-lg p-4 cursor-pointer transition-colors",
-                    selectedToken?.id === token.id ? "border-indigo-600" : "border-zinc-800 hover:border-zinc-700"
+                    "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
+                    selectedToken?.id === token.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                   )}
                 >
                   <div className="flex items-center gap-4">
                     {/* Visual preview */}
                     {token.type === "color" && (
                       <div
-                        className="w-10 h-10 rounded-lg border border-zinc-700 shrink-0"
+                        className="w-10 h-10 rounded-lg border border-[var(--color-border)] shrink-0"
                         style={{ backgroundColor: token.value }}
                       />
                     )}
                     {token.type === "spacing" && (
-                      <div className="w-10 h-10 flex items-center justify-center bg-zinc-800 rounded-lg border border-zinc-700 shrink-0">
+                      <div className="w-10 h-10 flex items-center justify-center bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)] shrink-0">
                         <div className="bg-indigo-500 h-1 rounded" style={{ width: token.value === "4px" ? "12px" : token.value === "8px" ? "20px" : token.value === "12px" ? "28px" : "36px" }} />
                       </div>
                     )}
                     {token.type === "radius" && (
-                      <div className="w-10 h-10 flex items-center justify-center bg-zinc-800 rounded-lg border border-zinc-700 shrink-0">
+                      <div className="w-10 h-10 flex items-center justify-center bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)] shrink-0">
                         <div className="w-6 h-6 bg-indigo-500" style={{ borderRadius: token.value }} />
                       </div>
                     )}
                     {token.type === "typography" && (
-                      <div className="w-10 h-10 flex items-center justify-center bg-zinc-800 rounded-lg border border-zinc-700 shrink-0">
-                        <span className="text-white font-bold" style={{ fontSize: token.value }}>A</span>
+                      <div className="w-10 h-10 flex items-center justify-center bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)] shrink-0">
+                        <span className="text-[var(--color-text-primary)] font-bold" style={{ fontSize: token.value }}>A</span>
                       </div>
                     )}
                     {(token.type === "animation" || token.type === "shadow") && (
-                      <div className="w-10 h-10 flex items-center justify-center bg-zinc-800 rounded-lg border border-zinc-700 shrink-0 text-lg">
+                      <div className="w-10 h-10 flex items-center justify-center bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)] shrink-0 text-lg">
                         {TYPE_EMOJI[token.type]}
                       </div>
                     )}
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm text-white">{token.name}</span>
+                        <span className="font-mono text-sm text-[var(--color-text-primary)]">{token.name}</span>
                         {token.deprecated && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-500">deprecated</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-muted)]">deprecated</span>
                         )}
                       </div>
-                      <div className="text-xs text-zinc-400 mt-0.5">{token.description}</div>
+                      <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{token.description}</div>
                     </div>
 
                     <div className="text-right shrink-0">
                       <div className="font-mono text-sm text-amber-300">{token.value}</div>
-                      <div className="text-xs text-zinc-500 font-mono">{token.rawValue}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] font-mono">{token.rawValue}</div>
                     </div>
                   </div>
 
                   {selectedToken?.id === token.id && (
-                    <div className="mt-4 border-t border-zinc-800 pt-4 space-y-3" onClick={e => e.stopPropagation()}>
+                    <div className="mt-4 border-t border-[var(--color-border)] pt-4 space-y-3" onClick={e => e.stopPropagation()}>
                       <div className="grid grid-cols-3 gap-4 text-xs">
                         <div>
-                          <div className="text-zinc-500 mb-1">CSS Variable</div>
+                          <div className="text-[var(--color-text-muted)] mb-1">CSS Variable</div>
                           <code className="font-mono text-sky-300">--{token.name.replace(/\./g, "-")}</code>
                         </div>
                         <div>
-                          <div className="text-zinc-500 mb-1">Tailwind Class</div>
+                          <div className="text-[var(--color-text-muted)] mb-1">Tailwind Class</div>
                           <code className="font-mono text-amber-300">{token.rawValue}</code>
                         </div>
                         <div>
-                          <div className="text-zinc-500 mb-1">Raw Value</div>
+                          <div className="text-[var(--color-text-muted)] mb-1">Raw Value</div>
                           <code className="font-mono text-emerald-300">{token.value}</code>
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs text-zinc-500 mb-1">Used By Components</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mb-1">Used By Components</div>
                         <div className="flex flex-wrap gap-1">
                           {token.usedBy.map(c => (
-                            <span key={c} className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">{c}</span>
+                            <span key={c} className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-primary)]">{c}</span>
                           ))}
                         </div>
                       </div>
@@ -342,36 +342,36 @@ export default function DesignTokenManager() {
       {/* Usage Map Tab */}
       {tab === "usage" && (
         <div className="space-y-4">
-          <div className="text-sm text-zinc-400 mb-4">Which components reference which tokens</div>
+          <div className="text-sm text-[var(--color-text-secondary)] mb-4">Which components reference which tokens</div>
           {TOKEN_GROUPS.map(g => (
-            <div key={g.id} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+            <div key={g.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
                 <span>{TYPE_EMOJI[g.type]}</span>
-                <span className="font-semibold text-white text-sm">{g.label}</span>
-                <span className="text-xs text-zinc-500">{g.tokens.length} tokens</span>
+                <span className="font-semibold text-[var(--color-text-primary)] text-sm">{g.label}</span>
+                <span className="text-xs text-[var(--color-text-muted)]">{g.tokens.length} tokens</span>
               </div>
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-zinc-800">
-                    <th className="text-left px-4 py-2 text-zinc-500 font-medium">Token</th>
-                    <th className="text-left px-4 py-2 text-zinc-500 font-medium">Value</th>
-                    <th className="text-left px-4 py-2 text-zinc-500 font-medium">Components</th>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="text-left px-4 py-2 text-[var(--color-text-muted)] font-medium">Token</th>
+                    <th className="text-left px-4 py-2 text-[var(--color-text-muted)] font-medium">Value</th>
+                    <th className="text-left px-4 py-2 text-[var(--color-text-muted)] font-medium">Components</th>
                   </tr>
                 </thead>
                 <tbody>
                   {g.tokens.map(t => (
-                    <tr key={t.id} className="border-b border-zinc-800/50">
-                      <td className="px-4 py-2 font-mono text-zinc-300">{t.name}</td>
+                    <tr key={t.id} className="border-b border-[var(--color-border)]/50">
+                      <td className="px-4 py-2 font-mono text-[var(--color-text-primary)]">{t.name}</td>
                       <td className="px-4 py-2">
                         <div className="flex items-center gap-2">
-                          {t.type === "color" && <div className="w-3 h-3 rounded border border-zinc-700" style={{ backgroundColor: t.value }} />}
+                          {t.type === "color" && <div className="w-3 h-3 rounded border border-[var(--color-border)]" style={{ backgroundColor: t.value }} />}
                           <span className="text-amber-300 font-mono">{t.value}</span>
                         </div>
                       </td>
                       <td className="px-4 py-2">
                         <div className="flex flex-wrap gap-1">
                           {t.usedBy.map(c => (
-                            <span key={c} className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">{c}</span>
+                            <span key={c} className="px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]">{c}</span>
                           ))}
                         </div>
                       </td>
@@ -387,22 +387,22 @@ export default function DesignTokenManager() {
       {/* Compare Tab */}
       {tab === "compare" && (
         <div className="space-y-4">
-          <div className="text-sm text-zinc-400 mb-4">Dark vs Light theme token comparison (Light theme in progress)</div>
+          <div className="text-sm text-[var(--color-text-secondary)] mb-4">Dark vs Light theme token comparison (Light theme in progress)</div>
           <div className="grid grid-cols-2 gap-4">
             {/* Dark column */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 rounded-full bg-zinc-950 border border-zinc-600" />
-                <span className="text-sm font-semibold text-white">Dark Theme</span>
+                <div className="w-3 h-3 rounded-full bg-[var(--color-surface-0)] border border-[var(--color-surface-3)]" />
+                <span className="text-sm font-semibold text-[var(--color-text-primary)]">Dark Theme</span>
                 <span className="text-xs px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400 ml-auto">Active</span>
               </div>
               <div className="space-y-3">
                 {allTokens.filter(t => t.type === "color").map(t => (
                   <div key={t.id} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded border border-zinc-700 shrink-0" style={{ backgroundColor: t.value }} />
+                    <div className="w-8 h-8 rounded border border-[var(--color-border)] shrink-0" style={{ backgroundColor: t.value }} />
                     <div className="flex-1 min-w-0">
-                      <div className="font-mono text-xs text-zinc-300 truncate">{t.name}</div>
-                      <div className="font-mono text-xs text-zinc-500">{t.value}</div>
+                      <div className="font-mono text-xs text-[var(--color-text-primary)] truncate">{t.name}</div>
+                      <div className="font-mono text-xs text-[var(--color-text-muted)]">{t.value}</div>
                     </div>
                   </div>
                 ))}
@@ -410,16 +410,16 @@ export default function DesignTokenManager() {
             </div>
 
             {/* Light column (placeholder) */}
-            <div className="bg-zinc-900 border border-dashed border-zinc-700 rounded-lg p-4">
+            <div className="bg-[var(--color-surface-1)] border border-dashed border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 rounded-full bg-white border border-zinc-400" />
-                <span className="text-sm font-semibold text-zinc-400">Light Theme</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-500 ml-auto">Planned</span>
+                <div className="w-3 h-3 rounded-full bg-white border border-[var(--color-surface-3)]" />
+                <span className="text-sm font-semibold text-[var(--color-text-secondary)]">Light Theme</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-muted)] ml-auto">Planned</span>
               </div>
-              <div className="flex flex-col items-center justify-center h-48 text-zinc-600 text-sm">
+              <div className="flex flex-col items-center justify-center h-48 text-[var(--color-text-muted)] text-sm">
                 <div className="text-3xl mb-3">☀️</div>
                 <div>Light theme tokens coming in Q2 2026</div>
-                <div className="text-xs text-zinc-700 mt-1">Once defined, they'll appear here for comparison</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-1">Once defined, they'll appear here for comparison</div>
               </div>
             </div>
           </div>
@@ -437,23 +437,23 @@ export default function DesignTokenManager() {
                 className={cn(
                   "px-4 py-2 text-sm rounded-lg border transition-colors font-mono",
                   exportFormat === fmt
-                    ? "bg-indigo-600 border-indigo-500 text-white"
-                    : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white"
+                    ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                    : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {fmt === "css" ? "CSS Variables" : fmt === "json" ? "JSON" : "TypeScript"}
               </button>
             ))}
-            <button className="ml-auto px-4 py-2 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors">
+            <button className="ml-auto px-4 py-2 text-sm rounded-lg bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] transition-colors">
               📋 Copy to clipboard
             </button>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <div className="text-xs text-zinc-500 mb-3 font-mono">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <div className="text-xs text-[var(--color-text-muted)] mb-3 font-mono">
               {exportFormat === "css" ? "tokens.css" : exportFormat === "json" ? "tokens.json" : "tokens.ts"}
             </div>
-            <pre className="font-mono text-xs text-zinc-300 overflow-x-auto whitespace-pre leading-5 max-h-[60vh] overflow-y-auto">
+            <pre className="font-mono text-xs text-[var(--color-text-primary)] overflow-x-auto whitespace-pre leading-5 max-h-[60vh] overflow-y-auto">
               {exportFormat === "css" ? cssExport : exportFormat === "json" ? jsonExport : tsExport}
             </pre>
           </div>

@@ -201,7 +201,7 @@ const SEED_FLAGS: FeatureFlag[] = [
 
 const TYPE_CONFIG: Record<FlagType, { label: string; color: string }> = {
   boolean:    { label: "Boolean",    color: "text-indigo-400" },
-  string:     { label: "String",     color: "text-zinc-400" },
+  string:     { label: "String",     color: "text-[var(--color-text-secondary)]" },
   number:     { label: "Number",     color: "text-emerald-400" },
   percentage: { label: "Rollout %",  color: "text-violet-400" },
 };
@@ -240,7 +240,7 @@ function FlagCard({ flag, onToggle, onRolloutChange }: FlagCardProps) {
   return (
     <div className={cn(
       "rounded-xl border transition-colors",
-      flag.enabled ? "bg-zinc-900 border-zinc-700" : "bg-zinc-900/50 border-zinc-800 opacity-70"
+      flag.enabled ? "bg-[var(--color-surface-1)] border-[var(--color-border)]" : "bg-[var(--color-surface-1)]/50 border-[var(--color-border)] opacity-70"
     )}>
       {/* Header row */}
       <div className="flex items-start gap-3 p-4">
@@ -252,7 +252,7 @@ function FlagCard({ flag, onToggle, onRolloutChange }: FlagCardProps) {
           aria-label={`${flag.enabled ? "Disable" : "Enable"} ${flag.name}`}
           className={cn(
             "flex-none mt-0.5 relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
-            flag.enabled ? "bg-indigo-600" : "bg-zinc-700"
+            flag.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
           )}
         >
           <span className={cn(
@@ -264,29 +264,29 @@ function FlagCard({ flag, onToggle, onRolloutChange }: FlagCardProps) {
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-white">{flag.name}</span>
+            <span className="text-sm font-semibold text-[var(--color-text-primary)]">{flag.name}</span>
             {flag.isExperimental && (
               <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/25">Experimental</span>
             )}
             <span className={cn("text-xs", typeCfg.color)}>{typeCfg.label}</span>
           </div>
-          <p className="text-xs text-zinc-500 mt-0.5">{flag.description}</p>
-          <p className="text-xs font-mono text-zinc-600 mt-0.5">{flag.key}</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{flag.description}</p>
+          <p className="text-xs font-mono text-[var(--color-text-muted)] mt-0.5">{flag.key}</p>
         </div>
 
         {/* Value + expand */}
         <div className="flex-none flex items-center gap-2">
           <div className="text-right">
-            <p className={cn("text-xs font-mono font-semibold", flag.enabled ? "text-emerald-400" : "text-zinc-600")}>
+            <p className={cn("text-xs font-mono font-semibold", flag.enabled ? "text-emerald-400" : "text-[var(--color-text-muted)]")}>
               {flag.type === "percentage" ? `${flag.rolloutPercent ?? 0}%` : displayValue(flag.defaultValue)}
             </p>
-            <p className="text-xs text-zinc-700">default</p>
+            <p className="text-xs text-[var(--color-text-muted)]">default</p>
           </div>
           <button
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
             aria-label={`${expanded ? "Collapse" : "Expand"} ${flag.name} details`}
-            className="p-1 text-zinc-600 hover:text-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded transition-colors"
+            className="p-1 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded transition-colors"
           >
             <svg className={cn("h-4 w-4 transition-transform", expanded && "rotate-180")} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6l4 4 4-4" />
@@ -298,19 +298,19 @@ function FlagCard({ flag, onToggle, onRolloutChange }: FlagCardProps) {
       {/* Tags */}
       <div className="px-4 pb-3 flex flex-wrap gap-1">
         {flag.tags.map((t) => (
-          <span key={t} className="px-1.5 py-0.5 text-xs rounded bg-zinc-800 text-zinc-600 border border-zinc-700/50">{t}</span>
+          <span key={t} className="px-1.5 py-0.5 text-xs rounded bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border border-[var(--color-border)]/50">{t}</span>
         ))}
       </div>
 
       {/* Expanded details */}
       {expanded && (
-        <div className="px-4 pb-4 pt-0 border-t border-zinc-800">
+        <div className="px-4 pb-4 pt-0 border-t border-[var(--color-border)]">
           <div className="pt-3 space-y-3">
             {/* Rollout slider */}
             {flag.type === "percentage" && (
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label htmlFor={`rollout-${flag.id}`} className="text-xs text-zinc-500">Rollout Percentage</label>
+                  <label htmlFor={`rollout-${flag.id}`} className="text-xs text-[var(--color-text-muted)]">Rollout Percentage</label>
                   <span className="text-xs font-mono font-semibold text-violet-400">{flag.rolloutPercent ?? 0}%</span>
                 </div>
                 <input
@@ -322,7 +322,7 @@ function FlagCard({ flag, onToggle, onRolloutChange }: FlagCardProps) {
                   onChange={(e) => onRolloutChange(flag.id, Number(e.target.value))}
                   className="w-full accent-violet-500"
                 />
-                <div className="flex justify-between text-xs text-zinc-700 mt-0.5">
+                <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-0.5">
                   <span>0% (off)</span>
                   <span>50%</span>
                   <span>100% (all)</span>
@@ -333,12 +333,12 @@ function FlagCard({ flag, onToggle, onRolloutChange }: FlagCardProps) {
             {/* Environment overrides */}
             {Object.keys(flag.envOverrides).length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-zinc-500 mb-2">Environment Overrides</p>
+                <p className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">Environment Overrides</p>
                 <div className="space-y-1">
                   {Object.entries(flag.envOverrides).map(([env, val]) => (
-                    <div key={env} className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800">
-                      <span className="text-xs text-zinc-400 capitalize">{env}</span>
-                      <span className={cn("text-xs font-mono font-semibold", typeof val === "boolean" ? (val ? "text-emerald-400" : "text-rose-400") : "text-zinc-300")}>
+                    <div key={env} className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-[var(--color-surface-0)] border border-[var(--color-border)]">
+                      <span className="text-xs text-[var(--color-text-secondary)] capitalize">{env}</span>
+                      <span className={cn("text-xs font-mono font-semibold", typeof val === "boolean" ? (val ? "text-emerald-400" : "text-rose-400") : "text-[var(--color-text-primary)]")}>
                         {displayValue(val)}
                       </span>
                     </div>
@@ -350,15 +350,15 @@ function FlagCard({ flag, onToggle, onRolloutChange }: FlagCardProps) {
             {/* Agent overrides */}
             {flag.agentOverrides.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-zinc-500 mb-2">Agent Overrides</p>
+                <p className="text-xs font-semibold text-[var(--color-text-muted)] mb-2">Agent Overrides</p>
                 <div className="space-y-1">
                   {flag.agentOverrides.map((override) => (
-                    <div key={override.agentId} className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800">
+                    <div key={override.agentId} className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-[var(--color-surface-0)] border border-[var(--color-border)]">
                       <div className="flex items-center gap-2">
                         <span className="text-sm">{override.agentEmoji}</span>
-                        <span className="text-xs text-zinc-400">{override.agentName}</span>
+                        <span className="text-xs text-[var(--color-text-secondary)]">{override.agentName}</span>
                       </div>
-                      <span className={cn("text-xs font-mono font-semibold", typeof override.value === "boolean" ? (override.value ? "text-emerald-400" : "text-rose-400") : "text-zinc-300")}>
+                      <span className={cn("text-xs font-mono font-semibold", typeof override.value === "boolean" ? (override.value ? "text-emerald-400" : "text-rose-400") : "text-[var(--color-text-primary)]")}>
                         {displayValue(override.value)}
                       </span>
                     </div>
@@ -368,14 +368,14 @@ function FlagCard({ flag, onToggle, onRolloutChange }: FlagCardProps) {
             )}
 
             {/* Meta */}
-            <div className="grid grid-cols-2 gap-3 text-xs text-zinc-600">
+            <div className="grid grid-cols-2 gap-3 text-xs text-[var(--color-text-muted)]">
               <div>
-                <p className="text-zinc-500">Created</p>
-                <p className="mt-0.5 text-zinc-400">{relTime(flag.createdAt)}</p>
+                <p className="text-[var(--color-text-muted)]">Created</p>
+                <p className="mt-0.5 text-[var(--color-text-secondary)]">{relTime(flag.createdAt)}</p>
               </div>
               <div>
-                <p className="text-zinc-500">Updated</p>
-                <p className="mt-0.5 text-zinc-400">{relTime(flag.updatedAt)}</p>
+                <p className="text-[var(--color-text-muted)]">Updated</p>
+                <p className="mt-0.5 text-[var(--color-text-secondary)]">{relTime(flag.updatedAt)}</p>
               </div>
             </div>
           </div>
@@ -437,34 +437,34 @@ export default function FeatureFlags() {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-lg font-semibold text-white">Feature Flags</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Toggle features, manage rollouts, and configure per-environment or per-agent overrides</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Feature Flags</h1>
+            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">Toggle features, manage rollouts, and configure per-environment or per-agent overrides</p>
           </div>
-          <button aria-label="Create new feature flag" className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
+          <button aria-label="Create new feature flag" className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
             <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" d="M7 2v10M2 7h10" /></svg>
             New Flag
           </button>
         </div>
-        <div className="flex items-center gap-4 mt-3 text-xs text-zinc-600">
-          <span><span className="text-zinc-300 font-semibold">{stats.total}</span> flags</span>
+        <div className="flex items-center gap-4 mt-3 text-xs text-[var(--color-text-muted)]">
+          <span><span className="text-[var(--color-text-primary)] font-semibold">{stats.total}</span> flags</span>
           <span><span className="text-emerald-400 font-semibold">{stats.enabled}</span> enabled</span>
-          <span><span className="text-zinc-500 font-semibold">{flags.length - stats.enabled}</span> disabled</span>
+          <span><span className="text-[var(--color-text-muted)] font-semibold">{flags.length - stats.enabled}</span> disabled</span>
           <span><span className="text-amber-400 font-semibold">{stats.experimental}</span> experimental</span>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex-none px-6 py-3 border-b border-zinc-800 flex items-center gap-3 flex-wrap">
+      <div className="flex-none px-6 py-3 border-b border-[var(--color-border)] flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-48 max-w-xs">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500 pointer-events-none" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--color-text-muted)] pointer-events-none" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <circle cx="7" cy="7" r="4.5" /><path strokeLinecap="round" d="M10.5 10.5l3 3" />
           </svg>
-          <input ref={searchRef} type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search flags… (⌘F)" aria-label="Search feature flags" className="w-full pl-8 pr-3 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          <input ref={searchRef} type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search flags… (⌘F)" aria-label="Search feature flags" className="w-full pl-8 pr-3 py-1.5 text-sm bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
         <div role="group" aria-label="Filter flags" className="flex items-center gap-1">
           {FILTERS.map(({ id, label, count }) => (
@@ -474,10 +474,10 @@ export default function FeatureFlags() {
               aria-pressed={filterMode === id}
               className={cn(
                 "px-2.5 py-1 text-xs font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                filterMode === id ? "bg-indigo-600 text-white" : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                filterMode === id ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
-              {label} <span className={cn("ml-1 tabular-nums", filterMode === id ? "opacity-80" : "text-zinc-600")}>{count}</span>
+              {label} <span className={cn("ml-1 tabular-nums", filterMode === id ? "opacity-80" : "text-[var(--color-text-muted)]")}>{count}</span>
             </button>
           ))}
         </div>
@@ -488,7 +488,7 @@ export default function FeatureFlags() {
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
             <span className="text-4xl">🚩</span>
-            <p className="text-sm font-medium text-zinc-300">No flags found</p>
+            <p className="text-sm font-medium text-[var(--color-text-primary)]">No flags found</p>
           </div>
         ) : (
           filtered.map((flag) => (

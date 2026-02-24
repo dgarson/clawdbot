@@ -119,7 +119,7 @@ const SENTIMENT_CONFIG: Record<SentimentScore, { label: string; emoji: string; c
 };
 
 const PLAN_CONFIG: Record<string, { label: string; color: string }> = {
-  free:       { label: "Free",       color: "text-zinc-400 bg-zinc-800" },
+  free:       { label: "Free",       color: "text-[var(--color-text-secondary)] bg-[var(--color-surface-2)]" },
   pro:        { label: "Pro",        color: "text-indigo-400 bg-indigo-900/30" },
   enterprise: { label: "Enterprise", color: "text-amber-400 bg-amber-900/30" },
 };
@@ -161,20 +161,20 @@ export default function CustomerFeedbackDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Customer Feedback</h1>
-        <p className="text-zinc-400 text-sm mt-1">NPS tracking and feedback analysis for Horizon UI v2.0</p>
+        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Customer Feedback</h1>
+        <p className="text-[var(--color-text-secondary)] text-sm mt-1">NPS tracking and feedback analysis for Horizon UI v2.0</p>
       </div>
 
-      <div className="flex gap-1 border-b border-zinc-800 mb-6">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
-              tab === t.id ? "text-white bg-zinc-800 border border-b-0 border-zinc-700" : "text-zinc-400 hover:text-white"
+              tab === t.id ? "text-[var(--color-text-primary)] bg-[var(--color-surface-2)] border border-b-0 border-[var(--color-border)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t.emoji} {t.label}
@@ -187,7 +187,7 @@ export default function CustomerFeedbackDashboard() {
         <div className="space-y-5">
           {/* Key metrics */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 col-span-1">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 col-span-1">
               <div className="flex items-end gap-2 mb-1">
                 <div className={cn("text-4xl font-bold", latestNPS.score >= 50 ? "text-emerald-400" : latestNPS.score >= 30 ? "text-amber-400" : "text-rose-400")}>
                   {latestNPS.score}
@@ -196,27 +196,27 @@ export default function CustomerFeedbackDashboard() {
                   {npsChange >= 0 ? "▲" : "▼"} {Math.abs(npsChange)}
                 </span>
               </div>
-              <div className="text-xs text-zinc-400">NPS Score (Feb 2026)</div>
-              <div className="text-xs text-zinc-600 mt-0.5">{latestNPS.responses} responses</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">NPS Score (Feb 2026)</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{latestNPS.responses} responses</div>
             </div>
             {[
               { label: "Promoters",   value: promoterCount,  extra: `${Math.round(promoterCount/FEEDBACK.length*100)}%`, color: "text-emerald-400" },
               { label: "Passives",    value: passiveCount,   extra: `${Math.round(passiveCount/FEEDBACK.length*100)}%`,  color: "text-amber-400" },
               { label: "Detractors",  value: detractorCount, extra: `${Math.round(detractorCount/FEEDBACK.length*100)}%`, color: "text-rose-400" },
             ].map(s => (
-              <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+              <div key={s.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
                 <div className={cn("text-3xl font-bold", s.color)}>{s.value}</div>
-                <div className="text-xs text-zinc-400 mt-0.5">{s.label}</div>
+                <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{s.label}</div>
                 <div className={cn("text-xs mt-1", s.color)}>{s.extra} of responses</div>
               </div>
             ))}
           </div>
 
           {/* NPS breakdown bar */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-semibold text-zinc-300">NPS Breakdown — Feb 2026</div>
-              <div className="text-xs text-zinc-500">{latestNPS.responses} total responses</div>
+              <div className="text-sm font-semibold text-[var(--color-text-primary)]">NPS Breakdown — Feb 2026</div>
+              <div className="text-xs text-[var(--color-text-muted)]">{latestNPS.responses} total responses</div>
             </div>
             <div className="flex h-8 rounded-lg overflow-hidden gap-0.5">
               {[
@@ -224,7 +224,7 @@ export default function CustomerFeedbackDashboard() {
                 { pct: (latestNPS.passives/latestNPS.responses)*100,   color: "bg-amber-500",   label: "Passives" },
                 { pct: (latestNPS.detractors/latestNPS.responses)*100, color: "bg-rose-500",    label: "Detractors" },
               ].map(seg => (
-                <div key={seg.label} className={cn("flex items-center justify-center text-xs text-white font-medium rounded", seg.color)} style={{ width: `${seg.pct}%` }}>
+                <div key={seg.label} className={cn("flex items-center justify-center text-xs text-[var(--color-text-primary)] font-medium rounded", seg.color)} style={{ width: `${seg.pct}%` }}>
                   {seg.pct > 10 ? `${Math.round(seg.pct)}%` : ""}
                 </div>
               ))}
@@ -235,17 +235,17 @@ export default function CustomerFeedbackDashboard() {
                 { label: `Passives (7-8)`,   value: latestNPS.passives,   color: "bg-amber-500" },
                 { label: `Detractors (0-6)`, value: latestNPS.detractors, color: "bg-rose-500" },
               ].map(l => (
-                <div key={l.label} className="flex items-center gap-1.5 text-xs text-zinc-400">
+                <div key={l.label} className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
                   <div className={cn("w-2 h-2 rounded-full", l.color)} />
-                  {l.label}: <strong className="text-white">{l.value}</strong>
+                  {l.label}: <strong className="text-[var(--color-text-primary)]">{l.value}</strong>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Category breakdown */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <div className="text-sm font-semibold text-zinc-300 mb-4">Feedback by Category</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Feedback by Category</div>
             {Object.entries(CATEGORY_CONFIG).map(([cat, cfg]) => {
               const count = FEEDBACK.filter(f => f.category === cat).length;
               const pct = (count / FEEDBACK.length) * 100;
@@ -253,10 +253,10 @@ export default function CustomerFeedbackDashboard() {
               return (
                 <div key={cat} className="flex items-center gap-3 mb-3">
                   <span className="text-sm w-32 truncate">{cfg.emoji} {cfg.label}</span>
-                  <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                  <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                     <div className={cn("h-full rounded-full", avgScore >= 8 ? "bg-emerald-500" : avgScore >= 6 ? "bg-amber-500" : "bg-rose-500")} style={{ width: `${pct * 3}%`, maxWidth: "100%" }} />
                   </div>
-                  <div className="text-xs text-zinc-500 w-8 text-right">{count}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] w-8 text-right">{count}</div>
                   <div className={cn("text-xs font-medium w-8 text-right", avgScore >= 8 ? "text-emerald-400" : avgScore >= 6 ? "text-amber-400" : "text-rose-400")}>
                     {avgScore.toFixed(1)}
                   </div>
@@ -273,33 +273,33 @@ export default function CustomerFeedbackDashboard() {
           {/* Filters */}
           <div className="w-48 shrink-0 space-y-4">
             <div>
-              <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Sentiment</div>
+              <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Sentiment</div>
               {(["all", "promoter", "passive", "detractor"] as const).map(s => (
                 <button
                   key={s}
                   onClick={() => setSentimentFilter(s)}
                   className={cn(
                     "w-full text-left px-3 py-1.5 rounded text-sm flex items-center gap-2 mb-1 transition-colors",
-                    sentimentFilter === s ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"
+                    sentimentFilter === s ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {s !== "all" && SENTIMENT_CONFIG[s].emoji}
                   {s === "all" ? "All" : SENTIMENT_CONFIG[s].label}
-                  <span className="ml-auto text-xs text-zinc-600">
+                  <span className="ml-auto text-xs text-[var(--color-text-muted)]">
                     {s === "all" ? FEEDBACK.length : FEEDBACK.filter(f => f.sentiment === s).length}
                   </span>
                 </button>
               ))}
             </div>
             <div>
-              <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Category</div>
+              <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Category</div>
               {(["all", ...Object.keys(CATEGORY_CONFIG)] as const).map(c => (
                 <button
                   key={c}
                   onClick={() => setCategoryFilter(c as FeedbackCategory | "all")}
                   className={cn(
                     "w-full text-left px-3 py-1.5 rounded text-sm mb-1 transition-colors",
-                    categoryFilter === c ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"
+                    categoryFilter === c ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {c === "all" ? "All Categories" : `${CATEGORY_CONFIG[c as FeedbackCategory].emoji} ${CATEGORY_CONFIG[c as FeedbackCategory].label}`}
@@ -307,14 +307,14 @@ export default function CustomerFeedbackDashboard() {
               ))}
             </div>
             <div>
-              <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Plan</div>
+              <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Plan</div>
               {["all", "free", "pro", "enterprise"].map(p => (
                 <button
                   key={p}
                   onClick={() => setPlanFilter(p)}
                   className={cn(
                     "w-full text-left px-3 py-1.5 rounded text-sm mb-1 transition-colors",
-                    planFilter === p ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"
+                    planFilter === p ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {p === "all" ? "All Plans" : p.charAt(0).toUpperCase() + p.slice(1)}
@@ -330,36 +330,36 @@ export default function CustomerFeedbackDashboard() {
                 key={item.id}
                 onClick={() => setSelectedFeedback(selectedFeedback?.id === item.id ? null : item)}
                 className={cn(
-                  "bg-zinc-900 border rounded-lg p-4 cursor-pointer transition-colors",
-                  selectedFeedback?.id === item.id ? "border-indigo-600" : "border-zinc-800 hover:border-zinc-700"
+                  "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
+                  selectedFeedback?.id === item.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start gap-3">
                   <div className="text-2xl shrink-0">{SENTIMENT_CONFIG[item.sentiment].emoji}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="font-medium text-white text-sm">{item.userName}</span>
+                      <span className="font-medium text-[var(--color-text-primary)] text-sm">{item.userName}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded", PLAN_CONFIG[item.plan].color)}>{item.plan.charAt(0).toUpperCase() + item.plan.slice(1)}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded border", SENTIMENT_CONFIG[item.sentiment].color, SENTIMENT_CONFIG[item.sentiment].bg)}>
                         NPS {item.npsScore}
                       </span>
-                      <span className="text-xs text-zinc-500">{CHANNEL_CONFIG[item.channel]} {item.channel}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{CHANNEL_CONFIG[item.channel]} {item.channel}</span>
                       <span className={cn("text-xs font-medium", CATEGORY_CONFIG[item.category].color)}>
                         {CATEGORY_CONFIG[item.category].emoji} {CATEGORY_CONFIG[item.category].label}
                       </span>
-                      <span className="ml-auto text-xs text-zinc-500">▲ {item.upvotes}</span>
+                      <span className="ml-auto text-xs text-[var(--color-text-muted)]">▲ {item.upvotes}</span>
                     </div>
-                    <p className={cn("text-sm", selectedFeedback?.id === item.id ? "text-zinc-200" : "text-zinc-400 line-clamp-2")}>
+                    <p className={cn("text-sm", selectedFeedback?.id === item.id ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] line-clamp-2")}>
                       {item.message}
                     </p>
                     {selectedFeedback?.id === item.id && (
                       <div className="mt-3 space-y-2" onClick={e => e.stopPropagation()}>
                         <div className="flex flex-wrap gap-1">
                           {item.tags.map(tag => (
-                            <span key={tag} className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">#{tag}</span>
+                            <span key={tag} className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]">#{tag}</span>
                           ))}
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-zinc-500">
+                        <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
                           <span>v{item.agentVersion}</span>
                           <span>{new Date(item.submittedAt).toLocaleString()}</span>
                           {item.resolved && <span className="text-emerald-400">✅ Resolved</span>}
@@ -377,8 +377,8 @@ export default function CustomerFeedbackDashboard() {
       {/* NPS Trend */}
       {tab === "nps-trend" && (
         <div className="space-y-5">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <div className="text-sm font-semibold text-zinc-300 mb-5">NPS Score Trend (6 months)</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-5">NPS Score Trend (6 months)</div>
             {/* Bar chart */}
             <div className="flex items-end gap-4 h-40 mb-3">
               {NPS_HISTORY.map(survey => {
@@ -386,21 +386,21 @@ export default function CustomerFeedbackDashboard() {
                 const color = survey.score >= 50 ? "bg-emerald-500" : survey.score >= 30 ? "bg-indigo-500" : survey.score >= 0 ? "bg-amber-500" : "bg-rose-500";
                 return (
                   <div key={survey.month} className="flex-1 flex flex-col items-center gap-1">
-                    <div className="text-xs text-zinc-400 font-medium">{survey.score}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] font-medium">{survey.score}</div>
                     <div className={cn("w-full rounded-t", color)} style={{ height: `${h}%` }} />
-                    <div className="text-xs text-zinc-600 text-center" style={{ fontSize: "10px" }}>{survey.month}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] text-center" style={{ fontSize: "10px" }}>{survey.month}</div>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
+                <tr className="border-b border-[var(--color-border)]">
                   {["Month", "NPS Score", "Responses", "Promoters", "Passives", "Detractors"].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">{h}</th>
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -409,8 +409,8 @@ export default function CustomerFeedbackDashboard() {
                   const prev = NPS_HISTORY[i - 1];
                   const change = prev ? survey.score - prev.score : 0;
                   return (
-                    <tr key={survey.month} className={cn("border-b border-zinc-800/50", i === NPS_HISTORY.length - 1 ? "bg-zinc-800/20" : "")}>
-                      <td className="px-4 py-3 font-medium text-white">{survey.month}</td>
+                    <tr key={survey.month} className={cn("border-b border-[var(--color-border)]/50", i === NPS_HISTORY.length - 1 ? "bg-[var(--color-surface-2)]/20" : "")}>
+                      <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">{survey.month}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span className={cn("font-bold text-lg", survey.score >= 50 ? "text-emerald-400" : survey.score >= 30 ? "text-indigo-400" : "text-amber-400")}>
@@ -423,7 +423,7 @@ export default function CustomerFeedbackDashboard() {
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-zinc-400">{survey.responses}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">{survey.responses}</td>
                       <td className="px-4 py-3 text-emerald-400">{survey.promoters} ({Math.round(survey.promoters/survey.responses*100)}%)</td>
                       <td className="px-4 py-3 text-amber-400">{survey.passives} ({Math.round(survey.passives/survey.responses*100)}%)</td>
                       <td className="px-4 py-3 text-rose-400">{survey.detractors} ({Math.round(survey.detractors/survey.responses*100)}%)</td>
@@ -440,21 +440,21 @@ export default function CustomerFeedbackDashboard() {
       {tab === "insights" && (
         <div className="space-y-4">
           {/* Top themes */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <div className="text-sm font-semibold text-zinc-300 mb-4">🔥 Most Upvoted Feedback</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">🔥 Most Upvoted Feedback</div>
             {FEEDBACK.toSorted((a, b) => b.upvotes - a.upvotes).slice(0, 5).map((item, i) => (
-              <div key={item.id} className="flex items-start gap-3 mb-4 pb-4 border-b border-zinc-800/50 last:border-0 last:mb-0 last:pb-0">
-                <div className="text-zinc-600 font-bold text-lg w-6 shrink-0">#{i + 1}</div>
+              <div key={item.id} className="flex items-start gap-3 mb-4 pb-4 border-b border-[var(--color-border)]/50 last:border-0 last:mb-0 last:pb-0">
+                <div className="text-[var(--color-text-muted)] font-bold text-lg w-6 shrink-0">#{i + 1}</div>
                 <div className="text-2xl shrink-0">{SENTIMENT_CONFIG[item.sentiment].emoji}</div>
                 <div className="flex-1">
-                  <div className="text-sm text-zinc-300 mb-1">"{item.message.slice(0, 100)}..."</div>
-                  <div className="flex items-center gap-2 text-xs text-zinc-500">
+                  <div className="text-sm text-[var(--color-text-primary)] mb-1">"{item.message.slice(0, 100)}..."</div>
+                  <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
                     <span>{item.userName}</span>
                     <span>·</span>
                     <span className={cn(PLAN_CONFIG[item.plan].color.split(" ")[0])}>{item.plan}</span>
                     <span>·</span>
                     <span>{CATEGORY_CONFIG[item.category].emoji} {CATEGORY_CONFIG[item.category].label}</span>
-                    <span className="ml-auto text-zinc-400 font-medium">▲ {item.upvotes} upvotes</span>
+                    <span className="ml-auto text-[var(--color-text-secondary)] font-medium">▲ {item.upvotes} upvotes</span>
                   </div>
                 </div>
               </div>
@@ -468,10 +468,10 @@ export default function CustomerFeedbackDashboard() {
               <div key={item.id} className="flex items-start gap-3 mb-3">
                 <span className="text-rose-400 font-bold text-sm w-6 shrink-0">!</span>
                 <div>
-                  <div className="text-sm text-zinc-300">
+                  <div className="text-sm text-[var(--color-text-primary)]">
                     <strong>{CATEGORY_CONFIG[item.category].label}:</strong> {item.message.slice(0, 80)}...
                   </div>
-                  <div className="text-xs text-zinc-500 mt-0.5">
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
                     {item.userName} · NPS {item.npsScore} · {item.upvotes} upvotes
                   </div>
                 </div>

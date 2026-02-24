@@ -83,7 +83,7 @@ const SOURCE_STATS: SourceStats[] = [
 ];
 
 const levelColor: Record<LogLevel, string> = {
-  DEBUG: "text-zinc-500",
+  DEBUG: "text-[var(--color-text-muted)]",
   INFO:  "text-sky-400",
   WARN:  "text-amber-400",
   ERROR: "text-rose-400",
@@ -91,7 +91,7 @@ const levelColor: Record<LogLevel, string> = {
 };
 
 const levelBg: Record<LogLevel, string> = {
-  DEBUG: "bg-zinc-700/30 border-zinc-700/50",
+  DEBUG: "bg-[var(--color-surface-3)]/30 border-[var(--color-border)]/50",
   INFO:  "bg-sky-500/10 border-sky-500/20",
   WARN:  "bg-amber-500/10 border-amber-500/20",
   ERROR: "bg-rose-500/10 border-rose-500/30",
@@ -99,7 +99,7 @@ const levelBg: Record<LogLevel, string> = {
 };
 
 const levelBadge: Record<LogLevel, string> = {
-  DEBUG: "bg-zinc-700 text-zinc-400",
+  DEBUG: "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
   INFO:  "bg-sky-500/15 text-sky-400",
   WARN:  "bg-amber-500/15 text-amber-400",
   ERROR: "bg-rose-500/15 text-rose-400",
@@ -127,20 +127,20 @@ export default function LogAggregatorView() {
   const warnCount = LOGS.filter(l => l.level === "WARN").length;
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-white">Log Aggregator</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">{SOURCE_STATS.length} sources · Real-time log streaming</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Log Aggregator</h1>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{SOURCE_STATS.length} sources · Real-time log streaming</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5">
               {(["1h", "6h", "24h", "7d"] as TimeRange[]).map(t => (
                 <button key={t} onClick={() => setTimeRange(t)}
                   className={cn("px-2 py-1 rounded text-xs font-mono transition-colors",
-                    timeRange === t ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                    timeRange === t ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}>
                   {t}
                 </button>
               ))}
@@ -150,14 +150,14 @@ export default function LogAggregatorView() {
         {/* Stats */}
         <div className="flex gap-4 mt-3">
           {[
-            { label: "Total Logs", value: LOGS.length.toLocaleString(), color: "text-zinc-300" },
+            { label: "Total Logs", value: LOGS.length.toLocaleString(), color: "text-[var(--color-text-primary)]" },
             { label: "Errors", value: errorCount, color: errorCount > 0 ? "text-rose-400" : "text-emerald-400" },
-            { label: "Warnings", value: warnCount, color: warnCount > 0 ? "text-amber-400" : "text-zinc-300" },
+            { label: "Warnings", value: warnCount, color: warnCount > 0 ? "text-amber-400" : "text-[var(--color-text-primary)]" },
             { label: "Ingestion Rate", value: "~25K/min", color: "text-sky-400" },
           ].map(s => (
             <div key={s.label}>
               <span className={cn("text-base font-bold", s.color)}>{s.value}</span>
-              <span className="text-zinc-500 text-xs ml-1.5">{s.label}</span>
+              <span className="text-[var(--color-text-muted)] text-xs ml-1.5">{s.label}</span>
             </div>
           ))}
         </div>
@@ -167,13 +167,13 @@ export default function LogAggregatorView() {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search logs, trace IDs, messages..."
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
+            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
           />
           <div className="flex gap-1">
             {(["stream", "volume", "sources", "saved"] as const).map(t => (
               <button key={t} onClick={() => setTab(t)}
                 className={cn("px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors",
-                  tab === t ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800")}>
+                  tab === t ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]")}>
                 {t.charAt(0).toUpperCase() + t.slice(1)}
               </button>
             ))}
@@ -186,23 +186,23 @@ export default function LogAggregatorView() {
         {tab === "stream" && (
           <div className="flex flex-col h-full">
             {/* Filters */}
-            <div className="flex-none px-4 py-2 border-b border-zinc-800 flex flex-wrap gap-2">
+            <div className="flex-none px-4 py-2 border-b border-[var(--color-border)] flex flex-wrap gap-2">
               <div className="flex items-center gap-1">
-                <span className="text-[10px] text-zinc-500">Level:</span>
+                <span className="text-[10px] text-[var(--color-text-muted)]">Level:</span>
                 {(["all", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"] as const).map(l => (
                   <button key={l} onClick={() => setLevelFilter(l)}
                     className={cn("px-2 py-0.5 rounded text-[10px] transition-colors",
-                      levelFilter === l ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                      levelFilter === l ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}>
                     {l}
                   </button>
                 ))}
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-[10px] text-zinc-500">Source:</span>
+                <span className="text-[10px] text-[var(--color-text-muted)]">Source:</span>
                 <select
                   value={sourceFilter}
                   onChange={e => setSourceFilter(e.target.value as "all" | LogSource)}
-                  className="bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-[10px] text-zinc-300 focus:outline-none"
+                  className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-1.5 py-0.5 text-[10px] text-[var(--color-text-primary)] focus:outline-none"
                 >
                   <option value="all">all</option>
                   {(["api-gateway", "user-service", "auth-service", "billing-service", "worker", "scheduler"] as LogSource[]).map(s => (
@@ -214,28 +214,28 @@ export default function LogAggregatorView() {
             {/* Log stream */}
             <div className="flex-1 overflow-y-auto font-mono text-[11px]">
               {filtered.map(log => (
-                <div key={log.id} className={cn("border-b border-zinc-800/50 hover:bg-zinc-900/50 transition-colors cursor-pointer", levelBg[log.level])}
+                <div key={log.id} className={cn("border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-1)]/50 transition-colors cursor-pointer", levelBg[log.level])}
                   onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}>
                   <div className="flex items-start gap-3 px-4 py-2">
-                    <span className="text-zinc-600 flex-none w-20">{log.timestamp}</span>
+                    <span className="text-[var(--color-text-muted)] flex-none w-20">{log.timestamp}</span>
                     <span className={cn("flex-none px-1.5 py-0.5 rounded text-[9px] font-bold w-11 text-center", levelBadge[log.level])}>{log.level}</span>
                     <span className="text-indigo-400 flex-none w-24 truncate">{log.source}</span>
                     <span className={cn("flex-1 min-w-0 truncate", levelColor[log.level])}>{log.message}</span>
-                    <span className="text-zinc-700 flex-none">{log.traceId}</span>
+                    <span className="text-[var(--color-text-muted)] flex-none">{log.traceId}</span>
                   </div>
                   {expandedLog === log.id && (
-                    <div className="px-4 pb-3 pt-1 bg-zinc-900/80">
-                      <div className="bg-zinc-950 rounded-lg p-3 border border-zinc-800">
-                        <div className="text-[10px] text-zinc-500 mb-2">Fields</div>
+                    <div className="px-4 pb-3 pt-1 bg-[var(--color-surface-1)]/80">
+                      <div className="bg-[var(--color-surface-0)] rounded-lg p-3 border border-[var(--color-border)]">
+                        <div className="text-[10px] text-[var(--color-text-muted)] mb-2">Fields</div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                           {Object.entries(log.fields).map(([k, v]) => (
                             <div key={k} className="flex items-center gap-2">
                               <span className="text-indigo-400">{k}:</span>
-                              <span className="text-zinc-300">{String(v)}</span>
+                              <span className="text-[var(--color-text-primary)]">{String(v)}</span>
                             </div>
                           ))}
-                          <div className="flex items-center gap-2"><span className="text-indigo-400">trace_id:</span><span className="text-zinc-300">{log.traceId}</span></div>
-                          <div className="flex items-center gap-2"><span className="text-indigo-400">span_id:</span><span className="text-zinc-300">{log.spanId}</span></div>
+                          <div className="flex items-center gap-2"><span className="text-indigo-400">trace_id:</span><span className="text-[var(--color-text-primary)]">{log.traceId}</span></div>
+                          <div className="flex items-center gap-2"><span className="text-indigo-400">span_id:</span><span className="text-[var(--color-text-primary)]">{log.spanId}</span></div>
                         </div>
                       </div>
                     </div>
@@ -243,7 +243,7 @@ export default function LogAggregatorView() {
                 </div>
               ))}
               {filtered.length === 0 && (
-                <div className="flex items-center justify-center h-full text-zinc-600 text-sm">No logs match your filters</div>
+                <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">No logs match your filters</div>
               )}
             </div>
           </div>
@@ -252,22 +252,22 @@ export default function LogAggregatorView() {
         {/* Volume Tab */}
         {tab === "volume" && (
           <div className="overflow-y-auto h-full p-5">
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 mb-4">
-              <div className="text-sm font-medium text-zinc-300 mb-4">Log Volume by Level (last {timeRange})</div>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)] mb-4">
+              <div className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Log Volume by Level (last {timeRange})</div>
               <div className="flex items-end gap-2 h-48">
                 {VOLUME.map(v => {
                   const total = v.debug + v.info + v.warn + v.error + v.fatal;
                   return (
                     <div key={v.time} className="flex-1 flex flex-col items-center gap-1">
-                      <div className="text-[9px] text-zinc-600">{(total / 1000).toFixed(0)}K</div>
+                      <div className="text-[9px] text-[var(--color-text-muted)]">{(total / 1000).toFixed(0)}K</div>
                       <div className="w-full flex flex-col-reverse rounded overflow-hidden gap-px" style={{ height: `${(total / maxVolume) * 180}px` }}>
                         {v.fatal > 0 && <div className="bg-rose-300" style={{ flex: v.fatal }} />}
                         {v.error > 0 && <div className="bg-rose-500" style={{ flex: v.error }} />}
                         {v.warn > 0 && <div className="bg-amber-500" style={{ flex: v.warn }} />}
                         {v.info > 0 && <div className="bg-sky-500" style={{ flex: v.info }} />}
-                        {v.debug > 0 && <div className="bg-zinc-600" style={{ flex: v.debug }} />}
+                        {v.debug > 0 && <div className="bg-[var(--color-surface-3)]" style={{ flex: v.debug }} />}
                       </div>
-                      <div className="text-[9px] text-zinc-600">{v.time}</div>
+                      <div className="text-[9px] text-[var(--color-text-muted)]">{v.time}</div>
                     </div>
                   );
                 })}
@@ -278,11 +278,11 @@ export default function LogAggregatorView() {
                   { label: "ERROR", color: "bg-rose-500" },
                   { label: "WARN", color: "bg-amber-500" },
                   { label: "INFO", color: "bg-sky-500" },
-                  { label: "DEBUG", color: "bg-zinc-600" },
+                  { label: "DEBUG", color: "bg-[var(--color-surface-3)]" },
                 ].map(l => (
                   <div key={l.label} className="flex items-center gap-1.5">
                     <div className={cn("w-2 h-2 rounded-sm", l.color)} />
-                    <span className="text-zinc-500">{l.label}</span>
+                    <span className="text-[var(--color-text-muted)]">{l.label}</span>
                   </div>
                 ))}
               </div>
@@ -295,27 +295,27 @@ export default function LogAggregatorView() {
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-3">
               {SOURCE_STATS.toSorted((a, b) => b.total - a.total).map(ss => (
-                <div key={ss.source} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                <div key={ss.source} className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="font-mono text-sm font-medium text-white">{ss.source}</div>
+                    <div className="font-mono text-sm font-medium text-[var(--color-text-primary)]">{ss.source}</div>
                     <div className="flex items-center gap-4 text-xs">
                       <div>
                         <span className={cn("font-semibold", ss.errorRate > 2 ? "text-rose-400" : ss.errorRate > 0.5 ? "text-amber-400" : "text-emerald-400")}>{ss.errorRate}%</span>
-                        <span className="text-zinc-600 ml-1">errors</span>
+                        <span className="text-[var(--color-text-muted)] ml-1">errors</span>
                       </div>
                       <div>
                         <span className={cn("font-semibold", ss.trend > 10 ? "text-rose-400" : ss.trend > 0 ? "text-amber-400" : "text-emerald-400")}>
                           {ss.trend > 0 ? "↑" : "↓"}{Math.abs(ss.trend)}%
                         </span>
-                        <span className="text-zinc-600 ml-1">trend</span>
+                        <span className="text-[var(--color-text-muted)] ml-1">trend</span>
                       </div>
-                      <div className="text-white font-semibold">{ss.total.toLocaleString()}</div>
+                      <div className="text-[var(--color-text-primary)] font-semibold">{ss.total.toLocaleString()}</div>
                     </div>
                   </div>
-                  <div className="w-full bg-zinc-800 rounded-full h-1.5">
+                  <div className="w-full bg-[var(--color-surface-2)] rounded-full h-1.5">
                     <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${(ss.total / maxSourceTotal) * 100}%` }} />
                   </div>
-                  <div className="mt-1.5 w-full bg-zinc-800 rounded-full h-1">
+                  <div className="mt-1.5 w-full bg-[var(--color-surface-2)] rounded-full h-1">
                     <div className="bg-rose-500 h-1 rounded-full" style={{ width: `${ss.errorRate * 10}%` }} />
                   </div>
                 </div>
@@ -328,24 +328,24 @@ export default function LogAggregatorView() {
         {tab === "saved" && (
           <div className="overflow-y-auto h-full p-5">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-sm font-medium text-zinc-300">Saved Searches</h2>
+              <h2 className="text-sm font-medium text-[var(--color-text-primary)]">Saved Searches</h2>
               <button className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium transition-colors">Save Current</button>
             </div>
             <div className="space-y-2">
               {SAVED_SEARCHES.map(ss => (
-                <div key={ss.id} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 hover:border-zinc-700 transition-colors">
+                <div key={ss.id} className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)] hover:border-[var(--color-border)] transition-colors">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-white text-sm">{ss.name}</span>
+                    <span className="font-medium text-[var(--color-text-primary)] text-sm">{ss.name}</span>
                     <div className="flex gap-2">
                       <button onClick={() => setQuery(ss.query)}
                         className="px-2.5 py-1 rounded text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 transition-colors">
                         Load
                       </button>
-                      <button className="px-2.5 py-1 rounded text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors">Delete</button>
+                      <button className="px-2.5 py-1 rounded text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] transition-colors">Delete</button>
                     </div>
                   </div>
-                  <div className="mt-2 font-mono text-[11px] bg-zinc-950 rounded px-2.5 py-1.5 border border-zinc-800 text-emerald-400">{ss.query}</div>
-                  <div className="mt-1.5 text-[10px] text-zinc-600">Saved by {ss.createdBy} · {ss.createdAt}</div>
+                  <div className="mt-2 font-mono text-[11px] bg-[var(--color-surface-0)] rounded px-2.5 py-1.5 border border-[var(--color-border)] text-emerald-400">{ss.query}</div>
+                  <div className="mt-1.5 text-[10px] text-[var(--color-text-muted)]">Saved by {ss.createdBy} · {ss.createdAt}</div>
                 </div>
               ))}
             </div>

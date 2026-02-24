@@ -79,7 +79,7 @@ const MOCK_CONVERSATIONS: Conversation[] = [
       {
         id: "msg-4",
         role: "assistant",
-        content: "Icon buttons follow the same principles but with slight tweaks:\n\n- **Scale**: Same `scale-95` on active\n- **Background**: Subtle `bg-zinc-800` on hover/active (vs transparent for text buttons)\n- **Focus ring**: Still essential—use `focus-visible:ring-2 focus-visible:ring-indigo-500`\n\nThe main difference is visual weight. Icon buttons need a slightly larger hit area to meet accessibility standards (44x44px minimum).",
+        content: "Icon buttons follow the same principles but with slight tweaks:\n\n- **Scale**: Same `scale-95` on active\n- **Background**: Subtle `bg-[var(--color-surface-2)]` on hover/active (vs transparent for text buttons)\n- **Focus ring**: Still essential—use `focus-visible:ring-2 focus-visible:ring-indigo-500`\n\nThe main difference is visual weight. Icon buttons need a slightly larger hit area to meet accessibility standards (44x44px minimum).",
         timestamp: "2026-02-22T09:03:15Z",
         tokenCount: 210,
         model: "claude-sonnet-4-6",
@@ -110,7 +110,7 @@ const MOCK_CONVERSATIONS: Conversation[] = [
       {
         id: "msg-7",
         role: "assistant",
-        content: "For sidebar navigation items:\n\n```tsx\n// Hover\nbg-zinc-800/50 text-zinc-200\n\n// Active (current page)\nbg-zinc-800 text-white border-l-2 border-indigo-500\n\n// Focus (keyboard nav)\nfocus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset\n```\n\nThe left border indicator is crucial—it provides persistent position awareness that doesn't disappear when you move the mouse.",
+        content: "For sidebar navigation items:\n\n```tsx\n// Hover\nbg-[var(--color-surface-2)]/50 text-[var(--color-text-primary)]\n\n// Active (current page)\nbg-[var(--color-surface-2)] text-[var(--color-text-primary)] border-l-2 border-indigo-500\n\n// Focus (keyboard nav)\nfocus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset\n```\n\nThe left border indicator is crucial—it provides persistent position awareness that doesn't disappear when you move the mouse.",
         timestamp: "2026-02-22T09:06:30Z",
         tokenCount: 165,
         model: "claude-sonnet-4-6",
@@ -447,20 +447,20 @@ export default function AgentConversationViewer() {
   };
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-white font-sans selection:bg-indigo-500/30 overflow-hidden">
+    <div className="flex h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30 overflow-hidden">
       {/* Sidebar */}
       <aside
-        className="w-[320px] border-r border-zinc-800 flex flex-col bg-zinc-950 z-10"
+        className="w-[320px] border-r border-[var(--color-border)] flex flex-col bg-[var(--color-surface-0)] z-10"
         role="complementary"
         aria-label="Conversation list"
       >
-        <div className="p-4 border-b border-zinc-800 space-y-4">
+        <div className="p-4 border-b border-[var(--color-border)] space-y-4">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-semibold tracking-tight flex items-center gap-2">
               <span className="text-indigo-400">💬</span>
               Conversations
             </h1>
-            <span className="text-xs text-zinc-500 bg-zinc-900 px-2 py-0.5 rounded-full">
+            <span className="text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-1)] px-2 py-0.5 rounded-full">
               {filteredConversations.length}
             </span>
           </div>
@@ -468,7 +468,7 @@ export default function AgentConversationViewer() {
           {/* Search */}
           <div className="relative">
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -483,7 +483,7 @@ export default function AgentConversationViewer() {
             <input
               type="text"
               placeholder="Search prompts & responses..."
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-9 py-2 text-sm text-zinc-300 placeholder:text-zinc-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-all"
+              className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-9 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Search conversations"
@@ -492,7 +492,7 @@ export default function AgentConversationViewer() {
 
           {/* Status Filter */}
           <div className="space-y-2">
-            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+            <span className="text-[10px] text-[var(--color-text-muted)] font-bold uppercase tracking-widest">
               Status
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -504,8 +504,8 @@ export default function AgentConversationViewer() {
                     className={cn(
                       "px-2.5 py-1 rounded-md text-[11px] font-medium uppercase tracking-wider transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       statusFilter === status
-                        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
-                        : "bg-zinc-800/50 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                        ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20"
+                        : "bg-[var(--color-surface-2)]/50 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                     )}
                   >
                     {status}
@@ -517,7 +517,7 @@ export default function AgentConversationViewer() {
 
           {/* Agent Filter */}
           <div className="space-y-2">
-            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+            <span className="text-[10px] text-[var(--color-text-muted)] font-bold uppercase tracking-widest">
               Agent
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -526,8 +526,8 @@ export default function AgentConversationViewer() {
                 className={cn(
                   "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   agentFilter === "all"
-                    ? "bg-indigo-600 text-white"
-                    : "bg-zinc-800/50 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    : "bg-[var(--color-surface-2)]/50 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
                 All
@@ -539,8 +539,8 @@ export default function AgentConversationViewer() {
                   className={cn(
                     "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none flex items-center gap-1.5",
                     agentFilter === agent.id
-                      ? "bg-indigo-600 text-white"
-                      : "bg-zinc-800/50 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)]/50 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                   )}
                 >
                   <span>{agent.emoji}</span>
@@ -565,8 +565,8 @@ export default function AgentConversationViewer() {
                 className={cn(
                   "w-full text-left p-3 rounded-lg border transition-all group relative focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   selectedId === conv.id
-                    ? "bg-zinc-900 border-zinc-700 shadow-lg shadow-zinc-950/50"
-                    : "bg-transparent border-transparent hover:bg-zinc-900/50 hover:border-zinc-800"
+                    ? "bg-[var(--color-surface-1)] border-[var(--color-border)] shadow-lg shadow-zinc-950/50"
+                    : "bg-transparent border-transparent hover:bg-[var(--color-surface-1)]/50 hover:border-[var(--color-border)]"
                 )}
                 role="listitem"
                 aria-selected={selectedId === conv.id}
@@ -580,16 +580,16 @@ export default function AgentConversationViewer() {
                     >
                       {conv.agentEmoji}
                     </span>
-                    <span className="text-xs font-semibold text-zinc-400 truncate">
+                    <span className="text-xs font-semibold text-[var(--color-text-secondary)] truncate">
                       {conv.agentName}
                     </span>
                   </div>
                   <ConversationStatus status={conv.status} />
                 </div>
-                <h3 className="text-sm font-medium text-white mb-2 line-clamp-2 group-hover:text-indigo-400 transition-colors">
+                <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-2 line-clamp-2 group-hover:text-indigo-400 transition-colors">
                   {conv.title}
                 </h3>
-                <div className="flex items-center justify-between text-[10px] text-zinc-500 font-medium">
+                <div className="flex items-center justify-between text-[10px] text-[var(--color-text-muted)] font-medium">
                   <div className="flex gap-2">
                     <span className="flex items-center gap-1">
                       <svg
@@ -637,7 +637,7 @@ export default function AgentConversationViewer() {
                     {conv.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
-                        className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-500 uppercase tracking-wider"
+                        className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-muted)] uppercase tracking-wider"
                       >
                         {tag}
                       </span>
@@ -651,10 +651,10 @@ export default function AgentConversationViewer() {
             ))
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center text-2xl mb-3">
+              <div className="w-12 h-12 rounded-full bg-[var(--color-surface-1)] flex items-center justify-center text-2xl mb-3">
                 🔍
               </div>
-              <p className="text-sm text-zinc-500">No conversations found</p>
+              <p className="text-sm text-[var(--color-text-muted)]">No conversations found</p>
               <button
                 onClick={() => {
                   setSearchQuery("");
@@ -672,24 +672,24 @@ export default function AgentConversationViewer() {
 
       {/* Main Content */}
       <main
-        className="flex-1 flex flex-col min-w-0 bg-zinc-950"
+        className="flex-1 flex flex-col min-w-0 bg-[var(--color-surface-0)]"
         role="main"
         aria-label="Conversation details"
       >
         {selectedConversation ? (
           <>
             {/* Header */}
-            <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-6 bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-10">
+            <header className="h-16 border-b border-[var(--color-border)] flex items-center justify-between px-6 bg-[var(--color-surface-0)]/80 backdrop-blur-sm sticky top-0 z-10">
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xl shadow-inner">
+                <div className="w-10 h-10 rounded-full bg-[var(--color-surface-1)] border border-[var(--color-border)] flex items-center justify-center text-xl shadow-inner">
                   {selectedConversation.agentEmoji}
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-sm font-bold text-white truncate">
+                  <h2 className="text-sm font-bold text-[var(--color-text-primary)] truncate">
                     {selectedConversation.title}
                   </h2>
-                  <div className="flex items-center gap-2 text-[11px] text-zinc-500">
-                    <span className="font-semibold text-zinc-400 uppercase tracking-wide">
+                  <div className="flex items-center gap-2 text-[11px] text-[var(--color-text-muted)]">
+                    <span className="font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide">
                       {selectedConversation.agentName}
                     </span>
                     <span>•</span>
@@ -697,7 +697,7 @@ export default function AgentConversationViewer() {
                     {selectedConversation.model && (
                       <>
                         <span>•</span>
-                        <span className="font-mono text-zinc-600">
+                        <span className="font-mono text-[var(--color-text-muted)]">
                           {selectedConversation.model}
                         </span>
                       </>
@@ -708,10 +708,10 @@ export default function AgentConversationViewer() {
 
               <div className="flex items-center gap-3">
                 <div className="hidden md:flex flex-col items-end mr-2">
-                  <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">
+                  <span className="text-[10px] text-[var(--color-text-muted)] uppercase font-bold tracking-widest">
                     Total Tokens
                   </span>
-                  <span className="text-xs font-mono text-zinc-300">
+                  <span className="text-xs font-mono text-[var(--color-text-primary)]">
                     {selectedConversation.totalTokens.toLocaleString()}
                   </span>
                 </div>
@@ -762,23 +762,23 @@ export default function AgentConversationViewer() {
                             ? "text-emerald-400"
                             : msg.role === "tool"
                             ? "text-amber-400"
-                            : "text-zinc-500"
+                            : "text-[var(--color-text-muted)]"
                         )}
                       >
                         {msg.role === "tool" && msg.toolCalls?.[0]
                           ? msg.toolCalls[0].name
                           : msg.role}
                       </span>
-                      <span className="text-[10px] text-zinc-600 font-mono">
+                      <span className="text-[10px] text-[var(--color-text-muted)] font-mono">
                         {formatTime(msg.timestamp)}
                       </span>
                       {msg.tokenCount && (
-                        <span className="text-[10px] text-zinc-600 font-mono">
+                        <span className="text-[10px] text-[var(--color-text-muted)] font-mono">
                           [{msg.tokenCount} tokens]
                         </span>
                       )}
                       {msg.model && (
-                        <span className="text-[9px] text-zinc-700 font-mono bg-zinc-900 px-1 rounded">
+                        <span className="text-[9px] text-[var(--color-text-muted)] font-mono bg-[var(--color-surface-1)] px-1 rounded">
                           {msg.model}
                         </span>
                       )}
@@ -789,12 +789,12 @@ export default function AgentConversationViewer() {
                       className={cn(
                         "px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm transition-all",
                         msg.role === "user"
-                          ? "bg-indigo-600 text-white rounded-tr-md"
+                          ? "bg-indigo-600 text-[var(--color-text-primary)] rounded-tr-md"
                           : msg.role === "assistant"
-                          ? "bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-tl-md"
+                          ? "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] border border-[var(--color-border)] rounded-tl-md"
                           : msg.role === "tool"
                           ? "bg-amber-900/10 text-amber-200/90 border border-amber-800/20 rounded-tl-md"
-                          : "bg-transparent text-zinc-500 italic text-xs text-center border-y border-zinc-900/50 py-3 w-full"
+                          : "bg-transparent text-[var(--color-text-muted)] italic text-xs text-center border-y border-[var(--color-border)]/50 py-3 w-full"
                       )}
                     >
                       <div>{displayContent}</div>
@@ -816,11 +816,11 @@ export default function AgentConversationViewer() {
                           return (
                             <div
                               key={tool.id}
-                              className="bg-zinc-900/50 border border-zinc-800 rounded-lg overflow-hidden"
+                              className="bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] rounded-lg overflow-hidden"
                             >
                               <button
                                 onClick={() => toggleToolDetails(tool.id)}
-                                className="w-full flex items-center justify-between px-3 py-2 text-xs font-mono text-amber-400 hover:bg-zinc-800/50 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+                                className="w-full flex items-center justify-between px-3 py-2 text-xs font-mono text-amber-400 hover:bg-[var(--color-surface-2)]/50 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
                                 aria-expanded={toolExpanded}
                               >
                                 <span className="flex items-center gap-2">
@@ -847,7 +847,7 @@ export default function AgentConversationViewer() {
                                 </span>
                                 <span className="flex items-center gap-2">
                                   {tool.durationMs && (
-                                    <span className="text-zinc-600">
+                                    <span className="text-[var(--color-text-muted)]">
                                       {tool.durationMs}ms
                                     </span>
                                   )}
@@ -870,21 +870,21 @@ export default function AgentConversationViewer() {
                                 </span>
                               </button>
                               {toolExpanded && (
-                                <div className="px-3 py-2 border-t border-zinc-800 space-y-2">
+                                <div className="px-3 py-2 border-t border-[var(--color-border)] space-y-2">
                                   <div>
-                                    <span className="text-[9px] text-zinc-600 uppercase font-bold tracking-widest">
+                                    <span className="text-[9px] text-[var(--color-text-muted)] uppercase font-bold tracking-widest">
                                       Arguments
                                     </span>
-                                    <pre className="text-[10px] font-mono text-zinc-400 bg-zinc-950 p-2 rounded mt-1 overflow-x-auto">
+                                    <pre className="text-[10px] font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-0)] p-2 rounded mt-1 overflow-x-auto">
                                       {tool.arguments}
                                     </pre>
                                   </div>
                                   {tool.output && (
                                     <div>
-                                      <span className="text-[9px] text-zinc-600 uppercase font-bold tracking-widest">
+                                      <span className="text-[9px] text-[var(--color-text-muted)] uppercase font-bold tracking-widest">
                                         Output
                                       </span>
-                                      <pre className="text-[10px] font-mono text-emerald-400 bg-zinc-950 p-2 rounded mt-1 overflow-x-auto">
+                                      <pre className="text-[10px] font-mono text-emerald-400 bg-[var(--color-surface-0)] p-2 rounded mt-1 overflow-x-auto">
                                         {tool.output}
                                       </pre>
                                     </div>
@@ -903,13 +903,13 @@ export default function AgentConversationViewer() {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-12 animate-in fade-in zoom-in duration-500">
-            <div className="w-24 h-24 rounded-3xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-5xl mb-6 shadow-2xl">
+            <div className="w-24 h-24 rounded-3xl bg-[var(--color-surface-1)] border border-[var(--color-border)] flex items-center justify-center text-5xl mb-6 shadow-2xl">
               💭
             </div>
-            <h2 className="text-xl font-bold text-white mb-2">
+            <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
               Select a conversation
             </h2>
-            <p className="text-zinc-500 max-w-md text-sm">
+            <p className="text-[var(--color-text-muted)] max-w-md text-sm">
               Browse agent conversations, explore prompt/response pairs, and analyze
               tool usage patterns. Use filters to narrow down by agent or status.
             </p>
@@ -980,7 +980,7 @@ function ConversationStatus({
     <div className="flex items-center gap-1.5">
       <span className={cn("w-2 h-2 rounded-full", color, shadow)} />
       {showLabel && (
-        <span className="text-[9px] uppercase font-black tracking-widest text-zinc-500">
+        <span className="text-[9px] uppercase font-black tracking-widest text-[var(--color-text-muted)]">
           {label}
         </span>
       )}

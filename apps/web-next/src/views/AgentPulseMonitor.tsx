@@ -191,7 +191,7 @@ const MOCK_EVENTS: ActivityEvent[] = [
 const STATUS_CONFIG: Record<AgentStatus, { label: string; color: string; bg: string; pulse: boolean; dot: string }> = {
   active:   { label: "Active",   color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/30", pulse: true,  dot: "bg-emerald-400" },
   busy:     { label: "Busy",     color: "text-violet-400",  bg: "bg-violet-500/10 border-violet-500/30",   pulse: true,  dot: "bg-violet-400" },
-  idle:     { label: "Idle",     color: "text-gray-400",    bg: "bg-gray-800/50 border-gray-700/30",       pulse: false, dot: "bg-gray-500" },
+  idle:     { label: "Idle",     color: "text-[var(--color-text-secondary)]",    bg: "bg-[var(--color-surface-2)]/50 border-[var(--color-border)]/30",       pulse: false, dot: "bg-[var(--color-surface-3)]" },
   sleeping: { label: "Sleeping", color: "text-blue-400",    bg: "bg-blue-500/10 border-blue-500/20",       pulse: false, dot: "bg-blue-400" },
   error:    { label: "Error",    color: "text-red-400",     bg: "bg-red-500/10 border-red-500/30",         pulse: true,  dot: "bg-red-400" },
 };
@@ -202,7 +202,7 @@ const EVENT_ICONS: Record<ActivityEvent["type"], React.ReactNode> = {
   completion: <CheckCircle2 className="w-3 h-3 text-emerald-400" aria-hidden="true" />,
   error:      <AlertTriangle className="w-3 h-3 text-red-400" aria-hidden="true" />,
   spawn:      <Radio className="w-3 h-3 text-violet-400" aria-hidden="true" />,
-  heartbeat:  <Activity className="w-3 h-3 text-gray-400" aria-hidden="true" />,
+  heartbeat:  <Activity className="w-3 h-3 text-[var(--color-text-secondary)]" aria-hidden="true" />,
 };
 
 function formatUptime(seconds: number): string {
@@ -269,7 +269,7 @@ function AgentCard({ agent, selected, onClick }: { agent: PulseAgent; selected: 
         "w-full text-left rounded-xl border p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
         selected
           ? "bg-violet-600/10 border-violet-500/50 shadow-lg shadow-violet-500/10"
-          : cn("hover:border-gray-700", cfg.bg),
+          : cn("hover:border-[var(--color-border)]", cfg.bg),
       )}
     >
       {/* Header */}
@@ -280,7 +280,7 @@ function AgentCard({ agent, selected, onClick }: { agent: PulseAgent; selected: 
             {/* Status dot */}
             <span
               className={cn(
-                "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-gray-950",
+                "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-[var(--color-border)]",
                 cfg.dot,
                 cfg.pulse && "animate-pulse",
               )}
@@ -288,7 +288,7 @@ function AgentCard({ agent, selected, onClick }: { agent: PulseAgent; selected: 
           </div>
           <div className="min-w-0">
             <div className="font-semibold text-sm truncate">{agent.name}</div>
-            <div className="text-[10px] text-gray-500 truncate">{agent.role}</div>
+            <div className="text-[10px] text-[var(--color-text-muted)] truncate">{agent.role}</div>
           </div>
         </div>
         <span className={cn("text-[10px] font-semibold tracking-wide uppercase px-1.5 py-0.5 rounded flex-shrink-0", cfg.color)}>
@@ -297,8 +297,8 @@ function AgentCard({ agent, selected, onClick }: { agent: PulseAgent; selected: 
       </div>
 
       {/* Current task */}
-      <div className="text-xs text-gray-400 truncate mb-3 min-h-[1rem]">
-        {agent.currentTask ?? <span className="text-gray-600 italic">No active task</span>}
+      <div className="text-xs text-[var(--color-text-secondary)] truncate mb-3 min-h-[1rem]">
+        {agent.currentTask ?? <span className="text-[var(--color-text-muted)] italic">No active task</span>}
       </div>
 
       {/* Sparkline + stats row */}
@@ -308,13 +308,13 @@ function AgentCard({ agent, selected, onClick }: { agent: PulseAgent; selected: 
           color={agent.status === "error" ? "#f87171" : agent.status === "busy" ? "#a78bfa" : "#34d399"}
         />
         <div className="text-right flex-shrink-0">
-          <div className="text-xs font-mono text-gray-300">{formatTokens(agent.tokensUsed)}</div>
-          <div className="text-[10px] text-gray-600">{formatUptime(agent.uptime)} up</div>
+          <div className="text-xs font-mono text-[var(--color-text-primary)]">{formatTokens(agent.tokensUsed)}</div>
+          <div className="text-[10px] text-[var(--color-text-muted)]">{formatUptime(agent.uptime)} up</div>
         </div>
       </div>
 
       {/* Model badge */}
-      <div className="mt-2 text-[9px] font-mono text-gray-600 truncate">{agent.model}</div>
+      <div className="mt-2 text-[9px] font-mono text-[var(--color-text-muted)] truncate">{agent.model}</div>
     </button>
   );
 }
@@ -331,23 +331,23 @@ function AgentDetailPanel({ agent, allAgents }: { agent: PulseAgent; allAgents: 
       {/* Identity */}
       <div className="flex items-center gap-4">
         <div className="relative">
-          <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center text-3xl">
+          <div className="w-16 h-16 bg-[var(--color-surface-2)] rounded-2xl flex items-center justify-center text-3xl">
             {agent.emoji}
           </div>
-          <span className={cn("absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-gray-950", cfg.dot, cfg.pulse && "animate-pulse")} />
+          <span className={cn("absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--color-border)]", cfg.dot, cfg.pulse && "animate-pulse")} />
         </div>
         <div>
           <h2 className="text-xl font-bold">{agent.name}</h2>
-          <div className="text-sm text-gray-400">{agent.role}</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">{agent.role}</div>
           <div className={cn("text-xs font-semibold mt-1", cfg.color)}>{cfg.label}</div>
         </div>
       </div>
 
       {/* Current task */}
       {agent.currentTask && (
-        <div className="p-3 rounded-xl bg-gray-800/50 border border-gray-700/50">
-          <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Current Task</div>
-          <div className="text-sm text-gray-200">{agent.currentTask}</div>
+        <div className="p-3 rounded-xl bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50">
+          <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-bold mb-1">Current Task</div>
+          <div className="text-sm text-[var(--color-text-primary)]">{agent.currentTask}</div>
         </div>
       )}
 
@@ -359,17 +359,17 @@ function AgentDetailPanel({ agent, allAgents }: { agent: PulseAgent; allAgents: 
           { label: "Msg / min",      value: agent.messagesPerMin.toFixed(1),             icon: <MessageSquare className="w-4 h-4 text-blue-400" aria-hidden="true" /> },
           { label: "Error Rate",     value: `${(agent.errorRate * 100).toFixed(0)}%`,    icon: <AlertTriangle className="w-4 h-4 text-amber-400" aria-hidden="true" /> },
         ].map(stat => (
-          <div key={stat.label} className="p-3 bg-gray-800/40 rounded-xl border border-gray-800">
-            <div className="flex items-center gap-1.5 mb-1">{stat.icon}<div className="text-[10px] text-gray-500 uppercase tracking-wider">{stat.label}</div></div>
-            <div className="text-lg font-bold font-mono text-gray-100">{stat.value}</div>
+          <div key={stat.label} className="p-3 bg-[var(--color-surface-2)]/40 rounded-xl border border-[var(--color-border)]">
+            <div className="flex items-center gap-1.5 mb-1">{stat.icon}<div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">{stat.label}</div></div>
+            <div className="text-lg font-bold font-mono text-[var(--color-text-primary)]">{stat.value}</div>
           </div>
         ))}
       </div>
 
       {/* Activity graph */}
       <div>
-        <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Activity (last 20 ticks)</div>
-        <div className="h-16 bg-gray-900 rounded-xl border border-gray-800 flex items-end gap-0.5 px-3 py-2 overflow-hidden">
+        <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-bold mb-2">Activity (last 20 ticks)</div>
+        <div className="h-16 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] flex items-end gap-0.5 px-3 py-2 overflow-hidden">
           {agent.heartbeats.map((v, i) => (
             <div
               key={i}
@@ -387,24 +387,24 @@ function AgentDetailPanel({ agent, allAgents }: { agent: PulseAgent; allAgents: 
       {/* Relationships */}
       {(parentAgent || childAgents.length > 0) && (
         <div>
-          <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Relationships</div>
+          <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-bold mb-2">Relationships</div>
           <div className="space-y-2">
             {parentAgent && (
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-500 text-xs">Reports to</span>
+                <span className="text-[var(--color-text-muted)] text-xs">Reports to</span>
                 <span className="text-lg">{parentAgent.emoji}</span>
-                <span className="text-gray-300">{parentAgent.name}</span>
-                <span className="text-xs text-gray-600">{parentAgent.role}</span>
+                <span className="text-[var(--color-text-primary)]">{parentAgent.name}</span>
+                <span className="text-xs text-[var(--color-text-muted)]">{parentAgent.role}</span>
               </div>
             )}
             {childAgents.length > 0 && (
               <div className="flex items-start gap-2 text-sm">
-                <span className="text-gray-500 text-xs mt-0.5">Manages</span>
+                <span className="text-[var(--color-text-muted)] text-xs mt-0.5">Manages</span>
                 <div className="flex flex-wrap gap-1.5">
                   {childAgents.map(c => (
-                    <span key={c.id} className="flex items-center gap-1 px-2 py-0.5 bg-gray-800 rounded-full text-xs">
+                    <span key={c.id} className="flex items-center gap-1 px-2 py-0.5 bg-[var(--color-surface-2)] rounded-full text-xs">
                       <span>{c.emoji}</span>
-                      <span className="text-gray-300">{c.name}</span>
+                      <span className="text-[var(--color-text-primary)]">{c.name}</span>
                       <span className={cn("w-1.5 h-1.5 rounded-full", STATUS_CONFIG[c.status].dot)} />
                     </span>
                   ))}
@@ -416,12 +416,12 @@ function AgentDetailPanel({ agent, allAgents }: { agent: PulseAgent; allAgents: 
       )}
 
       {/* Model */}
-      <div className="p-3 bg-gray-900 rounded-xl border border-gray-800">
-        <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Model</div>
+      <div className="p-3 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)]">
+        <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-bold mb-1">Model</div>
         <div className="font-mono text-sm text-violet-300">{agent.model}</div>
       </div>
 
-      <div className="text-[10px] text-gray-600">Last activity: {agent.lastActivity}</div>
+      <div className="text-[10px] text-[var(--color-text-muted)]">Last activity: {agent.lastActivity}</div>
     </div>
   );
 }
@@ -486,9 +486,9 @@ export default function AgentPulseMonitor() {
   }, []);
 
   return (
-    <div className="h-full flex flex-col bg-gray-950 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-gray-800">
+      <div className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
@@ -501,7 +501,7 @@ export default function AgentPulseMonitor() {
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-400">Mission control — real-time agent activity and health</p>
+            <p className="text-sm text-[var(--color-text-secondary)]">Mission control — real-time agent activity and health</p>
           </div>
 
           {/* Status summary + live toggle */}
@@ -518,7 +518,7 @@ export default function AgentPulseMonitor() {
                   aria-pressed={statusFilter === s}
                   className={cn(
                     "flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
-                    statusFilter === s ? cn("font-bold", cfg.color, cfg.bg) : "text-gray-500 border-gray-800 hover:border-gray-700",
+                    statusFilter === s ? cn("font-bold", cfg.color, cfg.bg) : "text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-border)]",
                   )}
                 >
                   <span className={cn("w-1.5 h-1.5 rounded-full", cfg.dot)} />
@@ -535,7 +535,7 @@ export default function AgentPulseMonitor() {
                 "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
                 liveMode
                   ? "bg-violet-600/20 border-violet-500/40 text-violet-300 hover:bg-violet-600/30"
-                  : "border-gray-700 text-gray-400 hover:border-gray-600",
+                  : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]",
               )}
             >
               <Radio className="w-3 h-3" aria-hidden="true" />
@@ -548,7 +548,7 @@ export default function AgentPulseMonitor() {
       {/* Body */}
       <div className="flex-1 min-h-0 flex overflow-hidden">
         {/* Left: Agent grid */}
-        <div className="w-64 lg:w-72 xl:w-80 flex-shrink-0 flex flex-col border-r border-gray-800 overflow-hidden">
+        <div className="w-64 lg:w-72 xl:w-80 flex-shrink-0 flex flex-col border-r border-[var(--color-border)] overflow-hidden">
           <div className="flex-1 overflow-y-auto p-3 space-y-2" role="list" aria-label="Agent list">
             {filteredAgents.map(agent => (
               <div key={agent.id} role="listitem">
@@ -560,7 +560,7 @@ export default function AgentPulseMonitor() {
               </div>
             ))}
             {filteredAgents.length === 0 && (
-              <div className="text-center py-12 text-gray-600 text-sm">
+              <div className="text-center py-12 text-[var(--color-text-muted)] text-sm">
                 <Circle className="w-8 h-8 mx-auto mb-2 opacity-30" aria-hidden="true" />
                 No agents with status "{statusFilter}"
               </div>
@@ -570,9 +570,9 @@ export default function AgentPulseMonitor() {
 
         {/* Center: Activity feed */}
         <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-          <div className="flex-shrink-0 px-4 py-3 border-b border-gray-800 flex items-center justify-between">
-            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Activity Feed</h2>
-            <span className="text-[10px] text-gray-600">{events.length} events</span>
+          <div className="flex-shrink-0 px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+            <h2 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-widest">Activity Feed</h2>
+            <span className="text-[10px] text-[var(--color-text-muted)]">{events.length} events</span>
           </div>
           <div
             className="flex-1 overflow-y-auto p-4 space-y-1"
@@ -589,18 +589,18 @@ export default function AgentPulseMonitor() {
                   const agent = agents.find(a => a.id === ev.agentId);
                   if (agent) {handleSelectAgent(agent);}
                 }}
-                className="w-full flex items-start gap-2.5 p-2 rounded-lg hover:bg-gray-800/50 transition-colors group text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-violet-500/50"
+                className="w-full flex items-start gap-2.5 p-2 rounded-lg hover:bg-[var(--color-surface-2)]/50 transition-colors group text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-violet-500/50"
                 aria-label={`${ev.agentName}: ${ev.description}`}
               >
                 <span className="mt-0.5 flex-shrink-0">{EVENT_ICONS[ev.type]}</span>
                 <span className="text-lg flex-shrink-0 leading-none mt-0.5" aria-hidden="true">{ev.agentEmoji}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-1.5 flex-wrap">
-                    <span className="text-xs font-semibold text-gray-300 group-hover:text-white transition-colors">{ev.agentName}</span>
-                    <span className="text-xs text-gray-500 truncate flex-1">{ev.description}</span>
+                    <span className="text-xs font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-text-primary)] transition-colors">{ev.agentName}</span>
+                    <span className="text-xs text-[var(--color-text-muted)] truncate flex-1">{ev.description}</span>
                   </div>
                 </div>
-                <span className="text-[10px] text-gray-600 flex-shrink-0 font-mono">{formatTimestamp(ev.timestamp)}</span>
+                <span className="text-[10px] text-[var(--color-text-muted)] flex-shrink-0 font-mono">{formatTimestamp(ev.timestamp)}</span>
               </button>
             ))}
           </div>
@@ -609,7 +609,7 @@ export default function AgentPulseMonitor() {
         {/* Right: Detail panel */}
         {selectedAgent && (
           <div
-            className="w-72 xl:w-80 flex-shrink-0 border-l border-gray-800 overflow-y-auto p-5"
+            className="w-72 xl:w-80 flex-shrink-0 border-l border-[var(--color-border)] overflow-y-auto p-5"
             aria-label={`${selectedAgent.name} details`}
           >
             <AgentDetailPanel agent={selectedAgent} allAgents={agents} />

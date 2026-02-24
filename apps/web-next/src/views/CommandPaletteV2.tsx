@@ -393,8 +393,8 @@ function CommandRow({ item, isSelected, query, onActivate, onHover }: CommandRow
       className={cn(
         'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors duration-150 group focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
         isSelected
-          ? 'bg-violet-600/20 text-white'
-          : 'text-zinc-300 hover:bg-zinc-800/60 hover:text-white'
+          ? 'bg-violet-600/20 text-[var(--color-text-primary)]'
+          : 'text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/60 hover:text-[var(--color-text-primary)]'
       )}
       aria-selected={isSelected}
     >
@@ -402,7 +402,7 @@ function CommandRow({ item, isSelected, query, onActivate, onHover }: CommandRow
       <span
         className={cn(
           'shrink-0 w-7 h-7 flex items-center justify-center rounded-md transition-colors',
-          isSelected ? 'text-violet-400' : 'text-zinc-500 group-hover:text-zinc-300'
+          isSelected ? 'text-violet-400' : 'text-[var(--color-text-muted)] group-hover:text-[var(--color-text-primary)]'
         )}
       >
         <Icon size={15} />
@@ -412,7 +412,7 @@ function CommandRow({ item, isSelected, query, onActivate, onHover }: CommandRow
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{highlightLabel(item.label)}</p>
         {item.description && (
-          <p className="text-xs text-zinc-500 truncate">{item.description}</p>
+          <p className="text-xs text-[var(--color-text-muted)] truncate">{item.description}</p>
         )}
       </div>
 
@@ -423,7 +423,7 @@ function CommandRow({ item, isSelected, query, onActivate, onHover }: CommandRow
             'shrink-0 text-[10px] px-1.5 py-0.5 rounded font-mono border',
             isSelected
               ? 'bg-violet-900/40 border-violet-700 text-violet-300'
-              : 'bg-zinc-800 border-zinc-700 text-zinc-400'
+              : 'bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)]'
           )}
         >
           {item.shortcut}
@@ -437,16 +437,16 @@ function CommandRow({ item, isSelected, query, onActivate, onHover }: CommandRow
 
 function CommandPaletteSkeleton() {
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-start pt-6 sm:pt-12 md:pt-16 pb-6 sm:pb-16 px-2 sm:px-4">
+    <div className="min-h-screen bg-[var(--color-surface-0)] flex flex-col items-center justify-start pt-6 sm:pt-12 md:pt-16 pb-6 sm:pb-16 px-2 sm:px-4">
       <div className="mb-6 text-center">
         <Skeleton variant="text" className="h-3 w-52 mx-auto" />
         <Skeleton variant="text" className="h-2.5 w-64 mx-auto mt-2" />
       </div>
       <div className="flex items-start gap-4 w-full max-w-[860px]">
         <div className="flex-1 w-full max-w-full sm:max-w-[640px]">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-2xl">
             {/* Search bar skeleton */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800">
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)]">
               <Skeleton variant="rect" className="w-4 h-4 rounded" />
               <Skeleton variant="rect" className="flex-1 h-5 rounded" />
               <Skeleton variant="rect" className="w-8 h-5 rounded" />
@@ -477,7 +477,7 @@ function CommandPaletteSkeleton() {
               ))}
             </div>
             {/* Footer skeleton */}
-            <div className="border-t border-zinc-800 px-4 py-2 flex items-center gap-4">
+            <div className="border-t border-[var(--color-border)] px-4 py-2 flex items-center gap-4">
               <Skeleton variant="text" className="h-2.5 w-20" />
               <Skeleton variant="text" className="h-2.5 w-16" />
               <Skeleton variant="text" className="h-2.5 w-14" />
@@ -489,7 +489,7 @@ function CommandPaletteSkeleton() {
         </div>
         {/* Sidebar skeleton — hidden on mobile */}
         <div className="shrink-0 w-48 hidden md:block space-y-3">
-          <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 space-y-3">
+          <div className="bg-[var(--color-surface-1)]/60 border border-[var(--color-border)] rounded-xl p-4 space-y-3">
             <Skeleton variant="text" className="h-2.5 w-20" />
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} variant="text" className="h-3 w-full" />
@@ -589,13 +589,13 @@ export default function CommandPaletteV2({ isLoading = false }: { isLoading?: bo
 
   // M9: responsive pass — full-screen on mobile, no floating modal
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-start pt-6 sm:pt-12 md:pt-16 pb-6 sm:pb-16 px-2 sm:px-4">
+    <div className="min-h-screen bg-[var(--color-surface-0)] flex flex-col items-center justify-start pt-6 sm:pt-12 md:pt-16 pb-6 sm:pb-16 px-2 sm:px-4">
       {/* Page label */}
       <div className="mb-6 text-center">
-        <p className="text-sm text-zinc-500 font-mono tracking-wide">
+        <p className="text-sm text-[var(--color-text-muted)] font-mono tracking-wide">
           ⌘K anywhere in the app opens this
         </p>
-        <p className="text-xs text-zinc-700 mt-1">
+        <p className="text-xs text-[var(--color-text-muted)] mt-1">
           Horizon M5 · Universal Command Palette · View #315
         </p>
       </div>
@@ -607,47 +607,47 @@ export default function CommandPaletteV2({ isLoading = false }: { isLoading?: bo
         <div className="flex-1 w-full max-w-full sm:max-w-[640px]">
           {isClosed ? (
             /* Closed state */
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center shadow-2xl">
-              <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-800 mx-auto mb-4">
-                <Search size={20} className="text-zinc-400" />
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-8 text-center shadow-2xl">
+              <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--color-surface-2)] mx-auto mb-4">
+                <Search size={20} className="text-[var(--color-text-secondary)]" />
               </div>
-              <p className="text-sm text-zinc-400 mb-1">Command palette closed</p>
-              <p className="text-xs text-zinc-600 mb-5">Press ⌘K or click below to reopen</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-1">Command palette closed</p>
+              <p className="text-xs text-[var(--color-text-muted)] mb-5">Press ⌘K or click below to reopen</p>
               <button
                 onClick={() => setIsClosed(false)}
-                className="px-4 py-2 bg-violet-600 hover:bg-violet-500 active:scale-95 text-white text-sm rounded-lg transition-all duration-150 font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="px-4 py-2 bg-violet-600 hover:bg-violet-500 active:scale-95 text-[var(--color-text-primary)] text-sm rounded-lg transition-all duration-150 font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               >
                 Reopen palette
               </button>
             </div>
           ) : (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-2xl">
 
               {/* Search bar */}
-              <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800">
-                <Search size={16} className="text-zinc-500 shrink-0" />
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)]">
+                <Search size={16} className="text-[var(--color-text-muted)] shrink-0" />
                 <input
                   ref={inputRef}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Type a command, view, or ask anything…"
-                  className="flex-1 bg-transparent text-white placeholder:text-zinc-600 text-sm outline-none"
+                  className="flex-1 bg-transparent text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] text-sm outline-none"
                   aria-label="Command search"
                 />
                 {/* Hint badges */}
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-500 font-mono">
+                  <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-muted)] font-mono">
                     ⌘K
                   </kbd>
-                  <span className="text-zinc-700 text-xs">·</span>
-                  <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-500 font-mono">
+                  <span className="text-[var(--color-text-muted)] text-xs">·</span>
+                  <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-muted)] font-mono">
                     Esc
                   </kbd>
                   {query && (
                     <button
                       onClick={() => setQuery('')}
-                      className="text-zinc-500 hover:text-white transition-colors ml-1"
+                      className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors ml-1"
                       aria-label="Clear"
                     >
                       <X size={13} />
@@ -658,12 +658,12 @@ export default function CommandPaletteV2({ isLoading = false }: { isLoading?: bo
 
               {/* NL intent badge */}
               {intent && (
-                <div className="px-4 py-2 border-b border-zinc-800/60 flex items-center gap-2">
+                <div className="px-4 py-2 border-b border-[var(--color-border)]/60 flex items-center gap-2">
                   <Brain size={13} className="text-violet-400 shrink-0" />
                   <span className="text-xs text-violet-300">
                     <span className="font-semibold">Intent:</span>{' '}
                     {intent.label}
-                    <span className="text-zinc-500 mx-1">→</span>
+                    <span className="text-[var(--color-text-muted)] mx-1">→</span>
                     <span className="text-violet-200 font-medium">{intent.target}</span>
                   </span>
                 </div>
@@ -682,7 +682,7 @@ export default function CommandPaletteV2({ isLoading = false }: { isLoading?: bo
                   groupedItems.map(({ group, items }) => (
                     <div key={group} className="mb-1">
                       {/* Group header */}
-                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold text-zinc-600 uppercase tracking-widest flex items-center gap-1.5">
+                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-widest flex items-center gap-1.5">
                         {group === 'Recent' && (
                           <Clock size={9} className="opacity-60" />
                         )}
@@ -710,7 +710,7 @@ export default function CommandPaletteV2({ isLoading = false }: { isLoading?: bo
               </div>
 
               {/* Footer */}
-              <div className="border-t border-zinc-800 px-4 py-2 flex items-center gap-4 text-[10px] text-zinc-600">
+              <div className="border-t border-[var(--color-border)] px-4 py-2 flex items-center gap-4 text-[10px] text-[var(--color-text-muted)]">
                 <span>
                   <kbd className="font-mono mr-0.5">↑↓</kbd> navigate
                 </span>
@@ -730,8 +730,8 @@ export default function CommandPaletteV2({ isLoading = false }: { isLoading?: bo
 
         {/* ── NL examples sidebar ── M9: responsive pass — hidden on mobile */}
         <div className="shrink-0 w-48 hidden md:block">
-          <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4">
-            <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">
+          <div className="bg-[var(--color-surface-1)]/60 border border-[var(--color-border)] rounded-xl p-4">
+            <p className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-widest mb-3">
               Try typing…
             </p>
             <ul className="space-y-2">
@@ -745,23 +745,23 @@ export default function CommandPaletteV2({ isLoading = false }: { isLoading?: bo
                     }}
                     className="w-full text-left group"
                   >
-                    <span className="block text-xs text-zinc-400 group-hover:text-violet-300 transition-colors leading-snug italic">
+                    <span className="block text-xs text-[var(--color-text-secondary)] group-hover:text-violet-300 transition-colors leading-snug italic">
                       "{phrase}"
                     </span>
                   </button>
                 </li>
               ))}
             </ul>
-            <div className="mt-4 pt-3 border-t border-zinc-800">
-              <p className="text-[10px] text-zinc-700 leading-relaxed">
+            <div className="mt-4 pt-3 border-t border-[var(--color-border)]">
+              <p className="text-[10px] text-[var(--color-text-muted)] leading-relaxed">
                 Natural language phrases trigger 🧠 intent detection — no commands to memorize.
               </p>
             </div>
           </div>
 
           {/* Keyboard nav hint card */}
-          <div className="mt-3 bg-zinc-900/40 border border-zinc-800 rounded-xl p-4">
-            <p className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2">
+          <div className="mt-3 bg-[var(--color-surface-1)]/40 border border-[var(--color-border)] rounded-xl p-4">
+            <p className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-widest mb-2">
               Keys
             </p>
             <dl className="space-y-1.5">
@@ -772,10 +772,10 @@ export default function CommandPaletteV2({ isLoading = false }: { isLoading?: bo
                 { key: '⌘K', desc: 'Open' },
               ].map(({ key, desc }) => (
                 <div key={key} className="flex items-center justify-between gap-2">
-                  <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-400 font-mono">
+                  <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] font-mono">
                     {key}
                   </kbd>
-                  <span className="text-[10px] text-zinc-600">{desc}</span>
+                  <span className="text-[10px] text-[var(--color-text-muted)]">{desc}</span>
                 </div>
               ))}
             </dl>

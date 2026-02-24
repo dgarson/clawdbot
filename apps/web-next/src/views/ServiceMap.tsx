@@ -60,9 +60,9 @@ const STATUS_META: Record<ServiceStatus, { dot: string; label: string; badge: st
     badge: "bg-rose-400/10 text-rose-400 ring-rose-400/20",
   },
   unknown: {
-    dot: "bg-zinc-500",
+    dot: "bg-[var(--color-surface-3)]",
     label: "Unknown",
-    badge: "bg-zinc-500/10 text-zinc-400 ring-zinc-500/20",
+    badge: "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)] ring-zinc-500/20",
   },
 };
 
@@ -73,7 +73,7 @@ const KIND_META: Record<ServiceKind, { label: string; color: string }> = {
   database: { label: "Database", color: "bg-orange-500/10 text-orange-400 ring-orange-500/20" },
   cache: { label: "Cache", color: "bg-teal-500/10 text-teal-400 ring-teal-500/20" },
   queue: { label: "Queue", color: "bg-pink-500/10 text-pink-400 ring-pink-500/20" },
-  external: { label: "External", color: "bg-zinc-500/10 text-zinc-300 ring-zinc-500/20" },
+  external: { label: "External", color: "bg-[var(--color-surface-3)]/10 text-[var(--color-text-primary)] ring-zinc-500/20" },
 };
 
 const ALL_KINDS: ServiceKind[] = [
@@ -325,7 +325,7 @@ function FilterChip({
         "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors",
         active
           ? "bg-indigo-500/15 text-indigo-400 ring-1 ring-indigo-500/30"
-          : "bg-zinc-800 text-zinc-400 ring-1 ring-zinc-700 hover:bg-zinc-700 hover:text-zinc-200"
+          : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] ring-1 ring-[var(--color-border)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
       )}
     >
       {dot && (
@@ -386,16 +386,16 @@ function LatencyBar({ metrics, maxMs }: { metrics: ServiceMetric; maxMs: number 
         ] as const
       ).map((row) => (
         <div key={row.label} className="flex items-center gap-3">
-          <span className="w-7 shrink-0 text-[11px] font-mono text-zinc-500">
+          <span className="w-7 shrink-0 text-[11px] font-mono text-[var(--color-text-muted)]">
             {row.label}
           </span>
-          <div className="relative h-2 flex-1 rounded-full bg-zinc-800">
+          <div className="relative h-2 flex-1 rounded-full bg-[var(--color-surface-2)]">
             <div
               className={cn("absolute inset-y-0 left-0 rounded-full", row.color)}
               style={{ width: `${pct(row.value)}%` }}
             />
           </div>
-          <span className="w-14 shrink-0 text-right text-xs font-mono text-zinc-300">
+          <span className="w-14 shrink-0 text-right text-xs font-mono text-[var(--color-text-primary)]">
             {fmtMs(row.value)}
           </span>
         </div>
@@ -424,8 +424,8 @@ function ServiceRow({
       className={cn(
         "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
         selected
-          ? "bg-zinc-800 ring-1 ring-indigo-500/40"
-          : "hover:bg-zinc-800/60"
+          ? "bg-[var(--color-surface-2)] ring-1 ring-indigo-500/40"
+          : "hover:bg-[var(--color-surface-2)]/60"
       )}
     >
       {/* Status dot */}
@@ -440,12 +440,12 @@ function ServiceRow({
       {/* Name + kind */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="truncate text-sm font-medium text-white">
+          <span className="truncate text-sm font-medium text-[var(--color-text-primary)]">
             {service.name}
           </span>
           <KindBadge kind={service.kind} />
         </div>
-        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-zinc-500">
+        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-[var(--color-text-muted)]">
           <span className="font-mono">
             {fmtHostPort(service.host, service.port)}
           </span>
@@ -481,13 +481,13 @@ function DepLink({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-zinc-800"
+      className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-[var(--color-surface-2)]"
     >
       <span
         className={cn("h-2 w-2 rounded-full", statusMeta.dot)}
         aria-hidden="true"
       />
-      <span className="text-zinc-200">{service.name}</span>
+      <span className="text-[var(--color-text-primary)]">{service.name}</span>
       <KindBadge kind={service.kind} />
     </button>
   );
@@ -518,13 +518,13 @@ function DetailPanel({
   return (
     <div className="flex flex-col gap-4 overflow-y-auto">
       {/* Header */}
-      <div className="rounded-xl bg-zinc-900 ring-1 ring-zinc-800 p-5">
+      <div className="rounded-xl bg-[var(--color-surface-1)] ring-1 ring-zinc-800 p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
               {service.name}
             </h2>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[var(--color-text-secondary)]">
               <KindBadge kind={service.kind} />
               <span className="font-mono">{service.version}</span>
               <span>·</span>
@@ -540,16 +540,16 @@ function DetailPanel({
       </div>
 
       {/* Metrics card */}
-      <div className="rounded-xl bg-zinc-900 ring-1 ring-zinc-800 p-5 space-y-4">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+      <div className="rounded-xl bg-[var(--color-surface-1)] ring-1 ring-zinc-800 p-5 space-y-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
           Latency
         </h3>
         <LatencyBar metrics={service.metrics} maxMs={maxMs} />
 
         <div className="grid grid-cols-2 gap-3 pt-2">
           {/* Error rate */}
-          <div className="rounded-lg bg-zinc-800/60 p-3">
-            <p className="text-[11px] uppercase tracking-wider text-zinc-500">
+          <div className="rounded-lg bg-[var(--color-surface-2)]/60 p-3">
+            <p className="text-[11px] uppercase tracking-wider text-[var(--color-text-muted)]">
               Error Rate
             </p>
             <p
@@ -566,13 +566,13 @@ function DetailPanel({
             </p>
           </div>
           {/* RPS */}
-          <div className="rounded-lg bg-zinc-800/60 p-3">
-            <p className="text-[11px] uppercase tracking-wider text-zinc-500">
+          <div className="rounded-lg bg-[var(--color-surface-2)]/60 p-3">
+            <p className="text-[11px] uppercase tracking-wider text-[var(--color-text-muted)]">
               Throughput
             </p>
-            <p className="mt-1 text-xl font-semibold font-mono text-white">
+            <p className="mt-1 text-xl font-semibold font-mono text-[var(--color-text-primary)]">
               {fmtRps(service.metrics.rps)}{" "}
-              <span className="text-xs text-zinc-500 font-normal">rps</span>
+              <span className="text-xs text-[var(--color-text-muted)] font-normal">rps</span>
             </p>
           </div>
         </div>
@@ -580,10 +580,10 @@ function DetailPanel({
 
       {/* Dependencies */}
       {(outbound.length > 0 || inbound.length > 0) && (
-        <div className="rounded-xl bg-zinc-900 ring-1 ring-zinc-800 p-5 space-y-4">
+        <div className="rounded-xl bg-[var(--color-surface-1)] ring-1 ring-zinc-800 p-5 space-y-4">
           {outbound.length > 0 && (
             <div>
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">
                 Depends On ({outbound.length})
               </h3>
               <div className="flex flex-col gap-0.5">
@@ -600,7 +600,7 @@ function DetailPanel({
 
           {inbound.length > 0 && (
             <div>
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">
                 Depended On By ({inbound.length})
               </h3>
               <div className="flex flex-col gap-0.5">
@@ -618,11 +618,11 @@ function DetailPanel({
       )}
 
       {/* Description */}
-      <div className="rounded-xl bg-zinc-900 ring-1 ring-zinc-800 p-5">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+      <div className="rounded-xl bg-[var(--color-surface-1)] ring-1 ring-zinc-800 p-5">
+        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">
           Description
         </h3>
-        <p className="text-sm leading-relaxed text-zinc-300">
+        <p className="text-sm leading-relaxed text-[var(--color-text-primary)]">
           {service.description}
         </p>
       </div>
@@ -667,8 +667,8 @@ export default function ServiceMap() {
     <div className="flex h-full flex-col gap-4 p-6">
       {/* Page header */}
       <div>
-        <h1 className="text-xl font-semibold text-white">Service Map</h1>
-        <p className="mt-0.5 text-sm text-zinc-400">
+        <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">Service Map</h1>
+        <p className="mt-0.5 text-sm text-[var(--color-text-secondary)]">
           Topology, health, and latency across {SERVICES.length} services
         </p>
       </div>
@@ -684,11 +684,11 @@ export default function ServiceMap() {
             dot={f.value !== "all" ? STATUS_META[f.value].dot : undefined}
           >
             {f.label}
-            <span className="ml-0.5 text-zinc-500">{statusCounts[f.value]}</span>
+            <span className="ml-0.5 text-[var(--color-text-muted)]">{statusCounts[f.value]}</span>
           </FilterChip>
         ))}
 
-        <span className="mx-1 h-4 w-px bg-zinc-700" aria-hidden="true" />
+        <span className="mx-1 h-4 w-px bg-[var(--color-surface-3)]" aria-hidden="true" />
 
         {/* Kind filters */}
         <FilterChip
@@ -711,7 +711,7 @@ export default function ServiceMap() {
       {/* Body: list + detail */}
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(320px,420px)_1fr]">
         {/* Left: service list */}
-        <div className="rounded-xl bg-zinc-900 ring-1 ring-zinc-800 p-2 overflow-y-auto">
+        <div className="rounded-xl bg-[var(--color-surface-1)] ring-1 ring-zinc-800 p-2 overflow-y-auto">
           {filtered.length === 0 ? (
             <ContextualEmptyState
               icon={Network}

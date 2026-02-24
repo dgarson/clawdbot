@@ -210,7 +210,7 @@ function pbStatusBg(s: PlaybookStatus) {
   if (s === "active") {return "bg-emerald-400/10 text-emerald-400";}
   if (s === "draft") {return "bg-amber-400/10 text-amber-400";}
   if (s === "testing") {return "bg-indigo-400/10 text-indigo-400";}
-  return "bg-zinc-700 text-zinc-400";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 function stepTypeBg(t: StepType) {
   const m: Record<StepType, string> = {
@@ -219,7 +219,7 @@ function stepTypeBg(t: StepType) {
     notify: "bg-cyan-500/10 text-cyan-400",
     escalate: "bg-orange-500/10 text-orange-400",
     verify: "bg-emerald-500/10 text-emerald-400",
-    wait: "bg-zinc-700 text-zinc-400",
+    wait: "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
   };
   return m[t];
 }
@@ -227,8 +227,8 @@ function stepStateColor(s: StepState) {
   if (s === "done") {return "bg-emerald-500";}
   if (s === "running") {return "bg-indigo-500 animate-pulse";}
   if (s === "failed") {return "bg-rose-500";}
-  if (s === "skipped") {return "bg-zinc-600";}
-  return "bg-zinc-700";
+  if (s === "skipped") {return "bg-[var(--color-surface-3)]";}
+  return "bg-[var(--color-surface-3)]";
 }
 
 export default function IncidentResponsePlaybook() {
@@ -248,25 +248,25 @@ export default function IncidentResponsePlaybook() {
   });
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+      <div className="border-b border-[var(--color-border)] px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">Incident Response Playbooks</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Standardized response procedures for incidents across severity levels</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Standardized response procedures for incidents across severity levels</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="bg-indigo-500/10 text-indigo-400 text-xs px-2 py-1 rounded-full border border-indigo-500/30 animate-pulse">
             1 active run
           </span>
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
+          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">
             + New Playbook
           </button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-zinc-800 px-6">
+      <div className="border-b border-[var(--color-border)] px-6">
         <div className="flex gap-6">
           {(["playbooks", "active-runs", "history", "templates"] as const).map(t => (
             <button
@@ -274,12 +274,12 @@ export default function IncidentResponsePlaybook() {
               onClick={() => setTab(t)}
               className={cn(
                 "py-3 text-sm font-medium border-b-2 capitalize transition-colors",
-                tab === t ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200"
+                tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.replace("-", " ")}
               {t === "active-runs" && (
-                <span className="ml-1.5 bg-indigo-500 text-white text-xs px-1.5 rounded-full">1</span>
+                <span className="ml-1.5 bg-indigo-500 text-[var(--color-text-primary)] text-xs px-1.5 rounded-full">1</span>
               )}
             </button>
           ))}
@@ -290,20 +290,20 @@ export default function IncidentResponsePlaybook() {
         {/* PLAYBOOKS TAB */}
         {tab === "playbooks" && (
           <div className="flex h-full">
-            <div className="w-96 border-r border-zinc-800 flex flex-col">
-              <div className="p-4 border-b border-zinc-800 space-y-3">
+            <div className="w-96 border-r border-[var(--color-border)] flex flex-col">
+              <div className="p-4 border-b border-[var(--color-border)] space-y-3">
                 <input
                   type="text"
                   placeholder="Search playbooks..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full bg-zinc-800 text-sm rounded-lg px-3 py-2 text-zinc-200 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full bg-[var(--color-surface-2)] text-sm rounded-lg px-3 py-2 text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:ring-1 focus:ring-indigo-500"
                 />
                 <div className="flex gap-2">
                   <select
                     value={sevFilter}
                     onChange={e => setSevFilter(e.target.value as Severity | "all")}
-                    className="flex-1 bg-zinc-800 text-sm rounded-lg px-2 py-1.5 text-zinc-300 outline-none"
+                    className="flex-1 bg-[var(--color-surface-2)] text-sm rounded-lg px-2 py-1.5 text-[var(--color-text-primary)] outline-none"
                   >
                     <option value="all">All Severity</option>
                     <option value="critical">Critical</option>
@@ -314,7 +314,7 @@ export default function IncidentResponsePlaybook() {
                   <select
                     value={catFilter}
                     onChange={e => setCatFilter(e.target.value)}
-                    className="flex-1 bg-zinc-800 text-sm rounded-lg px-2 py-1.5 text-zinc-300 outline-none"
+                    className="flex-1 bg-[var(--color-surface-2)] text-sm rounded-lg px-2 py-1.5 text-[var(--color-text-primary)] outline-none"
                   >
                     <option value="all">All Categories</option>
                     {categories.map(c => (
@@ -329,19 +329,19 @@ export default function IncidentResponsePlaybook() {
                     key={pb.id}
                     onClick={() => setSelected(pb)}
                     className={cn(
-                      "w-full text-left px-4 py-3 border-b border-zinc-800 hover:bg-zinc-900 transition-colors",
-                      selected?.id === pb.id && "bg-zinc-900 border-l-2 border-l-indigo-500"
+                      "w-full text-left px-4 py-3 border-b border-[var(--color-border)] hover:bg-[var(--color-surface-1)] transition-colors",
+                      selected?.id === pb.id && "bg-[var(--color-surface-1)] border-l-2 border-l-indigo-500"
                     )}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-zinc-100 truncate">{pb.name}</span>
+                      <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{pb.name}</span>
                       <span className={cn("text-xs px-1.5 py-0.5 rounded-full ml-2 shrink-0", pbStatusBg(pb.status))}>{pb.status}</span>
                     </div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className={cn("text-xs px-1.5 py-0.5 rounded", sevBg(pb.severity))}>{pb.severity}</span>
-                      <span className="text-xs bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">{pb.category}</span>
+                      <span className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-1.5 py-0.5 rounded">{pb.category}</span>
                     </div>
-                    <div className="text-xs text-zinc-500">
+                    <div className="text-xs text-[var(--color-text-muted)]">
                       {pb.steps.length} steps · ~{pb.avgResolutionMinutes}min avg
                       {pb.totalRuns > 0 && <span className="ml-2 text-emerald-500">{pb.successRate.toFixed(0)}% success</span>}
                     </div>
@@ -355,17 +355,17 @@ export default function IncidentResponsePlaybook() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-5">
                     <div>
-                      <h2 className="text-xl font-semibold text-zinc-100">{selected.name} <span className="text-zinc-500 text-sm font-normal">v{selected.version}</span></h2>
-                      <p className="text-sm text-zinc-400 mt-1">{selected.description}</p>
+                      <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">{selected.name} <span className="text-[var(--color-text-muted)] text-sm font-normal">v{selected.version}</span></h2>
+                      <p className="text-sm text-[var(--color-text-secondary)] mt-1">{selected.description}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className={cn("text-xs px-2 py-0.5 rounded", sevBg(selected.severity))}>{selected.severity}</span>
                         <span className={cn("text-xs px-2 py-0.5 rounded-full", pbStatusBg(selected.status))}>{selected.status}</span>
-                        <span className="text-xs text-zinc-500">Owner: {selected.owner}</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">Owner: {selected.owner}</span>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">▶ Execute</button>
-                      <button className="bg-zinc-800 hover:bg-zinc-700 text-sm px-3 py-1.5 rounded-lg text-zinc-300 transition-colors">Edit</button>
+                      <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">▶ Execute</button>
+                      <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-sm px-3 py-1.5 rounded-lg text-[var(--color-text-primary)] transition-colors">Edit</button>
                     </div>
                   </div>
 
@@ -377,32 +377,32 @@ export default function IncidentResponsePlaybook() {
                       { label: "Success Rate", value: selected.totalRuns > 0 ? `${selected.successRate.toFixed(0)}%` : "N/A", color: "text-emerald-400" },
                       { label: "Avg Resolution", value: `~${selected.avgResolutionMinutes}m` },
                     ].map((s, i) => (
-                      <div key={i} className="bg-zinc-900 rounded-xl p-4">
-                        <div className={cn("text-xl font-bold", s.color || "text-zinc-100")}>{s.value}</div>
-                        <div className="text-xs text-zinc-500 mt-0.5">{s.label}</div>
+                      <div key={i} className="bg-[var(--color-surface-1)] rounded-xl p-4">
+                        <div className={cn("text-xl font-bold", s.color || "text-[var(--color-text-primary)]")}>{s.value}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{s.label}</div>
                       </div>
                     ))}
                   </div>
 
                   {/* Steps */}
-                  <div className="bg-zinc-900 rounded-xl p-5">
-                    <h3 className="text-sm font-medium text-zinc-300 mb-4">Response Steps</h3>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-5">
+                    <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Response Steps</h3>
                     <div className="space-y-1">
                       {selected.steps.map((step, i) => (
                         <div key={step.id} className="flex items-start gap-3">
                           <div className="flex flex-col items-center shrink-0">
-                            <div className="w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 text-xs flex items-center justify-center font-medium">{step.order}</div>
-                            {i < selected.steps.length - 1 && <div className="w-px bg-zinc-800 h-4 mt-1" />}
+                            <div className="w-6 h-6 rounded-full bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] text-xs flex items-center justify-center font-medium">{step.order}</div>
+                            {i < selected.steps.length - 1 && <div className="w-px bg-[var(--color-surface-2)] h-4 mt-1" />}
                           </div>
                           <div className="flex-1 pb-3">
                             <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-sm text-zinc-200">{step.title}</span>
+                              <span className="text-sm text-[var(--color-text-primary)]">{step.title}</span>
                               <span className={cn("text-xs px-1.5 py-0.5 rounded", stepTypeBg(step.type))}>{step.type}</span>
                               {step.requiredApproval && <span className="text-xs bg-amber-900/40 text-amber-400 px-1.5 py-0.5 rounded">approval</span>}
                               {step.automatable && <span className="text-xs bg-emerald-900/40 text-emerald-400 px-1.5 py-0.5 rounded">auto</span>}
                             </div>
-                            <p className="text-xs text-zinc-500">{step.description}</p>
-                            <div className="text-xs text-zinc-600 mt-0.5">Assigned: {step.assignedTo} · Est. {step.estimatedMinutes}m</div>
+                            <p className="text-xs text-[var(--color-text-muted)]">{step.description}</p>
+                            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Assigned: {step.assignedTo} · Est. {step.estimatedMinutes}m</div>
                           </div>
                         </div>
                       ))}
@@ -412,12 +412,12 @@ export default function IncidentResponsePlaybook() {
                   {/* Tags */}
                   <div className="mt-4 flex flex-wrap gap-2">
                     {selected.tags.map(tag => (
-                      <span key={tag} className="bg-zinc-800 text-zinc-400 text-xs px-2 py-0.5 rounded">{tag}</span>
+                      <span key={tag} className="bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] text-xs px-2 py-0.5 rounded">{tag}</span>
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-zinc-500">
+                <div className="flex flex-col items-center justify-center h-full text-[var(--color-text-muted)]">
                   <span className="text-4xl mb-3">📖</span>
                   <span className="text-sm">Select a playbook to view steps</span>
                 </div>
@@ -434,16 +434,16 @@ export default function IncidentResponsePlaybook() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-sm font-medium text-rose-400">🔴 LIVE — {ACTIVE_RUN.playbookName}</span>
-                    <span className="text-xs text-zinc-500">Incident {ACTIVE_RUN.incidentId}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">Incident {ACTIVE_RUN.incidentId}</span>
                   </div>
-                  <div className="text-xs text-zinc-400">Started: {ACTIVE_RUN.startedAt} · Assignee: {ACTIVE_RUN.assignee}</div>
+                  <div className="text-xs text-[var(--color-text-secondary)]">Started: {ACTIVE_RUN.startedAt} · Assignee: {ACTIVE_RUN.assignee}</div>
                 </div>
                 <button className="bg-amber-900/40 text-amber-400 text-xs px-3 py-1.5 rounded-lg hover:bg-amber-900/60 transition-colors">Pause Run</button>
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-xl p-5">
-              <h3 className="text-sm font-medium text-zinc-300 mb-4">Live Step Tracker</h3>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Live Step Tracker</h3>
               <div className="space-y-1">
                 {ACTIVE_RUN.steps.map((step, i) => (
                   <div key={step.stepId} className={cn(
@@ -454,22 +454,22 @@ export default function IncidentResponsePlaybook() {
                   )}>
                     <div className="flex flex-col items-center shrink-0">
                       <div className={cn("w-3 h-3 rounded-full mt-1", stepStateColor(step.state))} />
-                      {i < ACTIVE_RUN.steps.length - 1 && <div className="w-px bg-zinc-800 h-4 mt-1" />}
+                      {i < ACTIVE_RUN.steps.length - 1 && <div className="w-px bg-[var(--color-surface-2)] h-4 mt-1" />}
                     </div>
                     <div className="flex-1 pb-2">
                       <div className="flex items-center justify-between">
-                        <span className={cn("text-sm", step.state === "running" ? "text-indigo-300 font-medium" : "text-zinc-200")}>{step.title}</span>
-                        <div className="flex items-center gap-2 text-xs text-zinc-500">
+                        <span className={cn("text-sm", step.state === "running" ? "text-indigo-300 font-medium" : "text-[var(--color-text-primary)]")}>{step.title}</span>
+                        <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
                           {step.startedAt && <span>Start: {step.startedAt}</span>}
                           {step.completedAt && <span>Done: {step.completedAt}</span>}
                         </div>
                       </div>
-                      {step.completedBy && <div className="text-xs text-zinc-500 mt-0.5">By: {step.completedBy}</div>}
-                      {step.notes && <div className="text-xs text-zinc-400 mt-1 bg-zinc-800 rounded px-2 py-1">{step.notes}</div>}
+                      {step.completedBy && <div className="text-xs text-[var(--color-text-muted)] mt-0.5">By: {step.completedBy}</div>}
+                      {step.notes && <div className="text-xs text-[var(--color-text-secondary)] mt-1 bg-[var(--color-surface-2)] rounded px-2 py-1">{step.notes}</div>}
                       {step.state === "running" && (
                         <div className="mt-2 flex gap-2">
-                          <button className="text-xs bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-1 rounded transition-colors">✓ Mark Done</button>
-                          <button className="text-xs bg-zinc-700 hover:bg-zinc-600 text-zinc-300 px-2 py-1 rounded transition-colors">Skip</button>
+                          <button className="text-xs bg-emerald-700 hover:bg-emerald-600 text-[var(--color-text-primary)] px-2 py-1 rounded transition-colors">✓ Mark Done</button>
+                          <button className="text-xs bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-2 py-1 rounded transition-colors">Skip</button>
                           <button className="text-xs bg-rose-900/40 text-rose-400 px-2 py-1 rounded hover:bg-rose-900/60 transition-colors">Mark Failed</button>
                         </div>
                       )}
@@ -484,27 +484,27 @@ export default function IncidentResponsePlaybook() {
         {/* HISTORY TAB */}
         {tab === "history" && (
           <div className="p-6">
-            <div className="bg-zinc-900 rounded-xl overflow-hidden">
+            <div className="bg-[var(--color-surface-1)] rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800">
-                    <th className="text-left px-4 py-3 text-zinc-400 font-medium">Playbook</th>
-                    <th className="text-left px-4 py-3 text-zinc-400 font-medium">Incident</th>
-                    <th className="text-left px-4 py-3 text-zinc-400 font-medium">Severity</th>
-                    <th className="text-left px-4 py-3 text-zinc-400 font-medium">Status</th>
-                    <th className="text-left px-4 py-3 text-zinc-400 font-medium">Assignee</th>
-                    <th className="text-left px-4 py-3 text-zinc-400 font-medium">Started</th>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Playbook</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Incident</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Severity</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Status</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Assignee</th>
+                    <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Started</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[ACTIVE_RUN].map(run => (
-                    <tr key={run.id} className="border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors">
-                      <td className="px-4 py-3 text-zinc-200">{run.playbookName}</td>
-                      <td className="px-4 py-3 text-zinc-400 font-mono text-xs">{run.incidentId}</td>
+                    <tr key={run.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/50 transition-colors">
+                      <td className="px-4 py-3 text-[var(--color-text-primary)]">{run.playbookName}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)] font-mono text-xs">{run.incidentId}</td>
                       <td className="px-4 py-3"><span className={cn("text-xs px-2 py-0.5 rounded", sevBg(run.severity))}>{run.severity}</span></td>
                       <td className="px-4 py-3"><span className="text-xs bg-indigo-400/10 text-indigo-400 px-2 py-0.5 rounded-full animate-pulse">{run.status}</span></td>
-                      <td className="px-4 py-3 text-zinc-400">{run.assignee}</td>
-                      <td className="px-4 py-3 text-zinc-400">{run.startedAt}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">{run.assignee}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">{run.startedAt}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -524,10 +524,10 @@ export default function IncidentResponsePlaybook() {
               { icon: "☁️", name: "Cloud Provider Incident", desc: "AWS/GCP/Azure outage response" },
               { icon: "📊", name: "Data Pipeline Incident", desc: "ETL failures, data quality degradation" },
             ].map((t, i) => (
-              <div key={i} className="bg-zinc-900 rounded-xl p-5 hover:bg-zinc-800 transition-colors cursor-pointer">
+              <div key={i} className="bg-[var(--color-surface-1)] rounded-xl p-5 hover:bg-[var(--color-surface-2)] transition-colors cursor-pointer">
                 <div className="text-3xl mb-3">{t.icon}</div>
-                <div className="text-sm font-medium text-zinc-100 mb-1">{t.name}</div>
-                <div className="text-xs text-zinc-500 mb-3">{t.desc}</div>
+                <div className="text-sm font-medium text-[var(--color-text-primary)] mb-1">{t.name}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-3">{t.desc}</div>
                 <button className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Use template →</button>
               </div>
             ))}

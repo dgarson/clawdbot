@@ -125,7 +125,7 @@ const capabilityColor: Record<string, string> = {
   update: "bg-amber-500/20 text-amber-400",
   create: "bg-emerald-500/20 text-emerald-400",
   delete: "bg-rose-500/20 text-rose-400",
-  list: "bg-zinc-500/20 text-zinc-300",
+  list: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-primary)]",
   sudo: "bg-purple-500/20 text-purple-400",
 };
 
@@ -153,24 +153,24 @@ export default function VaultSecretsManager() {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Vault Secrets Manager</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">HashiCorp Vault — cluster: vault-prod-us-east</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">HashiCorp Vault — cluster: vault-prod-us-east</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/30">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-xs text-emerald-400 font-medium">Vault Unsealed</span>
           </div>
-          <div className="text-xs text-zinc-500">2 standbys</div>
+          <div className="text-xs text-[var(--color-text-muted)]">2 standbys</div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-5 gap-0 border-b border-zinc-800">
+      <div className="grid grid-cols-5 gap-0 border-b border-[var(--color-border)]">
         {[
           { label: "Total Secrets", value: "872", sub: "kv-v2 engine" },
           { label: "Active Leases", value: "380", sub: "dynamic creds" },
@@ -178,16 +178,16 @@ export default function VaultSecretsManager() {
           { label: "Policies", value: "18", sub: "attached to 47 entities" },
           { label: "Audit Events", value: "14.2k", sub: "last 24h" },
         ].map((stat, i) => (
-          <div key={i} className={cn("px-6 py-3 border-r border-zinc-800 last:border-r-0", stat.alert && "bg-amber-500/5")}>
-            <div className={cn("text-xl font-bold", stat.alert ? "text-amber-400" : "text-white")}>{stat.value}</div>
-            <div className="text-xs font-medium text-zinc-400 mt-0.5">{stat.label}</div>
-            <div className="text-xs text-zinc-600 mt-0.5">{stat.sub}</div>
+          <div key={i} className={cn("px-6 py-3 border-r border-[var(--color-border)] last:border-r-0", stat.alert && "bg-amber-500/5")}>
+            <div className={cn("text-xl font-bold", stat.alert ? "text-amber-400" : "text-[var(--color-text-primary)]")}>{stat.value}</div>
+            <div className="text-xs font-medium text-[var(--color-text-secondary)] mt-0.5">{stat.label}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{stat.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-[var(--color-border)] px-6">
         {tabs.map(t => (
           <button
             key={t.id}
@@ -195,8 +195,8 @@ export default function VaultSecretsManager() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-white"
-                : "border-transparent text-zinc-500 hover:text-zinc-300"
+                ? "border-indigo-500 text-[var(--color-text-primary)]"
+                : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             <span>{t.emoji}</span>
@@ -210,21 +210,21 @@ export default function VaultSecretsManager() {
         {tab === "secrets" && (
           <div className="flex h-full">
             {/* List panel */}
-            <div className="w-96 border-r border-zinc-800 flex flex-col">
+            <div className="w-96 border-r border-[var(--color-border)] flex flex-col">
               {/* Filters */}
-              <div className="p-3 space-y-2 border-b border-zinc-800">
+              <div className="p-3 space-y-2 border-b border-[var(--color-border)]">
                 <input
                   type="text"
                   placeholder="Search paths..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-300 placeholder-zinc-600 outline-none focus:border-zinc-500"
+                  className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-[var(--color-surface-3)]"
                 />
                 <div className="flex gap-2">
                   <select
                     value={engineFilter}
                     onChange={e => setEngineFilter(e.target.value)}
-                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300"
+                    className="flex-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)]"
                   >
                     <option value="all">All engines</option>
                     <option value="kv">KV v2</option>
@@ -236,7 +236,7 @@ export default function VaultSecretsManager() {
                   <select
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
-                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300"
+                    className="flex-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)]"
                   >
                     <option value="all">All status</option>
                     <option value="active">Active</option>
@@ -253,16 +253,16 @@ export default function VaultSecretsManager() {
                     key={secret.id}
                     onClick={() => setSelectedSecret(secret)}
                     className={cn(
-                      "w-full text-left px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-900 transition-colors",
-                      selectedSecret?.id === secret.id && "bg-zinc-800"
+                      "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-1)] transition-colors",
+                      selectedSecret?.id === secret.id && "bg-[var(--color-surface-2)]"
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-base shrink-0">{engineIcon[secret.engineType]}</span>
                         <div className="min-w-0">
-                          <div className="text-xs font-mono text-zinc-200 truncate">{secret.path}</div>
-                          <div className="text-xs text-zinc-500 mt-0.5">{secret.engine} · v{secret.version}</div>
+                          <div className="text-xs font-mono text-[var(--color-text-primary)] truncate">{secret.path}</div>
+                          <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{secret.engine} · v{secret.version}</div>
                         </div>
                       </div>
                       <span className={cn("text-xs px-1.5 py-0.5 rounded border shrink-0", statusBg[secret.status])}>
@@ -288,8 +288,8 @@ export default function VaultSecretsManager() {
                     <div className="flex items-center gap-3 mb-4">
                       <span className="text-3xl">{engineIcon[selectedSecret.engineType]}</span>
                       <div>
-                        <div className="font-mono text-sm text-zinc-200">{selectedSecret.path}</div>
-                        <div className="text-xs text-zinc-500 mt-0.5">{selectedSecret.engine} — version {selectedSecret.version}</div>
+                        <div className="font-mono text-sm text-[var(--color-text-primary)]">{selectedSecret.path}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{selectedSecret.engine} — version {selectedSecret.version}</div>
                       </div>
                       <span className={cn("ml-auto text-xs px-2 py-1 rounded border", statusBg[selectedSecret.status])}>
                         <span className={statusColor[selectedSecret.status]}>{selectedSecret.status}</span>
@@ -305,9 +305,9 @@ export default function VaultSecretsManager() {
                         { label: "Expires", value: selectedSecret.expiresAt || "Never" },
                         { label: "Engine Type", value: selectedSecret.engineType.toUpperCase() },
                       ].map(({ label, value }) => (
-                        <div key={label} className="bg-zinc-900 rounded p-3">
-                          <div className="text-xs text-zinc-500">{label}</div>
-                          <div className="text-sm font-medium text-zinc-200 mt-0.5">{value}</div>
+                        <div key={label} className="bg-[var(--color-surface-1)] rounded p-3">
+                          <div className="text-xs text-[var(--color-text-muted)]">{label}</div>
+                          <div className="text-sm font-medium text-[var(--color-text-primary)] mt-0.5">{value}</div>
                         </div>
                       ))}
                     </div>
@@ -315,20 +315,20 @@ export default function VaultSecretsManager() {
 
                   {/* Tags */}
                   <div>
-                    <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Tags</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">Tags</div>
                     <div className="flex gap-2 flex-wrap">
                       {selectedSecret.tags.map(tag => (
-                        <span key={tag} className="px-2 py-0.5 rounded bg-zinc-800 text-xs text-zinc-300 font-mono">{tag}</span>
+                        <span key={tag} className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-xs text-[var(--color-text-primary)] font-mono">{tag}</span>
                       ))}
                     </div>
                   </div>
 
                   {/* Actions */}
                   <div>
-                    <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Actions</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">Actions</div>
                     <div className="flex gap-2 flex-wrap">
                       {["Read Value", "Rotate Now", "View History", "Revoke Leases", "Update Policy"].map(action => (
-                        <button key={action} className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-zinc-300 transition-colors">
+                        <button key={action} className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">
                           {action}
                         </button>
                       ))}
@@ -337,7 +337,7 @@ export default function VaultSecretsManager() {
 
                   {/* Access trend */}
                   <div>
-                    <div className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">Access Trend — 7d</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mb-3 uppercase tracking-wider">Access Trend — 7d</div>
                     <div className="flex items-end gap-1 h-16">
                       {[42, 67, 54, 89, 73, 91, 85].map((v, i) => (
                         <div key={i} className="flex-1 flex flex-col items-center gap-1">
@@ -350,7 +350,7 @@ export default function VaultSecretsManager() {
                     </div>
                     <div className="flex justify-between mt-1">
                       {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
-                        <span key={d} className="text-xs text-zinc-600">{d}</span>
+                        <span key={d} className="text-xs text-[var(--color-text-muted)]">{d}</span>
                       ))}
                     </div>
                   </div>
@@ -368,7 +368,7 @@ export default function VaultSecretsManager() {
                   )}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-zinc-600 text-sm">
+                <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">
                   Select a secret to view details
                 </div>
               )}
@@ -380,23 +380,23 @@ export default function VaultSecretsManager() {
         {tab === "engines" && (
           <div className="p-6 space-y-4">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-semibold text-zinc-300">Secret Engines</h2>
-              <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Secret Engines</h2>
+              <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
                 + Enable Engine
               </button>
             </div>
             <div className="space-y-3">
               {ENGINES.map(engine => (
-                <div key={engine.id} className="bg-zinc-900 rounded-lg border border-zinc-800 p-5">
+                <div key={engine.id} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{engineIcon[engine.type]}</span>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm text-white">{engine.name}</span>
-                          <span className="text-xs text-zinc-500 font-mono">/{engine.path}</span>
+                          <span className="font-medium text-sm text-[var(--color-text-primary)]">{engine.name}</span>
+                          <span className="text-xs text-[var(--color-text-muted)] font-mono">/{engine.path}</span>
                         </div>
-                        <p className="text-xs text-zinc-500 mt-0.5">{engine.description}</p>
+                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{engine.description}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -404,11 +404,11 @@ export default function VaultSecretsManager() {
                         "text-xs px-2 py-0.5 rounded-full",
                         engine.status === "active" ? "bg-emerald-500/10 text-emerald-400" :
                         engine.status === "degraded" ? "bg-amber-500/10 text-amber-400" :
-                        "bg-zinc-700 text-zinc-400"
+                        "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
                       )}>
                         {engine.status}
                       </span>
-                      <button className="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-1 bg-zinc-800 rounded transition-colors">Configure</button>
+                      <button className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] px-2 py-1 bg-[var(--color-surface-2)] rounded transition-colors">Configure</button>
                     </div>
                   </div>
                   <div className="grid grid-cols-4 gap-4">
@@ -419,8 +419,8 @@ export default function VaultSecretsManager() {
                       { label: "Max TTL", value: engine.maxLeaseTtl },
                     ].map(({ label, value }) => (
                       <div key={label}>
-                        <div className="text-xs text-zinc-600">{label}</div>
-                        <div className="text-sm font-medium text-zinc-300 mt-0.5">{value}</div>
+                        <div className="text-xs text-[var(--color-text-muted)]">{label}</div>
+                        <div className="text-sm font-medium text-[var(--color-text-primary)] mt-0.5">{value}</div>
                       </div>
                     ))}
                   </div>
@@ -438,10 +438,10 @@ export default function VaultSecretsManager() {
         {/* POLICIES TAB */}
         {tab === "policies" && (
           <div className="flex h-full">
-            <div className="w-80 border-r border-zinc-800 overflow-y-auto">
-              <div className="p-3 border-b border-zinc-800">
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Policies (18)</div>
-                <button className="w-full px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">
+            <div className="w-80 border-r border-[var(--color-border)] overflow-y-auto">
+              <div className="p-3 border-b border-[var(--color-border)]">
+                <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Policies (18)</div>
+                <button className="w-full px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
                   + New Policy
                 </button>
               </div>
@@ -450,13 +450,13 @@ export default function VaultSecretsManager() {
                   key={policy.id}
                   onClick={() => setSelectedPolicy(policy)}
                   className={cn(
-                    "w-full text-left px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-900 transition-colors",
-                    selectedPolicy?.id === policy.id && "bg-zinc-800"
+                    "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-1)] transition-colors",
+                    selectedPolicy?.id === policy.id && "bg-[var(--color-surface-2)]"
                   )}
                 >
-                  <div className="text-sm font-medium text-zinc-200 font-mono">{policy.name}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">{policy.rules.length} rules · {policy.attachedTo.length} entities</div>
-                  <div className="text-xs text-zinc-600 mt-0.5">Updated {policy.updatedAt}</div>
+                  <div className="text-sm font-medium text-[var(--color-text-primary)] font-mono">{policy.name}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{policy.rules.length} rules · {policy.attachedTo.length} entities</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Updated {policy.updatedAt}</div>
                 </button>
               ))}
             </div>
@@ -466,24 +466,24 @@ export default function VaultSecretsManager() {
                 <div className="p-6 space-y-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="font-mono text-sm font-semibold text-white">{selectedPolicy.name}</h2>
-                      <p className="text-xs text-zinc-500 mt-0.5">Created {selectedPolicy.createdAt} · Updated {selectedPolicy.updatedAt}</p>
+                      <h2 className="font-mono text-sm font-semibold text-[var(--color-text-primary)]">{selectedPolicy.name}</h2>
+                      <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Created {selectedPolicy.createdAt} · Updated {selectedPolicy.updatedAt}</p>
                     </div>
                     <div className="flex gap-2">
-                      <button className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-zinc-300 transition-colors">Edit</button>
+                      <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">Edit</button>
                       <button className="px-3 py-1.5 text-xs bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 rounded text-rose-400 transition-colors">Delete</button>
                     </div>
                   </div>
 
                   <div>
-                    <div className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">Path Rules</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mb-3 uppercase tracking-wider">Path Rules</div>
                     <div className="space-y-2">
                       {selectedPolicy.rules.map((rule, i) => (
-                        <div key={i} className="bg-zinc-900 rounded-lg border border-zinc-800 p-3">
-                          <div className="font-mono text-xs text-zinc-200 mb-2">{rule.path}</div>
+                        <div key={i} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-3">
+                          <div className="font-mono text-xs text-[var(--color-text-primary)] mb-2">{rule.path}</div>
                           <div className="flex gap-1.5 flex-wrap">
                             {rule.capabilities.map(cap => (
-                              <span key={cap} className={cn("text-xs px-2 py-0.5 rounded-full font-medium", capabilityColor[cap] || "bg-zinc-700 text-zinc-300")}>
+                              <span key={cap} className={cn("text-xs px-2 py-0.5 rounded-full font-medium", capabilityColor[cap] || "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]")}>
                                 {cap}
                               </span>
                             ))}
@@ -494,10 +494,10 @@ export default function VaultSecretsManager() {
                   </div>
 
                   <div>
-                    <div className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">Attached To</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mb-3 uppercase tracking-wider">Attached To</div>
                     <div className="flex gap-2 flex-wrap">
                       {selectedPolicy.attachedTo.map(entity => (
-                        <span key={entity} className="px-2.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-300 font-mono">
+                        <span key={entity} className="px-2.5 py-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded text-xs text-[var(--color-text-primary)] font-mono">
                           {entity}
                         </span>
                       ))}
@@ -505,32 +505,32 @@ export default function VaultSecretsManager() {
                   </div>
 
                   <div>
-                    <div className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">HCL Preview</div>
-                    <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 font-mono text-xs text-zinc-400 overflow-x-auto">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-3 uppercase tracking-wider">HCL Preview</div>
+                    <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 font-mono text-xs text-[var(--color-text-secondary)] overflow-x-auto">
                       {selectedPolicy.rules.map((rule, i) => (
                         <div key={i} className="mb-3 last:mb-0">
                           <span className="text-indigo-400">path</span>
-                          <span className="text-zinc-300"> "{rule.path}" </span>
-                          <span className="text-zinc-500">{"{"}</span>
+                          <span className="text-[var(--color-text-primary)]"> "{rule.path}" </span>
+                          <span className="text-[var(--color-text-muted)]">{"{"}</span>
                           <div className="ml-4">
                             <span className="text-sky-400">capabilities</span>
-                            <span className="text-zinc-300"> = [</span>
+                            <span className="text-[var(--color-text-primary)]"> = [</span>
                             {rule.capabilities.map((cap, j) => (
                               <span key={cap}>
                                 <span className="text-emerald-400">"{cap}"</span>
-                                {j < rule.capabilities.length - 1 && <span className="text-zinc-300">, </span>}
+                                {j < rule.capabilities.length - 1 && <span className="text-[var(--color-text-primary)]">, </span>}
                               </span>
                             ))}
-                            <span className="text-zinc-300">]</span>
+                            <span className="text-[var(--color-text-primary)]">]</span>
                           </div>
-                          <span className="text-zinc-500">{"}"}</span>
+                          <span className="text-[var(--color-text-muted)]">{"}"}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-zinc-600 text-sm">
+                <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">
                   Select a policy to view details
                 </div>
               )}
@@ -549,14 +549,14 @@ export default function VaultSecretsManager() {
                     onClick={() => setAuditFilter(f)}
                     className={cn(
                       "px-3 py-1 text-xs rounded transition-colors capitalize",
-                      auditFilter === f ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                      auditFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
                     {f}
                   </button>
                 ))}
               </div>
-              <span className="ml-auto text-xs text-zinc-500">Streaming audit log — last 100 events</span>
+              <span className="ml-auto text-xs text-[var(--color-text-muted)]">Streaming audit log — last 100 events</span>
             </div>
 
             <div className="space-y-1">
@@ -569,9 +569,9 @@ export default function VaultSecretsManager() {
                   "flex items-center gap-4 px-4 py-2.5 rounded-lg border text-xs font-mono",
                   event.status === "denied"
                     ? "bg-rose-500/5 border-rose-500/20"
-                    : "bg-zinc-900 border-zinc-800"
+                    : "bg-[var(--color-surface-1)] border-[var(--color-border)]"
                 )}>
-                  <span className="text-zinc-600 w-16 shrink-0">{event.timestamp}</span>
+                  <span className="text-[var(--color-text-muted)] w-16 shrink-0">{event.timestamp}</span>
                   <span className={cn(
                     "w-12 shrink-0 font-medium",
                     event.type === "read" ? "text-sky-400" :
@@ -579,15 +579,15 @@ export default function VaultSecretsManager() {
                     event.type === "delete" ? "text-rose-400" :
                     event.type === "rotate" ? "text-indigo-400" :
                     event.type === "login" ? "text-emerald-400" :
-                    "text-zinc-400"
+                    "text-[var(--color-text-secondary)]"
                   )}>{event.type}</span>
                   <span className={cn(
                     "w-16 shrink-0 text-center rounded px-1.5 py-0.5",
                     event.status === "success" ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
                   )}>{event.status}</span>
-                  <span className="flex-1 text-zinc-300 truncate">{event.path}</span>
-                  <span className="text-zinc-500 w-28 shrink-0 truncate">{event.accessor}</span>
-                  <span className="text-zinc-600 w-24 shrink-0">{event.remoteAddr}</span>
+                  <span className="flex-1 text-[var(--color-text-primary)] truncate">{event.path}</span>
+                  <span className="text-[var(--color-text-muted)] w-28 shrink-0 truncate">{event.accessor}</span>
+                  <span className="text-[var(--color-text-muted)] w-24 shrink-0">{event.remoteAddr}</span>
                 </div>
               ))}
             </div>

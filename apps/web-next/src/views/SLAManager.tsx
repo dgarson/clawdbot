@@ -261,7 +261,7 @@ function trendArrow(trend: Trend): { arrow: string; className: string } {
     case "down":
       return { arrow: "↓", className: "text-rose-400" };
     case "stable":
-      return { arrow: "→", className: "text-zinc-400" };
+      return { arrow: "→", className: "text-[var(--color-text-secondary)]" };
   }
 }
 
@@ -274,7 +274,7 @@ function priorityBadge(priority: Priority): { label: string; className: string }
     case "medium":
       return { label: "Medium", className: "bg-indigo-500/15 text-indigo-400 border-indigo-400/30" };
     case "low":
-      return { label: "Low", className: "bg-zinc-700/40 text-zinc-400 border-zinc-600" };
+      return { label: "Low", className: "bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]" };
   }
 }
 
@@ -350,24 +350,24 @@ function OverviewTab({ slas }: { slas: SLADefinition[] }) {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-lg">✅</span>
-            <span className="text-sm text-zinc-400">SLAs Met</span>
+            <span className="text-sm text-[var(--color-text-secondary)]">SLAs Met</span>
           </div>
           <div className="text-3xl font-bold text-emerald-400">{metCount}</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-lg">⚠️</span>
-            <span className="text-sm text-zinc-400">At Risk</span>
+            <span className="text-sm text-[var(--color-text-secondary)]">At Risk</span>
           </div>
           <div className="text-3xl font-bold text-amber-400">{atRiskCount}</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-lg">❌</span>
-            <span className="text-sm text-zinc-400">Breached</span>
+            <span className="text-sm text-[var(--color-text-secondary)]">Breached</span>
           </div>
           <div className="text-3xl font-bold text-rose-400">{breachedCount}</div>
         </div>
@@ -397,18 +397,18 @@ function OverviewTab({ slas }: { slas: SLADefinition[] }) {
           return (
             <div
               key={sla.id}
-              className="bg-zinc-900 border border-zinc-800 rounded-xl p-5"
+              className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-white font-semibold truncate">{sla.name}</h3>
+                    <h3 className="text-[var(--color-text-primary)] font-semibold truncate">{sla.name}</h3>
                     <span className={cn("text-sm font-medium", trend.className)}>
                       {trend.arrow}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-zinc-400">
-                    <span className="bg-zinc-800 px-2 py-0.5 rounded text-xs">{sla.service}</span>
+                  <div className="flex items-center gap-3 text-sm text-[var(--color-text-secondary)]">
+                    <span className="bg-[var(--color-surface-2)] px-2 py-0.5 rounded text-xs">{sla.service}</span>
                     <span>{metricTypeLabel(sla.metricType)}</span>
                     <span>·</span>
                     <span>{windowLabel(sla.measurementWindow)}</span>
@@ -416,11 +416,11 @@ function OverviewTab({ slas }: { slas: SLADefinition[] }) {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="text-right">
-                    <div className="text-white font-mono text-lg font-bold">
+                    <div className="text-[var(--color-text-primary)] font-mono text-lg font-bold">
                       {sla.currentValue}
-                      <span className="text-zinc-500 text-sm">{sla.unit}</span>
+                      <span className="text-[var(--color-text-muted)] text-sm">{sla.unit}</span>
                     </div>
-                    <div className="text-xs text-zinc-500">
+                    <div className="text-xs text-[var(--color-text-muted)]">
                       Target: {sla.targetValue}{sla.unit}
                     </div>
                   </div>
@@ -436,7 +436,7 @@ function OverviewTab({ slas }: { slas: SLADefinition[] }) {
               </div>
 
               {/* Bar Chart */}
-              <div className="relative h-3 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="relative h-3 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
                   className={cn("absolute inset-y-0 left-0 rounded-full transition-all", barColor)}
                   style={{ width: `${barFillPct}%` }}
@@ -448,7 +448,7 @@ function OverviewTab({ slas }: { slas: SLADefinition[] }) {
                   title={`Target: ${sla.targetValue}${sla.unit}`}
                 />
               </div>
-              <div className="flex justify-between mt-1 text-[10px] text-zinc-500">
+              <div className="flex justify-between mt-1 text-[10px] text-[var(--color-text-muted)]">
                 <span>0{sla.unit}</span>
                 <span>Target {sla.targetValue}{sla.unit}</span>
                 <span>{sla.metricType === "uptime" ? "100%" : `${sla.targetValue}${sla.unit}`}</span>
@@ -489,7 +489,7 @@ function DefinitionsTab({
     if (isEditing) {
       return (
         <input
-          className="bg-zinc-800 border border-indigo-500 rounded px-2 py-1 text-white text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
+          className="bg-[var(--color-surface-2)] border border-indigo-500 rounded px-2 py-1 text-[var(--color-text-primary)] text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={() => commitEdit(sla.id, field)}
@@ -515,43 +515,43 @@ function DefinitionsTab({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-400">Click any value to edit inline. Press Enter to save, Escape to cancel.</p>
+        <p className="text-sm text-[var(--color-text-secondary)]">Click any value to edit inline. Press Enter to save, Escape to cancel.</p>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 text-left">
-              <th className="pb-3 pr-4 text-zinc-400 font-medium">Name</th>
-              <th className="pb-3 pr-4 text-zinc-400 font-medium">Service</th>
-              <th className="pb-3 pr-4 text-zinc-400 font-medium">Metric</th>
-              <th className="pb-3 pr-4 text-zinc-400 font-medium">Target</th>
-              <th className="pb-3 pr-4 text-zinc-400 font-medium">Window</th>
-              <th className="pb-3 pr-4 text-zinc-400 font-medium">Priority</th>
-              <th className="pb-3 text-zinc-400 font-medium">Status</th>
+            <tr className="border-b border-[var(--color-border)] text-left">
+              <th className="pb-3 pr-4 text-[var(--color-text-secondary)] font-medium">Name</th>
+              <th className="pb-3 pr-4 text-[var(--color-text-secondary)] font-medium">Service</th>
+              <th className="pb-3 pr-4 text-[var(--color-text-secondary)] font-medium">Metric</th>
+              <th className="pb-3 pr-4 text-[var(--color-text-secondary)] font-medium">Target</th>
+              <th className="pb-3 pr-4 text-[var(--color-text-secondary)] font-medium">Window</th>
+              <th className="pb-3 pr-4 text-[var(--color-text-secondary)] font-medium">Priority</th>
+              <th className="pb-3 text-[var(--color-text-secondary)] font-medium">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/60">
+          <tbody className="divide-y divide-[var(--color-border)]/60">
             {slas.map((sla) => {
               const badge = statusBadge(sla.status);
               const pBadge = priorityBadge(sla.priority);
               return (
-                <tr key={sla.id} className="hover:bg-zinc-800/30 transition-colors">
-                  <td className="py-3 pr-4 text-white font-medium">
+                <tr key={sla.id} className="hover:bg-[var(--color-surface-2)]/30 transition-colors">
+                  <td className="py-3 pr-4 text-[var(--color-text-primary)] font-medium">
                     {renderEditable(sla, "name", sla.name)}
                   </td>
                   <td className="py-3 pr-4">
-                    <span className="bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded text-xs">
+                    <span className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] px-2 py-0.5 rounded text-xs">
                       {renderEditable(sla, "service", sla.service)}
                     </span>
                   </td>
-                  <td className="py-3 pr-4 text-zinc-300">
+                  <td className="py-3 pr-4 text-[var(--color-text-primary)]">
                     {metricTypeLabel(sla.metricType)}
                   </td>
-                  <td className="py-3 pr-4 text-white font-mono">
+                  <td className="py-3 pr-4 text-[var(--color-text-primary)] font-mono">
                     {renderEditable(sla, "targetValue", `${sla.targetValue}${sla.unit}`)}
                   </td>
-                  <td className="py-3 pr-4 text-zinc-300">
+                  <td className="py-3 pr-4 text-[var(--color-text-primary)]">
                     {windowLabel(sla.measurementWindow)}
                   </td>
                   <td className="py-3 pr-4">
@@ -602,25 +602,25 @@ function ComplianceTab({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-zinc-400">
+      <p className="text-sm text-[var(--color-text-secondary)]">
         Monthly compliance percentages — color-coded against SLA targets.
       </p>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 text-left">
-              <th className="pb-3 pr-4 text-zinc-400 font-medium">SLA</th>
-              <th className="pb-3 pr-4 text-zinc-400 font-medium">Service</th>
-              <th className="pb-3 pr-4 text-zinc-400 font-medium text-right">Target</th>
+            <tr className="border-b border-[var(--color-border)] text-left">
+              <th className="pb-3 pr-4 text-[var(--color-text-secondary)] font-medium">SLA</th>
+              <th className="pb-3 pr-4 text-[var(--color-text-secondary)] font-medium">Service</th>
+              <th className="pb-3 pr-4 text-[var(--color-text-secondary)] font-medium text-right">Target</th>
               {months.map((m) => (
-                <th key={m} className="pb-3 pr-4 text-zinc-400 font-medium text-center">
+                <th key={m} className="pb-3 pr-4 text-[var(--color-text-secondary)] font-medium text-center">
                   {m}
                 </th>
               ))}
-              <th className="pb-3 text-zinc-400 font-medium text-center">Trend</th>
+              <th className="pb-3 text-[var(--color-text-secondary)] font-medium text-center">Trend</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/60">
+          <tbody className="divide-y divide-[var(--color-border)]/60">
             {data.map((row) => {
               const target = getTarget(row.slaId);
               const values = months.map((m) => row.months[m] ?? 0);
@@ -635,14 +635,14 @@ function ComplianceTab({
               const trend = trendArrow(trendDir);
 
               return (
-                <tr key={row.slaId} className="hover:bg-zinc-800/30 transition-colors">
-                  <td className="py-3 pr-4 text-white font-medium">{row.slaName}</td>
+                <tr key={row.slaId} className="hover:bg-[var(--color-surface-2)]/30 transition-colors">
+                  <td className="py-3 pr-4 text-[var(--color-text-primary)] font-medium">{row.slaName}</td>
                   <td className="py-3 pr-4">
-                    <span className="bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded text-xs">
+                    <span className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] px-2 py-0.5 rounded text-xs">
                       {row.service}
                     </span>
                   </td>
-                  <td className="py-3 pr-4 text-zinc-300 font-mono text-right">{target}%</td>
+                  <td className="py-3 pr-4 text-[var(--color-text-primary)] font-mono text-right">{target}%</td>
                   {months.map((m) => {
                     const val = row.months[m] ?? 0;
                     return (
@@ -672,7 +672,7 @@ function ComplianceTab({
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-6 text-xs text-zinc-500 pt-2">
+      <div className="flex items-center gap-6 text-xs text-[var(--color-text-muted)] pt-2">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded bg-emerald-400/20 border border-emerald-400/40" />
           <span>Meeting target</span>
@@ -696,18 +696,18 @@ function IncidentsTab({ incidents }: { incidents: BreachIncident[] }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-[var(--color-text-secondary)]">
           SLA breach incidents — {incidents.length} total
         </p>
-        <div className="flex items-center gap-2 text-xs text-zinc-500">
+        <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
           <span className="flex items-center gap-1">
             ✅ Resolved: {incidents.filter((i) => i.resolutionStatus === "resolved").length}
           </span>
-          <span className="text-zinc-700">|</span>
+          <span className="text-[var(--color-text-muted)]">|</span>
           <span className="flex items-center gap-1">
             🔍 Investigating: {incidents.filter((i) => i.resolutionStatus === "investigating").length}
           </span>
-          <span className="text-zinc-700">|</span>
+          <span className="text-[var(--color-text-muted)]">|</span>
           <span className="flex items-center gap-1">
             🛡️ Mitigated: {incidents.filter((i) => i.resolutionStatus === "mitigated").length}
           </span>
@@ -723,12 +723,12 @@ function IncidentsTab({ incidents }: { incidents: BreachIncident[] }) {
             <div
               key={inc.id}
               className={cn(
-                "bg-zinc-900 border rounded-xl transition-colors",
+                "bg-[var(--color-surface-1)] border rounded-xl transition-colors",
                 inc.resolutionStatus === "investigating"
                   ? "border-amber-400/30"
                   : inc.resolutionStatus === "unresolved"
                   ? "border-rose-400/30"
-                  : "border-zinc-800"
+                  : "border-[var(--color-border)]"
               )}
             >
               <div
@@ -738,12 +738,12 @@ function IncidentsTab({ incidents }: { incidents: BreachIncident[] }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-white font-semibold">{inc.slaName}</span>
-                      <span className="bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded text-xs">
+                      <span className="text-[var(--color-text-primary)] font-semibold">{inc.slaName}</span>
+                      <span className="bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-2 py-0.5 rounded text-xs">
                         {inc.service}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-zinc-500">
+                    <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                       <span>🕐 {inc.occurredAt}</span>
                       <span>⏱️ Duration: {inc.duration}</span>
                     </div>
@@ -757,7 +757,7 @@ function IncidentsTab({ incidents }: { incidents: BreachIncident[] }) {
                     >
                       {rBadge.emoji} {rBadge.label}
                     </span>
-                    <span className="text-zinc-500 text-sm">
+                    <span className="text-[var(--color-text-muted)] text-sm">
                       {isExpanded ? "▲" : "▼"}
                     </span>
                   </div>
@@ -765,15 +765,15 @@ function IncidentsTab({ incidents }: { incidents: BreachIncident[] }) {
               </div>
 
               {isExpanded && (
-                <div className="px-4 pb-4 pt-0 border-t border-zinc-800/60">
+                <div className="px-4 pb-4 pt-0 border-t border-[var(--color-border)]/60">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                     <div>
-                      <div className="text-xs text-zinc-500 mb-1">Impact</div>
-                      <div className="text-sm text-zinc-300">{inc.impact}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-1">Impact</div>
+                      <div className="text-sm text-[var(--color-text-primary)]">{inc.impact}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-zinc-500 mb-1">Description</div>
-                      <div className="text-sm text-zinc-300">{inc.description}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-1">Description</div>
+                      <div className="text-sm text-[var(--color-text-primary)]">{inc.description}</div>
                     </div>
                   </div>
                 </div>
@@ -802,21 +802,21 @@ export default function SLAManager() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-2xl">📋</span>
-            <h1 className="text-2xl font-bold text-white">SLA Manager</h1>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">SLA Manager</h1>
           </div>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-[var(--color-text-secondary)] text-sm">
             Monitor, define, and track service level agreements across all platform services.
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-zinc-800 mb-6">
+        <div className="border-b border-[var(--color-border)] mb-6">
           <nav className="flex gap-1 -mb-px overflow-x-auto">
             {TABS.map((tab) => (
               <button
@@ -826,7 +826,7 @@ export default function SLAManager() {
                   "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
                   activeTab === tab.key
                     ? "border-indigo-500 text-indigo-400"
-                    : "border-transparent text-zinc-500 hover:text-zinc-300 hover:border-zinc-700"
+                    : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
                 )}
               >
                 <span>{tab.emoji}</span>

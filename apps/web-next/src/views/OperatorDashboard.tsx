@@ -396,10 +396,10 @@ const TOOL_TYPE_COLORS: Record<ToolType, { bar: string; text: string; label: str
 };
 
 const SEVERITY_CONFIG: Record<AlertSeverity, { badge: string; border: string; bg: string; label: string }> = {
-  critical: { badge: "bg-red-600 text-white", border: "border-red-500/40", bg: "bg-red-500/5", label: "CRITICAL" },
-  error: { badge: "bg-orange-600 text-white", border: "border-orange-500/40", bg: "bg-orange-500/5", label: "ERROR" },
-  warning: { badge: "bg-yellow-600 text-white", border: "border-yellow-500/40", bg: "bg-yellow-500/5", label: "WARN" },
-  info: { badge: "bg-blue-600 text-white", border: "border-blue-500/40", bg: "bg-blue-500/5", label: "INFO" },
+  critical: { badge: "bg-red-600 text-[var(--color-text-primary)]", border: "border-red-500/40", bg: "bg-red-500/5", label: "CRITICAL" },
+  error: { badge: "bg-orange-600 text-[var(--color-text-primary)]", border: "border-orange-500/40", bg: "bg-orange-500/5", label: "ERROR" },
+  warning: { badge: "bg-yellow-600 text-[var(--color-text-primary)]", border: "border-yellow-500/40", bg: "bg-yellow-500/5", label: "WARN" },
+  info: { badge: "bg-blue-600 text-[var(--color-text-primary)]", border: "border-blue-500/40", bg: "bg-blue-500/5", label: "INFO" },
 };
 
 const HEALTH_CONFIG: Record<ProviderHealth, { dot: string; text: string; label: string }> = {
@@ -424,11 +424,11 @@ function SectionCard({
   headerRight?: React.ReactNode;
 }) {
   return (
-    <div className={cn("rounded-xl border border-zinc-800 bg-zinc-900/80 overflow-hidden flex flex-col", className)}>
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/60 flex-shrink-0">
+    <div className={cn("rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)]/80 overflow-hidden flex flex-col", className)}>
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/60 flex-shrink-0">
         <div className="flex items-center gap-2">
           {icon}
-          <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-widest">{title}</h3>
+          <h3 className="text-xs font-semibold text-[var(--color-text-primary)] uppercase tracking-widest">{title}</h3>
         </div>
         {headerRight}
       </div>
@@ -457,7 +457,7 @@ function BudgetGauge({ spent, total }: { spent: number; total: number }) {
             r={radius}
             fill="none"
             stroke="currentColor"
-            className="text-zinc-800"
+            className="text-[var(--color-surface-2)]"
             strokeWidth="8"
           />
           <circle
@@ -475,12 +475,12 @@ function BudgetGauge({ spent, total }: { spent: number; total: number }) {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className={cn("text-lg font-bold font-mono", textColor)}>{pct.toFixed(0)}%</span>
-          <span className="text-[10px] text-zinc-500">used</span>
+          <span className="text-[10px] text-[var(--color-text-muted)]">used</span>
         </div>
       </div>
       <div className="mt-2 text-center">
-        <div className="text-sm font-mono text-zinc-200">{formatCurrency(spent)}</div>
-        <div className="text-[10px] text-zinc-500">of {formatCurrency(total)}</div>
+        <div className="text-sm font-mono text-[var(--color-text-primary)]">{formatCurrency(spent)}</div>
+        <div className="text-[10px] text-[var(--color-text-muted)]">of {formatCurrency(total)}</div>
       </div>
     </div>
   );
@@ -495,14 +495,14 @@ function ModelSpendChart({ data }: { data: { model: string; spend: number }[] })
         const pct = (d.spend / maxSpend) * 100;
         return (
           <div key={d.model} className="flex items-center gap-2 text-xs">
-            <span className="w-20 text-zinc-400 truncate font-mono text-[11px]">{d.model}</span>
-            <div className="flex-1 h-3 bg-zinc-800 rounded-full overflow-hidden">
+            <span className="w-20 text-[var(--color-text-secondary)] truncate font-mono text-[11px]">{d.model}</span>
+            <div className="flex-1 h-3 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
               <div
                 className="h-full bg-violet-500 rounded-full transition-all"
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <span className="w-14 text-right text-zinc-300 font-mono text-[11px]">{formatCurrency(d.spend)}</span>
+            <span className="w-14 text-right text-[var(--color-text-primary)] font-mono text-[11px]">{formatCurrency(d.spend)}</span>
           </div>
         );
       })}
@@ -557,7 +557,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
 
   const navCards: NavCard[] = useMemo(
     () => [
-      { id: "logs", label: "Logs", stat: "2.4K entries", icon: <FileText className="w-4 h-4 text-zinc-400" /> },
+      { id: "logs", label: "Logs", stat: "2.4K entries", icon: <FileText className="w-4 h-4 text-[var(--color-text-secondary)]" /> },
       { id: "sessions", label: "Sessions", stat: `${sessions.length} active`, icon: <Layers className="w-4 h-4 text-violet-400" /> },
       { id: "approvals", label: "Approvals", stat: "3 pending", icon: <CheckCircle2 className="w-4 h-4 text-amber-400" /> },
       { id: "alerts", label: "Alerts", stat: `${alerts.filter((a) => !a.acknowledged).length} unread`, icon: <Bell className="w-4 h-4 text-red-400" /> },
@@ -718,9 +718,9 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* ═══ Top Status Bar ═══ */}
-      <div className="flex-shrink-0 px-4 py-3 border-b border-zinc-800 bg-zinc-900/60">
+      <div className="flex-shrink-0 px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/60">
         <div className="flex items-center justify-between flex-wrap gap-3">
           {/* Left: Metrics */}
           <div className="flex items-center gap-1 flex-wrap">
@@ -747,7 +747,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                 icon={<AlertTriangle className="w-3 h-3" />}
                 label="Errors"
                 value={String(errorCount)}
-                colorClass={errorCount > 0 ? "text-red-400" : "text-zinc-500"}
+                colorClass={errorCount > 0 ? "text-red-400" : "text-[var(--color-text-muted)]"}
               />
               <StatusPill
                 icon={<Hash className="w-3 h-3" />}
@@ -766,7 +766,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
 
           {/* Right: Clock + Actions */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+            <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
               <Clock className="w-3 h-3" aria-hidden="true" />
               <span className="font-mono">{formatClock(clockTime)}</span>
             </div>
@@ -779,7 +779,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                 className={cn(
                   "flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all",
                   paused
-                    ? "border-zinc-700 text-zinc-600 cursor-not-allowed"
+                    ? "border-[var(--color-surface-3)] text-[var(--color-text-muted)] cursor-not-allowed"
                     : "border-amber-500/40 text-amber-400 bg-amber-500/10 hover:bg-amber-500/20"
                 )}
               >
@@ -793,7 +793,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                 className={cn(
                   "flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all",
                   !paused
-                    ? "border-zinc-700 text-zinc-600 cursor-not-allowed"
+                    ? "border-[var(--color-surface-3)] text-[var(--color-text-muted)] cursor-not-allowed"
                     : "border-emerald-500/40 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
                 )}
               >
@@ -830,7 +830,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
           >
             <div className="overflow-auto max-h-[340px]">
               {/* Table header */}
-              <div className="grid grid-cols-[minmax(100px,1.2fr)_80px_100px_100px_70px] gap-2 px-4 py-2 border-b border-zinc-800 text-[10px] text-zinc-500 uppercase tracking-widest font-semibold sticky top-0 bg-zinc-900/95 z-10">
+              <div className="grid grid-cols-[minmax(100px,1.2fr)_80px_100px_100px_70px] gap-2 px-4 py-2 border-b border-[var(--color-border)] text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-semibold sticky top-0 bg-[var(--color-surface-1)]/95 z-10">
                 <span>Agent</span>
                 <span>Status</span>
                 <span>Current Tool</span>
@@ -844,40 +844,40 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                 const isExpanded = expandedSession === session.id;
 
                 return (
-                  <div key={session.id} className="border-b border-zinc-800/50 last:border-b-0">
+                  <div key={session.id} className="border-b border-[var(--color-border)]/50 last:border-b-0">
                     <button
                       type="button"
                       onClick={() => setExpandedSession(isExpanded ? null : session.id)}
-                      className="w-full grid grid-cols-[minmax(100px,1.2fr)_80px_100px_100px_70px] gap-2 px-4 py-2.5 text-xs hover:bg-zinc-800/40 transition-colors text-left items-center"
+                      className="w-full grid grid-cols-[minmax(100px,1.2fr)_80px_100px_100px_70px] gap-2 px-4 py-2.5 text-xs hover:bg-[var(--color-surface-2)]/40 transition-colors text-left items-center"
                     >
                       <span className="flex items-center gap-2 truncate">
                         <span className="text-base" aria-hidden="true">{session.agentEmoji}</span>
-                        <span className="font-medium text-zinc-200 truncate">{session.agentName}</span>
+                        <span className="font-medium text-[var(--color-text-primary)] truncate">{session.agentName}</span>
                       </span>
                       <span className="flex items-center gap-1.5">
                         <span className={cn("w-2 h-2 rounded-full flex-shrink-0", statusCfg.dotClass, session.status === "RUNNING" && !paused && "animate-pulse")} />
                         <span className={cn("font-mono text-[10px] font-semibold", statusCfg.textClass)}>{statusCfg.label}</span>
                       </span>
-                      <span className="font-mono text-zinc-400 truncate text-[11px]">{session.currentTool}</span>
-                      <span className="font-mono text-zinc-400 text-[11px]">
+                      <span className="font-mono text-[var(--color-text-secondary)] truncate text-[11px]">{session.currentTool}</span>
+                      <span className="font-mono text-[var(--color-text-secondary)] text-[11px]">
                         {formatTokens(session.tokensIn)}/{formatTokens(session.tokensOut)}
                       </span>
-                      <span className="font-mono text-zinc-400 text-[11px]">{formatDuration(duration)}</span>
+                      <span className="font-mono text-[var(--color-text-secondary)] text-[11px]">{formatDuration(duration)}</span>
                     </button>
                     {isExpanded && (
                       <div className="px-4 pb-3 pt-1">
-                        <div className="bg-zinc-800/60 rounded-lg p-3 space-y-1.5 text-xs">
+                        <div className="bg-[var(--color-surface-2)]/60 rounded-lg p-3 space-y-1.5 text-xs">
                           <div className="flex items-center gap-2">
-                            <span className="text-zinc-500 w-14">Model:</span>
+                            <span className="text-[var(--color-text-muted)] w-14">Model:</span>
                             <span className="font-mono text-violet-300">{session.model}</span>
                           </div>
                           <div className="flex items-start gap-2">
-                            <span className="text-zinc-500 w-14">Task:</span>
-                            <span className="text-zinc-300">{session.task}</span>
+                            <span className="text-[var(--color-text-muted)] w-14">Task:</span>
+                            <span className="text-[var(--color-text-primary)]">{session.task}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-zinc-500 w-14">Started:</span>
-                            <span className="text-zinc-400 font-mono">{formatTimestamp(session.startedAt)}</span>
+                            <span className="text-[var(--color-text-muted)] w-14">Started:</span>
+                            <span className="text-[var(--color-text-secondary)] font-mono">{formatTimestamp(session.startedAt)}</span>
                           </div>
                         </div>
                       </div>
@@ -900,27 +900,27 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                 <BudgetGauge spent={budgetSpent} total={budgetTotal} />
                 {/* Spend by model */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-2">Spend by Model</div>
+                  <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-bold mb-2">Spend by Model</div>
                   <ModelSpendChart data={modelSpendData} />
                 </div>
               </div>
 
               {/* Burn rate */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-800">
-                  <div className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Tokens/min</div>
-                  <div className="text-lg font-bold font-mono text-zinc-100">{tokensPerMin.toLocaleString()}</div>
+                <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3 border border-[var(--color-border)]">
+                  <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest mb-1">Tokens/min</div>
+                  <div className="text-lg font-bold font-mono text-[var(--color-text-primary)]">{tokensPerMin.toLocaleString()}</div>
                 </div>
-                <div className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-800">
-                  <div className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">$/hr</div>
-                  <div className="text-lg font-bold font-mono text-zinc-100">${dollarsPerHour}</div>
+                <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3 border border-[var(--color-border)]">
+                  <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest mb-1">$/hr</div>
+                  <div className="text-lg font-bold font-mono text-[var(--color-text-primary)]">${dollarsPerHour}</div>
                 </div>
               </div>
 
               {/* Threshold bar */}
               <div>
-                <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-2">Daily Budget Threshold</div>
-                <div className="relative h-4 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-bold mb-2">Daily Budget Threshold</div>
+                <div className="relative h-4 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   {/* Green zone < 60% */}
                   <div className="absolute inset-y-0 left-0 w-[60%] bg-emerald-900/40 border-r border-emerald-500/30" />
                   {/* Yellow zone 60-85% */}
@@ -936,7 +936,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                     style={{ width: `${Math.min(budgetPct, 100)}%`, opacity: 0.7 }}
                   />
                 </div>
-                <div className="flex justify-between mt-1 text-[9px] text-zinc-600 font-mono">
+                <div className="flex justify-between mt-1 text-[9px] text-[var(--color-text-muted)] font-mono">
                   <span>$0</span>
                   <span className="text-emerald-600">60%</span>
                   <span className="text-amber-600">85%</span>
@@ -969,9 +969,9 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                 return (
                   <div key={tc.id} className="flex items-center gap-2 text-[11px]">
                     <span className="w-4 text-base flex-shrink-0" aria-hidden="true">{tc.agentEmoji}</span>
-                    <span className="w-16 text-zinc-500 truncate">{tc.agentName}</span>
+                    <span className="w-16 text-[var(--color-text-muted)] truncate">{tc.agentName}</span>
                     <span className={cn("w-28 font-mono truncate", typeConfig.text)}>{tc.toolName}</span>
-                    <div className="flex-1 h-4 bg-zinc-800 rounded overflow-hidden relative">
+                    <div className="flex-1 h-4 bg-[var(--color-surface-2)] rounded overflow-hidden relative">
                       <div
                         className={cn(
                           "h-full rounded transition-all",
@@ -982,11 +982,11 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                       />
                       {tc.status === "running" && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-[9px] text-white font-mono font-bold drop-shadow">{tc.elapsedMs}ms</span>
+                          <span className="text-[9px] text-[var(--color-text-primary)] font-mono font-bold drop-shadow">{tc.elapsedMs}ms</span>
                         </div>
                       )}
                     </div>
-                    <span className="w-12 text-right font-mono text-zinc-500 text-[10px]">{tc.elapsedMs}ms</span>
+                    <span className="w-12 text-right font-mono text-[var(--color-text-muted)] text-[10px]">{tc.elapsedMs}ms</span>
                     <span className="w-4 flex-shrink-0">
                       {tc.status === "complete" && <CheckCircle2 className="w-3 h-3 text-emerald-500" aria-hidden="true" />}
                       {tc.status === "error" && <AlertTriangle className="w-3 h-3 text-red-500" aria-hidden="true" />}
@@ -1013,8 +1013,8 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                     className={cn(
                       "px-2 py-0.5 text-[10px] font-semibold rounded transition-all uppercase tracking-wider",
                       alertFilter === f
-                        ? "bg-zinc-700 text-zinc-100"
-                        : "text-zinc-500 hover:text-zinc-300"
+                        ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+                        : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
                     {f}
@@ -1025,7 +1025,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
           >
             <div className="overflow-auto max-h-[280px]" role="log" aria-label="Alert feed" aria-live="polite">
               {filteredAlerts.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-8 text-zinc-600 text-xs">
+                <div className="flex flex-col items-center justify-center py-8 text-[var(--color-text-muted)] text-xs">
                   <CheckCircle2 className="w-6 h-6 mb-2 opacity-40" />
                   No alerts matching filter
                 </div>
@@ -1036,7 +1036,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                   <div
                     key={alert.id}
                     className={cn(
-                      "flex items-start gap-3 px-4 py-2.5 border-b border-zinc-800/50 transition-colors",
+                      "flex items-start gap-3 px-4 py-2.5 border-b border-[var(--color-border)]/50 transition-colors",
                       alert.acknowledged ? "opacity-50" : sevCfg.bg
                     )}
                   >
@@ -1044,17 +1044,17 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                         <span className={cn("px-1.5 py-0.5 text-[9px] font-bold rounded", sevCfg.badge)}>{sevCfg.label}</span>
-                        <span className="text-xs font-medium text-zinc-300">{alert.agentName}</span>
-                        <span className="text-[10px] text-zinc-600 font-mono">{formatTimestamp(alert.timestamp)}</span>
+                        <span className="text-xs font-medium text-[var(--color-text-primary)]">{alert.agentName}</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{formatTimestamp(alert.timestamp)}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 leading-relaxed">{alert.message}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{alert.message}</p>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
                       {!alert.acknowledged && (
                         <button
                           type="button"
                           onClick={() => handleAcknowledge(alert.id)}
-                          className="px-1.5 py-0.5 text-[9px] font-semibold text-zinc-400 border border-zinc-700 rounded hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+                          className="px-1.5 py-0.5 text-[9px] font-semibold text-[var(--color-text-secondary)] border border-[var(--color-surface-3)] rounded hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)] transition-colors"
                           title="Acknowledge"
                         >
                           ACK
@@ -1063,7 +1063,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                       <button
                         type="button"
                         onClick={() => handleMute(alert.id)}
-                        className="p-0.5 text-zinc-600 hover:text-zinc-300 transition-colors"
+                        className="p-0.5 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
                         title="Mute"
                       >
                         <VolumeX className="w-3 h-3" />
@@ -1082,7 +1082,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
             className="lg:col-span-2"
           >
             <div className="overflow-auto">
-              <div className="grid grid-cols-[repeat(4,1fr)] divide-x divide-zinc-800 min-w-[640px]">
+              <div className="grid grid-cols-[repeat(4,1fr)] divide-x divide-[var(--color-border)] min-w-[640px]">
                 {providers.map((provider) => {
                   const healthCfg = HEALTH_CONFIG[provider.health];
                   const quotaPct = provider.quotaTotal > 0 ? (provider.quotaUsed / provider.quotaTotal) * 100 : 0;
@@ -1099,7 +1099,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{provider.icon}</span>
-                          <span className="text-sm font-semibold text-zinc-200">{provider.name}</span>
+                          <span className="text-sm font-semibold text-[var(--color-text-primary)]">{provider.name}</span>
                         </div>
                         <span className="flex items-center gap-1">
                           <span className={cn("w-2 h-2 rounded-full", healthCfg.dot)} />
@@ -1110,15 +1110,15 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                       {/* Stats */}
                       <div className="space-y-2">
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-zinc-500">Requests/min</span>
-                          <span className="font-mono text-zinc-300">{provider.requestsPerMin}</span>
+                          <span className="text-[var(--color-text-muted)]">Requests/min</span>
+                          <span className="font-mono text-[var(--color-text-primary)]">{provider.requestsPerMin}</span>
                         </div>
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-zinc-500">Avg Latency</span>
-                          <span className="font-mono text-zinc-300">{provider.avgLatencyMs}ms</span>
+                          <span className="text-[var(--color-text-muted)]">Avg Latency</span>
+                          <span className="font-mono text-[var(--color-text-primary)]">{provider.avgLatencyMs}ms</span>
                         </div>
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-zinc-500">Error Rate</span>
+                          <span className="text-[var(--color-text-muted)]">Error Rate</span>
                           <span className={cn("font-mono", provider.errorRate > 2 ? "text-red-400" : provider.errorRate > 0 ? "text-amber-400" : "text-emerald-400")}>
                             {provider.errorRate}%
                           </span>
@@ -1126,11 +1126,11 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
 
                         {/* Quota bar */}
                         <div>
-                          <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
+                          <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mb-1">
                             <span>Quota</span>
                             <span className="font-mono">{quotaPct.toFixed(0)}%</span>
                           </div>
-                          <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                             <div
                               className={cn(
                                 "h-full rounded-full transition-all",
@@ -1164,14 +1164,14 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                   key={card.id}
                   type="button"
                   onClick={() => onNavigate?.(card.id)}
-                  className="flex flex-col items-center gap-2 p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800/80 hover:border-zinc-700 transition-all group text-center"
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)]/60 hover:bg-[var(--color-surface-2)]/80 hover:border-[var(--color-surface-3)] transition-all group text-center"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--color-surface-2)] flex items-center justify-center group-hover:bg-[var(--color-surface-3)] transition-colors">
                     {card.icon}
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-zinc-300 group-hover:text-white transition-colors">{card.label}</div>
-                    <div className="text-[10px] text-zinc-600 font-mono mt-0.5">{card.stat}</div>
+                    <div className="text-xs font-semibold text-[var(--color-text-primary)] group-hover:text-[var(--color-text-primary)] transition-colors">{card.label}</div>
+                    <div className="text-[10px] text-[var(--color-text-muted)] font-mono mt-0.5">{card.stat}</div>
                   </div>
                 </button>
               ))}
@@ -1199,7 +1199,7 @@ function StatusPill({
   return (
     <div className="flex items-center gap-1.5 text-[11px]">
       <span className={cn("opacity-70", colorClass)}>{icon}</span>
-      <span className="text-zinc-500">{label}</span>
+      <span className="text-[var(--color-text-muted)]">{label}</span>
       <span className={cn("font-mono font-bold", colorClass)}>{value}</span>
     </div>
   );

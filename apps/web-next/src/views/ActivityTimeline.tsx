@@ -44,7 +44,7 @@ const KIND_COLORS: Record<EventKind, { dot: string; badge: string; bar: string }
   alert:           { dot: "bg-rose-500",    badge: "bg-rose-500/20 text-rose-400",       bar: "bg-rose-500" },
   message:         { dot: "bg-purple-500",  badge: "bg-purple-500/20 text-purple-400",   bar: "bg-purple-500" },
   spawn:           { dot: "bg-amber-500",   badge: "bg-amber-500/20 text-amber-400",     bar: "bg-amber-500" },
-  task:            { dot: "bg-zinc-500",    badge: "bg-zinc-500/20 text-zinc-400",       bar: "bg-zinc-500" },
+  task:            { dot: "bg-[var(--color-surface-3)]",    badge: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",       bar: "bg-[var(--color-surface-3)]" },
   "config-change": { dot: "bg-orange-500", badge: "bg-orange-500/20 text-orange-400",   bar: "bg-orange-500" },
   error:           { dot: "bg-red-500",     badge: "bg-red-500/20 text-red-400",         bar: "bg-red-500" },
 };
@@ -218,16 +218,16 @@ export default function ActivityTimeline() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="border-b border-zinc-800 px-6 py-4 flex items-center gap-4 flex-wrap">
+      <div className="border-b border-[var(--color-border)] px-6 py-4 flex items-center gap-4 flex-wrap">
         <h1 className="text-xl font-semibold tracking-tight">Activity Timeline</h1>
         <input
           type="text"
           placeholder="Search events…"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setVisibleCount(15); }}
-          className="bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm w-64 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm w-64 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
         />
         <div className="flex items-center gap-1 ml-auto">
           {TIME_RANGES.map((tr) => (
@@ -237,8 +237,8 @@ export default function ActivityTimeline() {
               className={cn(
                 "px-3 py-1.5 rounded text-sm transition-colors",
                 timeRange === tr.value
-                  ? "bg-indigo-600 text-white"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {tr.label}
@@ -249,10 +249,10 @@ export default function ActivityTimeline() {
 
       <div className="flex">
         {/* ── Sidebar ────────────────────────────────────────────────────── */}
-        <aside className="w-[200px] shrink-0 border-r border-zinc-800 p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-64px)]">
+        <aside className="w-[200px] shrink-0 border-r border-[var(--color-border)] p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-64px)]">
           {/* Kind Filters */}
           <div>
-            <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Event Kind</h3>
+            <h3 className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Event Kind</h3>
             <div className="space-y-1">
               {ALL_KINDS.map((k) => (
                 <button
@@ -260,7 +260,7 @@ export default function ActivityTimeline() {
                   onClick={() => toggleKind(k)}
                   className={cn(
                     "flex items-center gap-2 w-full text-left px-2 py-1 rounded text-sm transition-colors",
-                    activeKinds.has(k) ? "bg-zinc-800 text-white" : "text-zinc-600 hover:text-zinc-400"
+                    activeKinds.has(k) ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
                   )}
                 >
                   <span className={cn("w-2 h-2 rounded-full shrink-0", KIND_COLORS[k].dot, !activeKinds.has(k) && "opacity-30")} />
@@ -272,13 +272,13 @@ export default function ActivityTimeline() {
 
           {/* Squad Filter */}
           <div>
-            <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Squad</h3>
+            <h3 className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Squad</h3>
             <div className="space-y-1">
               <button
                 onClick={() => { setActiveSquad("all"); setVisibleCount(15); }}
                 className={cn(
                   "w-full text-left px-2 py-1 rounded text-sm transition-colors",
-                  activeSquad === "all" ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-400"
+                  activeSquad === "all" ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
                 )}
               >
                 All Squads
@@ -289,7 +289,7 @@ export default function ActivityTimeline() {
                   onClick={() => { setActiveSquad(s); setVisibleCount(15); }}
                   className={cn(
                     "w-full text-left px-2 py-1 rounded text-sm transition-colors",
-                    activeSquad === s ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-400"
+                    activeSquad === s ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
                   )}
                 >
                   {SQUAD_LABELS[s]}
@@ -300,7 +300,7 @@ export default function ActivityTimeline() {
 
           {/* Agent Filter */}
           <div>
-            <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Agent</h3>
+            <h3 className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Agent</h3>
             <div className="space-y-1">
               {actors.map((a) => (
                 <button
@@ -308,7 +308,7 @@ export default function ActivityTimeline() {
                   onClick={() => toggleActor(a)}
                   className={cn(
                     "w-full text-left px-2 py-1 rounded text-sm transition-colors",
-                    activeActors.has(a) ? "bg-zinc-800 text-white" : "text-zinc-600 hover:text-zinc-400"
+                    activeActors.has(a) ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
                   )}
                 >
                   {a}
@@ -321,10 +321,10 @@ export default function ActivityTimeline() {
         {/* ── Main Timeline ─────────────────────────────────────────────── */}
         <main className="flex-1 min-w-0 p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-64px)]">
           {/* Activity density bar */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">24h Activity Density</span>
-              <span className="text-xs text-zinc-500">{filtered.length} events</span>
+              <span className="text-xs text-[var(--color-text-muted)] font-medium uppercase tracking-wider">24h Activity Density</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{filtered.length} events</span>
             </div>
             <div className="flex items-end gap-[3px] h-10">
               {density.map((count, i) => (
@@ -336,7 +336,7 @@ export default function ActivityTimeline() {
                   <div
                     className={cn(
                       "w-full rounded-sm transition-all",
-                      count > 0 ? "bg-indigo-500" : "bg-zinc-800"
+                      count > 0 ? "bg-indigo-500" : "bg-[var(--color-surface-2)]"
                     )}
                     style={{ height: `${Math.max(count > 0 ? 10 : 2, (count / maxDensity) * 100)}%` }}
                   />
@@ -344,17 +344,17 @@ export default function ActivityTimeline() {
               ))}
             </div>
             <div className="flex justify-between mt-1">
-              <span className="text-[10px] text-zinc-600">00:00</span>
-              <span className="text-[10px] text-zinc-600">06:00</span>
-              <span className="text-[10px] text-zinc-600">12:00</span>
-              <span className="text-[10px] text-zinc-600">18:00</span>
-              <span className="text-[10px] text-zinc-600">23:00</span>
+              <span className="text-[10px] text-[var(--color-text-muted)]">00:00</span>
+              <span className="text-[10px] text-[var(--color-text-muted)]">06:00</span>
+              <span className="text-[10px] text-[var(--color-text-muted)]">12:00</span>
+              <span className="text-[10px] text-[var(--color-text-muted)]">18:00</span>
+              <span className="text-[10px] text-[var(--color-text-muted)]">23:00</span>
             </div>
           </div>
 
           {/* Timeline groups */}
           {groups.length === 0 && (
-            <div className="text-center py-16 text-zinc-500">
+            <div className="text-center py-16 text-[var(--color-text-muted)]">
               No events match the current filters.
             </div>
           )}
@@ -363,15 +363,15 @@ export default function ActivityTimeline() {
             <div key={group.label}>
               {/* Day label */}
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-sm font-semibold text-zinc-400">{group.label}</span>
-                <div className="flex-1 h-px bg-zinc-800" />
-                <span className="text-xs text-zinc-600">{group.events.length} events</span>
+                <span className="text-sm font-semibold text-[var(--color-text-secondary)]">{group.label}</span>
+                <div className="flex-1 h-px bg-[var(--color-surface-2)]" />
+                <span className="text-xs text-[var(--color-text-muted)]">{group.events.length} events</span>
               </div>
 
               {/* Events */}
               <div className="relative ml-4">
                 {/* Vertical timeline rail */}
-                <div className="absolute left-[5px] top-0 bottom-0 w-px bg-zinc-800" />
+                <div className="absolute left-[5px] top-0 bottom-0 w-px bg-[var(--color-surface-2)]" />
 
                 <div className="space-y-3">
                   {group.events.map((ev) => {
@@ -382,15 +382,15 @@ export default function ActivityTimeline() {
                       <div key={ev.id} className="relative flex gap-4">
                         {/* Dot */}
                         <div className="relative z-10 mt-3 shrink-0">
-                          <div className={cn("w-[11px] h-[11px] rounded-full border-2 border-zinc-950", colors.dot)} />
+                          <div className={cn("w-[11px] h-[11px] rounded-full border-2 border-[var(--color-border)]", colors.dot)} />
                         </div>
 
                         {/* Card */}
                         <button
                           onClick={() => setExpandedId(isExpanded ? null : ev.id)}
                           className={cn(
-                            "flex-1 text-left bg-zinc-900 border rounded-lg p-3 transition-colors hover:border-zinc-700 cursor-pointer",
-                            isExpanded ? "border-zinc-700" : "border-zinc-800"
+                            "flex-1 text-left bg-[var(--color-surface-1)] border rounded-lg p-3 transition-colors hover:border-[var(--color-border)] cursor-pointer",
+                            isExpanded ? "border-[var(--color-border)]" : "border-[var(--color-border)]"
                           )}
                         >
                           {/* Top row */}
@@ -399,28 +399,28 @@ export default function ActivityTimeline() {
                             <span className={cn("text-[11px] px-1.5 py-0.5 rounded font-medium", colors.badge)}>
                               {KIND_LABELS[ev.kind]}
                             </span>
-                            <span className="text-xs text-zinc-600 ml-auto shrink-0">{formatTime(ev.timestamp)}</span>
+                            <span className="text-xs text-[var(--color-text-muted)] ml-auto shrink-0">{formatTime(ev.timestamp)}</span>
                           </div>
 
                           {/* Title */}
-                          <p className="text-sm text-white mt-1 font-medium">{ev.title}</p>
+                          <p className="text-sm text-[var(--color-text-primary)] mt-1 font-medium">{ev.title}</p>
 
                           {/* Description */}
-                          <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">{ev.description}</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5 leading-relaxed">{ev.description}</p>
 
                           {/* Metadata pills */}
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {Object.entries(ev.metadata).slice(0, isExpanded ? undefined : 3).map(([k, v]) => (
                               <span
                                 key={k}
-                                className="inline-flex text-[10px] bg-zinc-800 text-zinc-400 rounded px-1.5 py-0.5"
+                                className="inline-flex text-[10px] bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded px-1.5 py-0.5"
                               >
-                                <span className="text-zinc-600">{k}:</span>
+                                <span className="text-[var(--color-text-muted)]">{k}:</span>
                                 <span className="ml-0.5">{v}</span>
                               </span>
                             ))}
                             {!isExpanded && Object.keys(ev.metadata).length > 3 && (
-                              <span className="text-[10px] text-zinc-600">
+                              <span className="text-[10px] text-[var(--color-text-muted)]">
                                 +{Object.keys(ev.metadata).length - 3} more
                               </span>
                             )}
@@ -428,12 +428,12 @@ export default function ActivityTimeline() {
 
                           {/* Expanded details */}
                           {isExpanded && (
-                            <div className="mt-3 pt-3 border-t border-zinc-800 text-xs text-zinc-500 space-y-1">
+                            <div className="mt-3 pt-3 border-t border-[var(--color-border)] text-xs text-[var(--color-text-muted)] space-y-1">
                               <div className="flex gap-4">
-                                <span>Squad: <span className="text-zinc-300">{SQUAD_LABELS[ev.squad]}</span></span>
-                                <span>ID: <span className="text-zinc-300 font-mono">{ev.id}</span></span>
+                                <span>Squad: <span className="text-[var(--color-text-primary)]">{SQUAD_LABELS[ev.squad]}</span></span>
+                                <span>ID: <span className="text-[var(--color-text-primary)] font-mono">{ev.id}</span></span>
                               </div>
-                              <div>Full timestamp: <span className="text-zinc-300 font-mono">{ev.timestamp}</span></div>
+                              <div>Full timestamp: <span className="text-[var(--color-text-primary)] font-mono">{ev.timestamp}</span></div>
                             </div>
                           )}
                         </button>
@@ -450,7 +450,7 @@ export default function ActivityTimeline() {
             <div className="flex justify-center pt-4">
               <button
                 onClick={() => setVisibleCount((c) => c + 10)}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-sm transition-colors"
+                className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm transition-colors"
               >
                 Load more ({filtered.length - visibleCount} remaining)
               </button>
@@ -458,7 +458,7 @@ export default function ActivityTimeline() {
           )}
 
           {!hasMore && filtered.length > 0 && (
-            <div className="text-center text-xs text-zinc-600 pt-4 pb-8">
+            <div className="text-center text-xs text-[var(--color-text-muted)] pt-4 pb-8">
               End of timeline — {filtered.length} events shown
             </div>
           )}

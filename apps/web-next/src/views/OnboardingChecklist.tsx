@@ -99,7 +99,7 @@ export default function OnboardingChecklist() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-8 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-indigo-500/30">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Header & Overall Progress */}
@@ -107,15 +107,15 @@ export default function OnboardingChecklist() {
           <div className="flex justify-between items-end">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Onboarding</h1>
-              <p className="text-zinc-400 mt-1">Complete these steps to unlock your full workspace potential.</p>
+              <p className="text-[var(--color-text-secondary)] mt-1">Complete these steps to unlock your full workspace potential.</p>
             </div>
             <div className="text-right">
               <span className="text-2xl font-mono font-bold text-indigo-400">{stats.percent}%</span>
-              <p className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">Workspace Ready</p>
+              <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider font-semibold">Workspace Ready</p>
             </div>
           </div>
           
-          <div className="relative h-3 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800" role="progressbar" aria-valuenow={stats.percent} aria-valuemin={0} aria-valuemax={100}>
+          <div className="relative h-3 bg-[var(--color-surface-1)] rounded-full overflow-hidden border border-[var(--color-border)]" role="progressbar" aria-valuenow={stats.percent} aria-valuemin={0} aria-valuemax={100}>
             <div 
               className="absolute top-0 left-0 h-full bg-indigo-500 transition-all duration-500 ease-out shadow-[0_0_12px_rgba(99,102,241,0.4)]"
               style={{ width: `${stats.percent}%` }}
@@ -123,7 +123,7 @@ export default function OnboardingChecklist() {
           </div>
           
           <div className="flex justify-between text-sm font-medium">
-            <span className="text-zinc-400">{stats.completed} of {stats.total} steps finished</span>
+            <span className="text-[var(--color-text-secondary)]">{stats.completed} of {stats.total} steps finished</span>
             {stats.allRequiredDone && (
               <span className="text-emerald-400 flex items-center gap-1.5 animate-bounce">
                 ✨ All required setup complete!
@@ -160,8 +160,8 @@ export default function OnboardingChecklist() {
                   className={cn(
                     "w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-200 text-left group focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                     isActive 
-                      ? "bg-zinc-900 border-zinc-700 text-white shadow-lg" 
-                      : "bg-transparent border-transparent text-zinc-500 hover:bg-zinc-900/50 hover:text-zinc-300"
+                      ? "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-primary)] shadow-lg" 
+                      : "bg-transparent border-transparent text-[var(--color-text-muted)] hover:bg-[var(--color-surface-1)]/50 hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -170,7 +170,7 @@ export default function OnboardingChecklist() {
                   </div>
                   <div className="flex items-center gap-2 text-xs font-mono">
                     <span className={cn(
-                      isActive ? "text-indigo-400" : "text-zinc-600",
+                      isActive ? "text-indigo-400" : "text-[var(--color-text-muted)]",
                       isDone && "text-emerald-400"
                     )}>
                       {progress.done}/{progress.total}
@@ -185,7 +185,7 @@ export default function OnboardingChecklist() {
           {/* Step List */}
           <main className="col-span-12 md:col-span-8 lg:col-span-9 space-y-4 relative">
             {celebration && (
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 px-4 py-1 rounded-full font-bold text-sm shadow-xl animate-bounce z-10">
+              <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-emerald-500 text-[var(--color-text-primary)] px-4 py-1 rounded-full font-bold text-sm shadow-xl animate-bounce z-10">
                 {celebration}
               </div>
             )}
@@ -199,8 +199,8 @@ export default function OnboardingChecklist() {
                 <div 
                   key={step.id}
                   className={cn(
-                    "group relative flex items-start gap-4 p-5 rounded-xl border bg-zinc-900 transition-all duration-300",
-                    isCompleted ? "border-emerald-500/20 opacity-80" : "border-zinc-800 hover:border-zinc-700",
+                    "group relative flex items-start gap-4 p-5 rounded-xl border bg-[var(--color-surface-1)] transition-all duration-300",
+                    isCompleted ? "border-emerald-500/20 opacity-80" : "border-[var(--color-border)] hover:border-[var(--color-border)]",
                     isSkipped && "opacity-50"
                   )}
                 >
@@ -212,8 +212,8 @@ export default function OnboardingChecklist() {
                     className={cn(
                       "mt-1 flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       isCompleted 
-                        ? "bg-emerald-400 border-emerald-400 text-zinc-950" 
-                        : "border-zinc-700 hover:border-zinc-500",
+                        ? "bg-emerald-400 border-emerald-400 text-[var(--color-text-primary)]" 
+                        : "border-[var(--color-border)] hover:border-[var(--color-surface-3)]",
                       isInProgress && "border-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.5)]"
                     )}
                   >
@@ -226,8 +226,8 @@ export default function OnboardingChecklist() {
                       <span className="text-xl">{step.emoji}</span>
                       <h3 className={cn(
                         "font-semibold text-lg leading-none",
-                        isCompleted && "text-zinc-400 line-through decoration-zinc-500",
-                        isSkipped && "text-zinc-500 line-through"
+                        isCompleted && "text-[var(--color-text-secondary)] line-through decoration-zinc-500",
+                        isSkipped && "text-[var(--color-text-muted)] line-through"
                       )}>
                         {step.title}
                       </h3>
@@ -238,13 +238,13 @@ export default function OnboardingChecklist() {
                       )}
                     </div>
                     <p className={cn(
-                      "text-zinc-400 text-sm leading-relaxed",
-                      (isCompleted || isSkipped) && "text-zinc-500"
+                      "text-[var(--color-text-secondary)] text-sm leading-relaxed",
+                      (isCompleted || isSkipped) && "text-[var(--color-text-muted)]"
                     )}>
                       {step.description}
                     </p>
                     
-                    <div className="flex items-center gap-4 pt-2 text-xs font-medium text-zinc-500">
+                    <div className="flex items-center gap-4 pt-2 text-xs font-medium text-[var(--color-text-muted)]">
                       <span className="flex items-center gap-1">⏱️ {step.estimatedMinutes}m</span>
                       {step.tip && <span className="text-amber-400/80 italic group-hover:text-amber-400 transition-colors">💡 Tip: {step.tip}</span>}
                     </div>
@@ -257,7 +257,7 @@ export default function OnboardingChecklist() {
                         onClick={() => skipStep(step.id)}
                         className={cn(
                           "text-[10px] uppercase font-bold px-2 py-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                          isSkipped ? "bg-zinc-800 text-zinc-400" : "text-zinc-500 hover:text-zinc-300"
+                          isSkipped ? "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                         )}
                       >
                         {isSkipped ? "Unskip" : "Skip"}

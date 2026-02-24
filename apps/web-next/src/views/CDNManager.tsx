@@ -127,7 +127,7 @@ const BANDWIDTH_HISTORY: BandwidthData[] = [
 // --- Sub-components ---
 
 const Card = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <div className={cn("bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden", className)}>
+  <div className={cn("bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden", className)}>
     {children}
   </div>
 );
@@ -137,7 +137,7 @@ const Badge = ({ children, variant }: { children: React.ReactNode; variant: "suc
     success: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
     error: "bg-rose-400/10 text-rose-400 border-rose-400/20",
     warning: "bg-amber-400/10 text-amber-400 border-amber-400/20",
-    neutral: "bg-zinc-800 text-zinc-400 border-zinc-700",
+    neutral: "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]",
   };
   return (
     <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium border", styles[variant])}>
@@ -189,16 +189,16 @@ export default function CDNManager() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-8 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-indigo-500/30">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">CDN Manager</h1>
-            <p className="text-zinc-400 mt-1 text-sm">Configure edge delivery, origins, and global performance.</p>
+            <p className="text-[var(--color-text-secondary)] mt-1 text-sm">Configure edge delivery, origins, and global performance.</p>
           </div>
-          <div className="flex bg-zinc-900 p-1 rounded-lg border border-zinc-800">
+          <div className="flex bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)]">
             {(["overview", "origins", "cache-rules", "analytics"] as TabType[]).map((tab) => (
               <button
                 key={tab}
@@ -206,8 +206,8 @@ export default function CDNManager() {
                 className={cn(
                   "px-4 py-1.5 rounded-md text-sm font-medium transition-all capitalize",
                   activeTab === tab 
-                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" 
-                    : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                    ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20" 
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
                 {tab.replace("-", " ")}
@@ -223,29 +223,29 @@ export default function CDNManager() {
               {/* Summary Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="p-6">
-                  <div className="text-zinc-500 text-sm font-medium uppercase tracking-wider mb-2">Total Bandwidth (30d)</div>
-                  <div className="text-4xl font-bold tracking-tight">1.24 <span className="text-zinc-500 text-xl font-normal tracking-normal">PB</span></div>
+                  <div className="text-[var(--color-text-muted)] text-sm font-medium uppercase tracking-wider mb-2">Total Bandwidth (30d)</div>
+                  <div className="text-4xl font-bold tracking-tight">1.24 <span className="text-[var(--color-text-muted)] text-xl font-normal tracking-normal">PB</span></div>
                   <div className="mt-4 flex items-center text-emerald-400 text-sm">
                     <span className="mr-1">↑</span> 12.4% vs last period
                   </div>
                 </Card>
                 <Card className="p-6">
-                  <div className="text-zinc-500 text-sm font-medium uppercase tracking-wider mb-2">Cache Hit Ratio</div>
+                  <div className="text-[var(--color-text-muted)] text-sm font-medium uppercase tracking-wider mb-2">Cache Hit Ratio</div>
                   <div className="flex items-center gap-6">
                     <div className="text-4xl font-bold">94.2%</div>
                     {/* Gauge Visual */}
-                    <div className="flex-1 h-3 bg-zinc-800 rounded-full overflow-hidden flex">
+                    <div className="flex-1 h-3 bg-[var(--color-surface-2)] rounded-full overflow-hidden flex">
                       <div className="h-full bg-indigo-500" style={{ width: "94.2%" }} />
                     </div>
                   </div>
-                  <div className="mt-4 text-zinc-500 text-sm">1.17 PB served from edge</div>
+                  <div className="mt-4 text-[var(--color-text-muted)] text-sm">1.17 PB served from edge</div>
                 </Card>
                 <Card className="p-6">
-                  <div className="text-zinc-500 text-sm font-medium uppercase tracking-wider mb-2">Active Origin Health</div>
+                  <div className="text-[var(--color-text-muted)] text-sm font-medium uppercase tracking-wider mb-2">Active Origin Health</div>
                   <div className="flex items-center gap-2 text-4xl font-bold">
                     6/6 <span className="text-emerald-400 text-xl">✅</span>
                   </div>
-                  <div className="mt-4 text-zinc-500 text-sm">All origins responding within SLA</div>
+                  <div className="mt-4 text-[var(--color-text-muted)] text-sm">All origins responding within SLA</div>
                 </Card>
               </div>
 
@@ -263,9 +263,9 @@ export default function CDNManager() {
                 {/* Simulated Map Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {REGIONS.map((region) => (
-                    <div key={region.id} className="bg-zinc-800/50 border border-zinc-700/50 p-4 rounded-lg">
+                    <div key={region.id} className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 p-4 rounded-lg">
                       <div className="flex justify-between items-start mb-3">
-                        <span className="text-sm font-medium text-zinc-200">{region.name}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{region.name}</span>
                         <span className={cn(
                           "w-2 h-2 rounded-full",
                           region.status === "healthy" ? "bg-emerald-400" : region.status === "degraded" ? "bg-amber-400" : "bg-rose-400"
@@ -281,7 +281,7 @@ export default function CDNManager() {
                           />
                         ))}
                       </div>
-                      <div className="flex justify-between text-[10px] text-zinc-500 font-mono uppercase">
+                      <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] font-mono uppercase">
                         <span>Traffic: {region.traffic}%</span>
                         <span>{region.latency}ms</span>
                       </div>
@@ -298,12 +298,12 @@ export default function CDNManager() {
                     {origins.slice(0, 5).map((origin) => (
                       <div key={origin.id} className="flex items-center justify-between group">
                         <div className="flex flex-col">
-                          <span className="text-sm font-mono text-zinc-300 group-hover:text-indigo-400 transition-colors">{origin.hostname}</span>
-                          <span className="text-xs text-zinc-500 uppercase">{origin.protocol}</span>
+                          <span className="text-sm font-mono text-[var(--color-text-primary)] group-hover:text-indigo-400 transition-colors">{origin.hostname}</span>
+                          <span className="text-xs text-[var(--color-text-muted)] uppercase">{origin.protocol}</span>
                         </div>
                         <div className="text-right">
                           <div className="text-sm font-semibold">{(Math.random() * 100).toFixed(1)} TB</div>
-                          <div className="text-[10px] text-zinc-500">LAST 30D</div>
+                          <div className="text-[10px] text-[var(--color-text-muted)]">LAST 30D</div>
                         </div>
                       </div>
                     ))}
@@ -313,7 +313,7 @@ export default function CDNManager() {
                   <div className="text-5xl">⚡️</div>
                   <div>
                     <h3 className="text-lg font-semibold">Edge Optimization Active</h3>
-                    <p className="text-zinc-400 text-sm mt-1 max-w-sm">Smart Routing and Tiered Caching are currently reducing origin load by 82% across all regions.</p>
+                    <p className="text-[var(--color-text-secondary)] text-sm mt-1 max-w-sm">Smart Routing and Tiered Caching are currently reducing origin load by 82% across all regions.</p>
                   </div>
                   <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors">
                     View Network Settings
@@ -341,7 +341,7 @@ export default function CDNManager() {
                           <h4 className="font-mono text-sm font-semibold">{origin.hostname}</h4>
                           <Badge variant={origin.status === "healthy" ? "success" : origin.status === "degraded" ? "warning" : "error"}>{origin.status}</Badge>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-zinc-500 mt-1">
+                        <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)] mt-1">
                           <span>{origin.protocol.toUpperCase()}</span>
                           <span>•</span>
                           <span>Poll: {origin.healthCheckInterval}s</span>
@@ -352,7 +352,7 @@ export default function CDNManager() {
                     </div>
                     <div className="flex items-center gap-8">
                       <div className="hidden md:flex flex-col items-center">
-                        <span className="text-[10px] text-zinc-500 uppercase mb-1">Health (7d)</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)] uppercase mb-1">Health (7d)</span>
                         <div className="flex gap-0.5">
                           {origin.history.map((h, i) => (
                             <div 
@@ -366,10 +366,10 @@ export default function CDNManager() {
                         </div>
                       </div>
                       <div className="text-right hidden sm:block">
-                        <div className="text-xs text-zinc-500 uppercase">SSL Expiry</div>
-                        <div className={cn("text-xs font-mono", origin.sslExpiry === "N/A" ? "text-zinc-600" : "text-zinc-300")}>{origin.sslExpiry}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] uppercase">SSL Expiry</div>
+                        <div className={cn("text-xs font-mono", origin.sslExpiry === "N/A" ? "text-[var(--color-text-muted)]" : "text-[var(--color-text-primary)]")}>{origin.sslExpiry}</div>
                       </div>
-                      <button className="text-zinc-500 hover:text-white transition-colors p-2">
+                      <button className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-2">
                         ⚙️
                       </button>
                     </div>
@@ -383,27 +383,27 @@ export default function CDNManager() {
                   <h3 className="text-lg font-semibold mb-4">Add Origin</h3>
                   <form onSubmit={handleAddOrigin} className="space-y-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs text-zinc-500 uppercase font-medium">Hostname</label>
+                      <label className="text-xs text-[var(--color-text-muted)] uppercase font-medium">Hostname</label>
                       <input 
                         type="text" 
                         value={newOrigin.hostname}
                         onChange={(e) => setNewOrigin({ ...newOrigin, hostname: e.target.value })}
                         placeholder="e.g. s3.amazonaws.com"
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs text-zinc-500 uppercase font-medium">Protocol</label>
+                      <label className="text-xs text-[var(--color-text-muted)] uppercase font-medium">Protocol</label>
                       <select 
                         value={newOrigin.protocol}
                         onChange={(e) => setNewOrigin({ ...newOrigin, protocol: e.target.value as "http" | "https" })}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none"
+                        className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none"
                       >
                         <option value="https">HTTPS (Recommended)</option>
                         <option value="http">HTTP</option>
                       </select>
                     </div>
-                    <button type="submit" className="w-full bg-white text-zinc-950 hover:bg-zinc-200 py-2 rounded-lg text-sm font-semibold transition-colors mt-2">
+                    <button type="submit" className="w-full bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] py-2 rounded-lg text-sm font-semibold transition-colors mt-2">
                       Connect Origin
                     </button>
                   </form>
@@ -414,7 +414,7 @@ export default function CDNManager() {
                     <span className="text-xl">⚠️</span>
                     <div>
                       <h4 className="text-sm font-semibold text-amber-400">Security Warning</h4>
-                      <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                      <p className="text-xs text-[var(--color-text-secondary)] mt-1 leading-relaxed">
                         One origin is currently using an unencrypted HTTP protocol. This may expose data in transit between the edge and your server.
                       </p>
                     </div>
@@ -429,20 +429,20 @@ export default function CDNManager() {
               {/* Rule List */}
               <div className="lg:col-span-2 space-y-4">
                 <div className="flex items-center justify-between px-2 mb-2">
-                  <span className="text-xs text-zinc-500 uppercase font-medium">Active Rules (Priority Order)</span>
-                  <span className="text-xs text-zinc-500 uppercase font-medium">Rules: {rules.length}</span>
+                  <span className="text-xs text-[var(--color-text-muted)] uppercase font-medium">Active Rules (Priority Order)</span>
+                  <span className="text-xs text-[var(--color-text-muted)] uppercase font-medium">Rules: {rules.length}</span>
                 </div>
                 {rules.toSorted((a, b) => a.priority - b.priority).map((rule) => (
                   <div key={rule.id} className="group relative">
-                    <div className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab text-zinc-600">
+                    <div className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab text-[var(--color-text-muted)]">
                       ⣿
                     </div>
-                    <Card className="p-4 flex items-center justify-between hover:border-zinc-700 transition-colors">
+                    <Card className="p-4 flex items-center justify-between hover:border-[var(--color-border)] transition-colors">
                       <div className="flex items-center gap-6">
-                        <div className="text-xs font-mono text-zinc-600 w-4">{rule.priority}</div>
+                        <div className="text-xs font-mono text-[var(--color-text-muted)] w-4">{rule.priority}</div>
                         <div>
                           <div className="font-mono text-sm font-semibold">{rule.pathPattern}</div>
-                          <div className="flex items-center gap-3 text-xs text-zinc-500 mt-1 uppercase">
+                          <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)] mt-1 uppercase">
                             <span className={cn(
                               rule.directive === "bypass" ? "text-rose-400" : rule.directive === "force-cache" ? "text-emerald-400" : "text-indigo-400"
                             )}>
@@ -454,8 +454,8 @@ export default function CDNManager() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button className="p-2 text-zinc-500 hover:text-white transition-colors">✏️</button>
-                        <button className="p-2 text-zinc-500 hover:text-rose-400 transition-colors">🗑️</button>
+                        <button className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">✏️</button>
+                        <button className="p-2 text-[var(--color-text-muted)] hover:text-rose-400 transition-colors">🗑️</button>
                       </div>
                     </Card>
                   </div>
@@ -468,18 +468,18 @@ export default function CDNManager() {
                   <h3 className="text-lg font-semibold mb-4">Rule Editor</h3>
                   <form onSubmit={handleAddRule} className="space-y-5">
                     <div className="space-y-1.5">
-                      <label className="text-xs text-zinc-500 uppercase font-medium">Path Pattern</label>
+                      <label className="text-xs text-[var(--color-text-muted)] uppercase font-medium">Path Pattern</label>
                       <input 
                         type="text" 
                         value={newRule.pathPattern}
                         onChange={(e) => setNewRule({ ...newRule, pathPattern: e.target.value })}
                         placeholder="/static/* or *.pdf"
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       />
                     </div>
                     
                     <div className="space-y-1.5">
-                      <label className="text-xs text-zinc-500 uppercase font-medium">Action</label>
+                      <label className="text-xs text-[var(--color-text-muted)] uppercase font-medium">Action</label>
                       <div className="grid grid-cols-3 gap-2">
                         {(["cache", "bypass", "force-cache"] as const).map((dir) => (
                           <button
@@ -490,7 +490,7 @@ export default function CDNManager() {
                               "text-[10px] uppercase font-bold py-2 rounded border transition-all",
                               newRule.directive === dir 
                                 ? "bg-indigo-600/20 border-indigo-500 text-indigo-400" 
-                                : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+                                : "bg-[var(--color-surface-0)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border)]"
                             )}
                           >
                             {dir}
@@ -500,11 +500,11 @@ export default function CDNManager() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs text-zinc-500 uppercase font-medium">TTL (Seconds)</label>
+                      <label className="text-xs text-[var(--color-text-muted)] uppercase font-medium">TTL (Seconds)</label>
                       <select 
                         value={newRule.ttl}
                         onChange={(e) => setNewRule({ ...newRule, ttl: parseInt(e.target.value) })}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none"
+                        className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none"
                       >
                         <option value={0}>0 (No Cache)</option>
                         <option value={60}>60 (1 Minute)</option>
@@ -515,7 +515,7 @@ export default function CDNManager() {
                       </select>
                     </div>
 
-                    <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg text-sm font-semibold transition-colors mt-2">
+                    <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] py-2 rounded-lg text-sm font-semibold transition-colors mt-2">
                       Create Rule
                     </button>
                   </form>
@@ -531,20 +531,20 @@ export default function CDNManager() {
                 <Card className="p-6">
                   <div className="flex items-center justify-between mb-8">
                     <h3 className="text-lg font-semibold">Bandwidth Usage (14d)</h3>
-                    <div className="text-xs text-zinc-500 font-mono">VALUES IN GB/DAY</div>
+                    <div className="text-xs text-[var(--color-text-muted)] font-mono">VALUES IN GB/DAY</div>
                   </div>
                   <div className="flex items-end justify-between h-48 gap-2">
                     {BANDWIDTH_HISTORY.map((item, i) => (
                       <div key={i} className="flex-1 flex flex-col items-center group relative">
                         {/* Tooltip on hover */}
-                        <div className="absolute -top-10 scale-0 group-hover:scale-100 transition-transform bg-zinc-800 text-white text-[10px] px-2 py-1 rounded border border-zinc-700 z-10 whitespace-nowrap">
+                        <div className="absolute -top-10 scale-0 group-hover:scale-100 transition-transform bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-[10px] px-2 py-1 rounded border border-[var(--color-border)] z-10 whitespace-nowrap">
                           {item.value} GB
                         </div>
                         <div 
                           className="w-full bg-indigo-500/60 rounded-t-sm group-hover:bg-indigo-400 transition-colors" 
                           style={{ height: `${(item.value / 1000) * 100}%` }}
                         />
-                        <div className="text-[10px] text-zinc-600 mt-2 rotate-45 origin-left">{item.day}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)] mt-2 rotate-45 origin-left">{item.day}</div>
                       </div>
                     ))}
                   </div>
@@ -559,7 +559,7 @@ export default function CDNManager() {
                           <span className="text-indigo-400">Cache Hits</span>
                           <span>94.2%</span>
                         </div>
-                        <div className="h-4 bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="h-4 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                           <div className="h-full bg-indigo-500" style={{ width: "94.2%" }} />
                         </div>
                       </div>
@@ -568,7 +568,7 @@ export default function CDNManager() {
                           <span className="text-rose-400">Cache Misses</span>
                           <span>4.1%</span>
                         </div>
-                        <div className="h-4 bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="h-4 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                           <div className="h-full bg-rose-500" style={{ width: "4.1%" }} />
                         </div>
                       </div>
@@ -577,7 +577,7 @@ export default function CDNManager() {
                           <span className="text-amber-400">Stale/Revalidated</span>
                           <span>1.7%</span>
                         </div>
-                        <div className="h-4 bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="h-4 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                           <div className="h-full bg-amber-500" style={{ width: "1.7%" }} />
                         </div>
                       </div>
@@ -590,17 +590,17 @@ export default function CDNManager() {
               <Card className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Resource Path</th>
-                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Hit Count</th>
-                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">Status</th>
-                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 text-right">Trend</th>
+                    <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
+                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Resource Path</th>
+                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Hit Count</th>
+                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Status</th>
+                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] text-right">Trend</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800">
+                  <tbody className="divide-y divide-[var(--color-border)]">
                     {ANALYTICS_URLS.map((entry) => (
-                      <tr key={entry.id} className="hover:bg-zinc-800/30 transition-colors group">
-                        <td className="px-6 py-4 text-sm font-mono text-zinc-300 group-hover:text-white">{entry.url}</td>
+                      <tr key={entry.id} className="hover:bg-[var(--color-surface-2)]/30 transition-colors group">
+                        <td className="px-6 py-4 text-sm font-mono text-[var(--color-text-primary)] group-hover:text-[var(--color-text-primary)]">{entry.url}</td>
                         <td className="px-6 py-4 text-sm font-semibold">{entry.hits.toLocaleString()}</td>
                         <td className="px-6 py-4">
                           <Badge variant={entry.status === "hit" ? "success" : entry.status === "miss" ? "error" : "warning"}>
@@ -612,7 +612,7 @@ export default function CDNManager() {
                             {[...Array(6)].map((_, i) => (
                               <div 
                                 key={i} 
-                                className="w-1 bg-zinc-700 rounded-full" 
+                                className="w-1 bg-[var(--color-surface-3)] rounded-full" 
                                 style={{ height: `${Math.random() * 16 + 4}px` }} 
                               />
                             ))}

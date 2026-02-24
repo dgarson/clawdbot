@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 
 interface WorkflowModalProps {
   open: boolean;
@@ -25,16 +25,31 @@ export function WorkflowModal({
   onNext,
   children,
 }: WorkflowModalProps) {
-  if (!open) {
-    return null;
-  }
+  // Esc key handler
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [open, onClose]);
+
+  if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3">
-      <div className="w-full max-w-xl rounded-xl border border-border bg-card shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3">
+      {/* Click-outside backdrop */}
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} aria-hidden="true" />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="workflow-modal-title"
+        className="relative w-full max-w-xl rounded-xl border border-border bg-card shadow-2xl"
+      >
         <div className="flex items-start justify-between border-b border-border px-4 py-3">
           <div>
-            <h3 className="text-base font-semibold text-foreground">{title}</h3>
+            <h3 id="workflow-modal-title" className="text-base font-semibold text-foreground">{title}</h3>
             <p className="text-xs text-muted-foreground">{subtitle}</p>
           </div>
           <button onClick={onClose} className="rounded px-2 py-1 text-muted-foreground hover:bg-secondary/60 hover:text-foreground" aria-label="Close dialog">

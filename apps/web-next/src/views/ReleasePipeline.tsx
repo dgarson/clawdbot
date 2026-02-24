@@ -138,13 +138,13 @@ const STATUS_ICONS: Record<StageStatus, string> = {
 };
 
 const ENV_COLORS: Record<Environment, string> = {
-  development: "text-zinc-400 bg-zinc-800",
+  development: "text-[var(--color-text-secondary)] bg-[var(--color-surface-2)]",
   staging: "text-amber-400 bg-amber-400/10",
   production: "text-emerald-400 bg-emerald-400/10",
 };
 
 const RELEASE_STATUS_COLORS: Record<ReleaseStatus, string> = {
-  draft: "text-zinc-500 bg-zinc-800",
+  draft: "text-[var(--color-text-muted)] bg-[var(--color-surface-2)]",
   deploying: "text-indigo-400 bg-indigo-400/10",
   live: "text-emerald-400 bg-emerald-400/10",
   "rolled-back": "text-rose-400 bg-rose-400/10",
@@ -165,14 +165,14 @@ export default function ReleasePipeline() {
   }, []);
 
   return (
-    <div className="flex h-full w-full bg-zinc-950 text-white overflow-hidden">
+    <div className="flex h-full w-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* Left Panel: Release List */}
       <aside 
-        className="w-80 border-r border-zinc-800 flex flex-col overflow-y-auto"
+        className="w-80 border-r border-[var(--color-border)] flex flex-col overflow-y-auto"
         role="complementary"
         aria-label="Releases list"
       >
-        <div className="p-4 border-b border-zinc-800">
+        <div className="p-4 border-b border-[var(--color-border)]">
           <h2 className="text-lg font-bold">Releases</h2>
         </div>
         <nav>
@@ -183,8 +183,8 @@ export default function ReleasePipeline() {
                   onClick={() => setSelectedId(release.id)}
                   aria-pressed={selectedId === release.id}
                   className={cn(
-                    "w-full text-left p-4 border-b border-zinc-800/50 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                    selectedId === release.id ? "bg-zinc-900" : "hover:bg-zinc-900/50"
+                    "w-full text-left p-4 border-b border-[var(--color-border)]/50 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
+                    selectedId === release.id ? "bg-[var(--color-surface-1)]" : "hover:bg-[var(--color-surface-1)]/50"
                   )}
                 >
                   <div className="flex justify-between items-start mb-2">
@@ -197,11 +197,11 @@ export default function ReleasePipeline() {
                     <span className={cn("w-2 h-2 rounded-full", 
                       release.status === 'live' ? 'bg-emerald-400' : 
                       release.status === 'deploying' ? 'bg-indigo-400 animate-pulse' : 
-                      'bg-zinc-500'
+                      'bg-[var(--color-surface-3)]'
                     )} />
-                    <span className="text-xs text-zinc-400 capitalize">{release.status.replace("-", " ")}</span>
+                    <span className="text-xs text-[var(--color-text-secondary)] capitalize">{release.status.replace("-", " ")}</span>
                   </div>
-                  <div className="flex justify-between text-[10px] text-zinc-500">
+                  <div className="flex justify-between text-[10px] text-[var(--color-text-muted)]">
                     <span className="font-mono">{release.commit}</span>
                     <span>{release.author}</span>
                   </div>
@@ -219,7 +219,7 @@ export default function ReleasePipeline() {
         aria-label={`Release details for ${selectedRelease.version}`}
       >
         {/* Header */}
-        <header className="mb-8 border-b border-zinc-800 pb-8">
+        <header className="mb-8 border-b border-[var(--color-border)] pb-8">
           <div className="flex justify-between items-start mb-4">
             <div>
               <div className="flex items-center gap-4 mb-2">
@@ -227,11 +227,11 @@ export default function ReleasePipeline() {
                 <span className={cn("px-2 py-1 rounded text-xs font-bold uppercase tracking-widest", RELEASE_STATUS_COLORS[selectedRelease.status])}>
                   {selectedRelease.status}
                 </span>
-                <span className={cn("px-2 py-1 rounded text-xs font-bold uppercase tracking-widest border border-zinc-800", ENV_COLORS[selectedRelease.environment])}>
+                <span className={cn("px-2 py-1 rounded text-xs font-bold uppercase tracking-widest border border-[var(--color-border)]", ENV_COLORS[selectedRelease.environment])}>
                   {selectedRelease.environment}
                 </span>
               </div>
-              <p className="text-zinc-400">{selectedRelease.name}</p>
+              <p className="text-[var(--color-text-secondary)]">{selectedRelease.name}</p>
             </div>
             
             <div className="flex gap-3">
@@ -241,12 +241,12 @@ export default function ReleasePipeline() {
                 </button>
               )}
               {selectedRelease.environment === "staging" && (
-                <button className="px-4 py-2 bg-indigo-600 text-white rounded text-sm font-bold hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-all">
+                <button className="px-4 py-2 bg-indigo-600 text-[var(--color-text-primary)] rounded text-sm font-bold hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-all">
                   Promote to Prod
                 </button>
               )}
               {selectedRelease.status === "failed" && (
-                <button className="px-4 py-2 bg-zinc-800 text-white rounded text-sm font-bold hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-all">
+                <button className="px-4 py-2 bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded text-sm font-bold hover:bg-[var(--color-surface-3)] focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-all">
                   Re-deploy
                 </button>
               )}
@@ -255,20 +255,20 @@ export default function ReleasePipeline() {
 
           <div className="grid grid-cols-4 gap-8 text-sm">
             <div>
-              <span className="block text-zinc-500 mb-1">Branch</span>
+              <span className="block text-[var(--color-text-muted)] mb-1">Branch</span>
               <span className="font-mono text-indigo-400">{selectedRelease.branch}</span>
             </div>
             <div>
-              <span className="block text-zinc-500 mb-1">Commit</span>
+              <span className="block text-[var(--color-text-muted)] mb-1">Commit</span>
               <span className="font-mono">{selectedRelease.commit}</span>
             </div>
             <div>
-              <span className="block text-zinc-500 mb-1">Author</span>
+              <span className="block text-[var(--color-text-muted)] mb-1">Author</span>
               <span>{selectedRelease.author}</span>
             </div>
             <div>
-              <span className="block text-zinc-500 mb-1">Deployed At</span>
-              <span className="text-zinc-300">{selectedRelease.deployedAt ? new Date(selectedRelease.deployedAt).toLocaleString() : "—"}</span>
+              <span className="block text-[var(--color-text-muted)] mb-1">Deployed At</span>
+              <span className="text-[var(--color-text-primary)]">{selectedRelease.deployedAt ? new Date(selectedRelease.deployedAt).toLocaleString() : "—"}</span>
             </div>
           </div>
         </header>
@@ -276,7 +276,7 @@ export default function ReleasePipeline() {
         {/* Pipeline Visualization */}
         <section className="mb-12" aria-labelledby="pipeline-heading">
           <h2 id="pipeline-heading" className="text-lg font-bold mb-6 flex items-center gap-2">
-            Pipeline <span className="text-xs font-normal text-zinc-500">({selectedRelease.stages.length} stages)</span>
+            Pipeline <span className="text-xs font-normal text-[var(--color-text-muted)]">({selectedRelease.stages.length} stages)</span>
           </h2>
           
           <div className="flex flex-wrap gap-4">
@@ -289,9 +289,9 @@ export default function ReleasePipeline() {
                     aria-controls={`logs-${stage.id}`}
                     aria-label={`Stage: ${stage.name}, status: ${stage.status}`}
                     className={cn(
-                      "w-full p-4 bg-zinc-900 border border-zinc-800 rounded-lg text-left transition-all hover:border-zinc-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
+                      "w-full p-4 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-left transition-all hover:border-[var(--color-border)] focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       stage.status === "running" && "border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.1)]",
-                      expandedStageId === stage.id && "bg-zinc-800/50 border-zinc-600"
+                      expandedStageId === stage.id && "bg-[var(--color-surface-2)]/50 border-[var(--color-surface-3)]"
                     )}
                   >
                     <div className="flex items-center justify-between mb-3">
@@ -299,7 +299,7 @@ export default function ReleasePipeline() {
                         {STATUS_ICONS[stage.status]}
                       </span>
                       {stage.duration && (
-                        <span className="text-[10px] text-zinc-500 font-mono">{stage.duration}s</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{stage.duration}s</span>
                       )}
                     </div>
                     <h3 className="text-sm font-bold truncate">{stage.name}</h3>
@@ -308,7 +308,7 @@ export default function ReleasePipeline() {
                       stage.status === "passed" && "text-emerald-400",
                       stage.status === "failed" && "text-rose-400",
                       stage.status === "running" && "text-indigo-400",
-                      stage.status === "pending" && "text-zinc-500"
+                      stage.status === "pending" && "text-[var(--color-text-muted)]"
                     )}>
                       {stage.status}
                     </p>
@@ -316,7 +316,7 @@ export default function ReleasePipeline() {
 
                   {/* Connecting Line (hidden on last item and when wrapped, but simplified for this view) */}
                   {idx < selectedRelease.stages.length - 1 && (
-                    <div className="hidden lg:block absolute -right-3 top-[34px] w-2 h-px bg-zinc-800" />
+                    <div className="hidden lg:block absolute -right-3 top-[34px] w-2 h-px bg-[var(--color-surface-2)]" />
                   )}
                 </div>
               </React.Fragment>
@@ -327,17 +327,17 @@ export default function ReleasePipeline() {
           {expandedStageId && (
             <div 
               id={`logs-${expandedStageId}`}
-              className="mt-6 bg-zinc-950 border border-zinc-800 rounded-lg p-6 font-mono text-xs"
+              className="mt-6 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg p-6 font-mono text-xs"
               role="region"
               aria-label="Stage logs"
             >
               <div className="flex justify-between items-center mb-4">
-                <h4 className="text-zinc-400 font-bold uppercase tracking-widest text-[10px]">
+                <h4 className="text-[var(--color-text-secondary)] font-bold uppercase tracking-widest text-[10px]">
                   Logs: {selectedRelease.stages.find(s => s.id === expandedStageId)?.name}
                 </h4>
                 <button 
                   onClick={() => setExpandedStageId(null)}
-                  className="text-zinc-500 hover:text-white focus-visible:ring-1 focus-visible:ring-indigo-500"
+                  className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] focus-visible:ring-1 focus-visible:ring-indigo-500"
                 >
                   Close
                 </button>
@@ -345,14 +345,14 @@ export default function ReleasePipeline() {
               <div className="space-y-2">
                 {selectedRelease.stages.find(s => s.id === expandedStageId)?.logs?.map((log, i) => (
                   <div key={i} className="flex gap-4">
-                    <span className="text-zinc-600">[{i + 1}]</span>
+                    <span className="text-[var(--color-text-muted)]">[{i + 1}]</span>
                     <span className={cn(
-                      log.toLowerCase().includes('error') || log.toLowerCase().includes('failure') ? "text-rose-400" : "text-zinc-300"
+                      log.toLowerCase().includes('error') || log.toLowerCase().includes('failure') ? "text-rose-400" : "text-[var(--color-text-primary)]"
                     )}>
                       {log}
                     </span>
                   </div>
-                )) || <div className="text-zinc-600 italic">No logs available for this stage.</div>}
+                )) || <div className="text-[var(--color-text-muted)] italic">No logs available for this stage.</div>}
               </div>
             </div>
           )}
@@ -361,8 +361,8 @@ export default function ReleasePipeline() {
         {/* Release Notes */}
         <section aria-labelledby="notes-heading">
           <h2 id="notes-heading" className="text-lg font-bold mb-4">Release Notes</h2>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-            <p className="text-zinc-300 leading-relaxed italic">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-6">
+            <p className="text-[var(--color-text-primary)] leading-relaxed italic">
               "{selectedRelease.notes}"
             </p>
           </div>

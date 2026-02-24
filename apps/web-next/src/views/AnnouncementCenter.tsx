@@ -85,10 +85,10 @@ const typeBadge: Record<AnnouncementType, string> = {
 };
 
 const statusBadge: Record<AnnouncementStatus, string> = {
-  draft: "bg-zinc-700/30 border-zinc-600 text-zinc-400",
+  draft: "bg-[var(--color-surface-3)]/30 border-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
   scheduled: "bg-amber-500/10 border-amber-500/30 text-amber-400",
   live: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
-  expired: "bg-zinc-700/30 border-zinc-600 text-zinc-500",
+  expired: "bg-[var(--color-surface-3)]/30 border-[var(--color-surface-3)] text-[var(--color-text-muted)]",
 };
 
 const audienceLabel: Record<TargetAudience, string> = {
@@ -124,43 +124,43 @@ export default function AnnouncementCenter() {
   const avgCtr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(1) : "0";
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Announcement Center</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">In-app notifications, release notes, and product updates</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">In-app notifications, release notes, and product updates</p>
         </div>
-        <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">
+        <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
           + New Announcement
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-0 border-b border-zinc-800">
+      <div className="grid grid-cols-4 gap-0 border-b border-[var(--color-border)]">
         {[
           { label: "Live Announcements", value: String(liveCount), sub: "currently showing" },
           { label: "Total Impressions", value: totalImpressions.toLocaleString(), sub: "all time" },
           { label: "Total Clicks", value: totalClicks.toLocaleString(), sub: "all time" },
           { label: "Avg CTR", value: `${avgCtr}%`, sub: "click-through rate" },
         ].map((stat, i) => (
-          <div key={i} className="px-6 py-3 border-r border-zinc-800 last:border-r-0">
-            <div className="text-xl font-bold text-white">{stat.value}</div>
-            <div className="text-xs font-medium text-zinc-400 mt-0.5">{stat.label}</div>
-            <div className="text-xs text-zinc-600 mt-0.5">{stat.sub}</div>
+          <div key={i} className="px-6 py-3 border-r border-[var(--color-border)] last:border-r-0">
+            <div className="text-xl font-bold text-[var(--color-text-primary)]">{stat.value}</div>
+            <div className="text-xs font-medium text-[var(--color-text-secondary)] mt-0.5">{stat.label}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{stat.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-[var(--color-border)] px-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id ? "border-indigo-500 text-white" : "border-transparent text-zinc-500 hover:text-zinc-300"
+              tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             <span>{t.emoji}</span>
@@ -174,13 +174,13 @@ export default function AnnouncementCenter() {
         {tab === "announcements" && (
           <div className="flex h-full">
             {/* List */}
-            <div className="w-96 border-r border-zinc-800 flex flex-col">
-              <div className="p-3 space-y-2 border-b border-zinc-800">
+            <div className="w-96 border-r border-[var(--color-border)] flex flex-col">
+              <div className="p-3 space-y-2 border-b border-[var(--color-border)]">
                 <div className="flex gap-2">
                   <select
                     value={typeFilter}
                     onChange={e => setTypeFilter(e.target.value)}
-                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300"
+                    className="flex-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)]"
                   >
                     <option value="all">All types</option>
                     <option value="feature">Feature</option>
@@ -192,7 +192,7 @@ export default function AnnouncementCenter() {
                   <select
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
-                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300"
+                    className="flex-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)]"
                   >
                     <option value="all">All status</option>
                     <option value="live">Live</option>
@@ -208,14 +208,14 @@ export default function AnnouncementCenter() {
                     key={ann.id}
                     onClick={() => setSelected(ann)}
                     className={cn(
-                      "w-full text-left px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-900 transition-colors",
-                      selected?.id === ann.id && "bg-zinc-800"
+                      "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-1)] transition-colors",
+                      selected?.id === ann.id && "bg-[var(--color-surface-2)]"
                     )}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div className="flex items-center gap-1.5">
                         {ann.pinned && <span className="text-xs text-amber-400">📌</span>}
-                        <span className="text-sm font-medium text-zinc-200 leading-snug line-clamp-1">{ann.title}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)] leading-snug line-clamp-1">{ann.title}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -226,7 +226,7 @@ export default function AnnouncementCenter() {
                         {ann.status}
                       </span>
                       {ann.impressions > 0 && (
-                        <span className="text-xs text-zinc-600 ml-auto">{ann.impressions.toLocaleString()} views</span>
+                        <span className="text-xs text-[var(--color-text-muted)] ml-auto">{ann.impressions.toLocaleString()} views</span>
                       )}
                     </div>
                   </button>
@@ -250,13 +250,13 @@ export default function AnnouncementCenter() {
                             {selected.status}
                           </span>
                         </div>
-                        <h2 className="text-lg font-semibold text-white">{selected.title}</h2>
-                        <p className="text-xs text-zinc-500 mt-1">by {selected.author} · {selected.publishedAt || "Not published"}</p>
+                        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{selected.title}</h2>
+                        <p className="text-xs text-[var(--color-text-muted)] mt-1">by {selected.author} · {selected.publishedAt || "Not published"}</p>
                       </div>
                       <div className="flex gap-2 shrink-0">
-                        <button className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-zinc-300 transition-colors">Edit</button>
+                        <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">Edit</button>
                         {selected.status === "draft" && (
-                          <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">Publish</button>
+                          <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Publish</button>
                         )}
                         {selected.status === "live" && (
                           <button className="px-3 py-1.5 text-xs bg-amber-500/20 border border-amber-500/40 rounded text-amber-400 hover:bg-amber-500/30 transition-colors">Expire Now</button>
@@ -270,15 +270,15 @@ export default function AnnouncementCenter() {
                       selected.type === "deprecation" ? "bg-rose-500/5 border-rose-500/20" :
                       selected.type === "maintenance" ? "bg-amber-500/5 border-amber-500/20" :
                       selected.type === "feature" ? "bg-indigo-500/5 border-indigo-500/20" :
-                      "bg-zinc-900 border-zinc-700"
+                      "bg-[var(--color-surface-1)] border-[var(--color-border)]"
                     )}>
                       <div className="flex items-start gap-3">
                         <span className="text-2xl">{typeIcon[selected.type]}</span>
                         <div className="flex-1">
-                          <div className="font-semibold text-sm text-white mb-1">{selected.title}</div>
-                          <p className="text-xs text-zinc-400 leading-relaxed">{selected.body}</p>
+                          <div className="font-semibold text-sm text-[var(--color-text-primary)] mb-1">{selected.title}</div>
+                          <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{selected.body}</p>
                           {selected.cta && (
-                            <button className="mt-3 px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">
+                            <button className="mt-3 px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
                               {selected.cta} →
                             </button>
                           )}
@@ -289,10 +289,10 @@ export default function AnnouncementCenter() {
 
                   {/* Audience */}
                   <div>
-                    <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Target Audience</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">Target Audience</div>
                     <div className="flex gap-2 flex-wrap">
                       {selected.audience.map(a => (
-                        <span key={a} className="px-2.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-300">{audienceLabel[a]}</span>
+                        <span key={a} className="px-2.5 py-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded text-xs text-[var(--color-text-primary)]">{audienceLabel[a]}</span>
                       ))}
                     </div>
                   </div>
@@ -300,7 +300,7 @@ export default function AnnouncementCenter() {
                   {/* Metrics */}
                   {selected.impressions > 0 && (
                     <div>
-                      <div className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">Performance</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-3 uppercase tracking-wider">Performance</div>
                       <div className="grid grid-cols-3 gap-3">
                         {[
                           { label: "Impressions", value: selected.impressions.toLocaleString() },
@@ -310,9 +310,9 @@ export default function AnnouncementCenter() {
                           { label: "Dismiss Rate", value: `${((selected.dismissals / selected.impressions) * 100).toFixed(1)}%` },
                           { label: "Engagement", value: `${(((selected.clicks + selected.dismissals) / selected.impressions) * 100).toFixed(0)}%` },
                         ].map(({ label, value }) => (
-                          <div key={label} className="bg-zinc-900 rounded p-3 text-center">
-                            <div className="text-lg font-bold text-white">{value}</div>
-                            <div className="text-xs text-zinc-500 mt-0.5">{label}</div>
+                          <div key={label} className="bg-[var(--color-surface-1)] rounded p-3 text-center">
+                            <div className="text-lg font-bold text-[var(--color-text-primary)]">{value}</div>
+                            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{label}</div>
                           </div>
                         ))}
                       </div>
@@ -322,12 +322,12 @@ export default function AnnouncementCenter() {
                   {/* Tags */}
                   <div className="flex gap-2 flex-wrap">
                     {selected.tags.map(tag => (
-                      <span key={tag} className="px-2 py-0.5 rounded bg-zinc-800 text-xs text-zinc-400 font-mono">{tag}</span>
+                      <span key={tag} className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-xs text-[var(--color-text-secondary)] font-mono">{tag}</span>
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-zinc-600 text-sm">Select an announcement to view details</div>
+                <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">Select an announcement to view details</div>
               )}
             </div>
           </div>
@@ -336,20 +336,20 @@ export default function AnnouncementCenter() {
         {/* COMPOSE TAB */}
         {tab === "compose" && (
           <div className="max-w-2xl mx-auto p-6 space-y-5">
-            <h2 className="text-sm font-semibold text-zinc-300">New Announcement</h2>
+            <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">New Announcement</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs text-zinc-500 mb-1.5">Title</label>
-                <input type="text" placeholder="What are you announcing?" className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300 placeholder-zinc-600 outline-none focus:border-indigo-500" />
+                <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Title</label>
+                <input type="text" placeholder="What are you announcing?" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500" />
               </div>
               <div>
-                <label className="block text-xs text-zinc-500 mb-1.5">Body</label>
-                <textarea rows={4} placeholder="Describe the announcement in detail..." className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300 placeholder-zinc-600 outline-none focus:border-indigo-500 resize-none" />
+                <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Body</label>
+                <textarea rows={4} placeholder="Describe the announcement in detail..." className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500 resize-none" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-zinc-500 mb-1.5">Type</label>
-                  <select className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300">
+                  <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Type</label>
+                  <select className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)]">
                     <option value="feature">✨ Feature</option>
                     <option value="update">📦 Update</option>
                     <option value="maintenance">🔧 Maintenance</option>
@@ -358,8 +358,8 @@ export default function AnnouncementCenter() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-zinc-500 mb-1.5">Audience</label>
-                  <select className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300">
+                  <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Audience</label>
+                  <select className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)]">
                     <option value="all">All users</option>
                     <option value="enterprise">Enterprise only</option>
                     <option value="pro">Pro + Enterprise</option>
@@ -369,17 +369,17 @@ export default function AnnouncementCenter() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-zinc-500 mb-1.5">CTA Button (optional)</label>
-                  <input type="text" placeholder="e.g. Learn more" className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300 placeholder-zinc-600 outline-none focus:border-indigo-500" />
+                  <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">CTA Button (optional)</label>
+                  <input type="text" placeholder="e.g. Learn more" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500" />
                 </div>
                 <div>
-                  <label className="block text-xs text-zinc-500 mb-1.5">CTA URL (optional)</label>
-                  <input type="text" placeholder="/docs/new-feature" className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300 placeholder-zinc-600 outline-none focus:border-indigo-500" />
+                  <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">CTA URL (optional)</label>
+                  <input type="text" placeholder="/docs/new-feature" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-zinc-500 mb-1.5">Expires After</label>
-                <select className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300">
+                <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Expires After</label>
+                <select className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)]">
                   <option>7 days</option>
                   <option>14 days</option>
                   <option>30 days</option>
@@ -388,15 +388,15 @@ export default function AnnouncementCenter() {
                 </select>
               </div>
               <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer">
+                <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
                   <input type="checkbox" className="w-3 h-3" />
                   Pin to top of feed
                 </label>
               </div>
               <div className="flex gap-3">
-                <button className="px-4 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-zinc-300 transition-colors">Save as Draft</button>
-                <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">Publish Now</button>
-                <button className="px-4 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-zinc-300 transition-colors">Schedule</button>
+                <button className="px-4 py-2 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">Save as Draft</button>
+                <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Publish Now</button>
+                <button className="px-4 py-2 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">Schedule</button>
               </div>
             </div>
           </div>
@@ -406,7 +406,7 @@ export default function AnnouncementCenter() {
         {tab === "targeting" && (
           <div className="p-6 space-y-6">
             <div>
-              <h2 className="text-sm font-semibold text-zinc-300 mb-4">Audience Segments</h2>
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Audience Segments</h2>
               <div className="grid grid-cols-2 gap-4">
                 {([
                   { audience: "all" as TargetAudience, count: 48231, live: 3 },
@@ -414,20 +414,20 @@ export default function AnnouncementCenter() {
                   { audience: "pro" as TargetAudience, count: 12893, live: 1 },
                   { audience: "beta" as TargetAudience, count: 891, live: 2 },
                 ]).map(seg => (
-                  <div key={seg.audience} className="bg-zinc-900 rounded-lg border border-zinc-800 p-5">
+                  <div key={seg.audience} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-medium text-zinc-200">{audienceLabel[seg.audience]}</span>
+                      <span className="font-medium text-[var(--color-text-primary)]">{audienceLabel[seg.audience]}</span>
                       <span className="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">{seg.live} live</span>
                     </div>
-                    <div className="text-2xl font-bold text-white mb-1">{seg.count.toLocaleString()}</div>
-                    <div className="text-xs text-zinc-500">users in segment</div>
+                    <div className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{seg.count.toLocaleString()}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">users in segment</div>
                   </div>
                 ))}
               </div>
             </div>
 
             <div>
-              <h2 className="text-sm font-semibold text-zinc-300 mb-4">Delivery Channels</h2>
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Delivery Channels</h2>
               <div className="space-y-3">
                 {[
                   { name: "In-app banner", desc: "Shown at top of dashboard on next login", enabled: true, reach: "100%" },
@@ -435,15 +435,15 @@ export default function AnnouncementCenter() {
                   { name: "Push notification", desc: "Mobile app push (beta users only)", enabled: false, reach: "23%" },
                   { name: "Changelog feed", desc: "Appears in /changelog timeline", enabled: true, reach: "100%" },
                 ].map(channel => (
-                  <div key={channel.name} className="bg-zinc-900 rounded-lg border border-zinc-800 px-4 py-3 flex items-center gap-4">
+                  <div key={channel.name} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] px-4 py-3 flex items-center gap-4">
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-zinc-200">{channel.name}</div>
-                      <div className="text-xs text-zinc-500 mt-0.5">{channel.desc}</div>
+                      <div className="text-sm font-medium text-[var(--color-text-primary)]">{channel.name}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{channel.desc}</div>
                     </div>
-                    <div className="text-xs text-zinc-500">{channel.reach} reach</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">{channel.reach} reach</div>
                     <div className={cn(
                       "w-9 h-5 rounded-full relative cursor-pointer transition-colors",
-                      channel.enabled ? "bg-indigo-600" : "bg-zinc-700"
+                      channel.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
                     )}>
                       <div className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform", channel.enabled ? "translate-x-4" : "translate-x-0.5")} />
                     </div>
@@ -459,8 +459,8 @@ export default function AnnouncementCenter() {
           <div className="p-6 space-y-6">
             {/* 14-day impression trend */}
             <div>
-              <h2 className="text-sm font-semibold text-zinc-300 mb-3">Daily Impressions — Last 14 days</h2>
-              <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Daily Impressions — Last 14 days</h2>
+              <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4">
                 <div className="flex items-end gap-1 h-24">
                   {[2341, 3102, 2891, 4231, 3891, 5123, 4712, 3892, 4521, 6012, 5823, 7234, 6891, 8012].map((v, i) => (
                     <div key={i} className="flex-1 flex flex-col justify-end gap-0.5">
@@ -472,7 +472,7 @@ export default function AnnouncementCenter() {
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-between mt-2 text-xs text-zinc-600">
+                <div className="flex justify-between mt-2 text-xs text-[var(--color-text-muted)]">
                   <span>Feb 8</span>
                   <span>Feb 15</span>
                   <span>Feb 22</span>
@@ -482,23 +482,23 @@ export default function AnnouncementCenter() {
 
             {/* Top performing */}
             <div>
-              <h2 className="text-sm font-semibold text-zinc-300 mb-3">Top Performing Announcements</h2>
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Top Performing Announcements</h2>
               <div className="space-y-2">
                 {ANNOUNCEMENTS.filter(a => a.impressions > 0).toSorted((a, b) => b.clicks / b.impressions - a.clicks / a.impressions).map(ann => {
                   const ctr = ((ann.clicks / ann.impressions) * 100).toFixed(1);
                   return (
-                    <div key={ann.id} className="bg-zinc-900 rounded-lg border border-zinc-800 px-4 py-3 flex items-center gap-4">
+                    <div key={ann.id} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] px-4 py-3 flex items-center gap-4">
                       <span className="text-lg shrink-0">{typeIcon[ann.type]}</span>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm text-zinc-200 truncate">{ann.title}</div>
-                        <div className="text-xs text-zinc-600 mt-0.5">{ann.impressions.toLocaleString()} impressions</div>
+                        <div className="text-sm text-[var(--color-text-primary)] truncate">{ann.title}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{ann.impressions.toLocaleString()} impressions</div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-sm font-bold text-emerald-400">{ctr}%</div>
-                        <div className="text-xs text-zinc-600">CTR</div>
+                        <div className="text-xs text-[var(--color-text-muted)]">CTR</div>
                       </div>
                       <div className="w-20">
-                        <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                           <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(parseFloat(ctr) * 4, 100)}%` }} />
                         </div>
                       </div>

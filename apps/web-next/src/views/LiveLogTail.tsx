@@ -43,8 +43,8 @@ interface LiveLogTailProps {
 // ---------------------------------------------------------------------------
 
 const LEVEL_BADGE: Record<LogLevel, string> = {
-  TRACE: "bg-zinc-700/40 text-zinc-500",
-  DEBUG: "bg-zinc-600/30 text-zinc-400",
+  TRACE: "bg-[var(--color-surface-3)]/40 text-[var(--color-text-muted)]",
+  DEBUG: "bg-[var(--color-surface-3)]/30 text-[var(--color-text-secondary)]",
   INFO: "bg-sky-500/10 text-sky-400",
   WARN: "bg-amber-500/10 text-amber-400",
   ERROR: "bg-rose-500/10 text-rose-400",
@@ -61,7 +61,7 @@ const LEVEL_ROW_BG: Record<LogLevel, string> = {
 };
 
 const SOURCE_BADGE: Record<LogSource, string> = {
-  system: "bg-zinc-600/30 text-zinc-400",
+  system: "bg-[var(--color-surface-3)]/30 text-[var(--color-text-secondary)]",
   agent: "bg-indigo-500/10 text-indigo-400",
   llm: "bg-violet-500/10 text-violet-400",
   tool: "bg-emerald-500/10 text-emerald-400",
@@ -419,7 +419,7 @@ function LevelChip({
       onClick={onClick}
       className={cn(
         "flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all",
-        active ? LEVEL_BADGE[level] : "bg-zinc-800/50 text-zinc-600 opacity-50"
+        active ? LEVEL_BADGE[level] : "bg-[var(--color-surface-2)]/50 text-[var(--color-text-muted)] opacity-50"
       )}
     >
       {level}
@@ -476,7 +476,7 @@ function LogRow({
         )}
       >
         {/* Expand indicator */}
-        <span className="w-4 shrink-0 pt-[1px] text-zinc-700">
+        <span className="w-4 shrink-0 pt-[1px] text-[var(--color-text-muted)]">
           {hasMetadata ? (
             expanded ? (
               <ChevronDown className="w-3 h-3" />
@@ -487,7 +487,7 @@ function LogRow({
         </span>
 
         {/* Timestamp */}
-        <span className="text-zinc-600 w-[88px] shrink-0 select-all tabular-nums">
+        <span className="text-[var(--color-text-muted)] w-[88px] shrink-0 select-all tabular-nums">
           {formatTimestamp(entry.timestamp)}
         </span>
 
@@ -522,7 +522,7 @@ function LogRow({
         {/* Message */}
         <span
           className={cn(
-            "flex-1 text-zinc-300",
+            "flex-1 text-[var(--color-text-primary)]",
             wrapLines ? "break-all whitespace-pre-wrap" : "truncate",
             entry.level === "ERROR" && "text-rose-300/90",
             entry.level === "FATAL" && "text-red-300 font-medium",
@@ -535,12 +535,12 @@ function LogRow({
 
       {/* Expanded metadata */}
       {expanded && hasMetadata && (
-        <div className="px-3 py-2 bg-zinc-900/60 border-t border-zinc-800/40 border-b border-b-zinc-800/40 ml-4 mr-2 mb-0.5 rounded-b">
+        <div className="px-3 py-2 bg-[var(--color-surface-1)]/60 border-t border-[var(--color-border)]/40 border-b border-b-zinc-800/40 ml-4 mr-2 mb-0.5 rounded-b">
           <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 font-mono text-[11px]">
             {Object.entries(entry.metadata).map(([key, value]) => (
               <React.Fragment key={key}>
-                <span className="text-zinc-500">{key}</span>
-                <span className="text-zinc-300 select-all">{value}</span>
+                <span className="text-[var(--color-text-muted)]">{key}</span>
+                <span className="text-[var(--color-text-primary)] select-all">{value}</span>
               </React.Fragment>
             ))}
           </div>
@@ -747,13 +747,13 @@ export default function LiveLogTail({
   }, []);
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-zinc-200 overflow-hidden">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* ----------------------------------------------------------------- */}
       {/* Header */}
       {/* ----------------------------------------------------------------- */}
-      <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-zinc-800">
+      <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-[var(--color-border)]">
         <div className="flex items-center gap-3">
-          <h1 className="text-base font-semibold text-white tracking-tight">
+          <h1 className="text-base font-semibold text-[var(--color-text-primary)] tracking-tight">
             Live Log Tail
           </h1>
           <div
@@ -779,25 +779,25 @@ export default function LiveLogTail({
         <div className="flex items-center gap-1.5">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-600" />
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--color-text-muted)]" />
             <input
               type="text"
               placeholder="Search logs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-zinc-900 border border-zinc-700 rounded pl-7 pr-7 py-1.5 text-xs text-zinc-300 placeholder-zinc-600 outline-none focus:border-indigo-500 w-52 font-mono transition-colors"
+              className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded pl-7 pr-7 py-1.5 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500 w-52 font-mono transition-colors"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
               >
                 <X className="w-3 h-3" />
               </button>
             )}
           </div>
 
-          <div className="w-px h-5 bg-zinc-800 mx-1" />
+          <div className="w-px h-5 bg-[var(--color-surface-2)] mx-1" />
 
           {/* Pause / Resume */}
           <button
@@ -805,8 +805,8 @@ export default function LiveLogTail({
             className={cn(
               "flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors",
               paused
-                ? "bg-emerald-600 hover:bg-emerald-500 text-white"
-                : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
+                ? "bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-primary)]"
+                : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
             )}
             title={paused ? "Resume stream" : "Pause stream"}
           >
@@ -821,7 +821,7 @@ export default function LiveLogTail({
           {/* Clear */}
           <button
             onClick={clearLogs}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] transition-colors"
             title="Clear all logs"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -834,8 +834,8 @@ export default function LiveLogTail({
             className={cn(
               "flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors",
               showFilters
-                ? "bg-indigo-600 text-white"
-                : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
+                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
             )}
             title="Toggle filters"
           >
@@ -843,7 +843,7 @@ export default function LiveLogTail({
             Filters
           </button>
 
-          <div className="w-px h-5 bg-zinc-800 mx-1" />
+          <div className="w-px h-5 bg-[var(--color-surface-2)] mx-1" />
 
           {/* Wrap lines */}
           <button
@@ -852,7 +852,7 @@ export default function LiveLogTail({
               "flex items-center gap-1.5 px-2 py-1.5 rounded text-xs transition-colors",
               wrapLines
                 ? "bg-indigo-500/10 text-indigo-400"
-                : "bg-zinc-800 hover:bg-zinc-700 text-zinc-500"
+                : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-muted)]"
             )}
             title="Toggle line wrapping"
           >
@@ -872,7 +872,7 @@ export default function LiveLogTail({
               "flex items-center gap-1.5 px-2 py-1.5 rounded text-xs transition-colors",
               autoScroll
                 ? "bg-indigo-500/10 text-indigo-400"
-                : "bg-zinc-800 hover:bg-zinc-700 text-zinc-500"
+                : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-muted)]"
             )}
             title={autoScroll ? "Auto-scroll ON" : "Auto-scroll OFF"}
           >
@@ -884,7 +884,7 @@ export default function LiveLogTail({
       {/* ----------------------------------------------------------------- */}
       {/* Stream tabs */}
       {/* ----------------------------------------------------------------- */}
-      <div className="shrink-0 flex border-b border-zinc-800 px-4">
+      <div className="shrink-0 flex border-b border-[var(--color-border)] px-4">
         {STREAM_TABS.map((tab) => {
           const count = logs.filter((l) =>
             STREAM_SOURCE_MAP[tab.id].includes(l.source)
@@ -896,8 +896,8 @@ export default function LiveLogTail({
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors",
                 activeStream === tab.id
-                  ? "border-indigo-500 text-white"
-                  : "border-transparent text-zinc-500 hover:text-zinc-300"
+                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               <span
@@ -905,13 +905,13 @@ export default function LiveLogTail({
                   "w-4 h-4 flex items-center justify-center rounded text-[9px] font-bold",
                   activeStream === tab.id
                     ? "bg-indigo-500/20 text-indigo-400"
-                    : "bg-zinc-800 text-zinc-600"
+                    : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                 )}
               >
                 {tab.emoji}
               </span>
               {tab.label}
-              <span className="text-[10px] text-zinc-600 tabular-nums">
+              <span className="text-[10px] text-[var(--color-text-muted)] tabular-nums">
                 {count}
               </span>
             </button>
@@ -923,9 +923,9 @@ export default function LiveLogTail({
       {/* Filter bar (collapsible) */}
       {/* ----------------------------------------------------------------- */}
       {showFilters && (
-        <div className="shrink-0 flex items-center gap-3 px-4 py-2 border-b border-zinc-800 bg-zinc-900/30">
+        <div className="shrink-0 flex items-center gap-3 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/30">
           {/* Level filter chips */}
-          <span className="text-[10px] text-zinc-600 uppercase tracking-wider font-medium mr-1">
+          <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider font-medium mr-1">
             Level
           </span>
           <div className="flex items-center gap-1">
@@ -940,16 +940,16 @@ export default function LiveLogTail({
             ))}
           </div>
 
-          <div className="w-px h-5 bg-zinc-800" />
+          <div className="w-px h-5 bg-[var(--color-surface-2)]" />
 
           {/* Agent filter */}
-          <span className="text-[10px] text-zinc-600 uppercase tracking-wider font-medium">
+          <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider font-medium">
             Agent
           </span>
           <select
             value={selectedAgent}
             onChange={(e) => setSelectedAgent(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All agents</option>
             {activeAgents.map((agent) => (
@@ -959,7 +959,7 @@ export default function LiveLogTail({
             ))}
           </select>
 
-          <div className="ml-auto flex items-center gap-2 text-[10px] text-zinc-600">
+          <div className="ml-auto flex items-center gap-2 text-[10px] text-[var(--color-text-muted)]">
             <span className="tabular-nums">
               {filteredLogs.length} / {logs.length} entries
             </span>
@@ -975,7 +975,7 @@ export default function LiveLogTail({
       {/* ----------------------------------------------------------------- */}
       {/* Column header */}
       {/* ----------------------------------------------------------------- */}
-      <div className="shrink-0 flex items-center gap-0 px-3 py-1 border-b border-zinc-800 bg-zinc-900/50 font-mono text-[10px] text-zinc-600 uppercase tracking-wider select-none">
+      <div className="shrink-0 flex items-center gap-0 px-3 py-1 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50 font-mono text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider select-none">
         <span className="w-4 shrink-0" />
         <span className="w-[88px] shrink-0">Time</span>
         <span className="w-[42px] shrink-0 text-center mr-1.5">Level</span>
@@ -993,7 +993,7 @@ export default function LiveLogTail({
         className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
       >
         {visibleLogs.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-zinc-600 text-sm">
+          <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">
             {logs.length === 0
               ? "No log entries yet. Waiting for events..."
               : "No entries match the current filters."}
@@ -1020,7 +1020,7 @@ export default function LiveLogTail({
       {/* ----------------------------------------------------------------- */}
       {/* Footer status bar */}
       {/* ----------------------------------------------------------------- */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-1.5 border-t border-zinc-800 bg-zinc-900/40 text-[10px] text-zinc-600 font-mono">
+      <div className="shrink-0 flex items-center justify-between px-4 py-1.5 border-t border-[var(--color-border)] bg-[var(--color-surface-1)]/40 text-[10px] text-[var(--color-text-muted)] font-mono">
         <div className="flex items-center gap-4">
           <span>
             Buffer: {logs.length}/{MAX_BUFFER}

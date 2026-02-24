@@ -433,7 +433,7 @@ function StatsStrip({
   )[0];
 
   const stats = [
-    { label: "Crashes today", value: String(totalToday), accent: "text-white" },
+    { label: "Crashes today", value: String(totalToday), accent: "text-[var(--color-text-primary)]" },
     {
       label: "Unresolved",
       value: String(unresolved),
@@ -447,14 +447,14 @@ function StatsStrip({
   ];
 
   return (
-    <div className="flex items-center gap-6 rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-2.5">
+    <div className="flex items-center gap-6 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)]/50 px-4 py-2.5">
       {stats.map((stat, i) => (
         <React.Fragment key={stat.label}>
           {i > 0 && (
-            <div className="h-8 w-px bg-zinc-800" aria-hidden="true" />
+            <div className="h-8 w-px bg-[var(--color-surface-2)]" aria-hidden="true" />
           )}
           <div className="flex flex-col">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
               {stat.label}
             </span>
             <span className={cn("text-sm font-semibold", stat.accent)}>
@@ -483,9 +483,9 @@ function CrashListItem({
       aria-selected={isSelected}
       aria-label={`${crash.severity} crash: ${crash.errorType} from ${crash.agent.name}`}
       className={cn(
-        "w-full text-left px-3 py-3 border-b border-zinc-800/50 transition-colors",
-        "hover:bg-zinc-800/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset",
-        isSelected && "bg-zinc-800/70 border-l-2 border-l-indigo-500"
+        "w-full text-left px-3 py-3 border-b border-[var(--color-border)]/50 transition-colors",
+        "hover:bg-[var(--color-surface-2)]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset",
+        isSelected && "bg-[var(--color-surface-2)]/70 border-l-2 border-l-indigo-500"
       )}
     >
       <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -493,7 +493,7 @@ function CrashListItem({
         <StatusIndicator status={crash.status} />
       </div>
       <div className="flex items-center gap-1.5 mb-1">
-        <code className="text-xs font-mono font-semibold text-zinc-200">
+        <code className="text-xs font-mono font-semibold text-[var(--color-text-primary)]">
           {crash.errorType}
         </code>
       </div>
@@ -501,13 +501,13 @@ function CrashListItem({
         <span className="text-sm" aria-hidden="true">
           {crash.agent.emoji}
         </span>
-        <span className="text-xs text-zinc-400">{crash.agent.name}</span>
+        <span className="text-xs text-[var(--color-text-secondary)]">{crash.agent.name}</span>
       </div>
-      <p className="text-xs text-zinc-500 line-clamp-2 mb-1.5 leading-relaxed">
+      <p className="text-xs text-[var(--color-text-muted)] line-clamp-2 mb-1.5 leading-relaxed">
         {crash.message}
       </p>
       <time
-        className="text-[11px] text-zinc-600"
+        className="text-[11px] text-[var(--color-text-muted)]"
         dateTime={crash.timestamp.toISOString()}
         title={formatTimestamp(crash.timestamp)}
       >
@@ -522,7 +522,7 @@ function LineNumberedCode({ code }: { code: string }) {
   return (
     <div className="flex text-xs font-mono" role="region" aria-label="Stack trace">
       <div
-        className="select-none pr-3 text-right text-zinc-600 border-r border-zinc-800 shrink-0"
+        className="select-none pr-3 text-right text-[var(--color-text-muted)] border-r border-[var(--color-border)] shrink-0"
         aria-hidden="true"
       >
         {lines.map((_, i) => (
@@ -531,7 +531,7 @@ function LineNumberedCode({ code }: { code: string }) {
           </div>
         ))}
       </div>
-      <pre className="pl-3 overflow-x-auto text-zinc-300 leading-6 whitespace-pre">
+      <pre className="pl-3 overflow-x-auto text-[var(--color-text-primary)] leading-6 whitespace-pre">
         {code}
       </pre>
     </div>
@@ -549,7 +549,7 @@ function DetailSection({
     <section aria-labelledby={`section-${title.toLowerCase().replace(/\s+/g, "-")}`}>
       <h3
         id={`section-${title.toLowerCase().replace(/\s+/g, "-")}`}
-        className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2"
+        className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2"
       >
         {title}
       </h3>
@@ -574,12 +574,12 @@ function DetailPanel({
             <SeverityBadge severity={crash.severity} />
             <StatusIndicator status={crash.status} />
           </div>
-          <h2 className="text-lg font-bold text-white">
+          <h2 className="text-lg font-bold text-[var(--color-text-primary)]">
             <code className="font-mono">{crash.errorType}</code>
           </h2>
         </div>
         <time
-          className="text-xs text-zinc-500 shrink-0 pt-1"
+          className="text-xs text-[var(--color-text-muted)] shrink-0 pt-1"
           dateTime={crash.timestamp.toISOString()}
         >
           {formatTimestamp(crash.timestamp)}
@@ -588,14 +588,14 @@ function DetailPanel({
 
       {/* Error Message */}
       <DetailSection title="Error Message">
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
-          <p className="text-sm text-zinc-300 leading-relaxed">{crash.message}</p>
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3">
+          <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{crash.message}</p>
         </div>
       </DetailSection>
 
       {/* Stack Trace */}
       <DetailSection title="Stack Trace">
-        <div className="max-h-64 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+        <div className="max-h-64 overflow-y-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-0)] p-3">
           <LineNumberedCode code={crash.stackTrace} />
         </div>
       </DetailSection>
@@ -615,12 +615,12 @@ function DetailPanel({
           ].map((item) => (
             <div
               key={item.label}
-              className="rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2"
+              className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-2"
             >
-              <span className="block text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+              <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                 {item.label}
               </span>
-              <span className="block text-sm text-zinc-300 font-mono mt-0.5 truncate">
+              <span className="block text-sm text-[var(--color-text-primary)] font-mono mt-0.5 truncate">
                 {item.value}
               </span>
             </div>
@@ -645,12 +645,12 @@ function DetailPanel({
           ].map((item) => (
             <div
               key={item.label}
-              className="rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2"
+              className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-2"
             >
-              <span className="block text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+              <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                 {item.label}
               </span>
-              <span className="block text-sm text-zinc-300 font-mono mt-0.5 truncate">
+              <span className="block text-sm text-[var(--color-text-primary)] font-mono mt-0.5 truncate">
                 {item.value}
               </span>
             </div>
@@ -661,9 +661,9 @@ function DetailPanel({
       {/* Tool Call (if applicable) */}
       {crash.toolCall && (
         <DetailSection title="Tool Call">
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3 space-y-2">
+          <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3 space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+              <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                 Tool
               </span>
               <code className="text-sm text-indigo-400 font-mono font-semibold">
@@ -672,19 +672,19 @@ function DetailPanel({
             </div>
             {crash.toolCall.timeoutMs !== undefined && (
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                   Timeout
                 </span>
-                <span className="text-sm text-zinc-300 font-mono">
+                <span className="text-sm text-[var(--color-text-primary)] font-mono">
                   {crash.toolCall.timeoutMs.toLocaleString()}ms
                 </span>
               </div>
             )}
             <div>
-              <span className="block text-[11px] font-medium uppercase tracking-wider text-zinc-500 mb-1">
+              <span className="block text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
                 Parameters
               </span>
-              <pre className="text-xs font-mono text-zinc-400 bg-zinc-950 rounded-md p-2 overflow-x-auto">
+              <pre className="text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-0)] rounded-md p-2 overflow-x-auto">
                 {JSON.stringify(crash.toolCall.parameters, null, 2)}
               </pre>
             </div>
@@ -693,7 +693,7 @@ function DetailPanel({
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-2 pt-2 border-t border-zinc-800">
+      <div className="flex items-center gap-2 pt-2 border-t border-[var(--color-border)]">
         {crash.status !== "acknowledged" && (
           <button
             type="button"
@@ -745,8 +745,8 @@ function DetailPanel({
           type="button"
           className={cn(
             "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ml-auto",
-            "bg-zinc-800 text-zinc-300 border border-zinc-700",
-            "hover:bg-zinc-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            "bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border border-[var(--color-border)]",
+            "hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           )}
         >
           <svg
@@ -844,9 +844,9 @@ export default function CrashReporter() {
   );
 
   return (
-    <div className="flex h-full flex-col bg-zinc-950 text-white">
+    <div className="flex h-full flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Top Bar */}
-      <header className="flex flex-col gap-3 border-b border-zinc-800 px-5 py-4">
+      <header className="flex flex-col gap-3 border-b border-[var(--color-border)] px-5 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10 border border-rose-500/20">
@@ -865,7 +865,7 @@ export default function CrashReporter() {
                 />
               </svg>
             </div>
-            <h1 className="text-lg font-bold text-white">Crash Reporter</h1>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Crash Reporter</h1>
           </div>
           <StatsStrip crashes={crashes} />
         </div>
@@ -874,7 +874,7 @@ export default function CrashReporter() {
           {/* Search */}
           <div className="relative flex-1 max-w-xs">
             <svg
-              className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
+              className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-muted)]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -894,8 +894,8 @@ export default function CrashReporter() {
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Search crash reports"
               className={cn(
-                "w-full rounded-lg border border-zinc-800 bg-zinc-900 py-1.5 pl-9 pr-3 text-sm text-zinc-200",
-                "placeholder:text-zinc-600",
+                "w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] py-1.5 pl-9 pr-3 text-sm text-[var(--color-text-primary)]",
+                "placeholder:text-[var(--color-text-muted)]",
                 "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               )}
             />
@@ -914,7 +914,7 @@ export default function CrashReporter() {
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                   activeFilter === chip.key
                     ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
-                    : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:bg-zinc-800 hover:text-zinc-300"
+                    : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {chip.label}
@@ -928,12 +928,12 @@ export default function CrashReporter() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar: crash list */}
         <nav
-          className="w-80 shrink-0 overflow-y-auto border-r border-zinc-800"
+          className="w-80 shrink-0 overflow-y-auto border-r border-[var(--color-border)]"
           aria-label="Crash report list"
         >
           {/* Sort controls */}
-          <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur-sm px-3 py-2">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-600">
+          <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface-0)]/95 backdrop-blur-sm px-3 py-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
               Sort:
             </span>
             {(["time", "severity"] as const).map((field) => (
@@ -946,8 +946,8 @@ export default function CrashReporter() {
                   "rounded px-2 py-0.5 text-xs font-medium transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                   sortField === field
-                    ? "bg-zinc-800 text-white"
-                    : "text-zinc-500 hover:text-zinc-300"
+                    ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {field.charAt(0).toUpperCase() + field.slice(1)}
@@ -958,7 +958,7 @@ export default function CrashReporter() {
                 )}
               </button>
             ))}
-            <span className="ml-auto text-[11px] text-zinc-600">
+            <span className="ml-auto text-[11px] text-[var(--color-text-muted)]">
               {filteredAndSorted.length} result{filteredAndSorted.length !== 1 ? "s" : ""}
             </span>
           </div>
@@ -992,7 +992,7 @@ export default function CrashReporter() {
               onUpdateStatus={handleUpdateStatus}
             />
           ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-3 text-zinc-600">
+            <div className="flex h-full flex-col items-center justify-center gap-3 text-[var(--color-text-muted)]">
               <svg
                 className="h-12 w-12"
                 fill="none"

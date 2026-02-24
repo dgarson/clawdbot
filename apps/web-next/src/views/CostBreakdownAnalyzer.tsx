@@ -461,7 +461,7 @@ function MiniBar({ values, color = "bg-indigo-500" }: { values: number[]; color?
 function HorizBar({ value, max, color = "bg-indigo-500" }: { value: number; max: number; color?: string }) {
   const pct = Math.min(100, (value / max) * 100);
   return (
-    <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden flex-1">
+    <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden flex-1">
       <div className={cn("h-full rounded-full", color)} style={{ width: `${pct}%` }} />
     </div>
   );
@@ -485,7 +485,7 @@ function VertBarChart({
             className={cn("w-full rounded-t", colorFn ? colorFn(i) : "bg-indigo-500")}
             style={{ height: `${Math.max(4, (v / max) * 96)}px` }}
           />
-          <span className="text-xs text-zinc-500 shrink-0">{labels[i]}</span>
+          <span className="text-xs text-[var(--color-text-muted)] shrink-0">{labels[i]}</span>
         </div>
       ))}
     </div>
@@ -515,7 +515,7 @@ function SeverityBadge({ severity }: { severity: Severity }) {
     critical: "bg-rose-500/20 text-rose-400 border-rose-500/30",
     high:     "bg-amber-500/20 text-amber-400 border-amber-500/30",
     medium:   "bg-yellow-500/20 text-yellow-400 border-yellow-600/30",
-    low:      "bg-zinc-700/40 text-zinc-400 border-zinc-700",
+    low:      "bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)] border-[var(--color-border)]",
   };
   return (
     <span className={cn("px-2 py-0.5 text-xs rounded-full border font-semibold capitalize", map[severity])}>
@@ -554,8 +554,8 @@ function OverviewTab() {
   const categories = Array.from(new Set(SERVICES.map((s) => s.category)));
 
   const kpis = [
-    { label: "Current Month",    value: fmtCurrency(currentTotal), sub: "as of Feb 22",     cls: "text-white"      },
-    { label: "Last Month",       value: fmtCurrency(lastTotal),    sub: "January 2026",     cls: "text-zinc-300"   },
+    { label: "Current Month",    value: fmtCurrency(currentTotal), sub: "as of Feb 22",     cls: "text-[var(--color-text-primary)]"      },
+    { label: "Last Month",       value: fmtCurrency(lastTotal),    sub: "January 2026",     cls: "text-[var(--color-text-primary)]"   },
     {
       label: "MoM Change",
       value: `${down ? "↓" : "↑"} ${pct.toFixed(1)}%`,
@@ -570,51 +570,51 @@ function OverviewTab() {
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((k) => (
-          <div key={k.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <p className="text-xs text-zinc-500 mb-1">{k.label}</p>
+          <div key={k.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+            <p className="text-xs text-[var(--color-text-muted)] mb-1">{k.label}</p>
             <p className={cn("text-2xl font-bold", k.cls)}>{k.value}</p>
-            <p className="text-xs text-zinc-500 mt-1">{k.sub}</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1">{k.sub}</p>
           </div>
         ))}
       </div>
 
       {/* 6-month trend */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-white mb-5">6-Month Cost Trend</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-5">6-Month Cost Trend</h3>
         <VertBarChart
           data={monthlyTotals}
           labels={MONTHS}
           colorFn={(i) => (i === MONTHS.length - 1 ? "bg-indigo-500" : "bg-indigo-900")}
         />
-        <div className="mt-4 flex flex-wrap gap-3 border-t border-zinc-800 pt-4">
+        <div className="mt-4 flex flex-wrap gap-3 border-t border-[var(--color-border)] pt-4">
           {categories.map((cat) => (
             <div key={cat} className="flex items-center gap-1.5">
-              <div className={cn("w-2.5 h-2.5 rounded-sm", CATEGORY_COLORS[cat] ?? "bg-zinc-600")} />
-              <span className="text-xs text-zinc-400">{cat}</span>
+              <div className={cn("w-2.5 h-2.5 rounded-sm", CATEGORY_COLORS[cat] ?? "bg-[var(--color-surface-3)]")} />
+              <span className="text-xs text-[var(--color-text-secondary)]">{cat}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Top 5 drivers */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">Top 5 Cost Drivers</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Top 5 Cost Drivers</h3>
         <div className="space-y-3">
           {topFive.map((s, i) => {
             const share = ((s.currentCost / currentTotal) * 100).toFixed(1);
             return (
               <div key={s.id} className="flex items-center gap-3">
-                <span className="text-xs text-zinc-600 w-4 shrink-0">{i + 1}</span>
-                <span className="text-sm text-white w-36 shrink-0 truncate">{s.name}</span>
+                <span className="text-xs text-[var(--color-text-muted)] w-4 shrink-0">{i + 1}</span>
+                <span className="text-sm text-[var(--color-text-primary)] w-36 shrink-0 truncate">{s.name}</span>
                 <HorizBar
                   value={s.currentCost}
                   max={topFive[0].currentCost}
                   color={CATEGORY_COLORS[s.category] ?? "bg-indigo-500"}
                 />
-                <span className="text-sm font-semibold text-white w-16 text-right shrink-0">
+                <span className="text-sm font-semibold text-[var(--color-text-primary)] w-16 text-right shrink-0">
                   {fmtCurrency(s.currentCost)}
                 </span>
-                <span className="text-xs text-zinc-500 w-12 text-right shrink-0">{share}%</span>
+                <span className="text-xs text-[var(--color-text-muted)] w-12 text-right shrink-0">{share}%</span>
               </div>
             );
           })}
@@ -647,38 +647,38 @@ function ServicesTab() {
           ← Back to services
         </button>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
           <div className="flex items-start justify-between mb-5">
             <div>
-              <h2 className="text-lg font-bold text-white">{selected.name}</h2>
-              <span className="text-xs text-zinc-500">{selected.category}</span>
+              <h2 className="text-lg font-bold text-[var(--color-text-primary)]">{selected.name}</h2>
+              <span className="text-xs text-[var(--color-text-muted)]">{selected.category}</span>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-white">{fmtCurrency(selected.currentCost)}</p>
+              <p className="text-2xl font-bold text-[var(--color-text-primary)]">{fmtCurrency(selected.currentCost)}</p>
               <p className={cn("text-xs mt-0.5", ch.down ? "text-emerald-400" : "text-rose-400")}>
                 {ch.down ? "↓" : "↑"} {ch.pct.toFixed(1)}% vs last month
               </p>
             </div>
           </div>
 
-          <p className="text-xs font-medium text-zinc-400 mb-3 uppercase tracking-wider">Daily Cost — Last 30 Days</p>
+          <p className="text-xs font-medium text-[var(--color-text-secondary)] mb-3 uppercase tracking-wider">Daily Cost — Last 30 Days</p>
           <DailyBarChart values={selected.dailyCosts} />
           <div className="flex justify-between mt-1">
-            <span className="text-xs text-zinc-600">Feb 1</span>
-            <span className="text-xs text-zinc-600">Feb 22</span>
+            <span className="text-xs text-[var(--color-text-muted)]">Feb 1</span>
+            <span className="text-xs text-[var(--color-text-muted)]">Feb 22</span>
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <p className="text-sm font-semibold text-white mb-3">Resource Breakdown</p>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Resource Breakdown</p>
           <div className="space-y-2">
             {selected.resources.map((r) => (
-              <div key={r.id} className="flex items-center justify-between bg-zinc-800 rounded-lg px-4 py-3">
+              <div key={r.id} className="flex items-center justify-between bg-[var(--color-surface-2)] rounded-lg px-4 py-3">
                 <div>
-                  <p className="text-sm text-white font-medium">{r.name}</p>
-                  <p className="text-xs text-zinc-500">{r.type} · {r.region}</p>
+                  <p className="text-sm text-[var(--color-text-primary)] font-medium">{r.name}</p>
+                  <p className="text-xs text-[var(--color-text-muted)]">{r.type} · {r.region}</p>
                 </div>
-                <span className="text-sm font-semibold text-white">{fmtCurrency(r.cost)}</span>
+                <span className="text-sm font-semibold text-[var(--color-text-primary)]">{fmtCurrency(r.cost)}</span>
               </div>
             ))}
           </div>
@@ -694,10 +694,10 @@ function ServicesTab() {
         placeholder="Filter by service or category..."
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
+        className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 transition-colors"
       />
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="grid grid-cols-12 px-4 py-2.5 border-b border-zinc-800 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+        <div className="grid grid-cols-12 px-4 py-2.5 border-b border-[var(--color-border)] text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
           <span className="col-span-3">Service</span>
           <span className="col-span-2 text-right">Cost</span>
           <span className="col-span-2 text-right">MoM</span>
@@ -710,22 +710,22 @@ function ServicesTab() {
             <button
               key={s.id}
               onClick={() => setSelected(s)}
-              className="w-full grid grid-cols-12 px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/40 text-left transition-colors last:border-0"
+              className="w-full grid grid-cols-12 px-4 py-3 border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/40 text-left transition-colors last:border-0"
             >
               <div className="col-span-3">
-                <p className="text-sm font-medium text-white">{s.name}</p>
+                <p className="text-sm font-medium text-[var(--color-text-primary)]">{s.name}</p>
                 <div className="flex items-center gap-1 mt-0.5">
-                  <div className={cn("w-1.5 h-1.5 rounded-full", CATEGORY_COLORS[s.category] ?? "bg-zinc-500")} />
-                  <span className="text-xs text-zinc-500">{s.category}</span>
+                  <div className={cn("w-1.5 h-1.5 rounded-full", CATEGORY_COLORS[s.category] ?? "bg-[var(--color-surface-3)]")} />
+                  <span className="text-xs text-[var(--color-text-muted)]">{s.category}</span>
                 </div>
               </div>
-              <span className="col-span-2 text-sm font-semibold text-white text-right self-center">
+              <span className="col-span-2 text-sm font-semibold text-[var(--color-text-primary)] text-right self-center">
                 {fmtCurrency(s.currentCost)}
               </span>
               <span className={cn("col-span-2 text-xs font-semibold text-right self-center", ch.down ? "text-emerald-400" : "text-rose-400")}>
                 {ch.down ? "↓" : "↑"}{ch.pct.toFixed(1)}%
               </span>
-              <span className="col-span-3 text-xs text-zinc-400 text-right self-center font-mono">
+              <span className="col-span-3 text-xs text-[var(--color-text-secondary)] text-right self-center font-mono">
                 ${s.costPerUnit.toFixed(4)}{s.unitLabel}
               </span>
               <div className="col-span-2 self-center flex justify-end">
@@ -735,7 +735,7 @@ function ServicesTab() {
           );
         })}
         {filtered.length === 0 && (
-          <p className="text-sm text-zinc-500 text-center py-10">No services match your filter.</p>
+          <p className="text-sm text-[var(--color-text-muted)] text-center py-10">No services match your filter.</p>
         )}
       </div>
     </div>
@@ -766,7 +766,7 @@ function AnomaliesTab() {
       <div className="flex items-center justify-between bg-rose-500/10 border border-rose-500/20 rounded-xl px-5 py-4">
         <div>
           <p className="text-sm font-semibold text-rose-400">{active.length} Active Anomalies</p>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
             Est. waste:{" "}
             <span className="font-semibold text-rose-400">{fmtCurrency(totalWaste)}/mo</span>
           </p>
@@ -778,37 +778,37 @@ function AnomaliesTab() {
 
       {/* Active anomalies */}
       {active.length === 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-10 text-center">
-          <p className="text-zinc-500 text-sm">All anomalies resolved 🎉</p>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-10 text-center">
+          <p className="text-[var(--color-text-muted)] text-sm">All anomalies resolved 🎉</p>
         </div>
       )}
       {active.map((a) => (
-        <div key={a.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div key={a.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-2 flex-wrap">
               <SeverityBadge severity={a.severity} />
-              <span className="text-xs text-zinc-500">{a.detectedAt}</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{a.detectedAt}</span>
             </div>
             <button
               onClick={() => markResolved(a.id)}
-              className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white px-3 py-1.5 rounded-lg transition-colors shrink-0 font-medium"
+              className="text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] px-3 py-1.5 rounded-lg transition-colors shrink-0 font-medium"
             >
               Mark resolved
             </button>
           </div>
-          <p className="text-sm font-semibold text-white mb-1">{a.description}</p>
-          <p className="text-xs text-zinc-500 mb-4">
+          <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">{a.description}</p>
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">
             Resource:{" "}
-            <span className="text-zinc-300 font-mono">{a.resource}</span>
+            <span className="text-[var(--color-text-primary)] font-mono">{a.resource}</span>
           </p>
-          <div className="flex items-center justify-between bg-zinc-800 rounded-lg px-4 py-2.5">
+          <div className="flex items-center justify-between bg-[var(--color-surface-2)] rounded-lg px-4 py-2.5">
             <div>
-              <p className="text-xs text-zinc-500 mb-0.5">Estimated waste</p>
+              <p className="text-xs text-[var(--color-text-muted)] mb-0.5">Estimated waste</p>
               <p className="text-sm font-bold text-rose-400">{fmtCurrency(a.estimatedWaste)}/mo</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-zinc-500 mb-0.5">Recommended action</p>
-              <p className={cn("text-sm font-semibold capitalize", actionColor[a.recommendedAction] ?? "text-zinc-400")}>
+              <p className="text-xs text-[var(--color-text-muted)] mb-0.5">Recommended action</p>
+              <p className={cn("text-sm font-semibold capitalize", actionColor[a.recommendedAction] ?? "text-[var(--color-text-secondary)]")}>
                 {a.recommendedAction}
               </p>
             </div>
@@ -819,19 +819,19 @@ function AnomaliesTab() {
       {/* Resolved section */}
       {resolved.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs text-zinc-500 font-semibold uppercase tracking-wider px-1">
+          <p className="text-xs text-[var(--color-text-muted)] font-semibold uppercase tracking-wider px-1">
             Resolved ({resolved.length})
           </p>
           {resolved.map((a) => (
-            <div key={a.id} className="bg-zinc-900/50 border border-zinc-800/50 rounded-xl px-5 py-3 opacity-50 hover:opacity-70 transition-opacity">
+            <div key={a.id} className="bg-[var(--color-surface-1)]/50 border border-[var(--color-border)]/50 rounded-xl px-5 py-3 opacity-50 hover:opacity-70 transition-opacity">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 min-w-0">
                   <SeverityBadge severity={a.severity} />
-                  <p className="text-sm text-zinc-400 truncate">{a.description}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)] truncate">{a.description}</p>
                 </div>
                 <button
                   onClick={() => markUnresolved(a.id)}
-                  className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors shrink-0"
+                  className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors shrink-0"
                 >
                   Reopen
                 </button>
@@ -864,9 +864,9 @@ function SavingsTab() {
   };
 
   const typeActive: Record<SavingsType, string> = {
-    reserved:    "bg-indigo-600 text-white",
-    rightsizing: "bg-amber-600 text-white",
-    idle:        "bg-rose-600 text-white",
+    reserved:    "bg-indigo-600 text-[var(--color-text-primary)]",
+    rightsizing: "bg-amber-600 text-[var(--color-text-primary)]",
+    idle:        "bg-rose-600 text-[var(--color-text-primary)]",
   };
 
   const filtered = filter === "all" ? SAVINGS : SAVINGS.filter((s) => s.type === filter);
@@ -877,9 +877,9 @@ function SavingsTab() {
     <div className="space-y-5">
       {/* Hero */}
       <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-6 text-center">
-        <p className="text-sm text-zinc-400 mb-1">Total Potential Monthly Savings</p>
+        <p className="text-sm text-[var(--color-text-secondary)] mb-1">Total Potential Monthly Savings</p>
         <p className="text-5xl font-bold text-emerald-400">{fmtCurrency(totalSavings)}</p>
-        <p className="text-xs text-zinc-500 mt-2">
+        <p className="text-xs text-[var(--color-text-muted)] mt-2">
           {fmtCurrency(totalSavings * 12)}/yr · {SAVINGS.length} recommendations
         </p>
       </div>
@@ -887,10 +887,10 @@ function SavingsTab() {
       {/* Breakdown */}
       <div className="grid grid-cols-3 gap-3">
         {(["reserved", "rightsizing", "idle"] as SavingsType[]).map((t) => (
-          <div key={t} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
-            <p className="text-xs text-zinc-500 mb-1">{TYPE_LABELS[t]}</p>
+          <div key={t} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
+            <p className="text-xs text-[var(--color-text-muted)] mb-1">{TYPE_LABELS[t]}</p>
             <p className={cn("text-xl font-bold", typeAccent[t])}>{fmtCurrency(byType[t])}</p>
-            <p className="text-xs text-zinc-600">/mo</p>
+            <p className="text-xs text-[var(--color-text-muted)]">/mo</p>
           </div>
         ))}
       </div>
@@ -904,8 +904,8 @@ function SavingsTab() {
             className={cn(
               "px-3 py-1.5 text-xs rounded-lg font-medium transition-colors capitalize",
               filter === opt
-                ? opt === "all" ? "bg-indigo-600 text-white" : typeActive[opt]
-                : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                ? opt === "all" ? "bg-indigo-600 text-[var(--color-text-primary)]" : typeActive[opt]
+                : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
             )}
           >
             {opt === "all" ? "All" : TYPE_LABELS[opt]}
@@ -916,42 +916,42 @@ function SavingsTab() {
       {/* Recommendation cards */}
       <div className="space-y-3">
         {filtered.map((rec) => (
-          <div key={rec.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <div key={rec.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
             <div className="flex items-start justify-between gap-4 mb-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <span className={cn("text-xs font-semibold uppercase tracking-wide", typeAccent[rec.type])}>
                     {TYPE_LABELS[rec.type]}
                   </span>
-                  <span className="text-zinc-600 text-xs">·</span>
-                  <span className="text-xs text-zinc-500">{rec.service}</span>
+                  <span className="text-[var(--color-text-muted)] text-xs">·</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{rec.service}</span>
                   <EffortBadge effort={rec.effort} />
                 </div>
-                <p className="text-sm font-semibold text-white">{rec.description}</p>
+                <p className="text-sm font-semibold text-[var(--color-text-primary)]">{rec.description}</p>
               </div>
               <div className="text-right shrink-0">
                 <p className="text-xl font-bold text-emerald-400">{fmtCurrency(rec.monthlySavings)}</p>
-                <p className="text-xs text-zinc-500">saved/mo</p>
+                <p className="text-xs text-[var(--color-text-muted)]">saved/mo</p>
               </div>
             </div>
 
             {rec.currentInstance && rec.recommendedInstance && (
-              <div className="flex items-stretch gap-2 bg-zinc-800 rounded-lg p-3 mb-3">
+              <div className="flex items-stretch gap-2 bg-[var(--color-surface-2)] rounded-lg p-3 mb-3">
                 <div className="flex-1 text-center">
-                  <p className="text-xs text-zinc-500 mb-1">Current</p>
-                  <p className="text-xs font-mono text-zinc-300">{rec.currentInstance}</p>
-                  <p className="text-sm font-bold text-white mt-1">{fmtCurrency(rec.currentCost)}/mo</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mb-1">Current</p>
+                  <p className="text-xs font-mono text-[var(--color-text-primary)]">{rec.currentInstance}</p>
+                  <p className="text-sm font-bold text-[var(--color-text-primary)] mt-1">{fmtCurrency(rec.currentCost)}/mo</p>
                 </div>
-                <div className="flex items-center text-zinc-600 text-sm">→</div>
+                <div className="flex items-center text-[var(--color-text-muted)] text-sm">→</div>
                 <div className="flex-1 text-center">
-                  <p className="text-xs text-zinc-500 mb-1">Recommended</p>
-                  <p className="text-xs font-mono text-zinc-300">{rec.recommendedInstance}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mb-1">Recommended</p>
+                  <p className="text-xs font-mono text-[var(--color-text-primary)]">{rec.recommendedInstance}</p>
                   <p className="text-sm font-bold text-emerald-400 mt-1">{fmtCurrency(rec.optimizedCost)}/mo</p>
                 </div>
               </div>
             )}
 
-            <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 rounded-lg transition-colors">
+            <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-xs font-semibold py-2 rounded-lg transition-colors">
               Apply Recommendation
             </button>
           </div>
@@ -974,22 +974,22 @@ export default function CostBreakdownAnalyzer() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-8">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-6 flex items-end justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Cost Breakdown Analyzer</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">AWS · All Regions · February 2026</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Cost Breakdown Analyzer</h1>
+            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">AWS · All Regions · February 2026</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-zinc-500">Data source</p>
-            <p className="text-xs font-mono text-zinc-400">http://127.0.0.1:8080/api/costs</p>
+            <p className="text-xs text-[var(--color-text-muted)]">Data source</p>
+            <p className="text-xs font-mono text-[var(--color-text-secondary)]">http://127.0.0.1:8080/api/costs</p>
           </div>
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 bg-zinc-900 border border-zinc-800 rounded-xl p-1 mb-6">
+        <div className="flex gap-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-1 mb-6">
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -997,13 +997,13 @@ export default function CostBreakdownAnalyzer() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-1.5 py-2 px-2 text-sm font-medium rounded-lg transition-colors",
                 activeTab === t.id
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               {t.label}
               {t.badge && (
-                <span className={cn("text-xs font-bold text-white px-1.5 py-0.5 rounded-full leading-none", t.badgeCls)}>
+                <span className={cn("text-xs font-bold text-[var(--color-text-primary)] px-1.5 py-0.5 rounded-full leading-none", t.badgeCls)}>
                   {t.badge}
                 </span>
               )}

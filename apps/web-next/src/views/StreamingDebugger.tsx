@@ -329,8 +329,8 @@ function TabButton({
       className={cn(
         "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
         active
-          ? "bg-indigo-600 text-white"
-          : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+          ? "bg-indigo-600 text-[var(--color-text-primary)]"
+          : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
       )}
     >
       {children}
@@ -346,7 +346,7 @@ function Card({
   className?: string;
 }) {
   return (
-    <div className={cn("bg-zinc-900 border border-zinc-800 rounded-xl p-4", className)}>
+    <div className={cn("bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4", className)}>
       {children}
     </div>
   );
@@ -355,8 +355,8 @@ function Card({
 function MetaBadge({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-xs text-zinc-500 uppercase tracking-wide">{label}</span>
-      <span className={cn("text-sm font-mono font-semibold", color ?? "text-white")}>
+      <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">{label}</span>
+      <span className={cn("text-sm font-mono font-semibold", color ?? "text-[var(--color-text-primary)]")}>
         {value}
       </span>
     </div>
@@ -472,11 +472,11 @@ function LiveStreamTab() {
       <Card>
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex flex-col gap-1 min-w-[160px]">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">Model</label>
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Model</label>
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
               {MODELS.map((m) => (
                 <option key={m} value={m}>
@@ -487,7 +487,7 @@ function LiveStreamTab() {
           </div>
 
           <div className="flex flex-col gap-1 flex-1 min-w-[160px]">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
               Token Speed: {tokenSpeed} tok/s
             </label>
             <input
@@ -501,14 +501,14 @@ function LiveStreamTab() {
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
               Partial JSON
             </label>
             <button
               onClick={() => setJsonMode((v) => !v)}
               className={cn(
                 "w-10 h-6 rounded-full transition-colors relative",
-                jsonMode ? "bg-indigo-600" : "bg-zinc-700"
+                jsonMode ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
               )}
             >
               <span
@@ -524,21 +524,21 @@ function LiveStreamTab() {
             <button
               onClick={startStream}
               disabled={streamState === "running"}
-              className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-sm rounded-lg transition-colors"
+              className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-[var(--color-text-primary)] text-sm rounded-lg transition-colors"
             >
               Start
             </button>
             <button
               onClick={pauseStream}
               disabled={streamState === "idle" || streamState === "done"}
-              className="px-4 py-1.5 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 text-white text-sm rounded-lg transition-colors"
+              className="px-4 py-1.5 bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] disabled:opacity-40 text-[var(--color-text-primary)] text-sm rounded-lg transition-colors"
             >
               {streamState === "paused" ? "Resume" : "Pause"}
             </button>
             <button
               onClick={stopStream}
               disabled={streamState === "idle"}
-              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white text-sm rounded-lg transition-colors"
+              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-[var(--color-text-primary)] text-sm rounded-lg transition-colors"
             >
               Stop
             </button>
@@ -551,7 +551,7 @@ function LiveStreamTab() {
         <div className="lg:col-span-2">
           <Card className="min-h-[240px]">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-zinc-500 uppercase tracking-wide">
+              <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
                 Stream Output
               </span>
               <span
@@ -563,19 +563,19 @@ function LiveStreamTab() {
                     ? "bg-amber-500/20 text-amber-400"
                     : streamState === "done"
                     ? "bg-indigo-500/20 text-indigo-400"
-                    : "bg-zinc-700 text-zinc-400"
+                    : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
                 )}
               >
                 {streamState.toUpperCase()}
               </span>
             </div>
-            <div className="font-mono text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed min-h-[180px]">
+            <div className="font-mono text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed min-h-[180px]">
               {displayedText}
               {streamState === "running" && (
                 <span className="inline-block w-0.5 h-4 bg-indigo-400 animate-pulse ml-0.5 align-text-bottom" />
               )}
               {displayedText === "" && streamState === "idle" && (
-                <span className="text-zinc-600 italic">
+                <span className="text-[var(--color-text-muted)] italic">
                   Press Start to begin stream simulation...
                 </span>
               )}
@@ -586,22 +586,22 @@ function LiveStreamTab() {
         <div className="space-y-3">
           {/* Token Counter */}
           <Card>
-            <p className="text-xs text-zinc-500 uppercase tracking-wide mb-3">
+            <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide mb-3">
               Token Counter
             </p>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-400">Input</span>
-                <span className="font-mono text-white">{inputTokens}</span>
+                <span className="text-[var(--color-text-secondary)]">Input</span>
+                <span className="font-mono text-[var(--color-text-primary)]">{inputTokens}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-400">Output</span>
+                <span className="text-[var(--color-text-secondary)]">Output</span>
                 <span className="font-mono text-emerald-400">{outputTokens}</span>
               </div>
-              <div className="h-px bg-zinc-800 my-1" />
+              <div className="h-px bg-[var(--color-surface-2)] my-1" />
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-400">Total</span>
-                <span className="font-mono text-white font-semibold">
+                <span className="text-[var(--color-text-secondary)]">Total</span>
+                <span className="font-mono text-[var(--color-text-primary)] font-semibold">
                   {inputTokens + outputTokens}
                 </span>
               </div>
@@ -610,7 +610,7 @@ function LiveStreamTab() {
 
           {/* Stream Metadata */}
           <Card>
-            <p className="text-xs text-zinc-500 uppercase tracking-wide mb-3">
+            <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide mb-3">
               Metadata
             </p>
             <div className="grid grid-cols-2 gap-3">
@@ -619,7 +619,7 @@ function LiveStreamTab() {
               <MetaBadge
                 label="Finish"
                 value={finishReason ?? "—"}
-                color={finishReason ? finishColor(finishReason) : "text-zinc-400"}
+                color={finishReason ? finishColor(finishReason) : "text-[var(--color-text-secondary)]"}
               />
               <MetaBadge label="Stop Seq" value={jsonMode ? '"}' : '"."'} />
             </div>
@@ -649,11 +649,11 @@ function HistoryTab() {
       <Card>
         <div className="flex flex-wrap gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">Model</label>
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Model</label>
             <select
               value={filterModel}
               onChange={(e) => setFilterModel(e.target.value)}
-              className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
               <option value="all">All Models</option>
               {MODELS.map((m) => (
@@ -664,11 +664,11 @@ function HistoryTab() {
             </select>
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">Status</label>
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Status</label>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
               <option value="all">All Statuses</option>
               <option value="complete">Complete</option>
@@ -677,7 +677,7 @@ function HistoryTab() {
             </select>
           </div>
           <div className="flex items-end">
-            <span className="text-sm text-zinc-400">
+            <span className="text-sm text-[var(--color-text-secondary)]">
               {filtered.length} session{filtered.length !== 1 ? "s" : ""}
             </span>
           </div>
@@ -685,18 +685,18 @@ function HistoryTab() {
       </Card>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-zinc-800">
+      <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-zinc-900 border-b border-zinc-800">
-              <th className="text-left px-4 py-3 text-zinc-500 font-medium">Model</th>
-              <th className="text-left px-4 py-3 text-zinc-500 font-medium">Prompt</th>
-              <th className="text-right px-4 py-3 text-zinc-500 font-medium">Tokens</th>
-              <th className="text-right px-4 py-3 text-zinc-500 font-medium">Duration</th>
-              <th className="text-right px-4 py-3 text-zinc-500 font-medium">Tok/s</th>
-              <th className="text-center px-4 py-3 text-zinc-500 font-medium">Finish</th>
-              <th className="text-center px-4 py-3 text-zinc-500 font-medium">Status</th>
-              <th className="text-right px-4 py-3 text-zinc-500 font-medium">Time</th>
+            <tr className="bg-[var(--color-surface-1)] border-b border-[var(--color-border)]">
+              <th className="text-left px-4 py-3 text-[var(--color-text-muted)] font-medium">Model</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-muted)] font-medium">Prompt</th>
+              <th className="text-right px-4 py-3 text-[var(--color-text-muted)] font-medium">Tokens</th>
+              <th className="text-right px-4 py-3 text-[var(--color-text-muted)] font-medium">Duration</th>
+              <th className="text-right px-4 py-3 text-[var(--color-text-muted)] font-medium">Tok/s</th>
+              <th className="text-center px-4 py-3 text-[var(--color-text-muted)] font-medium">Finish</th>
+              <th className="text-center px-4 py-3 text-[var(--color-text-muted)] font-medium">Status</th>
+              <th className="text-right px-4 py-3 text-[var(--color-text-muted)] font-medium">Time</th>
             </tr>
           </thead>
           <tbody>
@@ -705,23 +705,23 @@ function HistoryTab() {
                 key={s.id}
                 onClick={() => setSelectedSession(s)}
                 className={cn(
-                  "border-b border-zinc-800 cursor-pointer transition-colors",
-                  i % 2 === 0 ? "bg-zinc-900" : "bg-zinc-900/60",
-                  "hover:bg-zinc-800",
+                  "border-b border-[var(--color-border)] cursor-pointer transition-colors",
+                  i % 2 === 0 ? "bg-[var(--color-surface-1)]" : "bg-[var(--color-surface-1)]/60",
+                  "hover:bg-[var(--color-surface-2)]",
                   selectedSession?.id === s.id && "ring-1 ring-inset ring-indigo-500/50"
                 )}
               >
                 <td className="px-4 py-3 text-indigo-400 font-mono text-xs">{s.model}</td>
-                <td className="px-4 py-3 text-zinc-400 max-w-[200px] truncate">
+                <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">
                   {s.promptPreview}
                 </td>
-                <td className="px-4 py-3 text-right font-mono text-white">
+                <td className="px-4 py-3 text-right font-mono text-[var(--color-text-primary)]">
                   {s.inputTokens + s.outputTokens}
                 </td>
-                <td className="px-4 py-3 text-right font-mono text-zinc-300">
+                <td className="px-4 py-3 text-right font-mono text-[var(--color-text-primary)]">
                   {formatDuration(s.duration)}
                 </td>
-                <td className="px-4 py-3 text-right font-mono text-zinc-300">
+                <td className="px-4 py-3 text-right font-mono text-[var(--color-text-primary)]">
                   {s.tokensPerSec > 0 ? s.tokensPerSec.toFixed(1) : "—"}
                 </td>
                 <td className={cn("px-4 py-3 text-center font-mono text-xs", finishColor(s.finishReason))}>
@@ -730,7 +730,7 @@ function HistoryTab() {
                 <td className={cn("px-4 py-3 text-center text-xs font-medium", statusColor(s.status))}>
                   {s.status}
                 </td>
-                <td className="px-4 py-3 text-right text-zinc-500 text-xs font-mono">
+                <td className="px-4 py-3 text-right text-[var(--color-text-muted)] text-xs font-mono">
                   {formatTimestamp(s.timestamp)}
                 </td>
               </tr>
@@ -744,12 +744,12 @@ function HistoryTab() {
         <Card>
           <div className="flex items-start justify-between mb-3">
             <div>
-              <p className="text-sm font-medium text-white">{selectedSession.model}</p>
-              <p className="text-xs text-zinc-500 mt-0.5">{selectedSession.promptPreview}</p>
+              <p className="text-sm font-medium text-[var(--color-text-primary)]">{selectedSession.model}</p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{selectedSession.promptPreview}</p>
             </div>
             <button
               onClick={() => setSelectedSession(null)}
-              className="text-zinc-500 hover:text-zinc-300 text-lg leading-none"
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-lg leading-none"
             >
               ×
             </button>
@@ -760,7 +760,7 @@ function HistoryTab() {
             <MetaBadge label="Finish" value={selectedSession.finishReason} color={finishColor(selectedSession.finishReason)} />
             <MetaBadge label="Status" value={selectedSession.status} color={statusColor(selectedSession.status)} />
           </div>
-          <div className="bg-zinc-950 rounded-lg p-3 font-mono text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
+          <div className="bg-[var(--color-surface-0)] rounded-lg p-3 font-mono text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
             {selectedSession.fullText}
           </div>
         </Card>
@@ -781,30 +781,30 @@ function AnalysisTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Token distribution histogram */}
         <Card>
-          <p className="text-sm font-medium text-white mb-1">Token Distribution</p>
-          <p className="text-xs text-zinc-500 mb-4">Tokens per chunk (across all sessions)</p>
+          <p className="text-sm font-medium text-[var(--color-text-primary)] mb-1">Token Distribution</p>
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">Tokens per chunk (across all sessions)</p>
           <div className="flex items-end gap-2 h-36">
             {CHUNK_BINS.map((bin) => {
               const pct = (bin.count / maxChunkCount) * 100;
               return (
                 <div key={bin.label} className="flex flex-col items-center gap-1 flex-1">
-                  <span className="text-xs text-zinc-500 font-mono">{bin.count}</span>
+                  <span className="text-xs text-[var(--color-text-muted)] font-mono">{bin.count}</span>
                   <div
                     className="w-full bg-indigo-500/80 rounded-t-sm transition-all"
                     style={{ height: `${Math.max(pct, 2)}%` }}
                   />
-                  <span className="text-xs text-zinc-500">{bin.label}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{bin.label}</span>
                 </div>
               );
             })}
           </div>
-          <p className="text-xs text-zinc-600 mt-2 text-center">Tokens per chunk</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-2 text-center">Tokens per chunk</p>
         </Card>
 
         {/* Error rate over time */}
         <Card>
-          <p className="text-sm font-medium text-white mb-1">Error Rate Over Time</p>
-          <p className="text-xs text-zinc-500 mb-4">Sessions and errors by hour (today)</p>
+          <p className="text-sm font-medium text-[var(--color-text-primary)] mb-1">Error Rate Over Time</p>
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">Sessions and errors by hour (today)</p>
           <div className="flex items-end gap-2 h-36">
             {ERROR_BUCKETS.map((b) => {
               const totalPct = (b.total / maxErrorCount) * 100;
@@ -812,7 +812,7 @@ function AnalysisTab() {
               return (
                 <div key={b.hour} className="flex flex-col items-center gap-1 flex-1">
                   <div className="w-full relative" style={{ height: `${Math.max(totalPct, 4)}%` }}>
-                    <div className="absolute inset-0 bg-zinc-700 rounded-t-sm" />
+                    <div className="absolute inset-0 bg-[var(--color-surface-3)] rounded-t-sm" />
                     {errPct > 0 && (
                       <div
                         className="absolute bottom-0 left-0 right-0 bg-rose-500/80 rounded-t-sm"
@@ -820,19 +820,19 @@ function AnalysisTab() {
                       />
                     )}
                   </div>
-                  <span className="text-xs text-zinc-500">{b.hour}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{b.hour}</span>
                 </div>
               );
             })}
           </div>
           <div className="flex gap-4 mt-2 justify-center">
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-zinc-700" />
-              <span className="text-xs text-zinc-500">Total</span>
+              <div className="w-3 h-3 rounded-sm bg-[var(--color-surface-3)]" />
+              <span className="text-xs text-[var(--color-text-muted)]">Total</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-sm bg-rose-500/80" />
-              <span className="text-xs text-zinc-500">Errors</span>
+              <span className="text-xs text-[var(--color-text-muted)]">Errors</span>
             </div>
           </div>
         </Card>
@@ -841,7 +841,7 @@ function AnalysisTab() {
       {/* Latency analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
-          <p className="text-sm font-medium text-white mb-4">Latency Percentiles — TTFT</p>
+          <p className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Latency Percentiles — TTFT</p>
           <div className="space-y-3">
             {(
               [
@@ -851,14 +851,14 @@ function AnalysisTab() {
               ] as { label: string; value: number; max: number }[]
             ).map((p) => (
               <div key={p.label} className="flex items-center gap-3">
-                <span className="text-xs font-mono text-zinc-500 w-8">{p.label}</span>
-                <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                <span className="text-xs font-mono text-[var(--color-text-muted)] w-8">{p.label}</span>
+                <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                   <div
                     className="bg-indigo-500 h-2 rounded-full"
                     style={{ width: `${(p.value / p.max) * 100}%` }}
                   />
                 </div>
-                <span className="text-xs font-mono text-white w-14 text-right">
+                <span className="text-xs font-mono text-[var(--color-text-primary)] w-14 text-right">
                   {p.value}ms
                 </span>
               </div>
@@ -867,7 +867,7 @@ function AnalysisTab() {
         </Card>
 
         <Card>
-          <p className="text-sm font-medium text-white mb-4">Generation Speed Percentiles</p>
+          <p className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Generation Speed Percentiles</p>
           <div className="space-y-3">
             {(
               [
@@ -877,14 +877,14 @@ function AnalysisTab() {
               ] as { label: string; value: number; max: number }[]
             ).map((p) => (
               <div key={p.label} className="flex items-center gap-3">
-                <span className="text-xs font-mono text-zinc-500 w-8">{p.label}</span>
-                <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                <span className="text-xs font-mono text-[var(--color-text-muted)] w-8">{p.label}</span>
+                <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                   <div
                     className="bg-emerald-500 h-2 rounded-full"
                     style={{ width: `${(p.value / p.max) * 100}%` }}
                   />
                 </div>
-                <span className="text-xs font-mono text-white w-20 text-right">
+                <span className="text-xs font-mono text-[var(--color-text-primary)] w-20 text-right">
                   {p.value.toFixed(1)} tok/s
                 </span>
               </div>
@@ -895,25 +895,25 @@ function AnalysisTab() {
 
       {/* Model performance comparison */}
       <Card>
-        <p className="text-sm font-medium text-white mb-4">Model Performance Comparison</p>
+        <p className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Model Performance Comparison</p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800">
-                <th className="text-left pb-3 text-zinc-500 font-medium">Model</th>
-                <th className="text-right pb-3 text-zinc-500 font-medium">Avg TTFT</th>
-                <th className="text-right pb-3 text-zinc-500 font-medium">Avg Tok/s</th>
-                <th className="text-right pb-3 text-zinc-500 font-medium">Error Rate</th>
-                <th className="text-right pb-3 text-zinc-500 font-medium">Sessions</th>
-                <th className="pb-3 pl-4 text-zinc-500 font-medium">Speed</th>
+              <tr className="border-b border-[var(--color-border)]">
+                <th className="text-left pb-3 text-[var(--color-text-muted)] font-medium">Model</th>
+                <th className="text-right pb-3 text-[var(--color-text-muted)] font-medium">Avg TTFT</th>
+                <th className="text-right pb-3 text-[var(--color-text-muted)] font-medium">Avg Tok/s</th>
+                <th className="text-right pb-3 text-[var(--color-text-muted)] font-medium">Error Rate</th>
+                <th className="text-right pb-3 text-[var(--color-text-muted)] font-medium">Sessions</th>
+                <th className="pb-3 pl-4 text-[var(--color-text-muted)] font-medium">Speed</th>
               </tr>
             </thead>
             <tbody>
               {MODEL_PERFS.map((mp) => (
-                <tr key={mp.model} className="border-b border-zinc-800/50">
+                <tr key={mp.model} className="border-b border-[var(--color-border)]/50">
                   <td className="py-3 text-indigo-400 font-mono text-xs">{mp.model}</td>
-                  <td className="py-3 text-right font-mono text-zinc-300">{mp.avgTtft}ms</td>
-                  <td className="py-3 text-right font-mono text-zinc-300">{mp.avgTps.toFixed(1)}</td>
+                  <td className="py-3 text-right font-mono text-[var(--color-text-primary)]">{mp.avgTtft}ms</td>
+                  <td className="py-3 text-right font-mono text-[var(--color-text-primary)]">{mp.avgTps.toFixed(1)}</td>
                   <td
                     className={cn(
                       "py-3 text-right font-mono",
@@ -926,9 +926,9 @@ function AnalysisTab() {
                   >
                     {mp.errorRate.toFixed(1)}%
                   </td>
-                  <td className="py-3 text-right text-zinc-400">{mp.sessions}</td>
+                  <td className="py-3 text-right text-[var(--color-text-secondary)]">{mp.sessions}</td>
                   <td className="py-3 pl-4 w-32">
-                    <div className="bg-zinc-800 rounded-full h-1.5">
+                    <div className="bg-[var(--color-surface-2)] rounded-full h-1.5">
                       <div
                         className="bg-indigo-500 h-1.5 rounded-full"
                         style={{ width: `${(mp.avgTps / maxTps) * 100}%` }}
@@ -968,21 +968,21 @@ function SettingsTab() {
     <div className="space-y-4 max-w-2xl">
       {/* Endpoint */}
       <Card>
-        <p className="text-sm font-semibold text-white mb-4">Stream Endpoint</p>
+        <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Stream Endpoint</p>
         <div className="space-y-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
               Endpoint URL
             </label>
             <input
               type="url"
               value={endpoint}
               onChange={(e) => setEndpoint(e.target.value)}
-              className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
               Auth Token
             </label>
             <div className="flex gap-2">
@@ -990,11 +990,11 @@ function SettingsTab() {
                 type={showToken ? "text" : "password"}
                 value={authToken}
                 onChange={(e) => setAuthToken(e.target.value)}
-                className="flex-1 bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
               />
               <button
                 onClick={() => setShowToken((v) => !v)}
-                className="px-3 py-2 bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white text-xs rounded-lg transition-colors"
+                className="px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-xs rounded-lg transition-colors"
               >
                 {showToken ? "Hide" : "Show"}
               </button>
@@ -1005,10 +1005,10 @@ function SettingsTab() {
 
       {/* Timeouts & Retry */}
       <Card>
-        <p className="text-sm font-semibold text-white mb-4">Timeout & Retry Policy</p>
+        <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Timeout & Retry Policy</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
               Timeout (ms)
             </label>
             <input
@@ -1018,17 +1018,17 @@ function SettingsTab() {
               min={1000}
               max={120000}
               step={1000}
-              className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
               Retry Policy
             </label>
             <select
               value={retryPolicy}
               onChange={(e) => setRetryPolicy(e.target.value as RetryPolicy)}
-              className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
               <option value="none">None</option>
               <option value="linear">Linear</option>
@@ -1036,7 +1036,7 @@ function SettingsTab() {
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
               Max Retries
             </label>
             <input
@@ -1045,17 +1045,17 @@ function SettingsTab() {
               onChange={(e) => setMaxRetries(Number(e.target.value))}
               min={0}
               max={10}
-              className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-zinc-500 uppercase tracking-wide">
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
               Buffer Size (bytes)
             </label>
             <select
               value={bufferSize}
               onChange={(e) => setBufferSize(Number(e.target.value))}
-              className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
               <option value={1024}>1 KB</option>
               <option value={4096}>4 KB</option>
@@ -1068,12 +1068,12 @@ function SettingsTab() {
 
       {/* Debug & Export */}
       <Card>
-        <p className="text-sm font-semibold text-white mb-4">Debug & Export</p>
+        <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Debug & Export</p>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-white">Debug Logging</p>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-sm text-[var(--color-text-primary)]">Debug Logging</p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                 Log raw stream frames to console
               </p>
             </div>
@@ -1081,7 +1081,7 @@ function SettingsTab() {
               onClick={() => setDebugLogging((v) => !v)}
               className={cn(
                 "w-10 h-6 rounded-full transition-colors relative",
-                debugLogging ? "bg-indigo-600" : "bg-zinc-700"
+                debugLogging ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
               )}
             >
               <span
@@ -1094,15 +1094,15 @@ function SettingsTab() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-white">Export Format</p>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-sm text-[var(--color-text-primary)]">Export Format</p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                 Format for exporting stream sessions
               </p>
             </div>
             <select
               value={exportFormat}
               onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
-              className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
               <option value="json">JSON</option>
               <option value="csv">CSV</option>
@@ -1118,8 +1118,8 @@ function SettingsTab() {
           className={cn(
             "px-6 py-2 rounded-lg text-sm font-medium transition-colors",
             saved
-              ? "bg-emerald-600 text-white"
-              : "bg-indigo-600 hover:bg-indigo-500 text-white"
+              ? "bg-emerald-600 text-[var(--color-text-primary)]"
+              : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
           )}
         >
           {saved ? "Saved!" : "Save Settings"}
@@ -1134,7 +1134,7 @@ function SettingsTab() {
             setDebugLogging(false);
             setExportFormat("json");
           }}
-          className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium rounded-lg transition-colors"
+          className="px-6 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors"
         >
           Reset Defaults
         </button>
@@ -1162,15 +1162,15 @@ export default function StreamingDebugger() {
     MOCK_SESSIONS.filter((s) => s.tokensPerSec > 0).length;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-1">
             <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-            <h1 className="text-xl font-semibold text-white">Streaming Debugger</h1>
+            <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">Streaming Debugger</h1>
           </div>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-[var(--color-text-muted)]">
             Real-time streaming response inspector for LLM and agent output streams
           </p>
         </div>
@@ -1178,27 +1178,27 @@ export default function StreamingDebugger() {
         {/* Summary stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <Card className="p-3">
-            <p className="text-xs text-zinc-500 uppercase tracking-wide">Sessions</p>
-            <p className="text-2xl font-bold text-white mt-1">{totalSessions}</p>
+            <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Sessions</p>
+            <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">{totalSessions}</p>
           </Card>
           <Card className="p-3">
-            <p className="text-xs text-zinc-500 uppercase tracking-wide">Error Rate</p>
+            <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Error Rate</p>
             <p className="text-2xl font-bold text-rose-400 mt-1">
               {((errorCount / totalSessions) * 100).toFixed(0)}%
             </p>
           </Card>
           <Card className="p-3">
-            <p className="text-xs text-zinc-500 uppercase tracking-wide">Avg Tok/s</p>
+            <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Avg Tok/s</p>
             <p className="text-2xl font-bold text-emerald-400 mt-1">{avgTps.toFixed(1)}</p>
           </Card>
           <Card className="p-3">
-            <p className="text-xs text-zinc-500 uppercase tracking-wide">Models</p>
+            <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Models</p>
             <p className="text-2xl font-bold text-indigo-400 mt-1">{MODEL_PERFS.length}</p>
           </Card>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-zinc-900 border border-zinc-800 rounded-xl p-1 w-fit">
+        <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-1 w-fit">
           {tabs.map((tab) => (
             <TabButton
               key={tab.id}

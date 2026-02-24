@@ -94,30 +94,30 @@ const providerColor: Record<CloudProvider, string> = {
   aws:     "text-orange-400",
   gcp:     "text-blue-400",
   azure:   "text-sky-400",
-  "on-prem": "text-zinc-400",
+  "on-prem": "text-[var(--color-text-secondary)]",
 };
 
 const providerBadge: Record<CloudProvider, string> = {
   aws:     "bg-orange-500/10 border-orange-500/20 text-orange-400",
   gcp:     "bg-blue-500/10 border-blue-500/20 text-blue-400",
   azure:   "bg-sky-500/10 border-sky-500/20 text-sky-400",
-  "on-prem": "bg-zinc-700 border-zinc-600 text-zinc-400",
+  "on-prem": "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
 };
 
 const statusDot: Record<ResourceStatus, string> = {
   running:    "bg-emerald-400",
-  stopped:    "bg-zinc-500",
+  stopped:    "bg-[var(--color-surface-3)]",
   pending:    "bg-amber-400 animate-pulse",
   error:      "bg-rose-400 animate-pulse",
-  terminated: "bg-zinc-700",
+  terminated: "bg-[var(--color-surface-3)]",
 };
 
 const statusColor: Record<ResourceStatus, string> = {
   running:    "text-emerald-400",
-  stopped:    "text-zinc-500",
+  stopped:    "text-[var(--color-text-muted)]",
   pending:    "text-amber-400",
   error:      "text-rose-400",
-  terminated: "text-zinc-600",
+  terminated: "text-[var(--color-text-muted)]",
 };
 
 export default function ResourceInventoryDashboard() {
@@ -137,28 +137,28 @@ export default function ResourceInventoryDashboard() {
   const maxCost = Math.max(...COST_BREAKDOWN.map(c => c.cost));
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-white">Resource Inventory</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">{RESOURCES.length} resources across {GROUPS.length} groups</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Resource Inventory</h1>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{RESOURCES.length} resources across {GROUPS.length} groups</p>
           </div>
-          <button className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-medium text-zinc-300 transition-colors">Export CSV</button>
+          <button className="px-3 py-1.5 rounded-lg bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-xs font-medium text-[var(--color-text-primary)] transition-colors">Export CSV</button>
         </div>
         {/* Stats */}
         <div className="flex gap-4 mt-3">
           {[
             { label: "Running", value: running, color: "text-emerald-400" },
-            { label: "Stopped", value: stopped, color: "text-zinc-500" },
-            { label: "Monthly Cost", value: `$${totalCost.toLocaleString()}`, color: "text-white" },
+            { label: "Stopped", value: stopped, color: "text-[var(--color-text-muted)]" },
+            { label: "Monthly Cost", value: `$${totalCost.toLocaleString()}`, color: "text-[var(--color-text-primary)]" },
             { label: "AWS", value: RESOURCES.filter(r => r.provider === "aws").length, color: "text-orange-400" },
             { label: "GCP", value: RESOURCES.filter(r => r.provider === "gcp").length, color: "text-blue-400" },
           ].map(s => (
             <div key={s.label}>
               <span className={cn("text-base font-bold", s.color)}>{s.value}</span>
-              <span className="text-zinc-500 text-xs ml-1.5">{s.label}</span>
+              <span className="text-[var(--color-text-muted)] text-xs ml-1.5">{s.label}</span>
             </div>
           ))}
         </div>
@@ -167,7 +167,7 @@ export default function ResourceInventoryDashboard() {
           {(["inventory", "groups", "costs", "compliance"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={cn("px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors",
-                tab === t ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800")}>
+                tab === t ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]")}>
               {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
@@ -179,25 +179,25 @@ export default function ResourceInventoryDashboard() {
         {tab === "inventory" && (
           <div className="flex h-full">
             {/* Left */}
-            <div className="w-[50%] flex-none border-r border-zinc-800 flex flex-col">
+            <div className="w-[50%] flex-none border-r border-[var(--color-border)] flex flex-col">
               {/* Filters */}
-              <div className="flex-none px-4 py-2.5 border-b border-zinc-800 space-y-1.5">
+              <div className="flex-none px-4 py-2.5 border-b border-[var(--color-border)] space-y-1.5">
                 <div className="flex items-center gap-1 flex-wrap">
-                  <span className="text-[10px] text-zinc-500 mr-1">Type:</span>
+                  <span className="text-[10px] text-[var(--color-text-muted)] mr-1">Type:</span>
                   {(["all", "compute", "database", "storage", "container", "network", "serverless"] as const).map(t => (
                     <button key={t} onClick={() => setTypeFilter(t)}
                       className={cn("px-2 py-0.5 rounded text-[11px] capitalize transition-colors",
-                        typeFilter === t ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                        typeFilter === t ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}>
                       {t === "all" ? "All" : `${typeIcon[t as ResourceType]} ${t}`}
                     </button>
                   ))}
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="text-[10px] text-zinc-500 mr-1">Cloud:</span>
+                  <span className="text-[10px] text-[var(--color-text-muted)] mr-1">Cloud:</span>
                   {(["all", "aws", "gcp", "azure"] as const).map(p => (
                     <button key={p} onClick={() => setProviderFilter(p)}
                       className={cn("px-2 py-0.5 rounded text-[11px] uppercase transition-colors",
-                        providerFilter === p ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                        providerFilter === p ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}>
                       {p}
                     </button>
                   ))}
@@ -206,23 +206,23 @@ export default function ResourceInventoryDashboard() {
               <div className="flex-1 overflow-y-auto">
                 {filtered.map(res => (
                   <button key={res.id} onClick={() => setSelected(res)} className={cn(
-                    "w-full text-left px-4 py-3 border-b border-zinc-800/60 hover:bg-zinc-900 transition-colors",
-                    selected?.id === res.id && "bg-zinc-900 border-l-2 border-l-indigo-500"
+                    "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface-1)] transition-colors",
+                    selected?.id === res.id && "bg-[var(--color-surface-1)] border-l-2 border-l-indigo-500"
                   )}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className={cn("w-1.5 h-1.5 rounded-full flex-none", statusDot[res.status])} />
                         <span className="text-sm">{typeIcon[res.type]}</span>
-                        <span className="text-sm font-medium text-white font-mono truncate">{res.name}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)] font-mono truncate">{res.name}</span>
                       </div>
                       <div className="flex items-center gap-2 flex-none">
                         <span className={cn("px-1.5 py-0.5 rounded border text-[10px]", providerBadge[res.provider])}>{res.provider.toUpperCase()}</span>
                         {res.costPerMonth > 0 && (
-                          <span className="text-xs text-zinc-400">${res.costPerMonth}/mo</span>
+                          <span className="text-xs text-[var(--color-text-secondary)]">${res.costPerMonth}/mo</span>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 mt-1 pl-5 text-[10px] text-zinc-600">
+                    <div className="flex items-center gap-3 mt-1 pl-5 text-[10px] text-[var(--color-text-muted)]">
                       <span className={statusColor[res.status]}>{res.status}</span>
                       <span>{res.region}</span>
                       {res.cpu > 0 && <span>{res.cpu} vCPU</span>}
@@ -241,10 +241,10 @@ export default function ResourceInventoryDashboard() {
                     <div className="flex items-center gap-2">
                       <span className="text-xl">{typeIcon[selected.type]}</span>
                       <div>
-                        <h2 className="font-mono text-base font-semibold text-white">{selected.name}</h2>
+                        <h2 className="font-mono text-base font-semibold text-[var(--color-text-primary)]">{selected.name}</h2>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className={cn("px-1.5 py-0.5 rounded border text-[10px]", providerBadge[selected.provider])}>{selected.provider.toUpperCase()}</span>
-                          <span className="text-xs text-zinc-500">{selected.region}</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">{selected.region}</span>
                           <span className={cn("text-xs font-medium", statusColor[selected.status])}>{selected.status}</span>
                         </div>
                       </div>
@@ -253,50 +253,50 @@ export default function ResourceInventoryDashboard() {
                   {/* Specs */}
                   <div className="grid grid-cols-3 gap-3">
                     {selected.cpu > 0 && (
-                      <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800 text-center">
-                        <div className="text-lg font-bold text-white">{selected.cpu}</div>
-                        <div className="text-[10px] text-zinc-500">vCPU</div>
+                      <div className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)] text-center">
+                        <div className="text-lg font-bold text-[var(--color-text-primary)]">{selected.cpu}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">vCPU</div>
                       </div>
                     )}
                     {selected.memory > 0 && (
-                      <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800 text-center">
-                        <div className="text-lg font-bold text-white">{selected.memory}GB</div>
-                        <div className="text-[10px] text-zinc-500">Memory</div>
+                      <div className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)] text-center">
+                        <div className="text-lg font-bold text-[var(--color-text-primary)]">{selected.memory}GB</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">Memory</div>
                       </div>
                     )}
                     {selected.storage > 0 && (
-                      <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800 text-center">
-                        <div className="text-lg font-bold text-white">{selected.storage}GB</div>
-                        <div className="text-[10px] text-zinc-500">Storage</div>
+                      <div className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)] text-center">
+                        <div className="text-lg font-bold text-[var(--color-text-primary)]">{selected.storage}GB</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">Storage</div>
                       </div>
                     )}
                     {selected.costPerMonth > 0 && (
-                      <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800 text-center">
+                      <div className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)] text-center">
                         <div className="text-lg font-bold text-emerald-400">${selected.costPerMonth}</div>
-                        <div className="text-[10px] text-zinc-500">Per Month</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">Per Month</div>
                       </div>
                     )}
                   </div>
                   {/* Metadata */}
-                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs font-medium text-zinc-400 mb-2">Details</div>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Details</div>
                     <div className="grid grid-cols-2 gap-y-1.5 text-xs">
-                      <div><span className="text-zinc-500">ID: </span><span className="font-mono text-zinc-300">{selected.id}</span></div>
-                      <div><span className="text-zinc-500">Owner: </span><span className="text-zinc-300">{selected.owner}</span></div>
-                      <div><span className="text-zinc-500">Created: </span><span className="text-zinc-300">{selected.createdAt}</span></div>
-                      <div><span className="text-zinc-500">Modified: </span><span className="text-zinc-300">{selected.lastModified}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">ID: </span><span className="font-mono text-[var(--color-text-primary)]">{selected.id}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Owner: </span><span className="text-[var(--color-text-primary)]">{selected.owner}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Created: </span><span className="text-[var(--color-text-primary)]">{selected.createdAt}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Modified: </span><span className="text-[var(--color-text-primary)]">{selected.lastModified}</span></div>
                     </div>
                   </div>
                   {/* Tags */}
-                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs font-medium text-zinc-400 mb-2">Tags</div>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Tags</div>
                     {Object.keys(selected.tags).length === 0 ? (
                       <div className="text-xs text-amber-400">⚠ No tags — non-compliant</div>
                     ) : (
                       <div className="flex flex-wrap gap-1.5">
                         {Object.entries(selected.tags).map(([k, v]) => (
-                          <span key={k} className="px-2 py-0.5 rounded bg-zinc-800 text-xs font-mono">
-                            <span className="text-indigo-400">{k}</span><span className="text-zinc-500">=</span><span className="text-zinc-300">{v}</span>
+                          <span key={k} className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-xs font-mono">
+                            <span className="text-indigo-400">{k}</span><span className="text-[var(--color-text-muted)]">=</span><span className="text-[var(--color-text-primary)]">{v}</span>
                           </span>
                         ))}
                       </div>
@@ -313,20 +313,20 @@ export default function ResourceInventoryDashboard() {
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-3">
               {GROUPS.map(g => (
-                <div key={g.id} className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 hover:border-zinc-700 transition-colors">
+                <div key={g.id} className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)] hover:border-[var(--color-border)] transition-colors">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-semibold text-white">{g.name}</div>
-                      <div className="text-xs text-zinc-500 mt-0.5">{g.region} · {g.environment}</div>
+                      <div className="font-semibold text-[var(--color-text-primary)]">{g.name}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{g.region} · {g.environment}</div>
                     </div>
                     <div className="flex items-center gap-4 text-right">
                       <div>
-                        <div className="text-sm font-bold text-white">{g.resourceCount}</div>
-                        <div className="text-[10px] text-zinc-600">resources</div>
+                        <div className="text-sm font-bold text-[var(--color-text-primary)]">{g.resourceCount}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">resources</div>
                       </div>
                       <div>
                         <div className="text-sm font-bold text-emerald-400">${g.monthlyCost.toLocaleString()}</div>
-                        <div className="text-[10px] text-zinc-600">per month</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">per month</div>
                       </div>
                       <span className={cn("px-2 py-1 rounded border text-xs", providerBadge[g.provider])}>{g.provider.toUpperCase()}</span>
                     </div>
@@ -340,44 +340,44 @@ export default function ResourceInventoryDashboard() {
         {/* Costs Tab */}
         {tab === "costs" && (
           <div className="overflow-y-auto h-full p-5">
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 mb-4">
-              <div className="text-sm font-medium text-zinc-300 mb-4">Cost by Resource Type</div>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)] mb-4">
+              <div className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Cost by Resource Type</div>
               <div className="space-y-3">
                 {COST_BREAKDOWN.toSorted((a, b) => b.cost - a.cost).map(cb => (
                   <div key={cb.category}>
                     <div className="flex items-center justify-between text-xs mb-1">
                       <div className="flex items-center gap-2">
                         <span>{typeIcon[cb.category]}</span>
-                        <span className="text-zinc-300 capitalize">{cb.category}</span>
-                        <span className="text-zinc-600">{cb.count} resources</span>
+                        <span className="text-[var(--color-text-primary)] capitalize">{cb.category}</span>
+                        <span className="text-[var(--color-text-muted)]">{cb.count} resources</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={cn("text-[10px]", cb.trend > 0 ? "text-rose-400" : cb.trend < 0 ? "text-emerald-400" : "text-zinc-500")}>
+                        <span className={cn("text-[10px]", cb.trend > 0 ? "text-rose-400" : cb.trend < 0 ? "text-emerald-400" : "text-[var(--color-text-muted)]")}>
                           {cb.trend > 0 ? "↑" : cb.trend < 0 ? "↓" : "→"} {Math.abs(cb.trend)}%
                         </span>
-                        <span className="text-white font-semibold">${cb.cost.toLocaleString()}</span>
+                        <span className="text-[var(--color-text-primary)] font-semibold">${cb.cost.toLocaleString()}</span>
                       </div>
                     </div>
-                    <div className="w-full bg-zinc-800 rounded-full h-2">
+                    <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
                       <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${(cb.cost / maxCost) * 100}%` }} />
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between text-sm">
-                <span className="text-zinc-400">Total Monthly</span>
-                <span className="font-bold text-white">${totalCost.toLocaleString()}</span>
+              <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex justify-between text-sm">
+                <span className="text-[var(--color-text-secondary)]">Total Monthly</span>
+                <span className="font-bold text-[var(--color-text-primary)]">${totalCost.toLocaleString()}</span>
               </div>
             </div>
             {/* Top cost resources */}
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-              <div className="text-sm font-medium text-zinc-300 mb-3">Top Cost Resources</div>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+              <div className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Top Cost Resources</div>
               <div className="space-y-2">
                 {RESOURCES.filter(r => r.costPerMonth > 0).toSorted((a, b) => b.costPerMonth - a.costPerMonth).slice(0, 6).map((r, i) => (
                   <div key={r.id} className="flex items-center gap-3 text-xs">
-                    <span className="text-zinc-600 w-4">{i + 1}.</span>
+                    <span className="text-[var(--color-text-muted)] w-4">{i + 1}.</span>
                     <span>{typeIcon[r.type]}</span>
-                    <span className="font-mono text-zinc-300 flex-1">{r.name}</span>
+                    <span className="font-mono text-[var(--color-text-primary)] flex-1">{r.name}</span>
                     <span className={cn("text-[10px]", providerColor[r.provider])}>{r.provider.toUpperCase()}</span>
                     <span className="text-emerald-400 font-semibold">${r.costPerMonth}/mo</span>
                   </div>
@@ -391,22 +391,22 @@ export default function ResourceInventoryDashboard() {
         {tab === "compliance" && (
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-4">
-              <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-                <div className="text-sm font-medium text-zinc-300 mb-4">Tag Compliance</div>
+              <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+                <div className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Tag Compliance</div>
                 <div className="space-y-4">
                   {TAG_COMPLIANCE.map(tc => {
                     const pct = Math.round((tc.compliant / tc.totalResources) * 100);
                     return (
                       <div key={tc.rule}>
                         <div className="flex items-center justify-between text-xs mb-1.5">
-                          <span className="text-zinc-300 capitalize">{tc.rule}</span>
+                          <span className="text-[var(--color-text-primary)] capitalize">{tc.rule}</span>
                           <div className="flex items-center gap-3">
                             <span className="text-emerald-400">{tc.compliant} compliant</span>
                             <span className="text-rose-400">{tc.nonCompliant} missing</span>
                             <span className={cn("font-bold", pct >= 90 ? "text-emerald-400" : pct >= 70 ? "text-amber-400" : "text-rose-400")}>{pct}%</span>
                           </div>
                         </div>
-                        <div className="w-full bg-zinc-800 rounded-full h-2">
+                        <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
                           <div className={cn("h-2 rounded-full", pct >= 90 ? "bg-emerald-500" : pct >= 70 ? "bg-amber-500" : "bg-rose-500")}
                             style={{ width: `${pct}%` }} />
                         </div>
@@ -416,13 +416,13 @@ export default function ResourceInventoryDashboard() {
                 </div>
               </div>
               {/* Non-compliant resources */}
-              <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-                <div className="text-sm font-medium text-zinc-300 mb-3">Non-Compliant Resources</div>
+              <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+                <div className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Non-Compliant Resources</div>
                 <div className="space-y-2">
                   {RESOURCES.filter(r => Object.keys(r.tags).length < 3).map(r => (
-                    <div key={r.id} className="flex items-center gap-3 bg-zinc-950 rounded-lg px-3 py-2">
+                    <div key={r.id} className="flex items-center gap-3 bg-[var(--color-surface-0)] rounded-lg px-3 py-2">
                       <span>{typeIcon[r.type]}</span>
-                      <span className="font-mono text-xs text-zinc-300 flex-1">{r.name}</span>
+                      <span className="font-mono text-xs text-[var(--color-text-primary)] flex-1">{r.name}</span>
                       <div className="flex gap-1">
                         {["env", "team", "owner", "service"].filter(tag => !r.tags[tag]).map(tag => (
                           <span key={tag} className="px-1.5 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-[10px] text-rose-400">missing:{tag}</span>

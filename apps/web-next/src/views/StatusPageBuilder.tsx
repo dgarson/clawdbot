@@ -169,16 +169,16 @@ export default function StatusPageBuilder() {
   }
 
   return (
-    <div className="flex h-full bg-zinc-950 overflow-hidden flex-col">
+    <div className="flex h-full bg-[var(--color-surface-0)] overflow-hidden flex-col">
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 bg-zinc-900 flex-shrink-0">
+      <div className="flex border-b border-[var(--color-border)] bg-[var(--color-surface-1)] flex-shrink-0">
         {(["status", "incidents", "builder"] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
               "px-6 py-3 text-sm font-medium transition-colors border-b-2 capitalize",
-              activeTab === tab ? "border-indigo-500 text-indigo-300" : "border-transparent text-zinc-500 hover:text-zinc-300"
+              activeTab === tab ? "border-indigo-500 text-indigo-300" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {tab === "status" ? "🟢 Live Status" : tab === "incidents" ? `🔥 Incidents (${incidents.filter(i => !i.resolvedAt).length} open)` : "⚙️ Builder"}
@@ -191,7 +191,7 @@ export default function StatusPageBuilder() {
             <span className={cn("w-2 h-2 rounded-full", statusColor(overallStatus), overallStatus !== "operational" && "animate-pulse")} />
             {statusLabel(overallStatus)}
           </div>
-          <span className="text-xs text-zinc-500">{overallUptime}% uptime (30d)</span>
+          <span className="text-xs text-[var(--color-text-muted)]">{overallUptime}% uptime (30d)</span>
         </div>
       </div>
 
@@ -205,15 +205,15 @@ export default function StatusPageBuilder() {
                 ? groupComponents.find(c => c.status !== "operational")!.status
                 : "operational";
               return (
-                <div key={group} className="bg-zinc-900 rounded border border-zinc-800 overflow-hidden">
+                <div key={group} className="bg-[var(--color-surface-1)] rounded border border-[var(--color-border)] overflow-hidden">
                   {/* Group header */}
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
-                    <span className="font-semibold text-white text-sm">{group}</span>
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
+                    <span className="font-semibold text-[var(--color-text-primary)] text-sm">{group}</span>
                     <span className={cn("text-xs font-medium", statusText(groupStatus))}>{statusLabel(groupStatus)}</span>
                   </div>
 
                   {/* Components */}
-                  <div className="divide-y divide-zinc-800">
+                  <div className="divide-y divide-[var(--color-border)]">
                     {groupComponents.map(comp => {
                       const bars = genUptimeBars(comp.status);
                       const isExpanded = expandedComponentId === comp.id;
@@ -221,24 +221,24 @@ export default function StatusPageBuilder() {
                         <div key={comp.id}>
                           <button
                             onClick={() => setExpandedComponentId(isExpanded ? null : comp.id)}
-                            className="w-full text-left px-4 py-3 hover:bg-zinc-800/50 transition-colors"
+                            className="w-full text-left px-4 py-3 hover:bg-[var(--color-surface-2)]/50 transition-colors"
                           >
                             <div className="flex items-center gap-3">
                               <span className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", statusColor(comp.status), comp.status !== "operational" && "animate-pulse")} />
-                              <span className="text-sm text-white flex-1">{comp.name}</span>
+                              <span className="text-sm text-[var(--color-text-primary)] flex-1">{comp.name}</span>
                               <span className={cn("text-xs font-medium", statusText(comp.status))}>{statusLabel(comp.status)}</span>
-                              <span className="text-xs text-zinc-500">{comp.responseMs}ms</span>
+                              <span className="text-xs text-[var(--color-text-muted)]">{comp.responseMs}ms</span>
                               <span className={cn("text-xs transition-transform", isExpanded && "rotate-180")}>▾</span>
                             </div>
                           </button>
 
                           {isExpanded && (
-                            <div className="px-4 pb-4 bg-zinc-950/40">
+                            <div className="px-4 pb-4 bg-[var(--color-surface-0)]/40">
                               {/* Uptime bars */}
                               <div className="mb-3">
                                 <div className="flex items-center justify-between mb-1">
-                                  <span className="text-[10px] text-zinc-500">90-day uptime</span>
-                                  <span className="text-[10px] text-zinc-400">{comp.uptime90d}%</span>
+                                  <span className="text-[10px] text-[var(--color-text-muted)]">90-day uptime</span>
+                                  <span className="text-[10px] text-[var(--color-text-secondary)]">{comp.uptime90d}%</span>
                                 </div>
                                 <div className="flex gap-px h-6">
                                   {bars.map((bar, i) => (
@@ -249,7 +249,7 @@ export default function StatusPageBuilder() {
                                     />
                                   ))}
                                 </div>
-                                <div className="flex justify-between text-[9px] text-zinc-600 mt-0.5">
+                                <div className="flex justify-between text-[9px] text-[var(--color-text-muted)] mt-0.5">
                                   <span>90 days ago</span>
                                   <span>Today</span>
                                 </div>
@@ -262,9 +262,9 @@ export default function StatusPageBuilder() {
                                   { label: "Avg Response", value: `${comp.responseMs}ms` },
                                   { label: "Last Incident", value: comp.lastIncident ?? "Never" },
                                 ].map(({ label, value }) => (
-                                  <div key={label} className="bg-zinc-900 rounded p-2 border border-zinc-800">
-                                    <div className="text-[10px] text-zinc-500">{label}</div>
-                                    <div className="text-xs text-white font-medium mt-0.5">{value}</div>
+                                  <div key={label} className="bg-[var(--color-surface-1)] rounded p-2 border border-[var(--color-border)]">
+                                    <div className="text-[10px] text-[var(--color-text-muted)]">{label}</div>
+                                    <div className="text-xs text-[var(--color-text-primary)] font-medium mt-0.5">{value}</div>
                                   </div>
                                 ))}
                               </div>
@@ -283,10 +283,10 @@ export default function StatusPageBuilder() {
         {activeTab === "incidents" && (
           <div className="max-w-3xl mx-auto space-y-4">
             {incidents.length === 0 ? (
-              <div className="text-center py-12 text-zinc-600">No incidents recorded</div>
+              <div className="text-center py-12 text-[var(--color-text-muted)]">No incidents recorded</div>
             ) : (
               incidents.map(inc => (
-                <div key={inc.id} className={cn("bg-zinc-900 rounded border overflow-hidden", inc.resolvedAt ? "border-zinc-800" : "border-amber-400/30")}>
+                <div key={inc.id} className={cn("bg-[var(--color-surface-1)] rounded border overflow-hidden", inc.resolvedAt ? "border-[var(--color-border)]" : "border-amber-400/30")}>
                   <button
                     onClick={() => setExpandedIncidentId(expandedIncidentId === inc.id ? null : inc.id)}
                     className="w-full text-left px-5 py-4"
@@ -296,19 +296,19 @@ export default function StatusPageBuilder() {
                         {inc.severity.toUpperCase()}
                       </span>
                       <div className="flex-1">
-                        <div className="text-sm font-semibold text-white">{inc.title}</div>
+                        <div className="text-sm font-semibold text-[var(--color-text-primary)]">{inc.title}</div>
                         <div className="flex items-center gap-3 mt-1">
                           <span className={cn("text-xs font-medium px-2 py-0.5 rounded capitalize", phaseColor(inc.phase))}>
                             {inc.phase}
                           </span>
-                          <span className="text-xs text-zinc-500">Started: {inc.startedAt}</span>
-                          {inc.resolvedAt && <span className="text-xs text-zinc-500">Resolved: {inc.resolvedAt}</span>}
+                          <span className="text-xs text-[var(--color-text-muted)]">Started: {inc.startedAt}</span>
+                          {inc.resolvedAt && <span className="text-xs text-[var(--color-text-muted)]">Resolved: {inc.resolvedAt}</span>}
                         </div>
                         <div className="flex flex-wrap gap-1 mt-2">
                           {inc.affectedComponents.map(cId => {
                             const comp = components.find(c => c.id === cId);
                             return comp ? (
-                              <span key={cId} className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">{comp.name}</span>
+                              <span key={cId} className="text-[10px] bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-2 py-0.5 rounded">{comp.name}</span>
                             ) : null;
                           })}
                         </div>
@@ -318,21 +318,21 @@ export default function StatusPageBuilder() {
                   </button>
 
                   {expandedIncidentId === inc.id && (
-                    <div className="border-t border-zinc-800 px-5 py-4">
-                      <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Incident Timeline</div>
+                    <div className="border-t border-[var(--color-border)] px-5 py-4">
+                      <div className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">Incident Timeline</div>
                       <div className="space-y-3">
                         {inc.updates.map((upd, i) => (
                           <div key={i} className="flex gap-3">
                             <div className="flex flex-col items-center">
                               <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0 mt-0.5", phaseColor(upd.phase).split(" ")[0].replace("text-", "bg-"))} />
-                              {i < inc.updates.length - 1 && <div className="w-px flex-1 bg-zinc-800 mt-1" />}
+                              {i < inc.updates.length - 1 && <div className="w-px flex-1 bg-[var(--color-surface-2)] mt-1" />}
                             </div>
                             <div className="flex-1 pb-3">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className={cn("text-[10px] font-semibold capitalize px-1.5 py-0.5 rounded", phaseColor(upd.phase))}>{upd.phase}</span>
-                                <span className="text-[10px] text-zinc-500">{upd.timestamp}</span>
+                                <span className="text-[10px] text-[var(--color-text-muted)]">{upd.timestamp}</span>
                               </div>
-                              <p className="text-sm text-zinc-300">{upd.message}</p>
+                              <p className="text-sm text-[var(--color-text-primary)]">{upd.message}</p>
                             </div>
                           </div>
                         ))}
@@ -348,15 +348,15 @@ export default function StatusPageBuilder() {
         {activeTab === "builder" && (
           <div className="max-w-3xl mx-auto">
             <div className="mb-4">
-              <p className="text-sm text-zinc-400">Manage component statuses for the public status page.</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">Manage component statuses for the public status page.</p>
             </div>
-            <div className="bg-zinc-900 rounded border border-zinc-800 divide-y divide-zinc-800">
+            <div className="bg-[var(--color-surface-1)] rounded border border-[var(--color-border)] divide-y divide-[var(--color-border)]">
               {components.map(comp => (
                 <div key={comp.id} className="flex items-center gap-4 px-4 py-3">
                   <span className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", statusColor(comp.status))} />
                   <div className="flex-1">
-                    <div className="text-sm text-white font-medium">{comp.name}</div>
-                    <div className="text-[10px] text-zinc-500">{comp.group}</div>
+                    <div className="text-sm text-[var(--color-text-primary)] font-medium">{comp.name}</div>
+                    <div className="text-[10px] text-[var(--color-text-muted)]">{comp.group}</div>
                   </div>
 
                   {editingComponentId === comp.id ? (
@@ -364,7 +364,7 @@ export default function StatusPageBuilder() {
                       <select
                         value={editStatus}
                         onChange={e => setEditStatus(e.target.value as ComponentStatus)}
-                        className="bg-zinc-800 border border-zinc-700 text-white text-xs px-2 py-1 rounded focus:outline-none focus:border-indigo-500"
+                        className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-2 py-1 rounded focus:outline-none focus:border-indigo-500"
                       >
                         <option value="operational">Operational</option>
                         <option value="degraded">Degraded Performance</option>
@@ -372,13 +372,13 @@ export default function StatusPageBuilder() {
                         <option value="major-outage">Major Outage</option>
                         <option value="maintenance">Maintenance</option>
                       </select>
-                      <button onClick={() => applyEdit(comp.id)} className="text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded">Save</button>
-                      <button onClick={() => setEditingComponentId(null)} className="text-xs text-zinc-500 hover:text-zinc-300">Cancel</button>
+                      <button onClick={() => applyEdit(comp.id)} className="text-xs bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)] px-3 py-1 rounded">Save</button>
+                      <button onClick={() => setEditingComponentId(null)} className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">Cancel</button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-3">
                       <span className={cn("text-xs font-medium", statusText(comp.status))}>{statusLabel(comp.status)}</span>
-                      <button onClick={() => startEdit(comp)} className="text-xs text-zinc-500 hover:text-indigo-400 px-2 py-1 rounded hover:bg-zinc-800 transition-colors">Edit</button>
+                      <button onClick={() => startEdit(comp)} className="text-xs text-[var(--color-text-muted)] hover:text-indigo-400 px-2 py-1 rounded hover:bg-[var(--color-surface-2)] transition-colors">Edit</button>
                     </div>
                   )}
                 </div>

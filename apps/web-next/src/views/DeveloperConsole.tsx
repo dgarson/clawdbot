@@ -143,7 +143,7 @@ const JsonViewer: React.FC<{ data: unknown }> = ({ data }) => {
   const lines = prettyJson.split('\n');
 
   return (
-    <pre className="font-mono text-sm overflow-x-auto whitespace-pre p-4 bg-zinc-950 rounded border border-zinc-800">
+    <pre className="font-mono text-sm overflow-x-auto whitespace-pre p-4 bg-[var(--color-surface-0)] rounded border border-[var(--color-border)]">
       {lines.map((line, i) => {
         // This is a naive highlight, but meets the "colored strings/numbers/etc" requirement
         const keyMatch = line.match(/^(\s*)"([^"]+)":/);
@@ -163,7 +163,7 @@ const JsonViewer: React.FC<{ data: unknown }> = ({ data }) => {
 
           return (
             <div key={i}>
-              {indent}"<span className="text-white opacity-80">{key}</span>": {valElement}{hasComma && ','}
+              {indent}"<span className="text-[var(--color-text-primary)] opacity-80">{key}</span>": {valElement}{hasComma && ','}
             </div>
           );
         }
@@ -269,9 +269,9 @@ export default function DeveloperConsole() {
   const filteredLogs = logs.filter(l => logFilter === 'ALL' || l.level === logFilter);
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-zinc-950 text-white font-sans overflow-hidden">
+    <div className="flex flex-col h-full min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans overflow-hidden">
       {/* Tabs Nav */}
-      <nav className="flex items-center gap-1 p-2 border-b border-zinc-800 bg-zinc-900" role="tablist">
+      <nav className="flex items-center gap-1 p-2 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]" role="tablist">
         {(['api', 'logs', 'gateway'] as const).map(tab => (
           <button
             key={tab}
@@ -281,8 +281,8 @@ export default function DeveloperConsole() {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-md transition-colors",
               activeTab === tab 
-                ? "bg-zinc-800 text-indigo-400" 
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                ? "bg-[var(--color-surface-2)] text-indigo-400" 
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {tab.toUpperCase()} {tab === 'api' ? 'Tester' : tab === 'logs' ? 'Stream' : 'Inspector'}
@@ -295,12 +295,12 @@ export default function DeveloperConsole() {
           <div className="flex gap-4 h-full animate-in fade-in duration-300">
             {/* Left: Client */}
             <div className="flex-1 flex flex-col gap-4">
-              <section className="bg-zinc-900 p-4 rounded-lg border border-zinc-800 shadow-xl">
+              <section className="bg-[var(--color-surface-1)] p-4 rounded-lg border border-[var(--color-border)] shadow-xl">
                 <div className="flex gap-2 mb-4">
                   <select 
                     value={method}
                     onChange={(e) => setMethod(e.target.value as HttpMethod)}
-                    className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     aria-label="HTTP Method"
                   >
                     {['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].map(m => <option key={m} value={m}>{m}</option>)}
@@ -310,12 +310,12 @@ export default function DeveloperConsole() {
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder="https://api.horizon.ai/v1/..."
-                    className="flex-1 bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     aria-label="Request URL"
                   />
                   <button 
                     onClick={handleSendRequest}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded text-sm font-bold transition-all shadow-lg active:scale-95"
+                    className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-6 py-2 rounded text-sm font-bold transition-all shadow-lg active:scale-95"
                   >
                     SEND
                   </button>
@@ -325,26 +325,26 @@ export default function DeveloperConsole() {
                 <div className="mb-4">
                   <button 
                     onClick={() => setIsHeadersOpen(!isHeadersOpen)}
-                    className="text-xs font-bold text-zinc-500 hover:text-zinc-300 flex items-center gap-1 mb-2 uppercase tracking-widest"
+                    className="text-xs font-bold text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex items-center gap-1 mb-2 uppercase tracking-widest"
                     aria-expanded={isHeadersOpen}
                   >
                     {isHeadersOpen ? '▼' : '▶'} Headers ({headers.length})
                   </button>
                   {isHeadersOpen && (
-                    <div className="space-y-2 border-l-2 border-zinc-800 pl-4 py-2">
+                    <div className="space-y-2 border-l-2 border-[var(--color-border)] pl-4 py-2">
                       {headers.map((h, i) => (
                         <div key={i} className="flex gap-2">
                           <input 
                             placeholder="Key" 
                             value={h.key} 
                             onChange={(e) => updateHeader(i, 'key', e.target.value)}
-                            className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs font-mono"
+                            className="flex-1 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-2 py-1 text-xs font-mono"
                           />
                           <input 
                             placeholder="Value" 
                             value={h.value} 
                             onChange={(e) => updateHeader(i, 'value', e.target.value)}
-                            className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs font-mono"
+                            className="flex-1 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-2 py-1 text-xs font-mono"
                           />
                           <button 
                             onClick={() => removeHeader(i)}
@@ -357,7 +357,7 @@ export default function DeveloperConsole() {
                       ))}
                       <button 
                         onClick={addHeader}
-                        className="text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded"
+                        className="text-[10px] bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-2 py-1 rounded"
                       >
                         + ADD HEADER
                       </button>
@@ -368,11 +368,11 @@ export default function DeveloperConsole() {
                 {/* Body */}
                 {(['POST', 'PUT', 'PATCH'] as HttpMethod[]).includes(method) && (
                   <div>
-                    <label className="text-xs font-bold text-zinc-500 mb-2 block uppercase tracking-widest">Request Body (JSON)</label>
+                    <label className="text-xs font-bold text-[var(--color-text-muted)] mb-2 block uppercase tracking-widest">Request Body (JSON)</label>
                     <textarea 
                       value={body}
                       onChange={(e) => setBody(e.target.value)}
-                      className="w-full h-40 bg-zinc-950 border border-zinc-800 rounded p-3 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full h-40 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded p-3 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       spellCheck={false}
                     />
                   </div>
@@ -381,8 +381,8 @@ export default function DeveloperConsole() {
 
               {/* Response Panel */}
               {response && (
-                <section className="bg-zinc-900 p-4 rounded-lg border border-zinc-800 shadow-xl flex-1 flex flex-col min-h-0">
-                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-zinc-800">
+                <section className="bg-[var(--color-surface-1)] p-4 rounded-lg border border-[var(--color-border)] shadow-xl flex-1 flex flex-col min-h-0">
+                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-[var(--color-border)]">
                     <div className="flex items-center gap-4">
                       <span className={cn(
                         "px-2 py-1 rounded text-xs font-bold uppercase",
@@ -392,7 +392,7 @@ export default function DeveloperConsole() {
                       )}>
                         Status: {response.status}
                       </span>
-                      <span className="text-xs text-zinc-500 font-mono">{response.time}ms</span>
+                      <span className="text-xs text-[var(--color-text-muted)] font-mono">{response.time}ms</span>
                     </div>
                   </div>
 
@@ -401,17 +401,17 @@ export default function DeveloperConsole() {
                     
                     <button 
                       onClick={() => setIsRespHeadersOpen(!isRespHeadersOpen)}
-                      className="text-xs font-bold text-zinc-500 hover:text-zinc-300 flex items-center gap-1 my-4 uppercase tracking-widest"
+                      className="text-xs font-bold text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex items-center gap-1 my-4 uppercase tracking-widest"
                       aria-expanded={isRespHeadersOpen}
                     >
                       {isRespHeadersOpen ? '▼' : '▶'} Response Headers
                     </button>
                     {isRespHeadersOpen && (
-                      <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                      <div className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded p-2">
                         {Object.entries(response.headers).map(([k, v]) => (
-                          <div key={k} className="flex text-xs font-mono py-1 border-b border-zinc-900 last:border-0">
+                          <div key={k} className="flex text-xs font-mono py-1 border-b border-[var(--color-border)] last:border-0">
                             <span className="text-indigo-400 w-32 shrink-0">{k}:</span>
-                            <span className="text-zinc-400 break-all">{v}</span>
+                            <span className="text-[var(--color-text-secondary)] break-all">{v}</span>
                           </div>
                         ))}
                       </div>
@@ -423,14 +423,14 @@ export default function DeveloperConsole() {
 
             {/* Sidebar: History */}
             <aside className="w-64 flex flex-col gap-4">
-              <div className="bg-zinc-900 p-4 rounded-lg border border-zinc-800 shadow-xl flex-1 overflow-hidden">
-                <h2 className="text-xs font-bold text-zinc-500 mb-4 uppercase tracking-widest">History</h2>
+              <div className="bg-[var(--color-surface-1)] p-4 rounded-lg border border-[var(--color-border)] shadow-xl flex-1 overflow-hidden">
+                <h2 className="text-xs font-bold text-[var(--color-text-muted)] mb-4 uppercase tracking-widest">History</h2>
                 <div className="space-y-2 overflow-y-auto h-[calc(100%-2rem)]">
                   {history.map(req => (
                     <button
                       key={req.id}
                       onClick={() => restoreRequest(req)}
-                      className="w-full text-left p-2 rounded bg-zinc-950 border border-zinc-800 hover:border-indigo-500 transition-colors group"
+                      className="w-full text-left p-2 rounded bg-[var(--color-surface-0)] border border-[var(--color-border)] hover:border-indigo-500 transition-colors group"
                     >
                       <div className="flex justify-between items-center mb-1">
                         <span className={cn(
@@ -441,11 +441,11 @@ export default function DeveloperConsole() {
                         )}>
                           {req.method}
                         </span>
-                        <span className="text-[10px] text-zinc-600 font-mono">
+                        <span className="text-[10px] text-[var(--color-text-muted)] font-mono">
                           {new Date(req.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </span>
                       </div>
-                      <div className="text-[11px] font-mono text-zinc-400 truncate group-hover:text-white">
+                      <div className="text-[11px] font-mono text-[var(--color-text-secondary)] truncate group-hover:text-[var(--color-text-primary)]">
                         {req.url}
                       </div>
                     </button>
@@ -457,17 +457,17 @@ export default function DeveloperConsole() {
         )}
 
         {activeTab === 'logs' && (
-          <div className="flex flex-col h-full bg-zinc-900 rounded-lg border border-zinc-800 shadow-xl overflow-hidden animate-in zoom-in-95 duration-300">
+          <div className="flex flex-col h-full bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] shadow-xl overflow-hidden animate-in zoom-in-95 duration-300">
             {/* Toolbar */}
-            <div className="p-3 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between">
+            <div className="p-3 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <label htmlFor="log-filter" className="text-xs font-bold text-zinc-500 uppercase tracking-tighter">Level:</label>
+                  <label htmlFor="log-filter" className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-tighter">Level:</label>
                   <select 
                     id="log-filter"
                     value={logFilter}
                     onChange={(e) => setLogFilter(e.target.value as LogLevel | 'ALL')}
-                    className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs focus:outline-none"
+                    className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-xs focus:outline-none"
                   >
                     <option value="ALL">ALL LEVELS</option>
                     <option value="DEBUG">DEBUG</option>
@@ -476,7 +476,7 @@ export default function DeveloperConsole() {
                     <option value="ERROR">ERROR</option>
                   </select>
                 </div>
-                <label className="flex items-center gap-2 text-xs font-bold text-zinc-500 cursor-pointer select-none">
+                <label className="flex items-center gap-2 text-xs font-bold text-[var(--color-text-muted)] cursor-pointer select-none">
                   <input 
                     type="checkbox" 
                     checked={autoScroll} 
@@ -488,17 +488,17 @@ export default function DeveloperConsole() {
               </div>
               <button 
                 onClick={() => setLogs([])}
-                className="text-[10px] bg-zinc-800 hover:bg-rose-900/30 hover:text-rose-400 text-zinc-400 px-3 py-1 rounded transition-colors border border-zinc-700"
+                className="text-[10px] bg-[var(--color-surface-2)] hover:bg-rose-900/30 hover:text-rose-400 text-[var(--color-text-secondary)] px-3 py-1 rounded transition-colors border border-[var(--color-border)]"
               >
                 CLEAR LOGS
               </button>
             </div>
 
             {/* Log Output */}
-            <div className="flex-1 overflow-y-auto p-4 font-mono text-sm space-y-1 bg-zinc-950">
+            <div className="flex-1 overflow-y-auto p-4 font-mono text-sm space-y-1 bg-[var(--color-surface-0)]">
               {filteredLogs.map(log => (
-                <div key={log.id} className="group flex gap-3 leading-relaxed hover:bg-zinc-900/50 px-2 rounded -mx-2 transition-colors">
-                  <span className="text-zinc-600 shrink-0 select-none">[{log.timestamp}]</span>
+                <div key={log.id} className="group flex gap-3 leading-relaxed hover:bg-[var(--color-surface-1)]/50 px-2 rounded -mx-2 transition-colors">
+                  <span className="text-[var(--color-text-muted)] shrink-0 select-none">[{log.timestamp}]</span>
                   <span className={cn(
                     "font-bold shrink-0 w-16",
                     log.level === 'DEBUG' ? "text-indigo-400" :
@@ -508,12 +508,12 @@ export default function DeveloperConsole() {
                   )}>
                     {log.level}
                   </span>
-                  <span className="text-zinc-300 break-all">{log.message}</span>
+                  <span className="text-[var(--color-text-primary)] break-all">{log.message}</span>
                 </div>
               ))}
               <div ref={logEndRef} />
               {filteredLogs.length === 0 && (
-                <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-2">
+                <div className="h-full flex flex-col items-center justify-center text-[var(--color-text-muted)] gap-2">
                   <div className="text-4xl opacity-20">No logs found</div>
                 </div>
               )}
@@ -527,30 +527,30 @@ export default function DeveloperConsole() {
             <div className="col-span-12 grid grid-cols-4 gap-4">
               {[
                 { label: 'Status', value: 'Connected', color: 'text-emerald-400' },
-                { label: 'Uptime', value: '4d 12h 05m', color: 'text-white' },
+                { label: 'Uptime', value: '4d 12h 05m', color: 'text-[var(--color-text-primary)]' },
                 { label: 'Active Sessions', value: '12', color: 'text-indigo-400' },
                 { label: 'Active Agents', value: '8', color: 'text-amber-400' },
               ].map(stat => (
-                <div key={stat.label} className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg shadow-xl">
-                  <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{stat.label}</div>
+                <div key={stat.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-4 rounded-lg shadow-xl">
+                  <div className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-1">{stat.label}</div>
                   <div className={cn("text-xl font-bold font-mono", stat.color)}>{stat.value}</div>
                 </div>
               ))}
             </div>
 
             {/* WebSocket Frame Log */}
-            <div className="col-span-8 bg-zinc-900 border border-zinc-800 rounded-lg flex flex-col overflow-hidden shadow-xl">
-              <div className="p-3 border-b border-zinc-800 flex justify-between items-center">
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">WebSocket Frames</h3>
+            <div className="col-span-8 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg flex flex-col overflow-hidden shadow-xl">
+              <div className="p-3 border-b border-[var(--color-border)] flex justify-between items-center">
+                <h3 className="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-widest">WebSocket Frames</h3>
                 <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[10px] text-zinc-500 font-bold">STREAMING</span>
+                  <span className="text-[10px] text-[var(--color-text-muted)] font-bold">STREAMING</span>
                 </span>
               </div>
-              <div className="flex-1 overflow-auto bg-zinc-950 p-4 font-mono text-xs">
+              <div className="flex-1 overflow-auto bg-[var(--color-surface-0)] p-4 font-mono text-xs">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="text-zinc-600 border-b border-zinc-800">
+                    <tr className="text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
                       <th className="pb-2 font-medium w-24 text-center">Dir</th>
                       <th className="pb-2 font-medium w-24">Type</th>
                       <th className="pb-2 font-medium">Payload</th>
@@ -559,7 +559,7 @@ export default function DeveloperConsole() {
                   </thead>
                   <tbody className="divide-y divide-zinc-900">
                     {frames.map(f => (
-                      <tr key={f.id} className="hover:bg-zinc-900/50">
+                      <tr key={f.id} className="hover:bg-[var(--color-surface-1)]/50">
                         <td className="py-2 text-center">
                           <span className={cn(
                             "px-1.5 py-0.5 rounded-sm font-bold text-[9px]",
@@ -569,12 +569,12 @@ export default function DeveloperConsole() {
                           </span>
                         </td>
                         <td className="py-2">
-                          <span className="text-zinc-400 uppercase">{f.type}</span>
+                          <span className="text-[var(--color-text-secondary)] uppercase">{f.type}</span>
                         </td>
-                        <td className="py-2 font-mono text-zinc-500 truncate max-w-0">
+                        <td className="py-2 font-mono text-[var(--color-text-muted)] truncate max-w-0">
                           {f.payload}
                         </td>
-                        <td className="py-2 text-right text-zinc-600">
+                        <td className="py-2 text-right text-[var(--color-text-muted)]">
                           {f.timestamp}
                         </td>
                       </tr>
@@ -586,39 +586,39 @@ export default function DeveloperConsole() {
 
             {/* Recent Events & Performance */}
             <div className="col-span-4 flex flex-col gap-4">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 shadow-xl flex-1">
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4">Recent Events</h3>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 shadow-xl flex-1">
+                <h3 className="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-widest mb-4">Recent Events</h3>
                 <div className="space-y-3">
                   {events.map(e => (
                     <div key={e.id} className="flex justify-between items-center text-xs">
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-4 bg-indigo-500/50 rounded-full" />
-                        <span className="font-mono text-zinc-300">{e.type}</span>
+                        <span className="font-mono text-[var(--color-text-primary)]">{e.type}</span>
                       </div>
-                      <span className="text-zinc-600 font-mono">{e.timestamp}</span>
+                      <span className="text-[var(--color-text-muted)] font-mono">{e.timestamp}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 shadow-xl">
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4">Performance</h3>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 shadow-xl">
+                <h3 className="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-widest mb-4">Performance</h3>
                 <div className="space-y-4">
                   <div>
-                    <div className="flex justify-between text-[10px] text-zinc-500 font-bold mb-1 uppercase">
+                    <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] font-bold mb-1 uppercase">
                       <span>Messages / Min</span>
                       <span>42</span>
                     </div>
-                    <div className="w-full bg-zinc-800 h-1 rounded-full overflow-hidden">
+                    <div className="w-full bg-[var(--color-surface-2)] h-1 rounded-full overflow-hidden">
                       <div className="bg-indigo-500 h-full" style={{ width: '42%' }} />
                     </div>
                   </div>
                   <div>
-                    <div className="flex justify-between text-[10px] text-zinc-500 font-bold mb-1 uppercase">
+                    <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] font-bold mb-1 uppercase">
                       <span>Error Rate</span>
                       <span className="text-rose-400">0.02%</span>
                     </div>
-                    <div className="w-full bg-zinc-800 h-1 rounded-full overflow-hidden">
+                    <div className="w-full bg-[var(--color-surface-2)] h-1 rounded-full overflow-hidden">
                       <div className="bg-rose-500 h-full" style={{ width: '2%' }} />
                     </div>
                   </div>

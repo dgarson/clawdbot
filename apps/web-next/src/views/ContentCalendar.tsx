@@ -64,21 +64,21 @@ const sampleChannels: Channel[] = [
 // Helper functions
 const getTypeColor = (type: ContentType): string => {
   switch (type) {
-    case "blog": return "bg-indigo-600 text-white";
-    case "social": return "bg-emerald-500 text-white";
-    case "email": return "bg-amber-500 text-white";
-    case "video": return "bg-blue-500 text-white";
-    case "ad": return "bg-rose-500 text-white";
-    default: return "bg-zinc-600 text-white";
+    case "blog": return "bg-indigo-600 text-[var(--color-text-primary)]";
+    case "social": return "bg-emerald-500 text-[var(--color-text-primary)]";
+    case "email": return "bg-amber-500 text-[var(--color-text-primary)]";
+    case "video": return "bg-blue-500 text-[var(--color-text-primary)]";
+    case "ad": return "bg-rose-500 text-[var(--color-text-primary)]";
+    default: return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]";
   }
 };
 
 const getStatusColor = (status: ContentStatus): string => {
   switch (status) {
-    case "draft": return "text-zinc-400";
+    case "draft": return "text-[var(--color-text-secondary)]";
     case "scheduled": return "text-amber-400";
     case "published": return "text-emerald-400";
-    default: return "text-zinc-400";
+    default: return "text-[var(--color-text-secondary)]";
   }
 };
 
@@ -96,7 +96,7 @@ const getChannelStatusColor = (status: ChannelStatus): string => {
     case "connected": return "text-emerald-400";
     case "disconnected": return "text-rose-400";
     case "pending": return "text-amber-400";
-    default: return "text-zinc-400";
+    default: return "text-[var(--color-text-secondary)]";
   }
 };
 
@@ -162,7 +162,7 @@ const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children }) => (
       "px-4 py-2 text-sm font-medium transition-all duration-150 border-b-2",
       active
         ? "text-indigo-400 border-indigo-500"
-        : "text-zinc-400 border-transparent hover:text-white hover:border-zinc-600"
+        : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
     )}
   >
     {children}
@@ -207,27 +207,27 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ content, selectedDate, onSele
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={handlePrevMonth}
-            className="px-3 py-1 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors"
+            className="px-3 py-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] rounded transition-colors"
           >
             ← Prev
           </button>
-          <h2 className="text-lg font-semibold text-white">{monthName}</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{monthName}</h2>
           <button
             onClick={handleNextMonth}
-            className="px-3 py-1 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors"
+            className="px-3 py-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] rounded transition-colors"
           >
             Next →
           </button>
         </div>
         
         {/* Calendar Grid */}
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden">
           {/* Week Days Header */}
-          <div className="grid grid-cols-7 border-b border-zinc-800">
+          <div className="grid grid-cols-7 border-b border-[var(--color-border)]">
             {weekDays.map((day) => (
               <div
                 key={day}
-                className="p-2 text-center text-xs font-medium text-zinc-500 bg-zinc-900"
+                className="p-2 text-center text-xs font-medium text-[var(--color-text-muted)] bg-[var(--color-surface-1)]"
               >
                 {day}
               </div>
@@ -246,17 +246,17 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ content, selectedDate, onSele
                   key={index}
                   onClick={() => day && onSelectDate(day)}
                   className={cn(
-                    "min-h-[80px] p-1 border-b border-r border-zinc-800 cursor-pointer transition-colors",
-                    day ? "hover:bg-zinc-800/50" : "bg-zinc-950/30",
-                    isSelected && "bg-zinc-800",
-                    isTodayDate && !isSelected && "bg-zinc-800/30"
+                    "min-h-[80px] p-1 border-b border-r border-[var(--color-border)] cursor-pointer transition-colors",
+                    day ? "hover:bg-[var(--color-surface-2)]/50" : "bg-[var(--color-surface-0)]/30",
+                    isSelected && "bg-[var(--color-surface-2)]",
+                    isTodayDate && !isSelected && "bg-[var(--color-surface-2)]/30"
                   )}
                 >
                   {day && (
                     <>
                       <div className={cn(
                         "text-xs font-medium mb-1",
-                        isTodayDate ? "text-indigo-400" : "text-zinc-400"
+                        isTodayDate ? "text-indigo-400" : "text-[var(--color-text-secondary)]"
                       )}>
                         {day.getDate()}
                       </div>
@@ -273,7 +273,7 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ content, selectedDate, onSele
                           </div>
                         ))}
                         {dayContent.length > 3 && (
-                          <div className="text-[10px] text-zinc-500">
+                          <div className="text-[10px] text-[var(--color-text-muted)]">
                             +{dayContent.length - 3} more
                           </div>
                         )}
@@ -290,30 +290,30 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ content, selectedDate, onSele
         <div className="flex gap-4 mt-4 text-xs">
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
-            <span className="text-zinc-400">Blog</span>
+            <span className="text-[var(--color-text-secondary)]">Blog</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span className="text-zinc-400">Social</span>
+            <span className="text-[var(--color-text-secondary)]">Social</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span className="text-zinc-400">Email</span>
+            <span className="text-[var(--color-text-secondary)]">Email</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-            <span className="text-zinc-400">Video</span>
+            <span className="text-[var(--color-text-secondary)]">Video</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-            <span className="text-zinc-400">Ad</span>
+            <span className="text-[var(--color-text-secondary)]">Ad</span>
           </div>
         </div>
       </div>
       
       {/* Day Detail Panel */}
-      <div className="w-80 bg-zinc-900 rounded-lg border border-zinc-800 p-4">
-        <h3 className="text-sm font-semibold text-white mb-3">
+      <div className="w-80 bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">
           {selectedDate ? formatDate(selectedDate) : "Select a day"}
         </h3>
         
@@ -323,7 +323,7 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ content, selectedDate, onSele
               {selectedContent.map((item) => (
                 <div
                   key={item.id}
-                  className="p-3 bg-zinc-950 rounded border border-zinc-800"
+                  className="p-3 bg-[var(--color-surface-0)] rounded border border-[var(--color-border)]"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <span className={cn(
@@ -336,8 +336,8 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ content, selectedDate, onSele
                       {getStatusIcon(item.status)} {item.status}
                     </span>
                   </div>
-                  <h4 className="text-sm font-medium text-white mb-1">{item.title}</h4>
-                  <div className="text-xs text-zinc-500">
+                  <h4 className="text-sm font-medium text-[var(--color-text-primary)] mb-1">{item.title}</h4>
+                  <div className="text-xs text-[var(--color-text-muted)]">
                     <span>{item.channel}</span>
                     <span className="mx-1">•</span>
                     <span>{item.author}</span>
@@ -346,10 +346,10 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ content, selectedDate, onSele
               ))}
             </div>
           ) : (
-            <p className="text-sm text-zinc-500">No content scheduled for this day.</p>
+            <p className="text-sm text-[var(--color-text-muted)]">No content scheduled for this day.</p>
           )
         ) : (
-          <p className="text-sm text-zinc-500">Click on a day to view content details.</p>
+          <p className="text-sm text-[var(--color-text-muted)]">Click on a day to view content details.</p>
         )}
       </div>
     </div>
@@ -368,23 +368,23 @@ const QueueTab: React.FC = () => {
   return (
     <div className="flex gap-6 h-full">
       <div className="flex-1">
-        <h2 className="text-lg font-semibold text-white mb-4">Upcoming Content Queue</h2>
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Upcoming Content Queue</h2>
         <div className="space-y-2">
           {upcomingContent.map((item) => (
             <div
               key={item.id}
               onClick={() => setSelectedItem(item)}
               className={cn(
-                "p-4 bg-zinc-900 rounded-lg border cursor-pointer transition-colors",
+                "p-4 bg-[var(--color-surface-1)] rounded-lg border cursor-pointer transition-colors",
                 selectedItem?.id === item.id
                   ? "border-indigo-500"
-                  : "border-zinc-800 hover:border-zinc-700"
+                  : "border-[var(--color-border)] hover:border-[var(--color-border)]"
               )}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-white mb-1">{item.title}</h3>
-                  <div className="flex items-center gap-2 text-xs text-zinc-500">
+                  <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-1">{item.title}</h3>
+                  <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
                     <span className={cn("px-1.5 py-0.5 rounded", getTypeColor(item.type))}>
                       {item.type}
                     </span>
@@ -397,7 +397,7 @@ const QueueTab: React.FC = () => {
                   <span className={cn("text-xs block", getStatusColor(item.status))}>
                     {getStatusIcon(item.status)} {item.status}
                   </span>
-                  <span className="text-xs text-zinc-500 mt-1 block">{item.author}</span>
+                  <span className="text-xs text-[var(--color-text-muted)] mt-1 block">{item.author}</span>
                 </div>
               </div>
             </div>
@@ -406,48 +406,48 @@ const QueueTab: React.FC = () => {
       </div>
       
       {/* Detail Panel */}
-      <div className="w-80 bg-zinc-900 rounded-lg border border-zinc-800 p-4">
-        <h3 className="text-sm font-semibold text-white mb-3">
+      <div className="w-80 bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">
           {selectedItem ? "Content Details" : "Select an item"}
         </h3>
         
         {selectedItem ? (
           <div className="space-y-4">
             <div>
-              <label className="text-xs text-zinc-500 uppercase tracking-wider">Title</label>
-              <p className="text-sm text-white mt-1">{selectedItem.title}</p>
+              <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Title</label>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">{selectedItem.title}</p>
             </div>
             <div>
-              <label className="text-xs text-zinc-500 uppercase tracking-wider">Type</label>
-              <p className="text-sm text-white mt-1">
+              <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Type</label>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">
                 <span className={cn("px-2 py-1 rounded text-xs", getTypeColor(selectedItem.type))}>
                   {selectedItem.type}
                 </span>
               </p>
             </div>
             <div>
-              <label className="text-xs text-zinc-500 uppercase tracking-wider">Channel</label>
-              <p className="text-sm text-white mt-1">{selectedItem.channel}</p>
+              <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Channel</label>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">{selectedItem.channel}</p>
             </div>
             <div>
-              <label className="text-xs text-zinc-500 uppercase tracking-wider">Scheduled</label>
-              <p className="text-sm text-white mt-1">
+              <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Scheduled</label>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">
                 {formatDate(selectedItem.scheduledDate)} at {formatTime(selectedItem.scheduledDate)}
               </p>
             </div>
             <div>
-              <label className="text-xs text-zinc-500 uppercase tracking-wider">Status</label>
+              <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Status</label>
               <p className={cn("text-sm mt-1", getStatusColor(selectedItem.status))}>
                 {getStatusIcon(selectedItem.status)} {selectedItem.status}
               </p>
             </div>
             <div>
-              <label className="text-xs text-zinc-500 uppercase tracking-wider">Author</label>
-              <p className="text-sm text-white mt-1">{selectedItem.author}</p>
+              <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Author</label>
+              <p className="text-sm text-[var(--color-text-primary)] mt-1">{selectedItem.author}</p>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-zinc-500">Click on a content item to see details.</p>
+          <p className="text-sm text-[var(--color-text-muted)]">Click on a content item to see details.</p>
         )}
       </div>
     </div>
@@ -494,33 +494,33 @@ const AnalyticsTab: React.FC = () => {
     <div className="space-y-6 h-full overflow-auto">
       {/* KPI Cards */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
-          <label className="text-xs text-zinc-500 uppercase tracking-wider">Published This Month</label>
-          <p className="text-3xl font-bold text-white mt-1">{publishedThisMonth}</p>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4">
+          <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Published This Month</label>
+          <p className="text-3xl font-bold text-[var(--color-text-primary)] mt-1">{publishedThisMonth}</p>
           <p className="text-xs text-emerald-400 mt-1">+12% from last month</p>
         </div>
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
-          <label className="text-xs text-zinc-500 uppercase tracking-wider">Avg Engagement Rate</label>
-          <p className="text-3xl font-bold text-white mt-1">{avgEngagement}%</p>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4">
+          <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Avg Engagement Rate</label>
+          <p className="text-3xl font-bold text-[var(--color-text-primary)] mt-1">{avgEngagement}%</p>
           <p className="text-xs text-emerald-400 mt-1">+1.8% from last month</p>
         </div>
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
-          <label className="text-xs text-zinc-500 uppercase tracking-wider">Top Channel</label>
-          <p className="text-2xl font-bold text-white mt-1">{topChannel}</p>
-          <p className="text-xs text-zinc-500 mt-1">22.4% engagement</p>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4">
+          <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Top Channel</label>
+          <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">{topChannel}</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-1">22.4% engagement</p>
         </div>
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
-          <label className="text-xs text-zinc-500 uppercase tracking-wider">Best Type</label>
-          <p className="text-2xl font-bold text-white mt-1 capitalize">{bestType}</p>
-          <p className="text-xs text-zinc-500 mt-1">8.3% engagement</p>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4">
+          <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Best Type</label>
+          <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1 capitalize">{bestType}</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-1">8.3% engagement</p>
         </div>
       </div>
       
       {/* Charts */}
       <div className="grid grid-cols-2 gap-6">
         {/* Bar Chart - Posts by Day */}
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
-          <h3 className="text-sm font-semibold text-white mb-4">Posts by Day of Week</h3>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Posts by Day of Week</h3>
           <div className="flex items-end justify-between h-40 gap-2">
             {postsByDay.map((item) => (
               <div key={item.day} className="flex-1 flex flex-col items-center">
@@ -528,24 +528,24 @@ const AnalyticsTab: React.FC = () => {
                   className="w-full bg-indigo-600 rounded-t transition-all"
                   style={{ height: `${(item.count / maxDayCount) * 100}%` }}
                 ></div>
-                <span className="text-xs text-zinc-500 mt-2">{item.day}</span>
-                <span className="text-xs text-white">{item.count}</span>
+                <span className="text-xs text-[var(--color-text-muted)] mt-2">{item.day}</span>
+                <span className="text-xs text-[var(--color-text-primary)]">{item.count}</span>
               </div>
             ))}
           </div>
         </div>
         
         {/* Horizontal Bars - Content by Type */}
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
-          <h3 className="text-sm font-semibold text-white mb-4">Content by Type</h3>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Content by Type</h3>
           <div className="space-y-3">
             {contentByType.map((item) => (
               <div key={item.type}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-zinc-400 capitalize">{item.type}</span>
-                  <span className="text-sm text-white">{item.count} ({item.percentage}%)</span>
+                  <span className="text-sm text-[var(--color-text-secondary)] capitalize">{item.type}</span>
+                  <span className="text-sm text-[var(--color-text-primary)]">{item.count} ({item.percentage}%)</span>
                 </div>
-                <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div
                     className={cn("h-full rounded-full", typeColors[item.type as ContentType])}
                     style={{ width: `${item.percentage}%` }}
@@ -564,18 +564,18 @@ const AnalyticsTab: React.FC = () => {
 const ChannelsTab: React.FC = () => {
   return (
     <div className="space-y-4 h-full overflow-auto">
-      <h2 className="text-lg font-semibold text-white mb-4">Connected Channels</h2>
+      <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Connected Channels</h2>
       
       <div className="grid grid-cols-2 gap-4">
         {sampleChannels.map((channel) => (
           <div
             key={channel.id}
-            className="bg-zinc-900 rounded-lg border border-zinc-800 p-4"
+            className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4"
           >
             <div className="flex items-start justify-between mb-3">
               <div>
-                <h3 className="text-base font-semibold text-white">{channel.name}</h3>
-                <p className="text-sm text-zinc-500">{channel.handle}</p>
+                <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{channel.name}</h3>
+                <p className="text-sm text-[var(--color-text-muted)]">{channel.handle}</p>
               </div>
               <span className={cn(
                 "text-xs px-2 py-1 rounded",
@@ -588,17 +588,17 @@ const ChannelsTab: React.FC = () => {
             </div>
             
             <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="bg-zinc-950 rounded p-2">
-                <p className="text-lg font-semibold text-white">{formatNumber(channel.followers)}</p>
-                <p className="text-[10px] text-zinc-500 uppercase">Followers</p>
+              <div className="bg-[var(--color-surface-0)] rounded p-2">
+                <p className="text-lg font-semibold text-[var(--color-text-primary)]">{formatNumber(channel.followers)}</p>
+                <p className="text-[10px] text-[var(--color-text-muted)] uppercase">Followers</p>
               </div>
-              <div className="bg-zinc-950 rounded p-2">
-                <p className="text-lg font-semibold text-white">{channel.postsThisMonth}</p>
-                <p className="text-[10px] text-zinc-500 uppercase">Posts</p>
+              <div className="bg-[var(--color-surface-0)] rounded p-2">
+                <p className="text-lg font-semibold text-[var(--color-text-primary)]">{channel.postsThisMonth}</p>
+                <p className="text-[10px] text-[var(--color-text-muted)] uppercase">Posts</p>
               </div>
-              <div className="bg-zinc-950 rounded p-2">
-                <p className="text-lg font-semibold text-white">{channel.engagementRate}%</p>
-                <p className="text-[10px] text-zinc-500 uppercase">Engagement</p>
+              <div className="bg-[var(--color-surface-0)] rounded p-2">
+                <p className="text-lg font-semibold text-[var(--color-text-primary)]">{channel.engagementRate}%</p>
+                <p className="text-[10px] text-[var(--color-text-muted)] uppercase">Engagement</p>
               </div>
             </div>
           </div>
@@ -606,22 +606,22 @@ const ChannelsTab: React.FC = () => {
       </div>
       
       {/* Channel Stats Summary */}
-      <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 mt-6">
-        <h3 className="text-sm font-semibold text-white mb-3">Channel Performance Summary</h3>
+      <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 mt-6">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Channel Performance Summary</h3>
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <p className="text-2xl font-bold text-white">{formatNumber(sampleChannels.reduce((sum, c) => sum + c.followers, 0))}</p>
-            <p className="text-xs text-zinc-500">Total Followers</p>
+            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{formatNumber(sampleChannels.reduce((sum, c) => sum + c.followers, 0))}</p>
+            <p className="text-xs text-[var(--color-text-muted)]">Total Followers</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-white">{sampleChannels.reduce((sum, c) => sum + c.postsThisMonth, 0)}</p>
-            <p className="text-xs text-zinc-500">Total Posts This Month</p>
+            <p className="text-2xl font-bold text-[var(--color-text-primary)]">{sampleChannels.reduce((sum, c) => sum + c.postsThisMonth, 0)}</p>
+            <p className="text-xs text-[var(--color-text-muted)]">Total Posts This Month</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-2xl font-bold text-[var(--color-text-primary)]">
               {(sampleChannels.reduce((sum, c) => sum + c.engagementRate, 0) / sampleChannels.filter(c => c.status === "connected").length).toFixed(1)}%
             </p>
-            <p className="text-xs text-zinc-500">Avg Engagement Rate</p>
+            <p className="text-xs text-[var(--color-text-muted)]">Avg Engagement Rate</p>
           </div>
         </div>
       </div>
@@ -642,16 +642,16 @@ const ContentCalendar: React.FC = () => {
   ];
   
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white">Content Calendar</h1>
-          <p className="text-sm text-zinc-500 mt-1">Plan, schedule, and track your content across all channels</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Content Calendar</h1>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">Plan, schedule, and track your content across all channels</p>
         </div>
         
         {/* Tabs */}
-        <div className="border-b border-zinc-800 mb-6">
+        <div className="border-b border-[var(--color-border)] mb-6">
           <div className="flex gap-0">
             {tabs.map((tab) => (
               <TabButton

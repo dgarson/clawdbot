@@ -202,12 +202,12 @@ const PROVIDER_CONFIG: Record<APICredential["provider"], { color: string; icon: 
     icon: <span className="font-mono font-bold text-amber-400">A</span>,
   },
   github: {
-    color: "text-zinc-300",
-    icon: <span className="font-mono font-bold text-zinc-300">G</span>,
+    color: "text-[var(--color-text-primary)]",
+    icon: <span className="font-mono font-bold text-[var(--color-text-primary)]">G</span>,
   },
   vercel: {
-    color: "text-white",
-    icon: <span className="font-mono font-bold text-white">V</span>,
+    color: "text-[var(--color-text-primary)]",
+    icon: <span className="font-mono font-bold text-[var(--color-text-primary)]">V</span>,
   },
   custom: {
     color: "text-purple-400",
@@ -229,7 +229,7 @@ function getStatusColor(status: HealthStatus): string {
       return "text-red-400"
     case "unknown":
     default:
-      return "text-zinc-500"
+      return "text-[var(--color-text-muted)]"
   }
 }
 
@@ -318,13 +318,13 @@ function StatCard({ title, value, subtitle, icon, className }: StatCardProps) {
   return (
     <Card className={cn("flex flex-col", className)}>
       <CardContent className="flex items-center gap-4 p-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-800">
+        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--color-surface-2)]">
           {icon}
         </div>
         <div className="flex-1">
-          <p className="text-sm text-zinc-400">{title}</p>
-          <p className="text-2xl font-semibold text-zinc-100">{value}</p>
-          {subtitle && <p className="text-xs text-zinc-500">{subtitle}</p>}
+          <p className="text-sm text-[var(--color-text-secondary)]">{title}</p>
+          <p className="text-2xl font-semibold text-[var(--color-text-primary)]">{value}</p>
+          {subtitle && <p className="text-xs text-[var(--color-text-muted)]">{subtitle}</p>}
         </div>
       </CardContent>
     </Card>
@@ -345,11 +345,11 @@ function CredentialCard({ credential, onRefresh, onConfigure, isLoading }: Crede
   const providerConfig = PROVIDER_CONFIG[credential.provider]
 
   return (
-    <Card className="flex flex-col transition-colors hover:border-zinc-700">
+    <Card className="flex flex-col transition-colors hover:border-[var(--color-border)]">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-surface-2)]">
               {providerConfig.icon}
             </div>
             <div>
@@ -373,11 +373,11 @@ function CredentialCard({ credential, onRefresh, onConfigure, isLoading }: Crede
         {credential.quota && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-zinc-400 flex items-center gap-1.5">
+              <span className="text-[var(--color-text-secondary)] flex items-center gap-1.5">
                 <Icons.Database className="h-3.5 w-3.5" />
                 Quota Used
               </span>
-              <span className="text-zinc-100 font-medium">
+              <span className="text-[var(--color-text-primary)] font-medium">
                 {credential.quota.used.toLocaleString()} / {credential.quota.total.toLocaleString()}
               </span>
             </div>
@@ -386,7 +386,7 @@ function CredentialCard({ credential, onRefresh, onConfigure, isLoading }: Crede
               className="h-1.5"
             />
             {credential.quota.resetDate && (
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-[var(--color-text-muted)]">
                 Resets {formatRelativeTime(credential.quota.resetDate)}
               </p>
             )}
@@ -396,7 +396,7 @@ function CredentialCard({ credential, onRefresh, onConfigure, isLoading }: Crede
         {/* Expiry Section */}
         {credential.expiryDate && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-zinc-400 flex items-center gap-1.5">
+            <span className="text-[var(--color-text-secondary)] flex items-center gap-1.5">
               <Icons.Clock className="h-3.5 w-3.5" />
               Expires
             </span>
@@ -406,7 +406,7 @@ function CredentialCard({ credential, onRefresh, onConfigure, isLoading }: Crede
                 ? "text-red-400"
                 : daysUntilExpiry !== null && daysUntilExpiry < 7
                 ? "text-amber-400"
-                : "text-zinc-100"
+                : "text-[var(--color-text-primary)]"
             )}>
               {daysUntilExpiry !== null && daysUntilExpiry < 0
                 ? "Expired"
@@ -418,7 +418,7 @@ function CredentialCard({ credential, onRefresh, onConfigure, isLoading }: Crede
         {/* Error Rate Section */}
         {credential.errorMetrics && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-zinc-400 flex items-center gap-1.5">
+            <span className="text-[var(--color-text-secondary)] flex items-center gap-1.5">
               <Icons.ChartBar className="h-3.5 w-3.5" />
               Error Rate
             </span>
@@ -428,7 +428,7 @@ function CredentialCard({ credential, onRefresh, onConfigure, isLoading }: Crede
                 ? "text-red-400"
                 : errorRate !== null && errorRate > 1
                 ? "text-amber-400"
-                : "text-zinc-100"
+                : "text-[var(--color-text-primary)]"
             )}>
               {errorRate?.toFixed(2)}%
             </span>
@@ -438,8 +438,8 @@ function CredentialCard({ credential, onRefresh, onConfigure, isLoading }: Crede
         {/* Rate Limit Section */}
         {credential.rateLimit && (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-zinc-400">Rate Limit</span>
-            <span className="text-zinc-100 font-medium">
+            <span className="text-[var(--color-text-secondary)]">Rate Limit</span>
+            <span className="text-[var(--color-text-primary)] font-medium">
               {credential.rateLimit.remaining} / {credential.rateLimit.limit}
             </span>
           </div>
@@ -447,18 +447,18 @@ function CredentialCard({ credential, onRefresh, onConfigure, isLoading }: Crede
 
         {/* Last Error */}
         {credential.errorMetrics?.lastError && (
-          <div className="rounded-md bg-zinc-800/50 p-2">
-            <p className="text-xs text-zinc-400">Last Error</p>
+          <div className="rounded-md bg-[var(--color-surface-2)]/50 p-2">
+            <p className="text-xs text-[var(--color-text-secondary)]">Last Error</p>
             <p className="text-xs text-red-400 truncate">{credential.errorMetrics.lastError}</p>
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="gap-2 border-t border-zinc-800 pt-4">
+      <CardFooter className="gap-2 border-t border-[var(--color-border)] pt-4">
         <button
           onClick={onRefresh}
           disabled={isLoading}
-          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           aria-label={`Refresh ${credential.name}`}
         >
           <Icons.Refresh className={cn("h-4 w-4", isLoading && "animate-spin")} />
@@ -466,7 +466,7 @@ function CredentialCard({ credential, onRefresh, onConfigure, isLoading }: Crede
         </button>
         <button
           onClick={onConfigure}
-          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
+          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)] transition-colors"
           aria-label={`Configure ${credential.name}`}
         >
           <Icons.Settings className="h-4 w-4" />
@@ -497,15 +497,15 @@ function AlertItem({ alert, credentialName, onAcknowledge }: AlertItemProps) {
         {!alert.acknowledged && (
           <button
             onClick={onAcknowledge}
-            className="text-xs font-normal text-zinc-400 hover:text-zinc-200 underline"
+            className="text-xs font-normal text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] underline"
           >
             Acknowledge
           </button>
         )}
       </AlertTitle>
       <AlertDescription>
-        <span className="font-medium text-zinc-300">{credentialName}:</span> {alert.message}
-        <span className="block text-xs mt-1 text-zinc-500">
+        <span className="font-medium text-[var(--color-text-primary)]">{credentialName}:</span> {alert.message}
+        <span className="block text-xs mt-1 text-[var(--color-text-muted)]">
           {formatRelativeTime(alert.timestamp)}
         </span>
       </AlertDescription>
@@ -583,21 +583,21 @@ export function APICredentialHealthDashboard({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100">API Credential Health</h1>
-          <p className="text-sm text-zinc-400">
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">API Credential Health</h1>
+          <p className="text-sm text-[var(--color-text-secondary)]">
             Monitor quota, expiry, and error rates across your API credentials
           </p>
         </div>
         <div className="flex items-center gap-2">
           {lastUpdated && (
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-[var(--color-text-muted)]">
               Last updated: {formatRelativeTime(lastUpdated)}
             </span>
           )}
           <button
             onClick={() => onRefresh?.()}
             disabled={isLoading}
-            className="flex items-center gap-2 rounded-md bg-zinc-800 px-4 py-2 text-sm text-zinc-100 hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 rounded-md bg-[var(--color-surface-2)] px-4 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] disabled:opacity-50 transition-colors"
             aria-label="Refresh all credentials"
           >
             <Icons.Refresh className={cn("h-4 w-4", isLoading && "animate-spin")} />
@@ -623,19 +623,19 @@ export function APICredentialHealthDashboard({
           title="Credentials"
           value={`${stats.healthy}/${credentials.length}`}
           subtitle={`${stats.degraded} degraded, ${stats.critical} critical`}
-          icon={<Icons.Database className="h-6 w-6 text-zinc-400" />}
+          icon={<Icons.Database className="h-6 w-6 text-[var(--color-text-secondary)]" />}
         />
         <StatCard
           title="Total Quota Used"
           value={`${Math.round((stats.totalQuotaUsed / (stats.totalQuotaAvailable || 1)) * 100)}%`}
           subtitle={`${stats.totalQuotaUsed.toLocaleString()} / ${stats.totalQuotaAvailable.toLocaleString()}`}
-          icon={<Icons.ChartBar className="h-6 w-6 text-zinc-400" />}
+          icon={<Icons.ChartBar className="h-6 w-6 text-[var(--color-text-secondary)]" />}
         />
         <StatCard
           title="Active Alerts"
           value={stats.unacknowledgedAlerts}
           subtitle={stats.expiringSoon > 0 ? `${stats.expiringSoon} expiring soon` : undefined}
-          icon={<Icons.Bell className={cn("h-6 w-6", stats.unacknowledgedAlerts > 0 ? "text-amber-400" : "text-zinc-400")} />}
+          icon={<Icons.Bell className={cn("h-6 w-6", stats.unacknowledgedAlerts > 0 ? "text-amber-400" : "text-[var(--color-text-secondary)]")} />}
         />
       </div>
 
@@ -643,13 +643,13 @@ export function APICredentialHealthDashboard({
       {filteredAlerts.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-zinc-100">Alerts</h2>
-            <label className="flex items-center gap-2 text-sm text-zinc-400">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Alerts</h2>
+            <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
               <input
                 type="checkbox"
                 checked={showAcknowledged}
                 onChange={(e) => setShowAcknowledged(e.target.checked)}
-                className="rounded border-zinc-700 bg-zinc-800 text-zinc-100 focus:ring-zinc-500"
+                className="rounded border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-text-primary)] focus:ring-zinc-500"
               />
               Show acknowledged
             </label>
@@ -671,8 +671,8 @@ export function APICredentialHealthDashboard({
       )}
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">
-        <span className="text-sm text-zinc-400">Filter:</span>
+      <div className="flex items-center gap-2 border-b border-[var(--color-border)] pb-3">
+        <span className="text-sm text-[var(--color-text-secondary)]">Filter:</span>
         {(["all", "healthy", "degraded", "critical", "unknown"] as const).map(status => (
           <button
             key={status}
@@ -680,8 +680,8 @@ export function APICredentialHealthDashboard({
             className={cn(
               "rounded-md px-3 py-1.5 text-sm font-medium transition-colors capitalize",
               filter === status
-                ? "bg-zinc-800 text-zinc-100"
-                : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50"
+                ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50"
             )}
           >
             {status}
@@ -697,8 +697,8 @@ export function APICredentialHealthDashboard({
       {/* Credentials Grid */}
       {filteredCredentials.length === 0 ? (
         <Card className="p-8 text-center">
-          <Icons.QuestionMarkCircle className="mx-auto h-12 w-12 text-zinc-600" />
-          <p className="mt-4 text-zinc-400">No credentials found for the selected filter.</p>
+          <Icons.QuestionMarkCircle className="mx-auto h-12 w-12 text-[var(--color-text-muted)]" />
+          <p className="mt-4 text-[var(--color-text-secondary)]">No credentials found for the selected filter.</p>
         </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -59,32 +59,32 @@ const DiscoveryRunTimeline: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-950 text-gray-100 p-6 space-y-6 overflow-y-auto">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-6 overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+      <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-4">
         <div className="flex items-center space-x-4">
           <h1 className="text-2xl font-bold tracking-tight">Discovery Run Timeline</h1>
-          <span className="px-2 py-1 bg-gray-800 text-gray-400 rounded text-xs font-mono border border-gray-700">RUN-2026-02-22-001</span>
+          <span className="px-2 py-1 bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded text-xs font-mono border border-[var(--color-border)]">RUN-2026-02-22-001</span>
           <span className="px-2 py-1 bg-emerald-500/10 text-emerald-500 rounded text-xs font-bold border border-emerald-500/20">COMPLETE</span>
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 rounded-full bg-indigo-500" />
-            <span className="text-sm text-gray-400">Wave 1</span>
+            <span className="text-sm text-[var(--color-text-secondary)]">Wave 1</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 rounded-full bg-violet-500" />
-            <span className="text-sm text-gray-400">Wave 2</span>
+            <span className="text-sm text-[var(--color-text-secondary)]">Wave 2</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 rounded-full bg-emerald-500" />
-            <span className="text-sm text-gray-400">Wave 3</span>
+            <span className="text-sm text-[var(--color-text-secondary)]">Wave 3</span>
           </div>
         </div>
       </div>
 
       {/* SVG Gantt Chart */}
-      <div className="relative bg-gray-900 rounded-xl border border-gray-800 p-4 overflow-x-auto shadow-2xl" onMouseMove={handleMouseMove}>
+      <div className="relative bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4 overflow-x-auto shadow-2xl" onMouseMove={handleMouseMove}>
         <svg width={chartWidth} height={chartHeight} className="overflow-visible">
           {/* Grid Lines (X-axis) */}
           {[0, 30, 60, 90, 120, 150, 180, 210, 240].map((min) => (
@@ -127,58 +127,58 @@ const DiscoveryRunTimeline: React.FC = () => {
         {/* Tooltip */}
         {hoveredAgent && (
           <div 
-            className="fixed z-50 pointer-events-none bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl text-xs space-y-1"
+            className="fixed z-50 pointer-events-none bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-3 shadow-xl text-xs space-y-1"
             style={{ left: mousePos.x + 15, top: mousePos.y + 15 }}
           >
-            <div className="font-bold text-gray-100">{hoveredAgent.name}</div>
+            <div className="font-bold text-[var(--color-text-primary)]">{hoveredAgent.name}</div>
             <div className="flex justify-between space-x-4">
-              <span className="text-gray-400">Wave:</span>
+              <span className="text-[var(--color-text-secondary)]">Wave:</span>
               <span className={cn("font-semibold", hoveredAgent.wave === 1 ? 'text-indigo-400' : hoveredAgent.wave === 2 ? 'text-violet-400' : 'text-emerald-400')}>
                 {hoveredAgent.wave}
               </span>
             </div>
             <div className="flex justify-between space-x-4">
-              <span className="text-gray-400">Duration:</span>
-              <span className="text-gray-200 font-mono">{hoveredAgent.start}m - {hoveredAgent.end}m</span>
+              <span className="text-[var(--color-text-secondary)]">Duration:</span>
+              <span className="text-[var(--color-text-primary)] font-mono">{hoveredAgent.start}m - {hoveredAgent.end}m</span>
             </div>
             <div className="flex justify-between space-x-4">
-              <span className="text-gray-400">Findings:</span>
-              <span className="text-gray-200 font-bold">{hoveredAgent.findings}</span>
+              <span className="text-[var(--color-text-secondary)]">Findings:</span>
+              <span className="text-[var(--color-text-primary)] font-bold">{hoveredAgent.findings}</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Summary Row */}
-      <div className="grid grid-cols-4 gap-4 bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+      <div className="grid grid-cols-4 gap-4 bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] rounded-xl p-6">
         <div className="space-y-1">
-          <div className="text-sm text-gray-400">Total Duration</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Total Duration</div>
           <div className="text-2xl font-bold text-indigo-400">3h 47m</div>
         </div>
         <div className="space-y-1">
-          <div className="text-sm text-gray-400">Agents Deployed</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Agents Deployed</div>
           <div className="text-2xl font-bold text-violet-400">15</div>
         </div>
         <div className="space-y-1">
-          <div className="text-sm text-gray-400">Discovery Waves</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Discovery Waves</div>
           <div className="text-2xl font-bold text-emerald-400">3</div>
         </div>
         <div className="space-y-1">
-          <div className="text-sm text-gray-400">Completion Status</div>
-          <div className="text-2xl font-bold text-gray-200">100%</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Completion Status</div>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">100%</div>
         </div>
       </div>
 
       {/* Detail Popover */}
       {selectedAgent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setSelectedAgent(null)}>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-xl font-bold text-gray-100">{selectedAgent.name} Details</h3>
-                <p className="text-sm text-gray-400">Execution profile for this discovery run</p>
+                <h3 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedAgent.name} Details</h3>
+                <p className="text-sm text-[var(--color-text-secondary)]">Execution profile for this discovery run</p>
               </div>
-              <button onClick={() => setSelectedAgent(null)} className="text-gray-500 hover:text-gray-300 transition-colors">
+              <button onClick={() => setSelectedAgent(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -187,31 +187,31 @@ const DiscoveryRunTimeline: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-950 rounded-xl border border-gray-800">
-                <div className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Findings</div>
+              <div className="p-4 bg-[var(--color-surface-0)] rounded-xl border border-[var(--color-border)]">
+                <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider font-bold mb-1">Findings</div>
                 <div className="text-2xl font-bold text-emerald-400">{selectedAgent.findings}</div>
               </div>
-              <div className="p-4 bg-gray-950 rounded-xl border border-gray-800">
-                <div className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Cost</div>
+              <div className="p-4 bg-[var(--color-surface-0)] rounded-xl border border-[var(--color-border)]">
+                <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider font-bold mb-1">Cost</div>
                 <div className="text-2xl font-bold text-indigo-400">${selectedAgent.cost.toFixed(2)}</div>
               </div>
-              <div className="p-4 bg-gray-950 rounded-xl border border-gray-800 col-span-2">
-                <div className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Model</div>
-                <div className="text-lg font-bold text-gray-200">{selectedAgent.model}</div>
+              <div className="p-4 bg-[var(--color-surface-0)] rounded-xl border border-[var(--color-border)] col-span-2">
+                <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider font-bold mb-1">Model</div>
+                <div className="text-lg font-bold text-[var(--color-text-primary)]">{selectedAgent.model}</div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <div className="text-sm font-semibold text-gray-300">Wave Assignment</div>
+              <div className="text-sm font-semibold text-[var(--color-text-primary)]">Wave Assignment</div>
               <div className="flex items-center space-x-2">
                 <div className={cn("w-3 h-3 rounded-full", selectedAgent.wave === 1 ? 'bg-indigo-500' : selectedAgent.wave === 2 ? 'bg-violet-500' : 'bg-emerald-500')} />
-                <span className="text-gray-400">Wave {selectedAgent.wave}</span>
+                <span className="text-[var(--color-text-secondary)]">Wave {selectedAgent.wave}</span>
               </div>
             </div>
 
             <button 
               onClick={() => setSelectedAgent(null)}
-              className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-xl font-bold transition-colors border border-gray-700"
+              className="w-full py-3 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] rounded-xl font-bold transition-colors border border-[var(--color-border)]"
             >
               Close Details
             </button>

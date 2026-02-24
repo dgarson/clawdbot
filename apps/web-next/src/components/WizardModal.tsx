@@ -45,7 +45,7 @@ function StepProgress({ current, total }: { current: number; total: number }) {
               ? 'w-6 bg-violet-500'
               : i === current
               ? 'w-6 bg-violet-600 animate-pulse'
-              : 'w-2 bg-gray-700'
+              : 'w-2 bg-[var(--color-surface-3)]'
           )}
         />
       ))}
@@ -81,10 +81,10 @@ function TextStepRenderer({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {step.title && (
-        <h3 className="text-lg font-semibold text-white">{step.title}</h3>
+        <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{step.title}</h3>
       )}
       {step.description && (
-        <p className="text-sm text-gray-400">{step.description}</p>
+        <p className="text-sm text-[var(--color-text-secondary)]">{step.description}</p>
       )}
       
       <input
@@ -96,8 +96,8 @@ function TextStepRenderer({
         aria-label={step.title || step.placeholder || 'Input'}
         aria-required={step.required}
         className={cn(
-          'w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3',
-          'text-white placeholder-gray-500 text-sm',
+          'w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl px-4 py-3',
+          'text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] text-sm',
           'focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent',
           'transition-all duration-200',
           loading && 'opacity-50 cursor-not-allowed'
@@ -110,7 +110,7 @@ function TextStepRenderer({
         disabled={loading || (step.required && !value.trim())}
         className={cn(
           'w-full py-3 rounded-xl font-medium text-sm transition-all duration-200',
-          'bg-violet-600 hover:bg-violet-500 text-white',
+          'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]',
           'disabled:opacity-40 disabled:cursor-not-allowed',
           'shadow-lg shadow-violet-900/30'
         )}
@@ -165,10 +165,10 @@ function SelectStepRenderer({
   return (
     <div className="space-y-4">
       {step.title && (
-        <h3 className="text-lg font-semibold text-white">{step.title}</h3>
+        <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{step.title}</h3>
       )}
       {step.description && (
-        <p className="text-sm text-gray-400 mb-4">{step.description}</p>
+        <p className="text-sm text-[var(--color-text-secondary)] mb-4">{step.description}</p>
       )}
 
       <div className="space-y-2">
@@ -188,7 +188,7 @@ function SelectStepRenderer({
                 'flex items-start gap-3',
                 isSelected
                   ? 'bg-violet-600/20 border-violet-500/50 shadow-lg shadow-violet-900/20'
-                  : 'bg-gray-800/60 border-gray-700 hover:border-gray-600 hover:bg-gray-800',
+                  : 'bg-[var(--color-surface-2)]/60 border-[var(--color-border)] hover:border-[var(--color-surface-3)] hover:bg-[var(--color-surface-2)]',
                 option.disabled && 'opacity-50 cursor-not-allowed'
               )}
             >
@@ -198,7 +198,7 @@ function SelectStepRenderer({
                   'w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 transition-all duration-200',
                   isSelected
                     ? 'border-violet-500 bg-violet-500'
-                    : 'border-gray-600'
+                    : 'border-[var(--color-surface-3)]'
                 )}
               >
                 {isSelected && (
@@ -210,9 +210,9 @@ function SelectStepRenderer({
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white">{option.label}</p>
+                <p className="text-sm font-medium text-[var(--color-text-primary)]">{option.label}</p>
                 {option.description && (
-                  <p className="text-xs text-gray-400 mt-0.5">{option.description}</p>
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{option.description}</p>
                 )}
               </div>
             </button>
@@ -226,7 +226,7 @@ function SelectStepRenderer({
         disabled={loading || (step.multi ? (selected as string[]).length === 0 : !selected)}
         className={cn(
           'w-full py-3 rounded-xl font-medium text-sm transition-all duration-200 mt-6',
-          'bg-violet-600 hover:bg-violet-500 text-white',
+          'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]',
           'disabled:opacity-40 disabled:cursor-not-allowed',
           'shadow-lg shadow-violet-900/30'
         )}
@@ -260,10 +260,10 @@ function ConfirmStepRenderer({
   return (
     <div className="space-y-4">
       {step.title && (
-        <h3 className="text-lg font-semibold text-white">{step.title}</h3>
+        <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{step.title}</h3>
       )}
       {step.description && (
-        <p className="text-sm text-gray-400">{step.description}</p>
+        <p className="text-sm text-[var(--color-text-secondary)]">{step.description}</p>
       )}
 
       <div className="flex gap-3 pt-4">
@@ -273,7 +273,7 @@ function ConfirmStepRenderer({
           disabled={loading}
           className={cn(
             'flex-1 py-3 rounded-xl font-medium text-sm transition-all duration-200',
-            'border border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white',
+            'border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]',
             'disabled:opacity-50 disabled:cursor-not-allowed'
           )}
         >
@@ -285,7 +285,7 @@ function ConfirmStepRenderer({
           disabled={loading}
           className={cn(
             'flex-1 py-3 rounded-xl font-medium text-sm transition-all duration-200',
-            'bg-violet-600 hover:bg-violet-500 text-white',
+            'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             'shadow-lg shadow-violet-900/30'
           )}
@@ -364,12 +364,12 @@ function NoteStepRenderer({
           ) : null}
           <div className="flex-1">
             {step.title && (
-              <h4 className="text-sm font-semibold text-white mb-1">
+              <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">
                 {step.title}
               </h4>
             )}
             {step.description && (
-              <p className="text-sm text-gray-300">{step.description}</p>
+              <p className="text-sm text-[var(--color-text-primary)]">{step.description}</p>
             )}
           </div>
         </div>
@@ -381,7 +381,7 @@ function NoteStepRenderer({
         disabled={loading}
         className={cn(
           'w-full py-3 rounded-xl font-medium text-sm transition-all duration-200',
-          'bg-violet-600 hover:bg-violet-500 text-white',
+          'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           'shadow-lg shadow-violet-900/30'
         )}
@@ -418,7 +418,7 @@ function ProgressStepRenderer({
         <div className="relative w-32 h-32">
           <svg className="w-32 h-32 -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
             <circle
-              className="text-gray-800"
+              className="text-[var(--color-surface-2)]"
               strokeWidth="8"
               stroke="currentColor"
               fill="transparent"
@@ -439,7 +439,7 @@ function ProgressStepRenderer({
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-2xl font-bold text-white" aria-live="polite" aria-atomic="true">
+            <span className="text-2xl font-bold text-[var(--color-text-primary)]" aria-live="polite" aria-atomic="true">
               {step.progress || 0}%
             </span>
           </div>
@@ -447,12 +447,12 @@ function ProgressStepRenderer({
       )}
 
       {step.message && (
-        <p className="text-sm text-gray-400 text-center animate-pulse">
+        <p className="text-sm text-[var(--color-text-secondary)] text-center animate-pulse">
           {step.message}
         </p>
       )}
       {step.title && !step.message && (
-        <p className="text-sm text-gray-400 text-center">{step.title}</p>
+        <p className="text-sm text-[var(--color-text-secondary)] text-center">{step.title}</p>
       )}
     </div>
   );
@@ -564,7 +564,7 @@ export default function WizardModal({
         );
       default:
         return (
-          <div className="text-center text-gray-400 py-8">
+          <div className="text-center text-[var(--color-text-secondary)] py-8">
             Unknown step type
           </div>
         );
@@ -587,33 +587,33 @@ export default function WizardModal({
         aria-modal="true"
         aria-labelledby="wizard-modal-title"
         className={cn(
-          'relative w-full max-w-md bg-gray-900 rounded-2xl border border-gray-800',
+          'relative w-full max-w-md bg-[var(--color-surface-1)] rounded-2xl border border-[var(--color-border)]',
           'shadow-2xl shadow-black/50',
           'animate-in zoom-in-95 fade-in duration-200'
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-800">
+        <div className="flex items-center justify-between p-5 border-b border-[var(--color-border)]">
           <div className="flex items-center gap-3">
             {stepHistory.length > 1 && (
               <button
                 type="button"
                 onClick={onCancel}
                 aria-label="Go back"
-                className="p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[var(--color-surface-2)] transition-colors"
               >
-                <ChevronLeft className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                <ChevronLeft className="w-4 h-4 text-[var(--color-text-secondary)]" aria-hidden="true" />
               </button>
             )}
-            <h2 id="wizard-modal-title" className="text-lg font-semibold text-white">{title}</h2>
+            <h2 id="wizard-modal-title" className="text-lg font-semibold text-[var(--color-text-primary)]">{title}</h2>
           </div>
           <button
             type="button"
             onClick={onDismiss || onCancel}
             aria-label="Close wizard"
-            className="p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-[var(--color-surface-2)] transition-colors"
           >
-            <X className="w-5 h-5 text-gray-400" aria-hidden="true" />
+            <X className="w-5 h-5 text-[var(--color-text-secondary)]" aria-hidden="true" />
           </button>
         </div>
 

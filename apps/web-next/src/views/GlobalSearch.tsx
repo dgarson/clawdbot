@@ -92,7 +92,7 @@ const BADGE_COLORS: Record<string, string> = {
   emerald: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/25",
   rose:    "bg-rose-500/15 text-rose-300 ring-rose-500/25",
   amber:   "bg-amber-500/15 text-amber-300 ring-amber-500/25",
-  zinc:    "bg-zinc-700/50 text-zinc-400 ring-zinc-600/25",
+  zinc:    "bg-[var(--color-surface-3)]/50 text-[var(--color-text-secondary)] ring-zinc-600/25",
   indigo:  "bg-indigo-500/15 text-indigo-300 ring-indigo-500/25",
   violet:  "bg-violet-500/15 text-violet-300 ring-violet-500/25",
 };
@@ -160,13 +160,13 @@ function ResultItem({ result, query, selected, onSelect }: ResultItemProps) {
       aria-selected={selected}
       onClick={onSelect}
       className={cn(
-        "w-full flex items-start gap-3 px-4 py-3 text-left transition-colors border-b border-zinc-800/60 last:border-0",
-        "hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-        selected && "bg-zinc-900 ring-1 ring-inset ring-indigo-500/30"
+        "w-full flex items-start gap-3 px-4 py-3 text-left transition-colors border-b border-[var(--color-border)]/60 last:border-0",
+        "hover:bg-[var(--color-surface-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
+        selected && "bg-[var(--color-surface-1)] ring-1 ring-inset ring-indigo-500/30"
       )}
     >
       {/* Kind icon */}
-      <div className="flex-none mt-0.5 h-8 w-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-sm">
+      <div className="flex-none mt-0.5 h-8 w-8 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center text-sm">
         {kindCfg.emoji}
       </div>
 
@@ -180,21 +180,21 @@ function ResultItem({ result, query, selected, onSelect }: ResultItemProps) {
             </span>
           )}
         </div>
-        <p className="mt-0.5 text-sm font-semibold text-white leading-snug">
+        <p className="mt-0.5 text-sm font-semibold text-[var(--color-text-primary)] leading-snug">
           {highlight(result.title, query)}
         </p>
-        <p className="text-xs text-zinc-500 truncate">
+        <p className="text-xs text-[var(--color-text-muted)] truncate">
           {highlight(result.subtitle, query)}
         </p>
         {result.description && (
-          <p className="mt-1 text-xs text-zinc-400 leading-relaxed line-clamp-2">
+          <p className="mt-1 text-xs text-[var(--color-text-secondary)] leading-relaxed line-clamp-2">
             {highlight(result.description, query)}
           </p>
         )}
         {result.tags && result.tags.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1">
             {result.tags.slice(0, 4).map((t) => (
-              <span key={t} className="px-1.5 py-0.5 text-xs rounded bg-zinc-800 text-zinc-500 border border-zinc-700/50">{t}</span>
+              <span key={t} className="px-1.5 py-0.5 text-xs rounded bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border border-[var(--color-border)]/50">{t}</span>
             ))}
           </div>
         )}
@@ -203,7 +203,7 @@ function ResultItem({ result, query, selected, onSelect }: ResultItemProps) {
       {/* Timestamp */}
       {result.timestamp && (
         <div className="flex-none text-right">
-          <p className="text-xs text-zinc-600">{relTime(result.timestamp)}</p>
+          <p className="text-xs text-[var(--color-text-muted)]">{relTime(result.timestamp)}</p>
         </div>
       )}
     </button>
@@ -215,16 +215,16 @@ function ResultItem({ result, query, selected, onSelect }: ResultItemProps) {
 function EmptyState({ query }: { query: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-24 px-8 text-center">
-      <div className="h-16 w-16 rounded-2xl bg-zinc-800/50 border border-zinc-700 flex items-center justify-center text-3xl">
+      <div className="h-16 w-16 rounded-2xl bg-[var(--color-surface-2)]/50 border border-[var(--color-border)] flex items-center justify-center text-3xl">
         🔍
       </div>
       <div>
-        <p className="text-sm font-semibold text-white">No results for "{query}"</p>
-        <p className="text-xs text-zinc-500 mt-1">Try searching for agents, sessions, files, events, or views</p>
+        <p className="text-sm font-semibold text-[var(--color-text-primary)]">No results for "{query}"</p>
+        <p className="text-xs text-[var(--color-text-muted)] mt-1">Try searching for agents, sessions, files, events, or views</p>
       </div>
       <div className="grid grid-cols-2 gap-2 w-full max-w-xs mt-2">
         {["Luis", "Session", "AuditLog", "System Health"].map((suggestion) => (
-          <span key={suggestion} className="px-3 py-1.5 text-xs rounded-lg bg-zinc-800 text-zinc-400 border border-zinc-700 text-center cursor-default">
+          <span key={suggestion} className="px-3 py-1.5 text-xs rounded-lg bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)] text-center cursor-default">
             {suggestion}
           </span>
         ))}
@@ -249,18 +249,18 @@ function LandingState() {
     <div className="px-6 py-8">
       <div className="grid grid-cols-3 gap-2 mb-8">
         {quickLinks.map(({ emoji, label }) => (
-          <div key={label} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-400 cursor-default">
+          <div key={label} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] text-sm text-[var(--color-text-secondary)] cursor-default">
             <span className="text-base">{emoji}</span>
             {label}
           </div>
         ))}
       </div>
       <div>
-        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Recent Searches</p>
+        <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Recent Searches</p>
         <div className="flex flex-wrap gap-2">
           {recentSearches.map((s) => (
-            <span key={s} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800 text-xs text-zinc-400 border border-zinc-700 cursor-default">
-              <svg className="h-3 w-3 text-zinc-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <span key={s} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--color-surface-2)] text-xs text-[var(--color-text-secondary)] border border-[var(--color-border)] cursor-default">
+              <svg className="h-3 w-3 text-[var(--color-text-muted)]" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" d="M9 9l-2.5-2.5M7 4.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
               </svg>
               {s}
@@ -331,11 +331,11 @@ export default function GlobalSearch() {
   const totalCount = results.length;
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)]">
       {/* Search input */}
-      <div className="flex-none px-6 py-5 border-b border-zinc-800">
+      <div className="flex-none px-6 py-5 border-b border-[var(--color-border)]">
         <div className="relative">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400 pointer-events-none" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--color-text-secondary)] pointer-events-none" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <circle cx="9" cy="9" r="5.5" />
             <path strokeLinecap="round" d="M13.5 13.5l4 4" />
           </svg>
@@ -348,13 +348,13 @@ export default function GlobalSearch() {
             aria-label="Global search"
             aria-autocomplete="list"
             aria-haspopup="listbox"
-            className="w-full pl-12 pr-4 py-3 text-base bg-zinc-900 border border-zinc-700 rounded-xl text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+            className="w-full pl-12 pr-4 py-3 text-base bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
           />
           {query && (
             <button
               onClick={() => setQuery("")}
               aria-label="Clear search"
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded text-zinc-500 hover:text-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" d="M4 4l8 8M12 4l-8 8" />
@@ -376,13 +376,13 @@ export default function GlobalSearch() {
                 onClick={() => setKindFilter(kind)}
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                  kindFilter === kind ? "bg-indigo-600 text-white" : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                  kindFilter === kind ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
                 {cfg && <span>{cfg.emoji}</span>}
                 <span className="capitalize">{kind === "all" ? "All" : cfg?.label}</span>
                 {count > 0 && (
-                  <span className={cn("px-1.5 py-0.5 rounded-full text-xs tabular-nums", kindFilter === kind ? "bg-indigo-500 text-white" : "bg-zinc-700 text-zinc-400")}>
+                  <span className={cn("px-1.5 py-0.5 rounded-full text-xs tabular-nums", kindFilter === kind ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]")}>
                     {count}
                   </span>
                 )}
@@ -405,11 +405,11 @@ export default function GlobalSearch() {
         {results.length > 0 && (
           <>
             {query.trim() && (
-              <div className="px-4 py-2 border-b border-zinc-800">
-                <p className="text-xs text-zinc-500">
-                  <span className="font-semibold text-zinc-300">{totalCount}</span> result{totalCount !== 1 ? "s" : ""} for "{query}"
+              <div className="px-4 py-2 border-b border-[var(--color-border)]">
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  <span className="font-semibold text-[var(--color-text-primary)]">{totalCount}</span> result{totalCount !== 1 ? "s" : ""} for "{query}"
                   {kindFilter !== "all" && ` in ${KIND_CONFIG[kindFilter].label}s`}
-                  <span className="ml-2 text-zinc-700">↑↓ to navigate · Enter to open</span>
+                  <span className="ml-2 text-[var(--color-text-muted)]">↑↓ to navigate · Enter to open</span>
                 </p>
               </div>
             )}
@@ -426,10 +426,10 @@ export default function GlobalSearch() {
                   .reduce((sum, k) => sum + (grouped[k]?.length ?? 0), 0);
                 return (
                   <div key={kind}>
-                    <div className="px-4 py-2 flex items-center gap-2 bg-zinc-900/50 border-b border-zinc-800 sticky top-0 z-10">
+                    <div className="px-4 py-2 flex items-center gap-2 bg-[var(--color-surface-1)]/50 border-b border-[var(--color-border)] sticky top-0 z-10">
                       <span className="text-xs">{cfg.emoji}</span>
                       <span className={cn("text-xs font-semibold uppercase tracking-wider", cfg.color)}>{cfg.label}s</span>
-                      <span className="text-xs text-zinc-600">({items.length})</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">({items.length})</span>
                     </div>
                     {items.map((result, i) => (
                       <ResultItem

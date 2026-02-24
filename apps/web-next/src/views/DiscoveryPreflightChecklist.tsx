@@ -81,11 +81,11 @@ const STATUS_COLORS = {
     dot: 'bg-amber-500',
   },
   unchecked: {
-    bg: 'bg-gray-800/30',
-    border: 'border-gray-700',
-    text: 'text-gray-500',
-    icon: 'text-gray-500',
-    dot: 'bg-gray-600',
+    bg: 'bg-[var(--color-surface-2)]/30',
+    border: 'border-[var(--color-border)]',
+    text: 'text-[var(--color-text-muted)]',
+    icon: 'text-[var(--color-text-muted)]',
+    dot: 'bg-[var(--color-surface-3)]',
   },
 };
 
@@ -146,7 +146,7 @@ const ChecklistItemRow = ({
           <span className={cn("font-medium", colors.text)}>{item.label}</span>
           <StatusIcon status={item.status} />
         </div>
-        <p className="text-gray-500 text-sm mt-0.5">{item.detail}</p>
+        <p className="text-[var(--color-text-muted)] text-sm mt-0.5">{item.detail}</p>
       </div>
       {item.actionLabel && (
         <button
@@ -154,8 +154,8 @@ const ChecklistItemRow = ({
           disabled={item.actionDisabled || isAnimating}
           className={cn(
             "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
-            "border border-gray-700 text-gray-300",
-            "hover:bg-gray-800 hover:border-gray-600",
+            "border border-[var(--color-border)] text-[var(--color-text-primary)]",
+            "hover:bg-[var(--color-surface-2)] hover:border-[var(--color-surface-3)]",
             "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-950",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             "whitespace-nowrap"
@@ -186,19 +186,19 @@ const CategorySection = ({
   const totalCount = category.items.length;
 
   return (
-    <div className="border border-gray-800 rounded-lg overflow-hidden bg-gray-950">
+    <div className="border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-surface-0)]">
       <button
         onClick={onToggle}
         className={cn(
           "w-full flex items-center justify-between p-4",
-          "bg-gray-900/50 hover:bg-gray-900 transition-colors",
+          "bg-[var(--color-surface-1)]/50 hover:bg-[var(--color-surface-1)] transition-colors",
           "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
         )}
         aria-expanded={isOpen}
         aria-controls={`category-${category.id}`}
       >
         <div className="flex items-center gap-3">
-          <span className="text-lg font-semibold text-white">{category.title}</span>
+          <span className="text-lg font-semibold text-[var(--color-text-primary)]">{category.title}</span>
           <span
             className={cn(
               "px-2 py-0.5 rounded-full text-xs font-medium",
@@ -206,7 +206,7 @@ const CategorySection = ({
                 ? "bg-green-500/10 text-green-400"
                 : passCount > 0
                 ? "bg-amber-500/10 text-amber-400"
-                : "bg-gray-800 text-gray-500"
+                : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
             )}
           >
             {passCount}/{totalCount} pass
@@ -214,7 +214,7 @@ const CategorySection = ({
         </div>
         <svg
           className={cn(
-            "w-5 h-5 text-gray-400 transition-transform duration-200",
+            "w-5 h-5 text-[var(--color-text-secondary)] transition-transform duration-200",
             isOpen && "rotate-180"
           )}
           fill="none"
@@ -287,12 +287,12 @@ const ReadinessIndicator = ({ status }: { status: 'GO' | 'NO-GO' | 'CAUTION' }) 
         <div className={cn("w-4 h-4 rounded-full animate-pulse", config.dot)} />
         <div>
           <div className={cn("text-3xl font-black tracking-widest", config.text)}>{status}</div>
-          <div className="text-gray-500 text-sm font-medium mt-1">{config.label}</div>
+          <div className="text-[var(--color-text-muted)] text-sm font-medium mt-1">{config.label}</div>
         </div>
       </div>
       <div className="text-right hidden sm:block">
-        <div className="text-gray-600 text-xs uppercase tracking-wider">Run Date</div>
-        <div className="text-white font-semibold">Feb 23, 2026</div>
+        <div className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider">Run Date</div>
+        <div className="text-[var(--color-text-primary)] font-semibold">Feb 23, 2026</div>
       </div>
     </div>
   );
@@ -360,14 +360,14 @@ export default function DiscoveryPreflightChecklist() {
   const counts = getCounts();
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200 p-8 font-sans">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <header>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">
             Discovery Run Preflight
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-[var(--color-text-muted)] mt-1">
             Pre-deployment checklist for Feb 23, 2026 discovery run
           </p>
         </header>
@@ -377,41 +377,41 @@ export default function DiscoveryPreflightChecklist() {
 
         {/* Summary Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-3 rounded-lg">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">
+              <span className="text-[var(--color-text-secondary)] text-xs font-medium uppercase tracking-wider">
                 Pass
               </span>
             </div>
-            <div className="text-xl font-bold text-white mt-1">{counts.pass}</div>
+            <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{counts.pass}</div>
           </div>
-          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-3 rounded-lg">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-amber-500" />
-              <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">
+              <span className="text-[var(--color-text-secondary)] text-xs font-medium uppercase tracking-wider">
                 Warnings
               </span>
             </div>
-            <div className="text-xl font-bold text-white mt-1">{counts.warning}</div>
+            <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{counts.warning}</div>
           </div>
-          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-3 rounded-lg">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-red-500" />
-              <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">
+              <span className="text-[var(--color-text-secondary)] text-xs font-medium uppercase tracking-wider">
                 Fail
               </span>
             </div>
-            <div className="text-xl font-bold text-white mt-1">{counts.fail}</div>
+            <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{counts.fail}</div>
           </div>
-          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-3 rounded-lg">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-gray-600" />
-              <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">
+              <div className="w-2 h-2 rounded-full bg-[var(--color-surface-3)]" />
+              <span className="text-[var(--color-text-secondary)] text-xs font-medium uppercase tracking-wider">
                 Pending
               </span>
             </div>
-            <div className="text-xl font-bold text-white mt-1">{counts.unchecked}</div>
+            <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{counts.unchecked}</div>
           </div>
         </div>
 
@@ -422,8 +422,8 @@ export default function DiscoveryPreflightChecklist() {
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-md",
               "text-sm font-medium",
-              "border border-gray-700 text-gray-300",
-              "hover:bg-gray-900 hover:border-gray-600",
+              "border border-[var(--color-border)] text-[var(--color-text-primary)]",
+              "hover:bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]",
               "focus:outline-none focus:ring-2 focus:ring-blue-500",
               "transition-colors"
             )}
@@ -461,7 +461,7 @@ export default function DiscoveryPreflightChecklist() {
             className={cn(
               "flex items-center gap-2 px-5 py-2.5 rounded-md",
               "text-sm font-semibold",
-              "bg-blue-600 text-white",
+              "bg-blue-600 text-[var(--color-text-primary)]",
               "hover:bg-blue-500",
               "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-950",
               "disabled:opacity-50 disabled:cursor-not-allowed",
@@ -533,12 +533,12 @@ export default function DiscoveryPreflightChecklist() {
         <div
           className={cn(
             "flex items-start gap-3 p-4 rounded-lg",
-            "bg-gray-900/50 border border-gray-800",
-            "text-sm text-gray-500"
+            "bg-[var(--color-surface-1)]/50 border border-[var(--color-border)]",
+            "text-sm text-[var(--color-text-muted)]"
           )}
         >
           <svg
-            className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5"
+            className="w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0 mt-0.5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

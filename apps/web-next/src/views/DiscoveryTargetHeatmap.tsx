@@ -64,7 +64,7 @@ const SEVERITY_COLORS: Record<FindingSeverity, string> = {
   high: "bg-orange-500",
   medium: "bg-yellow-500",
   low: "bg-blue-400",
-  info: "bg-zinc-500",
+  info: "bg-[var(--color-surface-3)]",
 };
 
 const FINDING_TYPES: FindingType[] = ["vulnerability", "misconfiguration", "exposure", "compliance", "best-practice"];
@@ -104,7 +104,7 @@ function SeverityBadge({ severity }: { severity: FindingSeverity }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-white",
+        "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-[var(--color-text-primary)]",
         SEVERITY_COLORS[severity]
       )}
     >
@@ -133,7 +133,7 @@ function StatusBadge({ status }: { status: DiscoveryTarget["status"] }) {
     "open": "bg-red-500/20 text-red-400 border-red-500/30",
     "in-progress": "bg-amber-500/20 text-amber-400 border-amber-500/30",
     "resolved": "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-    "false-positive": "bg-zinc-500/20 text-zinc-400 border-zinc-500/30",
+    "false-positive": "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/30",
   };
   return (
     <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs border", styles[status])}>
@@ -160,9 +160,9 @@ function FilterChip({
         "px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200",
         active
           ? color 
-            ? `${color} text-white`
-            : "bg-zinc-100 text-zinc-900"
-          : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+            ? `${color} text-[var(--color-text-primary)]`
+            : "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]"
+          : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
       )}
     >
       {label}
@@ -260,8 +260,8 @@ export default function DiscoveryTargetHeatmap() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-zinc-600 border-t-zinc-100 rounded-full animate-spin" />
-          <span className="text-zinc-400 text-sm">Loading discovery data...</span>
+          <div className="w-8 h-8 border-2 border-[var(--color-surface-3)] border-t-zinc-100 rounded-full animate-spin" />
+          <span className="text-[var(--color-text-secondary)] text-sm">Loading discovery data...</span>
         </div>
       </div>
     );
@@ -273,7 +273,7 @@ export default function DiscoveryTargetHeatmap() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4 p-6 rounded-xl border border-red-500/30 bg-red-500/10 max-w-md">
           <div className="text-red-400 text-lg font-medium">Failed to load findings</div>
-          <p className="text-zinc-400 text-sm text-center">{error}</p>
+          <p className="text-[var(--color-text-secondary)] text-sm text-center">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm transition-colors"
@@ -290,13 +290,13 @@ export default function DiscoveryTargetHeatmap() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white tracking-tight">Discovery Target Heatmap</h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] tracking-tight">Discovery Target Heatmap</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">
             Geographic and domain distribution of security findings
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-zinc-500 text-xs">
+          <span className="text-[var(--color-text-muted)] text-xs">
             Last scan: {formatDate(SEED_TARGETS[0]?.discoveredAt || "")}
           </span>
         </div>
@@ -304,17 +304,17 @@ export default function DiscoveryTargetHeatmap() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-          <div className="text-sm text-zinc-400">Total Findings</div>
-          <div className="text-2xl font-semibold text-white mt-1">{stats.total}</div>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)]/50 p-4">
+          <div className="text-sm text-[var(--color-text-secondary)]">Total Findings</div>
+          <div className="text-2xl font-semibold text-[var(--color-text-primary)] mt-1">{stats.total}</div>
         </div>
         <div className="rounded-xl border border-red-900/30 bg-red-900/10 p-4">
           <div className="text-sm text-red-400">Critical</div>
           <div className="text-2xl font-semibold text-red-400 mt-1">{stats.critical}</div>
         </div>
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-          <div className="text-sm text-zinc-400">Open</div>
-          <div className="text-2xl font-semibold text-white mt-1">{stats.open}</div>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)]/50 p-4">
+          <div className="text-sm text-[var(--color-text-secondary)]">Open</div>
+          <div className="text-2xl font-semibold text-[var(--color-text-primary)] mt-1">{stats.open}</div>
         </div>
         <div className="rounded-xl border border-emerald-900/30 bg-emerald-900/10 p-4">
           <div className="text-sm text-emerald-400">Resolved</div>
@@ -323,12 +323,12 @@ export default function DiscoveryTargetHeatmap() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-4 p-4 rounded-xl border border-zinc-800 bg-zinc-900/30">
+      <div className="flex flex-col gap-4 p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)]/30">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-zinc-300">Filters</span>
+          <span className="text-sm font-medium text-[var(--color-text-primary)]">Filters</span>
           <button
             onClick={resetFilters}
-            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
           >
             Reset all
           </button>
@@ -336,7 +336,7 @@ export default function DiscoveryTargetHeatmap() {
         
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500 w-20">Severity</span>
+            <span className="text-xs text-[var(--color-text-muted)] w-20">Severity</span>
             <div className="flex gap-2">
               {SEVERITY_ORDER.map((severity) => (
                 <FilterChip
@@ -351,7 +351,7 @@ export default function DiscoveryTargetHeatmap() {
           </div>
           
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500 w-20">Type</span>
+            <span className="text-xs text-[var(--color-text-muted)] w-20">Type</span>
             <div className="flex gap-2">
               {FINDING_TYPES.map((type) => (
                 <FilterChip
@@ -369,22 +369,22 @@ export default function DiscoveryTargetHeatmap() {
       {/* Heatmap Visualization */}
       <div className="relative">
         {/* Zoom Controls */}
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-2 p-1 rounded-lg bg-zinc-900/80 backdrop-blur border border-zinc-800">
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2 p-1 rounded-lg bg-[var(--color-surface-1)]/80 backdrop-blur border border-[var(--color-border)]">
           <button
             onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))}
             disabled={zoom <= 0.5}
-            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Zoom out"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
             </svg>
           </button>
-          <span className="text-xs text-zinc-400 w-12 text-center">{Math.round(zoom * 100)}%</span>
+          <span className="text-xs text-[var(--color-text-secondary)] w-12 text-center">{Math.round(zoom * 100)}%</span>
           <button
             onClick={() => setZoom((z) => Math.min(2, z + 0.25))}
             disabled={zoom >= 2}
-            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Zoom in"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -395,7 +395,7 @@ export default function DiscoveryTargetHeatmap() {
 
         {/* Heatmap Grid */}
         <div 
-          className="overflow-auto rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"
+          className="overflow-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)]/50 p-4"
           style={{ transform: `scale(${zoom})`, transformOrigin: "top left" }}
         >
           {/* Y-axis labels (severity) */}
@@ -403,7 +403,7 @@ export default function DiscoveryTargetHeatmap() {
             <div className="w-20 shrink-0" />
             <div className="flex-1 grid grid-cols-10 gap-1">
               {Array.from({ length: 10 }, (_, i) => (
-                <div key={i} className="text-xs text-zinc-600 text-center">
+                <div key={i} className="text-xs text-[var(--color-text-muted)] text-center">
                   {i + 1}
                 </div>
               ))}
@@ -414,7 +414,7 @@ export default function DiscoveryTargetHeatmap() {
           {heatmapData.map((row, y) => (
             <div key={y} className="flex gap-1 mb-1">
               <div className="w-20 shrink-0 flex items-center">
-                <span className="text-xs text-zinc-500 capitalize">{SEVERITY_ORDER[y]}</span>
+                <span className="text-xs text-[var(--color-text-muted)] capitalize">{SEVERITY_ORDER[y]}</span>
               </div>
               <div className="flex-1 grid grid-cols-10 gap-1">
                 {row.map((cell, x) => {
@@ -431,7 +431,7 @@ export default function DiscoveryTargetHeatmap() {
                         "h-10 rounded-md transition-all duration-200 cursor-pointer",
                         cell.count > 0
                           ? `hover:ring-2 hover:ring-zinc-400 hover:scale-105`
-                          : "bg-zinc-800/30"
+                          : "bg-[var(--color-surface-2)]/30"
                       )}
                       style={{
                         backgroundColor: cell.count > 0 
@@ -443,7 +443,7 @@ export default function DiscoveryTargetHeatmap() {
                         <div className="h-full flex items-center justify-center">
                           <span className={cn(
                             "text-xs font-medium",
-                            intensity > 0.5 ? "text-white" : "text-zinc-300"
+                            intensity > 0.5 ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)]"
                           )}>
                             {cell.count}
                           </span>
@@ -457,22 +457,22 @@ export default function DiscoveryTargetHeatmap() {
           ))}
 
           {/* Legend */}
-          <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center justify-center gap-6">
+          <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex items-center justify-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-zinc-800/30" />
-              <span className="text-xs text-zinc-500">No findings</span>
+              <div className="w-3 h-3 rounded bg-[var(--color-surface-2)]/30" />
+              <span className="text-xs text-[var(--color-text-muted)]">No findings</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded bg-red-500/40" />
-              <span className="text-xs text-zinc-500">Low density</span>
+              <span className="text-xs text-[var(--color-text-muted)]">Low density</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded bg-red-500/80" />
-              <span className="text-xs text-zinc-500">Medium</span>
+              <span className="text-xs text-[var(--color-text-muted)]">Medium</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded bg-red-500" />
-              <span className="text-xs text-zinc-500">High density</span>
+              <span className="text-xs text-[var(--color-text-muted)]">High density</span>
             </div>
           </div>
         </div>
@@ -480,16 +480,16 @@ export default function DiscoveryTargetHeatmap() {
         {/* Tooltip */}
         {hoveredCell && hoveredCell.count > 0 && (
           <div 
-            className="absolute z-20 p-3 rounded-lg bg-zinc-800 border border-zinc-700 shadow-xl pointer-events-none"
+            className="absolute z-20 p-3 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] shadow-xl pointer-events-none"
             style={{
               left: `${(hoveredCell.x / 10) * 100 + 10}%`,
               top: `${(hoveredCell.y / 5) * 100 + 60}px`,
             }}
           >
-            <div className="text-sm font-medium text-white">
+            <div className="text-sm font-medium text-[var(--color-text-primary)]">
               {hoveredCell.count} finding{hoveredCell.count > 1 ? "s" : ""}
             </div>
-            <div className="text-xs text-zinc-400 mt-1">
+            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
               {hoveredCell.targets.slice(0, 3).map((t) => t.domain).join(", ")}
               {hoveredCell.targets.length > 3 && ` +${hoveredCell.targets.length - 3} more`}
             </div>
@@ -499,15 +499,15 @@ export default function DiscoveryTargetHeatmap() {
 
       {/* Finding Details Panel */}
       {selectedTarget && (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)]/50 p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 className="text-lg font-semibold text-white">{selectedTarget.title}</h3>
-              <p className="text-sm text-zinc-400 mt-1">{selectedTarget.description}</p>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{selectedTarget.title}</h3>
+              <p className="text-sm text-[var(--color-text-secondary)] mt-1">{selectedTarget.description}</p>
             </div>
             <button
               onClick={() => setSelectedTarget(null)}
-              className="text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -517,20 +517,20 @@ export default function DiscoveryTargetHeatmap() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div>
-              <div className="text-xs text-zinc-500 mb-1">Domain</div>
-              <div className="text-sm text-zinc-200">{selectedTarget.domain}</div>
+              <div className="text-xs text-[var(--color-text-muted)] mb-1">Domain</div>
+              <div className="text-sm text-[var(--color-text-primary)]">{selectedTarget.domain}</div>
             </div>
             <div>
-              <div className="text-xs text-zinc-500 mb-1">IP Address</div>
-              <div className="text-sm text-zinc-200 font-mono">{selectedTarget.ipAddress}</div>
+              <div className="text-xs text-[var(--color-text-muted)] mb-1">IP Address</div>
+              <div className="text-sm text-[var(--color-text-primary)] font-mono">{selectedTarget.ipAddress}</div>
             </div>
             <div>
-              <div className="text-xs text-zinc-500 mb-1">Location</div>
-              <div className="text-sm text-zinc-200">{selectedTarget.city}, {selectedTarget.country}</div>
+              <div className="text-xs text-[var(--color-text-muted)] mb-1">Location</div>
+              <div className="text-sm text-[var(--color-text-primary)]">{selectedTarget.city}, {selectedTarget.country}</div>
             </div>
             <div>
-              <div className="text-xs text-zinc-500 mb-1">Discovered</div>
-              <div className="text-sm text-zinc-200">{formatDate(selectedTarget.discoveredAt)}</div>
+              <div className="text-xs text-[var(--color-text-muted)] mb-1">Discovered</div>
+              <div className="text-sm text-[var(--color-text-primary)]">{formatDate(selectedTarget.discoveredAt)}</div>
             </div>
           </div>
 
@@ -545,18 +545,18 @@ export default function DiscoveryTargetHeatmap() {
       {/* Empty State */}
       {filteredTargets.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
-            <svg className="w-8 h-8 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-16 h-16 rounded-full bg-[var(--color-surface-2)] flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-white mb-2">No findings match your filters</h3>
-          <p className="text-zinc-400 text-sm mb-4">
+          <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">No findings match your filters</h3>
+          <p className="text-[var(--color-text-secondary)] text-sm mb-4">
             Try adjusting your severity or type filters to see more results.
           </p>
           <button
             onClick={resetFilters}
-            className="px-4 py-2 bg-zinc-100 text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-200 transition-colors"
+            className="px-4 py-2 bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded-lg text-sm font-medium hover:bg-[var(--color-surface-2)] transition-colors"
           >
             Reset filters
           </button>
@@ -565,11 +565,11 @@ export default function DiscoveryTargetHeatmap() {
 
       {/* Targets List */}
       <div className="space-y-2">
-        <h3 className="text-sm font-medium text-zinc-400">All Findings ({filteredTargets.length})</h3>
-        <div className="max-h-[300px] overflow-auto rounded-lg border border-zinc-800">
+        <h3 className="text-sm font-medium text-[var(--color-text-secondary)]">All Findings ({filteredTargets.length})</h3>
+        <div className="max-h-[300px] overflow-auto rounded-lg border border-[var(--color-border)]">
           <table className="w-full">
-            <thead className="sticky top-0 bg-zinc-900">
-              <tr className="text-left text-xs text-zinc-500 border-b border-zinc-800">
+            <thead className="sticky top-0 bg-[var(--color-surface-1)]">
+              <tr className="text-left text-xs text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
                 <th className="px-4 py-2 font-medium">Domain</th>
                 <th className="px-4 py-2 font-medium">Location</th>
                 <th className="px-4 py-2 font-medium">Severity</th>
@@ -583,12 +583,12 @@ export default function DiscoveryTargetHeatmap() {
                   key={target.id}
                   onClick={() => setSelectedTarget(target)}
                   className={cn(
-                    "border-b border-zinc-800/50 cursor-pointer transition-colors hover:bg-zinc-800/30",
-                    selectedTarget?.id === target.id && "bg-zinc-800/50"
+                    "border-b border-[var(--color-border)]/50 cursor-pointer transition-colors hover:bg-[var(--color-surface-2)]/30",
+                    selectedTarget?.id === target.id && "bg-[var(--color-surface-2)]/50"
                   )}
                 >
-                  <td className="px-4 py-3 text-sm text-zinc-200">{target.domain}</td>
-                  <td className="px-4 py-3 text-sm text-zinc-400">{target.city}, {target.country}</td>
+                  <td className="px-4 py-3 text-sm text-[var(--color-text-primary)]">{target.domain}</td>
+                  <td className="px-4 py-3 text-sm text-[var(--color-text-secondary)]">{target.city}, {target.country}</td>
                   <td className="px-4 py-3">
                     <SeverityBadge severity={target.severity} />
                   </td>

@@ -45,7 +45,7 @@ function statusBadgeColor(code: number): string {
   if (code >= 300 && code < 400) {return "bg-amber-400/15 text-amber-400 border-amber-400/30"}
   if (code >= 400 && code < 500) {return "bg-rose-400/15 text-rose-400 border-rose-400/30"}
   if (code >= 500) {return "bg-rose-500/15 text-rose-500 border-rose-500/30"}
-  return "bg-zinc-700 text-zinc-300 border-zinc-600"
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)] border-[var(--color-surface-3)]"
 }
 
 function formatJson(raw: string): string {
@@ -314,7 +314,7 @@ function JsonHighlight({ text }: { text: string }): React.ReactElement {
         const keyMatch = remaining.match(/^(\s*)"([^"]+)"(:)/)
         if (keyMatch) {
           parts.push(
-            <span key={ki++} className="text-zinc-500">
+            <span key={ki++} className="text-[var(--color-text-muted)]">
               {keyMatch[1]}
             </span>,
           )
@@ -324,7 +324,7 @@ function JsonHighlight({ text }: { text: string }): React.ReactElement {
             </span>,
           )
           parts.push(
-            <span key={ki++} className="text-zinc-500">
+            <span key={ki++} className="text-[var(--color-text-muted)]">
               {keyMatch[3]}
             </span>,
           )
@@ -335,7 +335,7 @@ function JsonHighlight({ text }: { text: string }): React.ReactElement {
         const strMatch = remaining.match(/^(\s*)"([^"]*)"(.*)$/)
         if (strMatch) {
           parts.push(
-            <span key={ki++} className="text-zinc-400">
+            <span key={ki++} className="text-[var(--color-text-secondary)]">
               {strMatch[1]}
             </span>,
           )
@@ -345,7 +345,7 @@ function JsonHighlight({ text }: { text: string }): React.ReactElement {
             </span>,
           )
           parts.push(
-            <span key={ki++} className="text-zinc-500">
+            <span key={ki++} className="text-[var(--color-text-muted)]">
               {strMatch[3]}
             </span>,
           )
@@ -356,7 +356,7 @@ function JsonHighlight({ text }: { text: string }): React.ReactElement {
           )
           if (valMatch) {
             parts.push(
-              <span key={ki++} className="text-zinc-400">
+              <span key={ki++} className="text-[var(--color-text-secondary)]">
                 {valMatch[1]}
               </span>,
             )
@@ -372,13 +372,13 @@ function JsonHighlight({ text }: { text: string }): React.ReactElement {
               </span>,
             )
             parts.push(
-              <span key={ki++} className="text-zinc-500">
+              <span key={ki++} className="text-[var(--color-text-muted)]">
                 {valMatch[3]}
               </span>,
             )
           } else if (remaining.length > 0) {
             parts.push(
-              <span key={ki++} className="text-zinc-400">
+              <span key={ki++} className="text-[var(--color-text-secondary)]">
                 {remaining}
               </span>,
             )
@@ -387,7 +387,7 @@ function JsonHighlight({ text }: { text: string }): React.ReactElement {
 
         return (
           <React.Fragment key={li}>
-            {parts.length > 0 ? parts : <span className="text-zinc-500">{line}</span>}
+            {parts.length > 0 ? parts : <span className="text-[var(--color-text-muted)]">{line}</span>}
             {li < lines.length - 1 ? "\n" : null}
           </React.Fragment>
         )
@@ -511,16 +511,16 @@ export default function WebhookPlayground(): React.ReactElement {
   const methods: HttpMethod[] = ["POST", "PUT", "PATCH"]
 
   const inputBase =
-    "bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
+    "bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-4 md:p-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
           📨 Webhook Playground
         </h1>
-        <p className="text-zinc-400 text-sm mt-1">
+        <p className="text-[var(--color-text-secondary)] text-sm mt-1">
           Test, inspect, and replay webhook deliveries
         </p>
       </div>
@@ -528,9 +528,9 @@ export default function WebhookPlayground(): React.ReactElement {
       {/* Top section: Left + Right panels */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {/* ── Left Panel: Endpoint Configuration ────────────────── */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col gap-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
+            <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
               📤 Request
             </h2>
             <div className="flex items-center gap-2">
@@ -550,7 +550,7 @@ export default function WebhookPlayground(): React.ReactElement {
                   "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
                   sending
                     ? "bg-indigo-500/30 text-indigo-300 cursor-wait"
-                    : "bg-indigo-500 text-white hover:bg-indigo-400 active:bg-indigo-600",
+                    : "bg-indigo-500 text-[var(--color-text-primary)] hover:bg-indigo-400 active:bg-indigo-600",
                   "disabled:opacity-40 disabled:cursor-not-allowed",
                 )}
               >
@@ -564,7 +564,7 @@ export default function WebhookPlayground(): React.ReactElement {
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value as HttpMethod)}
-              className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-indigo-400 font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-2 text-sm text-indigo-400 font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer"
             >
               {methods.map((m) => (
                 <option key={m} value={m}>
@@ -582,12 +582,12 @@ export default function WebhookPlayground(): React.ReactElement {
           </div>
 
           {/* Signature toggle */}
-          <div className="flex items-center gap-3 bg-zinc-800/50 rounded-lg px-3 py-2.5 border border-zinc-800">
+          <div className="flex items-center gap-3 bg-[var(--color-surface-2)]/50 rounded-lg px-3 py-2.5 border border-[var(--color-border)]">
             <button
               onClick={() => setSignatureEnabled(!signatureEnabled)}
               className={cn(
                 "w-9 h-5 rounded-full transition-colors relative flex-shrink-0",
-                signatureEnabled ? "bg-indigo-500" : "bg-zinc-700",
+                signatureEnabled ? "bg-indigo-500" : "bg-[var(--color-surface-3)]",
               )}
             >
               <span
@@ -597,7 +597,7 @@ export default function WebhookPlayground(): React.ReactElement {
                 )}
               />
             </button>
-            <span className="text-xs text-zinc-400">HMAC-SHA256 Signature</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">HMAC-SHA256 Signature</span>
             {signatureEnabled && (
               <input
                 type="text"
@@ -612,7 +612,7 @@ export default function WebhookPlayground(): React.ReactElement {
           {/* Headers */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider">
+              <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">
                 Headers
               </span>
               <button
@@ -641,7 +641,7 @@ export default function WebhookPlayground(): React.ReactElement {
                   />
                   <button
                     onClick={() => handleRemoveHeader(h.id)}
-                    className="text-zinc-600 hover:text-rose-400 transition-colors text-sm px-1 flex-shrink-0"
+                    className="text-[var(--color-text-muted)] hover:text-rose-400 transition-colors text-sm px-1 flex-shrink-0"
                     title="Remove header"
                   >
                     ✕
@@ -653,7 +653,7 @@ export default function WebhookPlayground(): React.ReactElement {
 
           {/* Request body */}
           <div className="flex-1 flex flex-col">
-            <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider mb-2">
+            <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider mb-2">
               Body
             </span>
             <div className="relative flex-1 min-h-[200px]">
@@ -664,7 +664,7 @@ export default function WebhookPlayground(): React.ReactElement {
                 className={cn(
                   "absolute inset-0 w-full h-full bg-transparent text-transparent caret-white",
                   "font-mono text-sm leading-relaxed p-3 resize-none",
-                  "border border-zinc-700 rounded-md",
+                  "border border-[var(--color-border)] rounded-md",
                   "focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500",
                   "z-10",
                 )}
@@ -674,7 +674,7 @@ export default function WebhookPlayground(): React.ReactElement {
                   "absolute inset-0 w-full h-full overflow-auto",
                   "font-mono text-sm leading-relaxed p-3",
                   "border border-transparent rounded-md",
-                  "bg-zinc-800 pointer-events-none",
+                  "bg-[var(--color-surface-2)] pointer-events-none",
                 )}
               >
                 <JsonHighlight text={body} />
@@ -684,17 +684,17 @@ export default function WebhookPlayground(): React.ReactElement {
         </div>
 
         {/* ── Right Panel: Response Viewer ──────────────────────── */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 flex flex-col gap-4">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
             📥 Response
           </h2>
 
           {response.statusCode === null ? (
-            <div className="flex-1 flex items-center justify-center text-zinc-600">
+            <div className="flex-1 flex items-center justify-center text-[var(--color-text-muted)]">
               <div className="text-center">
                 <div className="text-4xl mb-3">📭</div>
                 <p className="text-sm">No response yet</p>
-                <p className="text-xs text-zinc-700 mt-1">
+                <p className="text-xs text-[var(--color-text-muted)] mt-1">
                   Send a request or select a delivery
                 </p>
               </div>
@@ -717,7 +717,7 @@ export default function WebhookPlayground(): React.ReactElement {
                   {response.statusCode}
                 </span>
                 {response.timeMs !== null && (
-                  <span className="text-xs text-zinc-500 font-mono">
+                  <span className="text-xs text-[var(--color-text-muted)] font-mono">
                     ⏱ {response.timeMs}ms
                   </span>
                 )}
@@ -725,18 +725,18 @@ export default function WebhookPlayground(): React.ReactElement {
 
               {/* Response headers */}
               <div>
-                <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider">
+                <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">
                   Response Headers
                 </span>
-                <div className="mt-2 bg-zinc-800 rounded-md p-3 text-xs font-mono space-y-1 max-h-[120px] overflow-auto">
+                <div className="mt-2 bg-[var(--color-surface-2)] rounded-md p-3 text-xs font-mono space-y-1 max-h-[120px] overflow-auto">
                   {Object.entries(response.headers).length === 0 ? (
-                    <span className="text-zinc-600">No headers</span>
+                    <span className="text-[var(--color-text-muted)]">No headers</span>
                   ) : (
                     Object.entries(response.headers).map(([k, v]) => (
                       <div key={k}>
                         <span className="text-indigo-400">{k}</span>
-                        <span className="text-zinc-600">: </span>
-                        <span className="text-zinc-300">{v}</span>
+                        <span className="text-[var(--color-text-muted)]">: </span>
+                        <span className="text-[var(--color-text-primary)]">{v}</span>
                       </div>
                     ))
                   )}
@@ -745,14 +745,14 @@ export default function WebhookPlayground(): React.ReactElement {
 
               {/* Response body */}
               <div className="flex-1 flex flex-col min-h-0">
-                <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider mb-2">
+                <span className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider mb-2">
                   Response Body
                 </span>
-                <div className="flex-1 bg-zinc-800 rounded-md p-3 overflow-auto min-h-[200px]">
+                <div className="flex-1 bg-[var(--color-surface-2)] rounded-md p-3 overflow-auto min-h-[200px]">
                   {response.body ? (
                     <JsonHighlight text={response.body} />
                   ) : (
-                    <span className="text-xs text-zinc-600 font-mono">
+                    <span className="text-xs text-[var(--color-text-muted)] font-mono">
                       Empty response body
                     </span>
                   )}
@@ -764,10 +764,10 @@ export default function WebhookPlayground(): React.ReactElement {
       </div>
 
       {/* ── Bottom Panel: Delivery History ─────────────────────── */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
         {/* Tabs for narrow screens */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
             🕐 Delivery History
           </h2>
           <div className="flex gap-1 lg:hidden">
@@ -778,8 +778,8 @@ export default function WebhookPlayground(): React.ReactElement {
                 className={cn(
                   "px-2.5 py-1 text-xs rounded-md transition-colors",
                   activeBottomTab === tab
-                    ? "bg-zinc-700 text-white"
-                    : "text-zinc-500 hover:text-zinc-300",
+                    ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]",
                 )}
               >
                 {tab === "history" ? "📋" : tab === "config" ? "📤" : "📥"}
@@ -789,7 +789,7 @@ export default function WebhookPlayground(): React.ReactElement {
         </div>
 
         {/* Table header */}
-        <div className="grid grid-cols-[1fr_2fr_auto_auto_auto] gap-3 px-3 py-2 text-xs text-zinc-500 font-medium uppercase tracking-wider border-b border-zinc-800">
+        <div className="grid grid-cols-[1fr_2fr_auto_auto_auto] gap-3 px-3 py-2 text-xs text-[var(--color-text-muted)] font-medium uppercase tracking-wider border-b border-[var(--color-border)]">
           <span>Time</span>
           <span>Endpoint</span>
           <span className="text-center">Event</span>
@@ -798,29 +798,29 @@ export default function WebhookPlayground(): React.ReactElement {
         </div>
 
         {/* Rows */}
-        <div className="divide-y divide-zinc-800/50 max-h-[320px] overflow-auto">
+        <div className="divide-y divide-[var(--color-border)]/50 max-h-[320px] overflow-auto">
           {deliveries.map((d) => (
             <button
               key={d.id}
               onClick={() => handleLoadDelivery(d)}
               className={cn(
                 "w-full grid grid-cols-[1fr_2fr_auto_auto_auto] gap-3 px-3 py-3 text-left transition-colors",
-                "hover:bg-zinc-800/60",
+                "hover:bg-[var(--color-surface-2)]/60",
                 selectedDeliveryId === d.id
                   ? "bg-indigo-500/10 border-l-2 border-l-indigo-500"
                   : "border-l-2 border-l-transparent",
               )}
             >
-              <span className="text-xs text-zinc-400 font-mono tabular-nums">
+              <span className="text-xs text-[var(--color-text-secondary)] font-mono tabular-nums">
                 {formatTime(d.timestamp)}
               </span>
-              <span className="text-xs text-zinc-300 font-mono truncate">
+              <span className="text-xs text-[var(--color-text-primary)] font-mono truncate">
                 <span className="text-indigo-400 font-semibold mr-1.5">
                   {d.method}
                 </span>
                 {d.endpoint.replace("https://", "")}
               </span>
-              <span className="text-xs text-zinc-500 font-mono">
+              <span className="text-xs text-[var(--color-text-muted)] font-mono">
                 {d.event}
               </span>
               <span className="text-center">
@@ -839,7 +839,7 @@ export default function WebhookPlayground(): React.ReactElement {
                   d.responseTimeMs > 1000
                     ? "text-amber-400"
                     : d.responseTimeMs > 500
-                      ? "text-zinc-400"
+                      ? "text-[var(--color-text-secondary)]"
                       : "text-emerald-400",
                 )}
               >
@@ -850,11 +850,11 @@ export default function WebhookPlayground(): React.ReactElement {
         </div>
 
         {/* Footer info */}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-zinc-800">
-          <span className="text-xs text-zinc-600">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--color-border)]">
+          <span className="text-xs text-[var(--color-text-muted)]">
             {deliveries.length} deliveries · Click to replay
           </span>
-          <div className="flex items-center gap-3 text-xs text-zinc-600">
+          <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" /> Success
             </span>

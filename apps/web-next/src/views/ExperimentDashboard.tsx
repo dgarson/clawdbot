@@ -165,7 +165,7 @@ const STATUS_STYLES: Record<Experiment["status"], string> = {
   running: "bg-indigo-500/20 text-indigo-400 border border-indigo-500/40",
   completed: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40",
   paused: "bg-amber-500/20 text-amber-400 border border-amber-500/40",
-  draft: "bg-zinc-700/40 text-zinc-400 border border-zinc-600",
+  draft: "bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)] border border-[var(--color-surface-3)]",
 };
 
 function sigLabel(p: number): { text: string; cls: string } {
@@ -223,7 +223,7 @@ export default function ExperimentDashboard() {
     : 1;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold tracking-tight">
@@ -233,7 +233,7 @@ export default function ExperimentDashboard() {
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as StatusFilter)}
-            className="bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm"
           >
             <option value="all">All Statuses</option>
             <option value="running">Running</option>
@@ -241,7 +241,7 @@ export default function ExperimentDashboard() {
             <option value="paused">Paused</option>
             <option value="draft">Draft</option>
           </select>
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-sm font-medium">
+          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
             + New Experiment
           </button>
         </div>
@@ -257,9 +257,9 @@ export default function ExperimentDashboard() {
         ].map((s) => (
           <div
             key={s.label}
-            className="bg-zinc-900 border border-zinc-800 rounded-lg p-4"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4"
           >
-            <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">
+            <p className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-1">
               {s.label}
             </p>
             <p className={cn("text-2xl font-semibold", s.accent)}>
@@ -274,7 +274,7 @@ export default function ExperimentDashboard() {
         {/* Left column — experiment cards */}
         <div className="w-[45%] space-y-3 overflow-y-auto max-h-[calc(100vh-260px)] pr-1">
           {filtered.length === 0 && (
-            <p className="text-zinc-500 text-sm py-8 text-center">
+            <p className="text-[var(--color-text-muted)] text-sm py-8 text-center">
               No experiments match this filter.
             </p>
           )}
@@ -293,10 +293,10 @@ export default function ExperimentDashboard() {
                 key={exp.id}
                 onClick={() => setSelectedId(exp.id)}
                 className={cn(
-                  "w-full text-left bg-zinc-900 border rounded-lg p-4 transition-colors",
+                  "w-full text-left bg-[var(--color-surface-1)] border rounded-lg p-4 transition-colors",
                   selectedId === exp.id
                     ? "border-indigo-500"
-                    : "border-zinc-800 hover:border-zinc-700",
+                    : "border-[var(--color-border)] hover:border-[var(--color-border)]",
                 )}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -304,7 +304,7 @@ export default function ExperimentDashboard() {
                     <h3 className="text-sm font-semibold truncate">
                       {exp.name}
                     </h3>
-                    <p className="text-zinc-500 text-xs mt-0.5">
+                    <p className="text-[var(--color-text-muted)] text-xs mt-0.5">
                       {exp.owner} · {exp.metric}
                     </p>
                   </div>
@@ -319,14 +319,14 @@ export default function ExperimentDashboard() {
                 </div>
 
                 {/* Progress bar */}
-                <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden mb-2">
+                <div className="h-1.5 w-full bg-[var(--color-surface-2)] rounded-full overflow-hidden mb-2">
                   <div
                     className="h-full bg-indigo-500 rounded-full transition-all"
                     style={{ width: `${(progress * 100).toFixed(1)}%` }}
                   />
                 </div>
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-zinc-500">
+                  <span className="text-[var(--color-text-muted)]">
                     {samplesCurrent.toLocaleString()} samples
                   </span>
                   {exp.totalSamples > 0 && (
@@ -348,16 +348,16 @@ export default function ExperimentDashboard() {
         {/* Right panel — detail */}
         <div className="w-[55%]">
           {!selected ? (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center text-zinc-500 text-sm">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-8 text-center text-[var(--color-text-muted)] text-sm">
               Select an experiment to view details.
             </div>
           ) : (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-5 overflow-y-auto max-h-[calc(100vh-260px)]">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 space-y-5 overflow-y-auto max-h-[calc(100vh-260px)]">
               {/* Title + status */}
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-lg font-bold">{selected.name}</h2>
-                  <p className="text-zinc-500 text-xs mt-1">
+                  <p className="text-[var(--color-text-muted)] text-xs mt-1">
                     {selected.startDate}
                     {selected.endDate ? ` → ${selected.endDate}` : " → ongoing"}{" "}
                     · Owner: {selected.owner}
@@ -375,23 +375,23 @@ export default function ExperimentDashboard() {
 
               {/* Hypothesis */}
               <div>
-                <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">
+                <p className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-1">
                   Hypothesis
                 </p>
-                <p className="text-zinc-300 text-sm leading-relaxed">
+                <p className="text-[var(--color-text-primary)] text-sm leading-relaxed">
                   {selected.hypothesis}
                 </p>
               </div>
 
               {/* Variant comparison table */}
               <div>
-                <p className="text-zinc-500 text-xs uppercase tracking-wider mb-2">
+                <p className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-2">
                   Variant Comparison
                 </p>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-zinc-500 text-xs uppercase border-b border-zinc-800">
+                      <tr className="text-[var(--color-text-muted)] text-xs uppercase border-b border-[var(--color-border)]">
                         <th className="text-left py-2 pr-2 font-medium">Variant</th>
                         <th className="text-right py-2 px-2 font-medium">Traffic</th>
                         <th className="text-right py-2 px-2 font-medium">Samples</th>
@@ -408,15 +408,15 @@ export default function ExperimentDashboard() {
                         return (
                           <tr
                             key={v.name}
-                            className="border-b border-zinc-800/50"
+                            className="border-b border-[var(--color-border)]/50"
                           >
                             <td className="py-2 pr-2 font-medium">
                               {v.name}
                             </td>
-                            <td className="py-2 px-2 text-right text-zinc-400">
+                            <td className="py-2 px-2 text-right text-[var(--color-text-secondary)]">
                               {v.trafficPct}%
                             </td>
-                            <td className="py-2 px-2 text-right text-zinc-400">
+                            <td className="py-2 px-2 text-right text-[var(--color-text-secondary)]">
                               {v.sampleSize.toLocaleString()}
                             </td>
                             <td className="py-2 px-2 text-right font-mono">
@@ -426,12 +426,12 @@ export default function ExperimentDashboard() {
                               className={cn(
                                 "py-2 px-2 text-right font-mono",
                                 v.isControl
-                                  ? "text-zinc-500"
+                                  ? "text-[var(--color-text-muted)]"
                                   : v.upliftPct > 0
                                     ? "text-emerald-400"
                                     : v.upliftPct < 0
                                       ? "text-rose-400"
-                                      : "text-zinc-400",
+                                      : "text-[var(--color-text-secondary)]",
                               )}
                             >
                               {v.isControl
@@ -441,7 +441,7 @@ export default function ExperimentDashboard() {
                             <td
                               className={cn(
                                 "py-2 px-2 text-right font-mono",
-                                v.isControl ? "text-zinc-500" : sig.cls,
+                                v.isControl ? "text-[var(--color-text-muted)]" : sig.cls,
                               )}
                             >
                               {v.isControl
@@ -452,7 +452,7 @@ export default function ExperimentDashboard() {
                             </td>
                             <td className="py-2 pl-2 text-right">
                               {v.isControl ? (
-                                <span className="text-zinc-500 text-xs">control</span>
+                                <span className="text-[var(--color-text-muted)] text-xs">control</span>
                               ) : isWinner ? (
                                 <span className="text-emerald-400 text-xs font-medium">
                                   winner
@@ -460,7 +460,7 @@ export default function ExperimentDashboard() {
                               ) : selected.winner && !isWinner ? (
                                 <span className="text-rose-400 text-xs">loser</span>
                               ) : (
-                                <span className="text-zinc-500 text-xs">—</span>
+                                <span className="text-[var(--color-text-muted)] text-xs">—</span>
                               )}
                             </td>
                           </tr>
@@ -473,7 +473,7 @@ export default function ExperimentDashboard() {
 
               {/* Visual bar comparison */}
               <div>
-                <p className="text-zinc-500 text-xs uppercase tracking-wider mb-2">
+                <p className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-2">
                   Metric Comparison
                 </p>
                 <div className="space-y-2">
@@ -485,15 +485,15 @@ export default function ExperimentDashboard() {
                     const isWinner = selected.winner === v.name;
                     return (
                       <div key={v.name} className="flex items-center gap-3">
-                        <span className="text-xs text-zinc-400 w-28 truncate shrink-0">
+                        <span className="text-xs text-[var(--color-text-secondary)] w-28 truncate shrink-0">
                           {v.name}
                         </span>
-                        <div className="flex-1 h-6 bg-zinc-800 rounded overflow-hidden relative">
+                        <div className="flex-1 h-6 bg-[var(--color-surface-2)] rounded overflow-hidden relative">
                           <div
                             className={cn(
                               "h-full rounded transition-all",
                               v.isControl
-                                ? "bg-zinc-600"
+                                ? "bg-[var(--color-surface-3)]"
                                 : isWinner
                                   ? "bg-emerald-500"
                                   : "bg-indigo-500",
@@ -501,7 +501,7 @@ export default function ExperimentDashboard() {
                             style={{ width: `${barPct.toFixed(1)}%` }}
                           />
                           {v.metricValue > 0 && (
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-white/80 font-mono">
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-[var(--color-text-primary)]/80 font-mono">
                               {v.metricValue.toFixed(3)}
                             </span>
                           )}
@@ -514,8 +514,8 @@ export default function ExperimentDashboard() {
 
               {/* Statistical significance + power */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-zinc-800/50 rounded-lg p-3">
-                  <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">
+                <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
+                  <p className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-1">
                     Statistical Significance
                   </p>
                   {(() => {
@@ -523,7 +523,7 @@ export default function ExperimentDashboard() {
                     const sig = sigLabel(best);
                     if (selected.totalSamples === 0) {
                       return (
-                        <p className="text-zinc-500 text-sm">
+                        <p className="text-[var(--color-text-muted)] text-sm">
                           No data collected yet
                         </p>
                       );
@@ -542,12 +542,12 @@ export default function ExperimentDashboard() {
                     );
                   })()}
                 </div>
-                <div className="bg-zinc-800/50 rounded-lg p-3">
-                  <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">
+                <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
+                  <p className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-1">
                     Power Analysis
                   </p>
                   {selected.totalSamples === 0 ? (
-                    <p className="text-zinc-500 text-sm">Awaiting data</p>
+                    <p className="text-[var(--color-text-muted)] text-sm">Awaiting data</p>
                   ) : (
                     <p
                       className={cn(
@@ -570,25 +570,25 @@ export default function ExperimentDashboard() {
               <div className="flex items-center gap-2 pt-1">
                 {selected.status === "running" && (
                   <>
-                    <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-sm font-medium">
+                    <button className="bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
                       Declare Winner
                     </button>
-                    <button className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-sm font-medium">
+                    <button className="bg-amber-600 hover:bg-amber-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
                       Stop Experiment
                     </button>
                   </>
                 )}
                 {selected.status === "paused" && (
-                  <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-sm font-medium">
+                  <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
                     Resume Experiment
                   </button>
                 )}
                 {selected.status === "draft" && (
-                  <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-sm font-medium">
+                  <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
                     Start Experiment
                   </button>
                 )}
-                <button className="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-1.5 rounded text-sm">
+                <button className="bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm">
                   Archive
                 </button>
               </div>

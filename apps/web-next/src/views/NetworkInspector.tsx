@@ -239,7 +239,7 @@ const STATUS_COLORS: Record<RequestStatus, string> = {
   success:   "text-emerald-400",
   error:     "text-rose-400",
   pending:   "text-amber-400",
-  cancelled: "text-zinc-500",
+  cancelled: "text-[var(--color-text-muted)]",
 };
 
 function fmtSize(bytes: number): string {
@@ -265,7 +265,7 @@ function relTime(iso: string): string {
 }
 
 function statusCodeColor(code?: number): string {
-  if (!code) {return "text-zinc-500";}
+  if (!code) {return "text-[var(--color-text-muted)]";}
   if (code < 300) {return "text-emerald-400";}
   if (code < 400) {return "text-amber-400";}
   return "text-rose-400";
@@ -275,13 +275,13 @@ function statusCodeColor(code?: number): string {
 
 interface HeadersTableProps { headers: Header[]; title: string; }
 function HeadersTable({ headers, title }: HeadersTableProps) {
-  if (headers.length === 0) {return <p className="text-xs text-zinc-600">No {title.toLowerCase()}</p>;}
+  if (headers.length === 0) {return <p className="text-xs text-[var(--color-text-muted)]">No {title.toLowerCase()}</p>;}
   return (
     <div className="space-y-0.5">
       {headers.map(h => (
         <div key={h.name} className="flex items-baseline gap-2 text-xs">
-          <span className="text-zinc-400 font-mono shrink-0">{h.name}:</span>
-          <span className="text-zinc-500 font-mono break-all">{h.value}</span>
+          <span className="text-[var(--color-text-secondary)] font-mono shrink-0">{h.name}:</span>
+          <span className="text-[var(--color-text-muted)] font-mono break-all">{h.value}</span>
         </div>
       ))}
     </div>
@@ -325,23 +325,23 @@ export default function NetworkInspector() {
   ];
 
   return (
-    <main className="flex flex-col h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Network Inspector">
+    <main className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden" role="main" aria-label="Network Inspector">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h1 className="text-lg font-bold text-white">Network Inspector</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">HTTP/WebSocket request log — all agent API calls</p>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Network Inspector</h1>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">HTTP/WebSocket request log — all agent API calls</p>
           </div>
           <div className="flex items-center gap-5 text-xs">
             {[
-              { label: "Requests", value: totalRequests,            color: "text-white" },
+              { label: "Requests", value: totalRequests,            color: "text-[var(--color-text-primary)]" },
               { label: "Errors",   value: errorCount,               color: "text-rose-400" },
-              { label: "Avg time", value: fmtDuration(avgDuration), color: "text-zinc-300" },
+              { label: "Avg time", value: fmtDuration(avgDuration), color: "text-[var(--color-text-primary)]" },
             ].map(s => (
               <div key={s.label} className="text-center">
                 <p className={cn("text-xl font-bold font-mono", s.color)}>{s.value}</p>
-                <p className="text-zinc-500">{s.label}</p>
+                <p className="text-[var(--color-text-muted)]">{s.label}</p>
               </div>
             ))}
           </div>
@@ -356,7 +356,7 @@ export default function NetworkInspector() {
             placeholder="Filter by URL or initiator…"
             aria-label="Filter requests"
             className={cn(
-              "bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-zinc-500 w-56",
+              "bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] w-56",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
             )}
           />
@@ -371,7 +371,7 @@ export default function NetworkInspector() {
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   methodFilter === m
                     ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                    : "border-zinc-700 text-zinc-400 hover:text-white"
+                    : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {m === "all" ? "All" : m}
@@ -382,20 +382,20 @@ export default function NetworkInspector() {
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as RequestStatus | "all")}
             aria-label="Filter by status"
-            className={cn("bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 text-sm text-white", "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none")}
+            className={cn("bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm text-[var(--color-text-primary)]", "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none")}
           >
             {statuses.map(s => <option key={s} value={s}>{s === "all" ? "All statuses" : s}</option>)}
           </select>
-          <span className="text-xs text-zinc-600 ml-auto">{filtered.length} requests</span>
+          <span className="text-xs text-[var(--color-text-muted)] ml-auto">{filtered.length} requests</span>
         </div>
       </div>
 
       {/* Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Request list */}
-        <div className="w-[420px] shrink-0 flex flex-col border-r border-zinc-800 overflow-hidden">
+        <div className="w-[420px] shrink-0 flex flex-col border-r border-[var(--color-border)] overflow-hidden">
           {/* Table header */}
-          <div className="px-3 py-2 border-b border-zinc-800 bg-zinc-900/50 flex items-center gap-2 text-[10px] text-zinc-500">
+          <div className="px-3 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50 flex items-center gap-2 text-[10px] text-[var(--color-text-muted)]">
             <span className="w-14">Method</span>
             <span className="flex-1">URL</span>
             <span className="w-12 text-right">Status</span>
@@ -410,9 +410,9 @@ export default function NetworkInspector() {
                   onClick={() => setSelectedId(req.id)}
                   aria-pressed={selectedId === req.id}
                   className={cn(
-                    "w-full text-left px-3 py-2.5 border-b border-zinc-800/60 transition-colors",
+                    "w-full text-left px-3 py-2.5 border-b border-[var(--color-border)]/60 transition-colors",
                     "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 focus-visible:outline-none",
-                    selectedId === req.id ? "bg-indigo-950/30" : "hover:bg-zinc-800/30",
+                    selectedId === req.id ? "bg-indigo-950/30" : "hover:bg-[var(--color-surface-2)]/30",
                     req.status === "error" && selectedId !== req.id && "border-l-2 border-l-rose-500"
                   )}
                 >
@@ -420,19 +420,19 @@ export default function NetworkInspector() {
                     <span className={cn("text-[10px] px-1.5 py-0.5 rounded border font-mono shrink-0 w-14 text-center", METHOD_COLORS[req.method])}>
                       {req.method}
                     </span>
-                    <span className="text-xs text-zinc-300 truncate flex-1 font-mono">
+                    <span className="text-xs text-[var(--color-text-primary)] truncate flex-1 font-mono">
                       {req.url.replace(/^https?:\/\//, "").split("?")[0]}
                     </span>
                     <span className={cn("text-xs font-mono shrink-0 w-12 text-right", statusCodeColor(req.statusCode))}>
                       {req.statusCode ?? "WS"}
                     </span>
-                    <span className="text-[10px] text-zinc-600 font-mono shrink-0 w-14 text-right">
+                    <span className="text-[10px] text-[var(--color-text-muted)] font-mono shrink-0 w-14 text-right">
                       {fmtDuration(req.duration)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5 text-[10px] text-zinc-600 ml-14">
+                  <div className="flex items-center gap-2 mt-0.5 text-[10px] text-[var(--color-text-muted)] ml-14">
                     <span>{req.initiator}</span>
-                    {req.agentId && <span className="text-zinc-700">· {req.agentId}</span>}
+                    {req.agentId && <span className="text-[var(--color-text-muted)]">· {req.agentId}</span>}
                     <span className="ml-auto">{relTime(req.timestamp)}</span>
                   </div>
                 </button>
@@ -446,7 +446,7 @@ export default function NetworkInspector() {
           {selected ? (
             <>
               {/* Detail header */}
-              <div className="px-4 py-3 border-b border-zinc-800 bg-zinc-900/30">
+              <div className="px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/30">
                 <div className="flex items-center gap-2 mb-1">
                   <span className={cn("text-xs px-2 py-0.5 rounded border font-mono", METHOD_COLORS[selected.method])}>
                     {selected.method}
@@ -454,10 +454,10 @@ export default function NetworkInspector() {
                   <span className={cn("text-sm font-mono font-bold", statusCodeColor(selected.statusCode))}>
                     {selected.statusCode ?? "—"}
                   </span>
-                  <span className="text-xs text-zinc-400 font-mono">{fmtDuration(selected.duration)}</span>
+                  <span className="text-xs text-[var(--color-text-secondary)] font-mono">{fmtDuration(selected.duration)}</span>
                 </div>
-                <p className="text-sm text-zinc-300 font-mono break-all">{selected.url}</p>
-                <div className="flex items-center gap-3 mt-1 text-[10px] text-zinc-500">
+                <p className="text-sm text-[var(--color-text-primary)] font-mono break-all">{selected.url}</p>
+                <div className="flex items-center gap-3 mt-1 text-[10px] text-[var(--color-text-muted)]">
                   <span>↑ {fmtSize(selected.requestSize)}</span>
                   <span>↓ {fmtSize(selected.responseSize)}</span>
                   <span>Initiator: {selected.initiator}</span>
@@ -466,7 +466,7 @@ export default function NetworkInspector() {
               </div>
 
               {/* Detail tabs */}
-              <div className="px-4 border-b border-zinc-800 flex gap-0" role="tablist">
+              <div className="px-4 border-b border-[var(--color-border)] flex gap-0" role="tablist">
                 {detailTabs.map(t => (
                   <button
                     key={t.id}
@@ -477,8 +477,8 @@ export default function NetworkInspector() {
                       "px-4 py-2 text-sm border-b-2 transition-colors",
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       detailTab === t.id
-                        ? "border-indigo-500 text-white"
-                        : "border-transparent text-zinc-400 hover:text-white"
+                        ? "border-indigo-500 text-[var(--color-text-primary)]"
+                        : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
                     {t.label}
@@ -491,11 +491,11 @@ export default function NetworkInspector() {
                 {detailTab === "headers" && (
                   <div className="space-y-5">
                     <div>
-                      <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">Request Headers</h3>
+                      <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-2">Request Headers</h3>
                       <HeadersTable headers={selected.requestHeaders} title="Request Headers" />
                     </div>
                     <div>
-                      <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">Response Headers</h3>
+                      <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-2">Response Headers</h3>
                       <HeadersTable headers={selected.responseHeaders} title="Response Headers" />
                     </div>
                   </div>
@@ -505,22 +505,22 @@ export default function NetworkInspector() {
                   <div className="space-y-4">
                     {selected.requestBody && (
                       <div>
-                        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">Request Body</h3>
-                        <pre className="bg-zinc-800 rounded-lg p-3 text-xs text-zinc-300 font-mono overflow-x-auto whitespace-pre-wrap">
+                        <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-2">Request Body</h3>
+                        <pre className="bg-[var(--color-surface-2)] rounded-lg p-3 text-xs text-[var(--color-text-primary)] font-mono overflow-x-auto whitespace-pre-wrap">
                           {selected.requestBody}
                         </pre>
                       </div>
                     )}
                     {selected.responseBody && (
                       <div>
-                        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">Response Body</h3>
-                        <pre className="bg-zinc-800 rounded-lg p-3 text-xs text-zinc-300 font-mono overflow-x-auto whitespace-pre-wrap">
+                        <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-2">Response Body</h3>
+                        <pre className="bg-[var(--color-surface-2)] rounded-lg p-3 text-xs text-[var(--color-text-primary)] font-mono overflow-x-auto whitespace-pre-wrap">
                           {selected.responseBody}
                         </pre>
                       </div>
                     )}
                     {!selected.requestBody && !selected.responseBody && (
-                      <p className="text-xs text-zinc-600">No body data available</p>
+                      <p className="text-xs text-[var(--color-text-muted)]">No body data available</p>
                     )}
                   </div>
                 )}
@@ -536,16 +536,16 @@ export default function NetworkInspector() {
                         { label: "Content-Type",   value: selected.contentType || "—" },
                         { label: "Timestamp",      value: new Date(selected.timestamp).toLocaleTimeString() },
                       ].map(m => (
-                        <div key={m.label} className="rounded-lg bg-zinc-900 border border-zinc-800 p-3">
-                          <p className="text-xs text-zinc-500 mb-1">{m.label}</p>
-                          <p className="text-sm font-mono text-white">{m.value}</p>
+                        <div key={m.label} className="rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] p-3">
+                          <p className="text-xs text-[var(--color-text-muted)] mb-1">{m.label}</p>
+                          <p className="text-sm font-mono text-[var(--color-text-primary)]">{m.value}</p>
                         </div>
                       ))}
                     </div>
 
                     {/* Waterfall bar */}
-                    <div className="rounded-lg bg-zinc-900 border border-zinc-800 p-4">
-                      <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-3">Waterfall</h3>
+                    <div className="rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] p-4">
+                      <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-3">Waterfall</h3>
                       <div className="space-y-2">
                         {[
                           { name: "DNS Lookup",    pct: 5,  color: "bg-emerald-500" },
@@ -555,15 +555,15 @@ export default function NetworkInspector() {
                           { name: "Content Download", pct: 20, color: "bg-violet-500" },
                         ].map(s => (
                           <div key={s.name} className="flex items-center gap-3">
-                            <span className="text-xs text-zinc-500 w-36 shrink-0">{s.name}</span>
-                            <div className="flex-1 h-3 bg-zinc-800 rounded-full overflow-hidden">
+                            <span className="text-xs text-[var(--color-text-muted)] w-36 shrink-0">{s.name}</span>
+                            <div className="flex-1 h-3 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                               <div
                                 className={cn("h-full rounded-full", s.color)}
                                 style={{ width: `${s.pct}%` }}
                                 role="presentation"
                               />
                             </div>
-                            <span className="text-xs font-mono text-zinc-400 w-16 text-right">
+                            <span className="text-xs font-mono text-[var(--color-text-secondary)] w-16 text-right">
                               {fmtDuration(Math.round(selected.duration * s.pct / 100))}
                             </span>
                           </div>
@@ -577,8 +577,8 @@ export default function NetworkInspector() {
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <p className="text-5xl mb-4">🌐</p>
-              <p className="text-lg font-semibold text-white">Select a request</p>
-              <p className="text-sm text-zinc-500 mt-1">Click a network request to inspect headers, body, and timing</p>
+              <p className="text-lg font-semibold text-[var(--color-text-primary)]">Select a request</p>
+              <p className="text-sm text-[var(--color-text-muted)] mt-1">Click a network request to inspect headers, body, and timing</p>
             </div>
           )}
         </div>

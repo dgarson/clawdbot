@@ -235,12 +235,12 @@ export default function ThemeEditor() {
   const accentHex = getAccentHex(tokens.accentColor);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-6" role="main" aria-label="Theme Editor">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6" role="main" aria-label="Theme Editor">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <header className="mb-8">
           <h1 className="text-3xl font-semibold tracking-tight mb-2">Theme Editor</h1>
-          <p className="text-zinc-400">
+          <p className="text-[var(--color-text-secondary)]">
             Customize your interface appearance with presets or fine-tune individual tokens.
           </p>
         </header>
@@ -260,15 +260,15 @@ export default function ThemeEditor() {
                       'flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-150',
                       'border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
                       activePreset === preset.id
-                        ? 'border-indigo-500 bg-zinc-900'
-                        : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700'
+                        ? 'border-indigo-500 bg-[var(--color-surface-1)]'
+                        : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 hover:border-[var(--color-border)]'
                     )}
                     role="radio"
                     aria-checked={activePreset === preset.id}
                     aria-label={preset.name}
                   >
                     <span className="text-2xl" aria-hidden="true">{preset.emoji}</span>
-                    <span className="text-xs text-zinc-400">{preset.name}</span>
+                    <span className="text-xs text-[var(--color-text-secondary)]">{preset.name}</span>
                   </button>
                 ))}
               </div>
@@ -313,8 +313,8 @@ export default function ThemeEditor() {
                 ].map(({ key, label, value }) => (
                   <div key={key} className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <label htmlFor={key} className="text-sm text-zinc-400">{label}</label>
-                      <span className="text-xs text-zinc-500 font-mono">{value}</span>
+                      <label htmlFor={key} className="text-sm text-[var(--color-text-secondary)]">{label}</label>
+                      <span className="text-xs text-[var(--color-text-muted)] font-mono">{value}</span>
                     </div>
                     <input
                       id={key}
@@ -324,7 +324,7 @@ export default function ThemeEditor() {
                       step="10"
                       value={value}
                       onChange={(e) => handleTokenChange(key, Number(e.target.value) as 800 | 850 | 900 | 950 | 990)}
-                      className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                      className="w-full h-2 bg-[var(--color-surface-2)] rounded-lg appearance-none cursor-pointer accent-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                       aria-label={`${label}: ${value}`}
                     />
                   </div>
@@ -345,7 +345,7 @@ export default function ThemeEditor() {
                       'border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
                       tokens.fontSize === size.id
                         ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400'
-                        : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-700'
+                        : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 text-[var(--color-text-secondary)] hover:border-[var(--color-border)]'
                     )}
                     role="radio"
                     aria-checked={tokens.fontSize === size.id}
@@ -369,7 +369,7 @@ export default function ThemeEditor() {
                       'border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
                       tokens.borderRadius === radius.id
                         ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400'
-                        : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-700'
+                        : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 text-[var(--color-text-secondary)] hover:border-[var(--color-border)]'
                     )}
                     role="radio"
                     aria-checked={tokens.borderRadius === radius.id}
@@ -393,7 +393,7 @@ export default function ThemeEditor() {
                       'border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
                       tokens.typography === typo.id
                         ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400'
-                        : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-700'
+                        : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 text-[var(--color-text-secondary)] hover:border-[var(--color-border)]'
                     )}
                     role="radio"
                     aria-checked={tokens.typography === typo.id}
@@ -405,14 +405,14 @@ export default function ThemeEditor() {
             </section>
 
             {/* Actions */}
-            <section aria-labelledby="actions-heading" className="pt-4 border-t border-zinc-800">
+            <section aria-labelledby="actions-heading" className="pt-4 border-t border-[var(--color-border)]">
               <h2 id="actions-heading" className="sr-only">Actions</h2>
               <div className="flex gap-3">
                 <button
                   onClick={handleCopyCSS}
                   className={cn(
                     'flex-1 py-2.5 px-4 rounded-lg font-medium transition-all duration-150',
-                    'bg-indigo-500 hover:bg-indigo-600 text-white',
+                    'bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)]',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950'
                   )}
                   aria-label={copyFeedback ? 'CSS copied to clipboard' : 'Copy CSS variables to clipboard'}
@@ -437,7 +437,7 @@ export default function ThemeEditor() {
                   onClick={handleReset}
                   className={cn(
                     'py-2.5 px-4 rounded-lg font-medium transition-all duration-150',
-                    'border-2 border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300',
+                    'border-2 border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950'
                   )}
                   aria-label="Reset to default theme"
@@ -470,7 +470,7 @@ export default function ThemeEditor() {
                   }}
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-zinc-100" style={{ fontFamily: previewStyles.fontFamily }}>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]" style={{ fontFamily: previewStyles.fontFamily }}>
                       Settings
                     </h3>
                     <span
@@ -484,7 +484,7 @@ export default function ThemeEditor() {
                     </span>
                   </div>
 
-                  <p className="text-zinc-400 mb-4" style={{ fontFamily: previewStyles.fontFamily }}>
+                  <p className="text-[var(--color-text-secondary)] mb-4" style={{ fontFamily: previewStyles.fontFamily }}>
                     Customize your experience with personalized settings.
                   </p>
 
@@ -492,7 +492,7 @@ export default function ThemeEditor() {
                   <div className="mb-4">
                     <label
                       htmlFor="preview-input"
-                      className="block text-sm text-zinc-400 mb-1.5"
+                      className="block text-sm text-[var(--color-text-secondary)] mb-1.5"
                       style={{ fontFamily: previewStyles.fontFamily }}
                     >
                       Username
@@ -501,7 +501,7 @@ export default function ThemeEditor() {
                       id="preview-input"
                       type="text"
                       placeholder="Enter username..."
-                      className="w-full px-3 py-2 text-zinc-100 placeholder-zinc-500 border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0"
+                      className="w-full px-3 py-2 text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0"
                       style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: `${accentHex}4d`,
@@ -558,12 +558,12 @@ export default function ThemeEditor() {
               </div>
 
               {/* CSS Preview */}
-              <div className="mt-4 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
-                <h3 className="text-xs font-medium text-zinc-500 mb-2 uppercase tracking-wider">
+              <div className="mt-4 p-4 bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)]">
+                <h3 className="text-xs font-medium text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">
                   Generated CSS
                 </h3>
                 <pre
-                  className="text-xs text-zinc-400 font-mono overflow-x-auto whitespace-pre-wrap"
+                  className="text-xs text-[var(--color-text-secondary)] font-mono overflow-x-auto whitespace-pre-wrap"
                   aria-label="Generated CSS variables"
                 >
                   {generateCSSVariables(tokens)}

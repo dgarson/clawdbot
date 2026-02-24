@@ -172,7 +172,7 @@ function MiniSparkline({ history, threshold }: { history: TimePoint[]; threshold
 
 function GaugeBar({ value, threshold }: { value: number; threshold: AlertThreshold }) {
   return (
-    <div className="h-2.5 bg-zinc-800 rounded-full overflow-hidden">
+    <div className="h-2.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
       <div
         className={cn("h-full rounded-full transition-all", THRESHOLD_BG[threshold])}
         style={{ width: `${Math.min(value, 100)}%` }}
@@ -195,12 +195,12 @@ export default function ResourceMonitor() {
   const memUsed = Math.round((NODE.totalMemMB * 0.84) / 1024);
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="shrink-0 border-b border-zinc-800 px-5 py-3 flex items-center justify-between">
+      <div className="shrink-0 border-b border-[var(--color-border)] px-5 py-3 flex items-center justify-between">
         <div>
-          <h1 className="text-sm font-semibold text-white">Resource Monitor</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">{NODE.hostname} · {NODE.os} · {NODE.arch} · uptime {NODE.uptime}</p>
+          <h1 className="text-sm font-semibold text-[var(--color-text-primary)]">Resource Monitor</h1>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{NODE.hostname} · {NODE.os} · {NODE.arch} · uptime {NODE.uptime}</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs px-2 py-1 bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20 rounded font-medium">
@@ -213,7 +213,7 @@ export default function ResourceMonitor() {
       </div>
 
       {/* Metric cards */}
-      <div className="shrink-0 grid grid-cols-4 gap-3 px-5 py-3 border-b border-zinc-800">
+      <div className="shrink-0 grid grid-cols-4 gap-3 px-5 py-3 border-b border-[var(--color-border)]">
         {METRICS.map((metric) => (
           <button
             key={metric.kind}
@@ -221,15 +221,15 @@ export default function ResourceMonitor() {
             className={cn(
               "text-left p-3 rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
               metric.kind === selectedKind
-                ? "bg-zinc-800 border-indigo-500/50"
-                : "bg-zinc-900 border-zinc-800 hover:border-zinc-700"
+                ? "bg-[var(--color-surface-2)] border-indigo-500/50"
+                : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)]"
             )}
             aria-pressed={metric.kind === selectedKind}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <span className="text-base">{KIND_ICON[metric.kind]}</span>
-                <span className="text-xs font-medium text-zinc-300">{metric.label}</span>
+                <span className="text-xs font-medium text-[var(--color-text-primary)]">{metric.label}</span>
               </div>
               <span className={cn("text-xs font-bold", THRESHOLD_STYLES[metric.threshold])}>
                 {Math.round(metric.current)}{metric.unit}
@@ -242,14 +242,14 @@ export default function ResourceMonitor() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Detail panel */}
-        <div className="flex-1 flex flex-col overflow-hidden border-r border-zinc-800">
+        <div className="flex-1 flex flex-col overflow-hidden border-r border-[var(--color-border)]">
           {/* Selected metric chart */}
-          <div className="shrink-0 p-5 border-b border-zinc-800">
+          <div className="shrink-0 p-5 border-b border-[var(--color-border)]">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{KIND_ICON[selected.kind]}</span>
-                  <span className="text-base font-semibold text-white">{selected.label}</span>
+                  <span className="text-base font-semibold text-[var(--color-text-primary)]">{selected.label}</span>
                   <span className={cn("text-xs px-2 py-0.5 rounded font-medium", {
                     ok: "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20",
                     warning: "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20",
@@ -264,21 +264,21 @@ export default function ResourceMonitor() {
                   <div className={cn("text-2xl font-bold", THRESHOLD_STYLES[selected.threshold])}>
                     {Math.round(selected.current)}{selected.unit}
                   </div>
-                  <div className="text-xs text-zinc-500">current</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">current</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-semibold text-zinc-300">{Math.round(selected.peak)}{selected.unit}</div>
-                  <div className="text-xs text-zinc-500">peak</div>
+                  <div className="text-lg font-semibold text-[var(--color-text-primary)]">{Math.round(selected.peak)}{selected.unit}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">peak</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-semibold text-zinc-300">{Math.round(selected.avg)}{selected.unit}</div>
-                  <div className="text-xs text-zinc-500">avg</div>
+                  <div className="text-lg font-semibold text-[var(--color-text-primary)]">{Math.round(selected.avg)}{selected.unit}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">avg</div>
                 </div>
               </div>
             </div>
 
             {/* Full sparkline */}
-            <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-3">
+            <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-3">
               <div className="flex items-end gap-1 h-20">
                 {selected.history.map((pt, i) => {
                   const max = Math.max(...selected.history.map((h) => h.value), 1);
@@ -293,7 +293,7 @@ export default function ResourceMonitor() {
                   );
                 })}
               </div>
-              <div className="flex justify-between text-xs text-zinc-600 mt-1">
+              <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
                 <span>{selected.history[0].t}</span>
                 <span>now</span>
               </div>
@@ -301,25 +301,25 @@ export default function ResourceMonitor() {
 
             {/* Node info */}
             <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-              <div className="bg-zinc-900 rounded border border-zinc-800 p-2">
-                <div className="text-zinc-600">CPU Cores</div>
-                <div className="text-zinc-200 font-medium">{NODE.totalCpuCores} cores</div>
+              <div className="bg-[var(--color-surface-1)] rounded border border-[var(--color-border)] p-2">
+                <div className="text-[var(--color-text-muted)]">CPU Cores</div>
+                <div className="text-[var(--color-text-primary)] font-medium">{NODE.totalCpuCores} cores</div>
               </div>
-              <div className="bg-zinc-900 rounded border border-zinc-800 p-2">
-                <div className="text-zinc-600">Memory</div>
-                <div className="text-zinc-200 font-medium">{memUsed} GB / {NODE.totalMemMB / 1024} GB</div>
+              <div className="bg-[var(--color-surface-1)] rounded border border-[var(--color-border)] p-2">
+                <div className="text-[var(--color-text-muted)]">Memory</div>
+                <div className="text-[var(--color-text-primary)] font-medium">{memUsed} GB / {NODE.totalMemMB / 1024} GB</div>
               </div>
-              <div className="bg-zinc-900 rounded border border-zinc-800 p-2">
-                <div className="text-zinc-600">Disk</div>
-                <div className="text-zinc-200 font-medium">{NODE.totalDiskGB} GB total</div>
+              <div className="bg-[var(--color-surface-1)] rounded border border-[var(--color-border)] p-2">
+                <div className="text-[var(--color-text-muted)]">Disk</div>
+                <div className="text-[var(--color-text-primary)] font-medium">{NODE.totalDiskGB} GB total</div>
               </div>
             </div>
           </div>
 
           {/* Process table */}
           <div className="flex-1 overflow-y-auto">
-            <div className="flex items-center justify-between px-5 py-2 border-b border-zinc-800 sticky top-0 bg-zinc-950 z-10">
-              <span className="text-xs font-medium text-zinc-400 uppercase tracking-wide">
+            <div className="flex items-center justify-between px-5 py-2 border-b border-[var(--color-border)] sticky top-0 bg-[var(--color-surface-0)] z-10">
+              <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">
                 Processes ({PROCESSES.length})
               </span>
               <div className="flex gap-1">
@@ -329,7 +329,7 @@ export default function ResourceMonitor() {
                     onClick={() => setProcSort(s)}
                     className={cn(
                       "px-2 py-0.5 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                      procSort === s ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400"
+                      procSort === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
                     )}
                   >
                     Sort by {s.toUpperCase()}
@@ -339,26 +339,26 @@ export default function ResourceMonitor() {
             </div>
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left px-5 py-2 text-zinc-500 font-medium">Process</th>
-                  <th className="text-right px-3 py-2 text-zinc-500 font-medium">PID</th>
-                  <th className="text-right px-3 py-2 text-zinc-500 font-medium">CPU%</th>
-                  <th className="text-right px-3 py-2 text-zinc-500 font-medium">MEM MB</th>
-                  <th className="text-right px-5 py-2 text-zinc-500 font-medium">Threads</th>
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="text-left px-5 py-2 text-[var(--color-text-muted)] font-medium">Process</th>
+                  <th className="text-right px-3 py-2 text-[var(--color-text-muted)] font-medium">PID</th>
+                  <th className="text-right px-3 py-2 text-[var(--color-text-muted)] font-medium">CPU%</th>
+                  <th className="text-right px-3 py-2 text-[var(--color-text-muted)] font-medium">MEM MB</th>
+                  <th className="text-right px-5 py-2 text-[var(--color-text-muted)] font-medium">Threads</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-[var(--color-border)]/50">
                 {sortedProcs.map((proc) => (
-                  <tr key={proc.pid} className="hover:bg-zinc-800/30">
-                    <td className="px-5 py-2 text-zinc-200 font-mono">{proc.name}</td>
-                    <td className="px-3 py-2 text-right text-zinc-500">{proc.pid}</td>
-                    <td className={cn("px-3 py-2 text-right font-medium", proc.cpu > 20 ? "text-amber-400" : "text-zinc-300")}>
+                  <tr key={proc.pid} className="hover:bg-[var(--color-surface-2)]/30">
+                    <td className="px-5 py-2 text-[var(--color-text-primary)] font-mono">{proc.name}</td>
+                    <td className="px-3 py-2 text-right text-[var(--color-text-muted)]">{proc.pid}</td>
+                    <td className={cn("px-3 py-2 text-right font-medium", proc.cpu > 20 ? "text-amber-400" : "text-[var(--color-text-primary)]")}>
                       {proc.cpu.toFixed(1)}%
                     </td>
-                    <td className={cn("px-3 py-2 text-right font-medium", proc.mem > 800 ? "text-rose-400" : "text-zinc-300")}>
+                    <td className={cn("px-3 py-2 text-right font-medium", proc.mem > 800 ? "text-rose-400" : "text-[var(--color-text-primary)]")}>
                       {proc.mem}
                     </td>
-                    <td className="px-5 py-2 text-right text-zinc-500">{proc.threads}</td>
+                    <td className="px-5 py-2 text-right text-[var(--color-text-muted)]">{proc.threads}</td>
                   </tr>
                 ))}
               </tbody>

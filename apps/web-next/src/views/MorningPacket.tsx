@@ -138,17 +138,17 @@ function PRRow({ pr }: { pr: PRItem }) {
     ? <GitMerge className="w-3.5 h-3.5 text-violet-400" />
     : pr.status === 'open'
     ? <GitPullRequest className="w-3.5 h-3.5 text-emerald-400" />
-    : <XCircle className="w-3.5 h-3.5 text-zinc-500" />;
+    : <XCircle className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />;
 
   return (
-    <div className="flex items-center gap-3 py-2.5 border-b border-zinc-800/60 last:border-0">
+    <div className="flex items-center gap-3 py-2.5 border-b border-[var(--color-border)]/60 last:border-0">
       <div className="shrink-0">{statusIcon}</div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono text-zinc-500">#{pr.number}</span>
-          <span className="text-sm text-zinc-200 truncate">{pr.title}</span>
+          <span className="text-xs font-mono text-[var(--color-text-muted)]">#{pr.number}</span>
+          <span className="text-sm text-[var(--color-text-primary)] truncate">{pr.title}</span>
         </div>
-        <div className="flex items-center gap-2 mt-0.5 text-[10px] text-zinc-500">
+        <div className="flex items-center gap-2 mt-0.5 text-[10px] text-[var(--color-text-muted)]">
           <span>{pr.author}</span>
           <span>·</span>
           <span className="text-emerald-600">+{pr.additions.toLocaleString()}</span>
@@ -165,22 +165,22 @@ function AgentRow({ agent }: { agent: AgentActivity }) {
     ? 'bg-emerald-400 animate-pulse'
     : agent.status === 'error'
     ? 'bg-red-400'
-    : 'bg-zinc-600';
+    : 'bg-[var(--color-surface-3)]';
 
   return (
-    <div className="flex items-center gap-3 py-2.5 border-b border-zinc-800/60 last:border-0">
+    <div className="flex items-center gap-3 py-2.5 border-b border-[var(--color-border)]/60 last:border-0">
       <span className="text-lg shrink-0">{agent.emoji}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-zinc-200">{agent.agent}</span>
-          <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">{agent.model}</span>
+          <span className="text-sm font-medium text-[var(--color-text-primary)]">{agent.agent}</span>
+          <span className="text-[10px] text-[var(--color-text-muted)] bg-[var(--color-surface-2)] px-1.5 py-0.5 rounded">{agent.model}</span>
           <div className={cn('w-1.5 h-1.5 rounded-full ml-auto', statusDot)} />
         </div>
-        <div className="text-[10px] text-zinc-500 mt-0.5 truncate">{agent.lastTask}</div>
+        <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5 truncate">{agent.lastTask}</div>
       </div>
       <div className="text-right shrink-0">
-        <div className="text-xs font-medium text-zinc-300">{agent.tasksCompleted} tasks</div>
-        <div className="text-[10px] text-zinc-600">{agent.lastActive}</div>
+        <div className="text-xs font-medium text-[var(--color-text-primary)]">{agent.tasksCompleted} tasks</div>
+        <div className="text-[10px] text-[var(--color-text-muted)]">{agent.lastActive}</div>
       </div>
     </div>
   );
@@ -190,7 +190,7 @@ function PriorityCard({ item }: { item: PriorityItem }) {
   const urgencyConfig = {
     critical: { color: 'border-red-800/60 bg-red-900/10', badge: 'bg-red-900/40 text-red-400 border-red-800/40', icon: AlertTriangle },
     high: { color: 'border-amber-800/60 bg-amber-900/10', badge: 'bg-amber-900/40 text-amber-400 border-amber-800/40', icon: Zap },
-    medium: { color: 'border-zinc-800 bg-zinc-900/50', badge: 'bg-zinc-800 text-zinc-400 border-zinc-700', icon: Circle },
+    medium: { color: 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50', badge: 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]', icon: Circle },
   };
   const cfg = urgencyConfig[item.urgency];
   const Icon = cfg.icon;
@@ -201,7 +201,7 @@ function PriorityCard({ item }: { item: PriorityItem }) {
         <Icon className="w-3.5 h-3.5 mt-0.5 shrink-0 text-inherit opacity-70" />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-sm text-zinc-200 leading-snug">{item.title}</p>
+            <p className="text-sm text-[var(--color-text-primary)] leading-snug">{item.title}</p>
             <div className="flex items-center gap-1.5 shrink-0">
               {item.requiresDavid && (
                 <span className="text-[10px] px-1.5 py-0.5 bg-violet-900/40 text-violet-400 border border-violet-800/40 rounded font-medium">
@@ -214,15 +214,15 @@ function PriorityCard({ item }: { item: PriorityItem }) {
             </div>
           </div>
           <div className="flex items-center gap-2 mt-1.5">
-            <span className="text-[10px] text-zinc-500">Owner: {item.owner}</span>
+            <span className="text-[10px] text-[var(--color-text-muted)]">Owner: {item.owner}</span>
             {item.blockedBy && (
               <>
-                <span className="text-zinc-700">·</span>
+                <span className="text-[var(--color-text-muted)]">·</span>
                 <span className="text-[10px] text-red-400">⚠ {item.blockedBy}</span>
               </>
             )}
           </div>
-          <code className="block mt-1.5 text-[10px] text-zinc-500 font-mono bg-zinc-900 px-2 py-1 rounded border border-zinc-800 truncate">
+          <code className="block mt-1.5 text-[10px] text-[var(--color-text-muted)] font-mono bg-[var(--color-surface-1)] px-2 py-1 rounded border border-[var(--color-border)] truncate">
             {item.action}
           </code>
         </div>
@@ -248,37 +248,37 @@ export default function MorningPacket() {
   ];
 
   return (
-    <div className="flex-1 overflow-y-auto bg-zinc-950 text-zinc-100">
+    <div className="flex-1 overflow-y-auto bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Hero header */}
-      <div className="relative overflow-hidden border-b border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-900 to-violet-950/30 px-6 py-8">
+      <div className="relative overflow-hidden border-b border-[var(--color-border)] bg-gradient-to-br from-zinc-900 via-zinc-900 to-violet-950/30 px-6 py-8">
         <div className="max-w-4xl">
-          <div className="flex items-center gap-2 text-zinc-500 text-xs mb-2">
+          <div className="flex items-center gap-2 text-[var(--color-text-muted)] text-xs mb-2">
             <Coffee className="w-3.5 h-3.5" />
             <span>{dateStr}</span>
             <span>·</span>
             <Calendar className="w-3 h-3" />
             <span>{now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
-          <h1 className="text-3xl font-bold text-zinc-100 mb-1">
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">
             {greeting}, David. <span className="text-violet-400">☀️</span>
           </h1>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-[var(--color-text-secondary)] text-sm">
             The squad shipped overnight. Here's what happened and what needs your attention.
           </p>
 
           {/* Quick stats row */}
           <div className="grid grid-cols-4 gap-3 mt-6">
             {STATS.map(({ label, value, delta, deltaUp, color, icon: Icon }) => (
-              <div key={label} className="bg-zinc-900/70 border border-zinc-800 rounded-xl p-3">
+              <div key={label} className="bg-[var(--color-surface-1)]/70 border border-[var(--color-border)] rounded-xl p-3">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Icon className={cn('w-3.5 h-3.5', color)} />
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{label}</span>
+                  <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">{label}</span>
                 </div>
                 <p className={cn('text-2xl font-bold', color)}>{value}</p>
                 {delta && (
                   <p className={cn('text-[10px] mt-0.5 flex items-center gap-0.5',
                     deltaUp === true ? 'text-emerald-500' :
-                    deltaUp === false ? 'text-amber-500' : 'text-zinc-500'
+                    deltaUp === false ? 'text-amber-500' : 'text-[var(--color-text-muted)]'
                   )}>
                     {deltaUp === true && <TrendingUp className="w-2.5 h-2.5" />}
                     {deltaUp === false && <TrendingDown className="w-2.5 h-2.5" />}
@@ -292,7 +292,7 @@ export default function MorningPacket() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-zinc-800 px-6">
+      <div className="border-b border-[var(--color-border)] px-6">
         <div className="flex gap-1 -mb-px">
           {tabs.map((t) => (
             <button
@@ -303,7 +303,7 @@ export default function MorningPacket() {
                 'flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors focus-visible:outline-none',
                 tab === t.id
                   ? 'border-violet-500 text-violet-400'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                  : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
               )}
             >
               <span>{t.emoji}</span>
@@ -321,7 +321,7 @@ export default function MorningPacket() {
           <div className="grid grid-cols-2 gap-6">
             {/* Top priorities summary */}
             <div>
-              <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
                 <Target className="w-4 h-4 text-violet-400" />
                 Top Priorities Today
               </h2>
@@ -332,7 +332,7 @@ export default function MorningPacket() {
                 <button
                   type="button"
                   onClick={() => setTab('priorities')}
-                  className="w-full text-center text-xs text-zinc-500 hover:text-zinc-300 py-2 transition-colors flex items-center justify-center gap-1"
+                  className="w-full text-center text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] py-2 transition-colors flex items-center justify-center gap-1"
                 >
                   View all {PRIORITIES.length} priorities
                   <ArrowRight className="w-3 h-3" />
@@ -342,11 +342,11 @@ export default function MorningPacket() {
 
             {/* Overnight PRs summary */}
             <div>
-              <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
                 <GitPullRequest className="w-4 h-4 text-blue-400" />
                 Overnight PRs ({OVERNIGHT_PRS.length} open)
               </h2>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-1">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl px-4 py-1">
                 {OVERNIGHT_PRS.slice(0, 4).map((pr) => (
                   <PRRow key={pr.number} pr={pr} />
                 ))}
@@ -354,7 +354,7 @@ export default function MorningPacket() {
               <button
                 type="button"
                 onClick={() => setTab('prs')}
-                className="w-full text-center text-xs text-zinc-500 hover:text-zinc-300 py-2 transition-colors flex items-center justify-center gap-1 mt-1"
+                className="w-full text-center text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] py-2 transition-colors flex items-center justify-center gap-1 mt-1"
               >
                 View all {OVERNIGHT_PRS.length} PRs
                 <ArrowRight className="w-3 h-3" />
@@ -363,11 +363,11 @@ export default function MorningPacket() {
 
             {/* Agent summary */}
             <div>
-              <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
                 <Activity className="w-4 h-4 text-emerald-400" />
                 Agent Activity
               </h2>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-1">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl px-4 py-1">
                 {AGENT_ACTIVITY.slice(0, 4).map((a) => (
                   <AgentRow key={a.agent} agent={a} />
                 ))}
@@ -376,7 +376,7 @@ export default function MorningPacket() {
 
             {/* Today's schedule */}
             <div>
-              <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-amber-400" />
                 Today's Schedule
               </h2>
@@ -387,11 +387,11 @@ export default function MorningPacket() {
                   { time: '~7:00 PM', event: 'Discovery run Wave 3', status: 'upcoming', note: '5 agents' },
                   { time: 'Anytime', event: 'PR Review: #61, #68, #43, #47', status: 'pending', note: 'Tim/Xavier can merge without David' },
                 ].map(({ time, event, note }) => (
-                  <div key={event} className="flex items-start gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
-                    <span className="text-xs font-mono text-zinc-500 shrink-0 mt-0.5 w-20">{time}</span>
+                  <div key={event} className="flex items-start gap-3 p-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl">
+                    <span className="text-xs font-mono text-[var(--color-text-muted)] shrink-0 mt-0.5 w-20">{time}</span>
                     <div>
-                      <p className="text-sm text-zinc-200">{event}</p>
-                      {note && <p className="text-[10px] text-zinc-500 mt-0.5">{note}</p>}
+                      <p className="text-sm text-[var(--color-text-primary)]">{event}</p>
+                      {note && <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{note}</p>}
                     </div>
                   </div>
                 ))}
@@ -404,11 +404,11 @@ export default function MorningPacket() {
         {tab === 'priorities' && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-zinc-300">All Priority Items</h2>
-              <div className="flex items-center gap-2 text-xs text-zinc-500">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">All Priority Items</h2>
+              <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> Critical</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> High</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-zinc-500 inline-block" /> Medium</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[var(--color-surface-3)] inline-block" /> Medium</span>
               </div>
             </div>
             <div className="space-y-3">
@@ -422,7 +422,7 @@ export default function MorningPacket() {
                 <Star className="w-4 h-4 text-violet-400" />
                 <span className="text-sm font-medium text-violet-300">David's action items</span>
               </div>
-              <div className="space-y-1 text-sm text-zinc-300">
+              <div className="space-y-1 text-sm text-[var(--color-text-primary)]">
                 <div className="flex items-center gap-2">
                   <ChevronRight className="w-3 h-3 text-violet-500 shrink-0" />
                   <span>Configure Brave API key — <strong>before 10AM</strong> to avoid blind discovery run</span>
@@ -440,19 +440,19 @@ export default function MorningPacket() {
         {tab === 'prs' && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-zinc-300">Overnight Pull Requests</h2>
-              <div className="flex items-center gap-3 text-xs text-zinc-500">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Overnight Pull Requests</h2>
+              <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                 <span>{OVERNIGHT_PRS.filter(p => p.status === 'merged').length} merged</span>
                 <span>{OVERNIGHT_PRS.filter(p => p.status === 'open').length} open</span>
               </div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-1">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl px-4 py-1">
               {OVERNIGHT_PRS.map((pr) => (
                 <PRRow key={pr.number} pr={pr} />
               ))}
             </div>
-            <div className="mt-4 p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-500">
-              <span className="font-medium text-zinc-400">Note:</span> PRs #61, #68, #43, #47, #46 can all be merged by Tim or Xavier. David sign-off only required for security or architectural decisions. See WORK_PROTOCOL.md §12.
+            <div className="mt-4 p-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl text-xs text-[var(--color-text-muted)]">
+              <span className="font-medium text-[var(--color-text-secondary)]">Note:</span> PRs #61, #68, #43, #47, #46 can all be merged by Tim or Xavier. David sign-off only required for security or architectural decisions. See WORK_PROTOCOL.md §12.
             </div>
           </div>
         )}
@@ -461,13 +461,13 @@ export default function MorningPacket() {
         {tab === 'agents' && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-zinc-300">Agent Activity — Overnight</h2>
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Agent Activity — Overnight</h2>
               <div className="flex items-center gap-3 text-xs">
                 <span className="flex items-center gap-1 text-emerald-400"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" /> Active</span>
-                <span className="flex items-center gap-1 text-zinc-500"><span className="w-1.5 h-1.5 rounded-full bg-zinc-600 inline-block" /> Idle</span>
+                <span className="flex items-center gap-1 text-[var(--color-text-muted)]"><span className="w-1.5 h-1.5 rounded-full bg-[var(--color-surface-3)] inline-block" /> Idle</span>
               </div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-1 mb-4">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl px-4 py-1 mb-4">
               {AGENT_ACTIVITY.map((a) => (
                 <AgentRow key={a.agent} agent={a} />
               ))}
@@ -479,10 +479,10 @@ export default function MorningPacket() {
                 { label: 'Total Tasks Completed', value: AGENT_ACTIVITY.reduce((s, a) => s + a.tasksCompleted, 0).toString(), icon: CheckCircle, color: 'text-emerald-400' },
                 { label: 'Agents Active Now', value: AGENT_ACTIVITY.filter(a => a.status === 'active').length.toString(), icon: Activity, color: 'text-blue-400' },
               ].map(({ label, value, icon: Icon, color }) => (
-                <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
+                <div key={label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
                   <Icon className={cn('w-5 h-5 mx-auto mb-2', color)} />
                   <p className={cn('text-2xl font-bold', color)}>{value}</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">{label}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{label}</p>
                 </div>
               ))}
             </div>

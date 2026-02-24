@@ -710,7 +710,7 @@ export default function AgentApprovalQueue({ isLoading = false }: { isLoading?: 
       {/* WCAG 2.1 AA — Skip navigation */}
       <a
         href="#aaq-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>

@@ -47,7 +47,7 @@ const CATEGORY_LABELS: Record<Category, string> = {
 const STATUS_STYLES: Record<Status, string> = {
   active: "text-emerald-400 bg-emerald-500/15 border-emerald-500/30",
   draft: "text-amber-400 bg-amber-500/15 border-amber-500/30",
-  deprecated: "text-zinc-500 bg-zinc-700/40 border-zinc-600/30",
+  deprecated: "text-[var(--color-text-muted)] bg-[var(--color-surface-3)]/40 border-[var(--color-surface-3)]/30",
 };
 
 const POLICIES: Policy[] = [
@@ -168,11 +168,11 @@ export default function PolicyManager() {
   const totalViolations = POLICIES.reduce((sum, p) => sum + p.violations, 0);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Policy Manager</h1>
-        <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+        <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-4 py-2 rounded text-sm font-medium transition-colors">
           + New Policy
         </button>
       </div>
@@ -184,8 +184,8 @@ export default function PolicyManager() {
           className={cn(
             "px-3 py-1 rounded-full text-sm border transition-colors",
             activeCategory === null
-              ? "bg-indigo-600 border-indigo-500 text-white"
-              : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-600"
+              ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+              : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
           )}
         >
           All
@@ -201,7 +201,7 @@ export default function PolicyManager() {
                 "px-3 py-1 rounded-full text-sm border transition-colors",
                 isActive
                   ? cn(colors.bg, colors.border, colors.text)
-                  : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                  : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
               )}
             >
               {CATEGORY_LABELS[cat]}
@@ -213,13 +213,13 @@ export default function PolicyManager() {
       {/* Stats Bar */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: "Total Policies", value: totalPolicies, style: "text-white" },
+          { label: "Total Policies", value: totalPolicies, style: "text-[var(--color-text-primary)]" },
           { label: "Active", value: activePolicies, style: "text-emerald-400" },
           { label: "Violations This Month", value: totalViolations, style: totalViolations > 0 ? "text-rose-400" : "text-emerald-400" },
-          { label: "Last Audit", value: "Feb 10, 2026", style: "text-zinc-400" },
+          { label: "Last Audit", value: "Feb 10, 2026", style: "text-[var(--color-text-secondary)]" },
         ].map((stat) => (
-          <div key={stat.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <div className="text-zinc-500 text-xs uppercase tracking-wider mb-1">{stat.label}</div>
+          <div key={stat.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <div className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-1">{stat.label}</div>
             <div className={cn("text-xl font-semibold", stat.style)}>{stat.value}</div>
           </div>
         ))}
@@ -237,13 +237,13 @@ export default function PolicyManager() {
                 key={policy.id}
                 onClick={() => setSelectedId(isSelected ? null : policy.id)}
                 className={cn(
-                  "w-full text-left bg-zinc-900 border rounded-lg p-4 transition-colors",
-                  isSelected ? "border-indigo-500 ring-1 ring-indigo-500/30" : "border-zinc-800 hover:border-zinc-700"
+                  "w-full text-left bg-[var(--color-surface-1)] border rounded-lg p-4 transition-colors",
+                  isSelected ? "border-indigo-500 ring-1 ring-indigo-500/30" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-white truncate">{policy.name}</div>
+                    <div className="font-medium text-[var(--color-text-primary)] truncate">{policy.name}</div>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       <span className={cn("text-xs px-2 py-0.5 rounded-full border", catColors.bg, catColors.border, catColors.text)}>
                         {CATEGORY_LABELS[policy.category]}
@@ -251,16 +251,16 @@ export default function PolicyManager() {
                       <span className={cn("text-xs px-2 py-0.5 rounded-full border", STATUS_STYLES[policy.status])}>
                         {policy.status}
                       </span>
-                      <span className="text-xs text-zinc-500">v{policy.version}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">v{policy.version}</span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     {policy.violations > 0 ? (
                       <div className="text-rose-400 font-semibold text-sm">{policy.violations} violation{policy.violations !== 1 ? "s" : ""}</div>
                     ) : (
-                      <div className="text-zinc-600 text-sm">0 violations</div>
+                      <div className="text-[var(--color-text-muted)] text-sm">0 violations</div>
                     )}
-                    <div className="text-zinc-500 text-xs mt-1">{policy.lastUpdated}</div>
+                    <div className="text-[var(--color-text-muted)] text-xs mt-1">{policy.lastUpdated}</div>
                   </div>
                 </div>
               </button>
@@ -277,12 +277,12 @@ export default function PolicyManager() {
         </div>
 
         {/* Right: Detail Panel */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 overflow-y-auto max-h-[520px]">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-6 overflow-y-auto max-h-[520px]">
           {selected ? (
             <div className="space-y-5">
               {/* Detail Header */}
               <div>
-                <h2 className="text-xl font-semibold text-white">{selected.name}</h2>
+                <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">{selected.name}</h2>
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <span className={cn("text-xs px-2 py-0.5 rounded-full border", CATEGORY_COLORS[selected.category].bg, CATEGORY_COLORS[selected.category].border, CATEGORY_COLORS[selected.category].text)}>
                     {CATEGORY_LABELS[selected.category]}
@@ -301,26 +301,26 @@ export default function PolicyManager() {
                   { label: "Last Updated", value: selected.lastUpdated },
                 ].map((item) => (
                   <div key={item.label}>
-                    <div className="text-zinc-500 text-xs uppercase tracking-wider">{item.label}</div>
-                    <div className="text-zinc-300 text-sm mt-0.5">{item.value}</div>
+                    <div className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider">{item.label}</div>
+                    <div className="text-[var(--color-text-primary)] text-sm mt-0.5">{item.value}</div>
                   </div>
                 ))}
               </div>
 
               {/* Description */}
               <div>
-                <div className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Description</div>
-                <p className="text-zinc-400 text-sm leading-relaxed">{selected.description}</p>
+                <div className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-1">Description</div>
+                <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed">{selected.description}</p>
               </div>
 
               {/* Rules */}
               <div>
-                <div className="text-zinc-500 text-xs uppercase tracking-wider mb-2">Rules</div>
+                <div className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-2">Rules</div>
                 <ol className="space-y-1.5">
                   {selected.rules.map((rule, i) => (
                     <li key={i} className="flex gap-2 text-sm">
                       <span className="text-indigo-400 font-mono shrink-0">{i + 1}.</span>
-                      <span className="text-zinc-300">{rule}</span>
+                      <span className="text-[var(--color-text-primary)]">{rule}</span>
                     </li>
                   ))}
                 </ol>
@@ -328,10 +328,10 @@ export default function PolicyManager() {
 
               {/* Affected Agents */}
               <div>
-                <div className="text-zinc-500 text-xs uppercase tracking-wider mb-2">Affected Agents</div>
+                <div className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-2">Affected Agents</div>
                 <div className="flex flex-wrap gap-1.5">
                   {selected.affectedAgents.map((agent) => (
-                    <span key={agent} className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-2 py-0.5 rounded">
+                    <span key={agent} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-2 py-0.5 rounded">
                       {agent}
                     </span>
                   ))}
@@ -340,44 +340,44 @@ export default function PolicyManager() {
 
               {/* Violations Table */}
               <div>
-                <div className="text-zinc-500 text-xs uppercase tracking-wider mb-2">
+                <div className="text-[var(--color-text-muted)] text-xs uppercase tracking-wider mb-2">
                   Recent Violations
                 </div>
                 {(SAMPLE_VIOLATIONS[selected.id]?.length ?? 0) > 0 ? (
-                  <div className="border border-zinc-800 rounded overflow-hidden">
-                    <div className="grid grid-cols-[100px_1fr_130px] gap-px bg-zinc-800 text-xs">
-                      <div className="bg-zinc-900 px-3 py-2 text-zinc-500 font-medium">Agent</div>
-                      <div className="bg-zinc-900 px-3 py-2 text-zinc-500 font-medium">Description</div>
-                      <div className="bg-zinc-900 px-3 py-2 text-zinc-500 font-medium">Timestamp</div>
+                  <div className="border border-[var(--color-border)] rounded overflow-hidden">
+                    <div className="grid grid-cols-[100px_1fr_130px] gap-px bg-[var(--color-surface-2)] text-xs">
+                      <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[var(--color-text-muted)] font-medium">Agent</div>
+                      <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[var(--color-text-muted)] font-medium">Description</div>
+                      <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[var(--color-text-muted)] font-medium">Timestamp</div>
                     </div>
                     {(SAMPLE_VIOLATIONS[selected.id] ?? []).slice(0, 3).map((v, i) => (
-                      <div key={i} className="grid grid-cols-[100px_1fr_130px] gap-px bg-zinc-800 text-xs">
-                        <div className="bg-zinc-900 px-3 py-2 text-rose-400">{v.agent}</div>
-                        <div className="bg-zinc-900 px-3 py-2 text-zinc-400">{v.description}</div>
-                        <div className="bg-zinc-900 px-3 py-2 text-zinc-500">{v.timestamp}</div>
+                      <div key={i} className="grid grid-cols-[100px_1fr_130px] gap-px bg-[var(--color-surface-2)] text-xs">
+                        <div className="bg-[var(--color-surface-1)] px-3 py-2 text-rose-400">{v.agent}</div>
+                        <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[var(--color-text-secondary)]">{v.description}</div>
+                        <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[var(--color-text-muted)]">{v.timestamp}</div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-zinc-600 text-sm bg-zinc-800/50 rounded px-3 py-3 text-center">No violations this month</div>
+                  <div className="text-[var(--color-text-muted)] text-sm bg-[var(--color-surface-2)]/50 rounded px-3 py-3 text-center">No violations this month</div>
                 )}
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-2">
-                <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-sm transition-colors">
+                <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm transition-colors">
                   Edit Policy
                 </button>
-                <button className="bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 px-3 py-1.5 rounded text-sm transition-colors">
+                <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-amber-400 border border-[var(--color-border)] px-3 py-1.5 rounded text-sm transition-colors">
                   Deprecate
                 </button>
-                <button className="bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 px-3 py-1.5 rounded text-sm transition-colors">
+                <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] border border-[var(--color-border)] px-3 py-1.5 rounded text-sm transition-colors">
                   Run Audit
                 </button>
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full text-zinc-600 text-sm">
+            <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">
               Select a policy to view details
             </div>
           )}
@@ -385,16 +385,16 @@ export default function PolicyManager() {
       </div>
 
       {/* Compliance Score */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-        <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4">Compliance Score by Category</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+        <h3 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-4">Compliance Score by Category</h3>
         <div className="space-y-3">
           {ALL_CATEGORIES.map((cat) => {
             const score = complianceForCategory(cat);
             const colors = CATEGORY_COLORS[cat];
             return (
               <div key={cat} className="flex items-center gap-3">
-                <div className="w-28 text-sm text-zinc-400 shrink-0">{CATEGORY_LABELS[cat]}</div>
-                <div className="flex-1 bg-zinc-800 rounded-full h-3 overflow-hidden">
+                <div className="w-28 text-sm text-[var(--color-text-secondary)] shrink-0">{CATEGORY_LABELS[cat]}</div>
+                <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-3 overflow-hidden">
                   <div
                     className={cn("h-full rounded-full transition-all", colors.bg.replace("/15", ""))}
                     style={{ width: `${score}%` }}

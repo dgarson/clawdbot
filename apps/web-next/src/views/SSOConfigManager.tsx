@@ -132,7 +132,7 @@ function protocolColor(p: SSOProtocol): string {
     saml:   "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
     oidc:   "bg-blue-500/20 text-blue-400 border-blue-500/30",
     oauth2: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-    ldap:   "bg-zinc-500/20 text-zinc-400 border-zinc-500/30",
+    ldap:   "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/30",
   };
   return map[p];
 }
@@ -140,7 +140,7 @@ function protocolColor(p: SSOProtocol): string {
 function statusColor(s: ConnectionStatus): string {
   const map: Record<ConnectionStatus, string> = {
     active:   "bg-emerald-400",
-    inactive: "bg-zinc-600",
+    inactive: "bg-[var(--color-surface-3)]",
     testing:  "bg-amber-400",
     error:    "bg-rose-500",
   };
@@ -150,7 +150,7 @@ function statusColor(s: ConnectionStatus): string {
 function statusText(s: ConnectionStatus): string {
   const map: Record<ConnectionStatus, string> = {
     active:   "text-emerald-400",
-    inactive: "text-zinc-500",
+    inactive: "text-[var(--color-text-muted)]",
     testing:  "text-amber-400",
     error:    "text-rose-400",
   };
@@ -179,7 +179,7 @@ function ConnectionsTab() {
           key={conn.id}
           className={cn(
             "rounded-xl border p-4 cursor-pointer transition-all",
-            selected?.id === conn.id ? "border-indigo-500 bg-indigo-500/5" : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
+            selected?.id === conn.id ? "border-indigo-500 bg-indigo-500/5" : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
           )}
           onClick={() => setSelected(selected?.id === conn.id ? null : conn)}
         >
@@ -187,65 +187,65 @@ function ConnectionsTab() {
             <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", statusColor(conn.status))} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-medium text-white">{conn.name}</span>
+                <span className="font-medium text-[var(--color-text-primary)]">{conn.name}</span>
                 <span className={cn("text-xs px-1.5 py-0.5 rounded border uppercase", protocolColor(conn.protocol))}>
                   {conn.protocol}
                 </span>
                 <span className={cn("text-xs capitalize", statusText(conn.status))}>{conn.status}</span>
               </div>
-              <div className="text-xs text-zinc-500 mt-0.5">{conn.provider} · {conn.domains.join(", ")}</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{conn.provider} · {conn.domains.join(", ")}</div>
             </div>
             <div className="text-right text-xs">
-              <div className="text-white font-semibold">{conn.userCount.toLocaleString()}</div>
-              <div className="text-zinc-500">users</div>
+              <div className="text-[var(--color-text-primary)] font-semibold">{conn.userCount.toLocaleString()}</div>
+              <div className="text-[var(--color-text-muted)]">users</div>
             </div>
           </div>
 
           {selected?.id === conn.id && (
-            <div className="mt-4 border-t border-zinc-800 pt-4 space-y-4">
+            <div className="mt-4 border-t border-[var(--color-border)] pt-4 space-y-4">
               <div className="grid grid-cols-2 gap-4 text-xs">
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Entity / Issuer ID</span>
-                    <span className="font-mono text-zinc-300 text-right max-w-48 truncate">{conn.entityId}</span>
+                    <span className="text-[var(--color-text-muted)]">Entity / Issuer ID</span>
+                    <span className="font-mono text-[var(--color-text-primary)] text-right max-w-48 truncate">{conn.entityId}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Login URL</span>
+                    <span className="text-[var(--color-text-muted)]">Login URL</span>
                     <span className="font-mono text-indigo-300 text-right max-w-48 truncate">{conn.loginUrl}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Default Role</span>
-                    <span className="text-zinc-300">{conn.defaultRole}</span>
+                    <span className="text-[var(--color-text-muted)]">Default Role</span>
+                    <span className="text-[var(--color-text-primary)]">{conn.defaultRole}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Created</span>
-                    <span className="text-zinc-300">{conn.createdAt}</span>
+                    <span className="text-[var(--color-text-muted)]">Created</span>
+                    <span className="text-[var(--color-text-primary)]">{conn.createdAt}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Auto-provision</span>
-                    <span className={conn.autoProvision ? "text-emerald-400" : "text-zinc-500"}>{conn.autoProvision ? "enabled" : "disabled"}</span>
+                    <span className="text-[var(--color-text-muted)]">Auto-provision</span>
+                    <span className={conn.autoProvision ? "text-emerald-400" : "text-[var(--color-text-muted)]"}>{conn.autoProvision ? "enabled" : "disabled"}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">JIT provisioning</span>
-                    <span className={conn.jitProvisioning ? "text-emerald-400" : "text-zinc-500"}>{conn.jitProvisioning ? "enabled" : "disabled"}</span>
+                    <span className="text-[var(--color-text-muted)]">JIT provisioning</span>
+                    <span className={conn.jitProvisioning ? "text-emerald-400" : "text-[var(--color-text-muted)]"}>{conn.jitProvisioning ? "enabled" : "disabled"}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Last used</span>
-                    <span className="text-zinc-300">{conn.lastUsed.slice(0, 16).replace("T", " ")}</span>
+                    <span className="text-[var(--color-text-muted)]">Last used</span>
+                    <span className="text-[var(--color-text-primary)]">{conn.lastUsed.slice(0, 16).replace("T", " ")}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-500">Allowed domains</span>
-                    <span className="text-zinc-300">{conn.domains.length}</span>
+                    <span className="text-[var(--color-text-muted)]">Allowed domains</span>
+                    <span className="text-[var(--color-text-primary)]">{conn.domains.length}</span>
                   </div>
                 </div>
               </div>
               <div>
-                <div className="text-xs text-zinc-500 mb-1">Allowed domains</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Allowed domains</div>
                 <div className="flex flex-wrap gap-1">
                   {conn.domains.map((d) => (
-                    <span key={d} className="text-xs font-mono bg-zinc-800 text-zinc-300 rounded px-2 py-0.5">{d}</span>
+                    <span key={d} className="text-xs font-mono bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded px-2 py-0.5">{d}</span>
                   ))}
                 </div>
               </div>
@@ -271,7 +271,7 @@ function MappingsTab() {
             onClick={() => setActiveConn(c.id)}
             className={cn(
               "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-              activeConn === c.id ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+              activeConn === c.id ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {c.name}
@@ -279,29 +279,29 @@ function MappingsTab() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-        <h3 className="text-sm font-semibold text-white mb-3">{connName} — Attribute Mappings</h3>
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">{connName} — Attribute Mappings</h3>
         {filtered.length === 0 ? (
-          <div className="text-sm text-zinc-500 text-center py-8">No mappings configured for this connection</div>
+          <div className="text-sm text-[var(--color-text-muted)] text-center py-8">No mappings configured for this connection</div>
         ) : (
-          <div className="rounded-lg border border-zinc-800 overflow-hidden">
+          <div className="rounded-lg border border-[var(--color-border)] overflow-hidden">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-zinc-800 bg-zinc-950">
-                  <th className="text-left px-3 py-2 text-zinc-400">IdP Attribute</th>
-                  <th className="text-left px-3 py-2 text-zinc-400">App Field</th>
-                  <th className="text-left px-3 py-2 text-zinc-400">Transform</th>
-                  <th className="text-left px-3 py-2 text-zinc-400">Required</th>
+                <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-0)]">
+                  <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">IdP Attribute</th>
+                  <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">App Field</th>
+                  <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Transform</th>
+                  <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Required</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {filtered.map((m) => (
-                  <tr key={m.id} className="bg-zinc-950 hover:bg-zinc-900 transition-colors">
+                  <tr key={m.id} className="bg-[var(--color-surface-0)] hover:bg-[var(--color-surface-1)] transition-colors">
                     <td className="px-3 py-2 font-mono text-indigo-300">{m.samlAttribute}</td>
                     <td className="px-3 py-2 font-mono text-emerald-300">{m.appField}</td>
-                    <td className="px-3 py-2 text-zinc-400">{m.transform ?? "—"}</td>
+                    <td className="px-3 py-2 text-[var(--color-text-secondary)]">{m.transform ?? "—"}</td>
                     <td className="px-3 py-2">
-                      {m.required ? <span className="text-rose-400">yes</span> : <span className="text-zinc-500">no</span>}
+                      {m.required ? <span className="text-rose-400">yes</span> : <span className="text-[var(--color-text-muted)]">no</span>}
                     </td>
                   </tr>
                 ))}
@@ -325,44 +325,44 @@ function SessionsTab() {
         <div className="flex gap-1">
           <button
             onClick={() => setShowActive(false)}
-            className={cn("px-3 py-1 rounded-full text-xs font-medium transition-colors", !showActive ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white")}
+            className={cn("px-3 py-1 rounded-full text-xs font-medium transition-colors", !showActive ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             All
           </button>
           <button
             onClick={() => setShowActive(true)}
-            className={cn("px-3 py-1 rounded-full text-xs font-medium transition-colors", showActive ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white")}
+            className={cn("px-3 py-1 rounded-full text-xs font-medium transition-colors", showActive ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             Active Only
           </button>
         </div>
-        <span className="text-xs text-zinc-500 ml-auto">{visible.length} sessions shown</span>
+        <span className="text-xs text-[var(--color-text-muted)] ml-auto">{visible.length} sessions shown</span>
       </div>
 
-      <div className="rounded-xl border border-zinc-800 overflow-hidden">
+      <div className="rounded-xl border border-[var(--color-border)] overflow-hidden">
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900">
-              <th className="text-left px-3 py-2 text-zinc-400">User</th>
-              <th className="text-left px-3 py-2 text-zinc-400">Connection</th>
-              <th className="text-left px-3 py-2 text-zinc-400">Login at</th>
-              <th className="text-left px-3 py-2 text-zinc-400">Expires</th>
-              <th className="text-left px-3 py-2 text-zinc-400">IP</th>
-              <th className="text-left px-3 py-2 text-zinc-400">Status</th>
+            <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]">
+              <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">User</th>
+              <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Connection</th>
+              <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Login at</th>
+              <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Expires</th>
+              <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">IP</th>
+              <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800">
+          <tbody className="divide-y divide-[var(--color-border)]">
             {visible.map((s) => {
               const conn = connections.find((c) => c.id === s.connectionId);
               return (
-                <tr key={s.id} className="bg-zinc-950 hover:bg-zinc-900 transition-colors">
-                  <td className="px-3 py-2 text-zinc-300">{s.email}</td>
-                  <td className="px-3 py-2 text-zinc-400">{conn?.name ?? s.connectionId}</td>
-                  <td className="px-3 py-2 text-zinc-400">{s.loginAt.slice(11, 16)} UTC</td>
-                  <td className="px-3 py-2 text-zinc-500">{s.expiresAt.slice(11, 16)} UTC</td>
-                  <td className="px-3 py-2 font-mono text-zinc-500">{s.ipAddress}</td>
+                <tr key={s.id} className="bg-[var(--color-surface-0)] hover:bg-[var(--color-surface-1)] transition-colors">
+                  <td className="px-3 py-2 text-[var(--color-text-primary)]">{s.email}</td>
+                  <td className="px-3 py-2 text-[var(--color-text-secondary)]">{conn?.name ?? s.connectionId}</td>
+                  <td className="px-3 py-2 text-[var(--color-text-secondary)]">{s.loginAt.slice(11, 16)} UTC</td>
+                  <td className="px-3 py-2 text-[var(--color-text-muted)]">{s.expiresAt.slice(11, 16)} UTC</td>
+                  <td className="px-3 py-2 font-mono text-[var(--color-text-muted)]">{s.ipAddress}</td>
                   <td className="px-3 py-2">
-                    <span className={cn("font-medium", s.active ? "text-emerald-400" : "text-zinc-600")}>
+                    <span className={cn("font-medium", s.active ? "text-emerald-400" : "text-[var(--color-text-muted)]")}>
                       {s.active ? "active" : "expired"}
                     </span>
                   </td>
@@ -380,18 +380,18 @@ function LogsTab() {
   return (
     <div className="space-y-2">
       {provisioningLogs.map((log) => (
-        <div key={log.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+        <div key={log.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
           <div className="flex items-center gap-3">
             <span className={cn("font-semibold text-xs capitalize w-20 shrink-0", logActionColor(log.action))}>
               {log.action}
             </span>
-            <span className="text-sm text-white">{log.email}</span>
-            <span className="text-xs text-zinc-500 ml-auto">{log.timestamp.slice(0, 16).replace("T", " ")}</span>
+            <span className="text-sm text-[var(--color-text-primary)]">{log.email}</span>
+            <span className="text-xs text-[var(--color-text-muted)] ml-auto">{log.timestamp.slice(0, 16).replace("T", " ")}</span>
           </div>
           <div className="flex items-center gap-2 mt-1.5">
-            <span className="text-xs text-zinc-500">{connections.find((c) => c.id === log.connectionId)?.name ?? log.connectionId}</span>
-            <span className="text-zinc-700">·</span>
-            <span className="text-xs text-zinc-400">{log.details}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">{connections.find((c) => c.id === log.connectionId)?.name ?? log.connectionId}</span>
+            <span className="text-[var(--color-text-muted)]">·</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">{log.details}</span>
           </div>
         </div>
       ))}
@@ -412,10 +412,10 @@ export default function SSOConfigManager() {
   const activeSessions = sessions.filter((s) => s.active).length;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1">SSO Configuration Manager</h1>
-        <p className="text-zinc-400 text-sm">
+        <p className="text-[var(--color-text-secondary)] text-sm">
           SAML, OIDC & OAuth2 identity provider connections — {connections.length} providers, {totalUsers.toLocaleString()} users
         </p>
       </div>
@@ -424,19 +424,19 @@ export default function SSOConfigManager() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
           { label: "Active Connections", value: active, color: "text-emerald-400" },
-          { label: "Total SSO Users", value: totalUsers.toLocaleString(), color: "text-white" },
+          { label: "Total SSO Users", value: totalUsers.toLocaleString(), color: "text-[var(--color-text-primary)]" },
           { label: "Active Sessions", value: activeSessions, color: "text-indigo-400" },
-          { label: "Domains Protected", value: new Set(connections.flatMap((c) => c.domains)).size, color: "text-white" },
+          { label: "Domains Protected", value: new Set(connections.flatMap((c) => c.domains)).size, color: "text-[var(--color-text-primary)]" },
         ].map((kpi) => (
-          <div key={kpi.label} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+          <div key={kpi.label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
             <div className={cn("text-3xl font-bold", kpi.color)}>{kpi.value}</div>
-            <div className="text-sm text-zinc-400 mt-1">{kpi.label}</div>
+            <div className="text-sm text-[var(--color-text-secondary)] mt-1">{kpi.label}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
+      <div className="flex gap-1 mb-6 border-b border-[var(--color-border)]">
         {TABS.map((t) => (
           <button
             key={t}
@@ -445,7 +445,7 @@ export default function SSOConfigManager() {
               "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
               tab === t
                 ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-zinc-400 hover:text-white"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}

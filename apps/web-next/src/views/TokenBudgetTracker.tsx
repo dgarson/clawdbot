@@ -217,7 +217,7 @@ function TimeRangeSelector({ current, onChange }: { current: TimeRange; onChange
       <select
         value={current}
         onChange={(e) => onChange(e.target.value as TimeRange)}
-        className="appearance-none bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white pr-8"
+        className="appearance-none bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)] pr-8"
       >
         {ranges.map((r) => (
           <option key={r.key} value={r.key}>
@@ -225,7 +225,7 @@ function TimeRangeSelector({ current, onChange }: { current: TimeRange; onChange
           </option>
         ))}
       </select>
-      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)] pointer-events-none" />
     </div>
   );
 }
@@ -238,8 +238,8 @@ function BudgetGauge({ spend, budget }: { spend: number; budget: number }) {
     <div className="relative w-40 h-40 mx-auto">
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-3xl font-bold text-white">{formatPercentage(percentage)}</div>
-          <div className="text-sm text-zinc-400">used</div>
+          <div className="text-3xl font-bold text-[var(--color-text-primary)]">{formatPercentage(percentage)}</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">used</div>
         </div>
       </div>
       <svg className="w-full h-full" viewBox="0 0 100 100">
@@ -262,7 +262,7 @@ function BudgetGauge({ spend, budget }: { spend: number; budget: number }) {
 function SpendBar({ value, max, color }: { value: number; max: number; color: string }) {
   const width = (value / max) * 100;
   return (
-    <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+    <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
       <div className={cn('h-full transition-all', color)} style={{ width: `${width}%` }} />
     </div>
   );
@@ -279,7 +279,7 @@ function DailyTrendChart({ data }: { data: DailySpend[] }) {
           key={i}
           className={cn(
             'w-4 rounded-t-sm transition-all',
-            day.date === today ? 'bg-violet-500' : 'bg-zinc-700',
+            day.date === today ? 'bg-violet-500' : 'bg-[var(--color-surface-3)]',
           )}
           style={{ height: `${(day.spend / maxSpend) * 100}%` }}
           title={`${day.date}: ${formatCurrency(day.spend)}`}
@@ -294,15 +294,15 @@ function RateLimitPanel({ limit }: { limit: RateLimit }) {
   const color = percentage < 50 ? 'bg-green-500' : percentage < 75 ? 'bg-amber-500' : 'bg-red-500';
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-white">{limit.provider}</span>
-        <span className="text-xs text-zinc-400">RPM: {limit.rpm}</span>
+        <span className="text-sm font-medium text-[var(--color-text-primary)]">{limit.provider}</span>
+        <span className="text-xs text-[var(--color-text-secondary)]">RPM: {limit.rpm}</span>
       </div>
-      <div className="h-1 bg-zinc-800 rounded-full mb-1 overflow-hidden">
+      <div className="h-1 bg-[var(--color-surface-2)] rounded-full mb-1 overflow-hidden">
         <div className={cn('h-full', color)} style={{ width: `${percentage}%` }} />
       </div>
-      <div className="flex justify-between text-xs text-zinc-500">
+      <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
         <span>{formatTokens(limit.quotaUsed)} / {formatTokens(limit.quotaTotal)}</span>
         <span>Reset {limit.resetTime}</span>
       </div>
@@ -316,13 +316,13 @@ function AlertEntry({ alert }: { alert: BudgetAlert }) {
   const color = severity === 'critical' ? 'text-red-400' : severity === 'warning' ? 'text-amber-400' : 'text-sky-400';
 
   return (
-    <div className="flex items-center gap-2 py-2 border-b border-zinc-800 last:border-0">
+    <div className="flex items-center gap-2 py-2 border-b border-[var(--color-border)] last:border-0">
       <Icon className={cn('w-4 h-4', color)} />
       <div className="flex-1">
-        <p className="text-xs text-zinc-300">{alert.message}</p>
-        <p className="text-xs text-zinc-500">{alert.timestamp.toLocaleTimeString()}</p>
+        <p className="text-xs text-[var(--color-text-primary)]">{alert.message}</p>
+        <p className="text-xs text-[var(--color-text-muted)]">{alert.timestamp.toLocaleTimeString()}</p>
       </div>
-      <span className="text-xs text-zinc-400">{alert.threshold}%</span>
+      <span className="text-xs text-[var(--color-text-secondary)]">{alert.threshold}%</span>
     </div>
   );
 }
@@ -345,26 +345,26 @@ function HeaderSection({
   const percentage = (budget.currentSpend / budget.totalBudget) * 100;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex items-center justify-between">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6 flex items-center justify-between">
       <div>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
           <DollarSign className="w-6 h-6 text-green-400" />
           Token Budget
         </h1>
-        <p className="text-sm text-zinc-400 mt-1">{budget.period}</p>
+        <p className="text-sm text-[var(--color-text-secondary)] mt-1">{budget.period}</p>
       </div>
       <div className="text-center">
         <BudgetGauge spend={budget.currentSpend} budget={budget.totalBudget} />
-        <p className="mt-2 text-sm text-zinc-400">
+        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
           {formatCurrency(budget.currentSpend)} / {formatCurrency(budget.totalBudget)}
         </p>
-        <p className="text-xs text-zinc-500">{formatPercentage(percentage)} used</p>
+        <p className="text-xs text-[var(--color-text-muted)]">{formatPercentage(percentage)} used</p>
       </div>
       <div className="flex items-center gap-4">
         <TimeRangeSelector current={range} onChange={onRangeChange} />
         <button
           onClick={onSetBudget}
-          className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium text-white transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium text-[var(--color-text-primary)] transition-colors"
         >
           <Settings className="w-4 h-4" />
           Set Budget
@@ -388,10 +388,10 @@ function BreakdownSection({
   const maxCost = Math.max(...items.map((i) => i.cost));
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col">
       <div className="flex items-center gap-2 mb-4">
         <Icon className="w-4 h-4 text-violet-400" />
-        <h3 className="text-sm font-semibold text-white">{title}</h3>
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{title}</h3>
       </div>
       <div className="flex-1 overflow-y-auto space-y-4">
         {items.map((item) => (
@@ -399,12 +399,12 @@ function BreakdownSection({
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-2">
                 {'emoji' in item && <span>{item.emoji}</span>}
-                <span className="font-medium text-white">{item.name}</span>
+                <span className="font-medium text-[var(--color-text-primary)]">{item.name}</span>
               </span>
-              <span className="text-zinc-400">{formatCurrency(item.cost)} ({formatPercentage(item.percentage)})</span>
+              <span className="text-[var(--color-text-secondary)]">{formatCurrency(item.cost)} ({formatPercentage(item.percentage)})</span>
             </div>
             <SpendBar value={item.cost} max={maxCost} color="bg-violet-500" />
-            <div className="text-xs text-zinc-500 flex justify-between">
+            <div className="text-xs text-[var(--color-text-muted)] flex justify-between">
               <span>In: {formatTokens(item.tokensIn)}</span>
               <span>Out: {formatTokens(item.tokensOut)}</span>
               {isAgent && <span>Tasks: { (item as AgentSpend).tasks }</span>}
@@ -418,13 +418,13 @@ function BreakdownSection({
 
 function DailyTrendSection({ daily }: { daily: DailySpend[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <LineChart className="w-4 h-4 text-amber-400" />
-        <h3 className="text-sm font-semibold text-white">Daily Spend Trend (Last 14 Days)</h3>
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Daily Spend Trend (Last 14 Days)</h3>
       </div>
       <DailyTrendChart data={daily} />
-      <div className="flex justify-between mt-2 text-xs text-zinc-500">
+      <div className="flex justify-between mt-2 text-xs text-[var(--color-text-muted)]">
         <span>{daily[0].date}</span>
         <span>Today</span>
       </div>
@@ -434,10 +434,10 @@ function DailyTrendSection({ daily }: { daily: DailySpend[] }) {
 
 function RateLimitsSection({ limits }: { limits: RateLimit[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <Gauge className="w-4 h-4 text-sky-400" />
-        <h3 className="text-sm font-semibold text-white">Rate Limit Tracker</h3>
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Rate Limit Tracker</h3>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {limits.map((limit) => (
@@ -450,16 +450,16 @@ function RateLimitsSection({ limits }: { limits: RateLimit[] }) {
 
 function AlertsSection({ alerts }: { alerts: BudgetAlert[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <Bell className="w-4 h-4 text-amber-400" />
-        <h3 className="text-sm font-semibold text-white">Budget Alerts</h3>
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Budget Alerts</h3>
       </div>
       <div className="mb-4">
-        <p className="text-xs text-zinc-400 mb-2">Configured Thresholds</p>
+        <p className="text-xs text-[var(--color-text-secondary)] mb-2">Configured Thresholds</p>
         <div className="flex gap-2">
           {[50, 75, 90, 100].map((t) => (
-            <span key={t} className="px-2 py-1 bg-zinc-800 rounded text-xs text-zinc-300">
+            <span key={t} className="px-2 py-1 bg-[var(--color-surface-2)] rounded text-xs text-[var(--color-text-primary)]">
               {t}%
             </span>
           ))}
@@ -478,14 +478,14 @@ function EfficiencyTable({ agents }: { agents: AgentSpend[] }) {
   const sorted = [...agents].toSorted((a, b) => b.costPerTask - a.costPerTask);
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-4 h-4 text-green-400" />
-        <h3 className="text-sm font-semibold text-white">Cost Efficiency by Agent</h3>
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Cost Efficiency by Agent</h3>
       </div>
       <table className="w-full text-xs">
         <thead>
-          <tr className="text-left text-zinc-500 border-b border-zinc-800">
+          <tr className="text-left text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
             <th className="pb-2">Agent</th>
             <th className="pb-2">Cost/Task</th>
             <th className="pb-2">Tasks</th>
@@ -494,7 +494,7 @@ function EfficiencyTable({ agents }: { agents: AgentSpend[] }) {
         </thead>
         <tbody>
           {sorted.map((agent) => (
-            <tr key={agent.name} className="border-b border-zinc-800 last:border-0">
+            <tr key={agent.name} className="border-b border-[var(--color-border)] last:border-0">
               <td className="py-2 flex items-center gap-2">
                 <span>{agent.emoji}</span>
                 <span>{agent.name}</span>
@@ -524,7 +524,7 @@ export default function TokenBudgetTracker() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-6">
       <HeaderSection
         budget={budget}
         onSetBudget={handleSetBudget}

@@ -42,7 +42,7 @@ const PRIORITY_COLORS: Record<Priority, string> = {
   P0: "bg-rose-500/20 text-rose-400 border-rose-500/40",
   P1: "bg-amber-500/20 text-amber-400 border-amber-500/40",
   P2: "bg-indigo-500/20 text-indigo-400 border-indigo-500/40",
-  P3: "bg-zinc-500/20 text-zinc-400 border-zinc-500/40",
+  P3: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/40",
 }
 
 const LABEL_COLORS: Record<Label, string> = {
@@ -157,41 +157,41 @@ export default function SprintBoard() {
     COLUMNS.filter((c) => c.id !== currentColumn)
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Sprint Board</h1>
-            <p className="text-sm text-zinc-400 mt-1">Sprint 24 · Feb 10 – Feb 24</p>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">Sprint 24 · Feb 10 – Feb 24</p>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 flex items-center gap-2">
-              <span className="text-zinc-400">Days left</span>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-2 flex items-center gap-2">
+              <span className="text-[var(--color-text-secondary)]">Days left</span>
               <span className="font-bold text-indigo-400">{SPRINT_DAYS_REMAINING}</span>
-              <span className="text-zinc-600">/ {SPRINT_DAYS_TOTAL}</span>
+              <span className="text-[var(--color-text-muted)]">/ {SPRINT_DAYS_TOTAL}</span>
             </div>
           </div>
         </div>
 
         {/* Stats Row */}
         <div className="grid grid-cols-4 gap-3 mb-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-            <div className="text-xs text-zinc-400 mb-1">Total Points</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+            <div className="text-xs text-[var(--color-text-secondary)] mb-1">Total Points</div>
             <div className="text-xl font-bold">{totalPoints}</div>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-            <div className="text-xs text-zinc-400 mb-1">Completed</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+            <div className="text-xs text-[var(--color-text-secondary)] mb-1">Completed</div>
             <div className="text-xl font-bold text-emerald-400">{completedPoints}</div>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-            <div className="text-xs text-zinc-400 mb-1">In Flight</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+            <div className="text-xs text-[var(--color-text-secondary)] mb-1">In Flight</div>
             <div className="text-xl font-bold text-amber-400">{inProgressPoints}</div>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-            <div className="text-xs text-zinc-400 mb-1">Velocity</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+            <div className="text-xs text-[var(--color-text-secondary)] mb-1">Velocity</div>
             <div className="flex items-center gap-2">
-              <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-indigo-500 rounded-full transition-all duration-500"
                   style={{ width: `${velocityPercent}%` }}
@@ -204,7 +204,7 @@ export default function SprintBoard() {
 
         {/* Filters */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-zinc-500 uppercase tracking-wider mr-1">Filter</span>
+          <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mr-1">Filter</span>
           {ASSIGNEES.map((a) => (
             <button
               key={a}
@@ -213,13 +213,13 @@ export default function SprintBoard() {
                 "w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all border",
                 filterAssignee === a
                   ? "bg-indigo-500/20 border-indigo-500"
-                  : "bg-zinc-900 border-zinc-800 hover:border-zinc-700"
+                  : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)]"
               )}
             >
               {a}
             </button>
           ))}
-          <div className="w-px h-6 bg-zinc-800 mx-1" />
+          <div className="w-px h-6 bg-[var(--color-surface-2)] mx-1" />
           {PRIORITIES.map((p) => (
             <button
               key={p}
@@ -228,13 +228,13 @@ export default function SprintBoard() {
                 "px-2 py-1 rounded-md text-xs font-medium transition-all border",
                 filterPriority === p
                   ? PRIORITY_COLORS[p]
-                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                  : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)]"
               )}
             >
               {p}
             </button>
           ))}
-          <div className="w-px h-6 bg-zinc-800 mx-1" />
+          <div className="w-px h-6 bg-[var(--color-surface-2)] mx-1" />
           {LABELS.map((l) => (
             <button
               key={l}
@@ -243,7 +243,7 @@ export default function SprintBoard() {
                 "px-2 py-1 rounded-md text-xs font-medium transition-all border",
                 filterLabel === l
                   ? "bg-indigo-500/20 border-indigo-500 text-indigo-300"
-                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                  : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)]"
               )}
             >
               {l}
@@ -252,7 +252,7 @@ export default function SprintBoard() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="px-2 py-1 rounded-md text-xs text-zinc-500 hover:text-zinc-300 transition-colors ml-1"
+              className="px-2 py-1 rounded-md text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors ml-1"
             >
               Clear
             </button>
@@ -272,12 +272,12 @@ export default function SprintBoard() {
               <div className="flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center gap-2">
                   <span className="text-base">{col.emoji}</span>
-                  <h2 className="text-sm font-semibold text-zinc-300">{col.title}</h2>
-                  <span className="bg-zinc-800 text-zinc-400 text-xs px-1.5 py-0.5 rounded-md">
+                  <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">{col.title}</h2>
+                  <span className="bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] text-xs px-1.5 py-0.5 rounded-md">
                     {columnTasks.length}
                   </span>
                 </div>
-                <span className="text-xs text-zinc-500">{colPoints} pts</span>
+                <span className="text-xs text-[var(--color-text-muted)]">{colPoints} pts</span>
               </div>
 
               {/* Cards */}
@@ -292,10 +292,10 @@ export default function SprintBoard() {
                       <button
                         onClick={() => setExpandedTaskId(isExpanded ? null : task.id)}
                         className={cn(
-                          "w-full text-left bg-zinc-900 border rounded-lg p-3 transition-all",
+                          "w-full text-left bg-[var(--color-surface-1)] border rounded-lg p-3 transition-all",
                           isExpanded
                             ? "border-indigo-500/60 ring-1 ring-indigo-500/20"
-                            : "border-zinc-800 hover:border-zinc-700"
+                            : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                         )}
                       >
                         {/* Card Top Row */}
@@ -303,7 +303,7 @@ export default function SprintBoard() {
                           <span
                             className={cn(
                               "text-sm font-medium leading-snug flex-1 mr-2",
-                              isDone ? "line-through text-zinc-500" : "text-zinc-100"
+                              isDone ? "line-through text-[var(--color-text-muted)]" : "text-[var(--color-text-primary)]"
                             )}
                           >
                             {task.title}
@@ -329,7 +329,7 @@ export default function SprintBoard() {
                               {l}
                             </span>
                           ))}
-                          <span className="text-[10px] text-zinc-500 ml-auto">
+                          <span className="text-[10px] text-[var(--color-text-muted)] ml-auto">
                             {task.points}pt · {task.ageDays}d
                           </span>
                         </div>
@@ -337,7 +337,7 @@ export default function SprintBoard() {
                         {/* Sub-task progress mini bar */}
                         {task.subTasks.length > 0 && (
                           <div className="mt-2 flex items-center gap-2">
-                            <div className="flex-1 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="flex-1 h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-emerald-500/70 rounded-full transition-all"
                                 style={{
@@ -345,7 +345,7 @@ export default function SprintBoard() {
                                 }}
                               />
                             </div>
-                            <span className="text-[10px] text-zinc-500">
+                            <span className="text-[10px] text-[var(--color-text-muted)]">
                               {doneSubTasks}/{task.subTasks.length}
                             </span>
                           </div>
@@ -354,16 +354,16 @@ export default function SprintBoard() {
 
                       {/* Expanded Detail Panel */}
                       {isExpanded && (
-                        <div className="bg-zinc-900 border border-zinc-800 border-t-0 rounded-b-lg p-3 -mt-1">
+                        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] border-t-0 rounded-b-lg p-3 -mt-1">
                           {/* Description */}
-                          <p className={cn("text-xs leading-relaxed mb-3", isDone ? "text-zinc-600 line-through" : "text-zinc-400")}>
+                          <p className={cn("text-xs leading-relaxed mb-3", isDone ? "text-[var(--color-text-muted)] line-through" : "text-[var(--color-text-secondary)]")}>
                             {task.description}
                           </p>
 
                           {/* Sub-tasks */}
                           {task.subTasks.length > 0 && (
                             <div className="mb-3">
-                              <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1.5">
+                              <div className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-1.5">
                                 Sub-tasks
                               </div>
                               <div className="flex flex-col gap-1">
@@ -381,7 +381,7 @@ export default function SprintBoard() {
                                         "w-3.5 h-3.5 rounded border flex-shrink-0 flex items-center justify-center transition-colors",
                                         st.done
                                           ? "bg-emerald-500/30 border-emerald-500/50"
-                                          : "border-zinc-700 group-hover/st:border-zinc-600"
+                                          : "border-[var(--color-border)] group-hover/st:border-[var(--color-surface-3)]"
                                       )}
                                     >
                                       {st.done && (
@@ -390,7 +390,7 @@ export default function SprintBoard() {
                                     </div>
                                     <span
                                       className={cn(
-                                        st.done ? "text-zinc-600 line-through" : "text-zinc-300"
+                                        st.done ? "text-[var(--color-text-muted)] line-through" : "text-[var(--color-text-primary)]"
                                       )}
                                     >
                                       {st.text}
@@ -402,14 +402,14 @@ export default function SprintBoard() {
                           )}
 
                           {/* Comments count */}
-                          <div className="flex items-center gap-1 text-[10px] text-zinc-500 mb-3">
+                          <div className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)] mb-3">
                             <span>💬</span>
                             <span>{task.comments} comment{task.comments !== 1 ? "s" : ""}</span>
                           </div>
 
                           {/* Move Actions */}
                           <div className="flex flex-col gap-1">
-                            <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">
+                            <div className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-1">
                               Move to
                             </div>
                             <div className="flex flex-wrap gap-1">
@@ -421,7 +421,7 @@ export default function SprintBoard() {
                                     moveTask(task.id, target.id)
                                     setExpandedTaskId(null)
                                   }}
-                                  className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium bg-zinc-800 hover:bg-indigo-500/20 hover:text-indigo-300 text-zinc-400 rounded-md border border-zinc-700 hover:border-indigo-500/40 transition-all"
+                                  className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium bg-[var(--color-surface-2)] hover:bg-indigo-500/20 hover:text-indigo-300 text-[var(--color-text-secondary)] rounded-md border border-[var(--color-border)] hover:border-indigo-500/40 transition-all"
                                 >
                                   <span>{target.emoji}</span>
                                   <span>{target.title}</span>
@@ -436,8 +436,8 @@ export default function SprintBoard() {
                 })}
 
                 {columnTasks.length === 0 && (
-                  <div className="flex items-center justify-center h-24 border border-dashed border-zinc-800 rounded-lg">
-                    <span className="text-xs text-zinc-600">No tasks</span>
+                  <div className="flex items-center justify-center h-24 border border-dashed border-[var(--color-border)] rounded-lg">
+                    <span className="text-xs text-[var(--color-text-muted)]">No tasks</span>
                   </div>
                 )}
               </div>
@@ -447,7 +447,7 @@ export default function SprintBoard() {
       </div>
 
       {/* Footer */}
-      <div className="mt-8 pt-4 border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-600">
+      <div className="mt-8 pt-4 border-t border-[var(--color-border)] flex items-center justify-between text-xs text-[var(--color-text-muted)]">
         <span>
           {tasks.length} tasks · {totalPoints} total points · {completedPoints} completed
         </span>

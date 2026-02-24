@@ -100,14 +100,14 @@ const statusColor: Record<ServiceStatus, string> = {
   healthy:  "text-emerald-400",
   degraded: "text-amber-400",
   down:     "text-rose-400",
-  unknown:  "text-zinc-400",
+  unknown:  "text-[var(--color-text-secondary)]",
 };
 
 const statusDot: Record<ServiceStatus, string> = {
   healthy:  "bg-emerald-400",
   degraded: "bg-amber-400 animate-pulse",
   down:     "bg-rose-400 animate-pulse",
-  unknown:  "bg-zinc-500",
+  unknown:  "bg-[var(--color-surface-3)]",
 };
 
 const depTypeBadge: Record<DepType, string> = {
@@ -144,15 +144,15 @@ export default function ServiceDependencyMap() {
   const getService = (id: string) => SERVICES.find(s => s.id === id);
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-white">Service Dependency Map</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">{SERVICES.length} services · {DEPENDENCIES.length} dependencies</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Service Dependency Map</h1>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{SERVICES.length} services · {DEPENDENCIES.length} dependencies</p>
           </div>
-          <button className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-medium text-zinc-300 transition-colors">Export Graph</button>
+          <button className="px-3 py-1.5 rounded-lg bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-xs font-medium text-[var(--color-text-primary)] transition-colors">Export Graph</button>
         </div>
         {/* Health summary */}
         <div className="flex gap-4 mt-3">
@@ -164,12 +164,12 @@ export default function ServiceDependencyMap() {
             <div key={s.label} className="flex items-center gap-2">
               <div className={cn("w-2 h-2 rounded-full flex-none", s.dot)} />
               <span className={cn("text-base font-bold", s.color)}>{s.value}</span>
-              <span className="text-zinc-500 text-xs">{s.label}</span>
+              <span className="text-[var(--color-text-muted)] text-xs">{s.label}</span>
             </div>
           ))}
           <div className="flex items-center gap-2 ml-2">
             <span className="text-base font-bold text-rose-400">{SERVICES.reduce((s, svc) => s + svc.alerts, 0)}</span>
-            <span className="text-zinc-500 text-xs">Active Alerts</span>
+            <span className="text-[var(--color-text-muted)] text-xs">Active Alerts</span>
           </div>
         </div>
         {/* Tabs */}
@@ -177,7 +177,7 @@ export default function ServiceDependencyMap() {
           {(["services", "deps", "traces", "impact"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={cn("px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors",
-                tab === t ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800")}>
+                tab === t ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]")}>
               {t === "deps" ? "Dependencies" : t === "impact" ? "Impact Analysis" : t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
@@ -189,13 +189,13 @@ export default function ServiceDependencyMap() {
         {tab === "services" && (
           <div className="flex h-full">
             {/* Left list */}
-            <div className="w-[46%] flex-none border-r border-zinc-800 flex flex-col">
-              <div className="flex-none px-4 py-2.5 border-b border-zinc-800 flex items-center gap-2">
-                <span className="text-xs text-zinc-500">Status:</span>
+            <div className="w-[46%] flex-none border-r border-[var(--color-border)] flex flex-col">
+              <div className="flex-none px-4 py-2.5 border-b border-[var(--color-border)] flex items-center gap-2">
+                <span className="text-xs text-[var(--color-text-muted)]">Status:</span>
                 {(["all", "healthy", "degraded", "down"] as const).map(s => (
                   <button key={s} onClick={() => setStatusFilter(s)}
                     className={cn("px-2 py-0.5 rounded text-xs capitalize transition-colors",
-                      statusFilter === s ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                      statusFilter === s ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}>
                     {s}
                   </button>
                 ))}
@@ -203,23 +203,23 @@ export default function ServiceDependencyMap() {
               <div className="flex-1 overflow-y-auto">
                 {filtered.map(svc => (
                   <button key={svc.id} onClick={() => setSelected(svc)} className={cn(
-                    "w-full text-left px-4 py-3 border-b border-zinc-800/60 hover:bg-zinc-900 transition-colors",
-                    selected?.id === svc.id && "bg-zinc-900 border-l-2 border-l-indigo-500"
+                    "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface-1)] transition-colors",
+                    selected?.id === svc.id && "bg-[var(--color-surface-1)] border-l-2 border-l-indigo-500"
                   )}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className={cn("w-1.5 h-1.5 rounded-full flex-none", statusDot[svc.status])} />
-                        <span className="text-sm font-medium text-white font-mono truncate">{svc.name}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)] font-mono truncate">{svc.name}</span>
                       </div>
                       <div className="flex items-center gap-2 flex-none">
                         {svc.alerts > 0 && (
-                          <span className="px-1.5 py-0.5 rounded bg-rose-500 text-[9px] font-bold text-white">{svc.alerts}</span>
+                          <span className="px-1.5 py-0.5 rounded bg-rose-500 text-[9px] font-bold text-[var(--color-text-primary)]">{svc.alerts}</span>
                         )}
                         <span className={cn("text-[10px] font-medium", statusColor[svc.status])}>{svc.status}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 mt-1.5 pl-3.5 text-[10px] text-zinc-600">
-                      <span className={langColor[svc.language] || "text-zinc-400"}>{svc.language}</span>
+                    <div className="flex items-center gap-3 mt-1.5 pl-3.5 text-[10px] text-[var(--color-text-muted)]">
+                      <span className={langColor[svc.language] || "text-[var(--color-text-secondary)]"}>{svc.language}</span>
                       <span>{svc.version}</span>
                       <span>{svc.requestsPerMin.toLocaleString()} rpm</span>
                       <span>p99: {svc.p99}</span>
@@ -239,18 +239,18 @@ export default function ServiceDependencyMap() {
                     <div>
                       <div className="flex items-center gap-2">
                         <div className={cn("w-2 h-2 rounded-full", statusDot[selected.status])} />
-                        <h2 className="font-mono text-base font-semibold text-white">{selected.name}</h2>
+                        <h2 className="font-mono text-base font-semibold text-[var(--color-text-primary)]">{selected.name}</h2>
                         <span className={cn("text-xs font-medium", statusColor[selected.status])}>{selected.status}</span>
                       </div>
-                      <div className="flex items-center gap-3 mt-1 pl-4 text-xs text-zinc-500">
-                        <span>Team: <span className="text-zinc-300">{selected.team}</span></span>
+                      <div className="flex items-center gap-3 mt-1 pl-4 text-xs text-[var(--color-text-muted)]">
+                        <span>Team: <span className="text-[var(--color-text-primary)]">{selected.team}</span></span>
                         <span>{selected.version}</span>
-                        <span className={langColor[selected.language] || "text-zinc-400"}>{selected.language}</span>
+                        <span className={langColor[selected.language] || "text-[var(--color-text-secondary)]"}>{selected.language}</span>
                       </div>
                     </div>
-                    <div className="text-right text-xs text-zinc-500">
+                    <div className="text-right text-xs text-[var(--color-text-muted)]">
                       <div>:{selected.port}</div>
-                      <div className="font-mono text-zinc-400">{selected.host}</div>
+                      <div className="font-mono text-[var(--color-text-secondary)]">{selected.host}</div>
                     </div>
                   </div>
 
@@ -258,39 +258,39 @@ export default function ServiceDependencyMap() {
                   <div className="grid grid-cols-2 gap-3">
                     {[
                       { label: "Uptime", value: selected.uptime, color: selected.uptime === "0%" ? "text-rose-400" : "text-emerald-400" },
-                      { label: "P99 Latency", value: selected.p99, color: "text-white" },
+                      { label: "P99 Latency", value: selected.p99, color: "text-[var(--color-text-primary)]" },
                       { label: "Error Rate", value: selected.errorRate, color: parseFloat(selected.errorRate) > 1 ? "text-rose-400" : parseFloat(selected.errorRate) > 0 ? "text-amber-400" : "text-emerald-400" },
-                      { label: "Req/min", value: selected.requestsPerMin.toLocaleString(), color: "text-white" },
+                      { label: "Req/min", value: selected.requestsPerMin.toLocaleString(), color: "text-[var(--color-text-primary)]" },
                     ].map(m => (
-                      <div key={m.label} className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
-                        <div className="text-xs text-zinc-500">{m.label}</div>
+                      <div key={m.label} className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
+                        <div className="text-xs text-[var(--color-text-muted)]">{m.label}</div>
                         <div className={cn("text-lg font-bold mt-0.5", m.color)}>{m.value}</div>
                       </div>
                     ))}
                   </div>
 
                   {/* Dependencies section */}
-                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs font-medium text-zinc-400 mb-3">Upstream Dependencies ({selected.dependencies.length})</div>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-3">Upstream Dependencies ({selected.dependencies.length})</div>
                     {selected.dependencies.length === 0 ? (
-                      <div className="text-xs text-zinc-600">No upstream dependencies — leaf service</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">No upstream dependencies — leaf service</div>
                     ) : (
                       <div className="space-y-1.5">
                         {selected.dependencies.map(dep => {
                           const svc = getService(dep);
                           const edge = DEPENDENCIES.find(d => d.from === selected.id && d.to === dep);
                           return (
-                            <div key={dep} className="flex items-center justify-between bg-zinc-950 rounded-lg px-3 py-2">
+                            <div key={dep} className="flex items-center justify-between bg-[var(--color-surface-0)] rounded-lg px-3 py-2">
                               <div className="flex items-center gap-2">
-                                <div className={cn("w-1.5 h-1.5 rounded-full", svc ? statusDot[svc.status] : "bg-zinc-500")} />
-                                <span className="font-mono text-xs text-zinc-300">{dep}</span>
+                                <div className={cn("w-1.5 h-1.5 rounded-full", svc ? statusDot[svc.status] : "bg-[var(--color-surface-3)]")} />
+                                <span className="font-mono text-xs text-[var(--color-text-primary)]">{dep}</span>
                               </div>
                               <div className="flex items-center gap-2 text-[10px]">
                                 {edge && (
                                   <>
                                     <span className={cn("px-1.5 py-0.5 rounded", depTypeBadge[edge.type])}>{edge.type}</span>
-                                    <span className="text-zinc-500">{edge.latency}</span>
-                                    <span className="text-zinc-600">{edge.protocol}</span>
+                                    <span className="text-[var(--color-text-muted)]">{edge.latency}</span>
+                                    <span className="text-[var(--color-text-muted)]">{edge.protocol}</span>
                                   </>
                                 )}
                               </div>
@@ -302,19 +302,19 @@ export default function ServiceDependencyMap() {
                   </div>
 
                   {/* Dependents */}
-                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs font-medium text-zinc-400 mb-3">Downstream Dependents ({selected.dependents.length})</div>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-3">Downstream Dependents ({selected.dependents.length})</div>
                     {selected.dependents.length === 0 ? (
-                      <div className="text-xs text-zinc-600">No dependents — external-facing service</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">No dependents — external-facing service</div>
                     ) : (
                       <div className="flex flex-wrap gap-1.5">
                         {selected.dependents.map(dep => {
                           const svc = getService(dep);
                           return (
                             <button key={dep} onClick={() => svc && setSelected(svc)}
-                              className="flex items-center gap-1.5 bg-zinc-950 rounded-lg px-3 py-1.5 hover:bg-zinc-800 transition-colors">
-                              <div className={cn("w-1.5 h-1.5 rounded-full", svc ? statusDot[svc.status] : "bg-zinc-500")} />
-                              <span className="font-mono text-xs text-zinc-300">{dep}</span>
+                              className="flex items-center gap-1.5 bg-[var(--color-surface-0)] rounded-lg px-3 py-1.5 hover:bg-[var(--color-surface-2)] transition-colors">
+                              <div className={cn("w-1.5 h-1.5 rounded-full", svc ? statusDot[svc.status] : "bg-[var(--color-surface-3)]")} />
+                              <span className="font-mono text-xs text-[var(--color-text-primary)]">{dep}</span>
                             </button>
                           );
                         })}
@@ -322,7 +322,7 @@ export default function ServiceDependencyMap() {
                     )}
                   </div>
 
-                  <div className="text-xs text-zinc-600">Last deployed: {selected.lastDeploy}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Last deployed: {selected.lastDeploy}</div>
                 </div>
               )}
             </div>
@@ -337,42 +337,42 @@ export default function ServiceDependencyMap() {
                 const fromSvc = getService(dep.from);
                 const toSvc = getService(dep.to);
                 return (
-                  <div key={i} className={cn("bg-zinc-900 rounded-xl p-4 border transition-colors",
-                    dep.healthy ? "border-zinc-800 hover:border-zinc-700" : "border-rose-500/40 bg-rose-500/5"
+                  <div key={i} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border transition-colors",
+                    dep.healthy ? "border-[var(--color-border)] hover:border-[var(--color-border)]" : "border-rose-500/40 bg-rose-500/5"
                   )}>
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
                         <div className="text-center">
                           <div className="flex items-center gap-1">
-                            <div className={cn("w-1.5 h-1.5 rounded-full", fromSvc ? statusDot[fromSvc.status] : "bg-zinc-500")} />
-                            <span className="font-mono text-xs text-white">{dep.from}</span>
+                            <div className={cn("w-1.5 h-1.5 rounded-full", fromSvc ? statusDot[fromSvc.status] : "bg-[var(--color-surface-3)]")} />
+                            <span className="font-mono text-xs text-[var(--color-text-primary)]">{dep.from}</span>
                           </div>
                         </div>
                         <div className="flex flex-col items-center">
-                          <div className={cn("text-sm", dep.healthy ? "text-zinc-400" : "text-rose-400")}>→</div>
+                          <div className={cn("text-sm", dep.healthy ? "text-[var(--color-text-secondary)]" : "text-rose-400")}>→</div>
                           <span className={cn("px-1.5 py-0.5 rounded text-[10px] mt-0.5", depTypeBadge[dep.type])}>{dep.type}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <div className={cn("w-1.5 h-1.5 rounded-full", toSvc ? statusDot[toSvc.status] : "bg-zinc-500")} />
-                          <span className="font-mono text-xs text-white">{dep.to}</span>
+                          <div className={cn("w-1.5 h-1.5 rounded-full", toSvc ? statusDot[toSvc.status] : "bg-[var(--color-surface-3)]")} />
+                          <span className="font-mono text-xs text-[var(--color-text-primary)]">{dep.to}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-4 text-xs">
                         <div className="text-right">
-                          <div className="text-zinc-400">{dep.latency}</div>
-                          <div className="text-zinc-600 text-[10px]">p99 lat</div>
+                          <div className="text-[var(--color-text-secondary)]">{dep.latency}</div>
+                          <div className="text-[var(--color-text-muted)] text-[10px]">p99 lat</div>
                         </div>
                         <div className="text-right">
                           <div className={dep.errorRate === "0%" ? "text-emerald-400" : "text-amber-400"}>{dep.errorRate}</div>
-                          <div className="text-zinc-600 text-[10px]">err rate</div>
+                          <div className="text-[var(--color-text-muted)] text-[10px]">err rate</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-zinc-300">{dep.callsPerMin.toLocaleString()}</div>
-                          <div className="text-zinc-600 text-[10px]">calls/min</div>
+                          <div className="text-[var(--color-text-primary)]">{dep.callsPerMin.toLocaleString()}</div>
+                          <div className="text-[var(--color-text-muted)] text-[10px]">calls/min</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-zinc-400">{dep.protocol}</div>
-                          <div className="text-zinc-600 text-[10px]">protocol</div>
+                          <div className="text-[var(--color-text-secondary)]">{dep.protocol}</div>
+                          <div className="text-[var(--color-text-muted)] text-[10px]">protocol</div>
                         </div>
                         {!dep.healthy && <span className="px-2 py-1 rounded bg-rose-500/15 border border-rose-500/30 text-xs text-rose-400">UNHEALTHY</span>}
                       </div>
@@ -389,8 +389,8 @@ export default function ServiceDependencyMap() {
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-2">
               {TRACES.map(trace => (
-                <div key={trace.id} className={cn("bg-zinc-900 rounded-xl p-4 border",
-                  trace.status === "error" ? "border-rose-500/30" : "border-zinc-800"
+                <div key={trace.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border",
+                  trace.status === "error" ? "border-rose-500/30" : "border-[var(--color-border)]"
                 )}>
                   <div className="flex items-start justify-between">
                     <div>
@@ -398,29 +398,29 @@ export default function ServiceDependencyMap() {
                         <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium",
                           trace.status === "error" ? "bg-rose-500/15 text-rose-400" : "bg-emerald-500/15 text-emerald-400"
                         )}>{trace.status.toUpperCase()}</span>
-                        <span className="font-mono text-xs text-zinc-400">{trace.traceId}</span>
-                        <span className="text-[10px] text-zinc-600">{trace.timestamp}</span>
+                        <span className="font-mono text-xs text-[var(--color-text-secondary)]">{trace.traceId}</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{trace.timestamp}</span>
                       </div>
                       <div className="mt-1.5">
-                        <span className="font-mono text-sm text-white">{trace.operation}</span>
+                        <span className="font-mono text-sm text-[var(--color-text-primary)]">{trace.operation}</span>
                       </div>
-                      <div className="mt-1 text-xs text-zinc-500">
-                        Origin: <span className="text-zinc-300">{trace.service}</span>
+                      <div className="mt-1 text-xs text-[var(--color-text-muted)]">
+                        Origin: <span className="text-[var(--color-text-primary)]">{trace.service}</span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={cn("text-sm font-semibold", trace.status === "error" ? "text-rose-400" : "text-white")}>{trace.duration}</div>
-                      <div className="text-[10px] text-zinc-600">total duration</div>
+                      <div className={cn("text-sm font-semibold", trace.status === "error" ? "text-rose-400" : "text-[var(--color-text-primary)]")}>{trace.duration}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">total duration</div>
                     </div>
                   </div>
                   <div className="mt-3 flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-600">Downstream:</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)]">Downstream:</span>
                     {trace.downstream.map(svc => {
                       const s = getService(svc);
                       return (
-                        <span key={svc} className="flex items-center gap-1 bg-zinc-800 rounded px-2 py-0.5">
-                          <div className={cn("w-1 h-1 rounded-full", s ? statusDot[s.status] : "bg-zinc-500")} />
-                          <span className="font-mono text-[10px] text-zinc-300">{svc}</span>
+                        <span key={svc} className="flex items-center gap-1 bg-[var(--color-surface-2)] rounded px-2 py-0.5">
+                          <div className={cn("w-1 h-1 rounded-full", s ? statusDot[s.status] : "bg-[var(--color-surface-3)]")} />
+                          <span className="font-mono text-[10px] text-[var(--color-text-primary)]">{svc}</span>
                         </span>
                       );
                     })}
@@ -434,44 +434,44 @@ export default function ServiceDependencyMap() {
         {/* Impact Analysis Tab */}
         {tab === "impact" && (
           <div className="overflow-y-auto h-full p-5">
-            <p className="text-xs text-zinc-500 mb-4">Services ranked by blast radius — what breaks if each service goes down.</p>
+            <p className="text-xs text-[var(--color-text-muted)] mb-4">Services ranked by blast radius — what breaks if each service goes down.</p>
             <div className="space-y-3">
               {IMPACT.map(imp => {
                 const svc = getService(imp.serviceId);
                 return (
-                  <div key={imp.serviceId} className={cn("bg-zinc-900 rounded-xl p-4 border",
-                    imp.criticalPath ? "border-rose-500/30" : "border-zinc-800"
+                  <div key={imp.serviceId} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border",
+                    imp.criticalPath ? "border-rose-500/30" : "border-[var(--color-border)]"
                   )}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <div className={cn("w-2 h-2 rounded-full flex-none", svc ? statusDot[svc.status] : "bg-zinc-500")} />
+                        <div className={cn("w-2 h-2 rounded-full flex-none", svc ? statusDot[svc.status] : "bg-[var(--color-surface-3)]")} />
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm font-semibold text-white">{imp.serviceId}</span>
+                            <span className="font-mono text-sm font-semibold text-[var(--color-text-primary)]">{imp.serviceId}</span>
                             {imp.criticalPath && (
                               <span className="px-1.5 py-0.5 rounded bg-rose-500/15 border border-rose-500/30 text-[10px] text-rose-400">Critical Path</span>
                             )}
                           </div>
-                          <p className="text-xs text-zinc-400 mt-0.5">{imp.estimatedImpact}</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{imp.estimatedImpact}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4 text-xs text-right flex-none">
                         <div>
-                          <div className="text-white font-semibold">{imp.upstreamCount}</div>
-                          <div className="text-zinc-600 text-[10px]">upstream</div>
+                          <div className="text-[var(--color-text-primary)] font-semibold">{imp.upstreamCount}</div>
+                          <div className="text-[var(--color-text-muted)] text-[10px]">upstream</div>
                         </div>
                         <div>
-                          <div className="text-white font-semibold">{imp.downstreamCount}</div>
-                          <div className="text-zinc-600 text-[10px]">downstream</div>
+                          <div className="text-[var(--color-text-primary)] font-semibold">{imp.downstreamCount}</div>
+                          <div className="text-[var(--color-text-muted)] text-[10px]">downstream</div>
                         </div>
                         <div>
-                          <div className="text-white font-semibold">{imp.upstreamCount + imp.downstreamCount}</div>
-                          <div className="text-zinc-600 text-[10px]">total</div>
+                          <div className="text-[var(--color-text-primary)] font-semibold">{imp.upstreamCount + imp.downstreamCount}</div>
+                          <div className="text-[var(--color-text-muted)] text-[10px]">total</div>
                         </div>
                       </div>
                     </div>
                     {/* Blast radius bar */}
-                    <div className="mt-3 w-full bg-zinc-800 rounded-full h-1">
+                    <div className="mt-3 w-full bg-[var(--color-surface-2)] rounded-full h-1">
                       <div
                         className={cn("h-1 rounded-full", imp.criticalPath ? "bg-rose-500" : "bg-indigo-500")}
                         style={{ width: `${Math.min(100, ((imp.upstreamCount + imp.downstreamCount) / 10) * 100)}%` }}

@@ -610,7 +610,7 @@ const severityColors: Record<string, { bg: string; text: string; border: string 
   high: { bg: "bg-orange-500/20", text: "text-orange-400", border: "border-orange-500/40" },
   medium: { bg: "bg-yellow-500/20", text: "text-yellow-400", border: "border-yellow-500/40" },
   low: { bg: "bg-blue-500/20", text: "text-blue-400", border: "border-blue-500/40" },
-  info: { bg: "bg-gray-500/20", text: "text-gray-400", border: "border-gray-500/40" }
+  info: { bg: "bg-[var(--color-surface-3)]/20", text: "text-[var(--color-text-secondary)]", border: "border-[var(--color-surface-3)]/40" }
 };
 
 const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -635,11 +635,11 @@ function FindingCard({
   const CategoryIcon = categoryIcons[finding.category] || Bug;
   
   const variantStyles = {
-    default: "border-zinc-700/50 bg-zinc-800/50",
+    default: "border-[var(--color-border)]/50 bg-[var(--color-surface-2)]/50",
     green: "border-emerald-500/30 bg-emerald-900/20",
     red: "border-red-500/30 bg-red-900/20",
     yellow: "border-yellow-500/30 bg-yellow-900/20",
-    gray: "border-zinc-600/30 bg-zinc-800/30"
+    gray: "border-[var(--color-surface-3)]/30 bg-[var(--color-surface-2)]/30"
   };
 
   if (compact) {
@@ -652,7 +652,7 @@ function FindingCard({
               <span className={`text-xs px-1.5 py-0.5 rounded ${colors.bg} ${colors.text} font-medium`}>
                 {finding.severity.toUpperCase()}
               </span>
-              <span className="text-sm text-gray-200 truncate">{finding.title}</span>
+              <span className="text-sm text-[var(--color-text-primary)] truncate">{finding.title}</span>
             </div>
           </div>
         </div>
@@ -661,18 +661,18 @@ function FindingCard({
   }
 
   return (
-    <div className={`p-3 rounded-lg border ${variantStyles[variant]} ${colors.border} hover:border-zinc-600 transition-colors`}>
+    <div className={`p-3 rounded-lg border ${variantStyles[variant]} ${colors.border} hover:border-[var(--color-surface-3)] transition-colors`}>
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <CategoryIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${colors.text}`} />
-          <span className="text-sm font-medium text-gray-100 truncate">{finding.title}</span>
+          <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{finding.title}</span>
         </div>
         <span className={`text-xs px-2 py-0.5 rounded flex-shrink-0 ${colors.bg} ${colors.text} font-medium`}>
           {finding.severity.toUpperCase()}
         </span>
       </div>
-      <p className="text-xs text-gray-400 mb-2 line-clamp-2">{finding.description}</p>
-      <div className="flex items-center gap-3 text-xs text-gray-500">
+      <p className="text-xs text-[var(--color-text-secondary)] mb-2 line-clamp-2">{finding.description}</p>
+      <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
         {finding.port && (
           <span className="flex items-center gap-1">
             <Globe className="w-3 h-3" />
@@ -868,7 +868,7 @@ function AgentOutputDiffViewer() {
       case "b-only":
         return <ArrowRight className="w-4 h-4 text-red-400" />;
       default:
-        return <Info className="w-4 h-4 text-gray-400" />;
+        return <Info className="w-4 h-4 text-[var(--color-text-secondary)]" />;
     }
   };
 
@@ -897,25 +897,25 @@ function AgentOutputDiffViewer() {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-1)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-[1800px] mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-zinc-800 rounded-lg border border-zinc-700">
+            <div className="p-2 bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)]">
               <GitCompare className="w-6 h-6 text-indigo-400" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-100">Agent Output Diff Viewer</h1>
-              <p className="text-sm text-gray-400">Compare findings between two agents on the same target</p>
+              <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">Agent Output Diff Viewer</h1>
+              <p className="text-sm text-[var(--color-text-secondary)]">Compare findings between two agents on the same target</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-md text-sm text-gray-300 transition-colors">
+            <button className="flex items-center gap-2 px-3 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded-md text-sm text-[var(--color-text-primary)] transition-colors">
               <RefreshCw className="w-4 h-4" />
               Refresh
             </button>
-            <button className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-md text-sm text-gray-300 transition-colors">
+            <button className="flex items-center gap-2 px-3 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded-md text-sm text-[var(--color-text-primary)] transition-colors">
               <Download className="w-4 h-4" />
               Export
             </button>
@@ -923,73 +923,73 @@ function AgentOutputDiffViewer() {
         </div>
 
         {/* Controls */}
-        <div className="bg-zinc-800/50 rounded-xl border border-zinc-700/50 p-4">
+        <div className="bg-[var(--color-surface-2)]/50 rounded-xl border border-[var(--color-border)]/50 p-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Agent A Selector */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Agent A</label>
+              <label className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Agent A</label>
               <div className="relative">
-                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
                 <select
                   value={selectedAgentA}
                   onChange={(e) => setSelectedAgentA(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-gray-100 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
+                  className="w-full pl-10 pr-10 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
                 >
                   {agentOptions.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)] pointer-events-none" />
               </div>
             </div>
 
             {/* Target Selector */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Target</label>
+              <label className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Target</label>
               <div className="relative">
-                <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Target className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
                 <select
                   value={selectedTarget}
                   onChange={(e) => setSelectedTarget(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-gray-100 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
+                  className="w-full pl-10 pr-10 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
                 >
                   {targetOptions.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)] pointer-events-none" />
               </div>
             </div>
 
             {/* Agent B Selector */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Agent B</label>
+              <label className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Agent B</label>
               <div className="relative">
-                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
                 <select
                   value={selectedAgentB}
                   onChange={(e) => setSelectedAgentB(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-gray-100 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
+                  className="w-full pl-10 pr-10 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
                 >
                   {agentOptions.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)] pointer-events-none" />
               </div>
             </div>
 
             {/* Search */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Search</label>
+              <label className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Search</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Filter findings..."
-                  className="w-full pl-10 pr-4 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
+                  className="w-full pl-10 pr-4 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] text-sm placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
                 />
               </div>
             </div>
@@ -998,12 +998,12 @@ function AgentOutputDiffViewer() {
 
         {/* Stats */}
         <div className="grid grid-cols-5 gap-4">
-          <div className="bg-zinc-800/50 rounded-xl border border-zinc-700/50 p-4">
+          <div className="bg-[var(--color-surface-2)]/50 rounded-xl border border-[var(--color-border)]/50 p-4">
             <div className="flex items-center gap-2 mb-1">
-              <Layers className="w-4 h-4 text-gray-400" />
-              <span className="text-xs text-gray-400 uppercase tracking-wider">Total</span>
+              <Layers className="w-4 h-4 text-[var(--color-text-secondary)]" />
+              <span className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wider">Total</span>
             </div>
-            <p className="text-2xl font-semibold text-gray-100">{stats.total}</p>
+            <p className="text-2xl font-semibold text-[var(--color-text-primary)]">{stats.total}</p>
           </div>
           <div className="bg-emerald-900/10 rounded-xl border border-emerald-500/20 p-4">
             <div className="flex items-center gap-2 mb-1">
@@ -1036,7 +1036,7 @@ function AgentOutputDiffViewer() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center gap-4 border-b border-zinc-700/50">
+        <div className="flex items-center gap-4 border-b border-[var(--color-border)]/50">
           {[
             { id: "all", label: "All", count: stats.total },
             { id: "agreements", label: "Agreements", count: stats.agreements },
@@ -1050,12 +1050,12 @@ function AgentOutputDiffViewer() {
               className={`flex items-center gap-2 px-1 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeFilter === tab.id
                   ? "border-indigo-500 text-indigo-400"
-                  : "border-transparent text-gray-400 hover:text-gray-200"
+                  : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               }`}
             >
               {tab.label}
               <span className={`px-1.5 py-0.5 rounded text-xs ${
-                activeFilter === tab.id ? "bg-indigo-500/20 text-indigo-300" : "bg-zinc-800 text-gray-500"
+                activeFilter === tab.id ? "bg-indigo-500/20 text-indigo-300" : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
               }`}>
                 {tab.count}
               </span>
@@ -1063,11 +1063,11 @@ function AgentOutputDiffViewer() {
           ))}
           
           <div className="ml-auto flex items-center gap-2">
-            <span className="text-xs text-gray-500 uppercase tracking-wider">Sort by:</span>
+            <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Sort by:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "severity" | "category" | "confidence")}
-              className="bg-transparent border border-zinc-700 rounded px-2 py-1 text-sm text-gray-300 focus:outline-none focus:border-indigo-500"
+              className="bg-transparent border border-[var(--color-border)] rounded px-2 py-1 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
             >
               <option value="severity">Severity</option>
               <option value="category">Category</option>
@@ -1075,9 +1075,9 @@ function AgentOutputDiffViewer() {
             </select>
             <button
               onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
-              className="p-1.5 hover:bg-zinc-800 rounded transition-colors"
+              className="p-1.5 hover:bg-[var(--color-surface-2)] rounded transition-colors"
             >
-              {sortOrder === "asc" ? <SortAsc className="w-4 h-4 text-gray-400" /> : <SortDesc className="w-4 h-4 text-gray-400" />}
+              {sortOrder === "asc" ? <SortAsc className="w-4 h-4 text-[var(--color-text-secondary)]" /> : <SortDesc className="w-4 h-4 text-[var(--color-text-secondary)]" />}
             </button>
           </div>
         </div>
@@ -1091,20 +1091,20 @@ function AgentOutputDiffViewer() {
                 diff.status === "a-only" ? "border-emerald-500/30 bg-emerald-900/5" :
                 diff.status === "b-only" ? "border-red-500/30 bg-red-900/5" :
                 diff.status === "severity-mismatch" ? "border-yellow-500/30 bg-yellow-900/5" :
-                "border-zinc-700/50 bg-zinc-800/30"
+                "border-[var(--color-border)]/50 bg-[var(--color-surface-2)]/30"
               }`}
             >
               {/* Diff Row Header */}
-              <div className="flex items-center justify-between px-4 py-2 bg-zinc-900/50 border-b border-zinc-700/30">
+              <div className="flex items-center justify-between px-4 py-2 bg-[var(--color-surface-1)]/50 border-b border-[var(--color-border)]/30">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(diff.status)}
-                  <span className="text-sm font-medium text-gray-200">{getStatusLabel(diff.status)}</span>
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">{getStatusLabel(diff.status)}</span>
                   {diff.status === "severity-mismatch" && diff.findingA && diff.findingB && (
                     <div className="flex items-center gap-2 text-xs">
                       <span className={`px-1.5 py-0.5 rounded ${severityColors[diff.findingA.severity].bg} ${severityColors[diff.findingA.severity].text}`}>
                         {diff.findingA.severity}
                       </span>
-                      <ArrowRightLeft className="w-3 h-3 text-gray-500" />
+                      <ArrowRightLeft className="w-3 h-3 text-[var(--color-text-muted)]" />
                       <span className={`px-1.5 py-0.5 rounded ${severityColors[diff.findingB.severity].bg} ${severityColors[diff.findingB.severity].text}`}>
                         {diff.findingB.severity}
                       </span>
@@ -1123,7 +1123,7 @@ function AgentOutputDiffViewer() {
                   )}
                   <button
                     onClick={() => setShowRawOutput(showRawOutput === diff.findingId ? null : diff.findingId)}
-                    className="flex items-center gap-1.5 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-xs text-gray-400 transition-colors"
+                    className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-xs text-[var(--color-text-secondary)] transition-colors"
                   >
                     <Eye className="w-3 h-3" />
                     {showRawOutput === diff.findingId ? "Hide" : "Raw"}
@@ -1132,7 +1132,7 @@ function AgentOutputDiffViewer() {
               </div>
 
               {/* Three Column Layout */}
-              <div className="grid grid-cols-[1fr_auto_1fr] divide-x divide-zinc-700/30">
+              <div className="grid grid-cols-[1fr_auto_1fr] divide-x divide-[var(--color-border)]/30">
                 {/* Agent A Findings */}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -1140,12 +1140,12 @@ function AgentOutputDiffViewer() {
                       <div className="w-6 h-6 bg-indigo-500/20 rounded flex items-center justify-center">
                         <span className="text-xs font-bold text-indigo-400">A</span>
                       </div>
-                      <span className="text-sm font-medium text-gray-300">
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">
                         {mockData.agents.find(a => a.id === selectedAgentA)?.name}
                       </span>
                     </div>
                     {diff.findingA && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-[var(--color-text-muted)]">
                         {diff.findingA.port && `:${diff.findingA.port}`}
                       </span>
                     )}
@@ -1156,7 +1156,7 @@ function AgentOutputDiffViewer() {
                       variant={diff.status === "a-only" ? "green" : diff.status === "severity-mismatch" ? "yellow" : "gray"}
                     />
                   ) : (
-                    <div className="text-center py-8 text-gray-500 text-sm">
+                    <div className="text-center py-8 text-[var(--color-text-muted)] text-sm">
                       <XCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
                       No finding from Agent A
                     </div>
@@ -1164,7 +1164,7 @@ function AgentOutputDiffViewer() {
                 </div>
 
                 {/* Diff Summary / Connector */}
-                <div className="w-20 flex flex-col items-center justify-center gap-2 py-4 bg-zinc-900/30">
+                <div className="w-20 flex flex-col items-center justify-center gap-2 py-4 bg-[var(--color-surface-1)]/30">
                   {diff.status === "agreement" ? (
                     <>
                       <Equal className="w-5 h-5 text-emerald-400" />
@@ -1189,13 +1189,13 @@ function AgentOutputDiffViewer() {
                   
                   {diff.similarity !== undefined && (
                     <div className="flex items-center gap-1 mt-2">
-                      <div className="w-12 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                      <div className="w-12 h-1.5 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-indigo-500 rounded-full"
                           style={{ width: `${diff.similarity * 100}%` }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500">{Math.round(diff.similarity * 100)}%</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{Math.round(diff.similarity * 100)}%</span>
                     </div>
                   )}
                 </div>
@@ -1207,12 +1207,12 @@ function AgentOutputDiffViewer() {
                       <div className="w-6 h-6 bg-purple-500/20 rounded flex items-center justify-center">
                         <span className="text-xs font-bold text-purple-400">B</span>
                       </div>
-                      <span className="text-sm font-medium text-gray-300">
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">
                         {mockData.agents.find(a => a.id === selectedAgentB)?.name}
                       </span>
                     </div>
                     {diff.findingB && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-[var(--color-text-muted)]">
                         {diff.findingB.port && `:${diff.findingB.port}`}
                       </span>
                     )}
@@ -1223,7 +1223,7 @@ function AgentOutputDiffViewer() {
                       variant={diff.status === "b-only" ? "red" : diff.status === "severity-mismatch" ? "yellow" : "gray"}
                     />
                   ) : (
-                    <div className="text-center py-8 text-gray-500 text-sm">
+                    <div className="text-center py-8 text-[var(--color-text-muted)] text-sm">
                       <XCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
                       No finding from Agent B
                     </div>
@@ -1233,19 +1233,19 @@ function AgentOutputDiffViewer() {
 
               {/* Raw Output Toggle */}
               {showRawOutput === diff.findingId && (
-                <div className="border-t border-zinc-700/30 bg-zinc-900/80 p-4">
+                <div className="border-t border-[var(--color-border)]/30 bg-[var(--color-surface-1)]/80 p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Raw Output</span>
+                    <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Raw Output</span>
                     <div className="flex items-center gap-2">
-                      <button className="p-1 hover:bg-zinc-800 rounded transition-colors">
-                        <Copy className="w-3.5 h-3.5 text-gray-500" />
+                      <button className="p-1 hover:bg-[var(--color-surface-2)] rounded transition-colors">
+                        <Copy className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
                       </button>
-                      <button className="p-1 hover:bg-zinc-800 rounded transition-colors">
-                        <Download className="w-3.5 h-3.5 text-gray-500" />
+                      <button className="p-1 hover:bg-[var(--color-surface-2)] rounded transition-colors">
+                        <Download className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
                       </button>
                     </div>
                   </div>
-                  <pre className="text-xs text-gray-400 font-mono bg-zinc-950 rounded-lg p-4 overflow-x-auto border border-zinc-800">
+                  <pre className="text-xs text-[var(--color-text-secondary)] font-mono bg-[var(--color-surface-0)] rounded-lg p-4 overflow-x-auto border border-[var(--color-border)]">
                     {diff.findingA?.rawOutput || diff.findingB?.rawOutput || "No raw output available"}
                     {"\n\n"}
                     {diff.findingA?.evidence && `Agent A Evidence:\n${diff.findingA.evidence}\n`}
@@ -1262,31 +1262,31 @@ function AgentOutputDiffViewer() {
           ))}
 
           {filteredAndSortedResults.length === 0 && (
-            <div className="text-center py-16 bg-zinc-800/30 rounded-xl border border-zinc-700/50">
-              <FileDiff className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-              <p className="text-gray-400 font-medium">No findings match your filters</p>
-              <p className="text-sm text-gray-500 mt-1">Try adjusting your search or filter criteria</p>
+            <div className="text-center py-16 bg-[var(--color-surface-2)]/30 rounded-xl border border-[var(--color-border)]/50">
+              <FileDiff className="w-12 h-12 mx-auto mb-4 text-[var(--color-text-muted)]" />
+              <p className="text-[var(--color-text-secondary)] font-medium">No findings match your filters</p>
+              <p className="text-sm text-[var(--color-text-muted)] mt-1">Try adjusting your search or filter criteria</p>
             </div>
           )}
         </div>
 
         {/* Legend */}
-        <div className="flex items-center justify-center gap-6 py-4 border-t border-zinc-700/30">
+        <div className="flex items-center justify-center gap-6 py-4 border-t border-[var(--color-border)]/30">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-emerald-400/50" />
-            <span className="text-xs text-gray-400">Green: Unique to Agent A</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">Green: Unique to Agent A</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-400/50" />
-            <span className="text-xs text-gray-400">Red: Unique to Agent B</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">Red: Unique to Agent B</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-yellow-400/50" />
-            <span className="text-xs text-gray-400">Yellow: Same finding, different severity</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">Yellow: Same finding, different severity</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-zinc-400/50" />
-            <span className="text-xs text-gray-400">Gray: Both agents agree</span>
+            <div className="w-3 h-3 rounded-full bg-[var(--color-surface-3)]/50" />
+            <span className="text-xs text-[var(--color-text-secondary)]">Gray: Both agents agree</span>
           </div>
         </div>
       </div>

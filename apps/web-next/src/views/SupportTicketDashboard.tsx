@@ -635,7 +635,7 @@ const CATEGORY_BREAKDOWN: CategoryBreakdown[] = [
   },
   { category: "Mobile", count: 35, percentage: 9, color: "bg-amber-500" },
   { category: "Reports", count: 24, percentage: 6, color: "bg-rose-500" },
-  { category: "Other", count: 20, percentage: 5, color: "bg-zinc-500" },
+  { category: "Other", count: 20, percentage: 5, color: "bg-[var(--color-surface-3)]" },
 ]
 
 const AGENT_WORKLOAD: AgentWorkload[] = [
@@ -1007,7 +1007,7 @@ function getPriorityClasses(priority: Priority): string {
     case "medium":
       return "text-yellow-400 bg-yellow-400/10 border-yellow-400/30"
     case "low":
-      return "text-zinc-400 bg-zinc-400/10 border-zinc-400/30"
+      return "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30"
   }
 }
 
@@ -1031,7 +1031,7 @@ function getTierClasses(tier: SLATier): string {
     case "pro":
       return "text-indigo-400 bg-indigo-400/10 border-indigo-400/30"
     case "free":
-      return "text-zinc-400 bg-zinc-400/10 border-zinc-400/30"
+      return "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30"
   }
 }
 
@@ -1179,7 +1179,7 @@ function QueueTab({ tickets }: QueueTabProps) {
             onChange={(e) =>
               setFilterStatus(e.target.value as TicketStatus | "all")
             }
-            className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Statuses</option>
             <option value="open">Open</option>
@@ -1192,7 +1192,7 @@ function QueueTab({ tickets }: QueueTabProps) {
             onChange={(e) =>
               setFilterPriority(e.target.value as Priority | "all")
             }
-            className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Priorities</option>
             <option value="critical">Critical</option>
@@ -1200,7 +1200,7 @@ function QueueTab({ tickets }: QueueTabProps) {
             <option value="medium">Medium</option>
             <option value="low">Low</option>
           </select>
-          <span className="ml-auto text-sm text-zinc-500">
+          <span className="ml-auto text-sm text-[var(--color-text-muted)]">
             {filtered.length} ticket{filtered.length !== 1 ? "s" : ""}
           </span>
         </div>
@@ -1214,27 +1214,27 @@ function QueueTab({ tickets }: QueueTabProps) {
                 key={ticket.id}
                 onClick={() => setSelectedId(isSelected ? null : ticket.id)}
                 className={cn(
-                  "bg-zinc-900 border rounded-lg p-3.5 cursor-pointer hover:border-indigo-500/40 transition-colors",
-                  isSelected ? "border-indigo-500" : "border-zinc-800"
+                  "bg-[var(--color-surface-1)] border rounded-lg p-3.5 cursor-pointer hover:border-indigo-500/40 transition-colors",
+                  isSelected ? "border-indigo-500" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                      <span className="text-xs text-zinc-500 font-mono">
+                      <span className="text-xs text-[var(--color-text-muted)] font-mono">
                         {ticket.id}
                       </span>
                       <PriorityBadge priority={ticket.priority} />
                       <StatusBadge status={ticket.status} />
                     </div>
-                    <p className="text-sm font-medium text-white leading-snug">
+                    <p className="text-sm font-medium text-[var(--color-text-primary)] leading-snug">
                       {ticket.title}
                     </p>
-                    <div className="flex items-center gap-2 mt-1.5 text-xs text-zinc-500 flex-wrap">
+                    <div className="flex items-center gap-2 mt-1.5 text-xs text-[var(--color-text-muted)] flex-wrap">
                       <span>{ticket.customer}</span>
-                      <span className="text-zinc-700">·</span>
+                      <span className="text-[var(--color-text-muted)]">·</span>
                       <span>{ticket.category}</span>
-                      <span className="text-zinc-700">·</span>
+                      <span className="text-[var(--color-text-muted)]">·</span>
                       <span>{ticket.assignee}</span>
                     </div>
                   </div>
@@ -1259,12 +1259,12 @@ function QueueTab({ tickets }: QueueTabProps) {
 
       {/* Right: Detail panel */}
       {selected && (
-        <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col overflow-hidden max-h-[76vh]">
+        <div className="flex-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl flex flex-col overflow-hidden max-h-[76vh]">
           {/* Panel header */}
-          <div className="px-5 py-4 border-b border-zinc-800 shrink-0">
+          <div className="px-5 py-4 border-b border-[var(--color-border)] shrink-0">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-zinc-500 font-mono">
+                <span className="text-xs text-[var(--color-text-muted)] font-mono">
                   {selected.id}
                 </span>
                 <PriorityBadge priority={selected.priority} />
@@ -1273,13 +1273,13 @@ function QueueTab({ tickets }: QueueTabProps) {
               </div>
               <button
                 onClick={() => setSelectedId(null)}
-                className="text-zinc-500 hover:text-white text-xl leading-none w-6 h-6 flex items-center justify-center rounded hover:bg-zinc-800 transition-colors"
+                className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xl leading-none w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--color-surface-2)] transition-colors"
                 aria-label="Close detail panel"
               >
                 &times;
               </button>
             </div>
-            <h2 className="text-white font-semibold text-base leading-snug">
+            <h2 className="text-[var(--color-text-primary)] font-semibold text-base leading-snug">
               {selected.title}
             </h2>
             <div className="grid grid-cols-3 gap-x-4 gap-y-2 mt-3">
@@ -1307,10 +1307,10 @@ function QueueTab({ tickets }: QueueTabProps) {
                 },
               ].map((field, i) => (
                 <div key={i}>
-                  <div className="text-xs text-zinc-500 mb-0.5">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">
                     {field.label}
                   </div>
-                  <div className="text-sm text-white">{field.value}</div>
+                  <div className="text-sm text-[var(--color-text-primary)]">{field.value}</div>
                 </div>
               ))}
             </div>
@@ -1318,7 +1318,7 @@ function QueueTab({ tickets }: QueueTabProps) {
 
           {/* Conversation thread */}
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-600">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
               Conversation ({selected.conversation.length} messages)
             </p>
             {selected.conversation.map((msg) => {
@@ -1326,10 +1326,10 @@ function QueueTab({ tickets }: QueueTabProps) {
                 return (
                   <div
                     key={msg.id}
-                    className="text-center text-xs text-zinc-500 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2"
+                    className="text-center text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2"
                   >
                     {msg.content}
-                    <span className="ml-2 text-zinc-600">
+                    <span className="ml-2 text-[var(--color-text-muted)]">
                       · {formatTimestamp(msg.timestamp)}
                     </span>
                   </div>
@@ -1343,14 +1343,14 @@ function QueueTab({ tickets }: QueueTabProps) {
                     "rounded-xl p-3.5 text-sm",
                     isAgent
                       ? "bg-indigo-600/15 border border-indigo-500/25 ml-8"
-                      : "bg-zinc-800 mr-8"
+                      : "bg-[var(--color-surface-2)] mr-8"
                   )}
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <span
                       className={cn(
                         "text-xs font-semibold",
-                        isAgent ? "text-indigo-300" : "text-white"
+                        isAgent ? "text-indigo-300" : "text-[var(--color-text-primary)]"
                       )}
                     >
                       {msg.author}
@@ -1360,11 +1360,11 @@ function QueueTab({ tickets }: QueueTabProps) {
                         </span>
                       )}
                     </span>
-                    <span className="text-zinc-500 text-xs">
+                    <span className="text-[var(--color-text-muted)] text-xs">
                       {formatTimestamp(msg.timestamp)}
                     </span>
                   </div>
-                  <p className="text-zinc-200 leading-relaxed">{msg.content}</p>
+                  <p className="text-[var(--color-text-primary)] leading-relaxed">{msg.content}</p>
                 </div>
               )
             })}
@@ -1400,7 +1400,7 @@ function AnalyticsTab() {
             label: "Total Tickets (14d)",
             value: totalTickets.toString(),
             sub: "submitted",
-            color: "text-white",
+            color: "text-[var(--color-text-primary)]",
           },
           {
             label: "Resolved (14d)",
@@ -1423,13 +1423,13 @@ function AnalyticsTab() {
         ].map((kpi) => (
           <div
             key={kpi.label}
-            className="bg-zinc-900 border border-zinc-800 rounded-xl p-4"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4"
           >
-            <div className="text-xs text-zinc-500 mb-1">{kpi.label}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mb-1">{kpi.label}</div>
             <div className={cn("text-2xl font-bold", kpi.color)}>
               {kpi.value}
             </div>
-            <div className="text-xs text-zinc-600 mt-0.5">{kpi.sub}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{kpi.sub}</div>
           </div>
         ))}
       </div>
@@ -1437,11 +1437,11 @@ function AnalyticsTab() {
       {/* Charts row */}
       <div className="grid grid-cols-2 gap-4">
         {/* Bar chart: ticket volume */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-white mb-0.5">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-0.5">
             Ticket Volume — Last 14 Days
           </h3>
-          <p className="text-xs text-zinc-500 mb-4">
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">
             New and resolved tickets per day
           </p>
           <div className="flex items-end gap-1" style={{ height: 144 }}>
@@ -1452,7 +1452,7 @@ function AnalyticsTab() {
                 style={{ height: "100%" }}
               >
                 {/* Tooltip */}
-                <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-zinc-700 border border-zinc-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">
+                <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[var(--color-surface-3)] border border-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">
                   {day.date}: {day.tickets} in / {day.resolved} out
                 </div>
                 {/* Submitted bar */}
@@ -1477,14 +1477,14 @@ function AnalyticsTab() {
             {ANALYTICS_DATA.map((day, i) => (
               <div key={day.date} className="flex-1 text-center">
                 {i % 2 === 0 ? (
-                  <span className="text-zinc-600 text-[9px]">
+                  <span className="text-[var(--color-text-muted)] text-[9px]">
                     {day.date.split(" ")[1]}
                   </span>
                 ) : null}
               </div>
             ))}
           </div>
-          <div className="flex items-center gap-4 mt-2 text-xs text-zinc-500">
+          <div className="flex items-center gap-4 mt-2 text-xs text-[var(--color-text-muted)]">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500/70 inline-block" />
               Submitted
@@ -1497,17 +1497,17 @@ function AnalyticsTab() {
         </div>
 
         {/* Bar chart: avg resolution time */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-white mb-0.5">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-0.5">
             Avg Resolution Time Trend
           </h3>
-          <p className="text-xs text-zinc-500 mb-4">
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">
             Hours to resolve, daily average
           </p>
           <div className="flex items-end gap-1 relative" style={{ height: 144 }}>
             {/* Reference line at average */}
             <div
-              className="absolute left-0 right-0 border-t border-dashed border-zinc-700 z-10"
+              className="absolute left-0 right-0 border-t border-dashed border-[var(--color-border)] z-10"
               style={{
                 bottom: `${(parseFloat(avgResolution) / maxResolution) * 100}%`,
               }}
@@ -1519,7 +1519,7 @@ function AnalyticsTab() {
                 style={{ height: "100%" }}
               >
                 <div
-                  className="absolute -top-9 left-1/2 -translate-x-1/2 bg-zinc-700 border border-zinc-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-20 pointer-events-none"
+                  className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[var(--color-surface-3)] border border-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-20 pointer-events-none"
                 >
                   {day.date}: {day.avgResolutionHours}h
                 </div>
@@ -1541,14 +1541,14 @@ function AnalyticsTab() {
             {ANALYTICS_DATA.map((day, i) => (
               <div key={day.date} className="flex-1 text-center">
                 {i % 2 === 0 ? (
-                  <span className="text-zinc-600 text-[9px]">
+                  <span className="text-[var(--color-text-muted)] text-[9px]">
                     {day.date.split(" ")[1]}
                   </span>
                 ) : null}
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-xs text-zinc-500 mt-2">
+          <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-2">
             <span>
               Min:{" "}
               {Math.min(...ANALYTICS_DATA.map((d) => d.avgResolutionHours)).toFixed(1)}
@@ -1563,26 +1563,26 @@ function AnalyticsTab() {
       {/* Category breakdown + Team workload */}
       <div className="grid grid-cols-2 gap-4">
         {/* Category breakdown */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-white mb-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">
             Tickets by Category
           </h3>
           <div className="flex flex-col gap-2.5">
             {CATEGORY_BREAKDOWN.map((cat) => (
               <div key={cat.category} className="flex items-center gap-3">
-                <span className="text-xs text-zinc-400 w-28 shrink-0">
+                <span className="text-xs text-[var(--color-text-secondary)] w-28 shrink-0">
                   {cat.category}
                 </span>
-                <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                   <div
                     className={cn("h-2 rounded-full", cat.color)}
                     style={{ width: `${cat.percentage}%` }}
                   />
                 </div>
-                <span className="text-xs font-medium text-zinc-300 w-8 text-right">
+                <span className="text-xs font-medium text-[var(--color-text-primary)] w-8 text-right">
                   {cat.percentage}%
                 </span>
-                <span className="text-xs text-zinc-600 w-6 text-right">
+                <span className="text-xs text-[var(--color-text-muted)] w-6 text-right">
                   {cat.count}
                 </span>
               </div>
@@ -1591,13 +1591,13 @@ function AnalyticsTab() {
         </div>
 
         {/* Team workload table */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-white mb-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">
             Team Workload
           </h3>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-zinc-500 border-b border-zinc-800">
+              <tr className="text-xs text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
                 <th className="text-left pb-2.5 font-medium">Agent</th>
                 <th className="text-right pb-2.5 font-medium">Open</th>
                 <th className="text-right pb-2.5 font-medium">Resolved</th>
@@ -1607,15 +1607,15 @@ function AnalyticsTab() {
             </thead>
             <tbody>
               {AGENT_WORKLOAD.map((row) => (
-                <tr key={row.agent} className="border-b border-zinc-800/50">
-                  <td className="py-2.5 text-white">{row.agent}</td>
+                <tr key={row.agent} className="border-b border-[var(--color-border)]/50">
+                  <td className="py-2.5 text-[var(--color-text-primary)]">{row.agent}</td>
                   <td className="py-2.5 text-right text-amber-400 font-medium">
                     {row.openTickets}
                   </td>
                   <td className="py-2.5 text-right text-emerald-400 font-medium">
                     {row.resolvedToday}
                   </td>
-                  <td className="py-2.5 text-right text-zinc-300">
+                  <td className="py-2.5 text-right text-[var(--color-text-primary)]">
                     {row.avgHandleTime}
                   </td>
                   <td className="py-2.5 text-right">
@@ -1626,7 +1626,7 @@ function AnalyticsTab() {
                           ? "text-emerald-400"
                           : row.satisfactionScore >= 4.5
                           ? "text-indigo-400"
-                          : "text-zinc-300"
+                          : "text-[var(--color-text-primary)]"
                       )}
                     >
                       {row.satisfactionScore}
@@ -1652,7 +1652,7 @@ function SLADashboardTab() {
         {SLA_COMPLIANCE.map((tier) => (
           <div
             key={tier.tier}
-            className="bg-zinc-900 border border-zinc-800 rounded-xl p-5"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5"
           >
             <div className="flex items-center justify-between mb-3">
               <TierBadge tier={tier.tier} />
@@ -1665,7 +1665,7 @@ function SLADashboardTab() {
                 {tier.complianceRate}%
               </span>
             </div>
-            <div className="w-full bg-zinc-800 rounded-full h-1.5 mb-4">
+            <div className="w-full bg-[var(--color-surface-2)] rounded-full h-1.5 mb-4">
               <div
                 className={cn(
                   "h-1.5 rounded-full",
@@ -1674,32 +1674,32 @@ function SLADashboardTab() {
                 style={{ width: `${tier.complianceRate}%` }}
               />
             </div>
-            <div className="grid grid-cols-3 gap-2 text-center text-xs border-b border-zinc-800 pb-3 mb-3">
+            <div className="grid grid-cols-3 gap-2 text-center text-xs border-b border-[var(--color-border)] pb-3 mb-3">
               <div>
-                <div className="text-zinc-500 mb-0.5">Total</div>
-                <div className="text-white font-semibold">{tier.total}</div>
+                <div className="text-[var(--color-text-muted)] mb-0.5">Total</div>
+                <div className="text-[var(--color-text-primary)] font-semibold">{tier.total}</div>
               </div>
               <div>
-                <div className="text-zinc-500 mb-0.5">Compliant</div>
+                <div className="text-[var(--color-text-muted)] mb-0.5">Compliant</div>
                 <div className="text-emerald-400 font-semibold">
                   {tier.compliant}
                 </div>
               </div>
               <div>
-                <div className="text-zinc-500 mb-0.5">Breached</div>
+                <div className="text-[var(--color-text-muted)] mb-0.5">Breached</div>
                 <div className="text-red-400 font-semibold">{tier.breached}</div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <div className="text-zinc-500">Avg Response</div>
-                <div className="text-white font-medium">
+                <div className="text-[var(--color-text-muted)]">Avg Response</div>
+                <div className="text-[var(--color-text-primary)] font-medium">
                   {tier.avgResponseTime}
                 </div>
               </div>
               <div>
-                <div className="text-zinc-500">Avg Resolution</div>
-                <div className="text-white font-medium">
+                <div className="text-[var(--color-text-muted)]">Avg Resolution</div>
+                <div className="text-[var(--color-text-primary)] font-medium">
                   {tier.avgResolutionTime}
                 </div>
               </div>
@@ -1713,28 +1713,28 @@ function SLADashboardTab() {
         {SLA_POLICIES.map((policy) => (
           <div
             key={policy.tier}
-            className="bg-zinc-900 border border-zinc-800 rounded-xl p-5"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5"
           >
             <div className="flex items-center gap-2 mb-3">
               <TierBadge tier={policy.tier} />
-              <span className="text-xs text-zinc-500">Policy</span>
+              <span className="text-xs text-[var(--color-text-muted)]">Policy</span>
             </div>
             <div className="flex gap-5 mb-4 text-xs">
               <div>
-                <div className="text-zinc-500 mb-0.5">Default Response</div>
-                <div className="text-white font-semibold">
+                <div className="text-[var(--color-text-muted)] mb-0.5">Default Response</div>
+                <div className="text-[var(--color-text-primary)] font-semibold">
                   {policy.responseTarget}
                 </div>
               </div>
               <div>
-                <div className="text-zinc-500 mb-0.5">Default Resolution</div>
-                <div className="text-white font-semibold">
+                <div className="text-[var(--color-text-muted)] mb-0.5">Default Resolution</div>
+                <div className="text-[var(--color-text-primary)] font-semibold">
                   {policy.resolutionTarget}
                 </div>
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
-              <div className="text-xs text-zinc-600 uppercase tracking-wider mb-0.5">
+              <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-0.5">
                 By Priority
               </div>
               {policy.priorityOverrides.map((override) => (
@@ -1743,9 +1743,9 @@ function SLADashboardTab() {
                   className="flex items-center gap-2 text-xs"
                 >
                   <PriorityBadge priority={override.priority} />
-                  <span className="text-zinc-400">{override.response}</span>
-                  <span className="text-zinc-700">/</span>
-                  <span className="text-zinc-500">{override.resolution}</span>
+                  <span className="text-[var(--color-text-secondary)]">{override.response}</span>
+                  <span className="text-[var(--color-text-muted)]">/</span>
+                  <span className="text-[var(--color-text-muted)]">{override.resolution}</span>
                 </div>
               ))}
             </div>
@@ -1756,9 +1756,9 @@ function SLADashboardTab() {
       {/* At-risk tickets + Breach history */}
       <div className="grid grid-cols-2 gap-4">
         {/* At-risk */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-sm font-semibold text-white">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
               At-Risk Tickets
             </h3>
             <span className="text-xs px-2 py-0.5 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20">
@@ -1769,18 +1769,18 @@ function SLADashboardTab() {
             {AT_RISK_TICKETS.map((ticket) => (
               <div
                 key={ticket.id}
-                className="flex items-center gap-3 py-2.5 border-b border-zinc-800/60"
+                className="flex items-center gap-3 py-2.5 border-b border-[var(--color-border)]/60"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                    <span className="text-xs text-zinc-500 font-mono">
+                    <span className="text-xs text-[var(--color-text-muted)] font-mono">
                       {ticket.id}
                     </span>
                     <PriorityBadge priority={ticket.priority} />
                     <TierBadge tier={ticket.tier} />
                   </div>
-                  <p className="text-xs text-white truncate">{ticket.title}</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">
+                  <p className="text-xs text-[var(--color-text-primary)] truncate">{ticket.title}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                     {ticket.customer} · {ticket.assignee}
                   </p>
                 </div>
@@ -1798,14 +1798,14 @@ function SLADashboardTab() {
         </div>
 
         {/* Breach history */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-white mb-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">
             Breach History
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="text-zinc-500 border-b border-zinc-800">
+                <tr className="text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
                   <th className="text-left pb-2.5 font-medium">Ticket</th>
                   <th className="text-left pb-2.5 font-medium">Tier</th>
                   <th className="text-left pb-2.5 font-medium">Type</th>
@@ -1815,15 +1815,15 @@ function SLADashboardTab() {
               </thead>
               <tbody>
                 {SLA_BREACHES.map((breach) => (
-                  <tr key={breach.id} className="border-b border-zinc-800/50">
+                  <tr key={breach.id} className="border-b border-[var(--color-border)]/50">
                     <td className="py-2">
-                      <div className="font-mono text-zinc-500">
+                      <div className="font-mono text-[var(--color-text-muted)]">
                         {breach.ticketId}
                       </div>
-                      <div className="text-white max-w-[130px] truncate">
+                      <div className="text-[var(--color-text-primary)] max-w-[130px] truncate">
                         {breach.ticketTitle}
                       </div>
-                      <div className="text-zinc-600">{breach.customer}</div>
+                      <div className="text-[var(--color-text-muted)]">{breach.customer}</div>
                     </td>
                     <td className="py-2">
                       <TierBadge tier={breach.tier} />
@@ -1840,7 +1840,7 @@ function SLADashboardTab() {
                         {capitalize(breach.breachType)}
                       </span>
                     </td>
-                    <td className="py-2 text-zinc-400">{breach.assignee}</td>
+                    <td className="py-2 text-[var(--color-text-secondary)]">{breach.assignee}</td>
                     <td className="py-2 text-right text-red-400 font-mono font-bold">
                       +{breach.overdueDuration}
                     </td>
@@ -1867,11 +1867,11 @@ function KnowledgeBaseTab() {
       {/* Top articles + Suggested articles */}
       <div className="grid grid-cols-2 gap-4">
         {/* Top by deflection rate */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-white mb-1">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">
             Top Articles by Deflection Rate
           </h3>
-          <p className="text-xs text-zinc-500 mb-4">
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">
             Articles that prevent the most tickets from being created
           </p>
           <div className="flex flex-col gap-1">
@@ -1886,16 +1886,16 @@ function KnowledgeBaseTab() {
                 className={cn(
                   "flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-colors",
                   highlightedArticle === article.id
-                    ? "bg-zinc-800 ring-1 ring-inset ring-indigo-500/40"
-                    : "hover:bg-zinc-800/60"
+                    ? "bg-[var(--color-surface-2)] ring-1 ring-inset ring-indigo-500/40"
+                    : "hover:bg-[var(--color-surface-2)]/60"
                 )}
               >
-                <span className="text-zinc-600 text-sm font-bold w-5 text-center shrink-0">
+                <span className="text-[var(--color-text-muted)] text-sm font-bold w-5 text-center shrink-0">
                   {idx + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white truncate">{article.title}</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">
+                  <p className="text-sm text-[var(--color-text-primary)] truncate">{article.title}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                     {article.category} ·{" "}
                     {article.views.toLocaleString("en-US")} views
                   </p>
@@ -1904,7 +1904,7 @@ function KnowledgeBaseTab() {
                   <div className="text-sm font-bold text-emerald-400">
                     {article.deflectionRate}%
                   </div>
-                  <div className="text-xs text-zinc-600">deflection</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">deflection</div>
                 </div>
               </div>
             ))}
@@ -1912,26 +1912,26 @@ function KnowledgeBaseTab() {
         </div>
 
         {/* Suggested for open tickets */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-white mb-1">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">
             Suggested Articles for Open Tickets
           </h3>
-          <p className="text-xs text-zinc-500 mb-4">
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">
             AI-matched articles that may resolve open tickets
           </p>
           <div className="flex flex-col gap-2">
             {SUGGESTED_ARTICLES.map((suggestion) => (
               <div
                 key={`${suggestion.articleId}-${suggestion.ticketId}`}
-                className="flex items-start gap-3 p-3 rounded-lg bg-zinc-800/50 border border-zinc-800"
+                className="flex items-start gap-3 p-3 rounded-lg bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]"
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-indigo-400 truncate">
                     {suggestion.articleTitle}
                   </p>
-                  <p className="text-xs text-zinc-500 mt-0.5">
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                     for{" "}
-                    <span className="text-zinc-400 font-mono">
+                    <span className="text-[var(--color-text-secondary)] font-mono">
                       {suggestion.ticketId}
                     </span>{" "}
                     — {suggestion.ticketTitle}
@@ -1950,7 +1950,7 @@ function KnowledgeBaseTab() {
                   >
                     {suggestion.relevanceScore}%
                   </div>
-                  <div className="text-xs text-zinc-600">match</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">match</div>
                 </div>
               </div>
             ))}
@@ -1959,14 +1959,14 @@ function KnowledgeBaseTab() {
       </div>
 
       {/* Article performance table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">
           Article Performance
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-zinc-500 border-b border-zinc-800">
+              <tr className="text-xs text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
                 <th className="text-left pb-3 font-medium">Article</th>
                 <th className="text-left pb-3 font-medium">Category</th>
                 <th className="text-right pb-3 font-medium">Views</th>
@@ -1981,29 +1981,29 @@ function KnowledgeBaseTab() {
                 <tr
                   key={article.id}
                   className={cn(
-                    "border-b border-zinc-800/50 transition-colors hover:bg-zinc-800/30",
+                    "border-b border-[var(--color-border)]/50 transition-colors hover:bg-[var(--color-surface-2)]/30",
                     highlightedArticle === article.id && "bg-indigo-500/5"
                   )}
                 >
                   <td className="py-3">
-                    <div className="text-white font-medium leading-snug">
+                    <div className="text-[var(--color-text-primary)] font-medium leading-snug">
                       {article.title}
                     </div>
-                    <div className="text-xs text-zinc-600 font-mono">
+                    <div className="text-xs text-[var(--color-text-muted)] font-mono">
                       {article.id}
                     </div>
                   </td>
                   <td className="py-3">
-                    <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded border border-zinc-700">
+                    <span className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-2 py-0.5 rounded border border-[var(--color-border)]">
                       {article.category}
                     </span>
                   </td>
-                  <td className="py-3 text-right text-zinc-300">
+                  <td className="py-3 text-right text-[var(--color-text-primary)]">
                     {article.views.toLocaleString("en-US")}
                   </td>
                   <td className="py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <div className="w-14 bg-zinc-800 rounded-full h-1.5">
+                      <div className="w-14 bg-[var(--color-surface-2)] rounded-full h-1.5">
                         <div
                           className={cn(
                             "h-1.5 rounded-full",
@@ -2016,7 +2016,7 @@ function KnowledgeBaseTab() {
                           style={{ width: `${article.helpfulnessRate}%` }}
                         />
                       </div>
-                      <span className="text-zinc-300 text-xs w-8">
+                      <span className="text-[var(--color-text-primary)] text-xs w-8">
                         {article.helpfulnessRate}%
                       </span>
                     </div>
@@ -2029,16 +2029,16 @@ function KnowledgeBaseTab() {
                           ? "text-emerald-400"
                           : article.deflectionRate >= 60
                           ? "text-indigo-400"
-                          : "text-zinc-400"
+                          : "text-[var(--color-text-secondary)]"
                       )}
                     >
                       {article.deflectionRate}%
                     </span>
                   </td>
-                  <td className="py-3 text-right text-zinc-400">
+                  <td className="py-3 text-right text-[var(--color-text-secondary)]">
                     {article.linkedTickets}
                   </td>
-                  <td className="py-3 text-right text-zinc-500 text-xs">
+                  <td className="py-3 text-right text-[var(--color-text-muted)] text-xs">
                     {article.lastUpdated}
                   </td>
                 </tr>
@@ -2078,15 +2078,15 @@ export default function SupportTicketDashboard() {
   ).length
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       <div className="max-w-[1440px] mx-auto px-6 py-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-xl font-bold text-white tracking-tight">
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)] tracking-tight">
               Support Ticket Dashboard
             </h1>
-            <p className="text-sm text-zinc-500 mt-0.5">
+            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
               Horizon UI · Manage, analyze, and resolve customer support
             </p>
           </div>
@@ -2107,14 +2107,14 @@ export default function SupportTicketDashboard() {
                 {TICKETS.filter((t) => t.status === "resolved").length} resolved
               </span>
             </div>
-            <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+            <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm font-medium px-4 py-2 rounded-lg transition-colors">
               + New Ticket
             </button>
           </div>
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-0.5 border-b border-zinc-800 mb-6">
+        <div className="flex gap-0.5 border-b border-[var(--color-border)] mb-6">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id
             return (
@@ -2124,8 +2124,8 @@ export default function SupportTicketDashboard() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors",
                   isActive
-                    ? "text-white border-indigo-500"
-                    : "text-zinc-400 border-transparent hover:text-zinc-200 hover:border-zinc-700"
+                    ? "text-[var(--color-text-primary)] border-indigo-500"
+                    : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
                 )}
               >
                 {tab.label}
@@ -2135,7 +2135,7 @@ export default function SupportTicketDashboard() {
                       "text-xs px-1.5 py-0.5 rounded-full font-medium",
                       isActive
                         ? "bg-indigo-500/25 text-indigo-300"
-                        : "bg-zinc-800 text-zinc-500"
+                        : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                     )}
                   >
                     {tab.count}

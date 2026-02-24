@@ -252,7 +252,7 @@ const getSeverityColor = (severity: string): string => {
     case "high": return "text-orange-400 bg-orange-400/10 border-orange-400/30";
     case "medium": return "text-yellow-400 bg-yellow-400/10 border-yellow-400/30";
     case "low": return "text-blue-400 bg-blue-400/10 border-blue-400/30";
-    default: return "text-gray-400 bg-gray-400/10 border-gray-400/30";
+    default: return "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-border)]/30";
   }
 };
 
@@ -262,7 +262,7 @@ const getEventIcon = (action: string) => {
     case "completed": return <CheckCircle2 className="w-3 h-3 text-blue-400" />;
     case "errored": return <AlertCircle className="w-3 h-3 text-red-400" />;
     case "target-hit": return <Target className="w-3 h-3 text-purple-400" />;
-    default: return <Activity className="w-3 h-3 text-gray-400" />;
+    default: return <Activity className="w-3 h-3 text-[var(--color-text-secondary)]" />;
   }
 };
 
@@ -378,14 +378,14 @@ export default function DiscoveryRunReplayControls() {
   ];
   
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-1)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-6">
-        <div className="bg-gray-800/50 border border-zinc-700/50 rounded-xl p-6">
+        <div className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-xl p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-semibold text-gray-100">
+                <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">
                   Discovery Run Replay
                 </h1>
                 <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
@@ -396,18 +396,18 @@ export default function DiscoveryRunReplayControls() {
                   {RUN_METADATA.status.toUpperCase()}
                 </span>
               </div>
-              <p className="text-gray-400 text-sm">{RUN_METADATA.label}</p>
+              <p className="text-[var(--color-text-secondary)] text-sm">{RUN_METADATA.label}</p>
             </div>
             <div className="flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-2 text-gray-400">
+              <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                 <Clock className="w-4 h-4" />
                 <span>Duration: {formatDuration(RUN_METADATA.endTime.getTime() - RUN_METADATA.startTime.getTime())}</span>
               </div>
-              <div className="flex items-center gap-2 text-gray-400">
+              <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                 <Target className="w-4 h-4" />
                 <span>Targets: {RUN_METADATA.targetsHit}/{RUN_METADATA.totalTargets}</span>
               </div>
-              <div className="flex items-center gap-2 text-gray-400">
+              <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                 <Hash className="w-4 h-4" />
                 <span>Findings: {RUN_METADATA.totalFindings}</span>
               </div>
@@ -415,7 +415,7 @@ export default function DiscoveryRunReplayControls() {
           </div>
           
           {/* Progress Bar */}
-          <div className="relative h-2 bg-gray-700 rounded-full overflow-hidden">
+          <div className="relative h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
             <div 
               className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
@@ -423,7 +423,7 @@ export default function DiscoveryRunReplayControls() {
             {WAVES.map((wave, index) => (
               <div
                 key={wave.waveIndex}
-                className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-gray-300 rounded-full cursor-pointer hover:bg-white transition-all duration-200 hover:scale-125"
+                className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-[var(--color-surface-3)] rounded-full cursor-pointer hover:bg-white transition-all duration-200 hover:scale-125"
                 style={{ left: `${((index + 1) / WAVES.length) * 100}%`, transform: 'translate(-50%, -50%)' }}
                 onClick={() => handleWaveChange(index)}
               />
@@ -439,15 +439,15 @@ export default function DiscoveryRunReplayControls() {
         <div className="col-span-12 lg:col-span-4 space-y-6">
           
           {/* Playback Controls */}
-          <div className="bg-gray-800/50 border border-zinc-700/50 rounded-xl p-5">
-            <h3 className="text-sm font-medium text-gray-300 mb-4 flex items-center gap-2">
+          <div className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-xl p-5">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
               <Activity className="w-4 h-4" />
               Playback Controls
             </h3>
             
             {/* Timeline Slider */}
             <div className="mb-5">
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
+              <div className="flex items-center justify-between text-xs text-[var(--color-text-secondary)] mb-2">
                 <span>Wave {currentWave + 1}</span>
                 <span>of {WAVES.length}</span>
               </div>
@@ -457,13 +457,13 @@ export default function DiscoveryRunReplayControls() {
                 max={WAVES.length - 1}
                 value={currentWave}
                 onChange={(e) => handleWaveChange(Number(e.target.value))}
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                className="w-full h-2 bg-[var(--color-surface-3)] rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
                 {WAVES.map((wave, index) => (
                   <span 
                     key={index}
-                    className={`cursor-pointer hover:text-gray-300 transition-colors ${index <= currentWave ? 'text-gray-400' : ''}`}
+                    className={`cursor-pointer hover:text-[var(--color-text-primary)] transition-colors ${index <= currentWave ? 'text-[var(--color-text-secondary)]' : ''}`}
                     onClick={() => handleWaveChange(index)}
                   >
                     W{index + 1}
@@ -476,7 +476,7 @@ export default function DiscoveryRunReplayControls() {
             <div className="flex items-center justify-center gap-2 mb-5">
               <button
                 onClick={handleJumpToStart}
-                className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-700 text-gray-400 hover:text-gray-200 transition-all"
+                className="p-2 rounded-lg bg-[var(--color-surface-3)]/50 hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-all"
                 title="Jump to Start"
               >
                 <SkipBack className="w-4 h-4" />
@@ -484,7 +484,7 @@ export default function DiscoveryRunReplayControls() {
               <button
                 onClick={handleStepBack}
                 disabled={currentWave === 0}
-                className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-700 text-gray-400 hover:text-gray-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg bg-[var(--color-surface-3)]/50 hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Step Back"
               >
                 <ChevronsLeft className="w-4 h-4" />
@@ -503,14 +503,14 @@ export default function DiscoveryRunReplayControls() {
               <button
                 onClick={handleStepForward}
                 disabled={currentWave === WAVES.length - 1}
-                className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-700 text-gray-400 hover:text-gray-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg bg-[var(--color-surface-3)]/50 hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Step Forward"
               >
                 <ChevronsRight className="w-4 h-4" />
               </button>
               <button
                 onClick={handleJumpToEnd}
-                className="p-2 rounded-lg bg-gray-700/50 hover:bg-gray-700 text-gray-400 hover:text-gray-200 transition-all"
+                className="p-2 rounded-lg bg-[var(--color-surface-3)]/50 hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-all"
                 title="Jump to End"
               >
                 <SkipForward className="w-4 h-4" />
@@ -518,7 +518,7 @@ export default function DiscoveryRunReplayControls() {
             </div>
             
             {/* Speed Selector */}
-            <div className="flex items-center justify-center gap-1 bg-gray-700/30 rounded-lg p-1">
+            <div className="flex items-center justify-center gap-1 bg-[var(--color-surface-3)]/30 rounded-lg p-1">
               {speedOptions.map(speed => (
                 <button
                   key={speed.value}
@@ -526,7 +526,7 @@ export default function DiscoveryRunReplayControls() {
                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
                     playbackSpeed === speed.value
                       ? "bg-blue-500/20 text-blue-400"
-                      : "text-gray-400 hover:text-gray-200"
+                      : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   }`}
                 >
                   {speed.label}
@@ -536,33 +536,33 @@ export default function DiscoveryRunReplayControls() {
           </div>
           
           {/* Wave Summary */}
-          <div className="bg-gray-800/50 border border-zinc-700/50 rounded-xl p-5">
-            <h3 className="text-sm font-medium text-gray-300 mb-4 flex items-center gap-2">
+          <div className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-xl p-5">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
               <Layers className="w-4 h-4" />
               Wave {currentWave + 1} Summary
             </h3>
             
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gray-700/30 rounded-lg p-3">
-                <div className="text-xs text-gray-400 mb-1">Agents Active</div>
-                <div className="text-2xl font-semibold text-gray-100 transition-all duration-300">
+              <div className="bg-[var(--color-surface-3)]/30 rounded-lg p-3">
+                <div className="text-xs text-[var(--color-text-secondary)] mb-1">Agents Active</div>
+                <div className="text-2xl font-semibold text-[var(--color-text-primary)] transition-all duration-300">
                   {currentWaveData.agentsActive}
                 </div>
               </div>
-              <div className="bg-gray-700/30 rounded-lg p-3">
-                <div className="text-xs text-gray-400 mb-1">Findings This Wave</div>
+              <div className="bg-[var(--color-surface-3)]/30 rounded-lg p-3">
+                <div className="text-xs text-[var(--color-text-secondary)] mb-1">Findings This Wave</div>
                 <div className="text-2xl font-semibold text-purple-400 transition-all duration-300">
                   {currentWaveData.findings.length}
                 </div>
               </div>
-              <div className="bg-gray-700/30 rounded-lg p-3">
-                <div className="text-xs text-gray-400 mb-1">Targets Hit</div>
+              <div className="bg-[var(--color-surface-3)]/30 rounded-lg p-3">
+                <div className="text-xs text-[var(--color-text-secondary)] mb-1">Targets Hit</div>
                 <div className="text-2xl font-semibold text-emerald-400 transition-all duration-300">
                   {currentWaveData.targetsHit}
                 </div>
               </div>
-              <div className="bg-gray-700/30 rounded-lg p-3">
-                <div className="text-xs text-gray-400 mb-1">Timestamp</div>
+              <div className="bg-[var(--color-surface-3)]/30 rounded-lg p-3">
+                <div className="text-xs text-[var(--color-text-secondary)] mb-1">Timestamp</div>
                 <div className="text-2xl font-semibold text-amber-400 transition-all duration-300">
                   {formatTimestamp(currentWaveData.timestamp)}
                 </div>
@@ -574,30 +574,30 @@ export default function DiscoveryRunReplayControls() {
               {currentWaveData.agentsSpawned.length > 0 && (
                 <div className="flex items-center gap-2">
                   <Bot className="w-3 h-3 text-emerald-400" />
-                  <span className="text-xs text-gray-400">Spawned:</span>
-                  <span className="text-xs text-gray-300">{currentWaveData.agentsSpawned.join(", ")}</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">Spawned:</span>
+                  <span className="text-xs text-[var(--color-text-primary)]">{currentWaveData.agentsSpawned.join(", ")}</span>
                 </div>
               )}
               {currentWaveData.agentsCompleted.length > 0 && (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-3 h-3 text-blue-400" />
-                  <span className="text-xs text-gray-400">Completed:</span>
-                  <span className="text-xs text-gray-300">{currentWaveData.agentsCompleted.join(", ")}</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">Completed:</span>
+                  <span className="text-xs text-[var(--color-text-primary)]">{currentWaveData.agentsCompleted.join(", ")}</span>
                 </div>
               )}
               {currentWaveData.agentsErrored.length > 0 && (
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-3 h-3 text-red-400" />
-                  <span className="text-xs text-gray-400">Errored:</span>
-                  <span className="text-xs text-gray-300">{currentWaveData.agentsErrored.join(", ")}</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">Errored:</span>
+                  <span className="text-xs text-[var(--color-text-primary)]">{currentWaveData.agentsErrored.join(", ")}</span>
                 </div>
               )}
             </div>
           </div>
           
           {/* Cumulative Chart */}
-          <div className="bg-gray-800/50 border border-zinc-700/50 rounded-xl p-5">
-            <h3 className="text-sm font-medium text-gray-300 mb-4 flex items-center gap-2">
+          <div className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-xl p-5">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Cumulative Findings
             </h3>
@@ -614,7 +614,7 @@ export default function DiscoveryRunReplayControls() {
                     className={`flex-1 rounded-t transition-all duration-500 ${
                       index <= currentWave
                         ? "bg-gradient-to-t from-blue-600 to-blue-400"
-                        : "bg-gray-700"
+                        : "bg-[var(--color-surface-3)]"
                     }`}
                     style={{ 
                       height: `${Math.max(heightPercent, 4)}%`,
@@ -626,7 +626,7 @@ export default function DiscoveryRunReplayControls() {
               })}
             </div>
             
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
               <div className="text-center">
                 <div className="text-lg font-semibold text-blue-400 transition-all duration-300">
                   {cumulativeFindings}
@@ -653,9 +653,9 @@ export default function DiscoveryRunReplayControls() {
         <div className="col-span-12 lg:col-span-8 space-y-6">
           
           {/* Findings Panel */}
-          <div className="bg-gray-800/50 border border-zinc-700/50 rounded-xl p-5">
+          <div className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-300 flex items-center gap-2">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] flex items-center gap-2">
                 <Zap className="w-4 h-4" />
                 Findings ({allFindings.length} total up to Wave {currentWave + 1})
               </h3>
@@ -691,11 +691,11 @@ export default function DiscoveryRunReplayControls() {
                       {finding.severity}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400 ml-6">{finding.description}</p>
+                  <p className="text-xs text-[var(--color-text-secondary)] ml-6">{finding.description}</p>
                   <div className="flex items-center gap-3 mt-2 ml-6">
-                    <span className="text-xs text-gray-500">{finding.category}</span>
-                    <span className="text-xs text-gray-600">•</span>
-                    <span className="text-xs text-gray-500">{finding.id}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{finding.category}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">•</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{finding.id}</span>
                   </div>
                 </div>
               ))}
@@ -703,15 +703,15 @@ export default function DiscoveryRunReplayControls() {
           </div>
           
           {/* Agent Activity Log */}
-          <div className="bg-gray-800/50 border border-zinc-700/50 rounded-xl p-5">
+          <div className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-300 flex items-center gap-2">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] flex items-center gap-2">
                 <Bot className="w-4 h-4" />
                 Agent Activity Log
               </h3>
               <button
                 onClick={() => setShowActivityLog(!showActivityLog)}
-                className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
               >
                 {showActivityLog ? "Hide" : "Show"}
               </button>
@@ -720,21 +720,21 @@ export default function DiscoveryRunReplayControls() {
             {showActivityLog && (
               <div className="space-y-1 max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
                 {allEvents.length === 0 ? (
-                  <div className="text-center text-gray-500 py-8">
+                  <div className="text-center text-[var(--color-text-muted)] py-8">
                     No agent activity yet
                   </div>
                 ) : (
                   allEvents.map((event, index) => (
                     <div
                       key={`${event.agentId}-${event.timestamp}-${index}`}
-                      className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-700/30 transition-colors"
+                      className="flex items-start gap-3 p-2 rounded-lg hover:bg-[var(--color-surface-3)]/30 transition-colors"
                     >
                       <div className="mt-0.5">
                         {getEventIcon(event.action)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-200 truncate">
+                          <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">
                             {event.agentName}
                           </span>
                           <span className={`text-xs px-1.5 py-0.5 rounded ${
@@ -747,10 +747,10 @@ export default function DiscoveryRunReplayControls() {
                           </span>
                         </div>
                         {event.details && (
-                          <p className="text-xs text-gray-400 truncate">{event.details}</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] truncate">{event.details}</p>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 font-mono whitespace-nowrap">
+                      <div className="text-xs text-[var(--color-text-muted)] font-mono whitespace-nowrap">
                         {formatTimestamp(event.timestamp)}
                       </div>
                     </div>
@@ -761,8 +761,8 @@ export default function DiscoveryRunReplayControls() {
           </div>
           
           {/* Wave Detail Panel */}
-          <div className="bg-gray-800/50 border border-zinc-700/50 rounded-xl p-5">
-            <h3 className="text-sm font-medium text-gray-300 mb-4 flex items-center gap-2">
+          <div className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-xl p-5">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
               <Target className="w-4 h-4" />
               Wave {currentWave + 1} Detailed View
             </h3>
@@ -778,7 +778,7 @@ export default function DiscoveryRunReplayControls() {
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="8"
-                    className="text-gray-700"
+                    className="text-[var(--color-text-muted)]"
                   />
                   <circle
                     cx="50"
@@ -793,21 +793,21 @@ export default function DiscoveryRunReplayControls() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-2xl font-bold text-gray-100">
+                  <span className="text-2xl font-bold text-[var(--color-text-primary)]">
                     {Math.round((currentWaveData.targetsHit / currentWaveData.totalTargets) * 100)}%
                   </span>
-                  <span className="text-xs text-gray-400">Targets</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">Targets</span>
                 </div>
               </div>
               
               <div className="flex-1 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">Wave Progress</span>
-                  <span className="text-sm font-medium text-gray-200">
+                  <span className="text-sm text-[var(--color-text-secondary)]">Wave Progress</span>
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">
                     {currentWaveData.targetsHit} / {currentWaveData.totalTargets} targets
                   </span>
                 </div>
-                <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-500"
                     style={{ width: `${(currentWaveData.targetsHit / currentWaveData.totalTargets) * 100}%` }}
@@ -815,17 +815,17 @@ export default function DiscoveryRunReplayControls() {
                 </div>
                 
                 <div className="grid grid-cols-3 gap-3 mt-4">
-                  <div className="bg-gray-700/30 rounded-lg p-2 text-center">
+                  <div className="bg-[var(--color-surface-3)]/30 rounded-lg p-2 text-center">
                     <div className="text-lg font-semibold text-emerald-400">{currentWaveData.agentsActive}</div>
-                    <div className="text-xs text-gray-500">Active</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Active</div>
                   </div>
-                  <div className="bg-gray-700/30 rounded-lg p-2 text-center">
+                  <div className="bg-[var(--color-surface-3)]/30 rounded-lg p-2 text-center">
                     <div className="text-lg font-semibold text-blue-400">{currentWaveData.agentsCompleted.length}</div>
-                    <div className="text-xs text-gray-500">Completed</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Completed</div>
                   </div>
-                  <div className="bg-gray-700/30 rounded-lg p-2 text-center">
+                  <div className="bg-[var(--color-surface-3)]/30 rounded-lg p-2 text-center">
                     <div className="text-lg font-semibold text-red-400">{currentWaveData.agentsErrored.length}</div>
-                    <div className="text-xs text-gray-500">Errored</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Errored</div>
                   </div>
                 </div>
               </div>
@@ -840,7 +840,7 @@ export default function DiscoveryRunReplayControls() {
                   high: "bg-orange-400/20 text-orange-400 border-orange-400/30",
                   medium: "bg-yellow-400/20 text-yellow-400 border-yellow-400/30",
                   low: "bg-blue-400/20 text-blue-400 border-blue-400/30",
-                  info: "bg-gray-400/20 text-gray-400 border-gray-400/30"
+                  info: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border-[var(--color-border)]/30"
                 };
                 
                 return (

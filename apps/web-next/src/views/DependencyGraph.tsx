@@ -134,9 +134,9 @@ export default function DependencyGraph() {
   };
 
   return (
-    <div className="flex h-full w-full bg-zinc-950 text-white">
+    <div className="flex h-full w-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Graph Canvas */}
-      <div className="relative flex-[65%] bg-zinc-900 overflow-hidden" style={{ minWidth: 0 }}>
+      <div className="relative flex-[65%] bg-[var(--color-surface-1)] overflow-hidden" style={{ minWidth: 0 }}>
         <div className="absolute inset-0">
           {filteredNodes.map((node) => (
             <button
@@ -165,10 +165,10 @@ export default function DependencyGraph() {
       </div>
 
       {/* Detail Panel */}
-      <div className="flex-[35%] bg-zinc-950 border-l border-zinc-800 flex flex-col" style={{ minWidth: 280 }}>
+      <div className="flex-[35%] bg-[var(--color-surface-0)] border-l border-[var(--color-border)] flex flex-col" style={{ minWidth: 280 }}>
         {/* Filter Chips */}
-        <div className="p-4 border-b border-zinc-800">
-          <h3 className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3">
+        <div className="p-4 border-b border-[var(--color-border)]">
+          <h3 className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
             Filter by Kind
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -182,7 +182,7 @@ export default function DependencyGraph() {
                     "px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150",
                     isActive
                       ? KIND_COLORS[kind].replace("hover:", "")
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
                   {KIND_LABELS[kind]}
@@ -214,31 +214,31 @@ export default function DependencyGraph() {
                         HEALTH_COLORS[selectedNode.health]
                       )}
                     />
-                    <span className="text-sm text-zinc-400 capitalize">
+                    <span className="text-sm text-[var(--color-text-secondary)] capitalize">
                       {selectedNode.health}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
-                <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
+                <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                   Description
                 </span>
-                <p className="text-sm mt-1 text-zinc-300">{selectedNode.description}</p>
+                <p className="text-sm mt-1 text-[var(--color-text-primary)]">{selectedNode.description}</p>
               </div>
 
-              <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
-                <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
+                <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                   Details
                 </span>
                 <div className="mt-2 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">Kind</span>
+                    <span className="text-[var(--color-text-secondary)]">Kind</span>
                     <span className="capitalize">{selectedNode.kind}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">Position</span>
+                    <span className="text-[var(--color-text-secondary)]">Position</span>
                     <span>
                       {selectedNode.x}%, {selectedNode.y}%
                     </span>
@@ -247,21 +247,21 @@ export default function DependencyGraph() {
               </div>
 
               {/* Connections */}
-              <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
-                <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
+                <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                   Connections
                 </span>
                 <div className="mt-2 space-y-2">
                   {selectedNodeEdges.outgoing.length > 0 && (
                     <div>
-                      <span className="text-xs text-zinc-500">Outgoing</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">Outgoing</span>
                       {selectedNodeEdges.outgoing.map(({ edge, toNode }) => (
                         <div
                           key={edge.id}
                           className="text-sm py-1 flex items-center gap-2"
                         >
                           <span className="text-emerald-400">→</span>
-                          <span className="text-zinc-300">
+                          <span className="text-[var(--color-text-primary)]">
                             to {toNode?.label ?? edge.to} ({edge.kind})
                           </span>
                         </div>
@@ -270,14 +270,14 @@ export default function DependencyGraph() {
                   )}
                   {selectedNodeEdges.incoming.length > 0 && (
                     <div>
-                      <span className="text-xs text-zinc-500">Incoming</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">Incoming</span>
                       {selectedNodeEdges.incoming.map(({ edge, fromNode }) => (
                         <div
                           key={edge.id}
                           className="text-sm py-1 flex items-center gap-2"
                         >
                           <span className="text-rose-400">←</span>
-                          <span className="text-zinc-300">
+                          <span className="text-[var(--color-text-primary)]">
                             from {fromNode?.label ?? edge.from} ({edge.kind})
                           </span>
                         </div>
@@ -286,13 +286,13 @@ export default function DependencyGraph() {
                   )}
                   {selectedNodeEdges.incoming.length === 0 &&
                     selectedNodeEdges.outgoing.length === 0 && (
-                      <span className="text-sm text-zinc-500">No connections</span>
+                      <span className="text-sm text-[var(--color-text-muted)]">No connections</span>
                     )}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-zinc-500">
+            <div className="flex flex-col items-center justify-center h-full text-[var(--color-text-muted)]">
               <svg
                 className="w-16 h-16 mb-4 opacity-50"
                 fill="none"

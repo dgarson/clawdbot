@@ -48,7 +48,7 @@ const roleColor: Record<UserRole, string> = {
   owner:     "bg-rose-500/20 text-rose-300 border border-rose-500/30",
   admin:     "bg-orange-500/20 text-orange-300 border border-orange-500/30",
   developer: "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
-  viewer:    "bg-zinc-500/20 text-zinc-300 border border-zinc-500/30",
+  viewer:    "bg-[var(--color-surface-3)]/20 text-[var(--color-text-primary)] border border-[var(--color-surface-3)]/30",
   billing:   "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
 };
 
@@ -160,7 +160,7 @@ const ROLES: RoleDefinition[] = [
   { role: "admin", description: "Manage members, workspaces, and org settings. Cannot access billing.", permissionCount: 36, memberCount: 2, color: "text-orange-400" },
   { role: "developer", description: "Create and manage projects, APIs, and resources within workspaces.", permissionCount: 22, memberCount: 4, color: "text-indigo-400" },
   { role: "billing", description: "View and manage billing and subscription. Read-only for other resources.", permissionCount: 8, memberCount: 1, color: "text-emerald-400" },
-  { role: "viewer", description: "Read-only access to specified workspaces and projects.", permissionCount: 5, memberCount: 1, color: "text-zinc-400" },
+  { role: "viewer", description: "Read-only access to specified workspaces and projects.", permissionCount: 5, memberCount: 1, color: "text-[var(--color-text-secondary)]" },
 ];
 
 export default function UserPermissionManager() {
@@ -177,15 +177,15 @@ export default function UserPermissionManager() {
   const memberInitials = (name: string) => name.split(" ").map(n => n[0]).join("").slice(0, 2);
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">User & Permission Manager</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Members · Teams · Roles · Audit</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Members · Teams · Roles · Audit</p>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <span className="text-zinc-400">{MEMBERS.filter(m => m.status === "active").length} active</span>
+          <span className="text-[var(--color-text-secondary)]">{MEMBERS.filter(m => m.status === "active").length} active</span>
           <span className="text-amber-400">{MEMBERS.filter(m => m.status === "invited").length} pending</span>
           <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
             + Invite Member
@@ -194,14 +194,14 @@ export default function UserPermissionManager() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-[var(--color-border)] px-6">
         {(["members", "teams", "roles", "audit"] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize",
-              tab === t ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200"
+              tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}
@@ -213,17 +213,17 @@ export default function UserPermissionManager() {
       {tab === "members" && (
         <div className="flex flex-1 overflow-hidden">
           {/* List */}
-          <div className="w-80 border-r border-zinc-800 flex flex-col">
-            <div className="p-3 border-b border-zinc-800 space-y-2">
+          <div className="w-80 border-r border-[var(--color-border)] flex flex-col">
+            <div className="p-3 border-b border-[var(--color-border)] space-y-2">
               <div className="flex gap-1.5 flex-wrap">
-                <button onClick={() => setRoleFilter("all")} className={cn("text-xs px-2 py-0.5 rounded border transition-colors", roleFilter === "all" ? "bg-zinc-600 border-zinc-500 text-white" : "border-zinc-700 text-zinc-400 hover:border-zinc-500")}>All</button>
+                <button onClick={() => setRoleFilter("all")} className={cn("text-xs px-2 py-0.5 rounded border transition-colors", roleFilter === "all" ? "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]")}>All</button>
                 {(["owner", "admin", "developer", "viewer", "billing"] as UserRole[]).map(r => (
-                  <button key={r} onClick={() => setRoleFilter(r)} className={cn("text-xs px-2 py-0.5 rounded border transition-colors capitalize", roleFilter === r ? roleColor[r] : "border-zinc-700 text-zinc-400 hover:border-zinc-500")}>{r}</button>
+                  <button key={r} onClick={() => setRoleFilter(r)} className={cn("text-xs px-2 py-0.5 rounded border transition-colors capitalize", roleFilter === r ? roleColor[r] : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]")}>{r}</button>
                 ))}
               </div>
               <div className="flex gap-1.5">
                 {(["all", "active", "invited", "suspended"] as const).map(s => (
-                  <button key={s} onClick={() => setStatusFilter(s)} className={cn("text-xs px-2 py-0.5 rounded border transition-colors capitalize", statusFilter === s ? "bg-zinc-600 border-zinc-500 text-white" : "border-zinc-700 text-zinc-400 hover:border-zinc-500")}>{s}</button>
+                  <button key={s} onClick={() => setStatusFilter(s)} className={cn("text-xs px-2 py-0.5 rounded border transition-colors capitalize", statusFilter === s ? "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]")}>{s}</button>
                 ))}
               </div>
             </div>
@@ -233,22 +233,22 @@ export default function UserPermissionManager() {
                   key={m.id}
                   onClick={() => setSelectedMember(m)}
                   className={cn(
-                    "w-full text-left px-4 py-3 border-b border-zinc-800/60 hover:bg-zinc-800/40 transition-colors",
-                    selectedMember.id === m.id && "bg-zinc-800/60"
+                    "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface-2)]/40 transition-colors",
+                    selectedMember.id === m.id && "bg-[var(--color-surface-2)]/60"
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0", m.avatarColor)}>
+                    <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-[var(--color-text-primary)] flex-shrink-0", m.avatarColor)}>
                       {memberInitials(m.name)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-sm font-medium text-white truncate">{m.name}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{m.name}</span>
                         <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", statusDot[m.status])} />
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={cn("text-xs px-1.5 py-0.5 rounded-full capitalize", roleColor[m.role])}>{m.role}</span>
-                        <span className="text-xs text-zinc-500">{m.lastActive}</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">{m.lastActive}</span>
                       </div>
                     </div>
                   </div>
@@ -261,12 +261,12 @@ export default function UserPermissionManager() {
           <div className="flex-1 overflow-y-auto p-6">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-4">
-                <div className={cn("w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold text-white", selectedMember.avatarColor)}>
+                <div className={cn("w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold text-[var(--color-text-primary)]", selectedMember.avatarColor)}>
                   {memberInitials(selectedMember.name)}
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold mb-1">{selectedMember.name}</h2>
-                  <div className="text-sm font-mono text-zinc-400 mb-1">{selectedMember.email}</div>
+                  <div className="text-sm font-mono text-[var(--color-text-secondary)] mb-1">{selectedMember.email}</div>
                   <div className="flex items-center gap-2">
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", roleColor[selectedMember.role])}>{selectedMember.role}</span>
                     <span className={cn("text-xs font-medium capitalize", statusBadge[selectedMember.status])}>{selectedMember.status}</span>
@@ -274,34 +274,34 @@ export default function UserPermissionManager() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <button className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded text-sm transition-colors">Edit Role</button>
+                <button className="px-3 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded text-sm transition-colors">Edit Role</button>
                 {selectedMember.status === "active" && <button className="px-3 py-1.5 bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 border border-amber-600/40 rounded text-sm transition-colors">Suspend</button>}
               </div>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3 mb-6">
-              <div className="bg-zinc-900 rounded-lg p-3 text-center">
-                <div className="text-lg font-bold text-white mb-1">{selectedMember.teams.length}</div>
-                <div className="text-xs text-zinc-500">teams</div>
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-[var(--color-text-primary)] mb-1">{selectedMember.teams.length}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">teams</div>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-3 text-center">
-                <div className="text-lg font-bold text-white mb-1">{selectedMember.permissions.length}</div>
-                <div className="text-xs text-zinc-500">permissions</div>
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-[var(--color-text-primary)] mb-1">{selectedMember.permissions.length}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">permissions</div>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-3 text-center">
-                <div className="text-sm font-medium text-white mb-1">{selectedMember.lastActive}</div>
-                <div className="text-xs text-zinc-500">last active</div>
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-3 text-center">
+                <div className="text-sm font-medium text-[var(--color-text-primary)] mb-1">{selectedMember.lastActive}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">last active</div>
               </div>
             </div>
 
             {/* Teams */}
             {selectedMember.teams.length > 0 && (
               <div className="mb-4">
-                <div className="text-sm font-medium text-zinc-300 mb-2">Teams</div>
+                <div className="text-sm font-medium text-[var(--color-text-primary)] mb-2">Teams</div>
                 <div className="flex flex-wrap gap-2">
                   {selectedMember.teams.map(t => (
-                    <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">{t}</span>
+                    <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border border-[var(--color-border)]">{t}</span>
                   ))}
                 </div>
               </div>
@@ -309,15 +309,15 @@ export default function UserPermissionManager() {
 
             {/* Permissions */}
             <div>
-              <div className="text-sm font-medium text-zinc-300 mb-2">Permissions</div>
+              <div className="text-sm font-medium text-[var(--color-text-primary)] mb-2">Permissions</div>
               {selectedMember.permissions.length > 0 ? (
                 <div className="space-y-1.5">
                   {selectedMember.permissions.map((p, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-zinc-900 rounded p-3">
+                    <div key={i} className="flex items-center gap-3 bg-[var(--color-surface-1)] rounded p-3">
                       <span className="text-sm">{actionIcon[p.action]}</span>
-                      <span className="text-xs font-medium text-white capitalize">{p.action}</span>
-                      <span className="text-xs text-zinc-400">{p.resource}</span>
-                      <span className="ml-auto flex items-center gap-1.5 text-xs text-zinc-500">
+                      <span className="text-xs font-medium text-[var(--color-text-primary)] capitalize">{p.action}</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">{p.resource}</span>
+                      <span className="ml-auto flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
                         <span>{scopeIcon[p.scope]}</span>
                         <span className="capitalize">{p.scope}</span>
                       </span>
@@ -326,11 +326,11 @@ export default function UserPermissionManager() {
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-zinc-500 bg-zinc-900 rounded p-4 text-center">Account suspended — no active permissions</div>
+                <div className="text-sm text-[var(--color-text-muted)] bg-[var(--color-surface-1)] rounded p-4 text-center">Account suspended — no active permissions</div>
               )}
             </div>
 
-            <div className="mt-4 text-xs text-zinc-600">Joined {selectedMember.joinedAt}</div>
+            <div className="mt-4 text-xs text-[var(--color-text-muted)]">Joined {selectedMember.joinedAt}</div>
           </div>
         </div>
       )}
@@ -344,22 +344,22 @@ export default function UserPermissionManager() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {TEAMS.map(team => (
-              <div key={team.id} className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
+              <div key={team.id} className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <div className="text-sm font-semibold text-white mb-0.5">{team.name}</div>
-                    <div className="text-xs text-zinc-400">{team.description}</div>
+                    <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-0.5">{team.name}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{team.description}</div>
                   </div>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize flex-shrink-0", roleColor[team.role])}>{team.role}</span>
                 </div>
-                <div className="flex items-center gap-3 mt-3 text-xs text-zinc-500">
-                  <span className="text-white font-medium">{team.memberCount}</span> members
+                <div className="flex items-center gap-3 mt-3 text-xs text-[var(--color-text-muted)]">
+                  <span className="text-[var(--color-text-primary)] font-medium">{team.memberCount}</span> members
                   <span>·</span>
                   <span>since {team.createdAt}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 mt-3">
                   {team.tags.map(tag => (
-                    <span key={tag} className="text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-500">{tag}</span>
+                    <span key={tag} className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-muted)]">{tag}</span>
                   ))}
                 </div>
               </div>
@@ -374,30 +374,30 @@ export default function UserPermissionManager() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-base font-semibold">Role Definitions</h2>
-              <p className="text-sm text-zinc-400 mt-0.5">Pre-defined roles with permission sets</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Pre-defined roles with permission sets</p>
             </div>
           </div>
           <div className="space-y-3">
             {ROLES.map(r => (
-              <div key={r.role} className="bg-zinc-900 rounded-xl p-5 flex items-center gap-6">
+              <div key={r.role} className="bg-[var(--color-surface-1)] rounded-xl p-5 flex items-center gap-6">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
                     <span className={cn("text-sm font-semibold capitalize", r.color)}>{r.role}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", roleColor[r.role])}>{r.role}</span>
                   </div>
-                  <p className="text-xs text-zinc-400">{r.description}</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">{r.description}</p>
                 </div>
                 <div className="flex items-center gap-6 text-center flex-shrink-0">
                   <div>
-                    <div className="text-xl font-bold font-mono text-white">{r.permissionCount}</div>
-                    <div className="text-xs text-zinc-500">permissions</div>
+                    <div className="text-xl font-bold font-mono text-[var(--color-text-primary)]">{r.permissionCount}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">permissions</div>
                   </div>
                   <div>
-                    <div className="text-xl font-bold font-mono text-white">{r.memberCount}</div>
-                    <div className="text-xs text-zinc-500">members</div>
+                    <div className="text-xl font-bold font-mono text-[var(--color-text-primary)]">{r.memberCount}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">members</div>
                   </div>
                 </div>
-                <button className="text-xs px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded border border-zinc-700 transition-colors flex-shrink-0">
+                <button className="text-xs px-3 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded border border-[var(--color-border)] transition-colors flex-shrink-0">
                   View Permissions
                 </button>
               </div>
@@ -419,19 +419,19 @@ export default function UserPermissionManager() {
               { actor: "Tim", action: "Created team", target: "Design System", change: "6 initial members", time: "Feb 10", env: "production" },
               { actor: "Bob", action: "Removed", target: "Expired API key", change: "billing admin revoked key", time: "Feb 5", env: "production" },
             ].map((log, i) => (
-              <div key={i} className="bg-zinc-900 rounded-lg p-3 flex items-center gap-4">
-                <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+              <div key={i} className="bg-[var(--color-surface-1)] rounded-lg p-3 flex items-center gap-4">
+                <div className="w-8 h-8 rounded-full bg-[var(--color-surface-3)] flex items-center justify-center text-xs font-bold flex-shrink-0">
                   {log.actor[0]}
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm text-white">
+                  <div className="text-sm text-[var(--color-text-primary)]">
                     <span className="font-medium">{log.actor}</span>
-                    <span className="text-zinc-400 mx-1">{log.action}</span>
+                    <span className="text-[var(--color-text-secondary)] mx-1">{log.action}</span>
                     <span className="font-medium">{log.target}</span>
                   </div>
-                  <div className="text-xs text-zinc-500">{log.change}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">{log.change}</div>
                 </div>
-                <div className="text-right text-xs text-zinc-500">
+                <div className="text-right text-xs text-[var(--color-text-muted)]">
                   <div>{log.time}</div>
                   <div className={cn("capitalize", log.env === "production" ? "text-rose-400" : "text-amber-400")}>{log.env}</div>
                 </div>

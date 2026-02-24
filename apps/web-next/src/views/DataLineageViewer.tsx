@@ -329,8 +329,8 @@ function GraphTab() {
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize",
                 filterKind === k
-                  ? "bg-indigo-600 text-white"
-                  : "bg-zinc-800 text-zinc-400 hover:text-white"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {k}
@@ -344,7 +344,7 @@ function GraphTab() {
             if (colNodes.length === 0) {return null;}
             return (
               <div key={col} className="shrink-0 w-44 space-y-2">
-                <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider text-center mb-3">
+                <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider text-center mb-3">
                   {col}
                 </div>
                 {colNodes.map((node) => {
@@ -357,7 +357,7 @@ function GraphTab() {
                         "w-full text-left rounded-xl border p-3 transition-all",
                         isSelected
                           ? "border-indigo-500 bg-indigo-500/10"
-                          : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
+                          : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       <div className="flex items-center gap-1.5 mb-1">
@@ -366,9 +366,9 @@ function GraphTab() {
                           {node.kind}
                         </span>
                       </div>
-                      <div className="text-xs font-semibold text-white leading-tight">{node.name}</div>
-                      <div className="text-xs text-zinc-500 mt-1">{node.system}</div>
-                      <div className="text-xs text-zinc-400 mt-1">{fmt(node.recordCount)} rows</div>
+                      <div className="text-xs font-semibold text-[var(--color-text-primary)] leading-tight">{node.name}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-1">{node.system}</div>
+                      <div className="text-xs text-[var(--color-text-secondary)] mt-1">{fmt(node.recordCount)} rows</div>
                     </button>
                   );
                 })}
@@ -381,49 +381,49 @@ function GraphTab() {
       {/* Detail panel */}
       <div className="w-72 shrink-0">
         {!selected ? (
-          <div className="flex items-center justify-center h-40 text-zinc-500 text-sm rounded-xl border border-zinc-800 bg-zinc-900">
+          <div className="flex items-center justify-center h-40 text-[var(--color-text-muted)] text-sm rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)]">
             Click a node to inspect
           </div>
         ) : (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-4">
+          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5 space-y-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className={cn("text-xs px-2 py-0.5 rounded border capitalize", kindColor(selected.kind))}>
                   {selected.kind}
                 </span>
               </div>
-              <h3 className="text-white font-semibold">{selected.name}</h3>
-              <p className="text-xs text-zinc-400 mt-1">{selected.system}</p>
+              <h3 className="text-[var(--color-text-primary)] font-semibold">{selected.name}</h3>
+              <p className="text-xs text-[var(--color-text-secondary)] mt-1">{selected.system}</p>
             </div>
-            <p className="text-sm text-zinc-300">{selected.description}</p>
+            <p className="text-sm text-[var(--color-text-primary)]">{selected.description}</p>
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-zinc-500">Owner</span>
-                <span className="text-zinc-300">{selected.owner}</span>
+                <span className="text-[var(--color-text-muted)]">Owner</span>
+                <span className="text-[var(--color-text-primary)]">{selected.owner}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Records</span>
-                <span className="text-zinc-300">{fmt(selected.recordCount)}</span>
+                <span className="text-[var(--color-text-muted)]">Records</span>
+                <span className="text-[var(--color-text-primary)]">{fmt(selected.recordCount)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Last updated</span>
-                <span className="text-zinc-300">{selected.lastUpdated.slice(11, 16)} UTC</span>
+                <span className="text-[var(--color-text-muted)]">Last updated</span>
+                <span className="text-[var(--color-text-primary)]">{selected.lastUpdated.slice(11, 16)} UTC</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Upstream</span>
-                <span className="text-zinc-300">{selected.upstreamIds.length} nodes</span>
+                <span className="text-[var(--color-text-muted)]">Upstream</span>
+                <span className="text-[var(--color-text-primary)]">{selected.upstreamIds.length} nodes</span>
               </div>
             </div>
             {selected.tags.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {selected.tags.map((t) => (
-                  <span key={t} className="text-xs bg-zinc-800 text-zinc-400 rounded px-2 py-0.5">{t}</span>
+                  <span key={t} className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded px-2 py-0.5">{t}</span>
                 ))}
               </div>
             )}
             {selected.upstreamIds.length > 0 && (
               <div>
-                <div className="text-xs text-zinc-500 mb-1">Upstream nodes</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Upstream nodes</div>
                 <div className="space-y-1">
                   {selected.upstreamIds.map((uid) => {
                     const up = nodes.find((n) => n.id === uid);
@@ -432,7 +432,7 @@ function GraphTab() {
                         <span className={cn("text-xs px-1.5 py-0.5 rounded border capitalize", kindColor(up.kind))}>
                           {up.kind}
                         </span>
-                        <span className="text-xs text-zinc-300">{up.name}</span>
+                        <span className="text-xs text-[var(--color-text-primary)]">{up.name}</span>
                       </div>
                     ) : null;
                   })}
@@ -456,16 +456,16 @@ function RunsTab() {
           key={run.id}
           className={cn(
             "rounded-xl border p-4 cursor-pointer transition-all",
-            selected?.id === run.id ? "border-indigo-500 bg-indigo-500/5" : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
+            selected?.id === run.id ? "border-indigo-500 bg-indigo-500/5" : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
           )}
           onClick={() => setSelected(selected?.id === run.id ? null : run)}
         >
           <div className="flex items-center gap-3">
             <span className={cn("w-2 h-2 rounded-full shrink-0", statusDot(run.status))} />
-            <span className="font-medium text-white text-sm">{run.pipelineName}</span>
+            <span className="font-medium text-[var(--color-text-primary)] text-sm">{run.pipelineName}</span>
             <span className={cn("text-xs font-semibold ml-auto capitalize", statusColor(run.status))}>{run.status}</span>
           </div>
-          <div className="flex gap-4 mt-2 text-xs text-zinc-500">
+          <div className="flex gap-4 mt-2 text-xs text-[var(--color-text-muted)]">
             <span>{run.startedAt.slice(0, 16).replace("T", " ")}</span>
             <span>⏱ {run.duration}</span>
             <span>📦 {fmt(run.rowsProcessed)} rows</span>
@@ -473,15 +473,15 @@ function RunsTab() {
           </div>
 
           {selected?.id === run.id && (
-            <div className="mt-4 border-t border-zinc-800 pt-4">
-              <div className="text-xs text-zinc-500 mb-2">Nodes visited (in order)</div>
+            <div className="mt-4 border-t border-[var(--color-border)] pt-4">
+              <div className="text-xs text-[var(--color-text-muted)] mb-2">Nodes visited (in order)</div>
               <div className="flex flex-wrap gap-2">
                 {run.nodesVisited.map((nid, i) => {
                   const node = nodes.find((n) => n.id === nid);
                   return (
                     <div key={nid} className="flex items-center gap-1">
-                      {i > 0 && <span className="text-zinc-600 text-xs">→</span>}
-                      <span className={cn("text-xs px-2 py-0.5 rounded border", node ? kindColor(node.kind) : "bg-zinc-800 text-zinc-400 border-zinc-700")}>
+                      {i > 0 && <span className="text-[var(--color-text-muted)] text-xs">→</span>}
+                      <span className={cn("text-xs px-2 py-0.5 rounded border", node ? kindColor(node.kind) : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]")}>
                         {node?.name ?? nid}
                       </span>
                     </div>
@@ -502,31 +502,31 @@ function ImpactTab() {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-zinc-400 mb-4">
+      <p className="text-sm text-[var(--color-text-secondary)] mb-4">
         Downstream impact scores — how many nodes depend on each dataset. Critical path datasets affect the most downstream consumers.
       </p>
       {sorted.map((item) => (
-        <div key={item.datasetId} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+        <div key={item.datasetId} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
           <div className="flex items-center gap-3 mb-3">
-            <span className="font-medium text-white text-sm">{item.datasetName}</span>
+            <span className="font-medium text-[var(--color-text-primary)] text-sm">{item.datasetName}</span>
             {item.criticalPath && (
               <span className="text-xs bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded px-2 py-0.5">
                 Critical Path
               </span>
             )}
-            <span className="ml-auto text-xs text-zinc-500">
+            <span className="ml-auto text-xs text-[var(--color-text-muted)]">
               {item.upstreamCount} up · {item.downstreamCount} down
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-zinc-500 w-24">Downstream</span>
-            <div className="flex-1 bg-zinc-800 rounded-full h-2">
+            <span className="text-xs text-[var(--color-text-muted)] w-24">Downstream</span>
+            <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
               <div
                 className={cn("h-2 rounded-full", item.criticalPath ? "bg-rose-500" : "bg-indigo-500")}
                 style={{ width: (item.downstreamCount / maxDown * 100) + "%" }}
               />
             </div>
-            <span className="text-xs font-bold text-white w-6 text-right">{item.downstreamCount}</span>
+            <span className="text-xs font-bold text-[var(--color-text-primary)] w-6 text-right">{item.downstreamCount}</span>
           </div>
         </div>
       ))}
@@ -536,11 +536,11 @@ function ImpactTab() {
 
 function QualityTab() {
   const stats = [
-    { label: "Nodes Tracked", value: nodes.length.toString(), sub: "across 4 types", color: "text-white" },
-    { label: "Active Pipelines", value: "6", sub: "3 scheduled, 3 streaming", color: "text-white" },
+    { label: "Nodes Tracked", value: nodes.length.toString(), sub: "across 4 types", color: "text-[var(--color-text-primary)]" },
+    { label: "Active Pipelines", value: "6", sub: "3 scheduled, 3 streaming", color: "text-[var(--color-text-primary)]" },
     { label: "Last Full Run", value: "1h 22m", sub: "completed 06:25 UTC", color: "text-emerald-400" },
     { label: "Failed Runs (24h)", value: "1", sub: "bi-snapshot-refresh", color: "text-rose-400" },
-    { label: "Total Records", value: fmt(nodes.reduce((a, n) => a + n.recordCount, 0)), sub: "across all nodes", color: "text-white" },
+    { label: "Total Records", value: fmt(nodes.reduce((a, n) => a + n.recordCount, 0)), sub: "across all nodes", color: "text-[var(--color-text-primary)]" },
     { label: "Critical Path Nodes", value: impacts.filter((i) => i.criticalPath).length.toString(), sub: "require priority SLA", color: "text-amber-400" },
   ];
 
@@ -553,37 +553,37 @@ function QualityTab() {
     <div className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+          <div key={s.label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
             <div className={cn("text-2xl font-bold mb-1", s.color)}>{s.value}</div>
-            <div className="text-sm font-medium text-white">{s.label}</div>
-            <div className="text-xs text-zinc-500 mt-0.5">{s.sub}</div>
+            <div className="text-sm font-medium text-[var(--color-text-primary)]">{s.label}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{s.sub}</div>
           </div>
         ))}
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">Ownership Breakdown</h3>
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Ownership Breakdown</h3>
         <div className="space-y-3">
           {Object.entries(ownerGroups).map(([owner, count]) => (
             <div key={owner} className="flex items-center gap-3">
-              <span className="w-28 text-xs text-zinc-400 shrink-0">{owner}</span>
-              <div className="flex-1 bg-zinc-800 rounded-full h-2">
+              <span className="w-28 text-xs text-[var(--color-text-secondary)] shrink-0">{owner}</span>
+              <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                 <div className="h-2 rounded-full bg-indigo-500" style={{ width: (count / nodes.length * 100) + "%" }} />
               </div>
-              <span className="text-xs text-zinc-300 w-6 text-right">{count}</span>
+              <span className="text-xs text-[var(--color-text-primary)] w-6 text-right">{count}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-        <h3 className="text-sm font-semibold text-white mb-4">Pipeline Run History (last 6)</h3>
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Pipeline Run History (last 6)</h3>
         <div className="space-y-2">
           {runs.map((run) => (
             <div key={run.id} className="flex items-center gap-3 text-xs">
               <span className={cn("w-2 h-2 rounded-full shrink-0", statusDot(run.status))} />
-              <span className="text-zinc-300 w-44 truncate">{run.pipelineName}</span>
-              <span className="text-zinc-500">{run.startedAt.slice(5, 16).replace("T", " ")}</span>
+              <span className="text-[var(--color-text-primary)] w-44 truncate">{run.pipelineName}</span>
+              <span className="text-[var(--color-text-muted)]">{run.startedAt.slice(5, 16).replace("T", " ")}</span>
               <span className={cn("ml-auto capitalize", statusColor(run.status))}>{run.status}</span>
             </div>
           ))}
@@ -607,11 +607,11 @@ export default function DataLineageViewer() {
   const failed24h = runs.filter((r) => r.status === "failed").length;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1">Data Lineage Viewer</h1>
-        <p className="text-zinc-400 text-sm">
+        <p className="text-[var(--color-text-secondary)] text-sm">
           End-to-end data flow visualization — {nodes.length} nodes, {sources} sources → {transforms} transforms → sinks
         </p>
       </div>
@@ -619,20 +619,20 @@ export default function DataLineageViewer() {
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Pipeline Nodes", value: nodes.length, color: "text-white" },
+          { label: "Pipeline Nodes", value: nodes.length, color: "text-[var(--color-text-primary)]" },
           { label: "Active Runs", value: running, color: "text-indigo-400" },
           { label: "Failed (24h)", value: failed24h, color: failed24h > 0 ? "text-rose-400" : "text-emerald-400" },
           { label: "Critical Path", value: impacts.filter((i) => i.criticalPath).length, color: "text-amber-400" },
         ].map((kpi) => (
-          <div key={kpi.label} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+          <div key={kpi.label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
             <div className={cn("text-3xl font-bold", kpi.color)}>{kpi.value}</div>
-            <div className="text-sm text-zinc-400 mt-1">{kpi.label}</div>
+            <div className="text-sm text-[var(--color-text-secondary)] mt-1">{kpi.label}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
+      <div className="flex gap-1 mb-6 border-b border-[var(--color-border)]">
         {TABS.map((t) => (
           <button
             key={t}
@@ -641,7 +641,7 @@ export default function DataLineageViewer() {
               "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
               tab === t
                 ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-zinc-400 hover:text-white"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}

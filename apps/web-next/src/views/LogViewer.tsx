@@ -15,23 +15,23 @@ interface LogEntry {
 }
 
 const LEVEL_STYLES: Record<LogLevel, string> = {
-  trace: "text-zinc-600",
-  debug: "text-zinc-500",
+  trace: "text-[var(--color-text-muted)]",
+  debug: "text-[var(--color-text-muted)]",
   info: "text-sky-400",
   warn: "text-amber-400",
   error: "text-rose-400",
 };
 
 const LEVEL_BG: Record<LogLevel, string> = {
-  trace: "bg-zinc-800 text-zinc-500",
-  debug: "bg-zinc-800 text-zinc-400",
+  trace: "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]",
+  debug: "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]",
   info: "bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/20",
   warn: "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20",
   error: "bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20",
 };
 
 const SOURCE_COLORS: Record<LogSource, string> = {
-  system: "text-zinc-500",
+  system: "text-[var(--color-text-muted)]",
   agent: "text-indigo-400",
   llm: "text-violet-400",
   tool: "text-emerald-400",
@@ -135,10 +135,10 @@ export default function LogViewer() {
   const LEVEL_ORDER: LogLevel[] = ["trace", "debug", "info", "warn", "error"];
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden font-mono text-xs">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden font-mono text-xs">
       {/* Toolbar */}
-      <div className="shrink-0 border-b border-zinc-800 px-4 py-2 flex items-center gap-3 flex-wrap">
-        <span className="text-zinc-400 font-sans text-sm font-semibold not-italic">Log Viewer</span>
+      <div className="shrink-0 border-b border-[var(--color-border)] px-4 py-2 flex items-center gap-3 flex-wrap">
+        <span className="text-[var(--color-text-secondary)] font-sans text-sm font-semibold not-italic">Log Viewer</span>
 
         {/* Level toggles */}
         <div className="flex gap-1">
@@ -162,7 +162,7 @@ export default function LogViewer() {
         <select
           value={sourceFilter}
           onChange={(e) => setSourceFilter(e.target.value as LogSource | "all")}
-          className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
           aria-label="Filter by source"
         >
           <option value="all">all sources</option>
@@ -175,7 +175,7 @@ export default function LogViewer() {
         <select
           value={agentFilter}
           onChange={(e) => setAgentFilter(e.target.value)}
-          className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
           aria-label="Filter by agent"
         >
           <option value="all">all agents</option>
@@ -188,12 +188,12 @@ export default function LogViewer() {
           placeholder="search messages…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-32 bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono placeholder-zinc-600"
+          className="flex-1 min-w-32 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono placeholder-[var(--color-text-muted)]"
           aria-label="Search log messages"
         />
 
         {/* Stats */}
-        <span className="text-zinc-600 shrink-0">
+        <span className="text-[var(--color-text-muted)] shrink-0">
           {filtered.length} / {SEED_LOGS.length} lines
         </span>
 
@@ -203,7 +203,7 @@ export default function LogViewer() {
           aria-pressed={tail}
           className={cn(
             "px-2 py-0.5 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 font-sans",
-            tail ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400"
+            tail ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
           )}
         >
           {tail ? "↓ tailing" : "tail off"}
@@ -219,7 +219,7 @@ export default function LogViewer() {
           aria-label="Log output"
         >
           {filtered.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-zinc-600 font-sans">
+            <div className="flex items-center justify-center h-32 text-[var(--color-text-muted)] font-sans">
               No logs match current filters
             </div>
           ) : (
@@ -228,14 +228,14 @@ export default function LogViewer() {
                 key={log.id}
                 onClick={() => setSelectedId(log.id === selectedId ? null : log.id)}
                 className={cn(
-                  "w-full text-left flex items-start gap-2 px-3 py-0.5 hover:bg-zinc-800/40 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                  log.id === selectedId && "bg-zinc-800/60",
+                  "w-full text-left flex items-start gap-2 px-3 py-0.5 hover:bg-[var(--color-surface-2)]/40 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-indigo-500",
+                  log.id === selectedId && "bg-[var(--color-surface-2)]/60",
                   log.level === "error" && "border-l-2 border-rose-500",
                   log.level === "warn" && "border-l-2 border-amber-500"
                 )}
               >
                 {/* timestamp */}
-                <span className="shrink-0 text-zinc-600 w-24">{log.ts}</span>
+                <span className="shrink-0 text-[var(--color-text-muted)] w-24">{log.ts}</span>
                 {/* level */}
                 <span className={cn("shrink-0 w-9 uppercase font-bold", LEVEL_STYLES[log.level])}>
                   {log.level === "debug" ? "DBG" : log.level === "trace" ? "TRC" : log.level.toUpperCase()}
@@ -245,7 +245,7 @@ export default function LogViewer() {
                 {/* agent */}
                 <span className="shrink-0 w-16 text-indigo-300/70 truncate">{log.agent ?? ""}</span>
                 {/* message */}
-                <span className="text-zinc-300 break-all">
+                <span className="text-[var(--color-text-primary)] break-all">
                   {highlight(log.message, search)}
                 </span>
               </button>
@@ -256,15 +256,15 @@ export default function LogViewer() {
 
         {/* Detail panel */}
         {selectedLog && (
-          <aside className="w-72 shrink-0 border-l border-zinc-800 overflow-y-auto font-sans">
-            <div className="p-4 border-b border-zinc-800">
+          <aside className="w-72 shrink-0 border-l border-[var(--color-border)] overflow-y-auto font-sans">
+            <div className="p-4 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <span className={cn("text-xs px-2 py-0.5 rounded font-medium", LEVEL_BG[selectedLog.level])}>
                   {selectedLog.level.toUpperCase()}
                 </span>
                 <button
                   onClick={() => setSelectedId(null)}
-                  className="text-zinc-500 hover:text-zinc-300 text-lg leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
+                  className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-lg leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
                   aria-label="Close detail panel"
                 >
                   ×
@@ -274,39 +274,39 @@ export default function LogViewer() {
 
             <div className="p-4 space-y-4">
               <div>
-                <div className="text-xs font-medium text-zinc-400 mb-1 uppercase tracking-wide">Message</div>
-                <p className="text-xs text-zinc-200 break-words font-mono">{selectedLog.message}</p>
+                <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-1 uppercase tracking-wide">Message</div>
+                <p className="text-xs text-[var(--color-text-primary)] break-words font-mono">{selectedLog.message}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <div className="text-xs text-zinc-600 mb-0.5">Timestamp</div>
-                  <div className="text-xs text-zinc-300 font-mono">{selectedLog.ts}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Timestamp</div>
+                  <div className="text-xs text-[var(--color-text-primary)] font-mono">{selectedLog.ts}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-600 mb-0.5">Source</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Source</div>
                   <div className={cn("text-xs font-medium", SOURCE_COLORS[selectedLog.source])}>{selectedLog.source}</div>
                 </div>
                 {selectedLog.agent && (
                   <div>
-                    <div className="text-xs text-zinc-600 mb-0.5">Agent</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Agent</div>
                     <div className="text-xs text-indigo-400">{selectedLog.agent}</div>
                   </div>
                 )}
                 <div>
-                  <div className="text-xs text-zinc-600 mb-0.5">ID</div>
-                  <div className="text-xs text-zinc-500 font-mono">{selectedLog.id}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">ID</div>
+                  <div className="text-xs text-[var(--color-text-muted)] font-mono">{selectedLog.id}</div>
                 </div>
               </div>
 
               {selectedLog.meta && Object.keys(selectedLog.meta).length > 0 && (
                 <div>
-                  <div className="text-xs font-medium text-zinc-400 mb-2 uppercase tracking-wide">Metadata</div>
-                  <div className="bg-zinc-900 rounded border border-zinc-800 p-3 space-y-1">
+                  <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2 uppercase tracking-wide">Metadata</div>
+                  <div className="bg-[var(--color-surface-1)] rounded border border-[var(--color-border)] p-3 space-y-1">
                     {Object.entries(selectedLog.meta).map(([k, v]) => (
                       <div key={k} className="flex justify-between text-xs gap-2">
-                        <span className="text-zinc-500">{k}</span>
-                        <span className="text-zinc-300 font-mono">{String(v)}</span>
+                        <span className="text-[var(--color-text-muted)]">{k}</span>
+                        <span className="text-[var(--color-text-primary)] font-mono">{String(v)}</span>
                       </div>
                     ))}
                   </div>
@@ -318,7 +318,7 @@ export default function LogViewer() {
       </div>
 
       {/* Status bar */}
-      <div className="shrink-0 border-t border-zinc-800 px-4 py-1 flex items-center gap-4 text-xs text-zinc-600 font-sans">
+      <div className="shrink-0 border-t border-[var(--color-border)] px-4 py-1 flex items-center gap-4 text-xs text-[var(--color-text-muted)] font-sans">
         <span>
           {SEED_LOGS.filter((l) => l.level === "error").length} errors ·{" "}
           {SEED_LOGS.filter((l) => l.level === "warn").length} warnings

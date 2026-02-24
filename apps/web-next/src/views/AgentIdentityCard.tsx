@@ -10,7 +10,7 @@ export default function AgentIdentityCard() {
   const selectedAgent = MOCK_AGENTS.find(a => a.id === selectedAgentId) || MOCK_AGENTS[0];
 
   return (
-    <div className="flex gap-6 h-full p-6 bg-gray-950 min-h-screen">
+    <div className="flex gap-6 h-full p-6 bg-[var(--color-surface-0)] min-h-screen">
       {/* Grid of Cards */}
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-2 gap-6 overflow-y-auto pr-2 custom-scrollbar">
         {MOCK_AGENTS.map((agent) => (
@@ -18,10 +18,10 @@ export default function AgentIdentityCard() {
             key={agent.id}
             onClick={() => setSelectedAgentId(agent.id)}
             className={cn(
-              "group relative bg-gray-900 border rounded-2xl p-6 transition-all duration-300 cursor-pointer overflow-hidden",
+              "group relative bg-[var(--color-surface-1)] border rounded-2xl p-6 transition-all duration-300 cursor-pointer overflow-hidden",
               selectedAgentId === agent.id 
                 ? "border-violet-500 shadow-[0_0_20px_rgba(124,58,237,0.15)] scale-[1.02]" 
-                : "border-gray-800 hover:border-gray-700 hover:-translate-y-1 hover:shadow-xl"
+                : "border-[var(--color-border)] hover:border-[var(--color-border)] hover:-translate-y-1 hover:shadow-xl"
             )}
           >
             {/* Gradient Glow */}
@@ -35,14 +35,14 @@ export default function AgentIdentityCard() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-2xl font-bold text-white truncate">{agent.name}</h3>
+                  <h3 className="text-2xl font-bold text-[var(--color-text-primary)] truncate">{agent.name}</h3>
                   <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-tighter">
                     <span className={cn(
                       "w-2 h-2 rounded-full",
                       agent.status === 'active' ? 'bg-green-500 animate-pulse' : 
-                      agent.status === 'idle' ? 'bg-amber-500' : 'bg-gray-600'
+                      agent.status === 'idle' ? 'bg-amber-500' : 'bg-[var(--color-surface-3)]'
                     )} />
-                    <span className="text-gray-400">{agent.status}</span>
+                    <span className="text-[var(--color-text-secondary)]">{agent.status}</span>
                   </div>
                 </div>
                 
@@ -59,14 +59,14 @@ export default function AgentIdentityCard() {
                     { label: 'Empathy', value: agent.personality.empathy },
                   ].map((trait) => (
                     <div key={trait.label} className="flex items-center gap-3">
-                      <span className="text-[10px] text-gray-500 w-16 uppercase">{trait.label}</span>
-                      <div className="flex-1 h-1 bg-gray-800 rounded-full overflow-hidden">
+                      <span className="text-[10px] text-[var(--color-text-muted)] w-16 uppercase">{trait.label}</span>
+                      <div className="flex-1 h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-violet-600 transition-all duration-1000" 
                           style={{ width: `${trait.value}%` }} 
                         />
                       </div>
-                      <span className="text-[10px] text-gray-400 w-8 text-right font-mono">{trait.value}%</span>
+                      <span className="text-[10px] text-[var(--color-text-secondary)] w-8 text-right font-mono">{trait.value}%</span>
                     </div>
                   ))}
                 </div>
@@ -82,21 +82,21 @@ export default function AgentIdentityCard() {
 
                 <div className="flex flex-wrap gap-1.5">
                   {agent.tools.slice(0, 4).map((tool) => (
-                    <code key={tool} className="bg-gray-800 text-gray-300 font-mono text-[10px] px-2 py-0.5 rounded">
+                    <code key={tool} className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] font-mono text-[10px] px-2 py-0.5 rounded">
                       {tool}
                     </code>
                   ))}
-                  {agent.tools.length > 4 && <span className="text-[10px] text-gray-600">+{agent.tools.length - 4} more</span>}
+                  {agent.tools.length > 4 && <span className="text-[10px] text-[var(--color-text-muted)]">+{agent.tools.length - 4} more</span>}
                 </div>
               </div>
             </div>
 
             {/* Actions */}
             <div className="mt-6 flex gap-3">
-              <button className="flex-1 py-2 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium flex items-center justify-center gap-2 transition-colors">
+              <button className="flex-1 py-2 px-4 rounded-xl bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm font-medium flex items-center justify-center gap-2 transition-colors">
                 <Edit3 size={16} /> Edit
               </button>
-              <button className="flex-1 py-2 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-violet-900/20">
+              <button className="flex-1 py-2 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-sm font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-violet-900/20">
                 <MessageSquare size={16} /> Chat
               </button>
             </div>
@@ -105,55 +105,55 @@ export default function AgentIdentityCard() {
       </div>
 
       {/* Detail Panel */}
-      <div className="w-96 bg-gray-900 border border-gray-800 rounded-2xl flex flex-col overflow-hidden shrink-0">
-        <div className="p-8 border-b border-gray-800 bg-gradient-to-b from-gray-800/50 to-transparent">
-          <div className="w-24 h-24 rounded-3xl bg-gray-800 border border-gray-700 mx-auto flex items-center justify-center text-5xl mb-4 shadow-2xl">
+      <div className="w-96 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl flex flex-col overflow-hidden shrink-0">
+        <div className="p-8 border-b border-[var(--color-border)] bg-gradient-to-b from-gray-800/50 to-transparent">
+          <div className="w-24 h-24 rounded-3xl bg-[var(--color-surface-2)] border border-[var(--color-border)] mx-auto flex items-center justify-center text-5xl mb-4 shadow-2xl">
             {selectedAgent.emoji}
           </div>
-          <h2 className="text-3xl font-bold text-center text-white">{selectedAgent.name}</h2>
-          <p className="text-gray-400 text-center mt-1">{selectedAgent.role}</p>
+          <h2 className="text-3xl font-bold text-center text-[var(--color-text-primary)]">{selectedAgent.name}</h2>
+          <p className="text-[var(--color-text-secondary)] text-center mt-1">{selectedAgent.role}</p>
         </div>
 
         <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
           <section>
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <h4 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-widest mb-3 flex items-center gap-2">
               <User size={14} /> Description
             </h4>
-            <p className="text-gray-300 text-sm leading-relaxed">
+            <p className="text-[var(--color-text-primary)] text-sm leading-relaxed">
               {selectedAgent.description || "No description provided for this agent. They are designed to assist with various tasks within the OpenClaw ecosystem."}
             </p>
           </section>
 
           <section>
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+            <h4 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-widest mb-3 flex items-center gap-2">
               <Settings size={14} /> Configuration
             </h4>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 rounded-xl bg-gray-950 border border-gray-800">
-                <span className="block text-[10px] text-gray-500 uppercase">Model</span>
-                <span className="text-sm text-gray-200 font-medium truncate block">{selectedAgent.model}</span>
+              <div className="p-3 rounded-xl bg-[var(--color-surface-0)] border border-[var(--color-border)]">
+                <span className="block text-[10px] text-[var(--color-text-muted)] uppercase">Model</span>
+                <span className="text-sm text-[var(--color-text-primary)] font-medium truncate block">{selectedAgent.model}</span>
               </div>
-              <div className="p-3 rounded-xl bg-gray-950 border border-gray-800">
-                <span className="block text-[10px] text-gray-500 uppercase">Created</span>
-                <span className="text-sm text-gray-200 font-medium truncate block">{selectedAgent.createdAt}</span>
+              <div className="p-3 rounded-xl bg-[var(--color-surface-0)] border border-[var(--color-border)]">
+                <span className="block text-[10px] text-[var(--color-text-muted)] uppercase">Created</span>
+                <span className="text-sm text-[var(--color-text-primary)] font-medium truncate block">{selectedAgent.createdAt}</span>
               </div>
-              <div className="p-3 rounded-xl bg-gray-950 border border-gray-800 col-span-2">
-                <span className="block text-[10px] text-gray-500 uppercase">Last Active</span>
-                <span className="text-sm text-gray-200 font-medium block">{selectedAgent.lastActive}</span>
+              <div className="p-3 rounded-xl bg-[var(--color-surface-0)] border border-[var(--color-border)] col-span-2">
+                <span className="block text-[10px] text-[var(--color-text-muted)] uppercase">Last Active</span>
+                <span className="text-sm text-[var(--color-text-primary)] font-medium block">{selectedAgent.lastActive}</span>
               </div>
             </div>
           </section>
 
           <section>
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">Personality Dimensions</h4>
+            <h4 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-widest mb-4">Personality Dimensions</h4>
             <div className="space-y-4">
               {Object.entries(selectedAgent.personality).map(([key, value]) => (
                 <div key={key}>
                   <div className="flex justify-between text-xs mb-1.5 capitalize">
-                    <span className="text-gray-400">{key}</span>
-                    <span className="text-white font-mono">{value}%</span>
+                    <span className="text-[var(--color-text-secondary)]">{key}</span>
+                    <span className="text-[var(--color-text-primary)] font-mono">{value}%</span>
                   </div>
-                  <div className="h-1.5 bg-gray-950 rounded-full border border-gray-800">
+                  <div className="h-1.5 bg-[var(--color-surface-0)] rounded-full border border-[var(--color-border)]">
                     <div className="h-full bg-violet-500 rounded-full" style={{ width: `${value}%` }} />
                   </div>
                 </div>
@@ -162,8 +162,8 @@ export default function AgentIdentityCard() {
           </section>
         </div>
 
-        <div className="p-6 border-t border-gray-800 bg-gray-900/50">
-          <button className="w-full py-3 rounded-xl border border-gray-700 hover:bg-gray-800 text-gray-300 text-sm font-medium flex items-center justify-center gap-2 transition-all">
+        <div className="p-6 border-t border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
+          <button className="w-full py-3 rounded-xl border border-[var(--color-border)] hover:bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-sm font-medium flex items-center justify-center gap-2 transition-all">
             View Full Profile <ExternalLink size={14} />
           </button>
         </div>

@@ -308,7 +308,7 @@ function TrendBar({ values }: { values: number[] }) {
             className="w-full bg-indigo-500 rounded-sm opacity-80"
             style={{ height: `${(v / max) * 100}%` }}
           />
-          <span className="text-zinc-500 text-[9px]">{days[i]}</span>
+          <span className="text-[var(--color-text-muted)] text-[9px]">{days[i]}</span>
         </div>
       ))}
     </div>
@@ -333,11 +333,11 @@ function RequestsTab() {
       {/* Filters */}
       <div className="flex gap-3 flex-wrap">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-zinc-400">Request Type</label>
+          <label className="text-xs text-[var(--color-text-secondary)]">Request Type</label>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="all">All Types</option>
             <option value="access">Access</option>
@@ -347,11 +347,11 @@ function RequestsTab() {
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-zinc-400">Status</label>
+          <label className="text-xs text-[var(--color-text-secondary)]">Status</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -361,22 +361,22 @@ function RequestsTab() {
           </select>
         </div>
         <div className="ml-auto flex items-end">
-          <span className="text-sm text-zinc-400">{filtered.length} request{filtered.length !== 1 ? "s" : ""}</span>
+          <span className="text-sm text-[var(--color-text-secondary)]">{filtered.length} request{filtered.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-zinc-900 rounded-lg border border-zinc-700 overflow-hidden">
+      <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-700">
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Subject</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Type</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Jurisdiction</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Submitted</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Due</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Status</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Assigned</th>
+            <tr className="border-b border-[var(--color-border)]">
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Subject</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Type</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Jurisdiction</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Submitted</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Due</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Status</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Assigned</th>
             </tr>
           </thead>
           <tbody>
@@ -385,15 +385,15 @@ function RequestsTab() {
                 <tr
                   onClick={() => setExpandedId(expandedId === dsr.id ? null : dsr.id)}
                   className={cn(
-                    "border-b border-zinc-800 cursor-pointer transition-colors",
-                    expandedId === dsr.id ? "bg-zinc-800" : "hover:bg-zinc-800/50"
+                    "border-b border-[var(--color-border)] cursor-pointer transition-colors",
+                    expandedId === dsr.id ? "bg-[var(--color-surface-2)]" : "hover:bg-[var(--color-surface-2)]/50"
                   )}
                 >
                   <td className="px-4 py-3">
-                    <div className="font-medium text-white">{dsr.subject}</div>
-                    <div className="text-xs text-zinc-400">{dsr.email}</div>
+                    <div className="font-medium text-[var(--color-text-primary)]">{dsr.subject}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{dsr.email}</div>
                   </td>
-                  <td className="px-4 py-3 text-zinc-300">
+                  <td className="px-4 py-3 text-[var(--color-text-primary)]">
                     <span>{typeIcon(dsr.type)} </span>
                     <span className="capitalize">{dsr.type}</span>
                   </td>
@@ -406,19 +406,19 @@ function RequestsTab() {
                       {dsr.jurisdiction}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-zinc-300">{dsr.submitted}</td>
-                  <td className="px-4 py-3 text-zinc-300">{dsr.due}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-primary)]">{dsr.submitted}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-primary)]">{dsr.due}</td>
                   <td className="px-4 py-3">
                     <Badge className={statusColor(dsr.status)}>
                       <span className="capitalize">{dsr.status}</span>
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-zinc-300">{dsr.assignedTo}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-primary)]">{dsr.assignedTo}</td>
                 </tr>
                 {expandedId === dsr.id && (
-                  <tr className="border-b border-zinc-700">
-                    <td colSpan={7} className="px-6 py-4 bg-zinc-800/40">
-                      <div className="text-xs text-zinc-400 font-medium uppercase tracking-wide mb-3">
+                  <tr className="border-b border-[var(--color-border)]">
+                    <td colSpan={7} className="px-6 py-4 bg-[var(--color-surface-2)]/40">
+                      <div className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wide mb-3">
                         Processing Timeline — {dsr.id}
                       </div>
                       <div className="space-y-2">
@@ -426,18 +426,18 @@ function RequestsTab() {
                           <div key={i} className="flex items-start gap-3">
                             <div className={cn(
                               "mt-0.5 w-4 h-4 rounded-full flex items-center justify-center text-xs flex-shrink-0",
-                              step.done ? "bg-emerald-500 text-white" : "bg-zinc-700 text-zinc-400"
+                              step.done ? "bg-emerald-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
                             )}>
                               {step.done ? "✓" : "○"}
                             </div>
                             <div className="flex-1">
-                              <span className={cn("text-sm", step.done ? "text-white" : "text-zinc-400")}>
+                              <span className={cn("text-sm", step.done ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)]")}>
                                 {step.step}
                               </span>
                               {step.date && (
-                                <span className="text-xs text-zinc-500 ml-2">{step.date}</span>
+                                <span className="text-xs text-[var(--color-text-muted)] ml-2">{step.date}</span>
                               )}
-                              <span className="text-xs text-zinc-500 ml-2">· {step.actor}</span>
+                              <span className="text-xs text-[var(--color-text-muted)] ml-2">· {step.actor}</span>
                             </div>
                           </div>
                         ))}
@@ -450,7 +450,7 @@ function RequestsTab() {
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-zinc-500">No requests match the selected filters.</div>
+          <div className="text-center py-12 text-[var(--color-text-muted)]">No requests match the selected filters.</div>
         )}
       </div>
     </div>
@@ -465,19 +465,19 @@ function ConsentTab() {
       {/* Consent Categories */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {MOCK_CONSENT.map((cat) => (
-          <div key={cat.id} className="bg-zinc-900 rounded-lg border border-zinc-700 p-4 space-y-3">
+          <div key={cat.id} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-white font-medium">{cat.name}</span>
-              <span className="text-xs text-zinc-400">{cat.total.toLocaleString()} users</span>
+              <span className="text-[var(--color-text-primary)] font-medium">{cat.name}</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">{cat.total.toLocaleString()} users</span>
             </div>
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-zinc-400">Opt-in rate</span>
+                <span className="text-xs text-[var(--color-text-secondary)]">Opt-in rate</span>
                 <span className={cn("text-sm font-semibold", cat.optInPct >= 70 ? "text-emerald-400" : cat.optInPct >= 50 ? "text-amber-400" : "text-rose-400")}>
                   {cat.optInPct}%
                 </span>
               </div>
-              <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
                   className={cn("h-full rounded-full", cat.optInPct >= 70 ? "bg-emerald-500" : cat.optInPct >= 50 ? "bg-amber-500" : "bg-rose-500")}
                   style={{ width: `${cat.optInPct}%` }}
@@ -485,7 +485,7 @@ function ConsentTab() {
               </div>
             </div>
             <div>
-              <div className="text-xs text-zinc-400 mb-1.5">7-day trend</div>
+              <div className="text-xs text-[var(--color-text-secondary)] mb-1.5">7-day trend</div>
               <TrendBar values={cat.trend} />
             </div>
           </div>
@@ -494,30 +494,30 @@ function ConsentTab() {
 
       {/* Consent Log */}
       <div>
-        <h3 className="text-white font-medium mb-3">Consent Activity Log</h3>
-        <div className="bg-zinc-900 rounded-lg border border-zinc-700 overflow-hidden">
+        <h3 className="text-[var(--color-text-primary)] font-medium mb-3">Consent Activity Log</h3>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-700">
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium">User</th>
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium">Category</th>
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium">Action</th>
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium">Timestamp</th>
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium">Source</th>
+              <tr className="border-b border-[var(--color-border)]">
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">User</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Category</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Action</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Timestamp</th>
+                <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Source</th>
               </tr>
             </thead>
             <tbody>
               {MOCK_CONSENT_LOG.map((log) => (
-                <tr key={log.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
-                  <td className="px-4 py-3 text-zinc-300">{log.user}</td>
-                  <td className="px-4 py-3 text-zinc-300">{log.category}</td>
+                <tr key={log.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/50">
+                  <td className="px-4 py-3 text-[var(--color-text-primary)]">{log.user}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-primary)]">{log.category}</td>
                   <td className="px-4 py-3">
                     <Badge className={log.action === "granted" ? "text-emerald-400 bg-emerald-400/10" : "text-rose-400 bg-rose-400/10"}>
                       {log.action === "granted" ? "✓ Granted" : "✕ Revoked"}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-zinc-400 text-xs">{log.timestamp}</td>
-                  <td className="px-4 py-3 text-zinc-400 text-xs">{log.source}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{log.timestamp}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{log.source}</td>
                 </tr>
               ))}
             </tbody>
@@ -547,28 +547,28 @@ function DataMapTab() {
     <div className="space-y-4">
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-4 flex items-center gap-3">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 flex items-center gap-3">
           <div className="text-2xl font-bold text-emerald-400">{counts.compliant}</div>
-          <div className="text-sm text-zinc-400">Compliant</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Compliant</div>
         </div>
-        <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-4 flex items-center gap-3">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 flex items-center gap-3">
           <div className="text-2xl font-bold text-amber-400">{counts.needsReview}</div>
-          <div className="text-sm text-zinc-400">Needs Review</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Needs Review</div>
         </div>
-        <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-4 flex items-center gap-3">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 flex items-center gap-3">
           <div className="text-2xl font-bold text-rose-400">{counts.nonCompliant}</div>
-          <div className="text-sm text-zinc-400">Non-Compliant</div>
+          <div className="text-sm text-[var(--color-text-secondary)]">Non-Compliant</div>
         </div>
       </div>
 
       {/* Filter */}
       <div className="flex gap-3 items-end">
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-zinc-400">Filter by Status</label>
+          <label className="text-xs text-[var(--color-text-secondary)]">Filter by Status</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="all">All</option>
             <option value="compliant">Compliant</option>
@@ -577,35 +577,35 @@ function DataMapTab() {
           </select>
         </div>
         <div className="ml-auto">
-          <span className="text-sm text-zinc-400">GDPR Article 30 Register — {filtered.length} activit{filtered.length !== 1 ? "ies" : "y"}</span>
+          <span className="text-sm text-[var(--color-text-secondary)]">GDPR Article 30 Register — {filtered.length} activit{filtered.length !== 1 ? "ies" : "y"}</span>
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-zinc-900 rounded-lg border border-zinc-700 overflow-hidden overflow-x-auto">
+      <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[900px]">
           <thead>
-            <tr className="border-b border-zinc-700">
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Activity</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Purpose</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Legal Basis</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Data Categories</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Recipients</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Retention</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Transfers</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Status</th>
+            <tr className="border-b border-[var(--color-border)]">
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Activity</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Purpose</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Legal Basis</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Data Categories</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Recipients</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Retention</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Transfers</th>
+              <th className="text-left px-4 py-3 text-[var(--color-text-secondary)] font-medium">Status</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((pa) => (
-              <tr key={pa.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
-                <td className="px-4 py-3 font-medium text-white whitespace-nowrap">{pa.name}</td>
-                <td className="px-4 py-3 text-zinc-300">{pa.purpose}</td>
-                <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">{pa.legalBasis}</td>
-                <td className="px-4 py-3 text-zinc-400 text-xs max-w-[180px]">{pa.dataCategories}</td>
-                <td className="px-4 py-3 text-zinc-400 text-xs">{pa.recipients}</td>
-                <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">{pa.retention}</td>
-                <td className="px-4 py-3 text-zinc-300">{pa.transferCountries}</td>
+              <tr key={pa.id} className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/50">
+                <td className="px-4 py-3 font-medium text-[var(--color-text-primary)] whitespace-nowrap">{pa.name}</td>
+                <td className="px-4 py-3 text-[var(--color-text-primary)]">{pa.purpose}</td>
+                <td className="px-4 py-3 text-[var(--color-text-primary)] whitespace-nowrap">{pa.legalBasis}</td>
+                <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs max-w-[180px]">{pa.dataCategories}</td>
+                <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{pa.recipients}</td>
+                <td className="px-4 py-3 text-[var(--color-text-primary)] whitespace-nowrap">{pa.retention}</td>
+                <td className="px-4 py-3 text-[var(--color-text-primary)]">{pa.transferCountries}</td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <Badge className={mapStatusColor(pa.status)}>
                     {pa.status === "compliant" ? "✓ Compliant" : pa.status === "needs-review" ? "⚠ Needs Review" : "✕ Non-Compliant"}
@@ -629,40 +629,40 @@ function ReportsTab() {
     <div className="space-y-6">
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-5">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
           <div className="text-3xl font-bold text-emerald-400">87%</div>
-          <div className="text-sm text-zinc-400 mt-1">Requests on Time</div>
-          <div className="text-xs text-zinc-500 mt-0.5">Last 90 days</div>
+          <div className="text-sm text-[var(--color-text-secondary)] mt-1">Requests on Time</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Last 90 days</div>
         </div>
-        <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-5">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
           <div className="text-3xl font-bold text-indigo-400">18.4</div>
-          <div className="text-sm text-zinc-400 mt-1">Avg Processing Days</div>
-          <div className="text-xs text-zinc-500 mt-0.5">Target: 30 days</div>
+          <div className="text-sm text-[var(--color-text-secondary)] mt-1">Avg Processing Days</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Target: 30 days</div>
         </div>
-        <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-5">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
           <div className="text-3xl font-bold text-amber-400">68%</div>
-          <div className="text-sm text-zinc-400 mt-1">Consent Opt-in Rate</div>
-          <div className="text-xs text-zinc-500 mt-0.5">All categories avg</div>
+          <div className="text-sm text-[var(--color-text-secondary)] mt-1">Consent Opt-in Rate</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-0.5">All categories avg</div>
         </div>
-        <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-5">
-          <div className="text-3xl font-bold text-white">7</div>
-          <div className="text-sm text-zinc-400 mt-1">Active Processing</div>
-          <div className="text-xs text-zinc-500 mt-0.5">GDPR Art. 30 entries</div>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
+          <div className="text-3xl font-bold text-[var(--color-text-primary)]">7</div>
+          <div className="text-sm text-[var(--color-text-secondary)] mt-1">Active Processing</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-0.5">GDPR Art. 30 entries</div>
         </div>
       </div>
 
       {/* Monthly Volume Bar Chart */}
-      <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-5">
+      <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-white font-medium">Monthly Request Volume</h3>
-            <p className="text-xs text-zinc-400 mt-0.5">Data subject requests over the last 6 months</p>
+            <h3 className="text-[var(--color-text-primary)] font-medium">Monthly Request Volume</h3>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">Data subject requests over the last 6 months</p>
           </div>
           <div className="flex gap-2">
-            <button className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm px-4 py-1.5 rounded-md border border-zinc-700 transition-colors">
+            <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm px-4 py-1.5 rounded-md border border-[var(--color-border)] transition-colors">
               ↓ Export CSV
             </button>
-            <button className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm px-4 py-1.5 rounded-md border border-zinc-700 transition-colors">
+            <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm px-4 py-1.5 rounded-md border border-[var(--color-border)] transition-colors">
               ↓ Export PDF
             </button>
           </div>
@@ -670,12 +670,12 @@ function ReportsTab() {
         <div className="flex items-end gap-4 h-40">
           {MONTHLY_STATS.map((m) => (
             <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
-              <span className="text-xs text-zinc-400">{m.volume}</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">{m.volume}</span>
               <div
                 className="w-full bg-indigo-500 rounded-t-sm"
                 style={{ height: `${(m.volume / maxVol) * 120}px` }}
               />
-              <span className="text-xs text-zinc-400">{m.month}</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">{m.month}</span>
             </div>
           ))}
         </div>
@@ -683,8 +683,8 @@ function ReportsTab() {
 
       {/* Compliance breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-5">
-          <h3 className="text-white font-medium mb-4">Request Types Breakdown</h3>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
+          <h3 className="text-[var(--color-text-primary)] font-medium mb-4">Request Types Breakdown</h3>
           <div className="space-y-3">
             {(["access", "deletion", "portability", "correction"] as RequestType[]).map((type) => {
               const count = MOCK_DSRS.filter((d) => d.type === type).length
@@ -692,10 +692,10 @@ function ReportsTab() {
               return (
                 <div key={type} className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="text-zinc-300 capitalize">{typeIcon(type)} {type}</span>
-                    <span className="text-zinc-400">{count} ({pct}%)</span>
+                    <span className="text-[var(--color-text-primary)] capitalize">{typeIcon(type)} {type}</span>
+                    <span className="text-[var(--color-text-secondary)]">{count} ({pct}%)</span>
                   </div>
-                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
@@ -703,8 +703,8 @@ function ReportsTab() {
             })}
           </div>
         </div>
-        <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-5">
-          <h3 className="text-white font-medium mb-4">Status Distribution</h3>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
+          <h3 className="text-[var(--color-text-primary)] font-medium mb-4">Status Distribution</h3>
           <div className="space-y-3">
             {(["completed", "in-progress", "pending", "overdue"] as RequestStatus[]).map((status) => {
               const count = MOCK_DSRS.filter((d) => d.status === status).length
@@ -713,10 +713,10 @@ function ReportsTab() {
               return (
                 <div key={status} className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="text-zinc-300 capitalize">{status}</span>
-                    <span className="text-zinc-400">{count} ({pct}%)</span>
+                    <span className="text-[var(--color-text-primary)] capitalize">{status}</span>
+                    <span className="text-[var(--color-text-secondary)]">{count} ({pct}%)</span>
                   </div>
-                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div className={cn("h-full rounded-full", color)} style={{ width: `${pct}%` }} />
                   </div>
                 </div>
@@ -752,13 +752,13 @@ export default function DataPrivacyDashboard() {
   const overdueCount = MOCK_DSRS.filter((d) => d.status === "overdue").length
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Data Privacy Dashboard</h1>
-            <p className="text-zinc-400 text-sm mt-1">GDPR · CCPA · LGPD Compliance Center</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Data Privacy Dashboard</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">GDPR · CCPA · LGPD Compliance Center</p>
           </div>
           <div className="flex items-center gap-2">
             {overdueCount > 0 && (
@@ -766,7 +766,7 @@ export default function DataPrivacyDashboard() {
                 <span className="text-rose-400 text-sm font-medium">⚠ {overdueCount} overdue DSR{overdueCount !== 1 ? "s" : ""}</span>
               </div>
             )}
-            <div className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-400">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs text-[var(--color-text-secondary)]">
               Last sync: Today 04:45 UTC
             </div>
           </div>
@@ -774,7 +774,7 @@ export default function DataPrivacyDashboard() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 rounded-lg p-1 border border-zinc-700 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] rounded-lg p-1 border border-[var(--color-border)] w-fit">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -782,8 +782,8 @@ export default function DataPrivacyDashboard() {
             className={cn(
               "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
               activeTab === tab.id
-                ? "bg-indigo-600 text-white"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             <span>{tab.icon}</span>

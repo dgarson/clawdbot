@@ -197,13 +197,13 @@ export default function ModelRouter() {
   const matchingRule = findMatchingRule();
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-8 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-indigo-500/30">
       <div className="max-w-7xl mx-auto space-y-12">
 
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Model Router</h1>
-          <p className="text-zinc-400 mt-2">Intelligent orchestration and conditional LLM routing.</p>
+          <p className="text-[var(--color-text-secondary)] mt-2">Intelligent orchestration and conditional LLM routing.</p>
         </div>
 
         {/* Strategy Presets */}
@@ -217,14 +217,14 @@ export default function ModelRouter() {
                   "p-5 rounded-xl border text-left transition-all duration-200 group",
                   strategy === key
                     ? "bg-indigo-500/10 border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.15)]"
-                    : "bg-zinc-900 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/80"
+                    : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-1)]/80"
                 )}
               >
                 <div className="text-2xl mb-3">{data.icon}</div>
-                <h3 className={cn("font-semibold mb-1", strategy === key ? "text-indigo-400" : "text-zinc-200")}>
+                <h3 className={cn("font-semibold mb-1", strategy === key ? "text-indigo-400" : "text-[var(--color-text-primary)]")}>
                   {data.title}
                 </h3>
-                <p className="text-sm text-zinc-500 group-hover:text-zinc-400 transition-colors">
+                <p className="text-sm text-[var(--color-text-muted)] group-hover:text-[var(--color-text-secondary)] transition-colors">
                   {data.desc}
                 </p>
               </button>
@@ -233,27 +233,27 @@ export default function ModelRouter() {
         </section>
 
         {/* Rules Table */}
-        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+        <section className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 w-16">Ord</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500">Rule Name</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500">Conditions</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500">Target Model</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-center">Status</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-zinc-500 text-right">Hits</th>
+                <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)] w-16">Ord</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">Rule Name</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">Conditions</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)]">Target Model</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)] text-center">Status</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)] text-right">Hits</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {rules.map((rule, idx) => (
                   <React.Fragment key={rule.id}>
                     <tr
                       className={cn(
-                        "group hover:bg-zinc-800/30 transition-colors cursor-pointer",
+                        "group hover:bg-[var(--color-surface-2)]/30 transition-colors cursor-pointer",
                         !rule.enabled && "opacity-60",
-                        expandedRule === rule.id && "bg-zinc-800/50"
+                        expandedRule === rule.id && "bg-[var(--color-surface-2)]/50"
                       )}
                       onClick={() => setExpandedRule(expandedRule === rule.id ? null : rule.id)}
                     >
@@ -274,8 +274,8 @@ export default function ModelRouter() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-medium text-zinc-200">{rule.name}</div>
-                        <div className="text-xs text-zinc-500 mt-0.5">Priority {rule.priority}</div>
+                        <div className="font-medium text-[var(--color-text-primary)]">{rule.name}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Priority {rule.priority}</div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-2">
@@ -292,19 +292,19 @@ export default function ModelRouter() {
                               </span>
                             ))
                           ) : (
-                            <span className="text-zinc-600 text-xs italic">No conditions</span>
+                            <span className="text-[var(--color-text-muted)] text-xs italic">No conditions</span>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <code className="text-xs px-2 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-300">
+                          <code className="text-xs px-2 py-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)]">
                             {rule.targetModel}
                           </code>
                           {rule.fallbackModel && (
                             <>
-                              <span className="text-zinc-600 text-xs">→</span>
-                              <code className="text-[10px] px-1.5 py-0.5 bg-zinc-800/50 border border-zinc-700/50 rounded text-zinc-500">
+                              <span className="text-[var(--color-text-muted)] text-xs">→</span>
+                              <code className="text-[10px] px-1.5 py-0.5 bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded text-[var(--color-text-muted)]">
                                 {rule.fallbackModel}
                               </code>
                             </>
@@ -316,7 +316,7 @@ export default function ModelRouter() {
                           onClick={(e) => { e.stopPropagation(); toggleRule(rule.id); }}
                           className={cn(
                             "relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-                            rule.enabled ? "bg-indigo-600" : "bg-zinc-700"
+                            rule.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
                           )}
                         >
                           <span
@@ -328,30 +328,30 @@ export default function ModelRouter() {
                         </button>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="text-sm font-mono text-zinc-400">{rule.hitCount.toLocaleString()}</div>
+                        <div className="text-sm font-mono text-[var(--color-text-secondary)]">{rule.hitCount.toLocaleString()}</div>
                       </td>
                     </tr>
                     {expandedRule === rule.id && (
                       <tr>
-                        <td colSpan={6} className="px-12 py-6 bg-zinc-900/80 border-b border-zinc-800">
+                        <td colSpan={6} className="px-12 py-6 bg-[var(--color-surface-1)]/80 border-b border-[var(--color-border)]">
                           <div className="grid grid-cols-2 gap-8">
                             <div>
-                              <label className="text-xs font-bold uppercase text-zinc-500 mb-2 block">Description</label>
+                              <label className="text-xs font-bold uppercase text-[var(--color-text-muted)] mb-2 block">Description</label>
                               <textarea
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-sm text-zinc-300 focus:border-indigo-500 outline-none h-24 resize-none"
+                                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg p-3 text-sm text-[var(--color-text-primary)] focus:border-indigo-500 outline-none h-24 resize-none"
                                 defaultValue={rule.description}
                               />
                             </div>
                             <div>
-                              <label className="text-xs font-bold uppercase text-zinc-500 mb-2 block">Active Conditions</label>
+                              <label className="text-xs font-bold uppercase text-[var(--color-text-muted)] mb-2 block">Active Conditions</label>
                               <div className="space-y-2">
                                 {rule.conditions.map((c, ci) => (
-                                  <div key={ci} className="flex items-center justify-between p-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs">
-                                    <span className="text-zinc-400 uppercase font-mono tracking-tight">{c.kind}</span>
-                                    <span className="text-zinc-200">{c.op} <span className="text-indigo-400 font-bold">{c.value}</span></span>
+                                  <div key={ci} className="flex items-center justify-between p-2 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg text-xs">
+                                    <span className="text-[var(--color-text-secondary)] uppercase font-mono tracking-tight">{c.kind}</span>
+                                    <span className="text-[var(--color-text-primary)]">{c.op} <span className="text-indigo-400 font-bold">{c.value}</span></span>
                                   </div>
                                 ))}
-                                <button className="w-full py-2 border border-dashed border-zinc-800 rounded-lg text-xs text-zinc-500 hover:border-zinc-700 hover:text-zinc-400 transition-all">
+                                <button className="w-full py-2 border border-dashed border-[var(--color-border)] rounded-lg text-xs text-[var(--color-text-muted)] hover:border-[var(--color-border)] hover:text-[var(--color-text-secondary)] transition-all">
                                   + Add Condition
                                 </button>
                               </div>
@@ -368,11 +368,11 @@ export default function ModelRouter() {
         </section>
 
         {/* Route Test Panel */}
-        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
+        <section className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-8">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-xl font-bold">Route Test</h2>
-              <p className="text-zinc-500 text-sm">Simulate input to verify routing logic.</p>
+              <p className="text-[var(--color-text-muted)] text-sm">Simulate input to verify routing logic.</p>
             </div>
             {matchingRule && (
               <div className="flex items-center gap-3 px-4 py-2 bg-emerald-400/10 border border-emerald-400/20 rounded-full">
@@ -384,25 +384,25 @@ export default function ModelRouter() {
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-zinc-500">Agent</label>
+              <label className="text-xs font-bold uppercase text-[var(--color-text-muted)]">Agent</label>
               <input
                 type="text"
                 value={testAgent}
                 onChange={(e) => setTestAgent(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-zinc-500">Token Count</label>
+              <label className="text-xs font-bold uppercase text-[var(--color-text-muted)]">Token Count</label>
               <input
                 type="number"
                 value={testTokens}
                 onChange={(e) => setTestTokens(parseInt(e.target.value) || 0)}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-zinc-500">Complexity (1-10)</label>
+              <label className="text-xs font-bold uppercase text-[var(--color-text-muted)]">Complexity (1-10)</label>
               <input
                 type="range"
                 min="1"
@@ -413,37 +413,37 @@ export default function ModelRouter() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-zinc-500">Time (0-23)</label>
+              <label className="text-xs font-bold uppercase text-[var(--color-text-muted)]">Time (0-23)</label>
               <input
                 type="number"
                 min="0"
                 max="23"
                 value={testTime}
                 onChange={(e) => setTestTime(parseInt(e.target.value) || 0)}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-zinc-500">Keyword</label>
+              <label className="text-xs font-bold uppercase text-[var(--color-text-muted)]">Keyword</label>
               <input
                 type="text"
                 placeholder="Search prompt..."
                 value={testKeyword}
                 onChange={(e) => setTestKeyword(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
               />
             </div>
           </div>
 
           {matchingRule ? (
-            <div className="mt-8 p-6 bg-zinc-950 rounded-xl border border-zinc-800 flex items-center justify-between">
+            <div className="mt-8 p-6 bg-[var(--color-surface-0)] rounded-xl border border-[var(--color-border)] flex items-center justify-between">
               <div className="space-y-1">
-                <div className="text-xs font-bold uppercase text-zinc-500">Predicted Target</div>
+                <div className="text-xs font-bold uppercase text-[var(--color-text-muted)]">Predicted Target</div>
                 <div className="text-2xl font-mono text-indigo-400">{matchingRule.targetModel}</div>
               </div>
               <div className="text-right">
-                <div className="text-xs text-zinc-500 mb-1">Triggered by Priority {matchingRule.priority}</div>
-                <div className="text-sm text-zinc-300 italic">"{matchingRule.name}"</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Triggered by Priority {matchingRule.priority}</div>
+                <div className="text-sm text-[var(--color-text-primary)] italic">"{matchingRule.name}"</div>
               </div>
             </div>
           ) : (

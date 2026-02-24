@@ -87,14 +87,14 @@ function getAgent(id: string): Agent {
 function statusDotClass(status: AgentStatus): string {
   if (status === "active") {return "bg-emerald-400";}
   if (status === "busy")   {return "bg-amber-400";}
-  return "bg-zinc-500";
+  return "bg-[var(--color-surface-3)]";
 }
 
 function actionBadgeClass(action: ActionType): string {
   if (action === "spawned")       {return "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";}
   if (action === "shared_context"){return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";}
   if (action === "delegated")     {return "bg-amber-500/20 text-amber-400 border border-amber-500/30";}
-  return "bg-zinc-700 text-zinc-300 border border-zinc-600";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)] border border-[var(--color-surface-3)]";
 }
 
 function actionLabel(action: ActionType): string {
@@ -105,7 +105,7 @@ function actionLabel(action: ActionType): string {
 }
 
 function intensityClass(value: number, max: number): string {
-  if (value === 0) {return "bg-zinc-900";}
+  if (value === 0) {return "bg-[var(--color-surface-1)]";}
   const ratio = value / max;
   if (ratio < 0.2) {return "bg-indigo-950";}
   if (ratio < 0.4) {return "bg-indigo-900";}
@@ -212,12 +212,12 @@ function AgentNode({ agent, x, y, selected, highlighted, onClick }: AgentNodePro
         selected
           ? "border-indigo-500 bg-indigo-900/60 shadow-lg shadow-indigo-500/30"
           : highlighted
-          ? "border-zinc-600 bg-zinc-800"
-          : "border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800"
+          ? "border-[var(--color-surface-3)] bg-[var(--color-surface-2)]"
+          : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)] hover:bg-[var(--color-surface-2)]"
       )}
     >
       <span className="text-xl leading-none">{agent.emoji}</span>
-      <span className={cn("text-xs font-semibold leading-none", selected ? "text-white" : "text-zinc-300")}>
+      <span className={cn("text-xs font-semibold leading-none", selected ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)]")}>
         {agent.name}
       </span>
       <div className={cn("w-1.5 h-1.5 rounded-full mt-0.5", statusDotClass(agent.status))} />
@@ -270,7 +270,7 @@ function GraphView() {
     <div className="flex gap-4">
       {/* Canvas */}
       <div
-        className="relative rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden flex-shrink-0"
+        className="relative rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-0)] overflow-hidden flex-shrink-0"
         style={{ width: containerW, height: containerH }}
       >
         {connections.map(({ i, j, value }) => (
@@ -301,8 +301,8 @@ function GraphView() {
             style={{ position: "absolute", left: cx - 48, top: cy - 20, width: 96 }}
             className="text-center pointer-events-none"
           >
-            <div className="text-zinc-600 text-xs">Click a node</div>
-            <div className="text-zinc-700 text-xs">to explore</div>
+            <div className="text-[var(--color-text-muted)] text-xs">Click a node</div>
+            <div className="text-[var(--color-text-muted)] text-xs">to explore</div>
           </div>
         )}
       </div>
@@ -311,40 +311,40 @@ function GraphView() {
       <div className="flex-1 min-w-0">
         {selectedAgentObj ? (
           <div className="space-y-3">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-2xl">{selectedAgentObj.emoji}</span>
                 <div>
-                  <div className="text-white font-semibold">{selectedAgentObj.name}</div>
-                  <div className="text-zinc-400 text-xs">{selectedAgentObj.role}</div>
-                  <div className="text-zinc-600 text-xs">{selectedAgentObj.squad}</div>
+                  <div className="text-[var(--color-text-primary)] font-semibold">{selectedAgentObj.name}</div>
+                  <div className="text-[var(--color-text-secondary)] text-xs">{selectedAgentObj.role}</div>
+                  <div className="text-[var(--color-text-muted)] text-xs">{selectedAgentObj.squad}</div>
                 </div>
                 <div className={cn("ml-auto w-2 h-2 rounded-full", statusDotClass(selectedAgentObj.status))} />
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-lg bg-zinc-800 p-2">
+                <div className="rounded-lg bg-[var(--color-surface-2)] p-2">
                   <div className="text-indigo-400 font-bold text-lg">
                     {MATRIX_DATA[selectedIdx].reduce((a, b) => a + b, 0)}
                   </div>
-                  <div className="text-zinc-500 text-xs">Total</div>
+                  <div className="text-[var(--color-text-muted)] text-xs">Total</div>
                 </div>
-                <div className="rounded-lg bg-zinc-800 p-2">
+                <div className="rounded-lg bg-[var(--color-surface-2)] p-2">
                   <div className="text-emerald-400 font-bold text-lg">
                     {MATRIX_DATA[selectedIdx].filter(v => v > 0).length}
                   </div>
-                  <div className="text-zinc-500 text-xs">Partners</div>
+                  <div className="text-[var(--color-text-muted)] text-xs">Partners</div>
                 </div>
-                <div className="rounded-lg bg-zinc-800 p-2">
+                <div className="rounded-lg bg-[var(--color-surface-2)] p-2">
                   <div className="text-amber-400 font-bold text-lg">
                     {topStat ? MATRIX_DATA[selectedIdx][AGENTS.findIndex(a => a.id === topStat.agentId)] : 0}
                   </div>
-                  <div className="text-zinc-500 text-xs">Top collab</div>
+                  <div className="text-[var(--color-text-muted)] text-xs">Top collab</div>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-              <div className="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-3">
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
+              <div className="text-[var(--color-text-secondary)] text-xs font-semibold uppercase tracking-wider mb-3">
                 Collaborators
               </div>
               <div className="space-y-2.5">
@@ -356,11 +356,11 @@ function GraphView() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="text-sm">{collab.emoji}</span>
-                          <span className="text-zinc-300 text-xs font-medium">{collab.name}</span>
+                          <span className="text-[var(--color-text-primary)] text-xs font-medium">{collab.name}</span>
                         </div>
-                        <span className="text-zinc-500 text-xs">{stat.sessions} sessions</span>
+                        <span className="text-[var(--color-text-muted)] text-xs">{stat.sessions} sessions</span>
                       </div>
-                      <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div
                           className="h-full bg-indigo-500 rounded-full transition-all duration-500"
                           style={{ width: `${barWidth}%` }}
@@ -372,26 +372,26 @@ function GraphView() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-              <div className="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
+              <div className="text-[var(--color-text-secondary)] text-xs font-semibold uppercase tracking-wider mb-2">
                 Message Volume
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-white text-2xl font-bold">
+                <span className="text-[var(--color-text-primary)] text-2xl font-bold">
                   {MATRIX_DATA[selectedIdx].reduce((a, b) => a + b, 0) * 14}
                 </span>
-                <span className="text-zinc-500 text-xs">messages exchanged</span>
+                <span className="text-[var(--color-text-muted)] text-xs">messages exchanged</span>
               </div>
-              <div className="text-zinc-600 text-xs mt-1">
+              <div className="text-[var(--color-text-muted)] text-xs mt-1">
                 {Math.floor(MATRIX_DATA[selectedIdx].reduce((a, b) => a + b, 0) / 5)} tasks delegated
               </div>
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 h-full flex flex-col items-center justify-center text-center">
+          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-6 h-full flex flex-col items-center justify-center text-center">
             <div className="text-3xl mb-3">🔗</div>
-            <div className="text-zinc-400 text-sm font-medium mb-1">Select an agent</div>
-            <div className="text-zinc-600 text-xs leading-relaxed">
+            <div className="text-[var(--color-text-secondary)] text-sm font-medium mb-1">Select an agent</div>
+            <div className="text-[var(--color-text-muted)] text-xs leading-relaxed">
               Click any node to explore collaboration details, connection strengths, and session history
             </div>
           </div>
@@ -415,12 +415,12 @@ function CollaborationMatrix() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-white font-semibold">Collaboration Intensity Matrix</h3>
-          <p className="text-zinc-500 text-xs mt-0.5">
+          <h3 className="text-[var(--color-text-primary)] font-semibold">Collaboration Intensity Matrix</h3>
+          <p className="text-[var(--color-text-muted)] text-xs mt-0.5">
             Interaction counts between agent pairs — darker cells indicate stronger collaboration
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-zinc-500">
+        <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
           <span>Low</span>
           <div className="flex gap-0.5">
             {(["bg-indigo-950", "bg-indigo-900", "bg-indigo-800", "bg-indigo-700", "bg-indigo-600"] as string[]).map(c => (
@@ -436,19 +436,19 @@ function CollaborationMatrix() {
           <table className="border-collapse">
             <thead>
               <tr>
-                <th className="w-24 h-10 text-zinc-500 text-xs font-normal text-right pr-2 align-bottom pb-1">
+                <th className="w-24 h-10 text-[var(--color-text-muted)] text-xs font-normal text-right pr-2 align-bottom pb-1">
                   From ↓  To →
                 </th>
                 {AGENTS.map(agent => (
                   <th key={agent.id} className="w-14 h-12 text-center align-bottom pb-1">
                     <div className="flex flex-col items-center gap-0.5">
                       <span className="text-base leading-none">{agent.emoji}</span>
-                      <span className="text-zinc-400 text-xs font-medium">{agent.name}</span>
+                      <span className="text-[var(--color-text-secondary)] text-xs font-medium">{agent.name}</span>
                     </div>
                   </th>
                 ))}
                 <th className="w-14 h-12 text-center align-bottom pb-1">
-                  <span className="text-zinc-400 text-xs font-semibold">Total</span>
+                  <span className="text-[var(--color-text-secondary)] text-xs font-semibold">Total</span>
                 </th>
               </tr>
             </thead>
@@ -458,7 +458,7 @@ function CollaborationMatrix() {
                   <td className="pr-2 py-0.5">
                     <div className="flex items-center justify-end gap-1.5">
                       <span className="text-sm">{rowAgent.emoji}</span>
-                      <span className="text-zinc-400 text-xs font-medium">{rowAgent.name}</span>
+                      <span className="text-[var(--color-text-secondary)] text-xs font-medium">{rowAgent.name}</span>
                     </div>
                   </td>
                   {AGENTS.map((colAgent, colIdx) => {
@@ -471,8 +471,8 @@ function CollaborationMatrix() {
                           className={cn(
                             "w-12 h-10 rounded flex items-center justify-center text-xs font-mono cursor-default transition-all duration-150 relative select-none",
                             isDiag
-                              ? "bg-zinc-800/50 text-zinc-700"
-                              : cn(intensityClass(val, maxValue), val > 0 ? "text-white" : "text-zinc-700"),
+                              ? "bg-[var(--color-surface-2)]/50 text-[var(--color-text-muted)]"
+                              : cn(intensityClass(val, maxValue), val > 0 ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)]"),
                             isHovered && !isDiag && val > 0 && "ring-1 ring-white/30 scale-110 z-10"
                           )}
                           onMouseEnter={() => setHoveredCell({ row: rowIdx, col: colIdx })}
@@ -482,7 +482,7 @@ function CollaborationMatrix() {
                           {isHovered && !isDiag && val > 0 && (
                             <div
                               style={{ position: "absolute", bottom: "110%", left: "50%", transform: "translateX(-50%)", zIndex: 20 }}
-                              className="bg-zinc-700 text-white text-xs rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg border border-zinc-600"
+                              className="bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1 whitespace-nowrap pointer-events-none shadow-lg border border-[var(--color-surface-3)]"
                             >
                               {rowAgent.name} → {colAgent.name}: {val} interactions
                             </div>
@@ -500,7 +500,7 @@ function CollaborationMatrix() {
               ))}
               <tr>
                 <td className="pr-2 py-0.5 text-right">
-                  <span className="text-zinc-400 text-xs font-semibold">Total</span>
+                  <span className="text-[var(--color-text-secondary)] text-xs font-semibold">Total</span>
                 </td>
                 {colTotals.map((total, i) => (
                   <td key={i} className="p-0.5">
@@ -544,8 +544,8 @@ function ActivityFeed() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-white font-semibold">Cross-Agent Activity Feed</h3>
-          <p className="text-zinc-500 text-xs mt-0.5">
+          <h3 className="text-[var(--color-text-primary)] font-semibold">Cross-Agent Activity Feed</h3>
+          <p className="text-[var(--color-text-muted)] text-xs mt-0.5">
             Real-time collaboration events across the agent network
           </p>
         </div>
@@ -557,8 +557,8 @@ function ActivityFeed() {
               className={cn(
                 "px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap",
                 filter === opt.value
-                  ? "bg-indigo-600 text-white"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {opt.label}
@@ -574,30 +574,30 @@ function ActivityFeed() {
           return (
             <div
               key={event.id}
-              className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 hover:border-zinc-700 transition-colors"
+              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4 hover:border-[var(--color-border)] transition-colors"
             >
               <div className="flex items-start gap-3">
                 <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
-                  <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-base">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--color-surface-2)] flex items-center justify-center text-base">
                     {fromAgent.emoji}
                   </div>
-                  <span className="text-zinc-600 text-xs">→</span>
-                  <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-base">
+                  <span className="text-[var(--color-text-muted)] text-xs">→</span>
+                  <div className="w-8 h-8 rounded-lg bg-[var(--color-surface-2)] flex items-center justify-center text-base">
                     {toAgent.emoji}
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="text-white text-sm font-semibold">{fromAgent.name}</span>
+                    <span className="text-[var(--color-text-primary)] text-sm font-semibold">{fromAgent.name}</span>
                     <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", actionBadgeClass(event.action))}>
                       {actionLabel(event.action)}
                     </span>
-                    <span className="text-white text-sm font-semibold">{toAgent.name}</span>
+                    <span className="text-[var(--color-text-primary)] text-sm font-semibold">{toAgent.name}</span>
                   </div>
-                  <p className="text-zinc-400 text-xs leading-relaxed">{event.description}</p>
+                  <p className="text-[var(--color-text-secondary)] text-xs leading-relaxed">{event.description}</p>
                   <div className="flex items-center gap-3 mt-2">
-                    <span className="text-zinc-600 text-xs">{event.timestamp}</span>
-                    <span className="text-zinc-700 text-xs">·</span>
+                    <span className="text-[var(--color-text-muted)] text-xs">{event.timestamp}</span>
+                    <span className="text-[var(--color-text-muted)] text-xs">·</span>
                     <span className="text-indigo-500 text-xs font-mono hover:text-indigo-400 cursor-pointer transition-colors">
                       {event.sessionId}
                     </span>
@@ -608,9 +608,9 @@ function ActivityFeed() {
           );
         })}
         {filtered.length === 0 && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center">
+          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-8 text-center">
             <div className="text-2xl mb-2">📭</div>
-            <div className="text-zinc-500 text-sm">No events match this filter</div>
+            <div className="text-[var(--color-text-muted)] text-sm">No events match this filter</div>
           </div>
         )}
       </div>
@@ -678,9 +678,9 @@ function Analytics() {
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-4">
         {/* Bar chart */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-          <h4 className="text-white font-semibold text-sm">Most Collaborative Agents</h4>
-          <p className="text-zinc-500 text-xs mt-0.5 mb-4">Total cross-agent interactions</p>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
+          <h4 className="text-[var(--color-text-primary)] font-semibold text-sm">Most Collaborative Agents</h4>
+          <p className="text-[var(--color-text-muted)] text-xs mt-0.5 mb-4">Total cross-agent interactions</p>
           <div className="space-y-3">
             {agentTotals.map(({ agent, total }) => {
               const barPct = Math.round((total / maxTotal) * 100);
@@ -690,11 +690,11 @@ function Analytics() {
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-1.5">
                       <span>{agent.emoji}</span>
-                      <span className="text-zinc-300">{agent.name}</span>
+                      <span className="text-[var(--color-text-primary)]">{agent.name}</span>
                     </div>
-                    <span className="text-zinc-500 font-mono">{total}</span>
+                    <span className="text-[var(--color-text-muted)] font-mono">{total}</span>
                   </div>
-                  <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className={cn("h-full rounded-full transition-all duration-700", barColor)}
                       style={{ width: `${barPct}%` }}
@@ -707,15 +707,15 @@ function Analytics() {
         </div>
 
         {/* Network stats */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-          <h4 className="text-white font-semibold text-sm">Network Statistics</h4>
-          <p className="text-zinc-500 text-xs mt-0.5 mb-4">Collaboration network health metrics</p>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
+          <h4 className="text-[var(--color-text-primary)] font-semibold text-sm">Network Statistics</h4>
+          <p className="text-[var(--color-text-muted)] text-xs mt-0.5 mb-4">Collaboration network health metrics</p>
           <div className="grid grid-cols-2 gap-3">
             {networkStats.map(stat => (
-              <div key={stat.label} className="rounded-lg bg-zinc-800 p-3">
+              <div key={stat.label} className="rounded-lg bg-[var(--color-surface-2)] p-3">
                 <div className={cn("text-xl font-bold", stat.color)}>{stat.value}</div>
-                <div className="text-zinc-300 text-xs font-medium mt-0.5">{stat.label}</div>
-                <div className="text-zinc-600 text-xs mt-0.5 truncate" title={stat.sub}>{stat.sub}</div>
+                <div className="text-[var(--color-text-primary)] text-xs font-medium mt-0.5">{stat.label}</div>
+                <div className="text-[var(--color-text-muted)] text-xs mt-0.5 truncate" title={stat.sub}>{stat.sub}</div>
               </div>
             ))}
           </div>
@@ -724,9 +724,9 @@ function Analytics() {
 
       <div className="grid grid-cols-2 gap-4">
         {/* Trend chart */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-          <h4 className="text-white font-semibold text-sm">Collaboration Trend</h4>
-          <p className="text-zinc-500 text-xs mt-0.5 mb-4">Weekly interaction volume (all agents)</p>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
+          <h4 className="text-[var(--color-text-primary)] font-semibold text-sm">Collaboration Trend</h4>
+          <p className="text-[var(--color-text-muted)] text-xs mt-0.5 mb-4">Weekly interaction volume (all agents)</p>
           <div className="relative h-36">
             {([0, 50, 100, 150] as number[]).map(v => (
               <div
@@ -734,8 +734,8 @@ function Analytics() {
                 className="absolute w-full flex items-end"
                 style={{ bottom: `${(v / 160) * 100}%`, left: 0 }}
               >
-                <span className="text-zinc-700 text-xs w-7 text-right pr-1.5 flex-shrink-0 leading-none">{v}</span>
-                <div className="flex-1 border-t border-zinc-800/50" />
+                <span className="text-[var(--color-text-muted)] text-xs w-7 text-right pr-1.5 flex-shrink-0 leading-none">{v}</span>
+                <div className="flex-1 border-t border-[var(--color-border)]/50" />
               </div>
             ))}
             <div className="absolute inset-0 pl-8 flex items-end gap-1.5 pb-0">
@@ -753,7 +753,7 @@ function Analytics() {
                         style={{ height: `${heightPct}%` }}
                       />
                     </div>
-                    <span className="text-zinc-600 text-xs leading-none">{d.week}</span>
+                    <span className="text-[var(--color-text-muted)] text-xs leading-none">{d.week}</span>
                   </div>
                 );
               })}
@@ -762,9 +762,9 @@ function Analytics() {
         </div>
 
         {/* Clusters */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-          <h4 className="text-white font-semibold text-sm">Team Clusters</h4>
-          <p className="text-zinc-500 text-xs mt-0.5 mb-4">Collaboration density sub-groups</p>
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5">
+          <h4 className="text-[var(--color-text-primary)] font-semibold text-sm">Team Clusters</h4>
+          <p className="text-[var(--color-text-muted)] text-xs mt-0.5 mb-4">Collaboration density sub-groups</p>
           <div className="space-y-3">
             {clusters.map(cluster => {
               const clusterAgents = cluster.agents.map(id => getAgent(id));
@@ -794,8 +794,8 @@ function Analytics() {
             })}
 
             {/* Summary */}
-            <div className="rounded-lg bg-zinc-800 p-3 mt-2">
-              <div className="text-zinc-400 text-xs font-semibold mb-2">Cross-Cluster Bridges</div>
+            <div className="rounded-lg bg-[var(--color-surface-2)] p-3 mt-2">
+              <div className="text-[var(--color-text-secondary)] text-xs font-semibold mb-2">Cross-Cluster Bridges</div>
               <div className="space-y-1">
                 {[
                   { from: "luis",  to: "xavier", label: "UI ↔ Leadership liaison" },
@@ -805,12 +805,12 @@ function Analytics() {
                   const fa = getAgent(bridge.from);
                   const ta = getAgent(bridge.to);
                   return (
-                    <div key={bridge.from + bridge.to} className="flex items-center gap-2 text-xs text-zinc-500">
+                    <div key={bridge.from + bridge.to} className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
                       <span>{fa.emoji} {fa.name}</span>
-                      <span className="text-zinc-700">↔</span>
+                      <span className="text-[var(--color-text-muted)]">↔</span>
                       <span>{ta.emoji} {ta.name}</span>
-                      <span className="text-zinc-700 ml-1">·</span>
-                      <span className="text-zinc-600">{bridge.label}</span>
+                      <span className="text-[var(--color-text-muted)] ml-1">·</span>
+                      <span className="text-[var(--color-text-muted)]">{bridge.label}</span>
                     </div>
                   );
                 })}
@@ -847,13 +847,13 @@ export default function AgentCollaborationGraph() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-6">
           <div>
-            <h1 className="text-2xl font-bold text-white">Agent Collaboration Graph</h1>
-            <p className="text-zinc-400 text-sm mt-1">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Agent Collaboration Graph</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">
               Visualize inter-agent collaboration patterns, communication flows, and team dynamics
             </p>
           </div>
@@ -861,17 +861,17 @@ export default function AgentCollaborationGraph() {
             {headerStats.map(stat => (
               <div
                 key={stat.label}
-                className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-center"
+                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] px-4 py-3 text-center"
               >
                 <div className={cn("text-xl font-bold", stat.color)}>{stat.value}</div>
-                <div className="text-zinc-500 text-xs">{stat.label}</div>
+                <div className="text-[var(--color-text-muted)] text-xs">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 p-1 bg-zinc-900 rounded-xl border border-zinc-800">
+        <div className="flex gap-1 p-1 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)]">
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -879,8 +879,8 @@ export default function AgentCollaborationGraph() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/50"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-lg shadow-indigo-900/50"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               <span className="text-base leading-none">{tab.icon}</span>
@@ -890,7 +890,7 @@ export default function AgentCollaborationGraph() {
         </div>
 
         {/* Content */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-6">
           {activeTab === "graph"     && <GraphView />}
           {activeTab === "matrix"    && <CollaborationMatrix />}
           {activeTab === "feed"      && <ActivityFeed />}

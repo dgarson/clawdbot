@@ -64,7 +64,7 @@ export default function WaveTransitionView() {
   const isW1W2 = activeTab === "W1W2";
   
   return (
-    <div className="p-6 bg-gray-900/950 min-h-full text-gray-100 font-sans">
+    <div className="p-6 bg-[var(--color-surface-1)]/950 min-h-full text-[var(--color-text-primary)] font-sans">
       <header className="mb-8">
         <h1 className="text-2xl font-bold">Wave Transition</h1>
         <p className="text-sm text-violet-400 mt-1 font-medium">
@@ -73,12 +73,12 @@ export default function WaveTransitionView() {
       </header>
 
       {/* Selector Tabs */}
-      <div className="flex gap-1 p-1 bg-gray-950 border border-gray-800 rounded-lg w-fit mb-8">
+      <div className="flex gap-1 p-1 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg w-fit mb-8">
         <button
           onClick={() => setActiveTab("W1W2")}
           className={cn(
             "px-4 py-1.5 rounded-md text-sm font-medium transition-all",
-            isW1W2 ? "bg-violet-600 text-white shadow-lg shadow-violet-500/20" : "text-gray-500 hover:text-gray-300"
+            isW1W2 ? "bg-violet-600 text-[var(--color-text-primary)] shadow-lg shadow-violet-500/20" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
           )}
         >
           W1 → W2
@@ -87,7 +87,7 @@ export default function WaveTransitionView() {
           onClick={() => setActiveTab("W2W3")}
           className={cn(
             "px-4 py-1.5 rounded-md text-sm font-medium transition-all",
-            !isW1W2 ? "bg-violet-600 text-white shadow-lg shadow-violet-500/20" : "text-gray-500 hover:text-gray-300"
+            !isW1W2 ? "bg-violet-600 text-[var(--color-text-primary)] shadow-lg shadow-violet-500/20" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
           )}
         >
           W2 → W3
@@ -95,16 +95,16 @@ export default function WaveTransitionView() {
       </div>
 
       {/* Main Diagram */}
-      <div className="bg-gray-950/50 border border-gray-800 rounded-2xl p-12 mb-8 flex items-center justify-center">
+      <div className="bg-[var(--color-surface-0)]/50 border border-[var(--color-border)] rounded-2xl p-12 mb-8 flex items-center justify-center">
         <div className="flex items-center gap-4">
           {/* Wave 1 */}
           <div className={cn(
             "w-48 p-6 rounded-xl border-2 transition-all duration-500",
-            isW1W2 ? "bg-gray-900/50 border-gray-800 opacity-50" : "bg-gray-900/50 border-gray-800 opacity-30"
+            isW1W2 ? "bg-[var(--color-surface-1)]/50 border-[var(--color-border)] opacity-50" : "bg-[var(--color-surface-1)]/50 border-[var(--color-border)] opacity-30"
           )}>
-            <div className="text-xs text-gray-500 font-bold uppercase mb-2">Wave 1</div>
+            <div className="text-xs text-[var(--color-text-muted)] font-bold uppercase mb-2">Wave 1</div>
             <div className="text-xl font-bold mb-1">Complete</div>
-            <div className="text-xs text-gray-400">47 Findings</div>
+            <div className="text-xs text-[var(--color-text-secondary)]">47 Findings</div>
           </div>
 
           <HandoffArrow active={isW1W2} />
@@ -114,7 +114,7 @@ export default function WaveTransitionView() {
             "w-56 p-8 rounded-xl border-2 transition-all duration-500 flex flex-col items-center text-center",
             isW1W2 
               ? "bg-violet-950/20 border-violet-500 ring-4 ring-violet-500/20 shadow-[0_0_30px_rgba(139,92,246,0.3)] scale-110" 
-              : "bg-gray-900/50 border-gray-800 opacity-50"
+              : "bg-[var(--color-surface-1)]/50 border-[var(--color-border)] opacity-50"
           )}>
             <div className="text-xs text-violet-400 font-bold uppercase mb-2">Wave 2</div>
             <div className="text-2xl font-black mb-1">Active</div>
@@ -135,13 +135,13 @@ export default function WaveTransitionView() {
             "w-48 p-6 rounded-xl border-2 transition-all duration-500",
             !isW1W2 
               ? "bg-violet-950/20 border-violet-500 ring-4 ring-violet-500/20 shadow-[0_0_30px_rgba(139,92,246,0.3)] scale-110"
-              : "bg-gray-950 border-gray-800 opacity-50"
+              : "bg-[var(--color-surface-0)] border-[var(--color-border)] opacity-50"
           )}>
-            <div className="text-xs text-gray-500 font-bold uppercase mb-2">Wave 3</div>
+            <div className="text-xs text-[var(--color-text-muted)] font-bold uppercase mb-2">Wave 3</div>
             <div className="text-xl font-bold mb-1 flex items-center gap-2">
               {!isW1W2 ? "Kickoff" : <span className="flex items-center gap-2">Pending <span className="text-lg">🔒</span></span>}
             </div>
-            <div className="text-xs text-gray-500">Wait for W2 signal</div>
+            <div className="text-xs text-[var(--color-text-muted)]">Wait for W2 signal</div>
           </div>
         </div>
       </div>
@@ -150,26 +150,26 @@ export default function WaveTransitionView() {
         {/* Handoff Events */}
         <section>
           <h2 className="text-lg font-bold mb-4">Handoff Events</h2>
-          <div className="space-y-4 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-800">
+          <div className="space-y-4 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-[var(--color-surface-2)]">
             <div className="pl-8 relative">
-              <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-green-500 border-4 border-gray-900" />
+              <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-green-500 border-4 border-[var(--color-border)]" />
               <div className="text-sm font-bold">Wave 1 completed at 1:32 AM</div>
-              <div className="text-xs text-gray-400">5 agents, 47 findings confirmed</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">5 agents, 47 findings confirmed</div>
             </div>
             <div className="pl-8 relative">
-              <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-violet-500 border-4 border-gray-900" />
+              <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-violet-500 border-4 border-[var(--color-border)]" />
               <div className="text-sm font-bold">Wave 2 started at 1:32 AM</div>
-              <div className="text-xs text-gray-400">5 agents initialized, context propagated</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">5 agents initialized, context propagated</div>
             </div>
             <div className="pl-8 relative">
-              <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-violet-400/30 border-4 border-gray-900 animate-pulse" />
+              <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-violet-400/30 border-4 border-[var(--color-border)] animate-pulse" />
               <div className="text-sm font-bold">Wave 2 findings rolling in...</div>
-              <div className="text-xs text-gray-400">Target identified: /api/v2/legacy_endpoints</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">Target identified: /api/v2/legacy_endpoints</div>
             </div>
             <div className="pl-8 relative opacity-50">
-              <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-gray-700 border-4 border-gray-900 flex items-center justify-center text-[8px]">🔒</div>
+              <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-[var(--color-surface-3)] border-4 border-[var(--color-border)] flex items-center justify-center text-[8px]">🔒</div>
               <div className="text-sm font-bold">Wave 3 pending</div>
-              <div className="text-xs text-gray-400">Awaiting Wave 2 saturation signal</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">Awaiting Wave 2 saturation signal</div>
             </div>
           </div>
         </section>
@@ -177,9 +177,9 @@ export default function WaveTransitionView() {
         {/* Wave Stats Table */}
         <section>
           <h2 className="text-lg font-bold mb-4">Wave Stats</h2>
-          <div className="bg-gray-950 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-xl overflow-hidden">
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-900 text-gray-400 uppercase text-[10px] font-bold">
+              <thead className="bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] uppercase text-[10px] font-bold">
                 <tr>
                   <th className="px-4 py-3">Wave</th>
                   <th className="px-4 py-3">Agents</th>
@@ -189,15 +189,15 @@ export default function WaveTransitionView() {
                   <th className="px-4 py-3">Cost</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {Object.values(mockWaves).map((wave) => (
-                  <tr key={wave.id} className={cn("hover:bg-gray-900/50 transition-colors", wave.status === "ACTIVE" && "bg-violet-900/5")}>
+                  <tr key={wave.id} className={cn("hover:bg-[var(--color-surface-1)]/50 transition-colors", wave.status === "ACTIVE" && "bg-violet-900/5")}>
                     <td className="px-4 py-3 font-bold">{wave.id}</td>
-                    <td className="px-4 py-3 text-gray-400">{wave.agents}</td>
-                    <td className="px-4 py-3 text-gray-400">{wave.startTime}</td>
-                    <td className="px-4 py-3 text-gray-400">{wave.duration}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{wave.agents}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{wave.startTime}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">{wave.duration}</td>
                     <td className="px-4 py-3">
-                      <span className={cn(wave.findings > 0 ? "text-green-400" : "text-gray-600")}>
+                      <span className={cn(wave.findings > 0 ? "text-green-400" : "text-[var(--color-text-muted)]")}>
                         {wave.findings}
                       </span>
                     </td>

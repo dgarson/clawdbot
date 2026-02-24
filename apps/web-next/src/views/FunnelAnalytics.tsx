@@ -86,16 +86,16 @@ export default function FunnelAnalytics() {
   const selectedStage = funnel.stages.find(s => s.id === selectedStageId);
 
   return (
-    <div className="flex h-full bg-zinc-950 overflow-hidden flex-col">
+    <div className="flex h-full bg-[var(--color-surface-0)] overflow-hidden flex-col">
       {/* Header */}
-      <div className="flex items-center gap-4 px-6 py-3 border-b border-zinc-800 bg-zinc-900 flex-shrink-0">
+      <div className="flex items-center gap-4 px-6 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-1)] flex-shrink-0">
         {/* Funnel selector */}
         <div className="flex gap-2">
           {FUNNELS.map(f => (
             <button
               key={f.id}
               onClick={() => { setActiveFunnelId(f.id); setSelectedStageId(null); }}
-              className={cn("text-xs px-3 py-1.5 rounded border transition-colors", activeFunnelId === f.id ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "border-zinc-700 text-zinc-500 hover:text-zinc-300 bg-zinc-800")}
+              className={cn("text-xs px-3 py-1.5 rounded border transition-colors", activeFunnelId === f.id ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]")}
             >
               {f.name}
             </button>
@@ -111,19 +111,19 @@ export default function FunnelAnalytics() {
             { label: "Period",     value: funnel.period },
           ].map(({ label, value }) => (
             <div key={label} className="text-center">
-              <div className="text-sm font-bold text-white">{value}</div>
-              <div className="text-[10px] text-zinc-500">{label}</div>
+              <div className="text-sm font-bold text-[var(--color-text-primary)]">{value}</div>
+              <div className="text-[10px] text-[var(--color-text-muted)]">{label}</div>
             </div>
           ))}
         </div>
 
         {/* View mode */}
-        <div className="flex rounded border border-zinc-700 overflow-hidden">
+        <div className="flex rounded border border-[var(--color-border)] overflow-hidden">
           {(["funnel", "table"] as const).map(m => (
             <button
               key={m}
               onClick={() => setViewMode(m)}
-              className={cn("text-xs px-3 py-1.5 capitalize transition-colors", viewMode === m ? "bg-indigo-500 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white")}
+              className={cn("text-xs px-3 py-1.5 capitalize transition-colors", viewMode === m ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
             >
               {m === "funnel" ? "📊 Funnel" : "📋 Table"}
             </button>
@@ -136,7 +136,7 @@ export default function FunnelAnalytics() {
         <div className="flex-1 overflow-y-auto p-6">
           {viewMode === "funnel" ? (
             <div className="max-w-2xl mx-auto">
-              <p className="text-xs text-zinc-500 mb-6">{funnel.description}</p>
+              <p className="text-xs text-[var(--color-text-muted)] mb-6">{funnel.description}</p>
 
               {/* Funnel visualization */}
               <div className="space-y-1">
@@ -151,11 +151,11 @@ export default function FunnelAnalytics() {
                       {/* Dropoff indicator */}
                       {i > 0 && dropoff > 0 && (
                         <div className="flex items-center gap-2 py-0.5 px-2">
-                          <div className="flex-1 h-px bg-zinc-800" />
+                          <div className="flex-1 h-px bg-[var(--color-surface-2)]" />
                           <span className="text-[9px] text-rose-400 whitespace-nowrap">
                             ↓ {dropoff.toLocaleString()} dropped ({(100 - stage.conversionRate).toFixed(1)}%)
                           </span>
-                          <div className="flex-1 h-px bg-zinc-800" />
+                          <div className="flex-1 h-px bg-[var(--color-surface-2)]" />
                         </div>
                       )}
 
@@ -165,9 +165,9 @@ export default function FunnelAnalytics() {
                         className="w-full group"
                       >
                         <div className="flex items-center gap-3 mb-0.5">
-                          <span className="text-[10px] text-zinc-500 w-4 text-right">{i + 1}</span>
-                          <span className="text-xs text-zinc-300">{stage.name}</span>
-                          <span className="text-xs text-white font-semibold ml-auto">{stage.count.toLocaleString()}</span>
+                          <span className="text-[10px] text-[var(--color-text-muted)] w-4 text-right">{i + 1}</span>
+                          <span className="text-xs text-[var(--color-text-primary)]">{stage.name}</span>
+                          <span className="text-xs text-[var(--color-text-primary)] font-semibold ml-auto">{stage.count.toLocaleString()}</span>
                           {i > 0 && (
                             <span className={cn("text-[10px] font-medium w-12 text-right", stage.conversionRate >= 90 ? "text-emerald-400" : stage.conversionRate >= 75 ? "text-amber-400" : "text-rose-400")}>
                               {stage.conversionRate.toFixed(1)}%
@@ -181,12 +181,12 @@ export default function FunnelAnalytics() {
                             className={cn("transition-all duration-300 rounded h-10 flex items-center justify-center", stage.color, isSelected ? "opacity-100 ring-2 ring-white/30" : "opacity-70 group-hover:opacity-90")}
                             style={{ width: `${widthPct}%` }}
                           >
-                            <span className="text-white text-xs font-bold drop-shadow">{stage.name}</span>
+                            <span className="text-[var(--color-text-primary)] text-xs font-bold drop-shadow">{stage.name}</span>
                           </div>
                         </div>
 
                         {/* Duration */}
-                        <div className="text-center text-[9px] text-zinc-600 mt-0.5">avg {stage.avgDuration}</div>
+                        <div className="text-center text-[9px] text-[var(--color-text-muted)] mt-0.5">avg {stage.avgDuration}</div>
                       </button>
                     </div>
                   );
@@ -194,18 +194,18 @@ export default function FunnelAnalytics() {
               </div>
 
               {/* Overall funnel bar */}
-              <div className="mt-8 p-4 bg-zinc-900 rounded border border-zinc-800">
+              <div className="mt-8 p-4 bg-[var(--color-surface-1)] rounded border border-[var(--color-border)]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-zinc-400">Overall Conversion</span>
-                  <span className="text-sm font-bold text-white">{overallConversion}%</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">Overall Conversion</span>
+                  <span className="text-sm font-bold text-[var(--color-text-primary)]">{overallConversion}%</span>
                 </div>
-                <div className="h-3 bg-zinc-800 rounded overflow-hidden">
+                <div className="h-3 bg-[var(--color-surface-2)] rounded overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded"
                     style={{ width: `${overallConversion}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-[9px] text-zinc-600 mt-1">
+                <div className="flex justify-between text-[9px] text-[var(--color-text-muted)] mt-1">
                   <span>{funnel.totalEntered.toLocaleString()} entered</span>
                   <span>{funnel.totalCompleted.toLocaleString()} completed</span>
                 </div>
@@ -215,7 +215,7 @@ export default function FunnelAnalytics() {
             /* Table view */
             <table className="w-full max-w-3xl mx-auto">
               <thead>
-                <tr className="border-b border-zinc-800 text-[10px] text-zinc-500 uppercase tracking-wider">
+                <tr className="border-b border-[var(--color-border)] text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">
                   <th className="text-left px-4 py-2">#</th>
                   <th className="text-left px-4 py-2">Stage</th>
                   <th className="text-right px-4 py-2">Count</th>
@@ -225,23 +225,23 @@ export default function FunnelAnalytics() {
                   <th className="text-left px-4 py-2">Bar</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-[var(--color-border)]/50">
                 {funnel.stages.map((stage, i) => {
                   const prev = funnel.stages[i - 1];
                   const dropped = prev ? prev.count - stage.count : 0;
                   return (
-                    <tr key={stage.id} className="hover:bg-zinc-900 transition-colors">
-                      <td className="px-4 py-3 text-zinc-600 text-xs">{i + 1}</td>
+                    <tr key={stage.id} className="hover:bg-[var(--color-surface-1)] transition-colors">
+                      <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs">{i + 1}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span className={cn("w-2.5 h-2.5 rounded-sm flex-shrink-0", stage.color)} />
-                          <span className="text-sm text-white">{stage.name}</span>
+                          <span className="text-sm text-[var(--color-text-primary)]">{stage.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-right text-sm font-mono text-white">{stage.count.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-sm font-mono text-[var(--color-text-primary)]">{stage.count.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right">
                         {i === 0 ? (
-                          <span className="text-[10px] text-zinc-600">—</span>
+                          <span className="text-[10px] text-[var(--color-text-muted)]">—</span>
                         ) : (
                           <span className={cn("text-sm font-semibold", stage.conversionRate >= 90 ? "text-emerald-400" : stage.conversionRate >= 75 ? "text-amber-400" : "text-rose-400")}>
                             {stage.conversionRate.toFixed(1)}%
@@ -251,9 +251,9 @@ export default function FunnelAnalytics() {
                       <td className="px-4 py-3 text-right text-xs text-rose-400">
                         {dropped > 0 ? `-${dropped.toLocaleString()}` : "—"}
                       </td>
-                      <td className="px-4 py-3 text-xs text-zinc-500">{stage.avgDuration}</td>
+                      <td className="px-4 py-3 text-xs text-[var(--color-text-muted)]">{stage.avgDuration}</td>
                       <td className="px-4 py-3 w-32">
-                        <div className="h-2 bg-zinc-800 rounded overflow-hidden">
+                        <div className="h-2 bg-[var(--color-surface-2)] rounded overflow-hidden">
                           <div className={cn("h-full rounded", stage.color)} style={{ width: `${(stage.count / maxCount) * 100}%` }} />
                         </div>
                       </td>
@@ -267,13 +267,13 @@ export default function FunnelAnalytics() {
 
         {/* Stage detail panel */}
         {selectedStage && (
-          <div className="w-72 flex-shrink-0 border-l border-zinc-800 bg-zinc-900 overflow-y-auto p-4">
+          <div className="w-72 flex-shrink-0 border-l border-[var(--color-border)] bg-[var(--color-surface-1)] overflow-y-auto p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <span className={cn("w-3 h-3 rounded", selectedStage.color)} />
-                <span className="font-semibold text-sm text-white">{selectedStage.name}</span>
+                <span className="font-semibold text-sm text-[var(--color-text-primary)]">{selectedStage.name}</span>
               </div>
-              <button onClick={() => setSelectedStageId(null)} className="text-zinc-500 hover:text-white text-xs">✕</button>
+              <button onClick={() => setSelectedStageId(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xs">✕</button>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
@@ -283,17 +283,17 @@ export default function FunnelAnalytics() {
                 { label: "Avg Time",  value: selectedStage.avgDuration },
                 { label: "Of Total",  value: `${((selectedStage.count / maxCount) * 100).toFixed(0)}%` },
               ].map(({ label, value }) => (
-                <div key={label} className="bg-zinc-950 rounded p-2 border border-zinc-800">
-                  <div className="text-[10px] text-zinc-500">{label}</div>
-                  <div className="text-sm font-semibold text-white mt-0.5">{value}</div>
+                <div key={label} className="bg-[var(--color-surface-0)] rounded p-2 border border-[var(--color-border)]">
+                  <div className="text-[10px] text-[var(--color-text-muted)]">{label}</div>
+                  <div className="text-sm font-semibold text-[var(--color-text-primary)] mt-0.5">{value}</div>
                 </div>
               ))}
             </div>
 
             {/* Proportion bar */}
             <div className="mb-4">
-              <div className="text-[10px] text-zinc-500 mb-1">Proportion of entrants</div>
-              <div className="h-2 bg-zinc-800 rounded overflow-hidden">
+              <div className="text-[10px] text-[var(--color-text-muted)] mb-1">Proportion of entrants</div>
+              <div className="h-2 bg-[var(--color-surface-2)] rounded overflow-hidden">
                 <div className={cn("h-full rounded", selectedStage.color)} style={{ width: `${(selectedStage.count / maxCount) * 100}%` }} />
               </div>
             </div>
@@ -301,12 +301,12 @@ export default function FunnelAnalytics() {
             {/* Drop-off reasons */}
             {selectedStage.dropoffReasons.length > 0 && (
               <div>
-                <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">Drop-off Reasons</div>
+                <div className="text-[10px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Drop-off Reasons</div>
                 <div className="space-y-1.5">
                   {selectedStage.dropoffReasons.map((reason, i) => (
                     <div key={i} className="flex items-center gap-2 text-xs">
                       <div className="w-1.5 h-1.5 rounded-full bg-rose-400 flex-shrink-0" />
-                      <span className="text-zinc-400">{reason}</span>
+                      <span className="text-[var(--color-text-secondary)]">{reason}</span>
                     </div>
                   ))}
                 </div>

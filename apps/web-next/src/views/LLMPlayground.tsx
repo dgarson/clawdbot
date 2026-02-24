@@ -84,7 +84,7 @@ const SAVED_SESSIONS: PlaygroundSession[] = [
 const ROLE_STYLES: Record<MessageRole, string> = {
   system: "bg-amber-500/5 border-amber-500/20",
   user: "bg-indigo-500/5 border-indigo-500/20",
-  assistant: "bg-zinc-800/50 border-zinc-700/50",
+  assistant: "bg-[var(--color-surface-2)]/50 border-[var(--color-border)]/50",
 };
 
 const ROLE_LABEL: Record<MessageRole, string> = {
@@ -96,7 +96,7 @@ const ROLE_LABEL: Record<MessageRole, string> = {
 const ROLE_LABEL_COLOR: Record<MessageRole, string> = {
   system: "text-amber-400",
   user: "text-indigo-400",
-  assistant: "text-zinc-400",
+  assistant: "text-[var(--color-text-secondary)]",
 };
 
 // Simulate a response based on content
@@ -212,11 +212,11 @@ export default function LLMPlayground() {
     : 0;
 
   return (
-    <div className="h-full flex bg-zinc-950 overflow-hidden">
+    <div className="h-full flex bg-[var(--color-surface-0)] overflow-hidden">
       {/* Left sidebar */}
-      <aside className="w-64 shrink-0 border-r border-zinc-800 flex flex-col overflow-hidden">
+      <aside className="w-64 shrink-0 border-r border-[var(--color-border)] flex flex-col overflow-hidden">
         {/* Sidebar tabs */}
-        <div className="shrink-0 border-b border-zinc-800 flex" role="tablist">
+        <div className="shrink-0 border-b border-[var(--color-border)] flex" role="tablist">
           {(["sessions", "params"] as const).map((t) => (
             <button
               key={t}
@@ -225,7 +225,7 @@ export default function LLMPlayground() {
               onClick={() => setPanel(t)}
               className={cn(
                 "flex-1 py-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                panel === t ? "text-indigo-400 border-b-2 border-indigo-500" : "text-zinc-500 hover:text-zinc-300"
+                panel === t ? "text-indigo-400 border-b-2 border-indigo-500" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t === "sessions" ? "Sessions" : "Params"}
@@ -238,12 +238,12 @@ export default function LLMPlayground() {
             <div className="p-2">
               <button
                 onClick={newSession}
-                className="w-full px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                className="w-full px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
               >
                 + New Session
               </button>
             </div>
-            <ul className="divide-y divide-zinc-800/50" role="listbox" aria-label="Saved sessions">
+            <ul className="divide-y divide-[var(--color-border)]/50" role="listbox" aria-label="Saved sessions">
               {sessions.map((session) => (
                 <li key={session.id}>
                   <button
@@ -251,15 +251,15 @@ export default function LLMPlayground() {
                     aria-selected={session.id === activeSessionId}
                     onClick={() => loadSession(session)}
                     className={cn(
-                      "w-full text-left px-3 py-2.5 hover:bg-zinc-800/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                      session.id === activeSessionId && "bg-zinc-800 border-l-2 border-indigo-500"
+                      "w-full text-left px-3 py-2.5 hover:bg-[var(--color-surface-2)]/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
+                      session.id === activeSessionId && "bg-[var(--color-surface-2)] border-l-2 border-indigo-500"
                     )}
                   >
-                    <div className="text-xs font-medium text-zinc-200 truncate">{session.name}</div>
-                    <div className="text-xs text-zinc-500 mt-0.5 truncate">
+                    <div className="text-xs font-medium text-[var(--color-text-primary)] truncate">{session.name}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5 truncate">
                       {MODELS.find((m) => m.id === session.model)?.name ?? session.model}
                     </div>
-                    <div className="text-xs text-zinc-600 mt-0.5">{session.createdAt}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{session.createdAt}</div>
                   </button>
                 </li>
               ))}
@@ -271,11 +271,11 @@ export default function LLMPlayground() {
           <div className="flex-1 overflow-y-auto p-3 space-y-4">
             {/* Model */}
             <div>
-              <label className="text-xs text-zinc-400 font-medium block mb-1">Model</label>
+              <label className="text-xs text-[var(--color-text-secondary)] font-medium block mb-1">Model</label>
               <select
                 value={model}
                 onChange={(e) => setDraftModel(e.target.value as ModelId)}
-                className="w-full bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 disabled={!!activeSession}
               >
                 {MODELS.map((m) => (
@@ -283,7 +283,7 @@ export default function LLMPlayground() {
                 ))}
               </select>
               {modelConfig && (
-                <div className="mt-1 text-xs text-zinc-600">
+                <div className="mt-1 text-xs text-[var(--color-text-muted)]">
                   {modelConfig.provider} · ${(modelConfig.costPer1kIn / 100).toFixed(4)}/1k in
                 </div>
               )}
@@ -292,8 +292,8 @@ export default function LLMPlayground() {
             {/* Temperature */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs text-zinc-400 font-medium">Temperature</label>
-                <span className="text-xs text-zinc-300 font-mono">{temp.toFixed(2)}</span>
+                <label className="text-xs text-[var(--color-text-secondary)] font-medium">Temperature</label>
+                <span className="text-xs text-[var(--color-text-primary)] font-mono">{temp.toFixed(2)}</span>
               </div>
               <input
                 type="range"
@@ -306,7 +306,7 @@ export default function LLMPlayground() {
                 disabled={!!activeSession}
                 aria-label={`Temperature: ${temp}`}
               />
-              <div className="flex justify-between text-xs text-zinc-600 mt-0.5">
+              <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-0.5">
                 <span>deterministic</span>
                 <span>creative</span>
               </div>
@@ -315,8 +315,8 @@ export default function LLMPlayground() {
             {/* Max tokens */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs text-zinc-400 font-medium">Max tokens</label>
-                <span className="text-xs text-zinc-300 font-mono">{maxTok}</span>
+                <label className="text-xs text-[var(--color-text-secondary)] font-medium">Max tokens</label>
+                <span className="text-xs text-[var(--color-text-primary)] font-mono">{maxTok}</span>
               </div>
               <input
                 type="range"
@@ -333,27 +333,27 @@ export default function LLMPlayground() {
 
             {/* System prompt */}
             <div>
-              <label className="text-xs text-zinc-400 font-medium block mb-1">System Prompt</label>
+              <label className="text-xs text-[var(--color-text-secondary)] font-medium block mb-1">System Prompt</label>
               <textarea
                 value={sysPrompt}
                 onChange={(e) => setDraftSystem(e.target.value)}
                 rows={5}
                 disabled={!!activeSession}
                 placeholder="Enter system prompt…"
-                className="w-full bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs rounded px-2 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-600 disabled:opacity-50"
+                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-[var(--color-text-muted)] disabled:opacity-50"
               />
             </div>
 
             {/* Cost estimate */}
-            <div className="bg-zinc-900 rounded border border-zinc-800 p-3 space-y-1">
-              <div className="text-xs font-medium text-zinc-400 mb-1">Estimates</div>
+            <div className="bg-[var(--color-surface-1)] rounded border border-[var(--color-border)] p-3 space-y-1">
+              <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-1">Estimates</div>
               <div className="flex justify-between text-xs">
-                <span className="text-zinc-500">Context tokens</span>
-                <span className="text-zinc-300">{estimatedTokens.toLocaleString()}</span>
+                <span className="text-[var(--color-text-muted)]">Context tokens</span>
+                <span className="text-[var(--color-text-primary)]">{estimatedTokens.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-zinc-500">Est. cost</span>
-                <span className="text-zinc-300">${estimatedCost.toFixed(4)}</span>
+                <span className="text-[var(--color-text-muted)]">Est. cost</span>
+                <span className="text-[var(--color-text-primary)]">${estimatedCost.toFixed(4)}</span>
               </div>
             </div>
           </div>
@@ -363,14 +363,14 @@ export default function LLMPlayground() {
       {/* Chat area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="shrink-0 border-b border-zinc-800 px-5 py-3 flex items-center gap-3">
+        <div className="shrink-0 border-b border-[var(--color-border)] px-5 py-3 flex items-center gap-3">
           <div>
-            <span className="text-sm font-semibold text-white">
+            <span className="text-sm font-semibold text-[var(--color-text-primary)]">
               {activeSession ? activeSession.name : "New Session"}
             </span>
-            <span className="ml-2 text-xs text-zinc-500">{modelConfig?.name ?? model}</span>
+            <span className="ml-2 text-xs text-[var(--color-text-muted)]">{modelConfig?.name ?? model}</span>
           </div>
-          <div className="ml-auto flex items-center gap-2 text-xs text-zinc-500">
+          <div className="ml-auto flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
             <span>temp {temp.toFixed(1)}</span>
             <span>·</span>
             <span>max {maxTok.toLocaleString()} tok</span>
@@ -388,7 +388,7 @@ export default function LLMPlayground() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
           {messages.length === 0 && (
-            <div className="flex items-center justify-center h-full text-zinc-600 text-sm">
+            <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">
               Start a conversation below
             </div>
           )}
@@ -403,12 +403,12 @@ export default function LLMPlayground() {
               <div className={cn("text-xs font-semibold mb-2 uppercase tracking-wide", ROLE_LABEL_COLOR[msg.role])}>
                 {ROLE_LABEL[msg.role]}
               </div>
-              <p className="text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+              <p className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed">{msg.content}</p>
             </div>
           ))}
           {isSimulating && (
-            <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/50 p-4">
-              <div className="text-xs font-semibold mb-2 uppercase tracking-wide text-zinc-400">assistant</div>
+            <div className="rounded-lg border border-[var(--color-border)]/50 bg-[var(--color-surface-2)]/50 p-4">
+              <div className="text-xs font-semibold mb-2 uppercase tracking-wide text-[var(--color-text-secondary)]">assistant</div>
               <div className="flex gap-1">
                 <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0ms]" />
                 <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:150ms]" />
@@ -419,7 +419,7 @@ export default function LLMPlayground() {
         </div>
 
         {/* Input */}
-        <form onSubmit={handleSend} className="shrink-0 border-t border-zinc-800 p-4">
+        <form onSubmit={handleSend} className="shrink-0 border-t border-[var(--color-border)] p-4">
           <div className="flex gap-2">
             <textarea
               value={inputVal}
@@ -432,14 +432,14 @@ export default function LLMPlayground() {
               }}
               rows={3}
               placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
-              className="flex-1 bg-zinc-800 border border-zinc-700 text-zinc-200 text-sm rounded-lg px-4 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-zinc-600"
+              className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-4 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-[var(--color-text-muted)]"
               disabled={isSimulating}
               aria-label="Message input"
             />
             <button
               type="submit"
               disabled={!inputVal.trim() || isSimulating}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors self-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors self-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             >
               Send
             </button>

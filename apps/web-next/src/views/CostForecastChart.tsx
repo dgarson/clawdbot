@@ -115,21 +115,21 @@ function Stepper({ value, min, max, onChange }: StepperProps) {
         className={cn(
           'w-7 h-7 flex items-center justify-center rounded border text-sm transition-colors',
           value <= min
-            ? 'border-zinc-800 text-zinc-700 cursor-not-allowed'
-            : 'border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white',
+            ? 'border-[var(--color-border)] text-[var(--color-text-muted)] cursor-not-allowed'
+            : 'border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]',
         )}
       >
         <ChevronDown className="w-3.5 h-3.5" />
       </button>
-      <span className="w-8 text-center text-white font-semibold text-sm tabular-nums">{value}</span>
+      <span className="w-8 text-center text-[var(--color-text-primary)] font-semibold text-sm tabular-nums">{value}</span>
       <button
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
         className={cn(
           'w-7 h-7 flex items-center justify-center rounded border text-sm transition-colors',
           value >= max
-            ? 'border-zinc-800 text-zinc-700 cursor-not-allowed'
-            : 'border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white',
+            ? 'border-[var(--color-border)] text-[var(--color-text-muted)] cursor-not-allowed'
+            : 'border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]',
         )}
       >
         <ChevronUp className="w-3.5 h-3.5" />
@@ -154,8 +154,8 @@ function PillGroup<T extends string | number>({ options, value, onChange }: Pill
           className={cn(
             'px-3 py-1 rounded-lg text-xs font-medium transition-colors border',
             value === opt.value
-              ? 'bg-violet-600 border-violet-500 text-white'
-              : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-600',
+              ? 'bg-violet-600 border-violet-500 text-[var(--color-text-primary)]'
+              : 'bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]',
           )}
         >
           {opt.label}
@@ -352,35 +352,35 @@ function ForecastSummary({ bars, settings }: ForecastSummaryProps) {
 
   return (
     <div className="grid grid-cols-3 gap-3 mt-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
-        <div className="flex items-center gap-1.5 text-zinc-400 text-xs mb-1">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-3">
+        <div className="flex items-center gap-1.5 text-[var(--color-text-secondary)] text-xs mb-1">
           <DollarSign className="w-3.5 h-3.5" />
           Total Forecast
         </div>
-        <div className="text-lg font-bold text-white">${totalCost.toFixed(2)}</div>
-        <div className="text-xs text-zinc-500">over 12 periods</div>
+        <div className="text-lg font-bold text-[var(--color-text-primary)]">${totalCost.toFixed(2)}</div>
+        <div className="text-xs text-[var(--color-text-muted)]">over 12 periods</div>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
-        <div className="flex items-center gap-1.5 text-zinc-400 text-xs mb-1">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-3">
+        <div className="flex items-center gap-1.5 text-[var(--color-text-secondary)] text-xs mb-1">
           <TrendingUp className="w-3.5 h-3.5" />
           vs. Budget
         </div>
         <div className={cn('text-lg font-bold', diff > 0 ? 'text-red-400' : 'text-green-400')}>
           {diff > 0 ? '+' : ''}{diffPct.toFixed(1)}%
         </div>
-        <div className="text-xs text-zinc-500">
+        <div className="text-xs text-[var(--color-text-muted)]">
           {diff > 0 ? 'over' : 'under'} ${totalBudget.toFixed(0)}
         </div>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
-        <div className="flex items-center gap-1.5 text-zinc-400 text-xs mb-1">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-3">
+        <div className="flex items-center gap-1.5 text-[var(--color-text-secondary)] text-xs mb-1">
           <Cpu className="w-3.5 h-3.5" />
           Token Estimate
         </div>
-        <div className="text-lg font-bold text-white">
+        <div className="text-lg font-bold text-[var(--color-text-primary)]">
           {(totalTokens / 1_000_000).toFixed(1)}M
         </div>
-        <div className="text-xs text-zinc-500">total tokens</div>
+        <div className="text-xs text-[var(--color-text-muted)]">total tokens</div>
       </div>
     </div>
   );
@@ -398,12 +398,12 @@ function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
     onChange({ ...settings, [key]: val });
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-6 h-full">
-      <h2 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">Forecast Settings</h2>
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 space-y-6 h-full">
+      <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">Forecast Settings</h2>
 
       {/* Run Frequency */}
       <div>
-        <label className="block text-xs text-zinc-500 mb-2 uppercase tracking-wide">Run Frequency</label>
+        <label className="block text-xs text-[var(--color-text-muted)] mb-2 uppercase tracking-wide">Run Frequency</label>
         <PillGroup
           options={FREQUENCY_OPTIONS}
           value={settings.frequency}
@@ -413,7 +413,7 @@ function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       {/* Agent Count */}
       <div>
-        <label className="block text-xs text-zinc-500 mb-2 uppercase tracking-wide">Agent Count</label>
+        <label className="block text-xs text-[var(--color-text-muted)] mb-2 uppercase tracking-wide">Agent Count</label>
         <Stepper
           value={settings.agentCount}
           min={1}
@@ -424,7 +424,7 @@ function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       {/* Avg Run Duration */}
       <div>
-        <label className="block text-xs text-zinc-500 mb-2 uppercase tracking-wide">Avg Run Duration</label>
+        <label className="block text-xs text-[var(--color-text-muted)] mb-2 uppercase tracking-wide">Avg Run Duration</label>
         <PillGroup
           options={DURATION_OPTIONS}
           value={settings.duration}
@@ -434,7 +434,7 @@ function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       {/* Model Tier */}
       <div>
-        <label className="block text-xs text-zinc-500 mb-2 uppercase tracking-wide">Model Tier</label>
+        <label className="block text-xs text-[var(--color-text-muted)] mb-2 uppercase tracking-wide">Model Tier</label>
         <div className="space-y-2">
           {(Object.keys(MODEL_LABELS) as ModelTier[]).map((tier) => {
             const { name, sub } = MODEL_LABELS[tier];
@@ -448,15 +448,15 @@ function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
                   'w-full text-left px-3 py-2.5 rounded-lg border transition-all',
                   selected
                     ? 'bg-violet-950/60 border-violet-500 ring-1 ring-violet-500/30'
-                    : 'bg-zinc-800/50 border-zinc-700 hover:border-zinc-600',
+                    : 'bg-[var(--color-surface-2)]/50 border-[var(--color-border)] hover:border-[var(--color-surface-3)]',
                 )}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className={cn('text-sm font-semibold', selected ? 'text-white' : 'text-zinc-300')}>{name}</div>
-                    <div className="text-xs text-zinc-500">{sub}</div>
+                    <div className={cn('text-sm font-semibold', selected ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-primary)]')}>{name}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">{sub}</div>
                   </div>
-                  <div className={cn('text-xs font-mono', selected ? 'text-violet-300' : 'text-zinc-500')}>
+                  <div className={cn('text-xs font-mono', selected ? 'text-violet-300' : 'text-[var(--color-text-muted)]')}>
                     ${rate}/agent-hr
                   </div>
                 </div>
@@ -468,16 +468,16 @@ function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
       {/* Budget Line */}
       <div>
-        <label className="block text-xs text-zinc-500 mb-2 uppercase tracking-wide">Budget Line (per period)</label>
+        <label className="block text-xs text-[var(--color-text-muted)] mb-2 uppercase tracking-wide">Budget Line (per period)</label>
         <div className="flex items-center gap-2">
-          <span className="text-zinc-400 text-sm">$</span>
+          <span className="text-[var(--color-text-secondary)] text-sm">$</span>
           <input
             type="number"
             min={1}
             max={10000}
             value={settings.budgetLine}
             onChange={(e) => patch('budgetLine', Math.max(1, Number(e.target.value)))}
-            className="w-20 bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-violet-500 tabular-nums"
+            className="w-20 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-violet-500 tabular-nums"
           />
         </div>
       </div>
@@ -505,16 +505,16 @@ export default function CostForecastChart() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       <div className="max-w-6xl mx-auto px-6 py-8">
 
         {/* ── Header ── */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
             <CalendarDays className="w-5 h-5 text-violet-400" />
-            <h1 className="text-xl font-bold text-white">Cost Forecast</h1>
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Cost Forecast</h1>
           </div>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-[var(--color-text-secondary)]">
             Projected discovery run costs for the next {freqLabel[settings.frequency]}.
           </p>
         </div>
@@ -526,12 +526,12 @@ export default function CostForecastChart() {
           <SettingsPanel settings={settings} onChange={setSettings} />
 
           {/* Right — Chart */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
                 Projected Cost per Run
               </h2>
-              <div className="flex items-center gap-3 text-xs text-zinc-500">
+              <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-sm bg-green-500 inline-block" /> &lt;$10
                 </span>

@@ -238,15 +238,15 @@ const AgentCard = ({ agent }: { agent: Agent }) => {
   const tokenPercentage = Math.min((agent.tokensUsed / agent.tokenLimit) * 100, 100);
 
   return (
-    <div className="border border-gray-800 bg-gray-900/50 rounded-lg overflow-hidden transition-all duration-200 hover:border-gray-700">
+    <div className="border border-[var(--color-border)] bg-[var(--color-surface-1)]/50 rounded-lg overflow-hidden transition-all duration-200 hover:border-[var(--color-border)]">
       <div 
         className="p-4 flex items-center justify-between cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex-1">
           <div className="flex items-center gap-3">
-            <h3 className="text-sm font-semibold text-gray-100">{agent.name}</h3>
-            <span className="text-xs text-gray-500 uppercase tracking-wider">{agent.domain}</span>
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{agent.name}</h3>
+            <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{agent.domain}</span>
             <Badge variant={agent.status === 'completed' ? 'success' : 'danger'}>
               {agent.status}
             </Badge>
@@ -254,11 +254,11 @@ const AgentCard = ({ agent }: { agent: Agent }) => {
           
           <div className="mt-3 flex items-center gap-4">
             <div className="flex-1 max-w-[120px]">
-              <div className="flex justify-between text-[10px] text-gray-500 mb-1">
+              <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mb-1">
                 <span>Tokens</span>
                 <span>{Math.round(agent.tokensUsed / 1000)}k</span>
               </div>
-              <div className="h-1 w-full bg-gray-800 rounded-full overflow-hidden">
+              <div className="h-1 w-full bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div 
                   className={cn(
                     "h-full transition-all duration-500",
@@ -269,30 +269,30 @@ const AgentCard = ({ agent }: { agent: Agent }) => {
               </div>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-gray-400">Findings:</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">Findings:</span>
               <Badge variant="neutral">{agent.findings.length}</Badge>
             </div>
           </div>
         </div>
         
-        <div className={cn("text-gray-500 transition-transform duration-200", isExpanded ? "rotate-180" : "")}>
+        <div className={cn("text-[var(--color-text-muted)] transition-transform duration-200", isExpanded ? "rotate-180" : "")}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </div>
       </div>
 
       {isExpanded && (
-        <div className="px-4 pb-4 pt-0 border-t border-gray-800/50">
+        <div className="px-4 pb-4 pt-0 border-t border-[var(--color-border)]/50">
           {agent.findings.length > 0 ? (
             <ul className="mt-4 space-y-2">
               {agent.findings.map((finding) => (
-                <li key={finding.id} className="text-xs text-gray-300 flex gap-2">
+                <li key={finding.id} className="text-xs text-[var(--color-text-primary)] flex gap-2">
                   <span className="text-blue-500 mt-0.5">•</span>
                   {finding.text}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-4 text-xs text-gray-500 italic">No findings available for this agent.</p>
+            <p className="mt-4 text-xs text-[var(--color-text-muted)] italic">No findings available for this agent.</p>
           )}
         </div>
       )}
@@ -315,7 +315,7 @@ export default function DiscoveryWaveResults() {
   const currentWave = MOCK_WAVES.find(w => w.id === activeWave);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-8 font-sans">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans">
       <div className="max-w-4xl mx-auto space-y-8">
         
         {/* Header */}
@@ -323,32 +323,32 @@ export default function DiscoveryWaveResults() {
           <div className="flex justify-between items-end">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Discovery Run Results</h1>
-              <p className="text-gray-400 text-sm">Feb 23, 2026 — Aggregate Report</p>
+              <p className="text-[var(--color-text-secondary)] text-sm">Feb 23, 2026 — Aggregate Report</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-4 p-4 border border-gray-800 bg-gray-900/30 rounded-xl">
+          <div className="grid grid-cols-4 gap-4 p-4 border border-[var(--color-border)] bg-[var(--color-surface-1)]/30 rounded-xl">
             <div className="space-y-1">
-              <p className="text-[10px] uppercase text-gray-500 font-semibold tracking-wider">Findings</p>
+              <p className="text-[10px] uppercase text-[var(--color-text-muted)] font-semibold tracking-wider">Findings</p>
               <p className="text-xl font-mono font-bold text-emerald-400">47</p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] uppercase text-gray-500 font-semibold tracking-wider">Agents</p>
+              <p className="text-[10px] uppercase text-[var(--color-text-muted)] font-semibold tracking-wider">Agents</p>
               <p className="text-xl font-mono font-bold">15</p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] uppercase text-gray-500 font-semibold tracking-wider">Waves</p>
-              <p className="text-xl font-mono font-bold">3 <span className="text-[10px] text-gray-500">/ 3</span></p>
+              <p className="text-[10px] uppercase text-[var(--color-text-muted)] font-semibold tracking-wider">Waves</p>
+              <p className="text-xl font-mono font-bold">3 <span className="text-[10px] text-[var(--color-text-muted)]">/ 3</span></p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] uppercase text-gray-500 font-semibold tracking-wider">Tokens Used</p>
+              <p className="text-[10px] uppercase text-[var(--color-text-muted)] font-semibold tracking-wider">Tokens Used</p>
               <p className="text-xl font-mono font-bold">2.8M</p>
             </div>
           </div>
         </div>
 
         {/* Wave Tabs */}
-        <div className="border-b border-gray-800">
+        <div className="border-b border-[var(--color-border)]">
           <div className="flex gap-8">
             {[1, 2, 3].map((num) => (
               <button
@@ -356,7 +356,7 @@ export default function DiscoveryWaveResults() {
                 onClick={() => setActiveWave(num)}
                 className={cn(
                   "pb-4 text-sm font-medium transition-all relative",
-                  activeWave === num ? "text-blue-400" : "text-gray-500 hover:text-gray-300"
+                  activeWave === num ? "text-blue-400" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 Wave {num}
@@ -379,7 +379,7 @@ export default function DiscoveryWaveResults() {
         <div className="pt-8 flex items-center gap-4">
           <button
             onClick={handleExport}
-            className="px-4 py-2 bg-gray-100 text-gray-950 text-sm font-semibold rounded-lg hover:bg-white transition-colors"
+            className="px-4 py-2 bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-sm font-semibold rounded-lg hover:bg-white transition-colors"
           >
             Export to Markdown
           </button>

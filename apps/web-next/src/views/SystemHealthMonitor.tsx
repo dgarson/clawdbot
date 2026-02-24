@@ -293,12 +293,12 @@ function ServiceCard({ service }: { service: Service }) {
                      'stroke-red-400';
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-3">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-white">{service.name}</span>
+        <span className="text-sm font-medium text-[var(--color-text-primary)]">{service.name}</span>
         <StatusBadge status={service.status} />
       </div>
-      <div className="flex items-center gap-2 text-xs text-zinc-400">
+      <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
         <TrendingUp className="w-3 h-3" />
         Uptime: {formatUptime(service.uptime)}
       </div>
@@ -320,24 +320,24 @@ function ProviderRow({ provider }: { provider: Provider }) {
   const color = usagePct > 90 ? 'text-red-400' : usagePct > 70 ? 'text-amber-400' : 'text-green-400';
 
   return (
-    <tr className="border-b border-zinc-800/50 last:border-0">
-      <td className="py-3 px-4 text-sm text-white">{provider.name}</td>
-      <td className="py-3 px-4 text-sm text-zinc-300">
+    <tr className="border-b border-[var(--color-border)]/50 last:border-0">
+      <td className="py-3 px-4 text-sm text-[var(--color-text-primary)]">{provider.name}</td>
+      <td className="py-3 px-4 text-sm text-[var(--color-text-primary)]">
         {provider.used}/{provider.limit} 
-        <span className="text-xs text-zinc-500"> ({usagePct.toFixed(1)}%)</span>
+        <span className="text-xs text-[var(--color-text-muted)]"> ({usagePct.toFixed(1)}%)</span>
       </td>
-      <td className="py-3 px-4 text-sm text-zinc-300">{provider.rpm} RPM</td>
-      <td className="py-3 px-4 text-sm text-zinc-500">{formatTimestamp(new Date(provider.resetsAt))}</td>
+      <td className="py-3 px-4 text-sm text-[var(--color-text-primary)]">{provider.rpm} RPM</td>
+      <td className="py-3 px-4 text-sm text-[var(--color-text-muted)]">{formatTimestamp(new Date(provider.resetsAt))}</td>
     </tr>
   );
 }
 
 function IncidentRow({ incident }: { incident: Incident }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800/50 last:border-0">
-      <span className="text-xs text-zinc-500 whitespace-nowrap">{formatTimestamp(incident.timestamp)}</span>
-      <span className="text-xs font-medium text-white min-w-[100px]">{incident.service}</span>
-      <span className="flex-1 text-xs text-zinc-300">{incident.description}</span>
+    <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)]/50 last:border-0">
+      <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap">{formatTimestamp(incident.timestamp)}</span>
+      <span className="text-xs font-medium text-[var(--color-text-primary)] min-w-[100px]">{incident.service}</span>
+      <span className="flex-1 text-xs text-[var(--color-text-primary)]">{incident.description}</span>
       <StatusBadge status={incident.resolved ? 'UP' : 'DEGRADED'} />
     </div>
   );
@@ -365,15 +365,15 @@ function Heatmap({ days }: { days: HeatmapDay[] }) {
 
 function HeatmapPanel({ services }: { services: Service[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <Calendar className="w-4 h-4 text-violet-400" />
-        <span className="text-sm font-semibold text-white">30-Day Uptime History</span>
+        <span className="text-sm font-semibold text-[var(--color-text-primary)]">30-Day Uptime History</span>
       </div>
       <div className="space-y-3">
         {services.map((service) => (
           <div key={service.name} className="flex items-center gap-3">
-            <span className="text-xs text-zinc-400 min-w-[100px]">{service.name}</span>
+            <span className="text-xs text-[var(--color-text-secondary)] min-w-[100px]">{service.name}</span>
             <Heatmap days={generateHeatmap(service.name)} />
           </div>
         ))}
@@ -403,19 +403,19 @@ export default function SystemHealthMonitor() {
   const ringColor = getRingColor(healthScore);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-white">System Health</h1>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">System Health</h1>
           <StatusBadge status={overallStatus} />
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-zinc-400 flex items-center gap-2">
+          <span className="text-sm text-[var(--color-text-secondary)] flex items-center gap-2">
             <Clock className="w-4 h-4" />
             Last checked: {formatTimestamp(lastChecked)}
           </span>
-          <button className="px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium text-white transition-colors flex items-center gap-2">
+          <button className="px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium text-[var(--color-text-primary)] transition-colors flex items-center gap-2">
             <RefreshCcw className="w-4 h-4" />
             Run Diagnostics
           </button>
@@ -423,7 +423,7 @@ export default function SystemHealthMonitor() {
       </div>
 
       {/* Overall Health Score */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex items-center justify-center">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6 flex items-center justify-center">
         <div className="relative">
           <svg className="w-32 h-32" viewBox="0 0 100 100">
             <circle 
@@ -443,7 +443,7 @@ export default function SystemHealthMonitor() {
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-3xl font-bold text-white">{healthScore}%</span>
+            <span className="text-3xl font-bold text-[var(--color-text-primary)]">{healthScore}%</span>
           </div>
         </div>
       </div>
@@ -456,14 +456,14 @@ export default function SystemHealthMonitor() {
       </div>
 
       {/* API Providers Panel */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
           <Globe className="w-4 h-4 text-sky-400" />
-          <span className="text-sm font-semibold text-white">API Providers</span>
+          <span className="text-sm font-semibold text-[var(--color-text-primary)]">API Providers</span>
         </div>
         <table className="w-full">
           <thead>
-            <tr className="text-left text-xs text-zinc-500 uppercase tracking-wide border-b border-zinc-800">
+            <tr className="text-left text-xs text-[var(--color-text-muted)] uppercase tracking-wide border-b border-[var(--color-border)]">
               <th className="py-2 px-4">Provider</th>
               <th className="py-2 px-4">Usage</th>
               <th className="py-2 px-4">Rate</th>
@@ -488,10 +488,10 @@ export default function SystemHealthMonitor() {
       </div>
 
       {/* Recent Incidents */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl">
-        <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl">
+        <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-semibold text-white">Recent Incidents</span>
+          <span className="text-sm font-semibold text-[var(--color-text-primary)]">Recent Incidents</span>
         </div>
         <div>
           {MOCK_INCIDENTS.map((incident, i) => (
@@ -519,13 +519,13 @@ function StatCard({
   icon: React.ElementType;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
-      <div className="mt-0.5 p-2 bg-zinc-800 rounded-lg">
-        <Icon className="w-4 h-4 text-zinc-400" />
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-start gap-3">
+      <div className="mt-0.5 p-2 bg-[var(--color-surface-2)] rounded-lg">
+        <Icon className="w-4 h-4 text-[var(--color-text-secondary)]" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1">{label}</p>
-        <span className="text-xl font-bold text-white">{value}</span>
+        <p className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wide mb-1">{label}</p>
+        <span className="text-xl font-bold text-[var(--color-text-primary)]">{value}</span>
       </div>
     </div>
   );

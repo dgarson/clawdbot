@@ -8,7 +8,7 @@ import { cn } from "../lib/utils";
  * Features: Queue monitoring, message browsing, DLQ management, and configuration.
  * 
  * DESIGN SYSTEM:
- * - Dark theme: bg-zinc-950 (page), bg-zinc-900 (cards), border-zinc-800, text-white
+ * - Dark theme: bg-[var(--color-surface-0)] (page), bg-[var(--color-surface-1)] (cards), border-[var(--color-border)], text-[var(--color-text-primary)]
  * - Accent: indigo-500/600, success: emerald-400, error: rose-400, warning: amber-400
  * - Accessibility: Keyboard navigable tabs, semantic HTML, ARIA labels.
  */
@@ -99,7 +99,7 @@ const IconButton = ({ children, onClick, title, className, disabled }: { childre
     onClick={onClick} 
     title={title}
     disabled={disabled}
-    className={cn("p-1.5 rounded-md transition-colors hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed", className)}
+    className={cn("p-1.5 rounded-md transition-colors hover:bg-[var(--color-surface-2)] disabled:opacity-50 disabled:cursor-not-allowed", className)}
   >
     {children}
   </button>
@@ -108,7 +108,7 @@ const IconButton = ({ children, onClick, title, className, disabled }: { childre
 const ProgressBar = ({ value, max, colorClass = "bg-indigo-500" }: { value: number, max: number, colorClass?: string }) => {
   const percentage = Math.min(Math.round((value / max) * 100), 100);
   return (
-    <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+    <div className="w-full bg-[var(--color-surface-2)] h-1.5 rounded-full overflow-hidden">
       <div 
         className={cn("h-full transition-all duration-500", colorClass)} 
         style={{ width: `${percentage}%` }}
@@ -154,7 +154,7 @@ export default function MessageQueueManager() {
           "px-4 py-3 text-sm font-medium transition-all border-b-2 outline-none",
           isActive 
             ? "text-indigo-400 border-indigo-500 bg-indigo-500/5" 
-            : "text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-800/50"
+            : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50"
         )}
       >
         {label}
@@ -163,34 +163,34 @@ export default function MessageQueueManager() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-6 font-sans">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 font-sans">
       {/* Header */}
       <header className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Message Queue Manager</h1>
-          <p className="text-zinc-500 text-sm mt-1">Monitor and control your message distribution infrastructure</p>
+          <p className="text-[var(--color-text-muted)] text-sm mt-1">Monitor and control your message distribution infrastructure</p>
         </div>
         <div className="flex gap-3">
-          <div className="flex items-center gap-4 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs">
+          <div className="flex items-center gap-4 px-4 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-xs">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
-              <span className="text-zinc-400">Nodes:</span>
+              <span className="text-[var(--color-text-secondary)]">Nodes:</span>
               <span className="font-mono font-bold">5/5 Online</span>
             </div>
-            <div className="w-px h-4 bg-zinc-800"></div>
+            <div className="w-px h-4 bg-[var(--color-surface-2)]"></div>
             <div className="flex items-center gap-2">
-              <span className="text-zinc-400">Total Throughput:</span>
+              <span className="text-[var(--color-text-secondary)]">Total Throughput:</span>
               <span className="font-mono font-bold text-indigo-400">1.8k msg/s</span>
             </div>
           </div>
-          <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-indigo-900/20">
+          <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded-lg text-sm font-medium transition-colors shadow-lg shadow-indigo-900/20">
             + Create Queue
           </button>
         </div>
       </header>
 
       {/* Tabs Navigation */}
-      <nav className="flex border-b border-zinc-800 mb-6" role="tablist">
+      <nav className="flex border-b border-[var(--color-border)] mb-6" role="tablist">
         {renderTabButton("queues", "Queues")}
         {renderTabButton("messages", "Messages")}
         {renderTabButton("dlq", "Dead Letter")}
@@ -201,7 +201,7 @@ export default function MessageQueueManager() {
       <main className="min-h-[600px]">
         {activeTab === "queues" && (
           <div className="space-y-4">
-            <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-bold text-zinc-500 uppercase tracking-wider">
+            <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
               <div className="col-span-3">Queue Name</div>
               <div className="col-span-1">Type</div>
               <div className="col-span-2 text-right">Depth / In-Flight</div>
@@ -215,8 +215,8 @@ export default function MessageQueueManager() {
               <div 
                 key={queue.id} 
                 className={cn(
-                  "bg-zinc-900 border rounded-xl overflow-hidden transition-all",
-                  expandedQueueId === queue.id ? "border-zinc-700 ring-1 ring-zinc-800 shadow-xl" : "border-zinc-800 hover:border-zinc-700"
+                  "bg-[var(--color-surface-1)] border rounded-xl overflow-hidden transition-all",
+                  expandedQueueId === queue.id ? "border-[var(--color-border)] ring-1 ring-zinc-800 shadow-xl" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div 
@@ -224,12 +224,12 @@ export default function MessageQueueManager() {
                   onClick={() => setExpandedQueueId(expandedQueueId === queue.id ? null : queue.id)}
                 >
                   <div className="col-span-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-xs font-mono text-indigo-400">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-surface-2)] flex items-center justify-center text-xs font-mono text-indigo-400">
                       {queue.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <div className="font-bold text-sm text-zinc-200">{queue.name}</div>
-                      <div className="text-[10px] text-zinc-500 font-mono">ID: {queue.id}</div>
+                      <div className="font-bold text-sm text-[var(--color-text-primary)]">{queue.name}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)] font-mono">ID: {queue.id}</div>
                     </div>
                   </div>
                   <div className="col-span-1">
@@ -239,17 +239,17 @@ export default function MessageQueueManager() {
                   </div>
                   <div className="col-span-2 space-y-1.5">
                     <div className="flex justify-between text-xs font-mono">
-                      <span className="text-zinc-300">{queue.depth.toLocaleString()}</span>
-                      <span className="text-zinc-500">/ {queue.inFlight}</span>
+                      <span className="text-[var(--color-text-primary)]">{queue.depth.toLocaleString()}</span>
+                      <span className="text-[var(--color-text-muted)]">/ {queue.inFlight}</span>
                     </div>
                     <ProgressBar value={queue.depth} max={10000} colorClass={queue.depth > 5000 ? "bg-rose-500" : "bg-indigo-500"} />
                   </div>
-                  <div className="col-span-1 text-right font-mono text-sm text-zinc-300">
+                  <div className="col-span-1 text-right font-mono text-sm text-[var(--color-text-primary)]">
                     {queue.consumers}
                   </div>
                   <div className="col-span-2 text-right">
                     <div className="text-sm font-mono text-emerald-400">{queue.throughput.toFixed(1)}</div>
-                    <div className="text-[10px] text-zinc-500 uppercase tracking-tighter">msg/sec</div>
+                    <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-tighter">msg/sec</div>
                   </div>
                   <div className="col-span-2 flex justify-center">
                     <div className={cn(
@@ -271,26 +271,26 @@ export default function MessageQueueManager() {
 
                 {/* Expanded Details */}
                 {expandedQueueId === queue.id && (
-                  <div className="bg-zinc-950/50 border-t border-zinc-800 p-6 grid grid-cols-4 gap-8">
+                  <div className="bg-[var(--color-surface-0)]/50 border-t border-[var(--color-border)] p-6 grid grid-cols-4 gap-8">
                     <div className="space-y-4">
-                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Queue Configuration</h4>
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">Queue Configuration</h4>
                       <div className="space-y-3">
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-zinc-400">Visibility Timeout</span>
+                          <span className="text-[var(--color-text-secondary)]">Visibility Timeout</span>
                           <span className="font-mono text-indigo-400">{queue.visibilityTimeout}s</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-zinc-400">Message Retention</span>
+                          <span className="text-[var(--color-text-secondary)]">Message Retention</span>
                           <span className="font-mono text-indigo-400">{queue.retentionPeriod} days</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-zinc-400">Delay Seconds</span>
+                          <span className="text-[var(--color-text-secondary)]">Delay Seconds</span>
                           <span className="font-mono text-indigo-400">{queue.delaySeconds}s</span>
                         </div>
                       </div>
                     </div>
-                    <div className="col-span-2 space-y-4 border-x border-zinc-800 px-8">
-                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Live Metrics (60s)</h4>
+                    <div className="col-span-2 space-y-4 border-x border-[var(--color-border)] px-8">
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">Live Metrics (60s)</h4>
                       <div className="flex items-end gap-1 h-24">
                         {[40, 65, 30, 85, 45, 90, 20, 55, 75, 60, 40, 35, 80, 95, 50, 60, 70, 45, 30, 55].map((h, i) => (
                           <div 
@@ -301,16 +301,16 @@ export default function MessageQueueManager() {
                           />
                         ))}
                       </div>
-                      <div className="flex justify-between text-[10px] text-zinc-600 font-mono">
+                      <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] font-mono">
                         <span>-60s</span>
                         <span>Now</span>
                       </div>
                     </div>
                     <div className="flex flex-col justify-center gap-3">
-                      <button className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-xs font-bold rounded-lg transition-colors border border-zinc-700">
+                      <button className="w-full py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-xs font-bold rounded-lg transition-colors border border-[var(--color-border)]">
                         {queue.status === "active" ? "⏸ Pause Queue" : "▶️ Resume Queue"}
                       </button>
-                      <button className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-xs font-bold rounded-lg transition-colors border border-zinc-700">
+                      <button className="w-full py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-xs font-bold rounded-lg transition-colors border border-[var(--color-border)]">
                         🔄 Purge Messages
                       </button>
                       <button className="w-full py-2 bg-rose-900/20 hover:bg-rose-900/40 text-rose-400 text-xs font-bold rounded-lg transition-colors border border-rose-900/30">
@@ -327,20 +327,20 @@ export default function MessageQueueManager() {
         {activeTab === "messages" && (
           <div className="grid grid-cols-12 gap-6 h-[700px]">
             {/* Sidebar List */}
-            <div className="col-span-7 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col overflow-hidden">
-              <div className="p-4 border-b border-zinc-800 space-y-4">
+            <div className="col-span-7 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl flex flex-col overflow-hidden">
+              <div className="p-4 border-b border-[var(--color-border)] space-y-4">
                 <div className="flex justify-between items-center">
                   <div className="text-sm font-bold flex items-center gap-2">
                     📦 Message Browser
                     <select 
                       value={selectedQueueId} 
                       onChange={(e) => setSelectedQueueId(e.target.value)}
-                      className="ml-2 bg-zinc-800 border-none text-xs rounded px-2 py-1 outline-none text-indigo-400 font-mono"
+                      className="ml-2 bg-[var(--color-surface-2)] border-none text-xs rounded px-2 py-1 outline-none text-indigo-400 font-mono"
                     >
                       {MOCK_QUEUES.map(q => <option key={q.id} value={q.id}>{q.name}</option>)}
                     </select>
                   </div>
-                  <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
+                  <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-bold">
                     {filteredMessages.length} Messages Found
                   </div>
                 </div>
@@ -350,13 +350,13 @@ export default function MessageQueueManager() {
                     <input 
                       type="text" 
                       placeholder="Search message ID or content..." 
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-colors"
+                      className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-colors"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
                   <select 
-                    className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500"
+                    className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500"
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
                   >
@@ -369,7 +369,7 @@ export default function MessageQueueManager() {
 
               <div className="flex-1 overflow-y-auto">
                 <table className="w-full text-left">
-                  <thead className="sticky top-0 bg-zinc-900 text-[10px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800">
+                  <thead className="sticky top-0 bg-[var(--color-surface-1)] text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider border-b border-[var(--color-border)]">
                     <tr>
                       <th className="px-4 py-3">Message ID</th>
                       <th className="px-4 py-3">Timestamp</th>
@@ -377,32 +377,32 @@ export default function MessageQueueManager() {
                       <th className="px-4 py-3 text-center">Retries</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/50">
+                  <tbody className="divide-y divide-[var(--color-border)]/50">
                     {filteredMessages.map((msg) => (
                       <tr 
                         key={msg.id}
                         onClick={() => setSelectedMessage(msg)}
                         className={cn(
                           "group cursor-pointer transition-colors",
-                          selectedMessage?.id === msg.id ? "bg-indigo-500/10" : "hover:bg-zinc-800/40"
+                          selectedMessage?.id === msg.id ? "bg-indigo-500/10" : "hover:bg-[var(--color-surface-2)]/40"
                         )}
                       >
                         <td className="px-4 py-4">
-                          <div className="text-xs font-mono font-bold text-zinc-300 group-hover:text-indigo-400">
+                          <div className="text-xs font-mono font-bold text-[var(--color-text-primary)] group-hover:text-indigo-400">
                             {msg.id}
                           </div>
-                          <div className="text-[10px] text-zinc-500 mt-1">{msg.contentType}</div>
+                          <div className="text-[10px] text-[var(--color-text-muted)] mt-1">{msg.contentType}</div>
                         </td>
-                        <td className="px-4 py-4 text-xs text-zinc-400">
+                        <td className="px-4 py-4 text-xs text-[var(--color-text-secondary)]">
                           {new Date(msg.timestamp).toLocaleString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </td>
-                        <td className="px-4 py-4 text-xs text-zinc-400 font-mono text-right">
+                        <td className="px-4 py-4 text-xs text-[var(--color-text-secondary)] font-mono text-right">
                           {msg.size}
                         </td>
                         <td className="px-4 py-4 text-center">
                           <span className={cn(
                             "inline-block w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold",
-                            msg.deliveryCount > 0 ? "bg-amber-900/30 text-amber-400" : "bg-zinc-800 text-zinc-500"
+                            msg.deliveryCount > 0 ? "bg-amber-900/30 text-amber-400" : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                           )}>
                             {msg.deliveryCount}
                           </span>
@@ -411,7 +411,7 @@ export default function MessageQueueManager() {
                     ))}
                     {filteredMessages.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="py-20 text-center text-zinc-500">
+                        <td colSpan={4} className="py-20 text-center text-[var(--color-text-muted)]">
                           <div className="text-2xl mb-2">🔎</div>
                           <div className="text-sm">No messages found matching criteria</div>
                         </td>
@@ -423,10 +423,10 @@ export default function MessageQueueManager() {
             </div>
 
             {/* Preview Panel */}
-            <div className="col-span-5 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col overflow-hidden">
+            <div className="col-span-5 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl flex flex-col overflow-hidden">
               {selectedMessage ? (
                 <>
-                  <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
+                  <div className="p-4 border-b border-[var(--color-border)] flex justify-between items-center bg-[var(--color-surface-1)]/50">
                     <div className="font-bold text-sm">Payload Preview</div>
                     <div className="flex gap-2">
                       <IconButton title="Copy Payload">📋</IconButton>
@@ -435,29 +435,29 @@ export default function MessageQueueManager() {
                     </div>
                   </div>
                   <div className="flex-1 overflow-auto p-4 font-mono text-xs leading-relaxed">
-                    <div className="bg-zinc-950 rounded-xl border border-zinc-800 p-4 min-h-full">
+                    <div className="bg-[var(--color-surface-0)] rounded-xl border border-[var(--color-border)] p-4 min-h-full">
                       <pre className="text-indigo-300">
                         {JSON.stringify(selectedMessage.payload, null, 2)}
                       </pre>
                     </div>
                   </div>
-                  <div className="p-4 bg-zinc-950/50 border-t border-zinc-800 text-[10px] space-y-2">
+                  <div className="p-4 bg-[var(--color-surface-0)]/50 border-t border-[var(--color-border)] text-[10px] space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-zinc-500">Message ID</span>
-                      <span className="text-zinc-300 font-mono">{selectedMessage.id}</span>
+                      <span className="text-[var(--color-text-muted)]">Message ID</span>
+                      <span className="text-[var(--color-text-primary)] font-mono">{selectedMessage.id}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-500">Created At</span>
-                      <span className="text-zinc-300 font-mono">{selectedMessage.timestamp}</span>
+                      <span className="text-[var(--color-text-muted)]">Created At</span>
+                      <span className="text-[var(--color-text-primary)] font-mono">{selectedMessage.timestamp}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-500">Content-Type</span>
-                      <span className="text-zinc-300 font-mono">{selectedMessage.contentType}</span>
+                      <span className="text-[var(--color-text-muted)]">Content-Type</span>
+                      <span className="text-[var(--color-text-primary)] font-mono">{selectedMessage.contentType}</span>
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-zinc-600">
+                <div className="flex-1 flex flex-col items-center justify-center text-[var(--color-text-muted)]">
                   <div className="text-4xl mb-4">👈</div>
                   <p>Select a message to view its payload</p>
                 </div>
@@ -477,18 +477,18 @@ export default function MessageQueueManager() {
                 </div>
               </div>
               <div className="flex gap-3">
-                <button className="px-4 py-2 bg-rose-500 hover:bg-rose-400 text-white rounded-lg text-xs font-bold transition-colors">
+                <button className="px-4 py-2 bg-rose-500 hover:bg-rose-400 text-[var(--color-text-primary)] rounded-lg text-xs font-bold transition-colors">
                   Purge All DLQ
                 </button>
-                <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-xs font-bold transition-colors border border-zinc-700">
+                <button className="px-4 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] rounded-lg text-xs font-bold transition-colors border border-[var(--color-border)]">
                   Bulk Retry (5)
                 </button>
               </div>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl overflow-hidden">
               <table className="w-full text-left">
-                <thead className="bg-zinc-950 text-[10px] font-bold text-zinc-500 uppercase tracking-wider border-b border-zinc-800">
+                <thead className="bg-[var(--color-surface-0)] text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider border-b border-[var(--color-border)]">
                   <tr>
                     <th className="px-6 py-4">Source Queue / ID</th>
                     <th className="px-6 py-4">Failure Reason</th>
@@ -497,12 +497,12 @@ export default function MessageQueueManager() {
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-[var(--color-border)]">
                   {MOCK_DLQ.map((msg) => (
-                    <tr key={msg.id} className="hover:bg-zinc-800/30 transition-colors">
+                    <tr key={msg.id} className="hover:bg-[var(--color-surface-2)]/30 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="text-xs font-bold text-zinc-200">{msg.originalQueue}</div>
-                        <div className="text-[10px] text-zinc-500 font-mono mt-1">{msg.id}</div>
+                        <div className="text-xs font-bold text-[var(--color-text-primary)]">{msg.originalQueue}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)] font-mono mt-1">{msg.id}</div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-xs text-rose-400 flex items-center gap-2">
@@ -516,9 +516,9 @@ export default function MessageQueueManager() {
                         </Badge>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-[10px] text-zinc-400">
+                        <div className="text-[10px] text-[var(--color-text-secondary)]">
                           <div className="flex justify-between"><span>First:</span> <span className="font-mono">{new Date(msg.firstFailure).toLocaleTimeString()}</span></div>
-                          <div className="flex justify-between mt-1 text-zinc-500"><span>Last:</span> <span className="font-mono">{new Date(msg.lastFailure).toLocaleTimeString()}</span></div>
+                          <div className="flex justify-between mt-1 text-[var(--color-text-muted)]"><span>Last:</span> <span className="font-mono">{new Date(msg.lastFailure).toLocaleTimeString()}</span></div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -526,7 +526,7 @@ export default function MessageQueueManager() {
                           <button className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 rounded text-[10px] font-bold uppercase transition-colors">
                             Retry
                           </button>
-                          <button className="p-1.5 bg-zinc-800 hover:bg-rose-900/20 text-zinc-400 hover:text-rose-400 rounded transition-colors border border-zinc-700">
+                          <button className="p-1.5 bg-[var(--color-surface-2)] hover:bg-rose-900/20 text-[var(--color-text-secondary)] hover:text-rose-400 rounded transition-colors border border-[var(--color-border)]">
                             🗑
                           </button>
                         </div>
@@ -542,7 +542,7 @@ export default function MessageQueueManager() {
         {activeTab === "settings" && (
           <div className="grid grid-cols-12 gap-8">
             <div className="col-span-8 space-y-6">
-              <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+              <section className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-6">
                 <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
                   ⚙️ Global Queue Configuration
                 </h3>
@@ -550,49 +550,49 @@ export default function MessageQueueManager() {
                 <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-6">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Default Visibility Timeout</label>
+                      <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Default Visibility Timeout</label>
                       <div className="flex items-center gap-4">
                         <input type="range" className="flex-1 accent-indigo-500" min="0" max="3600" defaultValue="30" />
                         <span className="text-sm font-mono text-indigo-400 w-12 text-right">30s</span>
                       </div>
-                      <p className="text-[10px] text-zinc-600 italic">How long messages remain invisible after being consumed</p>
+                      <p className="text-[10px] text-[var(--color-text-muted)] italic">How long messages remain invisible after being consumed</p>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Message Retention Period</label>
+                      <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Message Retention Period</label>
                       <div className="flex items-center gap-4">
                         <input type="range" className="flex-1 accent-indigo-500" min="1" max="14" defaultValue="4" />
                         <span className="text-sm font-mono text-indigo-400 w-12 text-right">4d</span>
                       </div>
-                      <p className="text-[10px] text-zinc-600 italic">Number of days to keep messages in the queue</p>
+                      <p className="text-[10px] text-[var(--color-text-muted)] italic">Number of days to keep messages in the queue</p>
                     </div>
                   </div>
 
                   <div className="space-y-6">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Max Batch Size</label>
+                      <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Max Batch Size</label>
                       <input 
                         type="number" 
                         defaultValue="10"
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500" 
+                        className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500" 
                       />
-                      <p className="text-[10px] text-zinc-600 italic">Maximum messages received per poll request</p>
+                      <p className="text-[10px] text-[var(--color-text-muted)] italic">Maximum messages received per poll request</p>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Max Message Size (KB)</label>
+                      <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Max Message Size (KB)</label>
                       <input 
                         type="number" 
                         defaultValue="256"
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500" 
+                        className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500" 
                       />
-                      <p className="text-[10px] text-zinc-600 italic">Payload size limit before auto-rejection</p>
+                      <p className="text-[10px] text-[var(--color-text-muted)] italic">Payload size limit before auto-rejection</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-zinc-800 flex justify-end gap-3">
-                  <button className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm font-bold transition-colors">
+                <div className="mt-8 pt-8 border-t border-[var(--color-border)] flex justify-end gap-3">
+                  <button className="px-6 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-sm font-bold transition-colors">
                     Discard Changes
                   </button>
                   <button className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-bold transition-colors shadow-lg shadow-indigo-900/20">
@@ -601,24 +601,24 @@ export default function MessageQueueManager() {
                 </div>
               </section>
 
-              <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+              <section className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-6">
                 <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
                   🔒 Security & Encryption
                 </h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-xl border border-zinc-800">
+                  <div className="flex items-center justify-between p-4 bg-[var(--color-surface-0)] rounded-xl border border-[var(--color-border)]">
                     <div>
                       <div className="text-sm font-bold">Server-Side Encryption (SSE)</div>
-                      <div className="text-xs text-zinc-500">Encrypt message bodies using AES-256-GCM</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">Encrypt message bodies using AES-256-GCM</div>
                     </div>
                     <div className="w-10 h-5 bg-indigo-600 rounded-full relative cursor-pointer">
                       <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-xl border border-zinc-800">
+                  <div className="flex items-center justify-between p-4 bg-[var(--color-surface-0)] rounded-xl border border-[var(--color-border)]">
                     <div>
                       <div className="text-sm font-bold">KMS Key Management</div>
-                      <div className="text-xs text-zinc-500">Use custom AWS/GCP KMS keys for rotation</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">Use custom AWS/GCP KMS keys for rotation</div>
                     </div>
                     <button className="text-xs font-bold text-indigo-400 hover:underline">Configure Keys</button>
                   </div>
@@ -634,33 +634,33 @@ export default function MessageQueueManager() {
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-zinc-400">Memory Usage</span>
-                      <span className="font-mono text-zinc-300">4.2 GB / 16 GB</span>
+                      <span className="text-[var(--color-text-secondary)]">Memory Usage</span>
+                      <span className="font-mono text-[var(--color-text-primary)]">4.2 GB / 16 GB</span>
                     </div>
                     <ProgressBar value={4.2} max={16} />
                   </div>
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-zinc-400">CPU Load (Avg)</span>
-                      <span className="font-mono text-zinc-300">28%</span>
+                      <span className="text-[var(--color-text-secondary)]">CPU Load (Avg)</span>
+                      <span className="font-mono text-[var(--color-text-primary)]">28%</span>
                     </div>
                     <ProgressBar value={28} max={100} colorClass="bg-emerald-400" />
                   </div>
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-zinc-400">Disk I/O</span>
-                      <span className="font-mono text-zinc-300">125 MB/s</span>
+                      <span className="text-[var(--color-text-secondary)]">Disk I/O</span>
+                      <span className="font-mono text-[var(--color-text-primary)]">125 MB/s</span>
                     </div>
                     <ProgressBar value={65} max={100} colorClass="bg-amber-400" />
                   </div>
                 </div>
               </section>
 
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-6 text-center">
                 <div className="text-3xl mb-2">📜</div>
                 <h4 className="font-bold text-sm mb-1">Audit Logs</h4>
-                <p className="text-xs text-zinc-500 mb-4">View configuration history and access logs for compliance</p>
-                <button className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs font-bold transition-colors">
+                <p className="text-xs text-[var(--color-text-muted)] mb-4">View configuration history and access logs for compliance</p>
+                <button className="w-full py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-xs font-bold transition-colors">
                   Open Audit Viewer
                 </button>
               </div>
@@ -670,7 +670,7 @@ export default function MessageQueueManager() {
       </main>
 
       {/* Footer / Status Bar */}
-      <footer className="mt-12 pt-6 border-t border-zinc-900 flex justify-between items-center text-[10px] text-zinc-600 font-mono">
+      <footer className="mt-12 pt-6 border-t border-[var(--color-border)] flex justify-between items-center text-[10px] text-[var(--color-text-muted)] font-mono">
         <div className="flex gap-4">
           <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> API GATEWAY: STABLE</span>
           <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> REPLICATION: SYNCED</span>

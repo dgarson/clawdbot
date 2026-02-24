@@ -598,7 +598,7 @@ function TabBar({
   onSelect: (id: TabId) => void
 }) {
   return (
-    <div className="flex gap-1 border-b border-zinc-800 mb-6">
+    <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -606,8 +606,8 @@ function TabBar({
           className={cn(
             "px-4 py-2.5 text-sm font-medium transition-colors rounded-t-lg",
             active === tab.id
-              ? "bg-zinc-900 text-white border-b-2 border-indigo-500"
-              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50"
+              ? "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] border-b-2 border-indigo-500"
+              : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]/50"
           )}
         >
           <span className="mr-1.5">{tab.emoji}</span>
@@ -620,11 +620,11 @@ function TabBar({
 
 function MetricBadge({ label, value, unit }: { label: string; value: string | number; unit?: string }) {
   return (
-    <div className="bg-zinc-800/50 rounded-lg px-3 py-2 text-center">
-      <div className="text-xs text-zinc-500 mb-0.5">{label}</div>
-      <div className="text-sm font-semibold text-white">
+    <div className="bg-[var(--color-surface-2)]/50 rounded-lg px-3 py-2 text-center">
+      <div className="text-xs text-[var(--color-text-muted)] mb-0.5">{label}</div>
+      <div className="text-sm font-semibold text-[var(--color-text-primary)]">
         {value}
-        {unit && <span className="text-zinc-400 text-xs ml-0.5">{unit}</span>}
+        {unit && <span className="text-[var(--color-text-secondary)] text-xs ml-0.5">{unit}</span>}
       </div>
     </div>
   )
@@ -656,9 +656,9 @@ function ModelsTab() {
       ) : (
         <div className="space-y-3">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
               🤖 Model Registry
-              <span className="text-zinc-500 text-sm font-normal ml-2">{MODELS.length} models</span>
+              <span className="text-[var(--color-text-muted)] text-sm font-normal ml-2">{MODELS.length} models</span>
             </h2>
           </div>
           <div className="grid gap-3">
@@ -666,26 +666,26 @@ function ModelsTab() {
               <button
                 key={model.id}
                 onClick={() => setSelectedModelId(model.id)}
-                className="w-full text-left bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-indigo-500/50 transition-colors group"
+                className="w-full text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 hover:border-indigo-500/50 transition-colors group"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{frameworkEmoji(model.framework)}</span>
                     <div>
-                      <span className="font-semibold text-white group-hover:text-indigo-300 transition-colors">
+                      <span className="font-semibold text-[var(--color-text-primary)] group-hover:text-indigo-300 transition-colors">
                         {model.name}
                       </span>
-                      <span className="text-zinc-500 text-sm ml-2">v{model.version}</span>
+                      <span className="text-[var(--color-text-muted)] text-sm ml-2">v{model.version}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Tag>{taskEmoji(model.taskType)} {model.taskType}</Tag>
-                    <span className="text-zinc-500 text-xs">{model.sizeGB} GB</span>
+                    <span className="text-[var(--color-text-muted)] text-xs">{model.sizeGB} GB</span>
                   </div>
                 </div>
-                <p className="text-zinc-400 text-sm mb-3 line-clamp-1">{model.description}</p>
+                <p className="text-[var(--color-text-secondary)] text-sm mb-3 line-clamp-1">{model.description}</p>
                 <div className="flex items-center justify-between">
-                  <div className="flex gap-4 text-xs text-zinc-500">
+                  <div className="flex gap-4 text-xs text-[var(--color-text-muted)]">
                     <span>📊 Acc: {(model.metrics.accuracy * 100).toFixed(1)}%</span>
                     <span>🎯 F1: {(model.metrics.f1 * 100).toFixed(1)}%</span>
                     <span>📉 Loss: {model.metrics.loss.toFixed(3)}</span>
@@ -714,15 +714,15 @@ function ModelDetail({ model, onBack }: { model: Model; onBack: () => void }) {
       >
         ← Back to Models
       </button>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <span className="text-2xl">{frameworkEmoji(model.framework)}</span>
-              <h2 className="text-xl font-bold text-white">{model.name}</h2>
-              <span className="text-zinc-400 text-sm">v{model.version}</span>
+              <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{model.name}</h2>
+              <span className="text-[var(--color-text-secondary)] text-sm">v{model.version}</span>
             </div>
-            <p className="text-zinc-400 text-sm">{model.description}</p>
+            <p className="text-[var(--color-text-secondary)] text-sm">{model.description}</p>
           </div>
           <Tag>{taskEmoji(model.taskType)} {model.taskType}</Tag>
         </div>
@@ -735,14 +735,14 @@ function ModelDetail({ model, onBack }: { model: Model; onBack: () => void }) {
         </div>
 
         <div className="mb-4">
-          <h3 className="text-sm font-semibold text-zinc-300 mb-3">📊 Performance Metrics</h3>
-          <div className="overflow-hidden rounded-lg border border-zinc-800">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">📊 Performance Metrics</h3>
+          <div className="overflow-hidden rounded-lg border border-[var(--color-border)]">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-zinc-800/50">
-                  <th className="text-left px-4 py-2 text-zinc-400 font-medium">Metric</th>
-                  <th className="text-right px-4 py-2 text-zinc-400 font-medium">Value</th>
-                  <th className="text-left px-4 py-2 text-zinc-400 font-medium">Visual</th>
+                <tr className="bg-[var(--color-surface-2)]/50">
+                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">Metric</th>
+                  <th className="text-right px-4 py-2 text-[var(--color-text-secondary)] font-medium">Value</th>
+                  <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">Visual</th>
                 </tr>
               </thead>
               <tbody>
@@ -752,13 +752,13 @@ function ModelDetail({ model, onBack }: { model: Model; onBack: () => void }) {
                   { key: "Precision", val: model.metrics.precision },
                   { key: "Recall", val: model.metrics.recall },
                 ] as const).map((row) => (
-                  <tr key={row.key} className="border-t border-zinc-800/50">
-                    <td className="px-4 py-2 text-zinc-300">{row.key}</td>
-                    <td className="px-4 py-2 text-right font-mono text-white">
+                  <tr key={row.key} className="border-t border-[var(--color-border)]/50">
+                    <td className="px-4 py-2 text-[var(--color-text-primary)]">{row.key}</td>
+                    <td className="px-4 py-2 text-right font-mono text-[var(--color-text-primary)]">
                       {(row.val * 100).toFixed(1)}%
                     </td>
                     <td className="px-4 py-2">
-                      <div className="w-full bg-zinc-800 rounded-full h-2">
+                      <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
                         <div
                           className="bg-indigo-500 h-2 rounded-full transition-all"
                           style={{ width: `${row.val * 100}%` }}
@@ -767,13 +767,13 @@ function ModelDetail({ model, onBack }: { model: Model; onBack: () => void }) {
                     </td>
                   </tr>
                 ))}
-                <tr className="border-t border-zinc-800/50">
-                  <td className="px-4 py-2 text-zinc-300">Loss</td>
-                  <td className="px-4 py-2 text-right font-mono text-white">
+                <tr className="border-t border-[var(--color-border)]/50">
+                  <td className="px-4 py-2 text-[var(--color-text-primary)]">Loss</td>
+                  <td className="px-4 py-2 text-right font-mono text-[var(--color-text-primary)]">
                     {model.metrics.loss.toFixed(4)}
                   </td>
                   <td className="px-4 py-2">
-                    <div className="w-full bg-zinc-800 rounded-full h-2">
+                    <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
                       <div
                         className="bg-rose-400 h-2 rounded-full transition-all"
                         style={{ width: `${Math.min(model.metrics.loss * 500, 100)}%` }}
@@ -792,7 +792,7 @@ function ModelDetail({ model, onBack }: { model: Model; onBack: () => void }) {
               <Tag key={tag}>{tag}</Tag>
             ))}
           </div>
-          <span className="text-xs text-zinc-500">by {model.author}</span>
+          <span className="text-xs text-[var(--color-text-muted)]">by {model.author}</span>
         </div>
       </div>
     </div>
@@ -827,14 +827,14 @@ function ExperimentsTab() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-white">
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
           🧪 Experiment Tracking
-          <span className="text-zinc-500 text-sm font-normal ml-2">{EXPERIMENTS.length} experiments</span>
+          <span className="text-[var(--color-text-muted)] text-sm font-normal ml-2">{EXPERIMENTS.length} experiments</span>
         </h2>
         {compareIds !== null && (
           <button
             onClick={() => setCompareIds(null)}
-            className="text-xs text-zinc-400 hover:text-white transition-colors"
+            className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
           >
             Clear selection
           </button>
@@ -850,22 +850,22 @@ function ExperimentsTab() {
           <div
             key={exp.id}
             className={cn(
-              "bg-zinc-900 border rounded-xl p-4 transition-colors",
+              "bg-[var(--color-surface-1)] border rounded-xl p-4 transition-colors",
               isSelected(exp.id)
                 ? "border-indigo-500"
-                : "border-zinc-800 hover:border-zinc-700"
+                : "border-[var(--color-border)] hover:border-[var(--color-border)]"
             )}
           >
             <div className="flex items-start justify-between mb-3">
               <div>
                 <div className="flex items-center gap-2">
                   <span className={statusStyle(exp.status)}>{statusEmoji(exp.status)}</span>
-                  <span className="font-semibold text-white">{exp.name}</span>
+                  <span className="font-semibold text-[var(--color-text-primary)]">{exp.name}</span>
                   <span className={cn("text-xs font-medium", statusStyle(exp.status))}>
                     {exp.status}
                   </span>
                 </div>
-                <div className="text-xs text-zinc-500 mt-0.5">
+                <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
                   {exp.modelName} · {exp.gpuType} · Started {exp.startedAt}
                 </div>
               </div>
@@ -875,7 +875,7 @@ function ExperimentsTab() {
                   "text-xs px-3 py-1 rounded-lg border transition-colors",
                   isSelected(exp.id)
                     ? "bg-indigo-500/20 border-indigo-500 text-indigo-300"
-                    : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"
+                    : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {isSelected(exp.id) ? "Selected" : "Compare"}
@@ -892,7 +892,7 @@ function ExperimentsTab() {
               <MetricBadge label="LR" value={exp.config.learningRate.toExponential(0)} />
             </div>
 
-            <div className="flex gap-2 text-xs text-zinc-500">
+            <div className="flex gap-2 text-xs text-[var(--color-text-muted)]">
               <span>Optimizer: {exp.config.optimizer}</span>
               <span>·</span>
               <span>Epochs: {exp.config.epochs}</span>
@@ -965,33 +965,33 @@ function ComparePanel({
   function betterClass(row: CompareRow, side: "a" | "b"): string {
     const numA = parseFloat(row.valA)
     const numB = parseFloat(row.valB)
-    if (isNaN(numA) || isNaN(numB) || numA === numB) {return "text-white"}
+    if (isNaN(numA) || isNaN(numB) || numA === numB) {return "text-[var(--color-text-primary)]"}
     const aWins = row.better === "lower" ? numA < numB : numA > numB
-    if (side === "a") {return aWins ? "text-emerald-400" : "text-zinc-400"}
-    return aWins ? "text-zinc-400" : "text-emerald-400"
+    if (side === "a") {return aWins ? "text-emerald-400" : "text-[var(--color-text-secondary)]"}
+    return aWins ? "text-[var(--color-text-secondary)]" : "text-emerald-400"
   }
 
   return (
-    <div className="bg-zinc-900 border border-indigo-500/30 rounded-xl p-5 mb-6">
+    <div className="bg-[var(--color-surface-1)] border border-indigo-500/30 rounded-xl p-5 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-indigo-300">⚖️ Side-by-Side Comparison</h3>
-        <button onClick={onClose} className="text-zinc-500 hover:text-white text-xs transition-colors">
+        <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xs transition-colors">
           Close
         </button>
       </div>
-      <div className="overflow-hidden rounded-lg border border-zinc-800">
+      <div className="overflow-hidden rounded-lg border border-[var(--color-border)]">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-zinc-800/50">
-              <th className="text-left px-4 py-2 text-zinc-400 font-medium">Metric</th>
+            <tr className="bg-[var(--color-surface-2)]/50">
+              <th className="text-left px-4 py-2 text-[var(--color-text-secondary)] font-medium">Metric</th>
               <th className="text-right px-4 py-2 text-indigo-300 font-medium">{a.name}</th>
               <th className="text-right px-4 py-2 text-indigo-300 font-medium">{b.name}</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.label} className="border-t border-zinc-800/50">
-                <td className="px-4 py-2 text-zinc-300">{row.label}</td>
+              <tr key={row.label} className="border-t border-[var(--color-border)]/50">
+                <td className="px-4 py-2 text-[var(--color-text-primary)]">{row.label}</td>
                 <td className={cn("px-4 py-2 text-right font-mono", betterClass(row, "a"))}>
                   {row.valA}
                 </td>
@@ -1000,8 +1000,8 @@ function ComparePanel({
                 </td>
               </tr>
             ))}
-            <tr className="border-t border-zinc-800/50">
-              <td className="px-4 py-2 text-zinc-300">Status</td>
+            <tr className="border-t border-[var(--color-border)]/50">
+              <td className="px-4 py-2 text-[var(--color-text-primary)]">Status</td>
               <td className={cn("px-4 py-2 text-right font-mono", statusStyle(a.status))}>
                 {statusEmoji(a.status)} {a.status}
               </td>
@@ -1021,31 +1021,31 @@ function ComparePanel({
 function DeploymentsTab() {
   return (
     <div>
-      <h2 className="text-lg font-semibold text-white mb-4">
+      <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
         🚀 Active Deployments
-        <span className="text-zinc-500 text-sm font-normal ml-2">{DEPLOYMENTS.length} endpoints</span>
+        <span className="text-[var(--color-text-muted)] text-sm font-normal ml-2">{DEPLOYMENTS.length} endpoints</span>
       </h2>
       <div className="space-y-3">
         {DEPLOYMENTS.map((dep) => (
           <div
             key={dep.id}
-            className="bg-zinc-900 border border-zinc-800 rounded-xl p-4"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4"
           >
             <div className="flex items-start justify-between mb-3">
               <div>
                 <div className="flex items-center gap-2">
                   <span>{healthEmoji(dep.health)}</span>
-                  <span className="font-semibold text-white">{dep.modelName}</span>
-                  <span className="text-zinc-500 text-sm">v{dep.modelVersion}</span>
+                  <span className="font-semibold text-[var(--color-text-primary)]">{dep.modelName}</span>
+                  <span className="text-[var(--color-text-muted)] text-sm">v{dep.modelVersion}</span>
                   <span className={cn("text-xs font-medium", healthStyle(dep.health))}>
                     {dep.health}
                   </span>
                 </div>
-                <div className="text-xs text-zinc-500 mt-0.5 font-mono">{dep.endpointUrl}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-0.5 font-mono">{dep.endpointUrl}</div>
               </div>
               <div className="text-right">
-                <div className="text-xs text-zinc-500">Traffic</div>
-                <div className="text-lg font-bold text-white">{dep.trafficPercent}%</div>
+                <div className="text-xs text-[var(--color-text-muted)]">Traffic</div>
+                <div className="text-lg font-bold text-[var(--color-text-primary)]">{dep.trafficPercent}%</div>
               </div>
             </div>
 
@@ -1075,14 +1075,14 @@ function LineageTab() {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold text-white mb-4">
+      <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
         🧬 Model Lineage
-        <span className="text-zinc-500 text-sm font-normal ml-2">{LINEAGE.length} versions tracked</span>
+        <span className="text-[var(--color-text-muted)] text-sm font-normal ml-2">{LINEAGE.length} versions tracked</span>
       </h2>
       <div className="space-y-6">
         {Object.entries(grouped).map(([modelName, entries]) => (
-          <div key={modelName} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <h3 className="text-base font-semibold text-white mb-4">{modelName}</h3>
+          <div key={modelName} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+            <h3 className="text-base font-semibold text-[var(--color-text-primary)] mb-4">{modelName}</h3>
             <div className="space-y-0">
               {entries.map((entry, idx) => (
                 <div key={entry.id} className="relative flex gap-4">
@@ -1090,15 +1090,15 @@ function LineageTab() {
                   <div className="flex flex-col items-center">
                     <div className="w-3 h-3 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
                     {idx < entries.length - 1 && (
-                      <div className="w-0.5 flex-1 bg-zinc-700" />
+                      <div className="w-0.5 flex-1 bg-[var(--color-surface-3)]" />
                     )}
                   </div>
                   {/* content */}
                   <div className="pb-6 flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-white text-sm">v{entry.version}</span>
+                      <span className="font-semibold text-[var(--color-text-primary)] text-sm">v{entry.version}</span>
                       {entry.parentVersion && (
-                        <span className="text-xs text-zinc-500">← v{entry.parentVersion}</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">← v{entry.parentVersion}</span>
                       )}
                       {!entry.parentVersion && (
                         <Tag color="bg-emerald-500/20 text-emerald-300">initial</Tag>
@@ -1107,8 +1107,8 @@ function LineageTab() {
                         <Tag color="bg-indigo-500/20 text-indigo-300">🚀 prod</Tag>
                       )}
                     </div>
-                    <p className="text-sm text-zinc-300 mb-2">{entry.changeNotes}</p>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
+                    <p className="text-sm text-[var(--color-text-primary)] mb-2">{entry.changeNotes}</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--color-text-muted)]">
                       <span>👤 {entry.trainedBy}</span>
                       <span>📅 {entry.trainedAt}</span>
                       <span>📂 {entry.trainingDataVersion}</span>
@@ -1138,38 +1138,38 @@ function MLModelRegistry() {
   const [activeTab, setActiveTab] = useState<TabId>("models")
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white mb-1">
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">
             🤖 ML Model Registry
           </h1>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-[var(--color-text-secondary)] text-sm">
             Track, deploy, and manage machine learning models across the organization
           </p>
         </div>
 
         {/* Summary stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-white">{MODELS.length}</div>
-            <div className="text-xs text-zinc-500 mt-0.5">Registered Models</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
+            <div className="text-2xl font-bold text-[var(--color-text-primary)]">{MODELS.length}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Registered Models</div>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-white">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
+            <div className="text-2xl font-bold text-[var(--color-text-primary)]">
               {EXPERIMENTS.filter((e) => e.status === "running").length}
             </div>
-            <div className="text-xs text-zinc-500 mt-0.5">Running Experiments</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Running Experiments</div>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-white">{DEPLOYMENTS.length}</div>
-            <div className="text-xs text-zinc-500 mt-0.5">Active Deployments</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
+            <div className="text-2xl font-bold text-[var(--color-text-primary)]">{DEPLOYMENTS.length}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Active Deployments</div>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
             <div className="text-2xl font-bold text-emerald-400">
               {DEPLOYMENTS.filter((d) => d.health === "healthy").length}/{DEPLOYMENTS.length}
             </div>
-            <div className="text-xs text-zinc-500 mt-0.5">Healthy Endpoints</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Healthy Endpoints</div>
           </div>
         </div>
 

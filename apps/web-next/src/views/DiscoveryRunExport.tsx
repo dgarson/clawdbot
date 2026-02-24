@@ -89,28 +89,28 @@ function FormatCard({ id, label, description, icon, preview, selected, onSelect 
       onClick={() => onSelect(id)}
       className={cn(
         'relative w-full text-left rounded-xl border p-4 transition-all duration-150',
-        'bg-zinc-900 hover:bg-zinc-800/80',
+        'bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)]/80',
         selected
           ? 'border-violet-500 ring-1 ring-violet-500/40'
-          : 'border-zinc-800 hover:border-zinc-700',
+          : 'border-[var(--color-border)] hover:border-[var(--color-border)]',
       )}
     >
       {/* Selected checkmark */}
       {selected && (
         <span className="absolute top-3 right-3 flex items-center justify-center w-5 h-5 rounded-full bg-violet-600">
-          <Check className="w-3 h-3 text-white" />
+          <Check className="w-3 h-3 text-[var(--color-text-primary)]" />
         </span>
       )}
 
       {/* Header */}
       <div className="flex items-center gap-2 mb-1">
-        <span className={cn('text-zinc-400', selected && 'text-violet-400')}>{icon}</span>
-        <span className="font-semibold text-white text-sm">{label}</span>
+        <span className={cn('text-[var(--color-text-secondary)]', selected && 'text-violet-400')}>{icon}</span>
+        <span className="font-semibold text-[var(--color-text-primary)] text-sm">{label}</span>
       </div>
-      <p className="text-zinc-400 text-xs mb-3">{description}</p>
+      <p className="text-[var(--color-text-secondary)] text-xs mb-3">{description}</p>
 
       {/* Preview */}
-      <pre className="rounded-lg bg-zinc-950 border border-zinc-800 p-3 text-xs text-zinc-400 font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed">
+      <pre className="rounded-lg bg-[var(--color-surface-0)] border border-[var(--color-border)] p-3 text-xs text-[var(--color-text-secondary)] font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed">
         {preview}
       </pre>
     </button>
@@ -146,14 +146,14 @@ function CheckboxOption({ id, label, checked, onChange, warning }: CheckboxOptio
             'w-4 h-4 rounded border transition-colors',
             checked
               ? 'bg-violet-600 border-violet-600'
-              : 'bg-zinc-800 border-zinc-700 group-hover:border-zinc-600',
+              : 'bg-[var(--color-surface-2)] border-[var(--color-border)] group-hover:border-[var(--color-surface-3)]',
           )}
         >
-          {checked && <Check className="w-3 h-3 text-white absolute top-0.5 left-0.5" />}
+          {checked && <Check className="w-3 h-3 text-[var(--color-text-primary)] absolute top-0.5 left-0.5" />}
         </div>
       </div>
       <div className="flex-1 min-w-0">
-        <span className="text-sm text-white">{label}</span>
+        <span className="text-sm text-[var(--color-text-primary)]">{label}</span>
         {warning && (
           <div className="flex items-center gap-1.5 mt-0.5">
             <AlertTriangle className="w-3 h-3 text-amber-400 flex-shrink-0" />
@@ -204,11 +204,11 @@ function ExportProgressBar({ state }: { state: ExportState }) {
     <div className="flex items-center gap-3 min-w-0 flex-1">
       <Loader2 className="w-4 h-4 text-violet-400 animate-spin flex-shrink-0" />
       <div className="flex-1">
-        <div className="flex justify-between text-xs text-zinc-400 mb-1">
+        <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mb-1">
           <span>Preparing export…</span>
           <span>{progress}%</span>
         </div>
-        <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
           <div
             className="h-full bg-violet-600 rounded-full transition-all duration-75"
             style={{ width: `${progress}%` }}
@@ -260,29 +260,29 @@ export default function DiscoveryRunExport() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       <div className="max-w-4xl mx-auto px-6 py-8">
 
         {/* ── Header ── */}
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => console.log('back')}
-            className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </button>
           <div className="flex-1 flex items-center gap-3">
-            <h1 className="text-xl font-bold text-white">Export Discovery Run</h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-xs font-mono text-zinc-300">
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Export Discovery Run</h1>
+            <span className="px-2.5 py-0.5 rounded-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-xs font-mono text-[var(--color-text-primary)]">
               {MOCK_RUN.runId}
             </span>
           </div>
         </div>
 
         {/* ── Run Summary Card ── */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-6">
-          <h2 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider mb-4">Run Summary</h2>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 mb-6">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider mb-4">Run Summary</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: 'Run ID', value: MOCK_RUN.runId.slice(-8), mono: true },
@@ -291,20 +291,20 @@ export default function DiscoveryRunExport() {
               { label: 'Findings', value: MOCK_RUN.findingCount.toString() },
             ].map(({ label, value, mono }) => (
               <div key={label}>
-                <div className="text-xs text-zinc-500 mb-1">{label}</div>
-                <div className={cn('text-sm text-white font-medium', mono && 'font-mono')}>{value}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">{label}</div>
+                <div className={cn('text-sm text-[var(--color-text-primary)] font-medium', mono && 'font-mono')}>{value}</div>
               </div>
             ))}
           </div>
-          <div className="mt-4 pt-4 border-t border-zinc-800">
-            <div className="text-xs text-zinc-500 mb-1">Duration</div>
-            <div className="text-sm text-white font-medium">{MOCK_RUN.duration}</div>
+          <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
+            <div className="text-xs text-[var(--color-text-muted)] mb-1">Duration</div>
+            <div className="text-sm text-[var(--color-text-primary)] font-medium">{MOCK_RUN.duration}</div>
           </div>
         </div>
 
         {/* ── Format Selector ── */}
         <section className="mb-6">
-          <h2 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider mb-3">Export Format</h2>
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider mb-3">Export Format</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <FormatCard
               id="json"
@@ -337,8 +337,8 @@ export default function DiscoveryRunExport() {
         </section>
 
         {/* ── Export Options ── */}
-        <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-6">
-          <h2 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider mb-4">Export Options</h2>
+        <section className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 mb-6">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider mb-4">Export Options</h2>
           <div className="space-y-3">
             <CheckboxOption
               id="opt-evidence"
@@ -377,7 +377,7 @@ export default function DiscoveryRunExport() {
               'flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all',
               exportState === 'preparing'
                 ? 'bg-violet-800 text-violet-300 cursor-not-allowed'
-                : 'bg-violet-600 hover:bg-violet-500 text-white',
+                : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]',
             )}
           >
             <Download className="w-4 h-4" />
@@ -388,8 +388,8 @@ export default function DiscoveryRunExport() {
             <ExportProgressBar state={exportState} />
           </div>
 
-          <span className="text-xs text-zinc-500 whitespace-nowrap ml-auto">
-            Est. size: <span className="text-zinc-300 font-mono">{estimateSize(selectedFormat, options)}</span>
+          <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap ml-auto">
+            Est. size: <span className="text-[var(--color-text-primary)] font-mono">{estimateSize(selectedFormat, options)}</span>
           </span>
         </div>
       </div>

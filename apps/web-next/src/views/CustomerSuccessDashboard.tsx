@@ -479,7 +479,7 @@ function npsScoreColor(score: number): string {
 
 function sentimentBadgeClass(sentiment: Sentiment): string {
   if (sentiment === "positive") {return "bg-emerald-400/10 text-emerald-400"}
-  if (sentiment === "neutral") {return "bg-zinc-700 text-zinc-300"}
+  if (sentiment === "neutral") {return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"}
   return "bg-rose-400/10 text-rose-400"
 }
 
@@ -537,40 +537,40 @@ export default function CustomerSuccessDashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white">Customer Success</h1>
-          <p className="text-zinc-400 mt-1">Account health, NPS tracking, and CS team operations</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Customer Success</h1>
+          <p className="text-[var(--color-text-secondary)] mt-1">Account health, NPS tracking, and CS team operations</p>
         </div>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-zinc-900 rounded-lg p-4 border border-zinc-700">
-            <div className="text-zinc-400 text-sm">Total ARR</div>
-            <div className="text-2xl font-bold text-white mt-1">{formatARR(totalARR)}</div>
+          <div className="bg-[var(--color-surface-1)] rounded-lg p-4 border border-[var(--color-border)]">
+            <div className="text-[var(--color-text-secondary)] text-sm">Total ARR</div>
+            <div className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">{formatARR(totalARR)}</div>
             <div className="text-xs text-emerald-400 mt-1">↑ 12% YoY</div>
           </div>
-          <div className="bg-zinc-900 rounded-lg p-4 border border-zinc-700">
-            <div className="text-zinc-400 text-sm">Avg Health Score</div>
+          <div className="bg-[var(--color-surface-1)] rounded-lg p-4 border border-[var(--color-border)]">
+            <div className="text-[var(--color-text-secondary)] text-sm">Avg Health Score</div>
             <div className={cn("text-2xl font-bold mt-1", healthScoreColor(avgHealth))}>{avgHealth}</div>
-            <div className="text-xs text-zinc-400 mt-1">{totalAccounts} accounts</div>
+            <div className="text-xs text-[var(--color-text-secondary)] mt-1">{totalAccounts} accounts</div>
           </div>
-          <div className="bg-zinc-900 rounded-lg p-4 border border-zinc-700">
-            <div className="text-zinc-400 text-sm">Current NPS</div>
+          <div className="bg-[var(--color-surface-1)] rounded-lg p-4 border border-[var(--color-border)]">
+            <div className="text-[var(--color-text-secondary)] text-sm">Current NPS</div>
             <div className="text-2xl font-bold text-indigo-400 mt-1">{currentNPS}</div>
             <div className="text-xs text-emerald-400 mt-1">↑ 5 pts from Jan</div>
           </div>
-          <div className="bg-zinc-900 rounded-lg p-4 border border-zinc-700">
-            <div className="text-zinc-400 text-sm">Churn Risk</div>
+          <div className="bg-[var(--color-surface-1)] rounded-lg p-4 border border-[var(--color-border)]">
+            <div className="text-[var(--color-text-secondary)] text-sm">Churn Risk</div>
             <div className="text-2xl font-bold text-rose-400 mt-1">{churningCount}</div>
             <div className="text-xs text-amber-400 mt-1">{atRiskCount} at-risk</div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 border-b border-zinc-800">
+        <div className="flex gap-1 mb-6 border-b border-[var(--color-border)]">
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -578,8 +578,8 @@ export default function CustomerSuccessDashboard() {
               className={cn(
                 "px-4 py-2 text-sm font-medium rounded-t-md transition-colors",
                 activeTab === tab.id
-                  ? "text-indigo-400 border-b-2 border-indigo-400 bg-zinc-900"
-                  : "text-zinc-400 hover:text-zinc-300"
+                  ? "text-indigo-400 border-b-2 border-indigo-400 bg-[var(--color-surface-1)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {tab.label}
@@ -594,7 +594,7 @@ export default function CustomerSuccessDashboard() {
               <select
                 value={planFilter}
                 onChange={e => setPlanFilter(e.target.value)}
-                className="bg-zinc-800 text-zinc-300 text-sm rounded-md px-3 py-2 border border-zinc-700 focus:outline-none focus:border-indigo-500"
+                className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-2 border border-[var(--color-border)] focus:outline-none focus:border-indigo-500"
               >
                 <option value="all">All Plans</option>
                 <option value="Starter">Starter</option>
@@ -605,29 +605,29 @@ export default function CustomerSuccessDashboard() {
               <select
                 value={riskFilter}
                 onChange={e => setRiskFilter(e.target.value)}
-                className="bg-zinc-800 text-zinc-300 text-sm rounded-md px-3 py-2 border border-zinc-700 focus:outline-none focus:border-indigo-500"
+                className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-2 border border-[var(--color-border)] focus:outline-none focus:border-indigo-500"
               >
                 <option value="all">All Risk Levels</option>
                 <option value="healthy">Healthy</option>
                 <option value="at-risk">At Risk</option>
                 <option value="churning">Churning</option>
               </select>
-              <span className="text-zinc-400 text-sm">{filteredAccounts.length} accounts</span>
+              <span className="text-[var(--color-text-secondary)] text-sm">{filteredAccounts.length} accounts</span>
             </div>
 
-            <div className="bg-zinc-900 rounded-lg border border-zinc-700 overflow-hidden">
+            <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-700">
-                      <th className="text-left text-zinc-400 px-4 py-3 font-medium">Company</th>
-                      <th className="text-left text-zinc-400 px-4 py-3 font-medium">Plan</th>
-                      <th className="text-left text-zinc-400 px-4 py-3 font-medium">ARR</th>
-                      <th className="text-left text-zinc-400 px-4 py-3 font-medium">Health</th>
-                      <th className="text-left text-zinc-400 px-4 py-3 font-medium">NPS</th>
-                      <th className="text-left text-zinc-400 px-4 py-3 font-medium">Last Contact</th>
-                      <th className="text-left text-zinc-400 px-4 py-3 font-medium">CSM</th>
-                      <th className="text-left text-zinc-400 px-4 py-3 font-medium">Risk</th>
+                    <tr className="border-b border-[var(--color-border)]">
+                      <th className="text-left text-[var(--color-text-secondary)] px-4 py-3 font-medium">Company</th>
+                      <th className="text-left text-[var(--color-text-secondary)] px-4 py-3 font-medium">Plan</th>
+                      <th className="text-left text-[var(--color-text-secondary)] px-4 py-3 font-medium">ARR</th>
+                      <th className="text-left text-[var(--color-text-secondary)] px-4 py-3 font-medium">Health</th>
+                      <th className="text-left text-[var(--color-text-secondary)] px-4 py-3 font-medium">NPS</th>
+                      <th className="text-left text-[var(--color-text-secondary)] px-4 py-3 font-medium">Last Contact</th>
+                      <th className="text-left text-[var(--color-text-secondary)] px-4 py-3 font-medium">CSM</th>
+                      <th className="text-left text-[var(--color-text-secondary)] px-4 py-3 font-medium">Risk</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -635,21 +635,21 @@ export default function CustomerSuccessDashboard() {
                       <React.Fragment key={account.id}>
                         <tr
                           className={cn(
-                            "border-b border-zinc-800 cursor-pointer transition-colors",
-                            expandedAccount === account.id ? "bg-zinc-800" : "hover:bg-zinc-800/50"
+                            "border-b border-[var(--color-border)] cursor-pointer transition-colors",
+                            expandedAccount === account.id ? "bg-[var(--color-surface-2)]" : "hover:bg-[var(--color-surface-2)]/50"
                           )}
                           onClick={() =>
                             setExpandedAccount(expandedAccount === account.id ? null : account.id)
                           }
                         >
-                          <td className="px-4 py-3 text-white font-medium">
-                            <span className="mr-2 text-zinc-500 text-xs">
+                          <td className="px-4 py-3 text-[var(--color-text-primary)] font-medium">
+                            <span className="mr-2 text-[var(--color-text-muted)] text-xs">
                               {expandedAccount === account.id ? "▾" : "▸"}
                             </span>
                             {account.company}
                           </td>
-                          <td className="px-4 py-3 text-zinc-300">{account.plan}</td>
-                          <td className="px-4 py-3 text-zinc-300">{formatARR(account.arr)}</td>
+                          <td className="px-4 py-3 text-[var(--color-text-primary)]">{account.plan}</td>
+                          <td className="px-4 py-3 text-[var(--color-text-primary)]">{formatARR(account.arr)}</td>
                           <td className="px-4 py-3">
                             <span
                               className={cn(
@@ -663,8 +663,8 @@ export default function CustomerSuccessDashboard() {
                           <td className={cn("px-4 py-3 font-medium", npsScoreColor(account.nps))}>
                             {account.nps}
                           </td>
-                          <td className="px-4 py-3 text-zinc-400">{account.lastContact}</td>
-                          <td className="px-4 py-3 text-zinc-300">{account.csm}</td>
+                          <td className="px-4 py-3 text-[var(--color-text-secondary)]">{account.lastContact}</td>
+                          <td className="px-4 py-3 text-[var(--color-text-primary)]">{account.csm}</td>
                           <td className="px-4 py-3">
                             <span
                               className={cn(
@@ -677,39 +677,39 @@ export default function CustomerSuccessDashboard() {
                           </td>
                         </tr>
                         {expandedAccount === account.id && (
-                          <tr className="bg-zinc-800/60 border-b border-zinc-700">
+                          <tr className="bg-[var(--color-surface-2)]/60 border-b border-[var(--color-border)]">
                             <td colSpan={8} className="px-6 py-4">
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
-                                  <div className="text-xs text-zinc-400 mb-2 uppercase tracking-wide font-medium">
+                                  <div className="text-xs text-[var(--color-text-secondary)] mb-2 uppercase tracking-wide font-medium">
                                     30-Day Activity
                                   </div>
-                                  <div className="text-zinc-300 text-sm leading-relaxed">
+                                  <div className="text-[var(--color-text-primary)] text-sm leading-relaxed">
                                     {account.activity30d}
                                   </div>
                                 </div>
                                 <div>
-                                  <div className="text-xs text-zinc-400 mb-2 uppercase tracking-wide font-medium">
+                                  <div className="text-xs text-[var(--color-text-secondary)] mb-2 uppercase tracking-wide font-medium">
                                     Support Tickets
                                   </div>
                                   <div className={cn("text-3xl font-bold", ticketColor(account.tickets))}>
                                     {account.tickets}
                                   </div>
-                                  <div className="text-xs text-zinc-400 mt-1">open tickets</div>
+                                  <div className="text-xs text-[var(--color-text-secondary)] mt-1">open tickets</div>
                                 </div>
                                 <div>
-                                  <div className="text-xs text-zinc-400 mb-2 uppercase tracking-wide font-medium">
+                                  <div className="text-xs text-[var(--color-text-secondary)] mb-2 uppercase tracking-wide font-medium">
                                     Usage Metrics
                                   </div>
                                   <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
-                                      <span className="text-zinc-400">DAU</span>
-                                      <span className="text-white font-medium">
+                                      <span className="text-[var(--color-text-secondary)]">DAU</span>
+                                      <span className="text-[var(--color-text-primary)] font-medium">
                                         {account.dau.toLocaleString()}
                                       </span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                      <span className="text-zinc-400">Feature Adoption</span>
+                                      <span className="text-[var(--color-text-secondary)]">Feature Adoption</span>
                                       <span
                                         className={cn(
                                           "font-medium",
@@ -723,7 +723,7 @@ export default function CustomerSuccessDashboard() {
                                         {account.featureAdoption}%
                                       </span>
                                     </div>
-                                    <div className="w-full bg-zinc-700 rounded-full h-1.5">
+                                    <div className="w-full bg-[var(--color-surface-3)] rounded-full h-1.5">
                                       <div
                                         className={cn(
                                           "h-1.5 rounded-full",
@@ -754,8 +754,8 @@ export default function CustomerSuccessDashboard() {
         {/* Tab: Health Trends */}
         {activeTab === "trends" && (
           <div className="space-y-6">
-            <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-6">
-              <h2 className="text-white font-semibold mb-5">Health Score Distribution</h2>
+            <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-6">
+              <h2 className="text-[var(--color-text-primary)] font-semibold mb-5">Health Score Distribution</h2>
               <div className="space-y-4">
                 {[
                   { label: "90–100 (Excellent)", count: bucket90, color: "bg-emerald-400" },
@@ -764,14 +764,14 @@ export default function CustomerSuccessDashboard() {
                   { label: "<50 (Critical)", count: bucketLow, color: "bg-rose-400" },
                 ].map(bucket => (
                   <div key={bucket.label} className="flex items-center gap-4">
-                    <div className="w-36 text-sm text-zinc-400 shrink-0">{bucket.label}</div>
-                    <div className="flex-1 bg-zinc-800 rounded-full h-4 overflow-hidden">
+                    <div className="w-36 text-sm text-[var(--color-text-secondary)] shrink-0">{bucket.label}</div>
+                    <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-4 overflow-hidden">
                       <div
                         className={cn("h-4 rounded-full", bucket.color)}
                         style={{ width: `${(bucket.count / totalAccounts) * 100}%` }}
                       />
                     </div>
-                    <div className="text-zinc-300 text-sm w-20 text-right shrink-0">
+                    <div className="text-[var(--color-text-primary)] text-sm w-20 text-right shrink-0">
                       {bucket.count} acct{bucket.count !== 1 ? "s" : ""} ({Math.round((bucket.count / totalAccounts) * 100)}%)
                     </div>
                   </div>
@@ -779,45 +779,45 @@ export default function CustomerSuccessDashboard() {
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-6">
-              <h2 className="text-white font-semibold mb-5">Avg Health Score — Last 6 Months</h2>
+            <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-6">
+              <h2 className="text-[var(--color-text-primary)] font-semibold mb-5">Avg Health Score — Last 6 Months</h2>
               <div className="flex items-end gap-3 h-40 px-2">
                 {HEALTH_MONTHLY.map(m => (
                   <div key={m.month} className="flex flex-col items-center flex-1 h-full justify-end">
-                    <div className="text-xs text-zinc-400 mb-1">{m.avg}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mb-1">{m.avg}</div>
                     <div
                       className="w-full bg-indigo-500 rounded-t-md"
                       style={{ height: `${(m.avg / maxHealth) * 100}%` }}
                     />
-                    <div className="text-xs text-zinc-400 mt-2">{m.month}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mt-2">{m.month}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-6">
-              <h2 className="text-white font-semibold mb-4">Top 5 Declining Accounts</h2>
+            <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-6">
+              <h2 className="text-[var(--color-text-primary)] font-semibold mb-4">Top 5 Declining Accounts</h2>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-700">
-                    <th className="text-left text-zinc-400 px-2 py-2 font-medium">Company</th>
-                    <th className="text-left text-zinc-400 px-2 py-2 font-medium">Health Score</th>
-                    <th className="text-left text-zinc-400 px-2 py-2 font-medium">Trend</th>
-                    <th className="text-left text-zinc-400 px-2 py-2 font-medium">CSM</th>
-                    <th className="text-left text-zinc-400 px-2 py-2 font-medium">Risk</th>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="text-left text-[var(--color-text-secondary)] px-2 py-2 font-medium">Company</th>
+                    <th className="text-left text-[var(--color-text-secondary)] px-2 py-2 font-medium">Health Score</th>
+                    <th className="text-left text-[var(--color-text-secondary)] px-2 py-2 font-medium">Trend</th>
+                    <th className="text-left text-[var(--color-text-secondary)] px-2 py-2 font-medium">CSM</th>
+                    <th className="text-left text-[var(--color-text-secondary)] px-2 py-2 font-medium">Risk</th>
                   </tr>
                 </thead>
                 <tbody>
                   {decliningAccounts.map(a => (
-                    <tr key={a.id} className="border-b border-zinc-800">
-                      <td className="px-2 py-3 text-white font-medium">{a.company}</td>
+                    <tr key={a.id} className="border-b border-[var(--color-border)]">
+                      <td className="px-2 py-3 text-[var(--color-text-primary)] font-medium">{a.company}</td>
                       <td className="px-2 py-3">
                         <span className={cn("font-bold text-base", healthScoreColor(a.healthScore))}>
                           {a.healthScore}
                         </span>
                       </td>
                       <td className="px-2 py-3 text-rose-400 font-medium">↓ Declining</td>
-                      <td className="px-2 py-3 text-zinc-300">{a.csm}</td>
+                      <td className="px-2 py-3 text-[var(--color-text-primary)]">{a.csm}</td>
                       <td className="px-2 py-3">
                         <span
                           className={cn(
@@ -840,67 +840,67 @@ export default function CustomerSuccessDashboard() {
         {activeTab === "nps" && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-6 flex flex-col items-center justify-center">
-                <div className="text-zinc-400 text-sm mb-2">Current NPS</div>
+              <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-6 flex flex-col items-center justify-center">
+                <div className="text-[var(--color-text-secondary)] text-sm mb-2">Current NPS</div>
                 <div className="text-6xl font-bold text-indigo-400">{currentNPS}</div>
-                <div className="text-zinc-400 text-xs mt-2">Net Promoter Score</div>
+                <div className="text-[var(--color-text-secondary)] text-xs mt-2">Net Promoter Score</div>
               </div>
-              <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-4 flex flex-col items-center justify-center">
+              <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 flex flex-col items-center justify-center">
                 <div className="text-emerald-400 text-3xl font-bold">{promoters}</div>
-                <div className="text-zinc-400 text-sm mt-1">Promoters</div>
-                <div className="text-zinc-500 text-xs mt-0.5">score 9–10</div>
+                <div className="text-[var(--color-text-secondary)] text-sm mt-1">Promoters</div>
+                <div className="text-[var(--color-text-muted)] text-xs mt-0.5">score 9–10</div>
                 <div className="text-emerald-400 text-sm font-medium mt-1">
                   {Math.round((promoters / totalResponses) * 100)}%
                 </div>
               </div>
-              <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-4 flex flex-col items-center justify-center">
-                <div className="text-zinc-300 text-3xl font-bold">{passives}</div>
-                <div className="text-zinc-400 text-sm mt-1">Passives</div>
-                <div className="text-zinc-500 text-xs mt-0.5">score 7–8</div>
-                <div className="text-zinc-400 text-sm font-medium mt-1">
+              <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 flex flex-col items-center justify-center">
+                <div className="text-[var(--color-text-primary)] text-3xl font-bold">{passives}</div>
+                <div className="text-[var(--color-text-secondary)] text-sm mt-1">Passives</div>
+                <div className="text-[var(--color-text-muted)] text-xs mt-0.5">score 7–8</div>
+                <div className="text-[var(--color-text-secondary)] text-sm font-medium mt-1">
                   {Math.round((passives / totalResponses) * 100)}%
                 </div>
               </div>
-              <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-4 flex flex-col items-center justify-center">
+              <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 flex flex-col items-center justify-center">
                 <div className="text-rose-400 text-3xl font-bold">{detractors}</div>
-                <div className="text-zinc-400 text-sm mt-1">Detractors</div>
-                <div className="text-zinc-500 text-xs mt-0.5">score 0–6</div>
+                <div className="text-[var(--color-text-secondary)] text-sm mt-1">Detractors</div>
+                <div className="text-[var(--color-text-muted)] text-xs mt-0.5">score 0–6</div>
                 <div className="text-rose-400 text-sm font-medium mt-1">
                   {Math.round((detractors / totalResponses) * 100)}%
                 </div>
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-6">
-              <h2 className="text-white font-semibold mb-5">NPS Trend — Last 12 Months</h2>
+            <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-6">
+              <h2 className="text-[var(--color-text-primary)] font-semibold mb-5">NPS Trend — Last 12 Months</h2>
               <div className="flex items-end gap-1.5 h-32 px-1">
                 {NPS_MONTHLY.map(m => (
                   <div key={m.month} className="flex flex-col items-center flex-1 h-full justify-end">
-                    <div className="text-xs text-zinc-400 mb-1">{m.score}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mb-1">{m.score}</div>
                     <div
                       className="w-full bg-indigo-500/80 rounded-t-sm"
                       style={{ height: `${(m.score / maxNPS) * 100}%` }}
                     />
-                    <div className="text-xs text-zinc-400 mt-2">{m.month}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mt-2">{m.month}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-6">
-              <h2 className="text-white font-semibold mb-4">Recent Responses</h2>
+            <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-6">
+              <h2 className="text-[var(--color-text-primary)] font-semibold mb-4">Recent Responses</h2>
               <div className="space-y-3">
                 {NPS_RESPONSES.map(r => (
                   <div
                     key={r.id}
-                    className="bg-zinc-800 rounded-lg px-4 py-3 border border-zinc-700"
+                    className="bg-[var(--color-surface-2)] rounded-lg px-4 py-3 border border-[var(--color-border)]"
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-3 flex-wrap">
                         <span className={cn("text-lg font-bold tabular-nums", npsScoreColor(r.score))}>
                           {r.score}
                         </span>
-                        <span className="text-white text-sm font-medium">{r.respondent}</span>
+                        <span className="text-[var(--color-text-primary)] text-sm font-medium">{r.respondent}</span>
                         <span
                           className={cn(
                             "px-2 py-0.5 rounded-md text-xs capitalize",
@@ -910,9 +910,9 @@ export default function CustomerSuccessDashboard() {
                           {r.sentiment}
                         </span>
                       </div>
-                      <span className="text-zinc-400 text-xs shrink-0">{r.date}</span>
+                      <span className="text-[var(--color-text-secondary)] text-xs shrink-0">{r.date}</span>
                     </div>
-                    <p className="text-zinc-400 text-sm truncate">{r.comment}</p>
+                    <p className="text-[var(--color-text-secondary)] text-sm truncate">{r.comment}</p>
                   </div>
                 ))}
               </div>
@@ -924,37 +924,37 @@ export default function CustomerSuccessDashboard() {
         {activeTab === "playbooks" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-zinc-400 text-sm">{PLAYBOOKS.length} active playbooks</p>
+              <p className="text-[var(--color-text-secondary)] text-sm">{PLAYBOOKS.length} active playbooks</p>
             </div>
             {PLAYBOOKS.map(pb => (
-              <div key={pb.id} className="bg-zinc-900 rounded-lg border border-zinc-700 overflow-hidden">
+              <div key={pb.id} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden">
                 <div
-                  className="px-5 py-4 cursor-pointer hover:bg-zinc-800/50 transition-colors"
+                  className="px-5 py-4 cursor-pointer hover:bg-[var(--color-surface-2)]/50 transition-colors"
                   onClick={() =>
                     setExpandedPlaybook(expandedPlaybook === pb.id ? null : pb.id)
                   }
                 >
                   <div className="flex items-start md:items-center justify-between gap-4 flex-wrap">
                     <div className="flex items-center gap-3">
-                      <span className="text-zinc-400 text-xs">
+                      <span className="text-[var(--color-text-secondary)] text-xs">
                         {expandedPlaybook === pb.id ? "▾" : "▸"}
                       </span>
                       <div>
-                        <div className="text-white font-semibold">{pb.name}</div>
-                        <div className="text-zinc-400 text-xs mt-0.5">
+                        <div className="text-[var(--color-text-primary)] font-semibold">{pb.name}</div>
+                        <div className="text-[var(--color-text-secondary)] text-xs mt-0.5">
                           Applied to: {pb.accounts.join(", ")}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-6 text-sm flex-wrap">
                       <div className="text-center">
-                        <div className="text-zinc-400 text-xs mb-0.5">Progress</div>
-                        <div className="text-white font-medium">
+                        <div className="text-[var(--color-text-secondary)] text-xs mb-0.5">Progress</div>
+                        <div className="text-[var(--color-text-primary)] font-medium">
                           {pb.stepsCompleted}/{pb.stepsTotal}
                         </div>
                       </div>
                       <div className="text-center">
-                        <div className="text-zinc-400 text-xs mb-0.5">Success Rate</div>
+                        <div className="text-[var(--color-text-secondary)] text-xs mb-0.5">Success Rate</div>
                         <div
                           className={cn(
                             "font-medium",
@@ -969,15 +969,15 @@ export default function CustomerSuccessDashboard() {
                         </div>
                       </div>
                       <div className="text-center">
-                        <div className="text-zinc-400 text-xs mb-0.5">Avg Days</div>
-                        <div className="text-zinc-300 font-medium">{pb.avgDaysToComplete}d</div>
+                        <div className="text-[var(--color-text-secondary)] text-xs mb-0.5">Avg Days</div>
+                        <div className="text-[var(--color-text-primary)] font-medium">{pb.avgDaysToComplete}d</div>
                       </div>
                       <div className="w-28 shrink-0">
-                        <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                        <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mb-1">
                           <span>Completion</span>
                           <span>{Math.round((pb.stepsCompleted / pb.stepsTotal) * 100)}%</span>
                         </div>
-                        <div className="w-full bg-zinc-700 rounded-full h-2">
+                        <div className="w-full bg-[var(--color-surface-3)] rounded-full h-2">
                           <div
                             className="bg-indigo-500 h-2 rounded-full"
                             style={{
@@ -991,8 +991,8 @@ export default function CustomerSuccessDashboard() {
                 </div>
 
                 {expandedPlaybook === pb.id && (
-                  <div className="border-t border-zinc-700 px-5 py-4 bg-zinc-800/30">
-                    <div className="text-xs text-zinc-400 uppercase tracking-wide font-medium mb-3">
+                  <div className="border-t border-[var(--color-border)] px-5 py-4 bg-[var(--color-surface-2)]/30">
+                    <div className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide font-medium mb-3">
                       Steps ({pb.stepsCompleted} of {pb.stepsTotal} completed)
                     </div>
                     <div className="space-y-2">
@@ -1003,7 +1003,7 @@ export default function CustomerSuccessDashboard() {
                               "w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
                               step.completed
                                 ? "bg-emerald-400/20 text-emerald-400"
-                                : "bg-zinc-700 text-zinc-500"
+                                : "bg-[var(--color-surface-3)] text-[var(--color-text-muted)]"
                             )}
                           >
                             {step.completed ? "✓" : idx + 1}
@@ -1011,13 +1011,13 @@ export default function CustomerSuccessDashboard() {
                           <span
                             className={cn(
                               "text-sm flex-1",
-                              step.completed ? "text-zinc-300" : "text-zinc-500"
+                              step.completed ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)]"
                             )}
                           >
                             {step.name}
                           </span>
                           {!step.completed && (
-                            <span className="text-xs text-zinc-600 shrink-0">Pending</span>
+                            <span className="text-xs text-[var(--color-text-muted)] shrink-0">Pending</span>
                           )}
                           {step.completed && (
                             <span className="text-xs text-emerald-400/60 shrink-0">Done</span>

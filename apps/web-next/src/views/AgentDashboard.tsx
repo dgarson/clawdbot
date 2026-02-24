@@ -19,19 +19,23 @@ type ViewDensity = 'comfortable' | 'compact';
 
 interface ActivityItem {
   id: string;
-  type: 'agent_response' | 'cron_run' | 'session_start' | 'user_message' | 'error';
+  type: 'agent_response' | 'cron_run' | 'session_start' | 'user_message' | 'error' | 'tool_call' | 'handoff' | 'completion' | 'decision';
   title: string;
   description: string;
   timestamp: string;
   agentEmoji?: string;
   lane: PriorityLane;
+  /** Which agent "owns" this item — used in Manager lens for grouping by delegation */
+  owner?: string;
+  /** Whether the user can act on this item — used in Builder lens */
+  actionable?: boolean;
 }
 
 function StatusBadge({ variant, pulse }: { variant: StatusBadgeVariant; pulse?: boolean }) {
   const colors: Record<StatusBadgeVariant, string> = {
     active: 'bg-green-500',
     idle: 'bg-amber-500',
-    offline: 'bg-zinc-500',
+    offline: 'bg-[var(--color-surface-3)]',
     error: 'bg-red-500',
     healthy: 'bg-green-500',
     degraded: 'bg-amber-500',
@@ -63,19 +67,27 @@ function ActivityRow({ item, density }: { item: ActivityItem; density: ViewDensi
     session_start: '🚀',
     user_message: '👤',
     error: '⚠️',
+    tool_call: '🔧',
+    handoff: '🤝',
+    completion: '✅',
+    decision: '🎯',
   };
 
+  const isCompact = density === 'compact';
+
   return (
-    <div className={cn('flex gap-3', density === 'compact' ? 'py-2' : 'py-3')}>
-      <span className="text-base" aria-hidden="true">{icons[item.type]}</span>
+    <div className={cn('flex', isCompact ? 'gap-2 py-1.5' : 'gap-3 py-3')}>
+      <span className={isCompact ? 'text-sm' : 'text-base'} aria-hidden="true">{icons[item.type]}</span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm text-foreground">
+        <p className={cn('truncate text-foreground', isCompact ? 'text-[11px]' : 'text-sm')}>
           {item.agentEmoji && <span className="mr-1">{item.agentEmoji}</span>}
           {item.title}
         </p>
-        <p className="truncate text-xs text-muted-foreground">{item.description}</p>
+        {!isCompact && (
+          <p className="truncate text-xs text-muted-foreground">{item.description}</p>
+        )}
       </div>
-      <span className="whitespace-nowrap text-xs text-muted-foreground">{formatRelativeTime(item.timestamp)}</span>
+      <span className={cn('whitespace-nowrap text-muted-foreground', isCompact ? 'text-[11px]' : 'text-xs')}>{formatRelativeTime(item.timestamp)}</span>
     </div>
   );
 }
@@ -95,23 +107,27 @@ function DetailCard({
   onOpen: () => void;
   density: ViewDensity;
 }) {
+  const isCompact = density === 'compact';
+
   return (
     <button
       className={cn(
-        'w-full rounded-xl border border-border bg-card text-left transition-colors hover:border-primary/50 hover:bg-secondary/30',
-        density === 'compact' ? 'p-3' : 'p-4'
+        'w-full border border-border bg-card text-left transition-colors hover:border-primary/50 hover:bg-secondary/30',
+        isCompact ? 'rounded-lg p-2' : 'rounded-xl p-4'
       )}
       onClick={onOpen}
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className={cn('flex items-center justify-between', isCompact ? 'gap-2' : 'gap-3')}>
         <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">{title}</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
+          <p className={cn('uppercase tracking-wide text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>{title}</p>
+          <p className={cn('font-semibold text-foreground', isCompact ? 'text-lg' : 'mt-1 text-2xl')}>{value}</p>
+          {!isCompact && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
-        <span className="flex size-10 items-center justify-center rounded-lg bg-primary/15 text-xl" aria-hidden="true">{icon}</span>
+        {!isCompact && (
+          <span className="flex size-10 items-center justify-center rounded-lg bg-primary/15 text-xl" aria-hidden="true">{icon}</span>
+        )}
       </div>
-      <p className="mt-3 text-xs text-primary">View details →</p>
+      {!isCompact && <p className="mt-3 text-xs text-primary">View details &rarr;</p>}
     </button>
   );
 }
@@ -157,15 +173,33 @@ export default function AgentDashboard() {
   const dailyCost = MOCK_SESSIONS.reduce((acc, s) => acc + (s.cost || 0), 0);
 
   const allActivity: ActivityItem[] = useMemo(() => [
-    { id: '1', type: 'agent_response', title: 'Luis completed UI pass', description: 'Updated dashboard interaction flow and mobile spacing.', timestamp: new Date(Date.now() - 120000).toISOString(), agentEmoji: '🎨', lane: 'now' },
-    { id: '2', type: 'cron_run', title: 'Hourly UX check ran', description: 'No regressions detected in latest branch checks.', timestamp: new Date(Date.now() - 1800000).toISOString(), lane: 'next' },
-    { id: '3', type: 'session_start', title: 'Architecture review session started', description: 'Xavier opened model orchestration thread.', timestamp: new Date(Date.now() - 3600000).toISOString(), agentEmoji: '🧠', lane: 'now' },
-    { id: '4', type: 'user_message', title: 'You asked for dashboard drill-downs', description: 'Requested guided workflows and focused detail panels.', timestamp: new Date(Date.now() - 5400000).toISOString(), lane: 'later' },
+    { id: '1', type: 'agent_response', title: 'Luis completed UI pass', description: 'Updated dashboard interaction flow and mobile spacing.', timestamp: new Date(Date.now() - 120000).toISOString(), agentEmoji: '🎨', lane: 'now', owner: 'Luis', actionable: true },
+    { id: '2', type: 'cron_run', title: 'Hourly UX check ran', description: 'No regressions detected in latest branch checks.', timestamp: new Date(Date.now() - 1800000).toISOString(), lane: 'next', owner: 'System' },
+    { id: '3', type: 'session_start', title: 'Architecture review session started', description: 'Xavier opened model orchestration thread.', timestamp: new Date(Date.now() - 3600000).toISOString(), agentEmoji: '🧠', lane: 'now', owner: 'Xavier', actionable: true },
+    { id: '4', type: 'user_message', title: 'You asked for dashboard drill-downs', description: 'Requested guided workflows and focused detail panels.', timestamp: new Date(Date.now() - 5400000).toISOString(), lane: 'later', owner: 'You' },
+    { id: '5', type: 'tool_call', title: 'Xavier ran exec: pnpm test', description: 'Test suite execution completed with 42/42 passing.', timestamp: new Date(Date.now() - 600000).toISOString(), agentEmoji: '🧠', lane: 'now', owner: 'Xavier' },
+    { id: '6', type: 'error', title: 'Tim health check failed', description: 'Agent unreachable — last heartbeat 24h ago.', timestamp: new Date(Date.now() - 900000).toISOString(), agentEmoji: '🏗️', lane: 'now', owner: 'Tim' },
+    { id: '7', type: 'handoff', title: 'Luis handed off component to Harry', description: 'Modal component delegated for performance pass.', timestamp: new Date(Date.now() - 2400000).toISOString(), agentEmoji: '🎨', lane: 'next', owner: 'Luis' },
+    { id: '8', type: 'completion', title: 'Harry finished daily standup report', description: 'Summary posted to #engineering channel.', timestamp: new Date(Date.now() - 4200000).toISOString(), agentEmoji: '⚡', lane: 'next', owner: 'Harry', actionable: true },
+    { id: '9', type: 'decision', title: 'Xavier chose Opus for architecture review', description: 'Model selection based on task complexity threshold.', timestamp: new Date(Date.now() - 7200000).toISOString(), agentEmoji: '🧠', lane: 'later', owner: 'Xavier' },
+    { id: '10', type: 'tool_call', title: 'Harry ran write: src/components/Modal.tsx', description: 'File updated with 47 lines changed.', timestamp: new Date(Date.now() - 1500000).toISOString(), agentEmoji: '⚡', lane: 'now', owner: 'Harry', actionable: true },
   ], []);
 
+  // Operator: system events, tool calls, errors — no user messages, no later lane
+  // Manager: decisions, completions, handoffs — no tool calls, no user messages
+  // Builder: everything, but only actionable items in priority queue
   const filteredActivity = allActivity.filter((item) => {
-    if (focusMode === 'operator') {return item.lane !== 'later';}
-    if (focusMode === 'manager') {return item.type !== 'user_message';}
+    if (focusMode === 'operator') {
+      if (item.lane === 'later') return false;
+      if (item.type === 'user_message') return false;
+      return true;
+    }
+    if (focusMode === 'manager') {
+      if (item.type === 'user_message') return false;
+      if (item.type === 'tool_call') return false;
+      return true;
+    }
+    // Builder: show everything
     return true;
   });
 
@@ -175,13 +209,28 @@ export default function AgentDashboard() {
     later: filteredActivity.filter((item) => item.lane === 'later').length,
   };
 
+  // -- Operator lens: system health metrics --
+  const errorCount = allActivity.filter((a) => a.type === 'error').length;
+  const toolCallCount = allActivity.filter((a) => a.type === 'tool_call').length;
+  const totalTokensBurned = MOCK_SESSIONS.reduce((acc, s) => acc + (s.tokenUsage?.total || 0), 0);
+
+  // -- Manager lens: agents grouped by health --
+  const healthyAgents = MOCK_AGENTS.filter((a) => a.health === 'healthy');
+  const warningAgents = MOCK_AGENTS.filter((a) => a.health === 'degraded');
+  const errorAgents = MOCK_AGENTS.filter((a) => a.health === 'unhealthy');
+
+  // -- Builder lens: only running agents, code stats --
+  const runningAgents = MOCK_AGENTS.filter((a) => a.status === 'active');
+  // Builder queue: only actionable items
+  const builderQueue = filteredActivity.filter((item) => item.actionable);
+
   const getStatusColor = (status: AgentStatus) => {
     switch (status) {
       case 'active': return 'text-green-400';
       case 'idle': return 'text-amber-400';
-      case 'offline': return 'text-zinc-400';
+      case 'offline': return 'text-[var(--color-text-secondary)]';
       case 'error': return 'text-red-400';
-      default: return 'text-zinc-400';
+      default: return 'text-[var(--color-text-secondary)]';
     }
   };
 
@@ -190,7 +239,7 @@ export default function AgentDashboard() {
       case 'healthy': return 'text-green-400';
       case 'degraded': return 'text-amber-400';
       case 'unhealthy': return 'text-red-400';
-      default: return 'text-zinc-400';
+      default: return 'text-[var(--color-text-secondary)]';
     }
   };
 
@@ -208,16 +257,18 @@ export default function AgentDashboard() {
   const showAgents = activeSection === 'agents' || activeSection === 'overview';
   const showActivity = activeSection === 'activity' || activeSection === 'overview';
 
+  const isCompact = viewDensity === 'compact';
+
   return (
-    <div className="space-y-5">
-      <header className="rounded-xl border border-border bg-card p-4 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className={isCompact ? 'space-y-3' : 'space-y-5'}>
+      <header className={cn('border border-border bg-card', isCompact ? 'rounded-lg p-3' : 'rounded-xl p-4 sm:p-5')}>
+        <div className={cn('flex sm:flex-row sm:items-center sm:justify-between', isCompact ? 'flex-row items-center gap-2' : 'flex-col gap-3')}>
           <div>
-            <h1 className="text-xl font-semibold text-foreground sm:text-2xl">{greeting} 👋</h1>
-            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{dateStr}</p>
+            <h1 className={cn('font-semibold text-foreground', isCompact ? 'text-base' : 'text-xl sm:text-2xl')}>{greeting} {isCompact ? '' : '👋'}</h1>
+            {!isCompact && <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{dateStr}</p>}
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/20 px-3 py-2">
-            <span className="text-xs text-muted-foreground">Gateway</span>
+          <div className={cn('flex items-center gap-2 rounded-lg border border-border bg-secondary/20', isCompact ? 'px-2 py-1' : 'px-3 py-2')}>
+            <span className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Gateway</span>
             <StatusBadge variant={isConnected ? 'connected' : 'offline'} pulse={!isConnected} />
           </div>
         </div>
@@ -225,113 +276,388 @@ export default function AgentDashboard() {
 
       <SurfaceSection
         title="Operator controls"
-        subtitle="Tune information load before drilling into details"
+        subtitle={
+          focusMode === 'operator' ? 'Operator lens: system events, tool calls, errors, and real-time health' :
+          focusMode === 'manager' ? 'Manager lens: health grouping, cost tracking, delegation, and decisions' :
+          'Builder lens: active agents only, actionable queue, and code activity'
+        }
         action={<div className="flex flex-wrap gap-2">{sectionButton('overview', 'Overview')}{sectionButton('agents', 'Agents')}{sectionButton('activity', 'Activity')}</div>}
       >
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={cn('flex flex-wrap items-center', isCompact ? 'gap-1.5' : 'gap-2')}>
           {(['operator', 'manager', 'builder'] as const).map((mode) => (
             <button
               key={mode}
               onClick={() => setFocusMode(mode)}
-              className={cn('rounded-lg border px-3 py-2 text-xs font-medium capitalize', focusMode === mode ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border bg-secondary/20 text-muted-foreground')}
+              className={cn('rounded-lg border font-medium capitalize', isCompact ? 'px-2 py-1 text-[11px]' : 'px-3 py-2 text-xs', focusMode === mode ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border bg-secondary/20 text-muted-foreground')}
             >
               {mode} lens
             </button>
           ))}
           <ViewDensityToggle value={viewDensity} onChange={setViewDensity} />
-          <button className="rounded-lg border border-border bg-secondary/20 px-3 py-2 text-xs text-muted-foreground" onClick={() => setShowComparisons((v) => !v)}>
+          <button className={cn('rounded-lg border border-border bg-secondary/20 text-muted-foreground', isCompact ? 'px-2 py-1 text-[11px]' : 'px-3 py-2 text-xs')} onClick={() => setShowComparisons((v) => !v)}>
             {showComparisons ? 'Hide trends' : 'Show trends'}
           </button>
-          <button className="ml-auto rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground" onClick={() => { setAgentWizardStep(1); setModal('new-agent'); }}>
+          <button className={cn('ml-auto rounded-lg bg-primary font-medium text-primary-foreground', isCompact ? 'px-2 py-1 text-[11px]' : 'px-3 py-2 text-xs')} onClick={() => { setAgentWizardStep(1); setModal('new-agent'); }}>
             New Agent
           </button>
-          <button className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground" onClick={() => setModal('new-chat')}>New Chat</button>
-          <button className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground" onClick={() => { setScheduleWizardStep(1); setModal('new-schedule'); }}>New Schedule</button>
-          <button className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground" onClick={() => setModal('export')}>Export</button>
+          <button className={cn('rounded-lg border border-border bg-secondary/30 text-foreground', isCompact ? 'px-2 py-1 text-[11px]' : 'px-3 py-2 text-xs')} onClick={() => setModal('new-chat')}>New Chat</button>
+          {!isCompact && (
+            <>
+              <button className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground" onClick={() => { setScheduleWizardStep(1); setModal('new-schedule'); }}>New Schedule</button>
+              <button className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground" onClick={() => setModal('export')}>Export</button>
+            </>
+          )}
         </div>
       </SurfaceSection>
 
       {showOverview && (
-        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <section className={cn('grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4', isCompact ? 'gap-2' : 'gap-3')}>
           <DetailCard title="Active Agents" value={`${activeAgents}/${totalAgents}`} subtitle={showComparisons ? '↑ 2 vs yesterday' : 'Drill into workload and ownership'} icon="🤖" onOpen={() => setPanel('agents')} density={viewDensity} />
           <DetailCard title="System Health" value={isConnected ? 'Healthy' : 'Degraded'} subtitle={showComparisons ? 'Stable for 7 days' : 'Inspect gateway uptime, latency, and alerts'} icon="✅" onOpen={() => setPanel('health')} density={viewDensity} />
           <DetailCard title="Sessions Today" value={String(sessionsToday)} subtitle={showComparisons ? '↑ 14% from prior window' : 'Review active and recent conversations'} icon="💬" onOpen={() => setPanel('sessions')} density={viewDensity} />
-          <DetailCard title="Daily Cost" value={`$${dailyCost.toFixed(2)}`} subtitle={showComparisons ? '↓ 6% with same output' : 'See spend breakdown and anomaly risk'} icon="💰" onOpen={() => setPanel('cost')} density={viewDensity} />
+          {/* Hide cost card in Builder lens */}
+          {focusMode !== 'builder' && (
+            <DetailCard title="Daily Cost" value={`$${dailyCost.toFixed(2)}`} subtitle={showComparisons ? '↓ 6% with same output' : 'See spend breakdown and anomaly risk'} icon="💰" onOpen={() => setPanel('cost')} density={viewDensity} />
+          )}
+          {/* Builder lens: code-related stats instead of cost */}
+          {focusMode === 'builder' && (
+            <DetailCard title="Code Activity" value={`${toolCallCount} ops`} subtitle="Tool calls, file writes, test runs" icon="🔧" onOpen={() => setPanel('sessions')} density={viewDensity} />
+          )}
         </section>
       )}
 
+      {/* Operator lens: system health banner with live metrics */}
+      {showOverview && focusMode === 'operator' && (
+        <div className={cn('grid grid-cols-2 gap-2 rounded-lg border border-border bg-card sm:grid-cols-4', isCompact ? 'p-2' : 'p-3')}>
+          <div className="text-center">
+            <p className={cn('font-mono font-bold text-green-400', isCompact ? 'text-lg' : 'text-2xl')}>{activeAgents}</p>
+            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Active sessions</p>
+          </div>
+          <div className="text-center">
+            <p className={cn('font-mono font-bold', errorCount > 0 ? 'text-red-400' : 'text-green-400', isCompact ? 'text-lg' : 'text-2xl')}>{errorCount}</p>
+            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Errors</p>
+          </div>
+          <div className="text-center">
+            <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>{(totalTokensBurned / 1000).toFixed(0)}k</p>
+            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Tokens burned</p>
+          </div>
+          <div className="text-center">
+            <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>12ms</p>
+            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Gateway latency</p>
+          </div>
+        </div>
+      )}
 
+      {/* Manager lens: cost and budget banner */}
+      {showOverview && focusMode === 'manager' && (
+        <div className={cn('rounded-lg border border-amber-500/30 bg-amber-500/5', isCompact ? 'p-2' : 'p-3')}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className={cn('font-medium text-foreground', isCompact ? 'text-xs' : 'text-sm')}>Cost &amp; Budget</p>
+              {!isCompact && <p className="text-xs text-muted-foreground">Daily spend tracking against budget thresholds</p>}
+            </div>
+            <div className="flex gap-4">
+              <div className="text-right">
+                <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-sm' : 'text-lg')}>${dailyCost.toFixed(2)}</p>
+                <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Today</p>
+              </div>
+              <div className="text-right">
+                <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-sm' : 'text-lg')}>$47.82</p>
+                <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>This month</p>
+              </div>
+              <div className="text-right">
+                <p className={cn('font-mono font-bold text-green-400', isCompact ? 'text-sm' : 'text-lg')}>62%</p>
+                <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Budget remaining</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {showOverview && (
+      {/* Builder lens: code activity stats */}
+      {showOverview && focusMode === 'builder' && (
+        <div className={cn('grid grid-cols-2 gap-2 rounded-lg border border-border bg-card sm:grid-cols-4', isCompact ? 'p-2' : 'p-3')}>
+          <div className="text-center">
+            <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>47</p>
+            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Files changed</p>
+          </div>
+          <div className="text-center">
+            <p className={cn('font-mono font-bold text-green-400', isCompact ? 'text-lg' : 'text-2xl')}>42/42</p>
+            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Tests passing</p>
+          </div>
+          <div className="text-center">
+            <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>{toolCallCount}</p>
+            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Tool calls</p>
+          </div>
+          <div className="text-center">
+            <p className={cn('font-mono font-bold text-foreground', isCompact ? 'text-lg' : 'text-2xl')}>{runningAgents.length}</p>
+            <p className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Active agents</p>
+          </div>
+        </div>
+      )}
+
+      {showOverview && !isCompact && (
         <SurfaceSection title="Why this matters" subtitle="Contextual insight strip to turn metrics into action">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-border bg-secondary/20 p-3 text-sm text-foreground">
-              Active agents are high while cost trend is down, suggesting recent routing optimizations are working.
+              {focusMode === 'operator' && 'Active agents are high with low error rate, suggesting stable operations. Monitor token burn rate.'}
+              {focusMode === 'manager' && 'Cost trend is down 6% while output remains stable. Handoff volume is normal — no delegation bottlenecks.'}
+              {focusMode === 'builder' && 'All 42 tests passing. 47 files changed today across active agents. No blocked work items.'}
             </div>
             <div className="rounded-lg border border-border bg-secondary/20 p-3 text-sm text-foreground">
-              Session volume is rising; prioritize queue triage in the Action Inbox to avoid hidden bottlenecks.
+              {focusMode === 'operator' && 'Session volume is rising; prioritize queue triage in the Action Inbox to avoid hidden bottlenecks.'}
+              {focusMode === 'manager' && 'Tim is degraded — consider redistributing architecture tasks to Xavier or scheduling maintenance.'}
+              {focusMode === 'builder' && 'Luis and Harry are both active. Check the priority queue for items you can act on directly.'}
             </div>
           </div>
         </SurfaceSection>
       )}
 
-      <SurfaceSection title="Compare operating modes" subtitle="Side-by-side snapshot to decide which lens fits current work">
-        <div className="grid gap-3 lg:grid-cols-2">
-          <div className="rounded-lg border border-border bg-secondary/20 p-3">
-            <p className="text-sm font-medium text-foreground">Operator lens</p>
-            <p className="mt-1 text-xs text-muted-foreground">Focuses on immediate execution and excludes low-priority lane items.</p>
-            <p className="mt-2 text-xs text-foreground">Visible activity items: {allActivity.filter((item) => item.lane !== 'later').length}</p>
+      {/* Compare modes section: only visible in Manager lens */}
+      {focusMode === 'manager' && (
+        <SurfaceSection title="Compare operating modes" subtitle="Side-by-side snapshot to decide which lens fits current work">
+          <div className={cn('grid lg:grid-cols-3', isCompact ? 'gap-2' : 'gap-3')}>
+            <div className={cn('rounded-lg border border-border bg-secondary/20', isCompact ? 'p-2' : 'p-3')}>
+              <p className={cn('font-medium text-foreground', isCompact ? 'text-xs' : 'text-sm')}>Operator lens</p>
+              {!isCompact && <p className="mt-1 text-xs text-muted-foreground">Focuses on execution: tool calls, errors, system events. Hides user messages and deferred items.</p>}
+              <p className={cn('text-foreground', isCompact ? 'mt-1 text-[11px]' : 'mt-2 text-xs')}>
+                {allActivity.filter((item) => item.lane !== 'later' && item.type !== 'user_message').length} items visible
+              </p>
+            </div>
+            <div className={cn('rounded-lg border border-primary/30 bg-primary/5', isCompact ? 'p-2' : 'p-3')}>
+              <p className={cn('font-medium text-primary', isCompact ? 'text-xs' : 'text-sm')}>Manager lens (active)</p>
+              {!isCompact && <p className="mt-1 text-xs text-muted-foreground">Prioritizes health, cost, and delegation. Shows decisions, completions, and handoffs only.</p>}
+              <p className={cn('text-foreground', isCompact ? 'mt-1 text-[11px]' : 'mt-2 text-xs')}>
+                {allActivity.filter((item) => item.type !== 'user_message' && item.type !== 'tool_call').length} items visible
+              </p>
+            </div>
+            <div className={cn('rounded-lg border border-border bg-secondary/20', isCompact ? 'p-2' : 'p-3')}>
+              <p className={cn('font-medium text-foreground', isCompact ? 'text-xs' : 'text-sm')}>Builder lens</p>
+              {!isCompact && <p className="mt-1 text-xs text-muted-foreground">Shows everything for active agents. Queue is filtered to actionable items only.</p>}
+              <p className={cn('text-foreground', isCompact ? 'mt-1 text-[11px]' : 'mt-2 text-xs')}>
+                {allActivity.length} items visible ({allActivity.filter((item) => item.actionable).length} actionable)
+              </p>
+            </div>
           </div>
-          <div className="rounded-lg border border-border bg-secondary/20 p-3">
-            <p className="text-sm font-medium text-foreground">Manager lens</p>
-            <p className="mt-1 text-xs text-muted-foreground">Prioritizes service health and coordination by suppressing noisy user-message churn.</p>
-            <p className="mt-2 text-xs text-foreground">Visible activity items: {allActivity.filter((item) => item.type !== 'user_message').length}</p>
-          </div>
-        </div>
-      </SurfaceSection>
+        </SurfaceSection>
+      )}
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <div className={cn('grid grid-cols-1 xl:grid-cols-3', isCompact ? 'gap-2' : 'gap-4')}>
         {showAgents && (
           <SurfaceSection
             title="Agents"
-            subtitle={focusMode === 'manager' ? 'Manager lens prioritizes health and ownership' : 'Select an agent to inspect capabilities and activity'}
+            subtitle={
+              focusMode === 'operator' ? 'All agents with status indicators' :
+              focusMode === 'manager' ? 'Grouped by health — healthy, warning, error' :
+              'Active agents only — focused on running work'
+            }
             className="xl:col-span-2"
-            action={<button className="text-xs text-primary" onClick={() => setPanel('agents')}>Open full detail</button>}
+            action={<button className={cn('text-primary', isCompact ? 'text-[11px]' : 'text-xs')} onClick={() => setPanel('agents')}>Open full detail</button>}
           >
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {MOCK_AGENTS.slice(0, focusMode === 'builder' ? 4 : 6).map((agent) => (
-                <button key={agent.id} className={cn('rounded-lg border border-border bg-secondary/10 text-left hover:border-primary/40', viewDensity === 'compact' ? 'p-2.5' : 'p-3')} onClick={() => setPanel('agents')}>
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl" aria-hidden="true">{agent.emoji}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-medium text-foreground">{agent.name}</p>
-                        <span className={cn('text-[11px]', getStatusColor(agent.status))}>● {agent.status}</span>
+            {/* Operator lens: show all agents, status prominent */}
+            {focusMode === 'operator' && (
+              <div className={cn('grid grid-cols-1 sm:grid-cols-2', isCompact ? 'gap-2' : 'gap-3')}>
+                {MOCK_AGENTS.map((agent) => (
+                  <button key={agent.id} className={cn('border border-border bg-secondary/10 text-left hover:border-primary/40', isCompact ? 'rounded-lg p-2' : 'rounded-lg p-3')} onClick={() => setPanel('agents')}>
+                    <div className={cn('flex items-start', isCompact ? 'gap-2' : 'gap-3')}>
+                      {!isCompact && <span className="text-2xl" aria-hidden="true">{agent.emoji}</span>}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={cn('truncate font-medium text-foreground', isCompact ? 'text-[11px]' : 'text-sm')}>
+                            {isCompact && <span className="mr-1">{agent.emoji}</span>}
+                            {agent.name}
+                          </p>
+                          <span className={cn(isCompact ? 'text-[10px]' : 'text-[11px]', getStatusColor(agent.status))}>● {agent.status}</span>
+                        </div>
+                        {!isCompact && (
+                          <>
+                            <p className="truncate text-xs text-muted-foreground">{agent.role}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{agent.model}</p>
+                          </>
+                        )}
                       </div>
-                      <p className="truncate text-xs text-muted-foreground">{agent.role}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{agent.model}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Manager lens: agents grouped by health */}
+            {focusMode === 'manager' && (
+              <div className={isCompact ? 'space-y-2' : 'space-y-4'}>
+                {healthyAgents.length > 0 && (
+                  <div>
+                    <p className={cn('mb-1.5 font-medium text-green-400', isCompact ? 'text-[11px]' : 'text-xs')}>Healthy ({healthyAgents.length})</p>
+                    <div className={cn('grid grid-cols-1 sm:grid-cols-2', isCompact ? 'gap-1.5' : 'gap-2')}>
+                      {healthyAgents.map((agent) => (
+                        <button key={agent.id} className={cn('border border-green-500/20 bg-green-500/5 text-left hover:border-green-500/40', isCompact ? 'rounded-lg p-1.5' : 'rounded-lg p-3')} onClick={() => setPanel('agents')}>
+                          <div className={cn('flex items-center', isCompact ? 'gap-1.5' : 'gap-2')}>
+                            {!isCompact && <span className="text-lg">{agent.emoji}</span>}
+                            <div className="min-w-0 flex-1">
+                              <p className={cn('truncate font-medium text-foreground', isCompact ? 'text-[11px]' : 'text-sm')}>
+                                {isCompact && <span className="mr-1">{agent.emoji}</span>}
+                                {agent.name}
+                              </p>
+                              {!isCompact && <p className="text-xs text-muted-foreground">{agent.role} &middot; {agent.model}</p>}
+                            </div>
+                            <span className={cn('text-green-400', isCompact ? 'text-[10px]' : 'text-[11px]')}>● healthy</span>
+                          </div>
+                        </button>
+                      ))}
                     </div>
                   </div>
-                </button>
-              ))}
-            </div>
+                )}
+                {warningAgents.length > 0 && (
+                  <div>
+                    <p className={cn('mb-1.5 font-medium text-amber-400', isCompact ? 'text-[11px]' : 'text-xs')}>Warning ({warningAgents.length})</p>
+                    <div className={cn('grid grid-cols-1 sm:grid-cols-2', isCompact ? 'gap-1.5' : 'gap-2')}>
+                      {warningAgents.map((agent) => (
+                        <button key={agent.id} className={cn('border border-amber-500/20 bg-amber-500/5 text-left hover:border-amber-500/40', isCompact ? 'rounded-lg p-1.5' : 'rounded-lg p-3')} onClick={() => setPanel('agents')}>
+                          <div className={cn('flex items-center', isCompact ? 'gap-1.5' : 'gap-2')}>
+                            {!isCompact && <span className="text-lg">{agent.emoji}</span>}
+                            <div className="min-w-0 flex-1">
+                              <p className={cn('truncate font-medium text-foreground', isCompact ? 'text-[11px]' : 'text-sm')}>
+                                {isCompact && <span className="mr-1">{agent.emoji}</span>}
+                                {agent.name}
+                              </p>
+                              {!isCompact && <p className="text-xs text-muted-foreground">{agent.role} &middot; last active {formatRelativeTime(agent.lastActive)}</p>}
+                            </div>
+                            <span className={cn('text-amber-400', isCompact ? 'text-[10px]' : 'text-[11px]')}>● degraded</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {errorAgents.length > 0 && (
+                  <div>
+                    <p className={cn('mb-1.5 font-medium text-red-400', isCompact ? 'text-[11px]' : 'text-xs')}>Error ({errorAgents.length})</p>
+                    <div className={cn('grid grid-cols-1 sm:grid-cols-2', isCompact ? 'gap-1.5' : 'gap-2')}>
+                      {errorAgents.map((agent) => (
+                        <button key={agent.id} className={cn('border border-red-500/20 bg-red-500/5 text-left hover:border-red-500/40', isCompact ? 'rounded-lg p-1.5' : 'rounded-lg p-3')} onClick={() => setPanel('agents')}>
+                          <div className={cn('flex items-center', isCompact ? 'gap-1.5' : 'gap-2')}>
+                            {!isCompact && <span className="text-lg">{agent.emoji}</span>}
+                            <div className="min-w-0 flex-1">
+                              <p className={cn('truncate font-medium text-foreground', isCompact ? 'text-[11px]' : 'text-sm')}>
+                                {isCompact && <span className="mr-1">{agent.emoji}</span>}
+                                {agent.name}
+                              </p>
+                              {!isCompact && <p className="text-xs text-muted-foreground">{agent.role} &middot; last active {formatRelativeTime(agent.lastActive)}</p>}
+                            </div>
+                            <span className={cn('text-red-400', isCompact ? 'text-[10px]' : 'text-[11px]')}>● unhealthy</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Builder lens: only running (active) agents */}
+            {focusMode === 'builder' && (
+              <div className={cn('grid grid-cols-1 sm:grid-cols-2', isCompact ? 'gap-2' : 'gap-3')}>
+                {runningAgents.length === 0 && (
+                  <p className="col-span-full text-center text-sm text-muted-foreground">No agents currently running</p>
+                )}
+                {runningAgents.map((agent) => (
+                  <button key={agent.id} className={cn('border border-border bg-secondary/10 text-left hover:border-primary/40', isCompact ? 'rounded-lg p-2' : 'rounded-lg p-3')} onClick={() => setPanel('agents')}>
+                    <div className={cn('flex items-start', isCompact ? 'gap-2' : 'gap-3')}>
+                      {!isCompact && <span className="text-2xl" aria-hidden="true">{agent.emoji}</span>}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={cn('truncate font-medium text-foreground', isCompact ? 'text-[11px]' : 'text-sm')}>
+                            {isCompact && <span className="mr-1">{agent.emoji}</span>}
+                            {agent.name}
+                          </p>
+                          <span className={cn('text-green-400', isCompact ? 'text-[10px]' : 'text-[11px]')}>● running</span>
+                        </div>
+                        {!isCompact && (
+                          <>
+                            <p className="truncate text-xs text-muted-foreground">{agent.role}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{agent.model}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">Active {formatRelativeTime(agent.lastActive)}</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </SurfaceSection>
         )}
 
         {showActivity && (
-          <SurfaceSection title="Priority queue" subtitle="Triage work by what needs action now vs later" action={<button className="text-xs text-primary" onClick={() => setPanel('sessions')}>View timeline</button>}>
-            <div className="mb-2 flex flex-wrap gap-2">
-              {(['now', 'next', 'later'] as const).map((lane) => (
-                <button key={lane} onClick={() => setOpenLane(lane)} className={cn('rounded-lg border px-2.5 py-1 text-xs capitalize', openLane === lane ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border bg-secondary/20 text-muted-foreground')}>
-                  {lane} ({laneCounts[lane]})
-                </button>
-              ))}
-            </div>
-            <div className="divide-y divide-border">
-              {filteredActivity.filter((item) => item.lane === openLane).map((item) => (
-                <ActivityRow key={item.id} item={item} density={viewDensity} />
-              ))}
-            </div>
+          <SurfaceSection
+            title={focusMode === 'builder' ? 'Actionable items' : 'Priority queue'}
+            subtitle={
+              focusMode === 'operator' ? 'Now items first, sorted by urgency' :
+              focusMode === 'manager' ? 'Grouped by owner and delegation' :
+              'Tasks you can act on directly'
+            }
+            action={<button className={cn('text-primary', isCompact ? 'text-[11px]' : 'text-xs')} onClick={() => setPanel('sessions')}>View timeline</button>}
+          >
+            {/* Lane tabs: hidden in Builder lens (shows only actionable items) */}
+            {focusMode !== 'builder' && (
+              <div className={cn('flex flex-wrap', isCompact ? 'mb-1.5 gap-1.5' : 'mb-2 gap-2')}>
+                {(['now', 'next', 'later'] as const).map((lane) => (
+                  <button key={lane} onClick={() => setOpenLane(lane)} className={cn('rounded-lg border capitalize', isCompact ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-xs', openLane === lane ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border bg-secondary/20 text-muted-foreground')}>
+                    {lane} ({laneCounts[lane]})
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Manager lens: group by owner */}
+            {focusMode === 'manager' && (() => {
+              const laneItems = filteredActivity.filter((item) => item.lane === openLane);
+              const owners = [...new Set(laneItems.map((item) => item.owner || 'Unknown'))];
+              return (
+                <div className={isCompact ? 'space-y-1.5' : 'space-y-3'}>
+                  {owners.map((owner) => (
+                    <div key={owner}>
+                      <p className={cn('font-medium text-muted-foreground', isCompact ? 'mb-0.5 text-[10px]' : 'mb-1 text-[11px]')}>{owner}</p>
+                      <div className="divide-y divide-border">
+                        {laneItems.filter((item) => (item.owner || 'Unknown') === owner).map((item) => (
+                          <ActivityRow key={item.id} item={item} density={viewDensity} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  {laneItems.length === 0 && <p className="py-2 text-center text-xs text-muted-foreground">No items in this lane</p>}
+                </div>
+              );
+            })()}
+
+            {/* Operator lens: flat list by lane */}
+            {focusMode === 'operator' && (
+              <div className="divide-y divide-border">
+                {filteredActivity.filter((item) => item.lane === openLane).map((item) => (
+                  <ActivityRow key={item.id} item={item} density={viewDensity} />
+                ))}
+                {filteredActivity.filter((item) => item.lane === openLane).length === 0 && (
+                  <p className="py-2 text-center text-xs text-muted-foreground">No items in this lane</p>
+                )}
+              </div>
+            )}
+
+            {/* Builder lens: actionable items only, no lane tabs */}
+            {focusMode === 'builder' && (
+              <div className="divide-y divide-border">
+                {builderQueue.length === 0 && <p className="py-2 text-center text-xs text-muted-foreground">No actionable items right now</p>}
+                {builderQueue.map((item) => (
+                  <div key={item.id} className={cn('flex items-center', isCompact ? 'gap-1.5' : 'gap-2')}>
+                    <div className="flex-1">
+                      <ActivityRow item={item} density={viewDensity} />
+                    </div>
+                    <span className={cn('rounded border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-primary', isCompact ? 'text-[10px]' : 'text-[11px]')}>
+                      {item.lane}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </SurfaceSection>
         )}
       </div>
@@ -339,9 +665,11 @@ export default function AgentDashboard() {
       <SurfaceSection
         title="Gateway health summary"
         subtitle={`Status ${connectionState} · latency 12ms · uptime 99.9%`}
-        action={<button className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground" onClick={() => setPanel('gateway')}>Open gateway drilldown</button>}
+        action={<button className={cn('rounded-lg border border-border bg-secondary/30 text-foreground', isCompact ? 'px-2 py-1 text-[11px]' : 'px-3 py-2 text-xs')} onClick={() => setPanel('gateway')}>Open gateway drilldown</button>}
       >
-        <p className="text-xs text-muted-foreground">Focus mode <span className="capitalize text-foreground">{focusMode}</span> and <span className="text-foreground">{viewDensity}</span> density keep the overview readable while details live in drilldowns.</p>
+        {!isCompact && (
+          <p className="text-xs text-muted-foreground">Focus mode <span className="capitalize text-foreground">{focusMode}</span> and <span className="text-foreground">{viewDensity}</span> density keep the overview readable while details live in drilldowns.</p>
+        )}
       </SurfaceSection>
 
       <SlideOverPanel open={panel !== null} title={panel === 'agents' ? 'Agent Operations' : panel === 'health' ? 'System Health' : panel === 'sessions' ? 'Session Insights' : panel === 'cost' ? 'Cost Breakdown' : 'Gateway Detail'} onClose={() => setPanel(null)}>

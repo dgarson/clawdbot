@@ -104,7 +104,7 @@ const TABS = ["Overview", "Tenants", "Usage Trends", "Alerts"] as const;
 type Tab = typeof TABS[number];
 
 const tierColor: Record<TierType, string> = {
-  starter:    "text-zinc-400 bg-zinc-400/10 border-zinc-400/30",
+  starter:    "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30",
   growth:     "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
   enterprise: "text-amber-400 bg-amber-400/10 border-amber-400/30",
   trial:      "text-blue-400 bg-blue-400/10 border-blue-400/30",
@@ -114,14 +114,14 @@ const healthColor: Record<TenantHealth, string> = {
   healthy:  "text-emerald-400",
   warning:  "text-amber-400",
   critical: "text-rose-400",
-  churning: "text-zinc-400",
+  churning: "text-[var(--color-text-secondary)]",
 };
 
 const healthBg: Record<TenantHealth, string> = {
   healthy:  "bg-emerald-400",
   warning:  "bg-amber-400",
   critical: "bg-rose-400",
-  churning: "bg-zinc-400",
+  churning: "bg-[var(--color-surface-3)]",
 };
 
 function usagePct(used: number, limit: number): number {
@@ -152,12 +152,12 @@ export default function TenantUsageDashboard(): React.ReactElement {
   const churningCount = TENANTS.filter(t => t.health === "churning").length;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div>
           <h1 className="text-lg font-semibold">Tenant Usage Dashboard</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">Multi-tenant platform usage monitoring, quota management, and churn signals</p>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">Multi-tenant platform usage monitoring, quota management, and churn signals</p>
         </div>
         <div className="flex items-center gap-3">
           {warningCount > 0 && (
@@ -166,7 +166,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
             </span>
           )}
           {churningCount > 0 && (
-            <span className="text-xs px-2 py-1 rounded bg-zinc-400/10 border border-zinc-400/30 text-zinc-400">
+            <span className="text-xs px-2 py-1 rounded bg-[var(--color-surface-3)]/10 border border-[var(--color-surface-3)]/30 text-[var(--color-text-secondary)]">
               {churningCount} churning
             </span>
           )}
@@ -174,7 +174,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 px-6 pt-3 border-b border-zinc-800 shrink-0">
+      <div className="flex gap-1 px-6 pt-3 border-b border-[var(--color-border)] shrink-0">
         {TABS.map((t) => (
           <button
             key={t}
@@ -183,7 +183,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
                 ? "text-indigo-400 border-indigo-500"
-                : "text-zinc-400 border-transparent hover:text-white"
+                : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}
@@ -198,10 +198,10 @@ export default function TenantUsageDashboard(): React.ReactElement {
             {/* KPIs */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {PLATFORM_METRICS.map((m) => (
-                <div key={m.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                  <div className="text-xs text-zinc-400">{m.label}</div>
+                <div key={m.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                  <div className="text-xs text-[var(--color-text-secondary)]">{m.label}</div>
                   <div className="text-xl font-bold mt-1">{m.value}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">{m.sub}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{m.sub}</div>
                   <div className={cn("text-xs font-mono mt-1", m.trend >= 0 ? "text-emerald-400" : "text-rose-400")}>
                     {m.trend >= 0 ? "▲" : "▼"} {Math.abs(m.trend)}{m.unit}
                   </div>
@@ -211,34 +211,34 @@ export default function TenantUsageDashboard(): React.ReactElement {
 
             {/* Tier distribution */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
                 <h3 className="text-sm font-medium mb-4">Tier Distribution</h3>
                 {(["enterprise", "growth", "starter", "trial"] as const).map((tier) => {
                   const count = TENANTS.filter(t => t.tier === tier).length;
                   return (
                     <div key={tier} className="flex items-center gap-3 mb-3">
-                      <div className="w-20 text-xs capitalize text-zinc-400">{tier}</div>
-                      <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="w-20 text-xs capitalize text-[var(--color-text-secondary)]">{tier}</div>
+                      <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(count / TENANTS.length) * 100}%` }} />
                       </div>
-                      <div className="w-6 text-xs text-right text-zinc-300">{count}</div>
+                      <div className="w-6 text-xs text-right text-[var(--color-text-primary)]">{count}</div>
                     </div>
                   );
                 })}
               </div>
 
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
                 <h3 className="text-sm font-medium mb-4">Health Status</h3>
                 {(["healthy", "warning", "critical", "churning"] as const).map((h) => {
                   const count = TENANTS.filter(t => t.health === h).length;
                   return (
                     <div key={h} className="flex items-center gap-3 mb-3">
                       <div className="w-2 h-2 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: h === "healthy" ? "#34d399" : h === "warning" ? "#fbbf24" : h === "critical" ? "#f87171" : "#71717a" }} />
-                      <div className="w-16 text-xs capitalize text-zinc-400">{h}</div>
-                      <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="w-16 text-xs capitalize text-[var(--color-text-secondary)]">{h}</div>
+                      <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div className={cn("h-full rounded-full", healthBg[h as TenantHealth])} style={{ width: `${(count / TENANTS.length) * 100}%` }} />
                       </div>
-                      <div className="w-6 text-xs text-right text-zinc-300">{count}</div>
+                      <div className="w-6 text-xs text-right text-[var(--color-text-primary)]">{count}</div>
                     </div>
                   );
                 })}
@@ -252,20 +252,20 @@ export default function TenantUsageDashboard(): React.ReactElement {
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <div className="flex gap-1">
-                <span className="text-xs text-zinc-500 self-center mr-1">Health:</span>
+                <span className="text-xs text-[var(--color-text-muted)] self-center mr-1">Health:</span>
                 {(["all", "healthy", "warning", "critical", "churning"] as const).map((h) => (
                   <button key={h} onClick={() => setHealthFilter(h)}
                     className={cn("px-2 py-0.5 text-[10px] rounded border transition-colors",
-                      healthFilter === h ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                      healthFilter === h ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                     )}>{h}</button>
                 ))}
               </div>
               <div className="flex gap-1">
-                <span className="text-xs text-zinc-500 self-center mr-1">Tier:</span>
+                <span className="text-xs text-[var(--color-text-muted)] self-center mr-1">Tier:</span>
                 {(["all", "enterprise", "growth", "starter", "trial"] as const).map((t) => (
                   <button key={t} onClick={() => setTierFilter(t)}
                     className={cn("px-2 py-0.5 text-[10px] rounded border transition-colors",
-                      tierFilter === t ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                      tierFilter === t ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                     )}>{t}</button>
                 ))}
               </div>
@@ -281,8 +281,8 @@ export default function TenantUsageDashboard(): React.ReactElement {
                     key={tenant.id}
                     onClick={() => setSelectedTenant(tenant)}
                     className={cn(
-                      "bg-zinc-900 border rounded-lg p-5 cursor-pointer transition-colors",
-                      selectedTenant.id === tenant.id ? "border-indigo-500/50" : "border-zinc-800 hover:border-zinc-700"
+                      "bg-[var(--color-surface-1)] border rounded-lg p-5 cursor-pointer transition-colors",
+                      selectedTenant.id === tenant.id ? "border-indigo-500/50" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                     )}
                   >
                     <div className="flex items-start justify-between mb-4">
@@ -290,7 +290,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
                         <div className={cn("w-2.5 h-2.5 rounded-full shrink-0 mt-0.5", healthBg[tenant.health])} />
                         <div>
                           <div className="text-sm font-semibold">{tenant.name}</div>
-                          <div className="text-xs text-zinc-500">Joined {tenant.joinedAt} · MRR: ${tenant.mrr.toLocaleString()}</div>
+                          <div className="text-xs text-[var(--color-text-muted)]">Joined {tenant.joinedAt} · MRR: ${tenant.mrr.toLocaleString()}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -311,14 +311,14 @@ export default function TenantUsageDashboard(): React.ReactElement {
                         { label: "Storage", pct: storagePct, used: tenant.storageGB.toFixed(1) + " GB", limit: tenant.storageLimit + " GB" },
                       ].map((u) => (
                         <div key={u.label}>
-                          <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
+                          <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mb-1">
                             <span>{u.label}</span>
-                            <span className={cn(u.pct >= 95 ? "text-rose-400" : u.pct >= 80 ? "text-amber-400" : "text-zinc-400")}>{u.pct}%</span>
+                            <span className={cn(u.pct >= 95 ? "text-rose-400" : u.pct >= 80 ? "text-amber-400" : "text-[var(--color-text-secondary)]")}>{u.pct}%</span>
                           </div>
-                          <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                             <div className={cn("h-full rounded-full", usageColor(u.pct))} style={{ width: `${u.pct}%` }} />
                           </div>
-                          <div className="text-[10px] text-zinc-500 mt-1">{u.used} / {u.limit}</div>
+                          <div className="text-[10px] text-[var(--color-text-muted)] mt-1">{u.used} / {u.limit}</div>
                         </div>
                       ))}
                     </div>
@@ -332,16 +332,16 @@ export default function TenantUsageDashboard(): React.ReactElement {
         {/* ── USAGE TRENDS ── */}
         {tab === "Usage Trends" && (
           <div className="space-y-6">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
               <h3 className="text-sm font-medium mb-4">Platform API Calls (6 months, thousands)</h3>
               <div className="flex items-end gap-3 h-36">
                 {TRENDS.map((t) => {
                   const h = Math.round((t.apiCalls / maxTrend) * 120);
                   return (
                     <div key={t.month} className="flex-1 flex flex-col items-center gap-1">
-                      <div className="text-[10px] text-zinc-400">{(t.apiCalls / 1000).toFixed(0)}k</div>
+                      <div className="text-[10px] text-[var(--color-text-secondary)]">{(t.apiCalls / 1000).toFixed(0)}k</div>
                       <div className="w-full bg-indigo-500 rounded-t" style={{ height: h }} />
-                      <div className="text-[10px] text-zinc-500">{t.month}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">{t.month}</div>
                     </div>
                   );
                 })}
@@ -349,7 +349,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
                 <h3 className="text-sm font-medium mb-4">MAU Growth</h3>
                 <div className="flex items-end gap-2 h-24">
                   {TRENDS.map((t) => {
@@ -358,13 +358,13 @@ export default function TenantUsageDashboard(): React.ReactElement {
                     return (
                       <div key={t.month} className="flex-1 flex flex-col items-center gap-1">
                         <div className="w-full bg-emerald-500 rounded-t" style={{ height: h }} />
-                        <div className="text-[10px] text-zinc-500">{t.month}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">{t.month}</div>
                       </div>
                     );
                   })}
                 </div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
                 <h3 className="text-sm font-medium mb-4">Storage Growth (GB)</h3>
                 <div className="flex items-end gap-2 h-24">
                   {TRENDS.map((t) => {
@@ -373,7 +373,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
                     return (
                       <div key={t.month} className="flex-1 flex flex-col items-center gap-1">
                         <div className="w-full bg-amber-500 rounded-t" style={{ height: h }} />
-                        <div className="text-[10px] text-zinc-500">{t.month}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">{t.month}</div>
                       </div>
                     );
                   })}
@@ -397,23 +397,23 @@ export default function TenantUsageDashboard(): React.ReactElement {
               if (t.health === "churning") {alerts.push("Usage declining — possible churn risk");}
               if (t.overageCharges > 0) {alerts.push(`Overage charges: $${t.overageCharges}`);}
               return (
-                <div key={t.id} className={cn("bg-zinc-900 rounded-lg p-4 border",
+                <div key={t.id} className={cn("bg-[var(--color-surface-1)] rounded-lg p-4 border",
                   t.health === "critical" ? "border-rose-500/40" :
-                  t.health === "warning" ? "border-amber-500/40" : "border-zinc-700"
+                  t.health === "warning" ? "border-amber-500/40" : "border-[var(--color-border)]"
                 )}>
                   <div className="flex items-center gap-2 mb-2">
                     <span className={cn("text-sm font-semibold", healthColor[t.health])}>{t.name}</span>
                     <span className={cn("text-[10px] px-1.5 py-0.5 rounded border", tierColor[t.tier])}>{t.tier}</span>
-                    <span className="text-xs text-zinc-400 ml-auto">${t.mrr}/mo</span>
+                    <span className="text-xs text-[var(--color-text-secondary)] ml-auto">${t.mrr}/mo</span>
                   </div>
                   <div className="space-y-1">
                     {alerts.length > 0 ? alerts.map((a, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs text-zinc-300">
+                      <div key={i} className="flex items-center gap-2 text-xs text-[var(--color-text-primary)]">
                         <span className={cn(t.health === "critical" ? "text-rose-400" : "text-amber-400")}>•</span>
                         {a}
                       </div>
                     )) : (
-                      <div className="text-xs text-zinc-500">No active alerts</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">No active alerts</div>
                     )}
                   </div>
                 </div>

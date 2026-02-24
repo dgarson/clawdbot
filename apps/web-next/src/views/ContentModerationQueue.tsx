@@ -378,7 +378,7 @@ const REASON_LABELS: Record<FlaggedReason, string> = {
 const PRIORITY_STYLES: Record<Priority, string> = {
   high: "bg-rose-400/15 text-rose-400 border-rose-400/30",
   medium: "bg-amber-400/15 text-amber-400 border-amber-400/30",
-  low: "bg-zinc-600/20 text-zinc-400 border-zinc-600/40",
+  low: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/40",
 };
 
 const REASON_STYLES: Record<FlaggedReason, string> = {
@@ -387,7 +387,7 @@ const REASON_STYLES: Record<FlaggedReason, string> = {
   harassment: "bg-orange-400/15 text-orange-400",
   explicit: "bg-red-400/15 text-red-400",
   misinformation: "bg-purple-400/15 text-purple-400",
-  off_topic: "bg-zinc-500/15 text-zinc-400",
+  off_topic: "bg-[var(--color-surface-3)]/15 text-[var(--color-text-secondary)]",
 };
 
 const DECISION_STYLES: Record<Decision, { bg: string; emoji: string }> = {
@@ -478,18 +478,18 @@ export default function ContentModerationQueue() {
       <div className="grid grid-cols-4 gap-3">
         {[
           { label: "Queue Size", value: totalQueue, icon: "📋", accent: "text-indigo-400" },
-          { label: "Avg Review", value: "2.4m", icon: "⏱", accent: "text-zinc-300" },
+          { label: "Avg Review", value: "2.4m", icon: "⏱", accent: "text-[var(--color-text-primary)]" },
           { label: "Resolved Today", value: resolvedToday, icon: "✓", accent: "text-emerald-400" },
           { label: "Escalated", value: escalatedCount, icon: "↑", accent: "text-amber-400" },
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 flex items-center gap-3"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-3 flex items-center gap-3"
           >
             <span className="text-xl">{stat.icon}</span>
             <div>
               <p className={cn("text-lg font-semibold", stat.accent)}>{stat.value}</p>
-              <p className="text-xs text-zinc-500">{stat.label}</p>
+              <p className="text-xs text-[var(--color-text-muted)]">{stat.label}</p>
             </div>
           </div>
         ))}
@@ -501,10 +501,10 @@ export default function ContentModerationQueue() {
 
   function FilterBar() {
     const selectBase =
-      "bg-zinc-800 border border-zinc-700 text-white text-sm rounded-md px-3 py-1.5 outline-none focus:border-indigo-500 transition-colors";
+      "bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 outline-none focus:border-indigo-500 transition-colors";
     return (
       <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Filters</span>
+        <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Filters</span>
         <select
           className={selectBase}
           value={filterType}
@@ -541,7 +541,7 @@ export default function ContentModerationQueue() {
         </select>
         {(filterType !== "all" || filterReason !== "all" || filterPriority !== "all") && (
           <button
-            className="text-xs text-zinc-500 hover:text-white transition-colors underline"
+            className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors underline"
             onClick={() => {
               setFilterType("all");
               setFilterReason("all");
@@ -551,7 +551,7 @@ export default function ContentModerationQueue() {
             Clear
           </button>
         )}
-        <span className="ml-auto text-xs text-zinc-600">
+        <span className="ml-auto text-xs text-[var(--color-text-muted)]">
           {pendingItems.length} item{pendingItems.length !== 1 ? "s" : ""}
         </span>
       </div>
@@ -566,21 +566,21 @@ export default function ContentModerationQueue() {
       <button
         onClick={() => setSelectedId(isSelected ? null : item.id)}
         className={cn(
-          "w-full text-left px-4 py-3 border-b border-zinc-800/60 transition-colors",
+          "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/60 transition-colors",
           isSelected
             ? "bg-indigo-500/10 border-l-2 border-l-indigo-500"
-            : "hover:bg-zinc-800/50 border-l-2 border-l-transparent"
+            : "hover:bg-[var(--color-surface-2)]/50 border-l-2 border-l-transparent"
         )}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-sm text-white truncate">{item.contentExcerpt}</p>
+            <p className="text-sm text-[var(--color-text-primary)] truncate">{item.contentExcerpt}</p>
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              <span className="text-xs text-zinc-500">@{item.author}</span>
-              <span className="text-zinc-700">·</span>
-              <span className="text-xs text-zinc-500">{formatDate(item.submissionDate)}</span>
-              <span className="text-zinc-700">·</span>
-              <span className="text-xs text-zinc-500">{CONTENT_TYPE_LABELS[item.contentType]}</span>
+              <span className="text-xs text-[var(--color-text-muted)]">@{item.author}</span>
+              <span className="text-[var(--color-text-muted)]">·</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{formatDate(item.submissionDate)}</span>
+              <span className="text-[var(--color-text-muted)]">·</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{CONTENT_TYPE_LABELS[item.contentType]}</span>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1.5 shrink-0">
@@ -609,12 +609,12 @@ export default function ContentModerationQueue() {
   function ReviewPanel({ item }: { item: QueueItem }) {
     const notes = reviewNotes[item.id] ?? "";
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col h-full">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden flex flex-col h-full">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-white font-semibold text-sm">{item.id}</h3>
+              <h3 className="text-[var(--color-text-primary)] font-semibold text-sm">{item.id}</h3>
               <span
                 className={cn(
                   "text-[10px] font-semibold uppercase px-2 py-0.5 rounded border",
@@ -624,30 +624,30 @@ export default function ContentModerationQueue() {
                 {item.priority}
               </span>
             </div>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
               @{item.author} · {CONTENT_TYPE_LABELS[item.contentType]} · {formatDate(item.submissionDate)}
             </p>
           </div>
           <button
             onClick={() => setSelectedId(null)}
-            className="text-zinc-500 hover:text-white transition-colors text-lg leading-none"
+            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors text-lg leading-none"
           >
             ✕
           </button>
         </div>
 
         {/* Content Preview */}
-        <div className="px-5 py-4 border-b border-zinc-800">
-          <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Full Content</p>
-          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-sm text-zinc-300 leading-relaxed max-h-40 overflow-y-auto">
+        <div className="px-5 py-4 border-b border-[var(--color-border)]">
+          <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Full Content</p>
+          <div className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg p-3 text-sm text-[var(--color-text-primary)] leading-relaxed max-h-40 overflow-y-auto">
             {item.fullContent}
           </div>
         </div>
 
         {/* AI Analysis */}
-        <div className="px-5 py-4 border-b border-zinc-800">
+        <div className="px-5 py-4 border-b border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">AI Analysis</p>
+            <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">AI Analysis</p>
             <span
               className={cn(
                 "text-xs font-mono font-semibold",
@@ -665,8 +665,8 @@ export default function ContentModerationQueue() {
             {item.aiCategories.map((cat) => (
               <div key={cat.label}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-zinc-400">{cat.label}</span>
-                  <span className="text-[10px] font-mono text-zinc-500">{cat.score}%</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">{cat.label}</span>
+                  <span className="text-[10px] font-mono text-[var(--color-text-muted)]">{cat.score}%</span>
                 </div>
                 <div className={cn("h-1.5 rounded-full overflow-hidden", confidenceBarBg(cat.score))}>
                   <div
@@ -680,18 +680,18 @@ export default function ContentModerationQueue() {
         </div>
 
         {/* Flagged reason badge */}
-        <div className="px-5 py-3 border-b border-zinc-800">
-          <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Flagged For</p>
+        <div className="px-5 py-3 border-b border-[var(--color-border)]">
+          <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Flagged For</p>
           <span className={cn("text-xs px-2.5 py-1 rounded-md", REASON_STYLES[item.flaggedReason])}>
             {REASON_LABELS[item.flaggedReason]}
           </span>
         </div>
 
         {/* Notes */}
-        <div className="px-5 py-4 border-b border-zinc-800">
-          <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Reviewer Notes</p>
+        <div className="px-5 py-4 border-b border-[var(--color-border)]">
+          <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Reviewer Notes</p>
           <textarea
-            className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-2 outline-none focus:border-indigo-500 transition-colors resize-none h-20 placeholder:text-zinc-600"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-2 outline-none focus:border-indigo-500 transition-colors resize-none h-20 placeholder:text-[var(--color-text-muted)]"
             placeholder="Add notes about your decision..."
             value={notes}
             onChange={(e) =>
@@ -702,7 +702,7 @@ export default function ContentModerationQueue() {
 
         {/* Action Buttons */}
         <div className="px-5 py-4 mt-auto">
-          <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3">Actions</p>
+          <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Actions</p>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => handleAction("approved")}
@@ -738,25 +738,25 @@ export default function ContentModerationQueue() {
 
   function HistoryList() {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-zinc-800">
-          <h3 className="text-sm font-semibold text-white">Recently Resolved</h3>
-          <p className="text-xs text-zinc-500 mt-0.5">{localHistory.length} items</p>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-[var(--color-border)]">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Recently Resolved</h3>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{localHistory.length} items</p>
         </div>
-        <div className="divide-y divide-zinc-800/60 max-h-[600px] overflow-y-auto">
+        <div className="divide-y divide-[var(--color-border)]/60 max-h-[600px] overflow-y-auto">
           {localHistory.map((item) => {
             const ds = DECISION_STYLES[item.decision];
             return (
               <div key={item.id + item.timestamp} className="px-4 py-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-zinc-300 truncate">{item.contentExcerpt}</p>
+                    <p className="text-sm text-[var(--color-text-primary)] truncate">{item.contentExcerpt}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-zinc-500">@{item.author}</span>
-                      <span className="text-zinc-700">·</span>
-                      <span className="text-xs text-zinc-500">by {item.resolver}</span>
-                      <span className="text-zinc-700">·</span>
-                      <span className="text-xs text-zinc-600">{formatDate(item.timestamp)}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">@{item.author}</span>
+                      <span className="text-[var(--color-text-muted)]">·</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">by {item.resolver}</span>
+                      <span className="text-[var(--color-text-muted)]">·</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{formatDate(item.timestamp)}</span>
                     </div>
                   </div>
                   <span className={cn("text-xs font-semibold flex items-center gap-1", ds.bg)}>
@@ -767,7 +767,7 @@ export default function ContentModerationQueue() {
             );
           })}
           {localHistory.length === 0 && (
-            <div className="px-4 py-8 text-center text-sm text-zinc-600">No resolved items yet</div>
+            <div className="px-4 py-8 text-center text-sm text-[var(--color-text-muted)]">No resolved items yet</div>
           )}
         </div>
       </div>
@@ -777,22 +777,22 @@ export default function ContentModerationQueue() {
   // ── Main Layout ────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-[1440px] mx-auto space-y-5">
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Content Moderation</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Review flagged content and take action</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Content Moderation</h1>
+            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">Review flagged content and take action</p>
           </div>
-          <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-lg p-0.5">
+          <div className="flex items-center gap-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-0.5">
             <button
               onClick={() => setActiveTab("queue")}
               className={cn(
                 "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
                 activeTab === "queue"
-                  ? "bg-indigo-500 text-white"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               Queue
@@ -802,8 +802,8 @@ export default function ContentModerationQueue() {
               className={cn(
                 "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
                 activeTab === "history"
-                  ? "bg-indigo-500 text-white"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               History
@@ -824,7 +824,7 @@ export default function ContentModerationQueue() {
               {/* Queue List */}
               <div
                 className={cn(
-                  "bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden transition-all",
+                  "bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden transition-all",
                   selectedItem ? "w-[55%]" : "w-full"
                 )}
               >
@@ -834,7 +834,7 @@ export default function ContentModerationQueue() {
                   ))}
                   {pendingItems.length === 0 && (
                     <div className="px-4 py-12 text-center">
-                      <p className="text-zinc-600 text-sm">
+                      <p className="text-[var(--color-text-muted)] text-sm">
                         {resolvedIds.size > 0
                           ? "All items in current filter have been resolved"
                           : "No items match current filters"}

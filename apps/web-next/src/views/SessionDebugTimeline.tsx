@@ -562,7 +562,7 @@ const EVENT_COLORS: Record<EventType, string> = {
   tool_result: "bg-amber-400/60",
   context_shift: "bg-purple-500",
   error: "bg-rose-500",
-  system: "bg-zinc-500",
+  system: "bg-[var(--color-surface-3)]",
 };
 
 const EVENT_ICONS: Record<EventType, string> = {
@@ -579,7 +579,7 @@ const STATUS_COLORS: Record<EventStatus, string> = {
   ok: "text-emerald-400",
   error: "text-rose-400",
   warning: "text-amber-400",
-  pending: "text-zinc-400",
+  pending: "text-[var(--color-text-secondary)]",
 };
 
 const FILTER_OPTIONS: { label: string; value: FilterType }[] = [
@@ -636,7 +636,7 @@ function ScrubBar({
       <div
         ref={trackRef}
         onClick={handleClick}
-        className="relative h-6 bg-zinc-800 rounded-lg cursor-pointer group"
+        className="relative h-6 bg-[var(--color-surface-2)] rounded-lg cursor-pointer group"
       >
         {/* Progress fill */}
         <div
@@ -664,9 +664,9 @@ function ScrubBar({
           style={{ left: `${progressPct}%` }}
         />
       </div>
-      <div className="flex justify-between text-xs font-mono text-zinc-600">
+      <div className="flex justify-between text-xs font-mono text-[var(--color-text-muted)]">
         <span>0ms</span>
-        <span className="text-zinc-400">{fmtOffset(currentMs)}</span>
+        <span className="text-[var(--color-text-secondary)]">{fmtOffset(currentMs)}</span>
         <span>{fmtMs(durationMs)}</span>
       </div>
     </div>
@@ -689,9 +689,9 @@ function EventRow({
     <>
       {gapMs > 500 && (
         <div className="flex items-center gap-2 py-1 px-3">
-          <div className="flex-1 h-px bg-zinc-800/60" />
-          <span className="text-xs font-mono text-zinc-600">{fmtMs(gapMs)} gap</span>
-          <div className="flex-1 h-px bg-zinc-800/60" />
+          <div className="flex-1 h-px bg-[var(--color-surface-2)]/60" />
+          <span className="text-xs font-mono text-[var(--color-text-muted)]">{fmtMs(gapMs)} gap</span>
+          <div className="flex-1 h-px bg-[var(--color-surface-2)]/60" />
         </div>
       )}
       <button
@@ -700,12 +700,12 @@ function EventRow({
           "w-full text-left flex items-start gap-3 px-3 py-2.5 transition-colors rounded-lg",
           selected
             ? "bg-indigo-600/20 border border-indigo-500/40"
-            : "hover:bg-zinc-800/60 border border-transparent"
+            : "hover:bg-[var(--color-surface-2)]/60 border border-transparent"
         )}
       >
         <div className="flex flex-col items-center gap-1 pt-0.5 min-w-[36px]">
           <span className="text-base leading-none">{EVENT_ICONS[event.type]}</span>
-          <span className="text-[10px] font-mono text-zinc-600">{fmtOffset(event.offsetMs)}</span>
+          <span className="text-[10px] font-mono text-[var(--color-text-muted)]">{fmtOffset(event.offsetMs)}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
@@ -714,14 +714,14 @@ function EventRow({
             >
               {event.status === "error" ? "✗" : event.status === "warning" ? "⚠" : "✓"}
             </span>
-            <span className="text-sm font-medium text-white truncate">{event.title}</span>
+            <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{event.title}</span>
             {event.tokens > 0 && (
-              <span className="ml-auto shrink-0 text-xs font-mono text-zinc-500">
+              <span className="ml-auto shrink-0 text-xs font-mono text-[var(--color-text-muted)]">
                 {event.tokens.toLocaleString()} tok
               </span>
             )}
           </div>
-          <p className="text-xs text-zinc-500 truncate">{event.summary}</p>
+          <p className="text-xs text-[var(--color-text-muted)] truncate">{event.summary}</p>
         </div>
         {event.latencyMs > 0 && (
           <div className="shrink-0 text-right">
@@ -731,8 +731,8 @@ function EventRow({
                 event.latencyMs > 3000
                   ? "text-amber-400"
                   : event.latencyMs > 1000
-                  ? "text-zinc-400"
-                  : "text-zinc-600"
+                  ? "text-[var(--color-text-secondary)]"
+                  : "text-[var(--color-text-muted)]"
               )}
             >
               {fmtMs(event.latencyMs)}
@@ -756,12 +756,12 @@ function EventInspector({
   return (
     <div className="flex flex-col h-full">
       {/* Inspector header */}
-      <div className="px-4 py-3 border-b border-zinc-800">
+      <div className="px-4 py-3 border-b border-[var(--color-border)]">
         <div className="flex items-start gap-2 mb-2">
           <span className="text-xl">{EVENT_ICONS[event.type]}</span>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-white truncate">{event.title}</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">{event.summary}</p>
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{event.title}</h3>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{event.summary}</p>
           </div>
           <span
             className={cn(
@@ -776,7 +776,7 @@ function EventInspector({
             {event.status}
           </span>
         </div>
-        <div className="flex gap-3 text-xs font-mono text-zinc-500">
+        <div className="flex gap-3 text-xs font-mono text-[var(--color-text-muted)]">
           <span>Offset: {fmtOffset(event.offsetMs)}</span>
           {event.latencyMs > 0 && <span>Latency: {fmtMs(event.latencyMs)}</span>}
           {event.tokens > 0 && <span>Tokens: {event.tokens.toLocaleString()}</span>}
@@ -792,8 +792,8 @@ function EventInspector({
             className={cn(
               "px-3 py-1 text-xs font-medium rounded transition-colors capitalize",
               panelTab === t
-                ? "bg-indigo-600 text-white"
-                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t}
@@ -805,22 +805,22 @@ function EventInspector({
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3">
         {panelTab === "detail" && (
           <>
-            <div className="bg-zinc-950 rounded-lg p-3 font-mono text-xs text-zinc-300 whitespace-pre-wrap leading-relaxed">
+            <div className="bg-[var(--color-surface-0)] rounded-lg p-3 font-mono text-xs text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed">
               {event.detail}
             </div>
 
             {event.tool && (
               <div className="space-y-2">
-                <p className="text-xs text-zinc-500 uppercase tracking-wide">Tool I/O</p>
+                <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Tool I/O</p>
                 <div className="space-y-1.5">
                   <div>
-                    <p className="text-xs text-zinc-600 mb-1">Input</p>
-                    <div className="bg-zinc-950 rounded p-2 font-mono text-xs text-indigo-300 whitespace-pre-wrap">
+                    <p className="text-xs text-[var(--color-text-muted)] mb-1">Input</p>
+                    <div className="bg-[var(--color-surface-0)] rounded p-2 font-mono text-xs text-indigo-300 whitespace-pre-wrap">
                       {event.tool.input}
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs text-zinc-600 mb-1">
+                    <p className="text-xs text-[var(--color-text-muted)] mb-1">
                       Output{" "}
                       <span
                         className={cn(
@@ -830,12 +830,12 @@ function EventInspector({
                       >
                         {event.tool.success ? "✓" : "✗"}
                       </span>{" "}
-                      <span className="text-zinc-600">{fmtMs(event.tool.durationMs)}</span>
+                      <span className="text-[var(--color-text-muted)]">{fmtMs(event.tool.durationMs)}</span>
                     </p>
                     <div
                       className={cn(
-                        "bg-zinc-950 rounded p-2 font-mono text-xs whitespace-pre-wrap max-h-36 overflow-y-auto",
-                        event.tool.success ? "text-zinc-300" : "text-rose-300"
+                        "bg-[var(--color-surface-0)] rounded p-2 font-mono text-xs whitespace-pre-wrap max-h-36 overflow-y-auto",
+                        event.tool.success ? "text-[var(--color-text-primary)]" : "text-rose-300"
                       )}
                     >
                       {event.tool.output}
@@ -847,32 +847,32 @@ function EventInspector({
 
             {event.context && (
               <div className="space-y-2">
-                <p className="text-xs text-zinc-500 uppercase tracking-wide">Context Window</p>
+                <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Context Window</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-zinc-950 rounded p-3">
-                    <p className="text-xs text-zinc-600 mb-1">Before</p>
-                    <p className="text-lg font-bold font-mono text-white">
+                  <div className="bg-[var(--color-surface-0)] rounded p-3">
+                    <p className="text-xs text-[var(--color-text-muted)] mb-1">Before</p>
+                    <p className="text-lg font-bold font-mono text-[var(--color-text-primary)]">
                       {event.context.tokensBefore.toLocaleString()}
                     </p>
-                    <p className="text-xs text-zinc-500">tokens</p>
+                    <p className="text-xs text-[var(--color-text-muted)]">tokens</p>
                   </div>
-                  <div className="bg-zinc-950 rounded p-3">
-                    <p className="text-xs text-zinc-600 mb-1">After</p>
+                  <div className="bg-[var(--color-surface-0)] rounded p-3">
+                    <p className="text-xs text-[var(--color-text-muted)] mb-1">After</p>
                     <p
                       className={cn(
                         "text-lg font-bold font-mono",
-                        event.context.compacted ? "text-emerald-400" : "text-white"
+                        event.context.compacted ? "text-emerald-400" : "text-[var(--color-text-primary)]"
                       )}
                     >
                       {event.context.tokensAfter.toLocaleString()}
                     </p>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-[var(--color-text-muted)]">
                       {event.context.compacted ? "compacted" : "tokens"}
                     </p>
                   </div>
                 </div>
                 {event.context.compacted && (
-                  <div className="bg-zinc-800 rounded p-2 text-xs text-zinc-400">
+                  <div className="bg-[var(--color-surface-2)] rounded p-2 text-xs text-[var(--color-text-secondary)]">
                     Saved{" "}
                     <span className="text-emerald-400 font-mono">
                       {(event.context.tokensBefore - event.context.tokensAfter).toLocaleString()}
@@ -892,7 +892,7 @@ function EventInspector({
         )}
 
         {panelTab === "raw" && (
-          <div className="bg-zinc-950 rounded-lg p-3 font-mono text-xs text-zinc-400 whitespace-pre-wrap leading-relaxed">
+          <div className="bg-[var(--color-surface-0)] rounded-lg p-3 font-mono text-xs text-[var(--color-text-secondary)] whitespace-pre-wrap leading-relaxed">
             {JSON.stringify(
               {
                 id: event.id,
@@ -921,7 +921,7 @@ function EventInspector({
 
         {panelTab === "context" && (
           <div className="space-y-3">
-            <p className="text-xs text-zinc-500 uppercase tracking-wide">Session context</p>
+            <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Session context</p>
             <div className="space-y-2">
               {[
                 { label: "Session", value: session.id },
@@ -939,8 +939,8 @@ function EventInspector({
                 },
               ].map((row) => (
                 <div key={row.label} className="flex justify-between text-xs">
-                  <span className="text-zinc-500">{row.label}</span>
-                  <span className="font-mono text-zinc-300">{row.value}</span>
+                  <span className="text-[var(--color-text-muted)]">{row.label}</span>
+                  <span className="font-mono text-[var(--color-text-primary)]">{row.value}</span>
                 </div>
               ))}
             </div>
@@ -948,12 +948,12 @@ function EventInspector({
             {/* Mini token budget bar */}
             <div className="mt-4">
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-zinc-500">Token budget</span>
-                <span className="font-mono text-zinc-400">
+                <span className="text-[var(--color-text-muted)]">Token budget</span>
+                <span className="font-mono text-[var(--color-text-secondary)]">
                   {session.totalTokens.toLocaleString()} / 200,000
                 </span>
               </div>
-              <div className="h-2 bg-zinc-800 rounded-full">
+              <div className="h-2 bg-[var(--color-surface-2)] rounded-full">
                 <div
                   className={cn(
                     "h-2 rounded-full",
@@ -983,30 +983,30 @@ function StatsStrip({ session, currentMs }: { session: DebugSession; currentMs: 
   const tokensSoFar = visibleEvents.reduce((acc, e) => acc + e.tokens, 0);
 
   return (
-    <div className="flex flex-wrap gap-4 px-4 py-3 bg-zinc-900 border-b border-zinc-800 text-xs">
+    <div className="flex flex-wrap gap-4 px-4 py-3 bg-[var(--color-surface-1)] border-b border-[var(--color-border)] text-xs">
       <div className="flex items-center gap-1.5">
-        <span className="text-zinc-500">Events</span>
-        <span className="font-mono text-white font-semibold">{visibleEvents.length}</span>
+        <span className="text-[var(--color-text-muted)]">Events</span>
+        <span className="font-mono text-[var(--color-text-primary)] font-semibold">{visibleEvents.length}</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="text-zinc-500">Tool calls</span>
+        <span className="text-[var(--color-text-muted)]">Tool calls</span>
         <span className="font-mono text-amber-400 font-semibold">{toolCount}</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="text-zinc-500">Errors</span>
-        <span className={cn("font-mono font-semibold", errorCount > 0 ? "text-rose-400" : "text-zinc-400")}>
+        <span className="text-[var(--color-text-muted)]">Errors</span>
+        <span className={cn("font-mono font-semibold", errorCount > 0 ? "text-rose-400" : "text-[var(--color-text-secondary)]")}>
           {errorCount}
         </span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="text-zinc-500">Tokens</span>
+        <span className="text-[var(--color-text-muted)]">Tokens</span>
         <span className="font-mono text-emerald-400 font-semibold">
           {tokensSoFar.toLocaleString()}
         </span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="text-zinc-500">Elapsed</span>
-        <span className="font-mono text-zinc-300">{fmtMs(currentMs)}</span>
+        <span className="text-[var(--color-text-muted)]">Elapsed</span>
+        <span className="font-mono text-[var(--color-text-primary)]">{fmtMs(currentMs)}</span>
       </div>
     </div>
   );
@@ -1091,15 +1091,15 @@ export default function SessionDebugTimeline() {
   const SPEEDS: PlaybackSpeed[] = [1, 2, 5, 10];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] flex flex-col">
       {/* ── Header ── */}
-      <div className="px-4 pt-5 pb-3 border-b border-zinc-800 bg-zinc-950 space-y-4">
+      <div className="px-4 pt-5 pb-3 border-b border-[var(--color-border)] bg-[var(--color-surface-0)] space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-white flex items-center gap-2">
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
               <span>🎬</span> Session Debug Timeline
             </h1>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
               Replay and inspect agent sessions event-by-event
             </p>
           </div>
@@ -1107,7 +1107,7 @@ export default function SessionDebugTimeline() {
           <select
             value={selectedSessionId}
             onChange={(e) => handleSessionChange(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-xs"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-xs"
           >
             {SESSIONS.map((s) => (
               <option key={s.id} value={s.id}>
@@ -1127,9 +1127,9 @@ export default function SessionDebugTimeline() {
             { label: "Events", value: String(session.events.length) },
             { label: "Tokens", value: session.totalTokens.toLocaleString() },
           ].map((m) => (
-            <div key={m.label} className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1">
-              <span className="text-zinc-500">{m.label}:</span>
-              <span className="font-mono text-zinc-300">{m.value}</span>
+            <div key={m.label} className="flex items-center gap-1.5 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-2.5 py-1">
+              <span className="text-[var(--color-text-muted)]">{m.label}:</span>
+              <span className="font-mono text-[var(--color-text-primary)]">{m.value}</span>
             </div>
           ))}
         </div>
@@ -1146,14 +1146,14 @@ export default function SessionDebugTimeline() {
             {/* Play / Pause */}
             <button
               onClick={playing ? () => setPlaying(false) : handlePlay}
-              className="w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-500 flex items-center justify-center text-white transition-colors"
+              className="w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-500 flex items-center justify-center text-[var(--color-text-primary)] transition-colors"
             >
               {playing ? "⏸" : "▶"}
             </button>
             {/* Restart */}
             <button
               onClick={() => { setCurrentMs(0); setPlaying(false); }}
-              className="w-7 h-7 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-400 transition-colors text-sm"
+              className="w-7 h-7 rounded-full bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] flex items-center justify-center text-[var(--color-text-secondary)] transition-colors text-sm"
               title="Restart"
             >
               ↺
@@ -1161,13 +1161,13 @@ export default function SessionDebugTimeline() {
             {/* Jump to end */}
             <button
               onClick={() => { setCurrentMs(session.durationMs); setPlaying(false); }}
-              className="w-7 h-7 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-400 transition-colors text-sm"
+              className="w-7 h-7 rounded-full bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] flex items-center justify-center text-[var(--color-text-secondary)] transition-colors text-sm"
               title="Jump to end"
             >
               ⏭
             </button>
 
-            <div className="w-px h-5 bg-zinc-700" />
+            <div className="w-px h-5 bg-[var(--color-surface-3)]" />
 
             {/* Speed */}
             <div className="flex items-center gap-1">
@@ -1178,8 +1178,8 @@ export default function SessionDebugTimeline() {
                   className={cn(
                     "px-2 py-0.5 text-xs font-mono rounded transition-colors",
                     speed === s
-                      ? "bg-indigo-600 text-white"
-                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                   )}
                 >
                   {s}×
@@ -1187,7 +1187,7 @@ export default function SessionDebugTimeline() {
               ))}
             </div>
 
-            <div className="w-px h-5 bg-zinc-700" />
+            <div className="w-px h-5 bg-[var(--color-surface-3)]" />
 
             {/* Filter chips */}
             <div className="flex flex-wrap gap-1">
@@ -1198,8 +1198,8 @@ export default function SessionDebugTimeline() {
                   className={cn(
                     "px-2 py-0.5 text-xs rounded transition-colors",
                     filter === f.value
-                      ? "bg-zinc-700 text-white"
-                      : "text-zinc-600 hover:text-zinc-400"
+                      ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+                      : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
                   )}
                 >
                   {f.label}
@@ -1216,9 +1216,9 @@ export default function SessionDebugTimeline() {
       {/* ── Main body ── */}
       <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0 }}>
         {/* Event list */}
-        <div className="w-1/2 border-r border-zinc-800 overflow-y-auto flex flex-col">
+        <div className="w-1/2 border-r border-[var(--color-border)] overflow-y-auto flex flex-col">
           {visibleEvents.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm">
+            <div className="flex-1 flex items-center justify-center text-[var(--color-text-muted)] text-sm">
               {currentMs === 0 ? "Press ▶ to start replay" : "No events match the current filter"}
             </div>
           ) : (
@@ -1241,10 +1241,10 @@ export default function SessionDebugTimeline() {
           {selectedEvent ? (
             <EventInspector event={selectedEvent} session={session} />
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 gap-2">
+            <div className="flex-1 flex flex-col items-center justify-center text-[var(--color-text-muted)] gap-2">
               <span className="text-3xl">🔍</span>
               <p className="text-sm">Select an event to inspect</p>
-              <p className="text-xs text-zinc-700">
+              <p className="text-xs text-[var(--color-text-muted)]">
                 Click any event in the timeline to view details, tool I/O, and context state
               </p>
             </div>
@@ -1253,12 +1253,12 @@ export default function SessionDebugTimeline() {
       </div>
 
       {/* ── Legend ── */}
-      <div className="flex flex-wrap items-center gap-4 px-4 py-2.5 border-t border-zinc-800 bg-zinc-950">
-        <span className="text-xs text-zinc-600 uppercase tracking-wide">Legend</span>
+      <div className="flex flex-wrap items-center gap-4 px-4 py-2.5 border-t border-[var(--color-border)] bg-[var(--color-surface-0)]">
+        <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Legend</span>
         {(Object.entries(EVENT_ICONS) as [EventType, string][]).map(([type, icon]) => (
           <div key={type} className="flex items-center gap-1.5">
             <div className={cn("w-2.5 h-2.5 rounded-sm", EVENT_COLORS[type])} />
-            <span className="text-xs text-zinc-500 capitalize">
+            <span className="text-xs text-[var(--color-text-muted)] capitalize">
               {type.replace("_", " ")}
             </span>
           </div>

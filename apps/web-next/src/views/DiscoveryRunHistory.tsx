@@ -254,7 +254,7 @@ function severityBadge(severity: Finding["severity"]): string {
     case "medium":
       return "text-amber-400 bg-amber-950";
     case "low":
-      return "text-zinc-400 bg-zinc-800";
+      return "text-[var(--color-text-secondary)] bg-[var(--color-surface-2)]";
   }
 }
 
@@ -372,59 +372,59 @@ const DiscoveryRunHistory: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-6 font-mono">
+    <div className="min-h-screen bg-[var(--color-surface-1)] text-[var(--color-text-primary)] p-6 font-mono">
       {/* ── Header ── */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-1">
           <span className="text-2xl">📋</span>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Discovery Run History</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">Discovery Run History</h1>
         </div>
-        <p className="text-sm text-gray-400 ml-12">
+        <p className="text-sm text-[var(--color-text-secondary)] ml-12">
           Past discovery runs · {totalRuns} total runs
         </p>
       </div>
 
       {/* ── Summary Stats ── */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-          <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Total Runs</div>
-          <div className="text-3xl font-bold tabular-nums text-white">{totalRuns}</div>
-          <div className="text-xs text-gray-500 mt-1">past 6 weeks</div>
+        <div className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-xl p-4">
+          <div className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-2">Total Runs</div>
+          <div className="text-3xl font-bold tabular-nums text-[var(--color-text-primary)]">{totalRuns}</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">past 6 weeks</div>
         </div>
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-          <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Avg Cost</div>
+        <div className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-xl p-4">
+          <div className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-2">Avg Cost</div>
           <div className="text-3xl font-bold tabular-nums text-emerald-400">${avgCost.toFixed(2)}</div>
-          <div className="text-xs text-gray-500 mt-1">per run</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">per run</div>
         </div>
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
-          <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Total Findings</div>
+        <div className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-xl p-4">
+          <div className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-2">Total Findings</div>
           <div className="text-3xl font-bold tabular-nums text-amber-400">{totalFindings}</div>
-          <div className="text-xs text-gray-500 mt-1">across all runs</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">across all runs</div>
         </div>
       </div>
 
       {/* ── Filter Bar ── */}
-      <div className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4 mb-6">
+      <div className="bg-[var(--color-surface-2)]/30 border border-[var(--color-border)]/50 rounded-xl p-4 mb-6">
         <div className="flex flex-wrap items-center gap-4">
           {/* Search */}
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
             <input
               type="text"
               placeholder="Search runs, agents, domains..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 transition-colors"
+              className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg pl-10 pr-4 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 transition-colors"
             />
           </div>
 
           {/* Status filter */}
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-500" />
+            <Filter className="w-4 h-4 text-[var(--color-text-muted)]" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as RunStatus | "all")}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 cursor-pointer"
+              className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 cursor-pointer"
             >
               <option value="all">All Status</option>
               <option value="completed">Completed</option>
@@ -435,21 +435,21 @@ const DiscoveryRunHistory: React.FC = () => {
 
           {/* Cost range */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 uppercase tracking-wider">Cost:</span>
+            <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Cost:</span>
             <input
               type="number"
               placeholder="Min"
               value={costMin}
               onChange={(e) => setCostMin(e.target.value)}
-              className="w-20 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30"
+              className="w-20 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30"
             />
-            <span className="text-gray-500">—</span>
+            <span className="text-[var(--color-text-muted)]">—</span>
             <input
               type="number"
               placeholder="Max"
               value={costMax}
               onChange={(e) => setCostMax(e.target.value)}
-              className="w-20 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30"
+              className="w-20 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30"
             />
           </div>
 
@@ -462,7 +462,7 @@ const DiscoveryRunHistory: React.FC = () => {
                 setCostMin("");
                 setCostMax("");
               }}
-              className="text-xs text-gray-400 hover:text-gray-200 px-2 py-1 rounded hover:bg-gray-700 transition-colors flex items-center gap-1"
+              className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] px-2 py-1 rounded hover:bg-[var(--color-surface-3)] transition-colors flex items-center gap-1"
             >
               <X className="w-3 h-3" />
               Clear
@@ -472,24 +472,24 @@ const DiscoveryRunHistory: React.FC = () => {
       </div>
 
       {/* ── Results Count ── */}
-      <div className="text-xs text-gray-500 mb-3">
+      <div className="text-xs text-[var(--color-text-muted)] mb-3">
         Showing {paginatedRuns.length} of {filteredRuns.length} runs
         {filteredRuns.length !== runs.length && ` (filtered from ${runs.length} total)`}
       </div>
 
       {/* ── Table ── */}
-      <div className="bg-gray-800/30 border border-gray-700/50 rounded-xl overflow-hidden">
+      <div className="bg-[var(--color-surface-2)]/30 border border-[var(--color-border)]/50 rounded-xl overflow-hidden">
         {/* Table Header */}
-        <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-800/50 border-b border-gray-700/50 text-xs uppercase tracking-widest text-gray-500 font-medium">
+        <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-[var(--color-surface-2)]/50 border-b border-[var(--color-border)]/50 text-xs uppercase tracking-widest text-[var(--color-text-muted)] font-medium">
           <button
             onClick={() => handleSort("startTime")}
-            className="col-span-3 text-left hover:text-gray-300 transition-colors flex items-center"
+            className="col-span-3 text-left hover:text-[var(--color-text-primary)] transition-colors flex items-center"
           >
             Run <SortIcon field="startTime" />
           </button>
           <button
             onClick={() => handleSort("duration")}
-            className="col-span-2 text-left hover:text-gray-300 transition-colors flex items-center"
+            className="col-span-2 text-left hover:text-[var(--color-text-primary)] transition-colors flex items-center"
           >
             Duration <SortIcon field="duration" />
           </button>
@@ -497,13 +497,13 @@ const DiscoveryRunHistory: React.FC = () => {
           <div className="col-span-1 text-center">Agents</div>
           <button
             onClick={() => handleSort("findingsCount")}
-            className="col-span-2 text-right hover:text-gray-300 transition-colors flex items-center justify-end"
+            className="col-span-2 text-right hover:text-[var(--color-text-primary)] transition-colors flex items-center justify-end"
           >
             Findings <SortIcon field="findingsCount" />
           </button>
           <button
             onClick={() => handleSort("totalCost")}
-            className="col-span-2 text-right hover:text-gray-300 transition-colors flex items-center justify-end"
+            className="col-span-2 text-right hover:text-[var(--color-text-primary)] transition-colors flex items-center justify-end"
           >
             Cost <SortIcon field="totalCost" />
           </button>
@@ -514,8 +514,8 @@ const DiscoveryRunHistory: React.FC = () => {
         {paginatedRuns.length === 0 ? (
           <div className="py-16 text-center">
             <div className="text-4xl mb-4">🔍</div>
-            <div className="text-gray-400 mb-2">No runs found</div>
-            <div className="text-sm text-gray-600">
+            <div className="text-[var(--color-text-secondary)] mb-2">No runs found</div>
+            <div className="text-sm text-[var(--color-text-muted)]">
               Try adjusting your filters or search query
             </div>
           </div>
@@ -530,20 +530,20 @@ const DiscoveryRunHistory: React.FC = () => {
                   {/* Row */}
                   <div
                     className={cn(
-                      "grid grid-cols-12 gap-4 px-4 py-3 items-center hover:bg-gray-800/30 transition-colors cursor-pointer",
-                      isExpanded && "bg-gray-800/50"
+                      "grid grid-cols-12 gap-4 px-4 py-3 items-center hover:bg-[var(--color-surface-2)]/30 transition-colors cursor-pointer",
+                      isExpanded && "bg-[var(--color-surface-2)]/50"
                     )}
                     onClick={() => setExpandedRun(isExpanded ? null : run.id)}
                   >
                     {/* Run ID + Time */}
                     <div className="col-span-3">
-                      <div className="font-semibold text-sm text-white">{run.id}</div>
-                      <div className="text-xs text-gray-500 mt-0.5">{formatTime(run.startTime)}</div>
+                      <div className="font-semibold text-sm text-[var(--color-text-primary)]">{run.id}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{formatTime(run.startTime)}</div>
                     </div>
 
                     {/* Duration */}
-                    <div className="col-span-2 flex items-center gap-1.5 text-sm text-gray-300">
-                      <Clock className="w-3.5 h-3.5 text-gray-500" />
+                    <div className="col-span-2 flex items-center gap-1.5 text-sm text-[var(--color-text-primary)]">
+                      <Clock className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
                       {formatDuration(run.duration)}
                     </div>
 
@@ -563,8 +563,8 @@ const DiscoveryRunHistory: React.FC = () => {
 
                     {/* Agents */}
                     <div className="col-span-1 text-center">
-                      <div className="inline-flex items-center gap-1 text-sm text-gray-300">
-                        <Users className="w-3.5 h-3.5 text-gray-500" />
+                      <div className="inline-flex items-center gap-1 text-sm text-[var(--color-text-primary)]">
+                        <Users className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
                         {run.agentCount}
                       </div>
                     </div>
@@ -589,7 +589,7 @@ const DiscoveryRunHistory: React.FC = () => {
                     <div className="col-span-1 text-center">
                       <Expand
                         className={cn(
-                          "w-4 h-4 text-gray-500 mx-auto transition-transform",
+                          "w-4 h-4 text-[var(--color-text-muted)] mx-auto transition-transform",
                           isExpanded && "rotate-180"
                         )}
                       />
@@ -598,28 +598,28 @@ const DiscoveryRunHistory: React.FC = () => {
 
                   {/* Expanded Detail Panel */}
                   {isExpanded && (
-                    <div className="border-t border-gray-700/50 bg-gray-800/20 p-4">
+                    <div className="border-t border-[var(--color-border)]/50 bg-[var(--color-surface-2)]/20 p-4">
                       {/* Wave Breakdown */}
                       <div className="mb-4">
-                        <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Wave Breakdown</div>
+                        <div className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-2">Wave Breakdown</div>
                         <div className="grid grid-cols-3 gap-3">
                           {run.waveBreakdown.map((wave) => (
                             <div
                               key={wave.wave}
-                              className="bg-gray-900/50 border border-gray-700/30 rounded-lg p-3"
+                              className="bg-[var(--color-surface-1)]/50 border border-[var(--color-border)]/30 rounded-lg p-3"
                             >
-                              <div className="text-xs font-medium text-gray-300 mb-1">Wave {wave.wave}</div>
+                              <div className="text-xs font-medium text-[var(--color-text-primary)] mb-1">Wave {wave.wave}</div>
                               <div className="grid grid-cols-3 gap-2 text-xs">
                                 <div>
-                                  <div className="text-gray-600">Agents</div>
-                                  <div className="text-gray-300">{wave.agents}</div>
+                                  <div className="text-[var(--color-text-muted)]">Agents</div>
+                                  <div className="text-[var(--color-text-primary)]">{wave.agents}</div>
                                 </div>
                                 <div>
-                                  <div className="text-gray-600">Findings</div>
+                                  <div className="text-[var(--color-text-muted)]">Findings</div>
                                   <div className="text-amber-400">{wave.findings}</div>
                                 </div>
                                 <div>
-                                  <div className="text-gray-600">Cost</div>
+                                  <div className="text-[var(--color-text-muted)]">Cost</div>
                                   <div className="text-emerald-400">${wave.cost.toFixed(2)}</div>
                                 </div>
                               </div>
@@ -630,13 +630,13 @@ const DiscoveryRunHistory: React.FC = () => {
 
                       {/* Agent Summary */}
                       <div className="mb-4">
-                        <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Agent Summary</div>
+                        <div className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-2">Agent Summary</div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                           {run.agents.map((agent) => (
                             <div
                               key={agent.id}
                               className={cn(
-                                "bg-gray-900/50 border rounded-lg p-2 text-xs",
+                                "bg-[var(--color-surface-1)]/50 border rounded-lg p-2 text-xs",
                                 agent.status === "completed"
                                   ? "border-emerald-800/50"
                                   : agent.status === "failed"
@@ -644,8 +644,8 @@ const DiscoveryRunHistory: React.FC = () => {
                                   : "border-amber-800/50"
                               )}
                             >
-                              <div className="font-medium text-gray-200 truncate">{agent.name}</div>
-                              <div className="text-gray-500 truncate">{agent.domain}</div>
+                              <div className="font-medium text-[var(--color-text-primary)] truncate">{agent.name}</div>
+                              <div className="text-[var(--color-text-muted)] truncate">{agent.domain}</div>
                               <div className="mt-1 flex justify-between">
                                 <span
                                   className={cn(
@@ -659,7 +659,7 @@ const DiscoveryRunHistory: React.FC = () => {
                                 >
                                   {agent.findingsCount} findings
                                 </span>
-                                <span className="text-gray-600">${agent.cost.toFixed(2)}</span>
+                                <span className="text-[var(--color-text-muted)]">${agent.cost.toFixed(2)}</span>
                               </div>
                             </div>
                           ))}
@@ -669,14 +669,14 @@ const DiscoveryRunHistory: React.FC = () => {
                       {/* Top Findings */}
                       {run.findings.length > 0 && (
                         <div>
-                          <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">
+                          <div className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-2">
                             Top Findings ({run.findings.length})
                           </div>
                           <div className="space-y-2">
                             {run.findings.slice(0, 8).map((finding) => (
                               <div
                                 key={finding.id}
-                                className="flex items-center justify-between bg-gray-900/30 border border-gray-700/30 rounded-lg px-3 py-2 text-xs"
+                                className="flex items-center justify-between bg-[var(--color-surface-1)]/30 border border-[var(--color-border)]/30 rounded-lg px-3 py-2 text-xs"
                               >
                                 <div className="flex items-center gap-3 min-w-0">
                                   <span
@@ -687,15 +687,15 @@ const DiscoveryRunHistory: React.FC = () => {
                                   >
                                     {finding.severity}
                                   </span>
-                                  <span className="text-gray-300 truncate">{finding.title}</span>
+                                  <span className="text-[var(--color-text-primary)] truncate">{finding.title}</span>
                                 </div>
-                                <div className="flex items-center gap-3 text-gray-500 flex-shrink-0 ml-4">
+                                <div className="flex items-center gap-3 text-[var(--color-text-muted)] flex-shrink-0 ml-4">
                                   <span>{finding.agent}</span>
                                 </div>
                               </div>
                             ))}
                             {run.findings.length > 8 && (
-                              <div className="text-xs text-gray-500 text-center py-1">
+                              <div className="text-xs text-[var(--color-text-muted)] text-center py-1">
                                 +{run.findings.length - 8} more findings
                               </div>
                             )}
@@ -714,7 +714,7 @@ const DiscoveryRunHistory: React.FC = () => {
       {/* ── Pagination ── */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-[var(--color-text-muted)]">
             Page {currentPage} of {totalPages}
           </div>
           <div className="flex items-center gap-2">
@@ -722,11 +722,11 @@ const DiscoveryRunHistory: React.FC = () => {
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
               className={cn(
-                "p-2 rounded-lg border border-gray-700 hover:bg-gray-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed",
+                "p-2 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-surface-2)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed",
                 currentPage === 1 ? "cursor-not-allowed" : "cursor-pointer"
               )}
             >
-              <ChevronLeft className="w-4 h-4 text-gray-400" />
+              <ChevronLeft className="w-4 h-4 text-[var(--color-text-secondary)]" />
             </button>
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum: number;
@@ -746,8 +746,8 @@ const DiscoveryRunHistory: React.FC = () => {
                   className={cn(
                     "w-8 h-8 rounded-lg text-xs font-medium transition-colors",
                     currentPage === pageNum
-                      ? "bg-sky-600 text-white"
-                      : "text-gray-400 hover:bg-gray-800"
+                      ? "bg-sky-600 text-[var(--color-text-primary)]"
+                      : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)]"
                   )}
                 >
                   {pageNum}
@@ -758,18 +758,18 @@ const DiscoveryRunHistory: React.FC = () => {
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className={cn(
-                "p-2 rounded-lg border border-gray-700 hover:bg-gray-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed",
+                "p-2 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-surface-2)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed",
                 currentPage === totalPages ? "cursor-not-allowed" : "cursor-pointer"
               )}
             >
-              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <ChevronRight className="w-4 h-4 text-[var(--color-text-secondary)]" />
             </button>
           </div>
         </div>
       )}
 
       {/* ── Footer ── */}
-      <div className="mt-8 pt-4 border-t border-gray-700/50 text-xs text-gray-600 flex justify-between">
+      <div className="mt-8 pt-4 border-t border-[var(--color-border)]/50 text-xs text-[var(--color-text-muted)] flex justify-between">
         <span>DiscoveryRunHistory v1.0 — OpenClaw Horizon UI</span>
         <span className="tabular-nums">Last updated: {formatTime(new Date().toISOString())}</span>
       </div>

@@ -304,7 +304,7 @@ function SeverityBadge({ severity, count }: { severity: AlertSeverity; count: nu
 
 function TagBadge({ tag }: { tag: AlertTag }) {
   const colors: Record<AlertTag['type'], string> = {
-    channel: 'bg-zinc-700/50 text-zinc-300',
+    channel: 'bg-[var(--color-surface-3)]/50 text-[var(--color-text-primary)]',
     tool: 'bg-amber-500/15 text-amber-400',
     action: 'bg-violet-500/15 text-violet-400',
   };
@@ -327,14 +327,14 @@ function StatCard({
   icon: React.ElementType;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex items-start gap-2.5">
-      <div className="mt-0.5 p-1.5 bg-zinc-800 rounded-md">
-        <Icon className="w-3.5 h-3.5 text-zinc-400" />
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-3 flex items-start gap-2.5">
+      <div className="mt-0.5 p-1.5 bg-[var(--color-surface-2)] rounded-md">
+        <Icon className="w-3.5 h-3.5 text-[var(--color-text-secondary)]" />
       </div>
       <div>
-        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wide">{label}</p>
-        <p className="text-lg font-bold text-white">{value}</p>
-        {sub && <p className="text-[10px] text-zinc-500">{sub}</p>}
+        <p className="text-[10px] text-[var(--color-text-muted)] font-medium uppercase tracking-wide">{label}</p>
+        <p className="text-lg font-bold text-[var(--color-text-primary)]">{value}</p>
+        {sub && <p className="text-[10px] text-[var(--color-text-muted)]">{sub}</p>}
       </div>
     </div>
   );
@@ -355,8 +355,8 @@ function FilterButton({
       className={cn(
         'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
         active
-          ? 'bg-violet-600 text-white'
-          : 'bg-zinc-800 text-zinc-400 hover:text-zinc-300 hover:bg-zinc-700',
+          ? 'bg-violet-600 text-[var(--color-text-primary)]'
+          : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]',
       )}
     >
       {children}
@@ -379,8 +379,8 @@ function TimeRangeButton({
       className={cn(
         'px-2.5 py-1 rounded-md text-xs font-medium transition-colors',
         active
-          ? 'bg-zinc-700 text-white'
-          : 'text-zinc-500 hover:text-zinc-400',
+          ? 'bg-[var(--color-surface-3)] text-[var(--color-text-primary)]'
+          : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]',
       )}
     >
       {children}
@@ -420,27 +420,27 @@ function AlertCard({
   };
 
   const statusStyles: Record<AlertStatus, string> = {
-    active: 'bg-zinc-800 text-zinc-400',
+    active: 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]',
     acknowledged: 'bg-violet-500/15 text-violet-400',
     resolved: 'bg-green-500/15 text-green-400',
   };
 
   return (
     <div className={cn('border-l-2 rounded-r-lg overflow-hidden', severityStyles[alert.severity])}>
-      <div className="bg-zinc-900/80 px-4 py-3">
+      <div className="bg-[var(--color-surface-1)]/80 px-4 py-3">
         {/* Header row */}
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex items-center gap-2">
             <SeverityIcon severity={alert.severity} className={iconColors[alert.severity]} />
-            <span className="font-mono text-xs text-zinc-500">{alert.id}</span>
-            <span className="text-xs text-zinc-600">·</span>
-            <span className="text-xs text-zinc-500 flex items-center gap-1">
+            <span className="font-mono text-xs text-[var(--color-text-muted)]">{alert.id}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">·</span>
+            <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {formatRelativeTime(alert.timestamp)}
             </span>
-            <span className="text-xs text-zinc-600">·</span>
+            <span className="text-xs text-[var(--color-text-muted)]">·</span>
             <span className="text-sm">{alert.agentEmoji}</span>
-            <span className="text-xs text-zinc-400">{alert.agentName}</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">{alert.agentName}</span>
           </div>
           <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-medium', statusStyles[alert.status])}>
             {alert.status.toUpperCase()}
@@ -448,20 +448,20 @@ function AlertCard({
         </div>
 
         {/* Message */}
-        <p className="text-sm text-zinc-200 mb-2 leading-relaxed">{alert.message}</p>
+        <p className="text-sm text-[var(--color-text-primary)] mb-2 leading-relaxed">{alert.message}</p>
 
         {/* Detail expansion */}
         {alert.detail && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-400 mb-2"
+            className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] mb-2"
           >
             {expanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
             {expanded ? 'Hide details' : 'Show details'}
           </button>
         )}
         {expanded && alert.detail && (
-          <pre className="text-xs text-zinc-500 bg-zinc-950 p-2 rounded mb-2 overflow-x-auto">
+          <pre className="text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-0)] p-2 rounded mb-2 overflow-x-auto">
             {alert.detail}
           </pre>
         )}
@@ -501,13 +501,13 @@ function AlertCard({
             </button>
             <button
               onClick={() => onSnooze(alert.id)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] text-xs font-medium transition-colors"
             >
               <BellOff className="w-3 h-3" />
               Snooze 15m
             </button>
             <button
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] text-xs font-medium transition-colors"
             >
               <Link2 className="w-3 h-3" />
               Correlate
@@ -546,20 +546,20 @@ function MuteRulesDrawer({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-80 bg-zinc-900 border-l border-zinc-800 rounded-l-xl shadow-2xl max-h-[80vh] flex flex-col">
-        <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+      <div className="relative w-80 bg-[var(--color-surface-1)] border-l border-[var(--color-border)] rounded-l-xl shadow-2xl max-h-[80vh] flex flex-col">
+        <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BellOff className="w-4 h-4 text-zinc-400" />
-            <span className="text-sm font-semibold text-white">Mute Rules</span>
+            <BellOff className="w-4 h-4 text-[var(--color-text-secondary)]" />
+            <span className="text-sm font-semibold text-[var(--color-text-primary)]">Mute Rules</span>
           </div>
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300">
+          <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {rules.length === 0 ? (
-            <div className="text-center text-zinc-500 py-8">
+            <div className="text-center text-[var(--color-text-muted)] py-8">
               <BellOff className="w-8 h-8 mx-auto mb-2 opacity-40" />
               <p className="text-xs">No active mute rules</p>
             </div>
@@ -567,21 +567,21 @@ function MuteRulesDrawer({
             rules.map((rule) => (
               <div
                 key={rule.id}
-                className="bg-zinc-800/50 rounded-lg p-3 flex items-start justify-between gap-2"
+                className="bg-[var(--color-surface-2)]/50 rounded-lg p-3 flex items-start justify-between gap-2"
               >
                 <div className="flex-1 min-w-0">
                   {rule.agentName && (
                     <p className="text-xs text-violet-400 mb-0.5">{rule.agentName}</p>
                   )}
-                  <p className="text-xs text-zinc-300 font-mono truncate">{rule.pattern}</p>
-                  <p className="text-[10px] text-zinc-500 mt-1 flex items-center gap-1">
+                  <p className="text-xs text-[var(--color-text-primary)] font-mono truncate">{rule.pattern}</p>
+                  <p className="text-[10px] text-[var(--color-text-muted)] mt-1 flex items-center gap-1">
                     <Timer className="w-2.5 h-2.5" />
                     Expires in {formatMuteExpiry(rule.expiresAt)}
                   </p>
                 </div>
                 <button
                   onClick={() => onRemove(rule.id)}
-                  className="text-zinc-500 hover:text-red-400 p-1"
+                  className="text-[var(--color-text-muted)] hover:text-red-400 p-1"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -590,8 +590,8 @@ function MuteRulesDrawer({
           )}
         </div>
 
-        <div className="px-4 py-3 border-t border-zinc-800">
-          <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">
+        <div className="px-4 py-3 border-t border-[var(--color-border)]">
+          <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-xs font-medium transition-colors">
             <Plus className="w-3.5 h-3.5" />
             Add Rule
           </button>
@@ -712,15 +712,15 @@ export default function OperatorAlertFeed() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-5">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
             <Bell className="w-6 h-6 text-violet-400" />
             Alert Feed
           </h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Real-time alert management for operators</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Real-time alert management for operators</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 mr-2">
@@ -731,14 +731,14 @@ export default function OperatorAlertFeed() {
           </div>
           <button
             onClick={handleMarkAllRead}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs font-medium transition-colors"
           >
             <Check className="w-3.5 h-3.5" />
             Mark All Read
           </button>
           <button
             onClick={() => setMuteDrawerOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs font-medium transition-colors"
           >
             <BellOff className="w-3.5 h-3.5" />
             Mute Rules
@@ -756,17 +756,17 @@ export default function OperatorAlertFeed() {
 
       {/* Filter Strip */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 bg-zinc-900 rounded-lg p-1 border border-zinc-800">
+        <div className="flex items-center gap-1.5 bg-[var(--color-surface-1)] rounded-lg p-1 border border-[var(--color-border)]">
           <FilterButton active={filter === 'all'} onClick={() => setFilter('all')}>All</FilterButton>
           <FilterButton active={filter === 'critical'} onClick={() => setFilter('critical')}>Critical</FilterButton>
           <FilterButton active={filter === 'error'} onClick={() => setFilter('error')}>Error</FilterButton>
           <FilterButton active={filter === 'warning'} onClick={() => setFilter('warning')}>Warning</FilterButton>
           <FilterButton active={filter === 'info'} onClick={() => setFilter('info')}>Info</FilterButton>
-          <div className="w-px h-5 bg-zinc-700 mx-1" />
+          <div className="w-px h-5 bg-[var(--color-surface-3)] mx-1" />
           <FilterButton active={filter === 'acknowledged'} onClick={() => setFilter('acknowledged')}>Acknowledged</FilterButton>
           <FilterButton active={filter === 'resolved'} onClick={() => setFilter('resolved')}>Resolved</FilterButton>
         </div>
-        <div className="flex items-center gap-1 bg-zinc-900 rounded-lg p-1 border border-zinc-800">
+        <div className="flex items-center gap-1 bg-[var(--color-surface-1)] rounded-lg p-1 border border-[var(--color-border)]">
           <TimeRangeButton active={timeRange === '15m'} onClick={() => setTimeRange('15m')}>15m</TimeRangeButton>
           <TimeRangeButton active={timeRange === '1h'} onClick={() => setTimeRange('1h')}>1h</TimeRangeButton>
           <TimeRangeButton active={timeRange === '6h'} onClick={() => setTimeRange('6h')}>6h</TimeRangeButton>
@@ -777,10 +777,10 @@ export default function OperatorAlertFeed() {
       {/* Alert Feed */}
       <div className="space-y-3">
         {filteredAlerts.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl py-16 flex flex-col items-center justify-center text-zinc-500">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl py-16 flex flex-col items-center justify-center text-[var(--color-text-muted)]">
             <BellOff className="w-10 h-10 mb-3 opacity-40" />
             <p className="text-sm">No alerts for this filter</p>
-            <p className="text-xs text-zinc-600 mt-1">Try adjusting your filters or time range</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1">Try adjusting your filters or time range</p>
           </div>
         ) : (
           filteredAlerts.map((alert) => (

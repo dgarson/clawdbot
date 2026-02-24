@@ -108,21 +108,21 @@ export default function AccessTokenManager() {
 
   const TOKEN_STATUS_STYLES: Record<string, string> = {
     active:  "bg-emerald-400/15 text-emerald-400 border-emerald-500/30",
-    expired: "bg-zinc-700 text-zinc-400 border-zinc-600",
+    expired: "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] border-[var(--color-surface-3)]",
     revoked: "bg-rose-400/15 text-rose-400 border-rose-500/30",
   };
 
   const fmtTime = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Access Token Manager</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">Manage OAuth apps, access tokens, and JWT configuration</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Access Token Manager</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Manage OAuth apps, access tokens, and JWT configuration</p>
         </div>
-        <button className="text-sm px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors">
+        <button className="text-sm px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors">
           + Register App
         </button>
       </div>
@@ -132,25 +132,25 @@ export default function AccessTokenManager() {
         {[
           { label: "OAuth Apps",      value: APPS.filter(a=>a.status==="active").length, color: "text-indigo-400" },
           { label: "Active Tokens",   value: activeTokens,  color: "text-emerald-400" },
-          { label: "Expired",         value: expiredTokens, color: "text-zinc-400" },
+          { label: "Expired",         value: expiredTokens, color: "text-[var(--color-text-secondary)]" },
           { label: "Revoked",         value: revokedTokens, color: "text-rose-400" },
         ].map(card => (
-          <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <div className="text-xs text-zinc-400 mb-1">{card.label}</div>
+          <div key={card.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <div className="text-xs text-[var(--color-text-secondary)] mb-1">{card.label}</div>
             <div className={cn("text-2xl font-bold", card.color)}>{card.value}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)] w-fit">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
-              activeTab === t.id ? "bg-indigo-500 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              activeTab === t.id ? "bg-indigo-500 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t.emoji} {t.label}
@@ -163,43 +163,43 @@ export default function AccessTokenManager() {
         <div className="grid grid-cols-5 gap-4">
           <div className="col-span-3 space-y-3">
             <div className="flex gap-2">
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="bg-zinc-800 border border-zinc-700 text-white text-xs rounded px-2 py-1.5 focus:outline-none">
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none">
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
                 <option value="expired">Expired</option>
                 <option value="revoked">Revoked</option>
               </select>
-              <select value={filterApp} onChange={e => setFilterApp(e.target.value)} className="bg-zinc-800 border border-zinc-700 text-white text-xs rounded px-2 py-1.5 focus:outline-none">
+              <select value={filterApp} onChange={e => setFilterApp(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none">
                 <option value="all">All Apps</option>
                 {APPS.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
               {filteredTokens.map(token => (
                 <button
                   key={token.id}
                   onClick={() => setSelectedToken(token)}
                   className={cn(
-                    "w-full border-b border-zinc-800 last:border-b-0 p-4 text-left hover:bg-zinc-800/30 transition-colors",
-                    selectedToken?.id === token.id && "bg-zinc-800/50"
+                    "w-full border-b border-[var(--color-border)] last:border-b-0 p-4 text-left hover:bg-[var(--color-surface-2)]/30 transition-colors",
+                    selectedToken?.id === token.id && "bg-[var(--color-surface-2)]/50"
                   )}
                 >
                   <div className="flex items-start justify-between mb-1.5">
                     <div className="flex items-center gap-2">
                       <span className={cn("text-xs px-2 py-0.5 rounded border", TOKEN_STATUS_STYLES[token.status])}>{token.status}</span>
-                      <span className="text-sm font-mono text-zinc-300 truncate max-w-[160px]">{token.id}</span>
+                      <span className="text-sm font-mono text-[var(--color-text-primary)] truncate max-w-[160px]">{token.id}</span>
                     </div>
-                    <span className="text-xs text-zinc-500">{fmtTime(token.issuedAt)}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{fmtTime(token.issuedAt)}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-zinc-400">
+                  <div className="flex items-center gap-3 text-xs text-[var(--color-text-secondary)]">
                     <span>{token.userEmail}</span>
                     <span>·</span>
                     <span>{getAppName(token.appId)}</span>
                   </div>
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {token.scopes.map(s => (
-                      <span key={s} className="text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 px-1.5 py-0.5 rounded font-mono">{s}</span>
+                      <span key={s} className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] px-1.5 py-0.5 rounded font-mono">{s}</span>
                     ))}
                   </div>
                 </button>
@@ -209,9 +209,9 @@ export default function AccessTokenManager() {
 
           <div className="col-span-2">
             {selectedToken ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-white">Token Detail</h3>
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Token Detail</h3>
                   <span className={cn("text-xs px-2 py-0.5 rounded border", TOKEN_STATUS_STYLES[selectedToken.status])}>{selectedToken.status}</span>
                 </div>
 
@@ -227,17 +227,17 @@ export default function AccessTokenManager() {
                     ["User Agent", selectedToken.userAgent],
                   ].map(([k, v]) => (
                     <div key={k} className="flex justify-between">
-                      <span className="text-zinc-500">{k}</span>
-                      <span className="text-zinc-300 font-mono max-w-[60%] truncate text-right">{v}</span>
+                      <span className="text-[var(--color-text-muted)]">{k}</span>
+                      <span className="text-[var(--color-text-primary)] font-mono max-w-[60%] truncate text-right">{v}</span>
                     </div>
                   ))}
                 </div>
 
                 <div>
-                  <div className="text-xs text-zinc-500 mb-1.5">Scopes</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1.5">Scopes</div>
                   <div className="flex flex-wrap gap-1">
                     {selectedToken.scopes.map(s => (
-                      <span key={s} className="text-xs bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded font-mono">{s}</span>
+                      <span key={s} className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-2 py-0.5 rounded font-mono">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -249,7 +249,7 @@ export default function AccessTokenManager() {
                 )}
               </div>
             ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center text-zinc-500 text-sm">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-8 text-center text-[var(--color-text-muted)] text-sm">
                 Select a token to inspect
               </div>
             )}
@@ -266,30 +266,30 @@ export default function AccessTokenManager() {
                 key={app.id}
                 onClick={() => setSelectedApp(app)}
                 className={cn(
-                  "w-full bg-zinc-900 border rounded-lg p-4 text-left hover:border-zinc-600 transition-colors",
-                  selectedApp?.id === app.id ? "border-indigo-500/50" : "border-zinc-800"
+                  "w-full bg-[var(--color-surface-1)] border rounded-lg p-4 text-left hover:border-[var(--color-surface-3)] transition-colors",
+                  selectedApp?.id === app.id ? "border-indigo-500/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-sm font-medium text-white">{app.name}</span>
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">{app.name}</span>
                   {app.status === "suspended" && (
                     <span className="text-xs bg-rose-400/10 border border-rose-500/30 text-rose-400 px-1.5 py-0.5 rounded">suspended</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <span className={cn("px-1.5 py-0.5 rounded border", TYPE_BADGES[app.type])}>{app.type}</span>
-                  <span className="text-zinc-500 font-mono">{app.clientId}</span>
+                  <span className="text-[var(--color-text-muted)] font-mono">{app.clientId}</span>
                 </div>
-                <div className="text-xs text-zinc-500 mt-1">{app.tokenCount.toLocaleString()} tokens · last used {app.lastUsed}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-1">{app.tokenCount.toLocaleString()} tokens · last used {app.lastUsed}</div>
               </button>
             ))}
           </div>
 
           <div className="col-span-3">
             {selectedApp ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-4">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-white">{selectedApp.name}</h3>
+                  <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{selectedApp.name}</h3>
                   <span className={cn("text-xs px-2 py-0.5 rounded border", TYPE_BADGES[selectedApp.type])}>{selectedApp.type}</span>
                 </div>
 
@@ -300,22 +300,22 @@ export default function AccessTokenManager() {
                     ["Last Used",  selectedApp.lastUsed],
                     ["Tokens",     selectedApp.tokenCount.toLocaleString()],
                   ].map(([k, v]) => (
-                    <div key={k} className="bg-zinc-800 rounded p-2">
-                      <div className="text-zinc-500">{k}</div>
-                      <div className="text-zinc-300 font-mono mt-0.5">{v}</div>
+                    <div key={k} className="bg-[var(--color-surface-2)] rounded p-2">
+                      <div className="text-[var(--color-text-muted)]">{k}</div>
+                      <div className="text-[var(--color-text-primary)] font-mono mt-0.5">{v}</div>
                     </div>
                   ))}
                 </div>
 
                 <div>
-                  <div className="text-xs text-zinc-400 mb-2">Allowed Scopes</div>
+                  <div className="text-xs text-[var(--color-text-secondary)] mb-2">Allowed Scopes</div>
                   <div className="flex flex-wrap gap-1.5">
                     {ALL_SCOPES.map(s => (
                       <span key={s} className={cn(
                         "text-xs px-2 py-0.5 rounded border font-mono",
                         selectedApp.scopes.includes(s)
                           ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-300"
-                          : "bg-zinc-800 border-zinc-700 text-zinc-600"
+                          : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)]"
                       )}>{s}</span>
                     ))}
                   </div>
@@ -323,18 +323,18 @@ export default function AccessTokenManager() {
 
                 {selectedApp.redirectUris.length > 0 && (
                   <div>
-                    <div className="text-xs text-zinc-400 mb-2">Redirect URIs</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mb-2">Redirect URIs</div>
                     <div className="space-y-1">
                       {selectedApp.redirectUris.map(uri => (
-                        <div key={uri} className="bg-zinc-800 rounded px-3 py-1.5 text-xs font-mono text-zinc-300">{uri}</div>
+                        <div key={uri} className="bg-[var(--color-surface-2)] rounded px-3 py-1.5 text-xs font-mono text-[var(--color-text-primary)]">{uri}</div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <div className="flex gap-2 pt-2 border-t border-zinc-800">
+                <div className="flex gap-2 pt-2 border-t border-[var(--color-border)]">
                   <button className="text-xs px-3 py-1.5 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded hover:bg-indigo-500/30">Edit App</button>
-                  <button className="text-xs px-3 py-1.5 bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700">Rotate Secret</button>
+                  <button className="text-xs px-3 py-1.5 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-3)]">Rotate Secret</button>
                   {selectedApp.status === "active" ? (
                     <button className="text-xs px-3 py-1.5 bg-rose-400/10 border border-rose-500/30 text-rose-300 rounded hover:bg-rose-400/20">Suspend</button>
                   ) : (
@@ -343,7 +343,7 @@ export default function AccessTokenManager() {
                 </div>
               </div>
             ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-10 text-center text-zinc-500 text-sm">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-10 text-center text-[var(--color-text-muted)] text-sm">
                 Select an app to view details
               </div>
             )}
@@ -355,46 +355,46 @@ export default function AccessTokenManager() {
       {activeTab === "jwt" && (
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <div className="text-sm font-medium text-white mb-2">Paste JWT Token</div>
+            <div className="text-sm font-medium text-[var(--color-text-primary)] mb-2">Paste JWT Token</div>
             <textarea
               value={jwtInput}
               onChange={e => setJwtInput(e.target.value)}
               placeholder="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
-              className="w-full h-32 bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-mono rounded p-3 resize-none focus:outline-none focus:border-indigo-500 placeholder:text-zinc-600"
+              className="w-full h-32 bg-[var(--color-surface-1)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs font-mono rounded p-3 resize-none focus:outline-none focus:border-indigo-500 placeholder:text-[var(--color-text-muted)]"
             />
             <button
               onClick={() => setShowDecoded(true)}
-              className="mt-2 w-full py-2 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-600 transition-colors"
+              className="mt-2 w-full py-2 bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded hover:bg-indigo-600 transition-colors"
             >
               🔍 Decode JWT
             </button>
 
             {/* Sample token structure display */}
             <div className="mt-4">
-              <div className="text-xs text-zinc-400 mb-2">Token format</div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded p-3 font-mono text-xs leading-relaxed">
+              <div className="text-xs text-[var(--color-text-secondary)] mb-2">Token format</div>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded p-3 font-mono text-xs leading-relaxed">
                 <span className="text-rose-300">header</span>.<span className="text-indigo-300">payload</span>.<span className="text-emerald-300">signature</span>
               </div>
             </div>
           </div>
 
           <div>
-            <div className="text-sm font-medium text-white mb-2">Decoded Claims</div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="flex gap-2 px-4 py-2 border-b border-zinc-800 text-xs">
-                <span className="text-zinc-400">Algorithm:</span>
+            <div className="text-sm font-medium text-[var(--color-text-primary)] mb-2">Decoded Claims</div>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="flex gap-2 px-4 py-2 border-b border-[var(--color-border)] text-xs">
+                <span className="text-[var(--color-text-secondary)]">Algorithm:</span>
                 <span className="text-indigo-300 font-mono">RS256</span>
-                <span className="text-zinc-600 mx-1">|</span>
-                <span className="text-zinc-400">Type:</span>
+                <span className="text-[var(--color-text-muted)] mx-1">|</span>
+                <span className="text-[var(--color-text-secondary)]">Type:</span>
                 <span className="text-indigo-300 font-mono">JWT</span>
               </div>
-              <div className="divide-y divide-zinc-800 max-h-80 overflow-y-auto">
+              <div className="divide-y divide-[var(--color-border)] max-h-80 overflow-y-auto">
                 {JWT_SAMPLE.map(claim => (
                   <div key={claim.key} className="flex items-center gap-3 px-4 py-2">
                     <span className={cn("w-16 text-xs font-mono font-semibold flex-shrink-0",
                       claim.type === "standard" ? "text-amber-300" : "text-indigo-300"
                     )}>{claim.key}</span>
-                    <span className="text-xs text-zinc-300 font-mono">{claim.value}</span>
+                    <span className="text-xs text-[var(--color-text-primary)] font-mono">{claim.value}</span>
                     <span className={cn("ml-auto text-xs px-1.5 py-0.5 rounded flex-shrink-0",
                       claim.type === "standard" ? "bg-amber-400/10 text-amber-400" : "bg-indigo-500/10 text-indigo-300"
                     )}>{claim.type}</span>
@@ -404,7 +404,7 @@ export default function AccessTokenManager() {
             </div>
             <div className="mt-2 flex items-center gap-2 text-xs text-emerald-400">
               <span>✓ Signature valid</span>
-              <span className="text-zinc-600">|</span>
+              <span className="text-[var(--color-text-muted)]">|</span>
               <span>✓ Not expired</span>
             </div>
           </div>
@@ -425,17 +425,17 @@ export default function AccessTokenManager() {
             { label: "JWKS URI",               value: "https://auth.corp.io/.well-known/jwks.json", type: "text" },
           ].map(f => (
             <div key={f.label}>
-              <label className="block text-xs text-zinc-400 mb-1.5">{f.label}{f.unit ? <span className="text-zinc-500 ml-1">({f.unit})</span> : ""}</label>
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-1.5">{f.label}{f.unit ? <span className="text-[var(--color-text-muted)] ml-1">({f.unit})</span> : ""}</label>
               {f.type === "select" ? (
-                <select className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 focus:outline-none">
+                <select className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none">
                   {f.opts?.map(o => <option key={o} selected={o === f.value}>{o}</option>)}
                 </select>
               ) : (
-                <input type={f.type} defaultValue={f.value} className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500 font-mono" />
+                <input type={f.type} defaultValue={f.value} className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500 font-mono" />
               )}
             </div>
           ))}
-          <button className="px-4 py-2 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-600 transition-colors">Save Configuration</button>
+          <button className="px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded hover:bg-indigo-600 transition-colors">Save Configuration</button>
         </div>
       )}
     </div>

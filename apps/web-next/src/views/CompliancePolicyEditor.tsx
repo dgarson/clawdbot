@@ -185,7 +185,7 @@ const EXCEPTIONS: ExceptionRequest[] = [
 function statusBadge(s: PolicyStatus) {
   if (s === "active") {return "bg-emerald-400/10 text-emerald-400";}
   if (s === "draft") {return "bg-amber-400/10 text-amber-400";}
-  if (s === "archived") {return "bg-zinc-600 text-zinc-400";}
+  if (s === "archived") {return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";}
   return "bg-indigo-400/10 text-indigo-400";
 }
 function riskBadge(r: RiskLevel) {
@@ -198,13 +198,13 @@ function controlStatusDot(s: ControlStatus) {
   if (s === "passing") {return "bg-emerald-400";}
   if (s === "failing") {return "bg-rose-400";}
   if (s === "warning") {return "bg-amber-400";}
-  return "bg-zinc-500";
+  return "bg-[var(--color-surface-3)]";
 }
 function controlStatusText(s: ControlStatus) {
   if (s === "passing") {return "text-emerald-400";}
   if (s === "failing") {return "text-rose-400";}
   if (s === "warning") {return "text-amber-400";}
-  return "text-zinc-500";
+  return "text-[var(--color-text-muted)]";
 }
 function categoryLabel(c: PolicyCategory) {
   const map: Record<PolicyCategory, string> = {
@@ -227,10 +227,10 @@ function ControlPassBar({ passing, total }: { passing: number; total: number }) 
   const color = pct === 100 ? "bg-emerald-500" : pct >= 60 ? "bg-amber-500" : "bg-rose-500";
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 bg-zinc-700 rounded-full overflow-hidden">
+      <div className="flex-1 h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
         <div className={cn("h-full rounded-full", color)} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs text-zinc-400 whitespace-nowrap">{passing}/{total}</span>
+      <span className="text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{passing}/{total}</span>
     </div>
   );
 }
@@ -266,46 +266,46 @@ export default function CompliancePolicyEditor() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Compliance Policy Editor</h1>
-          <p className="text-zinc-400 text-sm mt-1">Manage compliance policies, controls, and exception tracking</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Compliance Policy Editor</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Manage compliance policies, controls, and exception tracking</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 transition-colors">Export PDF</button>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors">+ New Policy</button>
+          <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Export PDF</button>
+          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Policy</button>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Active Policies</div>
-          <div className="text-2xl font-bold text-white">{activePolicies}<span className="text-sm text-zinc-500 font-normal">/{totalPolicies}</span></div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Active Policies</div>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">{activePolicies}<span className="text-sm text-[var(--color-text-muted)] font-normal">/{totalPolicies}</span></div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Control Pass Rate</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Control Pass Rate</div>
           <div className={cn("text-2xl font-bold", overallPass >= 80 ? "text-emerald-400" : overallPass >= 60 ? "text-amber-400" : "text-rose-400")}>{overallPass}%</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Failing Controls</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Failing Controls</div>
           <div className={cn("text-2xl font-bold", failingControls > 0 ? "text-rose-400" : "text-emerald-400")}>{failingControls}</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Open Exceptions</div>
-          <div className={cn("text-2xl font-bold", openExceptions > 0 ? "text-amber-400" : "text-zinc-400")}>{openExceptions}</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Open Exceptions</div>
+          <div className={cn("text-2xl font-bold", openExceptions > 0 ? "text-amber-400" : "text-[var(--color-text-secondary)]")}>{openExceptions}</div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-zinc-800 mb-6">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => { setTab(t.id); setSelectedPolicy(null); }}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200")}
+            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             {t.label}
           </button>
@@ -316,14 +316,14 @@ export default function CompliancePolicyEditor() {
       {tab === "policies" && !selectedPolicy && (
         <div>
           <div className="flex flex-wrap gap-3 mb-4">
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as PolicyStatus | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as PolicyStatus | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="draft">Draft</option>
               <option value="review">In Review</option>
               <option value="archived">Archived</option>
             </select>
-            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value as PolicyCategory | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value as PolicyCategory | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Categories</option>
               <option value="data-privacy">Data Privacy</option>
               <option value="access-control">Access Control</option>
@@ -331,7 +331,7 @@ export default function CompliancePolicyEditor() {
               <option value="operational">Operational</option>
               <option value="financial">Financial</option>
             </select>
-            <select value={filterRisk} onChange={e => setFilterRisk(e.target.value as RiskLevel | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterRisk} onChange={e => setFilterRisk(e.target.value as RiskLevel | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Risk</option>
               <option value="critical">Critical</option>
               <option value="high">High</option>
@@ -345,20 +345,20 @@ export default function CompliancePolicyEditor() {
               <div
                 key={p.id}
                 onClick={() => setSelectedPolicy(p)}
-                className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 hover:border-zinc-600 cursor-pointer transition-colors"
+                className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)] hover:border-[var(--color-surface-3)] cursor-pointer transition-colors"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="font-semibold text-zinc-100">{p.name}</span>
-                      <span className="text-xs text-zinc-500">v{p.version}</span>
+                      <span className="font-semibold text-[var(--color-text-primary)]">{p.name}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">v{p.version}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", statusBadge(p.status))}>{p.status}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", riskBadge(p.riskLevel))}>{p.riskLevel}</span>
                     </div>
-                    <div className="text-xs text-zinc-400">{categoryLabel(p.category)} · {p.framework}</div>
-                    <div className="text-xs text-zinc-500 mt-0.5">Owner: {p.owner} · Review: {p.reviewDate}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{categoryLabel(p.category)} · {p.framework}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Owner: {p.owner} · Review: {p.reviewDate}</div>
                   </div>
-                  <div className="text-right text-xs text-zinc-500">
+                  <div className="text-right text-xs text-[var(--color-text-muted)]">
                     {p.exceptions > 0 && <div className="text-amber-400 mb-1">{p.exceptions} exception{p.exceptions !== 1 ? "s" : ""}</div>}
                     <div>Last audit: {p.lastAudit}</div>
                   </div>
@@ -374,51 +374,51 @@ export default function CompliancePolicyEditor() {
       {tab === "policies" && selectedPolicy && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <button onClick={() => { setSelectedPolicy(null); setEditMode(false); }} className="flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-200 transition-colors">
+            <button onClick={() => { setSelectedPolicy(null); setEditMode(false); }} className="flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors">
               ← Back to policies
             </button>
             <div className="flex gap-2">
-              <button onClick={() => setEditMode(!editMode)} className={cn("px-3 py-1.5 text-sm rounded-lg transition-colors", editMode ? "bg-indigo-600 text-white" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300")}>
+              <button onClick={() => setEditMode(!editMode)} className={cn("px-3 py-1.5 text-sm rounded-lg transition-colors", editMode ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]")}>
                 {editMode ? "Editing..." : "Edit Policy"}
               </button>
-              {editMode && <button className="px-3 py-1.5 text-sm bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white transition-colors">Save Changes</button>}
+              {editMode && <button className="px-3 py-1.5 text-sm bg-emerald-600 hover:bg-emerald-500 rounded-lg text-[var(--color-text-primary)] transition-colors">Save Changes</button>}
             </div>
           </div>
 
           {/* Policy header */}
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 mb-5">
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)] mb-5">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <h2 className="text-xl font-bold text-white">{selectedPolicy.name}</h2>
-                  <span className="text-sm text-zinc-500">v{selectedPolicy.version}</span>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedPolicy.name}</h2>
+                  <span className="text-sm text-[var(--color-text-muted)]">v{selectedPolicy.version}</span>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full", statusBadge(selectedPolicy.status))}>{selectedPolicy.status}</span>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full", riskBadge(selectedPolicy.riskLevel))}>{selectedPolicy.riskLevel} risk</span>
                 </div>
-                <div className="text-sm text-zinc-400">{categoryLabel(selectedPolicy.category)} · {selectedPolicy.framework}</div>
-                <div className="text-xs text-zinc-500 mt-1">
+                <div className="text-sm text-[var(--color-text-secondary)]">{categoryLabel(selectedPolicy.category)} · {selectedPolicy.framework}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-1">
                   Owner: {selectedPolicy.owner} · Effective: {selectedPolicy.effectiveDate} · Review: {selectedPolicy.reviewDate}
                 </div>
               </div>
               <ControlPassBar passing={selectedPolicy.passingControls} total={selectedPolicy.totalControls} />
             </div>
-            <p className="text-sm text-zinc-300 leading-relaxed">{selectedPolicy.description}</p>
+            <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{selectedPolicy.description}</p>
             <div className="flex flex-wrap gap-1 mt-3">
-              {selectedPolicy.tags.map(t => <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-300">{t}</span>)}
+              {selectedPolicy.tags.map(t => <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-surface-3)] text-[var(--color-text-primary)]">{t}</span>)}
             </div>
           </div>
 
           {/* Rules */}
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 mb-5">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Policy Rules</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)] mb-5">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Policy Rules</h3>
             <div className="space-y-2">
               {selectedPolicy.rules.map(rule => (
-                <div key={rule.id} className="flex items-start gap-3 p-3 bg-zinc-800 rounded-lg">
-                  <div className={cn("w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0", rule.required ? "bg-rose-400" : "bg-zinc-500")} />
+                <div key={rule.id} className="flex items-start gap-3 p-3 bg-[var(--color-surface-2)] rounded-lg">
+                  <div className={cn("w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0", rule.required ? "bg-rose-400" : "bg-[var(--color-surface-3)]")} />
                   <div className="flex-1">
-                    <span className="text-sm text-zinc-200">{rule.text}</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">{rule.text}</span>
                   </div>
-                  <span className={cn("text-xs px-1.5 py-0.5 rounded flex-shrink-0", rule.required ? "bg-rose-400/10 text-rose-400" : "bg-zinc-600 text-zinc-400")}>
+                  <span className={cn("text-xs px-1.5 py-0.5 rounded flex-shrink-0", rule.required ? "bg-rose-400/10 text-rose-400" : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]")}>
                     {rule.required ? "Required" : "Recommended"}
                   </span>
                 </div>
@@ -427,24 +427,24 @@ export default function CompliancePolicyEditor() {
           </div>
 
           {/* Controls */}
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Controls ({selectedPolicy.controls.length})</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Controls ({selectedPolicy.controls.length})</h3>
             <div className="space-y-3">
               {selectedPolicy.controls.map(ctrl => (
-                <div key={ctrl.id} className="p-4 bg-zinc-800 rounded-lg border border-zinc-700">
+                <div key={ctrl.id} className="p-4 bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)]">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", controlStatusDot(ctrl.status))} />
-                      <span className="font-medium text-zinc-200 text-sm">{ctrl.name}</span>
+                      <span className="font-medium text-[var(--color-text-primary)] text-sm">{ctrl.name}</span>
                       <span className={cn("text-xs capitalize", controlStatusText(ctrl.status))}>{ctrl.status.replace("-", " ")}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-zinc-500 capitalize">{ctrl.evidenceType}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] capitalize">{ctrl.evidenceType}</span>
                       {ctrl.automationId && <span className="text-xs text-indigo-400">⚙ {ctrl.automationId}</span>}
                     </div>
                   </div>
-                  <p className="text-xs text-zinc-400 ml-5 mb-2">{ctrl.description}</p>
-                  <div className="flex justify-between text-xs text-zinc-500 ml-5">
+                  <p className="text-xs text-[var(--color-text-secondary)] ml-5 mb-2">{ctrl.description}</p>
+                  <div className="flex justify-between text-xs text-[var(--color-text-muted)] ml-5">
                     <span>Owner: {ctrl.owner}</span>
                     <span>Last tested: {ctrl.lastTested}</span>
                   </div>
@@ -458,23 +458,23 @@ export default function CompliancePolicyEditor() {
       {/* Controls cross-policy view */}
       {tab === "controls" && (
         <div>
-          <div className="mb-4 text-xs text-zinc-500">{totalControls} total controls across {POLICIES.length} policies</div>
+          <div className="mb-4 text-xs text-[var(--color-text-muted)]">{totalControls} total controls across {POLICIES.length} policies</div>
           <div className="space-y-2">
             {POLICIES.flatMap(p => p.controls.map(c => ({ ...c, policyName: p.name, policyRisk: p.riskLevel }))).toSorted((a, b) => {
               const order = { failing: 0, warning: 1, "not-tested": 2, passing: 3 };
               return order[a.status] - order[b.status];
             }).map(ctrl => (
-              <div key={ctrl.id} className={cn("bg-zinc-900 rounded-xl p-4 border transition-colors", ctrl.status === "failing" ? "border-rose-500/30" : ctrl.status === "warning" ? "border-amber-500/20" : "border-zinc-800")}>
+              <div key={ctrl.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border transition-colors", ctrl.status === "failing" ? "border-rose-500/30" : ctrl.status === "warning" ? "border-amber-500/20" : "border-[var(--color-border)]")}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     <div className={cn("w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0", controlStatusDot(ctrl.status))} />
                     <div>
-                      <div className="font-medium text-zinc-200 text-sm">{ctrl.name}</div>
-                      <div className="text-xs text-zinc-500 mt-0.5">{ctrl.policyName} · Owner: {ctrl.owner}</div>
-                      <div className="text-xs text-zinc-400 mt-1">{ctrl.description}</div>
+                      <div className="font-medium text-[var(--color-text-primary)] text-sm">{ctrl.name}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{ctrl.policyName} · Owner: {ctrl.owner}</div>
+                      <div className="text-xs text-[var(--color-text-secondary)] mt-1">{ctrl.description}</div>
                     </div>
                   </div>
-                  <div className="text-right text-xs text-zinc-500">
+                  <div className="text-right text-xs text-[var(--color-text-muted)]">
                     <div className={cn("mb-1 capitalize font-medium", controlStatusText(ctrl.status))}>{ctrl.status.replace("-", " ")}</div>
                     <div>{ctrl.lastTested === "never" ? "Never tested" : `Tested: ${ctrl.lastTested}`}</div>
                     <div className="mt-1 capitalize">{ctrl.evidenceType}</div>
@@ -490,28 +490,28 @@ export default function CompliancePolicyEditor() {
       {tab === "exceptions" && (
         <div className="space-y-3">
           {EXCEPTIONS.map(ex => (
-            <div key={ex.id} className={cn("bg-zinc-900 rounded-xl p-4 border", ex.status === "pending" ? "border-amber-500/30" : "border-zinc-800")}>
+            <div key={ex.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border", ex.status === "pending" ? "border-amber-500/30" : "border-[var(--color-border)]")}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-zinc-100">{ex.policyName}</span>
+                    <span className="font-medium text-[var(--color-text-primary)]">{ex.policyName}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", exceptionStatusBadge(ex.status))}>{ex.status}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", riskBadge(ex.riskAccepted))}>{ex.riskAccepted} risk accepted</span>
                   </div>
-                  <div className="text-xs text-zinc-500">Requester: {ex.requester}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Requester: {ex.requester}</div>
                 </div>
-                <div className="text-right text-xs text-zinc-500">
+                <div className="text-right text-xs text-[var(--color-text-muted)]">
                   <div>Submitted: {ex.submittedAt}</div>
                   <div>Expires: {ex.expiresAt}</div>
                   {ex.approver && <div className="text-emerald-400 mt-1">Approved by: {ex.approver}</div>}
                 </div>
               </div>
-              <div className="text-sm text-zinc-300 bg-zinc-800 rounded-lg p-3">{ex.reason}</div>
+              <div className="text-sm text-[var(--color-text-primary)] bg-[var(--color-surface-2)] rounded-lg p-3">{ex.reason}</div>
               {ex.status === "pending" && (
                 <div className="flex gap-2 mt-3">
-                  <button className="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white transition-colors">Approve</button>
-                  <button className="px-3 py-1.5 text-xs bg-rose-600 hover:bg-rose-500 rounded-lg text-white transition-colors">Deny</button>
-                  <button className="px-3 py-1.5 text-xs bg-zinc-700 hover:bg-zinc-600 rounded-lg text-zinc-300 transition-colors">Request Info</button>
+                  <button className="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 rounded-lg text-[var(--color-text-primary)] transition-colors">Approve</button>
+                  <button className="px-3 py-1.5 text-xs bg-rose-600 hover:bg-rose-500 rounded-lg text-[var(--color-text-primary)] transition-colors">Deny</button>
+                  <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Request Info</button>
                 </div>
               )}
             </div>
@@ -522,26 +522,26 @@ export default function CompliancePolicyEditor() {
       {/* Audit Log */}
       {tab === "audit" && (
         <div>
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-700">
+                <tr className="border-b border-[var(--color-border)]">
                   {["Timestamp", "Policy", "Action", "User", "Before → After"].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs text-zinc-500 font-medium">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-xs text-[var(--color-text-muted)] font-medium">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {AUDIT_LOG.map(entry => (
-                  <tr key={entry.id} className="hover:bg-zinc-800/50 transition-colors">
-                    <td className="px-4 py-3 text-xs text-zinc-400 whitespace-nowrap">{entry.timestamp}</td>
-                    <td className="px-4 py-3 text-sm text-zinc-200">{entry.policyName}</td>
-                    <td className="px-4 py-3 text-xs text-zinc-300">{entry.action}</td>
-                    <td className="px-4 py-3 text-xs text-zinc-400">{entry.user}</td>
+                  <tr key={entry.id} className="hover:bg-[var(--color-surface-2)]/50 transition-colors">
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">{entry.timestamp}</td>
+                    <td className="px-4 py-3 text-sm text-[var(--color-text-primary)]">{entry.policyName}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-primary)]">{entry.action}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{entry.user}</td>
                     <td className="px-4 py-3 text-xs">
-                      <span className="text-zinc-500">{entry.before}</span>
-                      <span className="text-zinc-600 mx-1">→</span>
-                      <span className="text-zinc-300">{entry.after}</span>
+                      <span className="text-[var(--color-text-muted)]">{entry.before}</span>
+                      <span className="text-[var(--color-text-muted)] mx-1">→</span>
+                      <span className="text-[var(--color-text-primary)]">{entry.after}</span>
                     </td>
                   </tr>
                 ))}

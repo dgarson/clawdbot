@@ -146,18 +146,18 @@ function makeResults(query: string): SearchResult[] {
 const KIND_CONFIG: Record<ResultKind, { emoji: string; label: string; color: string; bg: string; border: string }> = {
   agent: { emoji: "🤖", label: "Agent", color: "text-indigo-400", bg: "bg-indigo-900/20", border: "border-indigo-700/50" },
   session: { emoji: "💬", label: "Session", color: "text-blue-400", bg: "bg-blue-900/20", border: "border-blue-700/50" },
-  file: { emoji: "📄", label: "File", color: "text-zinc-300", bg: "bg-zinc-800/50", border: "border-zinc-700" },
+  file: { emoji: "📄", label: "File", color: "text-[var(--color-text-primary)]", bg: "bg-[var(--color-surface-2)]/50", border: "border-[var(--color-border)]" },
   commit: { emoji: "🔀", label: "Commit", color: "text-emerald-400", bg: "bg-emerald-900/20", border: "border-emerald-700/50" },
   message: { emoji: "💬", label: "Message", color: "text-purple-400", bg: "bg-purple-900/20", border: "border-purple-700/50" },
   tool: { emoji: "🔧", label: "Tool", color: "text-amber-400", bg: "bg-amber-900/20", border: "border-amber-700/50" },
   config: { emoji: "⚙️", label: "Config", color: "text-teal-400", bg: "bg-teal-900/20", border: "border-teal-700/50" },
-  log: { emoji: "📋", label: "Log", color: "text-zinc-400", bg: "bg-zinc-800/30", border: "border-zinc-700" },
+  log: { emoji: "📋", label: "Log", color: "text-[var(--color-text-secondary)]", bg: "bg-[var(--color-surface-2)]/30", border: "border-[var(--color-border)]" },
 };
 
 const RELEVANCE_CONFIG: Record<ResultRelevance, { color: string; label: string }> = {
   high: { color: "text-emerald-400", label: "High" },
   medium: { color: "text-amber-400", label: "Medium" },
-  low: { color: "text-zinc-500", label: "Low" },
+  low: { color: "text-[var(--color-text-muted)]", label: "Low" },
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -209,12 +209,12 @@ export default function SearchResultsView() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header + search */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-zinc-800">
+      <div className="flex-shrink-0 px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-white">Search</h1>
-          <div className="text-xs text-zinc-500">
+          <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Search</h1>
+          <div className="text-xs text-[var(--color-text-muted)]">
             {allResults.length > 0 ? `${allResults.length} results for "${activeQuery}"` : "No results"}
           </div>
         </div>
@@ -228,15 +228,15 @@ export default function SearchResultsView() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               placeholder="Search agents, sessions, files, commits, messages…"
-              className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl px-4 py-2.5 text-sm placeholder:text-zinc-500 pr-10"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-2.5 text-sm placeholder:text-[var(--color-text-muted)] pr-10"
             />
             {isSearching && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 animate-spin">⟳</div>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] animate-spin">⟳</div>
             )}
           </div>
           <button
             onClick={handleSearch}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium"
+            className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-4 py-2.5 rounded-xl text-sm font-medium"
           >
             Search
           </button>
@@ -251,14 +251,14 @@ export default function SearchResultsView() {
                 onClick={() => setSortBy(s)}
                 className={cn(
                   "px-2.5 py-1 rounded text-xs capitalize",
-                  sortBy === s ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                  sortBy === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 Sort: {s}
               </button>
             ))}
           </div>
-          <div className="h-4 border-l border-zinc-700" />
+          <div className="h-4 border-l border-[var(--color-border)]" />
           <div className="flex gap-1">
             {(["all", "high", "medium", "low"] as const).map((r) => (
               <button
@@ -266,7 +266,7 @@ export default function SearchResultsView() {
                 onClick={() => setFilterRelevance(r)}
                 className={cn(
                   "px-2.5 py-1 rounded text-xs capitalize",
-                  filterRelevance === r ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                  filterRelevance === r ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {r === "all" ? "All relevance" : r}
@@ -278,8 +278,8 @@ export default function SearchResultsView() {
 
       <div className="flex-1 overflow-hidden flex">
         {/* Facets sidebar */}
-        <div className="flex-shrink-0 w-48 border-r border-zinc-800 p-4 overflow-y-auto">
-          <div className="text-xs text-zinc-500 font-medium uppercase tracking-wide mb-3">Type</div>
+        <div className="flex-shrink-0 w-48 border-r border-[var(--color-border)] p-4 overflow-y-auto">
+          <div className="text-xs text-[var(--color-text-muted)] font-medium uppercase tracking-wide mb-3">Type</div>
           <div className="space-y-1">
             {facets.map((facet) => {
               const kc = facet.kind ? KIND_CONFIG[facet.kind] : null;
@@ -290,29 +290,29 @@ export default function SearchResultsView() {
                   onClick={() => setFilterKind(facet.kind ?? "all")}
                   className={cn(
                     "w-full text-left flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all",
-                    isActive ? "bg-indigo-900/30 text-indigo-300" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                    isActive ? "bg-indigo-900/30 text-indigo-300" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   <span className="flex items-center gap-2">
                     {kc && <span className="text-xs">{kc.emoji}</span>}
                     <span>{facet.label}</span>
                   </span>
-                  <span className="text-xs text-zinc-600">{facet.count}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{facet.count}</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="text-xs text-zinc-500 font-medium uppercase tracking-wide mt-5 mb-3">Recent</div>
+          <div className="text-xs text-[var(--color-text-muted)] font-medium uppercase tracking-wide mt-5 mb-3">Recent</div>
           <div className="space-y-1">
             {RECENT_SEARCHES.map((rs, i) => (
               <button
                 key={i}
                 onClick={() => { setQuery(rs.query); setActiveQuery(rs.query); }}
-                className="w-full text-left px-3 py-2 rounded-lg text-xs text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-all"
+                className="w-full text-left px-3 py-2 rounded-lg text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] transition-all"
               >
-                <div className="text-zinc-300 truncate">{rs.query}</div>
-                <div className="text-zinc-600">{rs.resultCount} results</div>
+                <div className="text-[var(--color-text-primary)] truncate">{rs.query}</div>
+                <div className="text-[var(--color-text-muted)]">{rs.resultCount} results</div>
               </button>
             ))}
           </div>
@@ -321,14 +321,14 @@ export default function SearchResultsView() {
         {/* Results */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {isSearching ? (
-            <div className="flex items-center justify-center h-48 text-zinc-500">
+            <div className="flex items-center justify-center h-48 text-[var(--color-text-muted)]">
               <div className="text-center">
                 <div className="text-2xl mb-2 animate-pulse">🔍</div>
                 <div>Searching…</div>
               </div>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex items-center justify-center h-48 text-zinc-500">
+            <div className="flex items-center justify-center h-48 text-[var(--color-text-muted)]">
               <div className="text-center">
                 <div className="text-2xl mb-2">🔎</div>
                 <div>No results found for "{activeQuery}"</div>
@@ -346,7 +346,7 @@ export default function SearchResultsView() {
                   onClick={() => setSelectedResult(isSelected ? null : result)}
                   className={cn(
                     "w-full text-left p-4 rounded-xl border transition-all",
-                    isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-zinc-900 border-zinc-800 hover:border-zinc-600"
+                    isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
                   <div className="flex items-start gap-3">
@@ -356,32 +356,32 @@ export default function SearchResultsView() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-semibold text-white truncate">{result.title}</span>
+                        <span className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{result.title}</span>
                         <span className={cn("text-[10px] px-1.5 py-0.5 rounded border flex-shrink-0", kc.bg, kc.color, kc.border)}>
                           {kc.label}
                         </span>
                       </div>
-                      <div className="text-xs text-zinc-400 leading-relaxed mb-2">
+                      <div className="text-xs text-[var(--color-text-secondary)] leading-relaxed mb-2">
                         {highlight(result.excerpt, result.highlights)}
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
                         {Object.entries(result.meta).map(([k, v]) => (
-                          <span key={k} className="text-[10px] text-zinc-600">
-                            <span className="text-zinc-500">{k}:</span> {v}
+                          <span key={k} className="text-[10px] text-[var(--color-text-muted)]">
+                            <span className="text-[var(--color-text-muted)]">{k}:</span> {v}
                           </span>
                         ))}
-                        <span className="text-[10px] text-zinc-600 ml-auto">{result.timestamp.slice(0, 10)}</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)] ml-auto">{result.timestamp.slice(0, 10)}</span>
                       </div>
                     </div>
                     <div className="flex-shrink-0 flex flex-col items-end gap-1">
                       <div className={cn("text-xs font-medium", rc.color)}>{rc.label}</div>
-                      <div className="text-[10px] text-zinc-600">{Math.round(result.score * 100)}% match</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">{Math.round(result.score * 100)}% match</div>
                     </div>
                   </div>
 
                   {/* Expanded detail */}
                   {isSelected && (
-                    <div className="mt-3 pt-3 border-t border-zinc-800">
+                    <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
                       <div className="flex gap-2">
                         <a
                           href={result.url}
@@ -390,10 +390,10 @@ export default function SearchResultsView() {
                         >
                           Open →
                         </a>
-                        <button className="text-xs text-zinc-400 bg-zinc-800 border border-zinc-700 px-2 py-1 rounded hover:text-white">
+                        <button className="text-xs text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] border border-[var(--color-border)] px-2 py-1 rounded hover:text-[var(--color-text-primary)]">
                           Copy link
                         </button>
-                        <button className="text-xs text-zinc-400 bg-zinc-800 border border-zinc-700 px-2 py-1 rounded hover:text-white">
+                        <button className="text-xs text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] border border-[var(--color-border)] px-2 py-1 rounded hover:text-[var(--color-text-primary)]">
                           Preview
                         </button>
                       </div>

@@ -166,25 +166,25 @@ function sensitivityBadge(s: DataSensitivity) {
     pci: "bg-orange-500/10 text-orange-400",
     financial: "bg-amber-500/10 text-amber-400",
     confidential: "bg-indigo-500/10 text-indigo-400",
-    internal: "bg-zinc-500/10 text-zinc-400",
+    internal: "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)]",
   };
   return map[s];
 }
 function statusBadge(s: RuleStatus) {
   if (s === "active") {return "bg-emerald-400/10 text-emerald-400";}
-  if (s === "inactive") {return "bg-zinc-600 text-zinc-400";}
+  if (s === "inactive") {return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";}
   return "bg-amber-400/10 text-amber-400";
 }
 function scanStatusBadge(s: ScanStatus) {
   if (s === "completed") {return "bg-emerald-400/10 text-emerald-400";}
   if (s === "running") {return "bg-indigo-400/10 text-indigo-400";}
   if (s === "failed") {return "bg-rose-400/10 text-rose-400";}
-  return "bg-zinc-500/10 text-zinc-400";
+  return "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)]";
 }
 function violationStatusBadge(s: PolicyViolation["status"]) {
   if (s === "open") {return "bg-rose-400/10 text-rose-400";}
   if (s === "remediated") {return "bg-emerald-400/10 text-emerald-400";}
-  return "bg-zinc-600 text-zinc-400";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 
 export default function DataMaskingManager() {
@@ -220,46 +220,46 @@ export default function DataMaskingManager() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Data Masking Manager</h1>
-          <p className="text-zinc-400 text-sm mt-1">Configure and enforce data masking policies across all environments</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Data Masking Manager</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Configure and enforce data masking policies across all environments</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 transition-colors">Run Scan</button>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors">+ New Rule</button>
+          <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Run Scan</button>
+          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Rule</button>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Active Rules</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Active Rules</div>
           <div className="text-2xl font-bold text-emerald-400">{activeRules}</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Protected Fields</div>
-          <div className="text-2xl font-bold text-white">{totalFields}</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Protected Fields</div>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">{totalFields}</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Total Executions</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Total Executions</div>
           <div className="text-2xl font-bold text-indigo-400">{(totalExecs / 1000000).toFixed(1)}M</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Open Violations</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Open Violations</div>
           <div className={cn("text-2xl font-bold", openViolations > 0 ? "text-rose-400" : "text-emerald-400")}>{openViolations}</div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-zinc-800 mb-6">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => { setTab(t.id); setSelectedRule(null); }}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200")}
+            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             {t.label}
           </button>
@@ -270,13 +270,13 @@ export default function DataMaskingManager() {
       {tab === "rules" && !selectedRule && (
         <div>
           <div className="flex flex-wrap gap-3 mb-4">
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as RuleStatus | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as RuleStatus | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
               <option value="draft">Draft</option>
             </select>
-            <select value={filterSensitivity} onChange={e => setFilterSensitivity(e.target.value as DataSensitivity | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterSensitivity} onChange={e => setFilterSensitivity(e.target.value as DataSensitivity | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Sensitivity</option>
               <option value="pii">PII</option>
               <option value="phi">PHI</option>
@@ -290,27 +290,27 @@ export default function DataMaskingManager() {
               <div
                 key={rule.id}
                 onClick={() => setSelectedRule(rule)}
-                className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 hover:border-zinc-600 cursor-pointer transition-colors"
+                className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)] hover:border-[var(--color-surface-3)] cursor-pointer transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-semibold text-zinc-100">{rule.name}</span>
+                      <span className="font-semibold text-[var(--color-text-primary)]">{rule.name}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", statusBadge(rule.status))}>{rule.status}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", sensitivityBadge(rule.sensitivity))}>{rule.sensitivity.toUpperCase()}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", strategyBadge(rule.strategy))}>{rule.strategy.replace("-", " ")}</span>
                     </div>
-                    <div className="text-xs text-zinc-400">{rule.description}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{rule.description}</div>
                   </div>
-                  <div className="text-right text-xs text-zinc-500 flex-shrink-0 ml-4">
+                  <div className="text-right text-xs text-[var(--color-text-muted)] flex-shrink-0 ml-4">
                     <div>{rule.appliedTo.length} field{rule.appliedTo.length !== 1 ? "s" : ""}</div>
                     <div>{rule.executionCount.toLocaleString()} execs</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 mt-2 p-2 bg-zinc-800 rounded-lg text-xs">
-                  <span className="text-zinc-500">Example:</span>
-                  <span className="text-zinc-400 font-mono">{rule.example.original}</span>
-                  <span className="text-zinc-600">→</span>
+                <div className="flex items-center gap-3 mt-2 p-2 bg-[var(--color-surface-2)] rounded-lg text-xs">
+                  <span className="text-[var(--color-text-muted)]">Example:</span>
+                  <span className="text-[var(--color-text-secondary)] font-mono">{rule.example.original}</span>
+                  <span className="text-[var(--color-text-muted)]">→</span>
                   <span className="text-emerald-400 font-mono">{rule.example.masked}</span>
                 </div>
               </div>
@@ -322,16 +322,16 @@ export default function DataMaskingManager() {
       {/* Rule Detail */}
       {tab === "rules" && selectedRule && (
         <div>
-          <button onClick={() => setSelectedRule(null)} className="flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-200 mb-4 transition-colors">
+          <button onClick={() => setSelectedRule(null)} className="flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] mb-4 transition-colors">
             ← Back to rules
           </button>
 
           <div className="grid md:grid-cols-2 gap-5 mb-5">
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <h2 className="text-xl font-bold text-white">{selectedRule.name}</h2>
+                    <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedRule.name}</h2>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full", statusBadge(selectedRule.status))}>{selectedRule.status}</span>
                   </div>
                   <div className="flex gap-2 flex-wrap">
@@ -340,11 +340,11 @@ export default function DataMaskingManager() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="px-3 py-1.5 text-xs bg-zinc-700 hover:bg-zinc-600 rounded-lg text-zinc-300 transition-colors">Edit</button>
-                  {selectedRule.status !== "active" && <button className="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white transition-colors">Activate</button>}
+                  <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Edit</button>
+                  {selectedRule.status !== "active" && <button className="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 rounded-lg text-[var(--color-text-primary)] transition-colors">Activate</button>}
                 </div>
               </div>
-              <p className="text-sm text-zinc-300 mb-4">{selectedRule.description}</p>
+              <p className="text-sm text-[var(--color-text-primary)] mb-4">{selectedRule.description}</p>
               <div className="space-y-2 text-xs">
                 {[
                   { label: "Created by", value: selectedRule.createdBy },
@@ -355,46 +355,46 @@ export default function DataMaskingManager() {
                   { label: "Environments", value: selectedRule.environments.join(", ") || "None" },
                 ].map(row => (
                   <div key={row.label} className="flex justify-between">
-                    <span className="text-zinc-500">{row.label}</span>
-                    <span className="text-zinc-300">{row.value}</span>
+                    <span className="text-[var(--color-text-muted)]">{row.label}</span>
+                    <span className="text-[var(--color-text-primary)]">{row.value}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-              <h3 className="text-sm font-medium text-zinc-300 mb-4">Masking Example</h3>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Masking Example</h3>
               <div className="space-y-4 mb-5">
                 <div>
-                  <div className="text-xs text-zinc-500 mb-1">Original (sensitive)</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">Original (sensitive)</div>
                   <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2 font-mono text-sm text-rose-300">{selectedRule.example.original}</div>
                 </div>
                 <div className="flex items-center justify-center">
-                  <div className="text-zinc-600 text-lg">↓</div>
+                  <div className="text-[var(--color-text-muted)] text-lg">↓</div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-500 mb-1">Masked output</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">Masked output</div>
                   <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 font-mono text-sm text-emerald-300">{selectedRule.example.masked}</div>
                 </div>
               </div>
-              <div className="text-xs text-zinc-500">Strategy: <span className="text-zinc-300 capitalize">{selectedRule.strategy.replace("-", " ")}</span></div>
-              <div className="text-xs text-zinc-500 mt-1">Field types: <span className="text-zinc-300">{selectedRule.fieldTypes.join(", ")}</span></div>
+              <div className="text-xs text-[var(--color-text-muted)]">Strategy: <span className="text-[var(--color-text-primary)] capitalize">{selectedRule.strategy.replace("-", " ")}</span></div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-1">Field types: <span className="text-[var(--color-text-primary)]">{selectedRule.fieldTypes.join(", ")}</span></div>
             </div>
           </div>
 
           {selectedRule.appliedTo.length > 0 && (
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-              <h3 className="text-sm font-medium text-zinc-300 mb-4">Applied Fields ({selectedRule.appliedTo.length})</h3>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Applied Fields ({selectedRule.appliedTo.length})</h3>
               <div className="space-y-2">
                 {selectedRule.appliedTo.map((field, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+                  <div key={i} className="flex items-center justify-between p-3 bg-[var(--color-surface-2)] rounded-lg">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm text-zinc-200">{field.database}.{field.table}.{field.name}</span>
+                        <span className="font-mono text-sm text-[var(--color-text-primary)]">{field.database}.{field.table}.{field.name}</span>
                         <span className={cn("text-xs px-1.5 py-0.5 rounded-full", sensitivityBadge(field.sensitivity))}>{field.sensitivity.toUpperCase()}</span>
                       </div>
                     </div>
-                    <div className="text-sm text-zinc-400">{field.rowCount.toLocaleString()} rows</div>
+                    <div className="text-sm text-[var(--color-text-secondary)]">{field.rowCount.toLocaleString()} rows</div>
                   </div>
                 ))}
               </div>
@@ -407,37 +407,37 @@ export default function DataMaskingManager() {
       {tab === "scans" && (
         <div className="space-y-3">
           {SCAN_JOBS.map(job => (
-            <div key={job.id} className={cn("bg-zinc-900 rounded-xl p-4 border", job.status === "failed" ? "border-rose-500/30" : "border-zinc-800")}>
+            <div key={job.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border", job.status === "failed" ? "border-rose-500/30" : "border-[var(--color-border)]")}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-zinc-100">{job.name}</span>
+                    <span className="font-medium text-[var(--color-text-primary)]">{job.name}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", scanStatusBadge(job.status))}>{job.status}</span>
                   </div>
-                  <div className="text-xs text-zinc-500">Databases: {job.databases.join(", ")}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Databases: {job.databases.join(", ")}</div>
                 </div>
-                <div className="text-right text-xs text-zinc-500">
+                <div className="text-right text-xs text-[var(--color-text-muted)]">
                   <div>Started: {job.startedAt}</div>
                   {job.completedAt && <div>Completed: {job.completedAt}</div>}
                 </div>
               </div>
               {job.status === "completed" && (
-                <div className="grid grid-cols-4 gap-3 text-xs mt-3 pt-3 border-t border-zinc-800">
+                <div className="grid grid-cols-4 gap-3 text-xs mt-3 pt-3 border-t border-[var(--color-border)]">
                   <div className="text-center">
-                    <div className="text-lg font-bold text-white">{job.fieldsDiscovered.toLocaleString()}</div>
-                    <div className="text-zinc-500">fields found</div>
+                    <div className="text-lg font-bold text-[var(--color-text-primary)]">{job.fieldsDiscovered.toLocaleString()}</div>
+                    <div className="text-[var(--color-text-muted)]">fields found</div>
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-bold text-rose-400">{job.fieldsMatched.toLocaleString()}</div>
-                    <div className="text-zinc-500">sensitive</div>
+                    <div className="text-[var(--color-text-muted)]">sensitive</div>
                   </div>
                   <div className="text-center">
                     <div className={cn("text-lg font-bold", job.coverage >= 95 ? "text-emerald-400" : job.coverage >= 80 ? "text-amber-400" : "text-rose-400")}>{job.coverage}%</div>
-                    <div className="text-zinc-500">coverage</div>
+                    <div className="text-[var(--color-text-muted)]">coverage</div>
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-bold text-indigo-400">{job.rulesApplied}</div>
-                    <div className="text-zinc-500">rules applied</div>
+                    <div className="text-[var(--color-text-muted)]">rules applied</div>
                   </div>
                 </div>
               )}
@@ -450,22 +450,22 @@ export default function DataMaskingManager() {
       {tab === "violations" && (
         <div className="space-y-3">
           {VIOLATIONS.map(v => (
-            <div key={v.id} className={cn("bg-zinc-900 rounded-xl p-4 border", v.status === "open" ? "border-rose-500/30" : "border-zinc-800")}>
+            <div key={v.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border", v.status === "open" ? "border-rose-500/30" : "border-[var(--color-border)]")}>
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-sm text-zinc-200">{v.database}.{v.table}.{v.fieldName}</span>
+                    <span className="font-mono text-sm text-[var(--color-text-primary)]">{v.database}.{v.table}.{v.fieldName}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full", sensitivityBadge(v.sensitivity))}>{v.sensitivity.toUpperCase()}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", violationStatusBadge(v.status))}>{v.status}</span>
                   </div>
-                  <div className="text-xs text-zinc-500">Environment: {v.environment} · Discovered: {v.discoveredAt}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Environment: {v.environment} · Discovered: {v.discoveredAt}</div>
                   {v.ruleId && <div className="text-xs text-indigo-400 mt-0.5">Rule applicable: {v.ruleId}</div>}
                   {!v.ruleId && <div className="text-xs text-amber-400 mt-0.5">No masking rule assigned</div>}
                 </div>
                 {v.status === "open" && (
                   <div className="flex gap-2">
-                    <button className="px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">Apply Rule</button>
-                    <button className="px-2 py-1 text-xs bg-zinc-700 hover:bg-zinc-600 rounded text-zinc-300 transition-colors">Accept</button>
+                    <button className="px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Apply Rule</button>
+                    <button className="px-2 py-1 text-xs bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] rounded text-[var(--color-text-primary)] transition-colors">Accept</button>
                   </div>
                 )}
               </div>
@@ -477,19 +477,19 @@ export default function DataMaskingManager() {
       {/* Coverage */}
       {tab === "coverage" && (
         <div className="space-y-5">
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Masking Coverage by Database</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Masking Coverage by Database</h3>
             <div className="space-y-4">
               {dbCoverage.map(db => (
                 <div key={db.name}>
                   <div className="flex justify-between text-xs mb-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-zinc-200">{db.name}</span>
-                      <span className="text-zinc-500">{db.sensitive} sensitive / {db.total} total fields</span>
+                      <span className="font-mono text-[var(--color-text-primary)]">{db.name}</span>
+                      <span className="text-[var(--color-text-muted)]">{db.sensitive} sensitive / {db.total} total fields</span>
                     </div>
                     <span className={cn(db.covered === 100 ? "text-emerald-400" : db.covered >= 90 ? "text-amber-400" : db.covered === 0 ? "text-rose-400" : "text-amber-400")}>{db.covered}%</span>
                   </div>
-                  <div className="h-3 bg-zinc-700 rounded-full overflow-hidden">
+                  <div className="h-3 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                     <div
                       className={cn("h-full rounded-full", db.covered === 100 ? "bg-emerald-500" : db.covered >= 80 ? "bg-amber-500" : db.covered === 0 ? "bg-rose-500" : "bg-amber-500")}
                       style={{ width: `${db.covered}%` }}
@@ -500,16 +500,16 @@ export default function DataMaskingManager() {
             </div>
           </div>
 
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Sensitivity Distribution</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Sensitivity Distribution</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {(["pii", "phi", "pci", "financial", "confidential", "internal"] as DataSensitivity[]).map(s => {
                 const count = RULES.filter(r => r.sensitivity === s).length;
                 return (
-                  <div key={s} className="bg-zinc-800 rounded-lg p-3 text-center">
+                  <div key={s} className="bg-[var(--color-surface-2)] rounded-lg p-3 text-center">
                     <span className={cn("text-xs px-2 py-0.5 rounded-full", sensitivityBadge(s))}>{s.toUpperCase()}</span>
-                    <div className="text-2xl font-bold text-white mt-2">{count}</div>
-                    <div className="text-xs text-zinc-500">rules</div>
+                    <div className="text-2xl font-bold text-[var(--color-text-primary)] mt-2">{count}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">rules</div>
                   </div>
                 );
               })}

@@ -80,14 +80,14 @@ export default function TechRadar() {
   });
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Technology Radar</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">Engineering team's view of technology adoption — {ITEMS.length} technologies assessed</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Technology Radar</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Engineering team's view of technology adoption — {ITEMS.length} technologies assessed</p>
         </div>
-        <div className="text-xs text-zinc-400">Last updated: <span className="text-white">Q1 2026</span></div>
+        <div className="text-xs text-[var(--color-text-secondary)]">Last updated: <span className="text-[var(--color-text-primary)]">Q1 2026</span></div>
       </div>
 
       {/* Ring legend */}
@@ -95,21 +95,21 @@ export default function TechRadar() {
         {RINGS.map(r => (
           <div key={r} className={cn("flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs", RING_CONFIG[r].bg)}>
             <span className={cn("font-semibold", RING_CONFIG[r].color)}>{RING_CONFIG[r].label}</span>
-            <span className="text-zinc-400">— {RING_CONFIG[r].desc}</span>
+            <span className="text-[var(--color-text-secondary)]">— {RING_CONFIG[r].desc}</span>
           </div>
         ))}
       </div>
 
       {/* Controls */}
       <div className="flex items-center gap-3 mb-5">
-        <div className="flex gap-1 bg-zinc-900 border border-zinc-800 p-1 rounded-lg">
+        <div className="flex gap-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] p-1 rounded-lg">
           {(["radar","list","quadrant"] as const).map(v => (
             <button
               key={v}
               onClick={() => setActiveView(v)}
               className={cn(
                 "px-3 py-1.5 text-sm rounded-md capitalize transition-colors",
-                activeView === v ? "bg-indigo-500 text-white" : "text-zinc-400 hover:text-white"
+                activeView === v ? "bg-indigo-500 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {v === "radar" ? "📡 Radar" : v === "list" ? "📋 List" : "⊞ Quadrant"}
@@ -121,12 +121,12 @@ export default function TechRadar() {
           placeholder="Search technologies..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          className="w-48 bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-1.5 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
+          className="w-48 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-1.5 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
         />
         <select
           value={filterQuadrant}
           onChange={e => setFilterQuadrant(e.target.value as Quadrant | "all")}
-          className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-1.5 focus:outline-none"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-1.5 focus:outline-none"
         >
           <option value="all">All Quadrants</option>
           {QUADRANTS.map(q => <option key={q} value={q}>{QUADRANT_CONFIG[q].label}</option>)}
@@ -134,7 +134,7 @@ export default function TechRadar() {
         <select
           value={filterRing}
           onChange={e => setFilterRing(e.target.value as Ring | "all")}
-          className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-1.5 focus:outline-none"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-1.5 focus:outline-none"
         >
           <option value="all">All Rings</option>
           {RINGS.map(r => <option key={r} value={r}>{RING_CONFIG[r].label}</option>)}
@@ -146,7 +146,7 @@ export default function TechRadar() {
         <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2">
             {/* Concentric ring visual */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 overflow-hidden">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-6 overflow-hidden">
               <div className="relative" style={{ paddingBottom: "80%" }}>
                 <div className="absolute inset-0 flex items-center justify-center">
                   {/* Rings (outermost to innermost) */}
@@ -175,8 +175,8 @@ export default function TechRadar() {
 
                   {/* Quadrant dividers */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="absolute w-full h-px bg-zinc-700/40" />
-                    <div className="absolute h-full w-px bg-zinc-700/40" />
+                    <div className="absolute w-full h-px bg-[var(--color-surface-3)]/40" />
+                    <div className="absolute h-full w-px bg-[var(--color-surface-3)]/40" />
                   </div>
 
                   {/* Quadrant labels */}
@@ -186,7 +186,7 @@ export default function TechRadar() {
                     { q: "platforms",  x: "left-2",   y: "bottom-2" },
                     { q: "tools",      x: "right-2",  y: "bottom-2" },
                   ].map(({ q, x, y }) => (
-                    <div key={q} className={cn("absolute text-xs text-zinc-500 font-medium", x, y)}>
+                    <div key={q} className={cn("absolute text-xs text-[var(--color-text-muted)] font-medium", x, y)}>
                       {QUADRANT_CONFIG[q as Quadrant].emoji} {QUADRANT_CONFIG[q as Quadrant].label.split(" ")[0]}
                     </div>
                   ))}
@@ -226,10 +226,10 @@ export default function TechRadar() {
                         onClick={() => setSelectedItem(item)}
                         className={cn(
                           "absolute w-5 h-5 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-transform hover:scale-125",
-                          item.ring === "adopt"  ? "bg-emerald-500 border-emerald-300 text-white" :
-                          item.ring === "trial"  ? "bg-indigo-500 border-indigo-300 text-white" :
-                          item.ring === "assess" ? "bg-amber-500 border-amber-300 text-white" :
-                                                   "bg-zinc-600 border-zinc-400 text-white",
+                          item.ring === "adopt"  ? "bg-emerald-500 border-emerald-300 text-[var(--color-text-primary)]" :
+                          item.ring === "trial"  ? "bg-indigo-500 border-indigo-300 text-[var(--color-text-primary)]" :
+                          item.ring === "assess" ? "bg-amber-500 border-amber-300 text-[var(--color-text-primary)]" :
+                                                   "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-primary)]",
                           item.isNew && "ring-2 ring-white/40"
                         )}
                         style={{ left: `${cx}%`, top: `${cy}%`, transform: "translate(-50%, -50%)" }}
@@ -247,27 +247,27 @@ export default function TechRadar() {
           {/* Detail panel */}
           <div className="col-span-1">
             {selectedItem ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-white">{selectedItem.name}</h3>
-                  <button onClick={() => setSelectedItem(null)} className="text-zinc-500 hover:text-white">×</button>
+                  <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{selectedItem.name}</h3>
+                  <button onClick={() => setSelectedItem(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">×</button>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
                   <span className={cn("text-xs px-2 py-0.5 rounded border", RING_CONFIG[selectedItem.ring].bg, RING_CONFIG[selectedItem.ring].color)}>
                     {RING_CONFIG[selectedItem.ring].label}
                   </span>
-                  <span className="text-xs bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-2 py-0.5 rounded">
                     {QUADRANT_CONFIG[selectedItem.quadrant].emoji} {QUADRANT_CONFIG[selectedItem.quadrant].label.split(" ")[0]}
                   </span>
                   {selectedItem.isNew && <span className="text-xs bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded">NEW</span>}
                 </div>
 
-                <p className="text-xs text-zinc-400 leading-relaxed">{selectedItem.description}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{selectedItem.description}</p>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div><span className="text-zinc-500">Updated:</span> <span className="text-zinc-300">{selectedItem.updatedAt}</span></div>
-                  <div><span className="text-zinc-500">Owner:</span> <span className="text-zinc-300">{selectedItem.owner}</span></div>
+                  <div><span className="text-[var(--color-text-muted)]">Updated:</span> <span className="text-[var(--color-text-primary)]">{selectedItem.updatedAt}</span></div>
+                  <div><span className="text-[var(--color-text-muted)]">Owner:</span> <span className="text-[var(--color-text-primary)]">{selectedItem.owner}</span></div>
                 </div>
 
                 {selectedItem.pros.length > 0 && (
@@ -275,7 +275,7 @@ export default function TechRadar() {
                     <div className="text-xs font-medium text-emerald-400 mb-1.5">✓ Pros</div>
                     <div className="space-y-1">
                       {selectedItem.pros.map(p => (
-                        <div key={p} className="text-xs text-zinc-300 flex gap-1.5"><span className="text-emerald-500">+</span>{p}</div>
+                        <div key={p} className="text-xs text-[var(--color-text-primary)] flex gap-1.5"><span className="text-emerald-500">+</span>{p}</div>
                       ))}
                     </div>
                   </div>
@@ -286,34 +286,34 @@ export default function TechRadar() {
                     <div className="text-xs font-medium text-rose-400 mb-1.5">✗ Cons</div>
                     <div className="space-y-1">
                       {selectedItem.cons.map(c => (
-                        <div key={c} className="text-xs text-zinc-300 flex gap-1.5"><span className="text-rose-500">-</span>{c}</div>
+                        <div key={c} className="text-xs text-[var(--color-text-primary)] flex gap-1.5"><span className="text-rose-500">-</span>{c}</div>
                       ))}
                     </div>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center text-zinc-500 text-sm">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-8 text-center text-[var(--color-text-muted)] text-sm">
                 Click a dot on the radar to view details
               </div>
             )}
 
             {/* New this quarter */}
-            <div className="mt-4 bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <div className="text-xs font-medium text-white mb-2">🆕 New this quarter</div>
+            <div className="mt-4 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+              <div className="text-xs font-medium text-[var(--color-text-primary)] mb-2">🆕 New this quarter</div>
               <div className="space-y-1">
                 {ITEMS.filter(i => i.isNew).map(item => (
                   <button
                     key={item.id}
                     onClick={() => setSelectedItem(item)}
-                    className="w-full flex items-center gap-2 text-left px-2 py-1.5 rounded hover:bg-zinc-800 transition-colors"
+                    className="w-full flex items-center gap-2 text-left px-2 py-1.5 rounded hover:bg-[var(--color-surface-2)] transition-colors"
                   >
                     <span className={cn("w-2 h-2 rounded-full flex-shrink-0",
                       item.ring === "adopt"  ? "bg-emerald-500" :
                       item.ring === "trial"  ? "bg-indigo-500" :
-                      item.ring === "assess" ? "bg-amber-500"  : "bg-zinc-500"
+                      item.ring === "assess" ? "bg-amber-500"  : "bg-[var(--color-surface-3)]"
                     )} />
-                    <span className="text-xs text-zinc-300">{item.name}</span>
+                    <span className="text-xs text-[var(--color-text-primary)]">{item.name}</span>
                     <span className={cn("text-xs ml-auto", RING_CONFIG[item.ring].color)}>{RING_CONFIG[item.ring].label}</span>
                   </button>
                 ))}
@@ -325,10 +325,10 @@ export default function TechRadar() {
 
       {/* List View */}
       {activeView === "list" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800 text-xs text-zinc-400">
+              <tr className="border-b border-[var(--color-border)] text-xs text-[var(--color-text-secondary)]">
                 <th className="px-4 py-3 text-left font-medium">Technology</th>
                 <th className="px-4 py-3 text-left font-medium">Quadrant</th>
                 <th className="px-4 py-3 text-left font-medium">Ring</th>
@@ -337,27 +337,27 @@ export default function TechRadar() {
                 <th className="px-4 py-3 text-right font-medium">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {filteredItems.map(item => (
                 <tr
                   key={item.id}
-                  className="hover:bg-zinc-800/30 cursor-pointer transition-colors"
+                  className="hover:bg-[var(--color-surface-2)]/30 cursor-pointer transition-colors"
                   onClick={() => setSelectedItem(item)}
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-white font-medium">{item.name}</span>
+                      <span className="text-sm text-[var(--color-text-primary)] font-medium">{item.name}</span>
                       {item.isNew && <span className="text-xs bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 px-1.5 py-0.5 rounded">NEW</span>}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-400">{QUADRANT_CONFIG[item.quadrant].emoji} {QUADRANT_CONFIG[item.quadrant].label}</td>
+                  <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{QUADRANT_CONFIG[item.quadrant].emoji} {QUADRANT_CONFIG[item.quadrant].label}</td>
                   <td className="px-4 py-3">
                     <span className={cn("text-xs px-2 py-0.5 rounded border", RING_CONFIG[item.ring].bg, RING_CONFIG[item.ring].color)}>
                       {RING_CONFIG[item.ring].label}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-400">{item.owner}</td>
-                  <td className="px-4 py-3 text-xs text-zinc-400">{item.updatedAt}</td>
+                  <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{item.owner}</td>
+                  <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{item.updatedAt}</td>
                   <td className="px-4 py-3 text-right text-xs text-indigo-400 hover:text-indigo-300">View →</td>
                 </tr>
               ))}
@@ -370,8 +370,8 @@ export default function TechRadar() {
       {activeView === "quadrant" && (
         <div className="grid grid-cols-2 gap-4">
           {QUADRANTS.map(quad => (
-            <div key={quad} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <div className="text-sm font-semibold text-white mb-3">
+            <div key={quad} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+              <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">
                 {QUADRANT_CONFIG[quad].emoji} {QUADRANT_CONFIG[quad].label}
               </div>
               {RINGS.map(ring => {

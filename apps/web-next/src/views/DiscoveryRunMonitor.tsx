@@ -117,7 +117,7 @@ function formatCountdown(targetIso: string): string {
 function statusColor(status: AgentStatus): string {
   return {
     active: "text-emerald-400",
-    idle: "text-zinc-400",
+    idle: "text-[var(--color-text-secondary)]",
     failed: "text-red-400",
     pending: "text-amber-400",
     completed: "text-sky-400",
@@ -127,7 +127,7 @@ function statusColor(status: AgentStatus): string {
 function statusDot(status: AgentStatus): string {
   return {
     active: "bg-emerald-400 animate-pulse",
-    idle: "bg-zinc-500",
+    idle: "bg-[var(--color-surface-3)]",
     failed: "bg-red-500",
     pending: "bg-amber-400",
     completed: "bg-sky-400",
@@ -136,7 +136,7 @@ function statusDot(status: AgentStatus): string {
 
 function waveStatusBadge(status: WaveStatus): string {
   return {
-    upcoming: "bg-zinc-700 text-zinc-300",
+    upcoming: "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]",
     active: "bg-emerald-900 text-emerald-300",
     completed: "bg-sky-900 text-sky-300",
   }[status];
@@ -178,23 +178,23 @@ const DiscoveryRunMonitor: React.FC = () => {
   const warningFlags = flags.filter((f) => f.severity === "warning" && !f.resolved).length;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 p-6 font-mono">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 font-mono">
       {/* ── Header ── */}
       <div className="mb-6 flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <span className="text-2xl">🔭</span>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Discovery Run Monitor</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">Discovery Run Monitor</h1>
             <span className="px-2 py-0.5 text-xs rounded-full bg-amber-900 text-amber-300 border border-amber-700">
               First Run — Feb 23, 2026
             </span>
           </div>
-          <p className="text-sm text-zinc-400 ml-12">
+          <p className="text-sm text-[var(--color-text-secondary)] ml-12">
             15 agents · 3 waves · 17 cron jobs · dgarson/clawdbot
           </p>
         </div>
         <div className="text-right">
-          <div className="text-xs text-zinc-500 uppercase tracking-widest mb-1">Wave 1 fires in</div>
+          <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-widest mb-1">Wave 1 fires in</div>
           <div className="text-3xl font-bold text-amber-400 tabular-nums">
             {formatCountdown(MOCK_WAVES[0].scheduledAt)}
           </div>
@@ -203,7 +203,7 @@ const DiscoveryRunMonitor: React.FC = () => {
 
       {/* ── System Flags ── */}
       <div className="mb-6">
-        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-3">
+        <h2 className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-3">
           Pre-Flight Checklist
           {criticalFlags > 0 && (
             <span className="ml-2 px-1.5 py-0.5 bg-red-900 text-red-300 rounded text-xs">
@@ -230,7 +230,7 @@ const DiscoveryRunMonitor: React.FC = () => {
                 <div className={cn("font-semibold mb-0.5", severityColor(flag.severity))}>
                   {flag.label}
                 </div>
-                <div className="text-zinc-400 text-xs leading-relaxed">{flag.detail}</div>
+                <div className="text-[var(--color-text-secondary)] text-xs leading-relaxed">{flag.detail}</div>
               </div>
               {flag.resolved && (
                 <span className="px-2 py-0.5 bg-emerald-900 text-emerald-300 text-xs rounded flex-shrink-0">
@@ -245,41 +245,41 @@ const DiscoveryRunMonitor: React.FC = () => {
       {/* ── Summary Stats ── */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Agents", value: "15", sub: "provisioned", color: "text-white" },
+          { label: "Total Agents", value: "15", sub: "provisioned", color: "text-[var(--color-text-primary)]" },
           { label: "Total Waves", value: "3", sub: "10AM · 2PM · 7PM MST", color: "text-sky-400" },
           { label: "Cron Jobs", value: "17", sub: "staggered", color: "text-violet-400" },
           { label: "Findings", value: totalFindings.toString(), sub: "accumulated", color: "text-emerald-400" },
         ].map((stat) => (
-          <div key={stat.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <div className="text-xs uppercase tracking-widest text-zinc-500 mb-2">{stat.label}</div>
+          <div key={stat.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+            <div className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-2">{stat.label}</div>
             <div className={cn("text-3xl font-bold tabular-nums", stat.color)}>{stat.value}</div>
-            <div className="text-xs text-zinc-500 mt-1">{stat.sub}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-1">{stat.sub}</div>
           </div>
         ))}
       </div>
 
       {/* ── Wave Cards ── */}
       <div className="mb-6">
-        <h2 className="text-xs uppercase tracking-widest text-zinc-500 mb-3">Waves</h2>
+        <h2 className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] mb-3">Waves</h2>
         <div className="grid grid-cols-3 gap-4">
           {waves.map((wave) => (
             <button
               key={wave.id}
               onClick={() => setSelectedWave(selectedWave === wave.id ? "all" : wave.id)}
               className={cn(
-                "bg-zinc-900 border rounded-xl p-4 text-left transition-all",
+                "bg-[var(--color-surface-1)] border rounded-xl p-4 text-left transition-all",
                 selectedWave === wave.id
                   ? "border-sky-500 ring-1 ring-sky-500/30"
-                  : "border-zinc-800 hover:border-zinc-600"
+                  : "border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
               )}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-sm text-white">{wave.label}</span>
+                <span className="font-semibold text-sm text-[var(--color-text-primary)]">{wave.label}</span>
                 <span className={cn("text-xs px-2 py-0.5 rounded-full", waveStatusBadge(wave.status))}>
                   {wave.status.toUpperCase()}
                 </span>
               </div>
-              <div className="text-xs text-zinc-400 mb-3">
+              <div className="text-xs text-[var(--color-text-secondary)] mb-3">
                 {new Date(wave.scheduledAt).toLocaleString("en-US", {
                   timeZone: "America/Denver",
                   month: "short",
@@ -290,17 +290,17 @@ const DiscoveryRunMonitor: React.FC = () => {
                   timeZoneName: "short",
                 })}
               </div>
-              <div className="flex items-center gap-4 text-xs text-zinc-400">
+              <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
                 <span>👤 {wave.agentCount} agents</span>
                 <span>⏰ {wave.cronJobs} crons</span>
               </div>
               {wave.status !== "upcoming" && (
                 <div className="mt-3">
-                  <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                  <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mb-1">
                     <span>Progress</span>
                     <span>{wave.completedAgents}/{wave.agentCount}</span>
                   </div>
-                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-emerald-500 rounded-full transition-all"
                       style={{ width: `${(wave.completedAgents / wave.agentCount) * 100}%` }}
@@ -321,7 +321,7 @@ const DiscoveryRunMonitor: React.FC = () => {
       {/* ── Agent Table ── */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs uppercase tracking-widest text-zinc-500">
+          <h2 className="text-xs uppercase tracking-widest text-[var(--color-text-muted)]">
             Agents
             {selectedWave !== "all" && (
               <span className="ml-2 text-sky-400">Wave {selectedWave}</span>
@@ -333,7 +333,7 @@ const DiscoveryRunMonitor: React.FC = () => {
               "text-xs px-2 py-1 rounded transition-colors",
               selectedWave === "all"
                 ? "bg-sky-900 text-sky-300"
-                : "text-zinc-500 hover:text-zinc-300"
+                : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             Show all
@@ -344,11 +344,11 @@ const DiscoveryRunMonitor: React.FC = () => {
           {filteredAgents().map((agent) => (
             <div
               key={agent.id}
-              className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"
+              className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden"
             >
               {/* Row */}
               <button
-                className="w-full flex items-center gap-4 px-4 py-3 hover:bg-zinc-800/50 transition-colors text-left"
+                className="w-full flex items-center gap-4 px-4 py-3 hover:bg-[var(--color-surface-2)]/50 transition-colors text-left"
                 onClick={() => setExpandedAgent(expandedAgent === agent.id ? null : agent.id)}
               >
                 {/* Status dot */}
@@ -357,28 +357,28 @@ const DiscoveryRunMonitor: React.FC = () => {
                 {/* Name + domain */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm text-white">{agent.name}</span>
-                    <span className="text-xs text-zinc-500">W{agent.wave}</span>
+                    <span className="font-semibold text-sm text-[var(--color-text-primary)]">{agent.name}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">W{agent.wave}</span>
                     {!agent.hasToolAccess && (
                       <span className="text-xs px-1.5 py-0.5 bg-red-950 text-red-400 border border-red-800 rounded">
                         NO SEARCH
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-zinc-400 mt-0.5">{agent.domain}</div>
+                  <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{agent.domain}</div>
                 </div>
 
                 {/* Model */}
-                <div className="text-xs text-zinc-500 hidden sm:block w-36 text-right truncate">
+                <div className="text-xs text-[var(--color-text-muted)] hidden sm:block w-36 text-right truncate">
                   {agent.model}
                 </div>
 
                 {/* Token usage */}
                 <div className="text-right w-32 hidden md:block">
-                  <div className="text-xs text-zinc-400 mb-1">
+                  <div className="text-xs text-[var(--color-text-secondary)] mb-1">
                     {agent.tokensUsed.toLocaleString()} / {(agent.tokenLimit / 1000).toFixed(0)}k
                   </div>
-                  <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-violet-500 rounded-full"
                       style={{ width: `${Math.min((agent.tokensUsed / agent.tokenLimit) * 100, 100)}%` }}
@@ -389,7 +389,7 @@ const DiscoveryRunMonitor: React.FC = () => {
                 {/* Findings */}
                 <div className="text-right w-20">
                   <div className="text-sm font-semibold text-emerald-400">{agent.findingsCount}</div>
-                  <div className="text-xs text-zinc-500">findings</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">findings</div>
                 </div>
 
                 {/* Status */}
@@ -398,49 +398,49 @@ const DiscoveryRunMonitor: React.FC = () => {
                 </div>
 
                 {/* Expand chevron */}
-                <span className="text-zinc-600 text-xs ml-1">
+                <span className="text-[var(--color-text-muted)] text-xs ml-1">
                   {expandedAgent === agent.id ? "▲" : "▼"}
                 </span>
               </button>
 
               {/* Expanded detail */}
               {expandedAgent === agent.id && (
-                <div className="border-t border-zinc-800 px-4 py-3 text-xs text-zinc-400 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="border-t border-[var(--color-border)] px-4 py-3 text-xs text-[var(--color-text-secondary)] grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
-                    <div className="text-zinc-600 uppercase tracking-wider mb-1">Agent ID</div>
-                    <div className="font-mono text-zinc-300">{agent.id}</div>
+                    <div className="text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Agent ID</div>
+                    <div className="font-mono text-[var(--color-text-primary)]">{agent.id}</div>
                   </div>
                   <div>
-                    <div className="text-zinc-600 uppercase tracking-wider mb-1">Model</div>
-                    <div className="text-zinc-300">{agent.model}</div>
+                    <div className="text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Model</div>
+                    <div className="text-[var(--color-text-primary)]">{agent.model}</div>
                   </div>
                   <div>
-                    <div className="text-zinc-600 uppercase tracking-wider mb-1">Error Rate</div>
+                    <div className="text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Error Rate</div>
                     <div className={agent.errorRate > 0.02 ? "text-red-400" : "text-emerald-400"}>
                       {(agent.errorRate * 100).toFixed(1)}%
                     </div>
                   </div>
                   <div>
-                    <div className="text-zinc-600 uppercase tracking-wider mb-1">Last Heartbeat</div>
-                    <div className="text-zinc-300">{agent.lastHeartbeat ?? "—"}</div>
+                    <div className="text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Last Heartbeat</div>
+                    <div className="text-[var(--color-text-primary)]">{agent.lastHeartbeat ?? "—"}</div>
                   </div>
                   <div>
-                    <div className="text-zinc-600 uppercase tracking-wider mb-1">Web Search</div>
+                    <div className="text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Web Search</div>
                     <div className={agent.hasToolAccess ? "text-emerald-400" : "text-red-400"}>
                       {agent.hasToolAccess ? "✓ Enabled" : "✗ Disabled (Brave key missing)"}
                     </div>
                   </div>
                   <div>
-                    <div className="text-zinc-600 uppercase tracking-wider mb-1">Token Budget</div>
-                    <div className="text-zinc-300">{(agent.tokenLimit / 1_000).toFixed(0)}k tokens</div>
+                    <div className="text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Token Budget</div>
+                    <div className="text-[var(--color-text-primary)]">{(agent.tokenLimit / 1_000).toFixed(0)}k tokens</div>
                   </div>
                   <div>
-                    <div className="text-zinc-600 uppercase tracking-wider mb-1">Wave</div>
-                    <div className="text-zinc-300">Wave {agent.wave}</div>
+                    <div className="text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Wave</div>
+                    <div className="text-[var(--color-text-primary)]">Wave {agent.wave}</div>
                   </div>
                   <div>
-                    <div className="text-zinc-600 uppercase tracking-wider mb-1">Domain</div>
-                    <div className="text-zinc-300">{agent.domain}</div>
+                    <div className="text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Domain</div>
+                    <div className="text-[var(--color-text-primary)]">{agent.domain}</div>
                   </div>
                 </div>
               )}
@@ -450,7 +450,7 @@ const DiscoveryRunMonitor: React.FC = () => {
       </div>
 
       {/* ── Footer ── */}
-      <div className="mt-8 pt-4 border-t border-zinc-800 text-xs text-zinc-600 flex justify-between">
+      <div className="mt-8 pt-4 border-t border-[var(--color-border)] text-xs text-[var(--color-text-muted)] flex justify-between">
         <span>DiscoveryRunMonitor v1.0 — OpenClaw Horizon UI</span>
         <span className="tabular-nums">Live · tick={tick}</span>
       </div>

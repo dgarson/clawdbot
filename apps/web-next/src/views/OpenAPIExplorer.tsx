@@ -422,27 +422,27 @@ function EndpointsTab() {
           const group = endpoints.filter((e) => e.tag === tag);
           const isOpen = openTag === tag;
           return (
-            <div key={tag} className="rounded-lg border border-zinc-800 overflow-hidden">
+            <div key={tag} className="rounded-lg border border-[var(--color-border)] overflow-hidden">
               <button
                 onClick={() => setOpenTag(isOpen ? null : tag)}
-                className="w-full flex items-center justify-between px-3 py-2 bg-zinc-900 hover:bg-zinc-800 transition-colors text-sm font-semibold text-white"
+                className="w-full flex items-center justify-between px-3 py-2 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] transition-colors text-sm font-semibold text-[var(--color-text-primary)]"
               >
                 <span>{tag}</span>
-                <span className="text-zinc-500 text-xs">{group.length}</span>
+                <span className="text-[var(--color-text-muted)] text-xs">{group.length}</span>
               </button>
               {isOpen && (
-                <div className="divide-y divide-zinc-800">
+                <div className="divide-y divide-[var(--color-border)]">
                   {group.map((ep) => (
                     <button
                       key={ep.method + ep.path}
                       onClick={() => setSelected(ep)}
                       className={cn(
-                        "w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-zinc-800 transition-colors",
+                        "w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-[var(--color-surface-2)] transition-colors",
                         selected === ep && "bg-indigo-500/10"
                       )}
                     >
                       <MethodBadge method={ep.method} />
-                      <span className="text-xs font-mono text-zinc-300 truncate">{ep.path}</span>
+                      <span className="text-xs font-mono text-[var(--color-text-primary)] truncate">{ep.path}</span>
                     </button>
                   ))}
                 </div>
@@ -455,44 +455,44 @@ function EndpointsTab() {
       {/* Right: detail */}
       <div className="flex-1 overflow-y-auto">
         {!selected ? (
-          <div className="flex items-center justify-center h-40 text-zinc-500 text-sm">
+          <div className="flex items-center justify-center h-40 text-[var(--color-text-muted)] text-sm">
             Select an endpoint to view documentation
           </div>
         ) : (
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <MethodBadge method={selected.method} />
-              <span className="font-mono text-white text-base">{selected.path}</span>
-              <span className="ml-auto text-xs text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded">{selected.tag}</span>
+              <span className="font-mono text-[var(--color-text-primary)] text-base">{selected.path}</span>
+              <span className="ml-auto text-xs text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-2 py-0.5 rounded">{selected.tag}</span>
             </div>
-            <p className="text-sm text-zinc-300">{selected.description}</p>
+            <p className="text-sm text-[var(--color-text-primary)]">{selected.description}</p>
 
             {selected.parameters.length > 0 && (
               <div>
-                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Parameters</h4>
-                <div className="rounded-lg border border-zinc-800 overflow-hidden">
+                <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Parameters</h4>
+                <div className="rounded-lg border border-[var(--color-border)] overflow-hidden">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-zinc-800 bg-zinc-900">
-                        <th className="text-left px-3 py-2 text-zinc-400">Name</th>
-                        <th className="text-left px-3 py-2 text-zinc-400">In</th>
-                        <th className="text-left px-3 py-2 text-zinc-400">Type</th>
-                        <th className="text-left px-3 py-2 text-zinc-400">Req</th>
-                        <th className="text-left px-3 py-2 text-zinc-400">Description</th>
+                      <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]">
+                        <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Name</th>
+                        <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">In</th>
+                        <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Type</th>
+                        <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Req</th>
+                        <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Description</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-800">
+                    <tbody className="divide-y divide-[var(--color-border)]">
                       {selected.parameters.map((p) => (
-                        <tr key={p.name} className="bg-zinc-950">
+                        <tr key={p.name} className="bg-[var(--color-surface-0)]">
                           <td className="px-3 py-2 font-mono text-emerald-400">{p.name}</td>
-                          <td className="px-3 py-2 text-zinc-400">{p.in}</td>
+                          <td className="px-3 py-2 text-[var(--color-text-secondary)]">{p.in}</td>
                           <td className="px-3 py-2 text-indigo-400">{p.type}</td>
                           <td className="px-3 py-2">
                             {p.required
                               ? <span className="text-rose-400">yes</span>
-                              : <span className="text-zinc-500">no</span>}
+                              : <span className="text-[var(--color-text-muted)]">no</span>}
                           </td>
-                          <td className="px-3 py-2 text-zinc-300">{p.description}</td>
+                          <td className="px-3 py-2 text-[var(--color-text-primary)]">{p.description}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -503,24 +503,24 @@ function EndpointsTab() {
 
             {selected.requestBody && (
               <div>
-                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Request Body</h4>
-                <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3">
+                <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Request Body</h4>
+                <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-4 py-3">
                   <span className="font-mono text-indigo-300 text-sm">{selected.requestBody}</span>
-                  <span className="text-zinc-500 text-xs ml-2">(schema)</span>
+                  <span className="text-[var(--color-text-muted)] text-xs ml-2">(schema)</span>
                 </div>
               </div>
             )}
 
             <div>
-              <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Responses</h4>
+              <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Responses</h4>
               <div className="space-y-2">
                 {selected.responses.map((r) => {
                   const statusNum = parseInt(r.status, 10);
                   const color = statusNum < 300 ? "text-emerald-400" : statusNum < 400 ? "text-amber-400" : "text-rose-400";
                   return (
-                    <div key={r.status} className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2">
+                    <div key={r.status} className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] px-4 py-2">
                       <span className={cn("font-mono font-bold text-sm", color)}>{r.status}</span>
-                      <span className="text-zinc-300 text-sm">{r.description}</span>
+                      <span className="text-[var(--color-text-primary)] text-sm">{r.description}</span>
                       {r.schema && <span className="ml-auto font-mono text-xs text-indigo-400">{r.schema}</span>}
                     </div>
                   );
@@ -549,7 +549,7 @@ function SchemasTab() {
               "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
               selected.name === s.name
                 ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-                : "text-zinc-300 hover:bg-zinc-800"
+                : "text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {s.name}
@@ -559,29 +559,29 @@ function SchemasTab() {
 
       {/* Detail */}
       <div className="flex-1">
-        <h3 className="text-white font-semibold text-base mb-1">{selected.name}</h3>
-        <p className="text-sm text-zinc-400 mb-4">{selected.description}</p>
-        <div className="rounded-lg border border-zinc-800 overflow-hidden">
+        <h3 className="text-[var(--color-text-primary)] font-semibold text-base mb-1">{selected.name}</h3>
+        <p className="text-sm text-[var(--color-text-secondary)] mb-4">{selected.description}</p>
+        <div className="rounded-lg border border-[var(--color-border)] overflow-hidden">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-zinc-800 bg-zinc-900">
-                <th className="text-left px-3 py-2 text-zinc-400">Property</th>
-                <th className="text-left px-3 py-2 text-zinc-400">Type</th>
-                <th className="text-left px-3 py-2 text-zinc-400">Nullable</th>
-                <th className="text-left px-3 py-2 text-zinc-400">Description</th>
+              <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]">
+                <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Property</th>
+                <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Type</th>
+                <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Nullable</th>
+                <th className="text-left px-3 py-2 text-[var(--color-text-secondary)]">Description</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {selected.properties.map((p) => (
-                <tr key={p.name} className="bg-zinc-950">
+                <tr key={p.name} className="bg-[var(--color-surface-0)]">
                   <td className="px-3 py-2 font-mono text-emerald-400">{p.name}</td>
                   <td className="px-3 py-2 text-indigo-400 font-mono">{p.type}</td>
                   <td className="px-3 py-2">
                     {p.nullable
                       ? <span className="text-amber-400">true</span>
-                      : <span className="text-zinc-500">false</span>}
+                      : <span className="text-[var(--color-text-muted)]">false</span>}
                   </td>
-                  <td className="px-3 py-2 text-zinc-300">{p.description}</td>
+                  <td className="px-3 py-2 text-[var(--color-text-primary)]">{p.description}</td>
                 </tr>
               ))}
             </tbody>
@@ -599,37 +599,37 @@ function AuthTab() {
   return (
     <div className="space-y-6 max-w-2xl">
       {authMethods.map((m) => (
-        <div key={m.name} className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-3">
+        <div key={m.name} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5 space-y-3">
           <div className="flex items-center gap-3">
-            <h3 className="text-white font-semibold">{m.name}</h3>
+            <h3 className="text-[var(--color-text-primary)] font-semibold">{m.name}</h3>
             <span className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded px-2 py-0.5">{m.type}</span>
           </div>
-          <p className="text-sm text-zinc-400">{m.description}</p>
-          <div className="font-mono text-xs bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-emerald-300">
+          <p className="text-sm text-[var(--color-text-secondary)]">{m.description}</p>
+          <div className="font-mono text-xs bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-3 py-2 text-emerald-300">
             {m.example}
           </div>
         </div>
       ))}
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-3">
-        <h3 className="text-white font-semibold">🔑 Try It — Token</h3>
-        <p className="text-sm text-zinc-400">Enter a Bearer token to use in the Try It tab.</p>
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-5 space-y-3">
+        <h3 className="text-[var(--color-text-primary)] font-semibold">🔑 Try It — Token</h3>
+        <p className="text-sm text-[var(--color-text-secondary)]">Enter a Bearer token to use in the Try It tab.</p>
         <div className="flex gap-2">
           <input
             type={visible ? "text" : "password"}
             value={token}
             onChange={(e) => setToken(e.target.value)}
             placeholder="eyJhbGciOiJSUzI1NiJ9..."
-            className="flex-1 bg-zinc-950 border border-zinc-700 rounded px-3 py-2 text-sm text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
+            className="flex-1 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] font-mono placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
           />
           <button
             onClick={() => setVisible(!visible)}
-            className="px-3 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-xs transition-colors"
+            className="px-3 py-2 rounded bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] text-xs transition-colors"
           >
             {visible ? "Hide" : "Show"}
           </button>
         </div>
-        <div className={cn("text-xs", token ? "text-emerald-400" : "text-zinc-500")}>
+        <div className={cn("text-xs", token ? "text-emerald-400" : "text-[var(--color-text-muted)]")}>
           {token ? "✓ Token set — will be used in Try It requests" : "No token set"}
         </div>
       </div>
@@ -664,14 +664,14 @@ function TryItTab() {
   return (
     <div className="space-y-4 max-w-3xl">
       <div>
-        <label className="text-xs text-zinc-400 mb-1 block">Endpoint</label>
+        <label className="text-xs text-[var(--color-text-secondary)] mb-1 block">Endpoint</label>
         <select
           value={selectedEp.method + " " + selectedEp.path}
           onChange={(e) => {
             const found = endpoints.find((ep) => ep.method + " " + ep.path === e.target.value);
             if (found) { setSelectedEp(found); setParams({}); setResponse(null); }
           }}
-          className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+          className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
         >
           {endpoints.map((ep) => (
             <option key={ep.method + ep.path} value={ep.method + " " + ep.path}>
@@ -683,17 +683,17 @@ function TryItTab() {
 
       {selectedEp.parameters.length > 0 && (
         <div>
-          <label className="text-xs text-zinc-400 mb-1 block">Parameters</label>
+          <label className="text-xs text-[var(--color-text-secondary)] mb-1 block">Parameters</label>
           <div className="space-y-2">
             {selectedEp.parameters.map((p) => (
               <div key={p.name} className="flex items-center gap-3">
                 <span className="w-32 shrink-0 font-mono text-xs text-emerald-400">{p.name}</span>
-                <span className="w-16 shrink-0 text-xs text-zinc-500">{p.in}</span>
+                <span className="w-16 shrink-0 text-xs text-[var(--color-text-muted)]">{p.in}</span>
                 <input
                   value={params[p.name] || ""}
                   onChange={(e) => setParams({ ...params, [p.name]: e.target.value })}
                   placeholder={p.required ? "required" : "optional"}
-                  className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
+                  className="flex-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] font-mono placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
                 />
               </div>
             ))}
@@ -702,27 +702,27 @@ function TryItTab() {
       )}
 
       <div>
-        <label className="text-xs text-zinc-400 mb-1 block">Extra Header (optional)</label>
+        <label className="text-xs text-[var(--color-text-secondary)] mb-1 block">Extra Header (optional)</label>
         <input
           value={extraHeader}
           onChange={(e) => setExtraHeader(e.target.value)}
           placeholder="X-Custom-Header: value"
-          className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
+          className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] font-mono placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
         />
       </div>
 
       <button
         onClick={handleSend}
         disabled={loading}
-        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-700 rounded-lg text-white text-sm font-medium transition-colors"
+        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] text-sm font-medium transition-colors"
       >
         {loading ? "Sending…" : "Send Request"}
       </button>
 
       {response && (
         <div>
-          <label className="text-xs text-zinc-400 mb-1 block">Response</label>
-          <pre className="bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-xs text-emerald-300 font-mono overflow-x-auto whitespace-pre-wrap">
+          <label className="text-xs text-[var(--color-text-secondary)] mb-1 block">Response</label>
+          <pre className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-4 py-3 text-xs text-emerald-300 font-mono overflow-x-auto whitespace-pre-wrap">
             {response}
           </pre>
         </div>
@@ -740,7 +740,7 @@ export default function OpenAPIExplorer() {
   const [tab, setTab] = useState<Tab>("Endpoints");
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-1">
@@ -748,13 +748,13 @@ export default function OpenAPIExplorer() {
           <span className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full px-3 py-1">v1.0.0</span>
           <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full px-3 py-1">Live</span>
         </div>
-        <p className="text-zinc-400 text-sm">
+        <p className="text-[var(--color-text-secondary)] text-sm">
           Interactive API documentation — {endpoints.length} endpoints across {tags.length} resource groups
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-zinc-800 pb-0">
+      <div className="flex gap-1 mb-6 border-b border-[var(--color-border)] pb-0">
         {TABS.map((t) => (
           <button
             key={t}
@@ -763,7 +763,7 @@ export default function OpenAPIExplorer() {
               "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
               tab === t
                 ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-zinc-400 hover:text-white"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}

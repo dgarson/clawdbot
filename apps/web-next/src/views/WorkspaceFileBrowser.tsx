@@ -143,11 +143,11 @@ function getLanguageColor(language?: string): string {
   const colors: Record<string, string> = {
     typescript: 'text-blue-400',
     javascript: 'text-yellow-400',
-    markdown: 'text-gray-300',
+    markdown: 'text-[var(--color-text-primary)]',
     json: 'text-green-400',
     yaml: 'text-orange-400',
   };
-  return colors[language ?? ''] ?? 'text-gray-400';
+  return colors[language ?? ''] ?? 'text-[var(--color-text-secondary)]';
 }
 
 interface TreeNodeProps {
@@ -172,15 +172,15 @@ function TreeNode({ node, depth, selectedPath, onSelect, path }: TreeNodeProps) 
           aria-expanded={open}
           aria-label={`${node.name} folder, ${open ? 'collapse' : 'expand'}`}
           className={cn(
-            'w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-sm transition-colors hover:bg-gray-800/50 text-left',
-            isSelected ? 'bg-gray-800 text-white' : 'text-gray-400'
+            'w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-sm transition-colors hover:bg-[var(--color-surface-2)]/50 text-left',
+            isSelected ? 'bg-[var(--color-surface-2)] text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'
           )}
           style={{ paddingLeft: `${depth * 12 + 8}px` }}
         >
           {open ? (
-            <ChevronDown className="w-3 h-3 text-gray-500 flex-shrink-0" />
+            <ChevronDown className="w-3 h-3 text-[var(--color-text-muted)] flex-shrink-0" />
           ) : (
-            <ChevronRight className="w-3 h-3 text-gray-500 flex-shrink-0" />
+            <ChevronRight className="w-3 h-3 text-[var(--color-text-muted)] flex-shrink-0" />
           )}
           {open ? (
             <FolderOpen className="w-4 h-4 text-amber-400 flex-shrink-0" />
@@ -213,7 +213,7 @@ function TreeNode({ node, depth, selectedPath, onSelect, path }: TreeNodeProps) 
       onClick={() => onSelect(path, node)}
       className={cn(
         'w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-sm transition-colors text-left group',
-        isSelected ? 'bg-violet-600/15 text-violet-300' : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'
+        isSelected ? 'bg-violet-600/15 text-violet-300' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)]/50 hover:text-[var(--color-text-primary)]'
       )}
       style={{ paddingLeft: `${depth * 12 + 8}px` }}
     >
@@ -221,7 +221,7 @@ function TreeNode({ node, depth, selectedPath, onSelect, path }: TreeNodeProps) 
       {FileIcon && <FileIcon className={cn('w-4 h-4 flex-shrink-0', isSelected ? 'text-violet-400' : getLanguageColor(node.language))} />}
       <span className="truncate flex-1">{node.name}</span>
       {node.size && (
-        <span className="text-xs text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+        <span className="text-xs text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
           {formatSize(node.size)}
         </span>
       )}
@@ -255,35 +255,35 @@ export default function WorkspaceFileBrowser() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex">
+    <div className="min-h-screen bg-[var(--color-surface-0)] flex">
       {/* File tree sidebar */}
-      <div className="w-72 bg-gray-900 border-r border-gray-800 flex flex-col">
+      <div className="w-72 bg-[var(--color-surface-1)] border-r border-[var(--color-border)] flex flex-col">
         {/* Header */}
-        <div className="px-4 py-3 border-b border-gray-800">
+        <div className="px-4 py-3 border-b border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
               <Folder className="w-4 h-4 text-amber-400" />
               Files
             </h2>
             <div className="flex items-center gap-1">
-              <button type="button" aria-label="New file" className="w-7 h-7 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300 flex items-center justify-center transition-colors">
+              <button type="button" aria-label="New file" className="w-7 h-7 rounded-lg hover:bg-[var(--color-surface-2)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex items-center justify-center transition-colors">
                 <Plus className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
-              <button type="button" aria-label="Refresh files" className="w-7 h-7 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300 flex items-center justify-center transition-colors">
+              <button type="button" aria-label="Refresh files" className="w-7 h-7 rounded-lg hover:bg-[var(--color-surface-2)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex items-center justify-center transition-colors">
                 <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
           </div>
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" aria-hidden="true" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--color-text-muted)]" aria-hidden="true" />
             <input
               type="text"
               aria-label="Search files"
               placeholder="Search files..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 text-white text-xs rounded-lg pl-7 pr-3 py-1.5 focus:outline-none focus:border-violet-500 placeholder-gray-600"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded-lg pl-7 pr-3 py-1.5 focus:outline-none focus:border-violet-500 placeholder-gray-600"
             />
           </div>
         </div>
@@ -303,8 +303,8 @@ export default function WorkspaceFileBrowser() {
         </div>
 
         {/* Footer stats */}
-        <div className="px-4 py-2 border-t border-gray-800">
-          <p className="text-xs text-gray-600">workspace/luis · 12 files</p>
+        <div className="px-4 py-2 border-t border-[var(--color-border)]">
+          <p className="text-xs text-[var(--color-text-muted)]">workspace/luis · 12 files</p>
         </div>
       </div>
 
@@ -313,18 +313,18 @@ export default function WorkspaceFileBrowser() {
         {selectedFile ? (
           <>
             {/* Editor toolbar */}
-            <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-800 bg-gray-900/50">
+            <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
               <div className="flex items-center gap-2">
                 {getFileIcon(selectedFile) && (() => {
                   const FIcon = getFileIcon(selectedFile)!;
                   return <FIcon className={cn('w-4 h-4', getLanguageColor(selectedFile.language))} />;
                 })()}
-                <span className="text-sm font-medium text-white">{selectedFile.name}</span>
+                <span className="text-sm font-medium text-[var(--color-text-primary)]">{selectedFile.name}</span>
                 {selectedFile.modified && (
-                  <span className="text-xs text-gray-600">· Modified {selectedFile.modified}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">· Modified {selectedFile.modified}</span>
                 )}
                 {selectedFile.size && (
-                  <span className="text-xs text-gray-600">· {formatSize(selectedFile.size)}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">· {formatSize(selectedFile.size)}</span>
                 )}
               </div>
               <div className="flex items-center gap-2 ml-auto">
@@ -338,14 +338,14 @@ export default function WorkspaceFileBrowser() {
                     <button
                       type="button"
                       onClick={() => { setEditMode(false); setEditContent(selectedFile.content ?? ''); }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 text-xs rounded-lg transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] text-xs rounded-lg transition-colors"
                     >
                       <X className="w-3 h-3" /> Cancel
                     </button>
                     <button
                       type="button"
                       onClick={handleSave}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs rounded-lg transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-xs rounded-lg transition-colors"
                     >
                       <Save className="w-3 h-3" /> Save
                     </button>
@@ -354,13 +354,13 @@ export default function WorkspaceFileBrowser() {
                   <>
                     <button
                       type="button"
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 text-xs rounded-lg transition-colors"
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] text-xs rounded-lg transition-colors"
                     >
                       <Copy className="w-3 h-3" /> Copy
                     </button>
                     <button
                       type="button"
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-400 text-xs rounded-lg transition-colors"
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] text-xs rounded-lg transition-colors"
                     >
                       <Download className="w-3 h-3" /> Download
                     </button>
@@ -375,7 +375,7 @@ export default function WorkspaceFileBrowser() {
                 )}
                 <button
                   type="button"
-                  className="w-7 h-7 rounded-lg bg-gray-800 hover:bg-red-600/20 text-gray-500 hover:text-red-400 flex items-center justify-center transition-colors"
+                  className="w-7 h-7 rounded-lg bg-[var(--color-surface-2)] hover:bg-red-600/20 text-[var(--color-text-muted)] hover:text-red-400 flex items-center justify-center transition-colors"
                   title="Delete file"
                   aria-label="Delete file"
                 >
@@ -390,12 +390,12 @@ export default function WorkspaceFileBrowser() {
                 <textarea
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full h-full bg-gray-950 text-gray-200 font-mono text-sm p-6 resize-none focus:outline-none leading-relaxed"
+                  className="w-full h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-mono text-sm p-6 resize-none focus:outline-none leading-relaxed"
                   spellCheck={false}
                 />
               ) : (
                 <div className="h-full overflow-y-auto p-6">
-                  <pre className="text-sm font-mono text-gray-300 leading-relaxed whitespace-pre-wrap break-words">
+                  <pre className="text-sm font-mono text-[var(--color-text-primary)] leading-relaxed whitespace-pre-wrap break-words">
                     {selectedFile.content ?? '(empty file)'}
                   </pre>
                 </div>
@@ -403,7 +403,7 @@ export default function WorkspaceFileBrowser() {
             </div>
 
             {/* Status bar */}
-            <div className="flex items-center justify-between px-4 py-1.5 border-t border-gray-800 bg-gray-900/30 text-xs text-gray-600">
+            <div className="flex items-center justify-between px-4 py-1.5 border-t border-[var(--color-border)] bg-[var(--color-surface-1)]/30 text-xs text-[var(--color-text-muted)]">
               <div className="flex items-center gap-4">
                 <span>{selectedFile.language ?? 'plaintext'}</span>
                 <span>UTF-8</span>
@@ -411,7 +411,7 @@ export default function WorkspaceFileBrowser() {
               <div className="flex items-center gap-4">
                 <span>{(selectedFile.content ?? '').split('\n').length} lines</span>
                 <span>{(selectedFile.content ?? '').length} chars</span>
-                <span className="text-gray-700">Cmd+S to save</span>
+                <span className="text-[var(--color-text-muted)]">Cmd+S to save</span>
               </div>
             </div>
           </>
@@ -419,11 +419,11 @@ export default function WorkspaceFileBrowser() {
           /* Empty state */
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <div className="w-16 h-16 rounded-2xl bg-gray-800/50 flex items-center justify-center mx-auto mb-4">
-                <FolderOpen className="w-8 h-8 text-gray-600" />
+              <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-2)]/50 flex items-center justify-center mx-auto mb-4">
+                <FolderOpen className="w-8 h-8 text-[var(--color-text-muted)]" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-500 mb-2">No file selected</h3>
-              <p className="text-sm text-gray-600">Click a file in the tree to view its contents</p>
+              <h3 className="text-lg font-semibold text-[var(--color-text-muted)] mb-2">No file selected</h3>
+              <p className="text-sm text-[var(--color-text-muted)]">Click a file in the tree to view its contents</p>
             </div>
           </div>
         )}

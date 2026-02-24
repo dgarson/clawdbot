@@ -147,12 +147,12 @@ export default function EnvironmentConfigManager() {
   const matchCount = CONFIG_DIFF.filter(d => d.match).length;
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Environment Config Manager</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Secrets · Variables · Drift Detection</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Secrets · Variables · Drift Detection</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
@@ -170,14 +170,14 @@ export default function EnvironmentConfigManager() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-[var(--color-border)] px-6">
         {(["overview", "vars", "diff", "history"] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize",
-              tab === t ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200"
+              tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t === "vars" ? "Variables" : t === "diff" ? "Env Diff" : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -190,7 +190,7 @@ export default function EnvironmentConfigManager() {
         <div className="flex-1 overflow-y-auto p-6">
           <div className="grid grid-cols-4 gap-4 mb-8">
             {ENV_SNAPSHOTS.map(snap => (
-              <div key={snap.env} className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
+              <div key={snap.env} className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{targetIcon[snap.deployTarget]}</span>
@@ -200,15 +200,15 @@ export default function EnvironmentConfigManager() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div className="text-center">
-                    <div className="text-xl font-bold font-mono text-white">{snap.varCount}</div>
-                    <div className="text-xs text-zinc-500">variables</div>
+                    <div className="text-xl font-bold font-mono text-[var(--color-text-primary)]">{snap.varCount}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">variables</div>
                   </div>
                   <div className="text-center">
                     <div className="text-xl font-bold font-mono text-amber-400">{snap.secretCount}</div>
-                    <div className="text-xs text-zinc-500">secrets</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">secrets</div>
                   </div>
                 </div>
-                <div className="text-xs text-zinc-500 text-center">Synced {snap.lastSync}</div>
+                <div className="text-xs text-[var(--color-text-muted)] text-center">Synced {snap.lastSync}</div>
                 {snap.pendingChanges > 0 && (
                   <div className="mt-2 text-center text-xs text-amber-400 font-medium">
                     {snap.pendingChanges} pending change{snap.pendingChanges > 1 ? "s" : ""}
@@ -219,15 +219,15 @@ export default function EnvironmentConfigManager() {
           </div>
 
           {/* Recent activity */}
-          <h2 className="text-sm font-medium text-zinc-300 mb-3">Recent Changes</h2>
+          <h2 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Recent Changes</h2>
           <div className="space-y-2">
             {CHANGE_LOG.slice(0, 4).map(c => (
-              <div key={c.id} className="bg-zinc-900 rounded-lg p-3 flex items-center gap-4">
+              <div key={c.id} className="bg-[var(--color-surface-1)] rounded-lg p-3 flex items-center gap-4">
                 <span className={cn("text-xs px-2 py-0.5 rounded capitalize font-medium", actionBadge[c.action])}>{c.action}</span>
-                <span className="font-mono text-sm text-white">{c.key}</span>
+                <span className="font-mono text-sm text-[var(--color-text-primary)]">{c.key}</span>
                 <span className={cn("text-xs px-1.5 py-0.5 rounded", envBadge[c.env])}>{c.env}</span>
-                <span className="text-xs text-zinc-500">{c.service}</span>
-                <span className="ml-auto text-xs text-zinc-500">by {c.author} · {c.timestamp}</span>
+                <span className="text-xs text-[var(--color-text-muted)]">{c.service}</span>
+                <span className="ml-auto text-xs text-[var(--color-text-muted)]">by {c.author} · {c.timestamp}</span>
               </div>
             ))}
           </div>
@@ -238,8 +238,8 @@ export default function EnvironmentConfigManager() {
       {tab === "vars" && (
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar: env selector + list */}
-          <div className="w-80 border-r border-zinc-800 flex flex-col">
-            <div className="p-3 border-b border-zinc-800 space-y-2">
+          <div className="w-80 border-r border-[var(--color-border)] flex flex-col">
+            <div className="p-3 border-b border-[var(--color-border)] space-y-2">
               <div className="flex gap-1.5 flex-wrap">
                 {(["development", "staging", "production", "dr"] as ConfigEnv[]).map(e => (
                   <button
@@ -247,7 +247,7 @@ export default function EnvironmentConfigManager() {
                     onClick={() => { setSelectedEnv(e); }}
                     className={cn(
                       "text-xs px-2 py-0.5 rounded border transition-colors capitalize",
-                      selectedEnv === e ? envBadge[e] : "border-zinc-700 text-zinc-400 hover:border-zinc-500"
+                      selectedEnv === e ? envBadge[e] : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                     )}
                   >
                     {e.slice(0, 4)}
@@ -257,7 +257,7 @@ export default function EnvironmentConfigManager() {
               <select
                 value={serviceFilter}
                 onChange={e => setServiceFilter(e.target.value)}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-white"
+                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)]"
               >
                 {services.map(s => <option key={s} value={s}>{s === "all" ? "All services" : s}</option>)}
               </select>
@@ -268,20 +268,20 @@ export default function EnvironmentConfigManager() {
                   key={v.id}
                   onClick={() => setSelectedVar(v)}
                   className={cn(
-                    "w-full text-left px-4 py-2.5 border-b border-zinc-800/60 hover:bg-zinc-800/40 transition-colors",
-                    selectedVar.id === v.id && "bg-zinc-800/60"
+                    "w-full text-left px-4 py-2.5 border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface-2)]/40 transition-colors",
+                    selectedVar.id === v.id && "bg-[var(--color-surface-2)]/60"
                   )}
                 >
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="text-xs">{typeIcon[v.type]}</span>
-                    <span className="font-mono text-xs font-medium text-white truncate">{v.key}</span>
+                    <span className="font-mono text-xs font-medium text-[var(--color-text-primary)] truncate">{v.key}</span>
                     {v.isSecret && <span className="ml-auto text-xs text-amber-400">🔒</span>}
                   </div>
-                  <div className="text-xs text-zinc-500 ml-5">{v.service}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] ml-5">{v.service}</div>
                 </button>
               ))}
               {filteredVars.length === 0 && (
-                <div className="text-center py-8 text-zinc-500 text-sm">No variables found</div>
+                <div className="text-center py-8 text-[var(--color-text-muted)] text-sm">No variables found</div>
               )}
             </div>
           </div>
@@ -294,51 +294,51 @@ export default function EnvironmentConfigManager() {
                   <div className="font-mono text-lg font-semibold mb-1">{selectedVar.key}</div>
                   <div className="flex items-center gap-2">
                     <span className={cn("text-xs px-2 py-0.5 rounded", envBadge[selectedVar.env])}>{selectedVar.env}</span>
-                    <span className="text-xs text-zinc-500">{selectedVar.service}</span>
-                    <span className="text-xs text-zinc-500">v{selectedVar.version}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{selectedVar.service}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">v{selectedVar.version}</span>
                     {selectedVar.isSecret && <span className="text-xs text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">secret</span>}
                   </div>
                 </div>
                 <button
                   onClick={() => setShowSecrets(!showSecrets)}
-                  className="text-xs px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded border border-zinc-700 transition-colors"
+                  className="text-xs px-3 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded border border-[var(--color-border)] transition-colors"
                 >
                   {showSecrets ? "🔒 Hide" : "👁️ Reveal"}
                 </button>
               </div>
 
-              <div className="bg-zinc-900 rounded-lg p-4 mb-4">
-                <div className="text-xs text-zinc-500 mb-1">Value</div>
-                <div className={cn("font-mono text-sm break-all", selectedVar.isSecret && !showSecrets ? "text-zinc-600 select-none" : "text-white")}>
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-4 mb-4">
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Value</div>
+                <div className={cn("font-mono text-sm break-all", selectedVar.isSecret && !showSecrets ? "text-[var(--color-text-muted)] select-none" : "text-[var(--color-text-primary)]")}>
                   {selectedVar.isSecret && !showSecrets ? "●●●●●●●●●●●●●●●●●●●●" : selectedVar.value}
                 </div>
               </div>
 
-              <div className="bg-zinc-900 rounded-lg p-4 mb-4">
-                <div className="text-xs text-zinc-500 mb-1">Description</div>
-                <div className="text-sm text-zinc-300">{selectedVar.description}</div>
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-4 mb-4">
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Description</div>
+                <div className="text-sm text-[var(--color-text-primary)]">{selectedVar.description}</div>
               </div>
 
               <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="bg-zinc-900 rounded p-3">
-                  <div className="text-xs text-zinc-500 mb-1">Type</div>
-                  <div className="flex items-center gap-1.5 text-sm text-white">
+                <div className="bg-[var(--color-surface-1)] rounded p-3">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">Type</div>
+                  <div className="flex items-center gap-1.5 text-sm text-[var(--color-text-primary)]">
                     <span>{typeIcon[selectedVar.type]}</span>
                     <span className="capitalize">{selectedVar.type}</span>
                   </div>
                 </div>
-                <div className="bg-zinc-900 rounded p-3">
-                  <div className="text-xs text-zinc-500 mb-1">Modified</div>
-                  <div className="text-sm text-white">{selectedVar.lastModified}</div>
+                <div className="bg-[var(--color-surface-1)] rounded p-3">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">Modified</div>
+                  <div className="text-sm text-[var(--color-text-primary)]">{selectedVar.lastModified}</div>
                 </div>
-                <div className="bg-zinc-900 rounded p-3">
-                  <div className="text-xs text-zinc-500 mb-1">By</div>
-                  <div className="text-sm text-white font-mono">{selectedVar.modifiedBy}</div>
+                <div className="bg-[var(--color-surface-1)] rounded p-3">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">By</div>
+                  <div className="text-sm text-[var(--color-text-primary)] font-mono">{selectedVar.modifiedBy}</div>
                 </div>
               </div>
 
               <div className="flex gap-2">
-                <button className="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm transition-colors">Edit</button>
+                <button className="flex-1 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded text-sm transition-colors">Edit</button>
                 <button className="flex-1 py-2 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 rounded text-sm transition-colors">Promote to Prod</button>
                 <button className="px-4 py-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 rounded text-sm transition-colors">Delete</button>
               </div>
@@ -353,7 +353,7 @@ export default function EnvironmentConfigManager() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-base font-semibold">Environment Diff</h2>
-              <p className="text-sm text-zinc-400 mt-0.5">Staging vs Production — {CONFIG_DIFF.length - matchCount} differences</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Staging vs Production — {CONFIG_DIFF.length - matchCount} differences</p>
             </div>
             <div className="flex items-center gap-3 text-sm">
               <span className="flex items-center gap-1.5 text-emerald-400"><span className="w-2 h-2 rounded-full bg-emerald-400" />{matchCount} matching</span>
@@ -362,22 +362,22 @@ export default function EnvironmentConfigManager() {
           </div>
           <div className="space-y-2">
             {CONFIG_DIFF.map(diff => (
-              <div key={diff.key} className={cn("rounded-lg border overflow-hidden", diff.match ? "border-zinc-800" : "border-rose-500/30")}>
-                <div className={cn("px-4 py-2 flex items-center gap-3", diff.match ? "bg-zinc-900" : "bg-rose-500/5")}>
+              <div key={diff.key} className={cn("rounded-lg border overflow-hidden", diff.match ? "border-[var(--color-border)]" : "border-rose-500/30")}>
+                <div className={cn("px-4 py-2 flex items-center gap-3", diff.match ? "bg-[var(--color-surface-1)]" : "bg-rose-500/5")}>
                   <span className={diff.match ? "text-emerald-400" : "text-rose-400"}>
                     {diff.match ? "✓" : "✗"}
                   </span>
-                  <span className="font-mono text-sm font-medium text-white">{diff.key}</span>
+                  <span className="font-mono text-sm font-medium text-[var(--color-text-primary)]">{diff.key}</span>
                 </div>
                 {!diff.match && (
-                  <div className="grid grid-cols-2 divide-x divide-zinc-800">
+                  <div className="grid grid-cols-2 divide-x divide-[var(--color-border)]">
                     <div className="px-4 py-2.5 bg-amber-500/5">
                       <div className="text-xs text-amber-400 mb-1">Staging</div>
-                      <div className="font-mono text-xs text-zinc-300 break-all">{diff.env1Value}</div>
+                      <div className="font-mono text-xs text-[var(--color-text-primary)] break-all">{diff.env1Value}</div>
                     </div>
                     <div className="px-4 py-2.5 bg-rose-500/5">
                       <div className="text-xs text-rose-400 mb-1">Production</div>
-                      <div className="font-mono text-xs text-zinc-300 break-all">{diff.env2Value}</div>
+                      <div className="font-mono text-xs text-[var(--color-text-primary)] break-all">{diff.env2Value}</div>
                     </div>
                   </div>
                 )}
@@ -393,26 +393,26 @@ export default function EnvironmentConfigManager() {
           <h2 className="text-base font-semibold mb-4">Change History</h2>
           <div className="space-y-3">
             {CHANGE_LOG.map(c => (
-              <div key={c.id} className="bg-zinc-900 rounded-lg p-4">
+              <div key={c.id} className="bg-[var(--color-surface-1)] rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <span className={cn("text-xs px-2 py-0.5 rounded capitalize font-medium", actionBadge[c.action])}>{c.action}</span>
-                  <span className="font-mono text-sm font-medium text-white">{c.key}</span>
+                  <span className="font-mono text-sm font-medium text-[var(--color-text-primary)]">{c.key}</span>
                   <span className={cn("text-xs px-1.5 py-0.5 rounded", envBadge[c.env])}>{c.env}</span>
-                  <span className="ml-auto text-xs text-zinc-500">{c.timestamp}</span>
+                  <span className="ml-auto text-xs text-[var(--color-text-muted)]">{c.timestamp}</span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-zinc-400">
+                <div className="flex items-center gap-3 text-xs text-[var(--color-text-secondary)]">
                   <span className="font-mono">{c.service}</span>
-                  <span>by <span className="text-white">{c.author}</span></span>
+                  <span>by <span className="text-[var(--color-text-primary)]">{c.author}</span></span>
                 </div>
                 {(c.fromValue || c.toValue) && (c.action === "updated") && (
                   <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                     <div className="bg-rose-500/10 rounded p-2">
-                      <div className="text-zinc-500 mb-0.5">Before</div>
-                      <div className="font-mono text-zinc-400">{c.fromValue || "—"}</div>
+                      <div className="text-[var(--color-text-muted)] mb-0.5">Before</div>
+                      <div className="font-mono text-[var(--color-text-secondary)]">{c.fromValue || "—"}</div>
                     </div>
                     <div className="bg-emerald-500/10 rounded p-2">
-                      <div className="text-zinc-500 mb-0.5">After</div>
-                      <div className="font-mono text-zinc-400">{c.toValue || "—"}</div>
+                      <div className="text-[var(--color-text-muted)] mb-0.5">After</div>
+                      <div className="font-mono text-[var(--color-text-secondary)]">{c.toValue || "—"}</div>
                     </div>
                   </div>
                 )}

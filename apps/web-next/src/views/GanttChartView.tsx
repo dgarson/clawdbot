@@ -67,7 +67,7 @@ const MILESTONES: GanttMilestone[] = [
 ];
 
 const STATUS_CONFIG: Record<TaskStatus, { label: string; barColor: string; textColor: string; bg: string }> = {
-  "todo":        { label: "Todo",        barColor: "bg-zinc-600",    textColor: "text-zinc-400",   bg: "bg-zinc-800" },
+  "todo":        { label: "Todo",        barColor: "bg-[var(--color-surface-3)]",    textColor: "text-[var(--color-text-secondary)]",   bg: "bg-[var(--color-surface-2)]" },
   "in-progress": { label: "In Progress", barColor: "bg-indigo-500",  textColor: "text-indigo-400", bg: "bg-indigo-900/30" },
   "done":        { label: "Done",        barColor: "bg-emerald-500", textColor: "text-emerald-400", bg: "bg-emerald-900/30" },
   "blocked":     { label: "Blocked",     barColor: "bg-rose-500",    textColor: "text-rose-400",   bg: "bg-rose-900/30" },
@@ -86,7 +86,7 @@ const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
   critical: { label: "P0", color: "text-rose-400" },
   high:     { label: "P1", color: "text-orange-400" },
   medium:   { label: "P2", color: "text-amber-400" },
-  low:      { label: "P3", color: "text-zinc-400" },
+  low:      { label: "P3", color: "text-[var(--color-text-secondary)]" },
 };
 
 const ASSIGNEE_COLORS: Record<string, string> = {
@@ -138,13 +138,13 @@ export default function GanttChartView() {
   const DAY_W = 32;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Project Timeline</h1>
-            <p className="text-zinc-400 text-sm mt-1">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Project Timeline</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">
               Horizon UI v2.0 Sprint · {new Date(SPRINT_START).toLocaleDateString()} – {new Date(new Date(SPRINT_START).setDate(SPRINT_START.getDate() + SPRINT_DAYS - 1)).toLocaleDateString()}
             </p>
           </div>
@@ -156,8 +156,8 @@ export default function GanttChartView() {
                 className={cn(
                   "px-3 py-1.5 text-sm rounded-lg border transition-colors capitalize",
                   viewMode === mode
-                    ? "bg-zinc-800 border-zinc-700 text-white"
-                    : "border-zinc-800 text-zinc-400 hover:text-white"
+                    ? "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-primary)]"
+                    : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {mode === "gantt" ? "📊 Gantt" : mode === "list" ? "📋 List" : "📈 Summary"}
@@ -167,7 +167,7 @@ export default function GanttChartView() {
               onClick={() => setShowMilestones(!showMilestones)}
               className={cn(
                 "px-3 py-1.5 text-sm rounded-lg border transition-colors",
-                showMilestones ? "bg-zinc-800 border-zinc-700 text-white" : "border-zinc-800 text-zinc-400"
+                showMilestones ? "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)]"
               )}
             >
               🏁 Milestones
@@ -177,32 +177,32 @@ export default function GanttChartView() {
 
         {/* Stats */}
         <div className="grid grid-cols-5 gap-3">
-          <div className="col-span-1 bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-center">
+          <div className="col-span-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3 text-center">
             <div className={cn("text-3xl font-bold", overallProgress >= 80 ? "text-emerald-400" : overallProgress >= 50 ? "text-indigo-400" : "text-amber-400")}>
               {overallProgress}%
             </div>
-            <div className="text-xs text-zinc-500 mt-0.5">Overall Progress</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Overall Progress</div>
           </div>
           {[
             { label: "Done",        value: doneCount,       color: "text-emerald-400" },
             { label: "In Progress", value: inProgressCount, color: "text-indigo-400" },
             { label: "At Risk",     value: blockedCount,    color: "text-amber-400" },
-            { label: "Total Tasks", value: TASKS.length,    color: "text-white" },
+            { label: "Total Tasks", value: TASKS.length,    color: "text-[var(--color-text-primary)]" },
           ].map(s => (
-            <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-center">
+            <div key={s.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3 text-center">
               <div className={cn("text-2xl font-bold", s.color)}>{s.value}</div>
-              <div className="text-xs text-zinc-500 mt-0.5">{s.label}</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Overall progress bar */}
-        <div className="mt-3 bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-          <div className="flex items-center justify-between text-xs text-zinc-500 mb-2">
+        <div className="mt-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+          <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] mb-2">
             <span>Sprint Progress</span>
             <span>Day {todayDay} of {SPRINT_DAYS}</span>
           </div>
-          <div className="bg-zinc-800 rounded-full h-2">
+          <div className="bg-[var(--color-surface-2)] rounded-full h-2">
             <div
               className="h-full bg-indigo-500 rounded-full relative"
               style={{ width: `${(todayDay / SPRINT_DAYS) * 100}%` }}
@@ -216,26 +216,26 @@ export default function GanttChartView() {
         <div className="flex gap-1">
           <button
             onClick={() => setGroupFilter("all")}
-            className={cn("px-2 py-1 text-xs rounded transition-colors", groupFilter === "all" ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-white")}
+            className={cn("px-2 py-1 text-xs rounded transition-colors", groupFilter === "all" ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}
           >All</button>
           {groups.map(g => (
             <button
               key={g}
               onClick={() => setGroupFilter(g)}
-              className={cn("px-2 py-1 text-xs rounded transition-colors", groupFilter === g ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-white")}
+              className={cn("px-2 py-1 text-xs rounded transition-colors", groupFilter === g ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}
             >
               {GROUP_CONFIG[g].emoji} {GROUP_CONFIG[g].label}
             </button>
           ))}
         </div>
-        <div className="w-px h-4 bg-zinc-700" />
+        <div className="w-px h-4 bg-[var(--color-surface-3)]" />
         <div className="flex gap-1">
           {(["all", "in-progress", "at-risk", "todo", "done"] as const).map(s => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
               className={cn("px-2 py-1 text-xs rounded transition-colors",
-                statusFilter === s ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-white"
+                statusFilter === s ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {s === "all" ? "All Status" : STATUS_CONFIG[s].label}
@@ -246,10 +246,10 @@ export default function GanttChartView() {
 
       {/* Gantt View */}
       {viewMode === "gantt" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
           {/* Header: day columns */}
-          <div className="flex border-b border-zinc-800 sticky top-0 bg-zinc-900 z-10">
-            <div className="w-56 shrink-0 px-3 py-2 text-xs text-zinc-500 font-semibold border-r border-zinc-800">
+          <div className="flex border-b border-[var(--color-border)] sticky top-0 bg-[var(--color-surface-1)] z-10">
+            <div className="w-56 shrink-0 px-3 py-2 text-xs text-[var(--color-text-muted)] font-semibold border-r border-[var(--color-border)]">
               Task
             </div>
             <div className="flex-1 overflow-x-auto">
@@ -258,8 +258,8 @@ export default function GanttChartView() {
                   <div
                     key={i}
                     className={cn(
-                      "text-center text-xs py-2 border-r border-zinc-800/50",
-                      i === todayDay ? "bg-indigo-900/30 text-indigo-400" : "text-zinc-600"
+                      "text-center text-xs py-2 border-r border-[var(--color-border)]/50",
+                      i === todayDay ? "bg-indigo-900/30 text-indigo-400" : "text-[var(--color-text-muted)]"
                     )}
                     style={{ width: DAY_W, minWidth: DAY_W }}
                   >
@@ -276,11 +276,11 @@ export default function GanttChartView() {
             {tasksByGroup.map(({ group, tasks }) => (
               <React.Fragment key={group}>
                 {/* Group header */}
-                <div className="flex border-b border-zinc-800/50 bg-zinc-800/30">
-                  <div className="w-56 shrink-0 px-3 py-1.5 text-xs font-semibold border-r border-zinc-800 flex items-center gap-2">
+                <div className="flex border-b border-[var(--color-border)]/50 bg-[var(--color-surface-2)]/30">
+                  <div className="w-56 shrink-0 px-3 py-1.5 text-xs font-semibold border-r border-[var(--color-border)] flex items-center gap-2">
                     <span>{GROUP_CONFIG[group].emoji}</span>
                     <span className={GROUP_CONFIG[group].color}>{GROUP_CONFIG[group].label}</span>
-                    <span className="text-zinc-600 ml-auto">{tasks.length}</span>
+                    <span className="text-[var(--color-text-muted)] ml-auto">{tasks.length}</span>
                   </div>
                   <div style={{ width: SPRINT_DAYS * DAY_W, minWidth: SPRINT_DAYS * DAY_W }} />
                 </div>
@@ -291,20 +291,20 @@ export default function GanttChartView() {
                     key={task.id}
                     onClick={() => setSelectedTask(selectedTask?.id === task.id ? null : task)}
                     className={cn(
-                      "flex border-b border-zinc-800/30 hover:bg-zinc-800/20 cursor-pointer",
-                      selectedTask?.id === task.id ? "bg-zinc-800/40" : ""
+                      "flex border-b border-[var(--color-border)]/30 hover:bg-[var(--color-surface-2)]/20 cursor-pointer",
+                      selectedTask?.id === task.id ? "bg-[var(--color-surface-2)]/40" : ""
                     )}
                   >
                     {/* Task name column */}
-                    <div className="w-56 shrink-0 px-3 py-2 border-r border-zinc-800 flex items-center gap-2 min-h-10">
+                    <div className="w-56 shrink-0 px-3 py-2 border-r border-[var(--color-border)] flex items-center gap-2 min-h-10">
                       <div className={cn("w-2 h-2 rounded-full shrink-0", STATUS_CONFIG[task.status].barColor)} />
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs text-white truncate">{task.name}</div>
+                        <div className="text-xs text-[var(--color-text-primary)] truncate">{task.name}</div>
                         <div className="flex items-center gap-1 mt-0.5">
-                          <div className={cn("w-3 h-3 rounded-full text-xs flex items-center justify-center text-white font-bold shrink-0", ASSIGNEE_COLORS[task.assignee] ?? "bg-zinc-600")} style={{ fontSize: "7px" }}>
+                          <div className={cn("w-3 h-3 rounded-full text-xs flex items-center justify-center text-[var(--color-text-primary)] font-bold shrink-0", ASSIGNEE_COLORS[task.assignee] ?? "bg-[var(--color-surface-3)]")} style={{ fontSize: "7px" }}>
                             {task.assignee[0]}
                           </div>
-                          <span className="text-zinc-600 text-xs">{task.assignee}</span>
+                          <span className="text-[var(--color-text-muted)] text-xs">{task.assignee}</span>
                           <span className={cn("text-xs ml-auto", PRIORITY_CONFIG[task.priority].color)}>{PRIORITY_CONFIG[task.priority].label}</span>
                         </div>
                       </div>
@@ -343,7 +343,7 @@ export default function GanttChartView() {
                             style={{ width: `${task.progress}%` }}
                           />
                         )}
-                        <span className="text-xs text-white/80 px-1 truncate font-medium" style={{ fontSize: "10px" }}>
+                        <span className="text-xs text-[var(--color-text-primary)]/80 px-1 truncate font-medium" style={{ fontSize: "10px" }}>
                           {task.progress > 0 ? `${task.progress}%` : ""}
                         </span>
                       </div>
@@ -355,8 +355,8 @@ export default function GanttChartView() {
 
             {/* Milestones row */}
             {showMilestones && (
-              <div className="flex border-t border-zinc-700 bg-zinc-800/20">
-                <div className="w-56 shrink-0 px-3 py-2 border-r border-zinc-800 text-xs text-zinc-500 font-semibold">
+              <div className="flex border-t border-[var(--color-border)] bg-[var(--color-surface-2)]/20">
+                <div className="w-56 shrink-0 px-3 py-2 border-r border-[var(--color-border)] text-xs text-[var(--color-text-muted)] font-semibold">
                   🏁 Milestones
                 </div>
                 <div className="flex-1 relative" style={{ width: SPRINT_DAYS * DAY_W, minWidth: SPRINT_DAYS * DAY_W, height: 32 }}>
@@ -378,14 +378,14 @@ export default function GanttChartView() {
           </div>
 
           {/* Legend */}
-          <div className="px-4 py-3 border-t border-zinc-800 flex items-center gap-4 flex-wrap">
+          <div className="px-4 py-3 border-t border-[var(--color-border)] flex items-center gap-4 flex-wrap">
             {(Object.entries(STATUS_CONFIG) as [TaskStatus, typeof STATUS_CONFIG[TaskStatus]][]).map(([key, cfg]) => (
               <div key={key} className="flex items-center gap-1.5">
                 <div className={cn("w-3 h-2 rounded-sm", cfg.barColor)} />
-                <span className="text-xs text-zinc-400">{cfg.label}</span>
+                <span className="text-xs text-[var(--color-text-secondary)]">{cfg.label}</span>
               </div>
             ))}
-            <div className="ml-auto flex items-center gap-2 text-xs text-zinc-500">
+            <div className="ml-auto flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
               <div className="w-3 h-px bg-indigo-500" />
               <span>Today (Day {todayDay})</span>
             </div>
@@ -395,7 +395,7 @@ export default function GanttChartView() {
 
       {/* Task detail panel */}
       {selectedTask && (
-        <div className="mt-4 bg-zinc-900 border border-indigo-800 rounded-lg p-5">
+        <div className="mt-4 bg-[var(--color-surface-1)] border border-indigo-800 rounded-lg p-5">
           <div className="flex items-start justify-between mb-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -406,9 +406,9 @@ export default function GanttChartView() {
                   {PRIORITY_CONFIG[selectedTask.priority].label} — {selectedTask.priority.charAt(0).toUpperCase() + selectedTask.priority.slice(1)}
                 </span>
               </div>
-              <div className="text-lg font-semibold text-white">{selectedTask.name}</div>
+              <div className="text-lg font-semibold text-[var(--color-text-primary)]">{selectedTask.name}</div>
             </div>
-            <button onClick={() => setSelectedTask(null)} className="text-zinc-500 hover:text-white text-lg">✕</button>
+            <button onClick={() => setSelectedTask(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-lg">✕</button>
           </div>
 
           <div className="grid grid-cols-4 gap-4 mb-4">
@@ -418,30 +418,30 @@ export default function GanttChartView() {
               { label: "Duration", value: `${selectedTask.durationDays} days` },
               { label: "Progress", value: `${selectedTask.progress}%` },
             ].map(item => (
-              <div key={item.label} className="bg-zinc-950 rounded-lg p-3">
-                <div className="text-xs text-zinc-500 mb-1">{item.label}</div>
-                <div className="text-sm font-medium text-white">{item.value}</div>
+              <div key={item.label} className="bg-[var(--color-surface-0)] rounded-lg p-3">
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">{item.label}</div>
+                <div className="text-sm font-medium text-[var(--color-text-primary)]">{item.value}</div>
               </div>
             ))}
           </div>
 
           <div className="mb-3">
-            <div className="text-xs text-zinc-500 mb-2">Progress</div>
-            <div className="bg-zinc-800 rounded-full h-2">
+            <div className="text-xs text-[var(--color-text-muted)] mb-2">Progress</div>
+            <div className="bg-[var(--color-surface-2)] rounded-full h-2">
               <div className={cn("h-full rounded-full", STATUS_CONFIG[selectedTask.status].barColor)} style={{ width: `${selectedTask.progress}%` }} />
             </div>
           </div>
 
-          <p className="text-sm text-zinc-300">{selectedTask.description}</p>
+          <p className="text-sm text-[var(--color-text-primary)]">{selectedTask.description}</p>
 
           {selectedTask.dependencies.length > 0 && (
             <div className="mt-3">
-              <div className="text-xs text-zinc-500 mb-1">Dependencies</div>
+              <div className="text-xs text-[var(--color-text-muted)] mb-1">Dependencies</div>
               <div className="flex flex-wrap gap-1">
                 {selectedTask.dependencies.map(depId => {
                   const dep = TASKS.find(t => t.id === depId);
                   return dep ? (
-                    <span key={depId} className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
+                    <span key={depId} className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-primary)]">
                       → {dep.name}
                     </span>
                   ) : null;
@@ -454,21 +454,21 @@ export default function GanttChartView() {
 
       {/* List View */}
       {viewMode === "list" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800">
+              <tr className="border-b border-[var(--color-border)]">
                 {["Task", "Group", "Status", "Progress", "Assignee", "Start", "Duration", "Priority"].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">{h}</th>
+                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filteredTasks.map(task => (
-                <tr key={task.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-                  <td className="px-4 py-3 text-white font-medium text-sm max-w-48">
+                <tr key={task.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30">
+                  <td className="px-4 py-3 text-[var(--color-text-primary)] font-medium text-sm max-w-48">
                     <div className="truncate">{task.name}</div>
-                    <div className="text-xs text-zinc-500 truncate">{task.description}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] truncate">{task.description}</div>
                   </td>
                   <td className="px-4 py-3 text-xs">
                     <span className={cn("font-medium", GROUP_CONFIG[task.group].color)}>
@@ -482,15 +482,15 @@ export default function GanttChartView() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 bg-zinc-800 rounded-full h-1.5">
+                      <div className="w-16 bg-[var(--color-surface-2)] rounded-full h-1.5">
                         <div className={cn("h-full rounded-full", STATUS_CONFIG[task.status].barColor)} style={{ width: `${task.progress}%` }} />
                       </div>
-                      <span className="text-xs text-zinc-400">{task.progress}%</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">{task.progress}%</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-300">{task.assignee}</td>
-                  <td className="px-4 py-3 text-xs text-zinc-500">{dayLabel(task.startDay)}</td>
-                  <td className="px-4 py-3 text-xs text-zinc-500">{task.durationDays}d</td>
+                  <td className="px-4 py-3 text-xs text-[var(--color-text-primary)]">{task.assignee}</td>
+                  <td className="px-4 py-3 text-xs text-[var(--color-text-muted)]">{dayLabel(task.startDay)}</td>
+                  <td className="px-4 py-3 text-xs text-[var(--color-text-muted)]">{task.durationDays}d</td>
                   <td className="px-4 py-3">
                     <span className={cn("text-xs font-semibold", PRIORITY_CONFIG[task.priority].color)}>
                       {PRIORITY_CONFIG[task.priority].label}
@@ -507,8 +507,8 @@ export default function GanttChartView() {
       {viewMode === "summary" && (
         <div className="grid grid-cols-2 gap-4">
           {/* By group */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <div className="text-sm font-semibold text-zinc-300 mb-4">Progress by Group</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Progress by Group</div>
             {groups.map(g => {
               const groupTasks = TASKS.filter(t => t.group === g);
               const groupProgress = Math.round(groupTasks.reduce((a, t) => a + t.progress, 0) / groupTasks.length);
@@ -518,12 +518,12 @@ export default function GanttChartView() {
                     <span className={cn("text-sm font-medium", GROUP_CONFIG[g].color)}>
                       {GROUP_CONFIG[g].emoji} {GROUP_CONFIG[g].label}
                     </span>
-                    <span className="text-xs text-zinc-400">{groupProgress}%</span>
+                    <span className="text-xs text-[var(--color-text-secondary)]">{groupProgress}%</span>
                   </div>
-                  <div className="bg-zinc-800 rounded-full h-2">
+                  <div className="bg-[var(--color-surface-2)] rounded-full h-2">
                     <div className={cn("h-full rounded-full", groupProgress === 100 ? "bg-emerald-500" : "bg-indigo-500")} style={{ width: `${groupProgress}%` }} />
                   </div>
-                  <div className="flex justify-between text-xs text-zinc-600 mt-0.5">
+                  <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-0.5">
                     <span>{groupTasks.filter(t => t.status === "done").length}/{groupTasks.length} done</span>
                     <span>{groupTasks.filter(t => t.status === "in-progress").length} in progress</span>
                   </div>
@@ -533,23 +533,23 @@ export default function GanttChartView() {
           </div>
 
           {/* By assignee */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <div className="text-sm font-semibold text-zinc-300 mb-4">By Assignee</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">By Assignee</div>
             {Object.keys(ASSIGNEE_COLORS).map(assignee => {
               const assigneeTasks = TASKS.filter(t => t.assignee === assignee);
               if (assigneeTasks.length === 0) {return null;}
               const progress = Math.round(assigneeTasks.reduce((a, t) => a + t.progress, 0) / assigneeTasks.length);
               return (
                 <div key={assignee} className="flex items-center gap-3 mb-3">
-                  <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0", ASSIGNEE_COLORS[assignee])}>
+                  <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-[var(--color-text-primary)] text-xs font-bold shrink-0", ASSIGNEE_COLORS[assignee])}>
                     {assignee[0]}
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-zinc-300">{assignee}</span>
-                      <span className="text-zinc-500">{assigneeTasks.length} tasks · {progress}%</span>
+                      <span className="text-[var(--color-text-primary)]">{assignee}</span>
+                      <span className="text-[var(--color-text-muted)]">{assigneeTasks.length} tasks · {progress}%</span>
                     </div>
-                    <div className="bg-zinc-800 rounded-full h-1.5">
+                    <div className="bg-[var(--color-surface-2)] rounded-full h-1.5">
                       <div className={cn("h-full rounded-full", ASSIGNEE_COLORS[assignee])} style={{ width: `${progress}%` }} />
                     </div>
                   </div>

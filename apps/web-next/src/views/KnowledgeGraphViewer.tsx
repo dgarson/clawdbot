@@ -101,8 +101,8 @@ const Badge = ({ type, children }: { type: EntityType | "relation"; children: Re
     organization: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     concept: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     event: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    location: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
-    relation: "bg-white/5 text-zinc-400 border-white/10",
+    location: "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/20",
+    relation: "bg-white/5 text-[var(--color-text-secondary)] border-white/10",
   };
 
   return (
@@ -119,8 +119,8 @@ const Card = ({ children, className, onClick }: { children: React.ReactNode; cla
   <div 
     onClick={onClick}
     className={cn(
-      "bg-zinc-900 border border-zinc-800 rounded-lg p-4 transition-all",
-      onClick && "cursor-pointer hover:border-zinc-700 active:scale-[0.98]",
+      "bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 transition-all",
+      onClick && "cursor-pointer hover:border-[var(--color-border)] active:scale-[0.98]",
       className
     )}
   >
@@ -145,52 +145,52 @@ const EntityDetail = ({
   return (
     <div className="flex flex-col h-full animate-in fade-in slide-in-from-right-4 duration-300">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-white tracking-tight">{entity.name}</h3>
-        <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">✕</button>
+        <h3 className="text-xl font-bold text-[var(--color-text-primary)] tracking-tight">{entity.name}</h3>
+        <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">✕</button>
       </div>
 
       <div className="mb-6">
         <Badge type={entity.type}>{entity.type}</Badge>
-        <p className="mt-3 text-zinc-400 text-sm leading-relaxed">{entity.description}</p>
+        <p className="mt-3 text-[var(--color-text-secondary)] text-sm leading-relaxed">{entity.description}</p>
       </div>
 
       <div className="mb-6">
-        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Properties</h4>
+        <h4 className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-3">Properties</h4>
         <div className="space-y-2">
           {Object.entries(entity.properties).map(([key, val]) => (
-            <div key={key} className="flex justify-between text-xs py-1 border-b border-zinc-800/50">
-              <span className="text-zinc-500 capitalize">{key}</span>
-              <span className="text-zinc-300 font-medium">{val}</span>
+            <div key={key} className="flex justify-between text-xs py-1 border-b border-[var(--color-border)]/50">
+              <span className="text-[var(--color-text-muted)] capitalize">{key}</span>
+              <span className="text-[var(--color-text-primary)] font-medium">{val}</span>
             </div>
           ))}
-          <div className="flex justify-between text-xs py-1 border-b border-zinc-800/50">
-            <span className="text-zinc-500">First Seen</span>
-            <span className="text-zinc-300 font-medium">{entity.firstSeen}</span>
+          <div className="flex justify-between text-xs py-1 border-b border-[var(--color-border)]/50">
+            <span className="text-[var(--color-text-muted)]">First Seen</span>
+            <span className="text-[var(--color-text-primary)] font-medium">{entity.firstSeen}</span>
           </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto min-h-0">
-        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 sticky top-0 bg-zinc-900 py-1">
+        <h4 className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-3 sticky top-0 bg-[var(--color-surface-1)] py-1">
           Connections ({connections.length})
         </h4>
         <div className="space-y-2">
           {connections.map(({ entity: target, rel }) => (
-            <div key={rel.id} className="p-2 rounded bg-white/5 border border-zinc-800 group">
+            <div key={rel.id} className="p-2 rounded bg-white/5 border border-[var(--color-border)] group">
               <div className="flex justify-between items-start mb-1">
-                <span className="text-[10px] text-zinc-500 uppercase font-mono">{rel.type}</span>
-                <span className="text-[10px] text-zinc-600">{(rel.weight * 100).toFixed(0)}%</span>
+                <span className="text-[10px] text-[var(--color-text-muted)] uppercase font-mono">{rel.type}</span>
+                <span className="text-[10px] text-[var(--color-text-muted)]">{(rel.weight * 100).toFixed(0)}%</span>
               </div>
-              <div className="text-xs text-white font-medium">{target.name}</div>
+              <div className="text-xs text-[var(--color-text-primary)] font-medium">{target.name}</div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="mt-6 pt-4 border-t border-zinc-800">
+      <div className="mt-6 pt-4 border-t border-[var(--color-border)]">
         <button 
           onClick={() => onFocus(entity.id)}
-          className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-medium text-sm transition-colors"
+          className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded font-medium text-sm transition-colors"
         >
           Focus on {entity.name}
         </button>
@@ -257,14 +257,14 @@ export default function KnowledgeGraphViewer() {
   // Renderers
 
   const renderTabs = () => (
-    <div className="flex space-x-1 mb-8 bg-zinc-900 p-1 rounded-lg self-start border border-zinc-800">
+    <div className="flex space-x-1 mb-8 bg-[var(--color-surface-1)] p-1 rounded-lg self-start border border-[var(--color-border)]">
       {(["graph", "entities", "relations", "search"] as const).map(tab => (
         <button
           key={tab}
           onClick={() => setActiveTab(tab)}
           className={cn(
             "px-6 py-2 rounded-md text-sm font-medium transition-all capitalize",
-            activeTab === tab ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300"
+            activeTab === tab ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)] shadow-sm" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
           )}
         >
           {tab}
@@ -274,10 +274,10 @@ export default function KnowledgeGraphViewer() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-8 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-indigo-500/30">
       <header className="mb-10">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Knowledge Graph</h1>
-        <p className="text-zinc-500 max-w-2xl">
+        <p className="text-[var(--color-text-muted)] max-w-2xl">
           Explore entities, relationships, and metadata across the Horizon network.
           Visualize system connections and trace data lineages.
         </p>
@@ -288,12 +288,12 @@ export default function KnowledgeGraphViewer() {
       {/* --- GRAPH TAB --- */}
       {activeTab === "graph" && (
         <div className="flex gap-8 h-[calc(100vh-320px)] min-h-[600px]">
-          <div className="flex-1 overflow-auto bg-zinc-900/30 border border-zinc-800/50 rounded-xl p-8 relative">
+          <div className="flex-1 overflow-auto bg-[var(--color-surface-1)]/30 border border-[var(--color-border)]/50 rounded-xl p-8 relative">
             {focusEntityId && (
               <div className="absolute top-4 left-4 z-10">
                 <button 
                   onClick={() => setFocusEntityId(null)}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-xs py-1 px-3 rounded-full border border-zinc-700 flex items-center gap-2"
+                  className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-xs py-1 px-3 rounded-full border border-[var(--color-border)] flex items-center gap-2"
                 >
                   <span className="text-indigo-400">↺</span> Reset Focus
                 </button>
@@ -303,7 +303,7 @@ export default function KnowledgeGraphViewer() {
             <div className="grid grid-cols-3 gap-8 min-w-[800px]">
               {/* Column 1: People */}
               <div className="space-y-4">
-                <h2 className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-6 text-center">People</h2>
+                <h2 className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-6 text-center">People</h2>
                 {people.map(e => (
                   <Card 
                     key={e.id} 
@@ -317,7 +317,7 @@ export default function KnowledgeGraphViewer() {
                       <div className="font-semibold text-sm truncate pr-2">{e.name}</div>
                       <Badge type={e.type}>{e.type[0]}</Badge>
                     </div>
-                    <div className="text-[10px] text-zinc-500">
+                    <div className="text-[10px] text-[var(--color-text-muted)]">
                       {getConnections(e.id).length} connections
                     </div>
                   </Card>
@@ -326,7 +326,7 @@ export default function KnowledgeGraphViewer() {
 
               {/* Column 2: Organizations */}
               <div className="space-y-4">
-                <h2 className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-6 text-center">Organizations</h2>
+                <h2 className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-6 text-center">Organizations</h2>
                 {orgs.map(e => (
                   <Card 
                     key={e.id} 
@@ -340,7 +340,7 @@ export default function KnowledgeGraphViewer() {
                       <div className="font-semibold text-sm truncate pr-2">{e.name}</div>
                       <Badge type={e.type}>{e.type[0]}</Badge>
                     </div>
-                    <div className="text-[10px] text-zinc-500">
+                    <div className="text-[10px] text-[var(--color-text-muted)]">
                       {getConnections(e.id).length} connections
                     </div>
                   </Card>
@@ -349,7 +349,7 @@ export default function KnowledgeGraphViewer() {
 
               {/* Column 3: Concepts / Events / Locations */}
               <div className="space-y-4">
-                <h2 className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-6 text-center">Context</h2>
+                <h2 className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-6 text-center">Context</h2>
                 {others.map(e => (
                   <Card 
                     key={e.id} 
@@ -363,7 +363,7 @@ export default function KnowledgeGraphViewer() {
                       <div className="font-semibold text-sm truncate pr-2">{e.name}</div>
                       <Badge type={e.type}>{e.type[0]}</Badge>
                     </div>
-                    <div className="text-[10px] text-zinc-500">
+                    <div className="text-[10px] text-[var(--color-text-muted)]">
                       {getConnections(e.id).length} connections
                     </div>
                   </Card>
@@ -372,7 +372,7 @@ export default function KnowledgeGraphViewer() {
             </div>
           </div>
 
-          <div className="w-80 bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-2xl overflow-hidden">
+          <div className="w-80 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6 shadow-2xl overflow-hidden">
             {selectedEntity ? (
               <EntityDetail 
                 entity={selectedEntity} 
@@ -382,10 +382,10 @@ export default function KnowledgeGraphViewer() {
               />
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center p-4 opacity-50">
-                <div className="w-12 h-12 rounded-full border border-dashed border-zinc-700 flex items-center justify-center mb-4 text-xl">
+                <div className="w-12 h-12 rounded-full border border-dashed border-[var(--color-border)] flex items-center justify-center mb-4 text-xl">
                   🔍
                 </div>
-                <p className="text-sm text-zinc-400">Select an entity in the graph to view detailed properties and connections.</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">Select an entity in the graph to view detailed properties and connections.</p>
               </div>
             )}
           </div>
@@ -403,8 +403,8 @@ export default function KnowledgeGraphViewer() {
                 className={cn(
                   "px-4 py-1.5 rounded-full text-xs font-semibold border transition-all capitalize",
                   entityFilter === type 
-                    ? "bg-white text-zinc-950 border-white" 
-                    : "bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600"
+                    ? "bg-white text-[var(--color-text-primary)] border-white" 
+                    : "bg-transparent text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                 )}
               >
                 {type}
@@ -412,9 +412,9 @@ export default function KnowledgeGraphViewer() {
             ))}
           </div>
 
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
             <table className="w-full text-left text-sm">
-              <thead className="bg-zinc-950/50 border-b border-zinc-800 text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
+              <thead className="bg-[var(--color-surface-0)]/50 border-b border-[var(--color-border)] text-[var(--color-text-muted)] text-[10px] font-bold uppercase tracking-widest">
                 <tr>
                   <th className="px-6 py-4">Name</th>
                   <th className="px-6 py-4">Type</th>
@@ -423,7 +423,7 @@ export default function KnowledgeGraphViewer() {
                   <th className="px-6 py-4">Description</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-[var(--color-border)]/50">
                 {filteredEntities.map(e => (
                   <tr 
                     key={e.id} 
@@ -433,11 +433,11 @@ export default function KnowledgeGraphViewer() {
                       setActiveTab("graph");
                     }}
                   >
-                    <td className="px-6 py-4 font-medium text-white group-hover:text-indigo-400">{e.name}</td>
+                    <td className="px-6 py-4 font-medium text-[var(--color-text-primary)] group-hover:text-indigo-400">{e.name}</td>
                     <td className="px-6 py-4"><Badge type={e.type}>{e.type}</Badge></td>
-                    <td className="px-6 py-4 text-zinc-400 font-mono">{getConnections(e.id).length}</td>
-                    <td className="px-6 py-4 text-zinc-500">{e.firstSeen}</td>
-                    <td className="px-6 py-4 text-zinc-500 text-xs truncate max-w-xs">{e.description}</td>
+                    <td className="px-6 py-4 text-[var(--color-text-secondary)] font-mono">{getConnections(e.id).length}</td>
+                    <td className="px-6 py-4 text-[var(--color-text-muted)]">{e.firstSeen}</td>
+                    <td className="px-6 py-4 text-[var(--color-text-muted)] text-xs truncate max-w-xs">{e.description}</td>
                   </tr>
                 ))}
               </tbody>
@@ -449,9 +449,9 @@ export default function KnowledgeGraphViewer() {
       {/* --- RELATIONS TAB --- */}
       {activeTab === "relations" && (
         <div className="animate-in fade-in duration-500">
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
             <table className="w-full text-left text-sm">
-              <thead className="bg-zinc-950/50 border-b border-zinc-800 text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
+              <thead className="bg-[var(--color-surface-0)]/50 border-b border-[var(--color-border)] text-[var(--color-text-muted)] text-[10px] font-bold uppercase tracking-widest">
                 <tr>
                   <th className="px-6 py-4">Source</th>
                   <th className="px-6 py-4">Relation</th>
@@ -460,30 +460,30 @@ export default function KnowledgeGraphViewer() {
                   <th className="px-6 py-4">Created</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-[var(--color-border)]/50">
                 {INITIAL_RELATIONS.map(r => {
                   const source = INITIAL_ENTITIES.find(e => e.id === r.sourceId)!;
                   const target = INITIAL_ENTITIES.find(e => e.id === r.targetId)!;
                   return (
                     <tr key={r.id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 font-medium text-zinc-300">
-                        <span className="text-zinc-500 mr-2 text-[10px]">{source.type[0]}</span>
+                      <td className="px-6 py-4 font-medium text-[var(--color-text-primary)]">
+                        <span className="text-[var(--color-text-muted)] mr-2 text-[10px]">{source.type[0]}</span>
                         {source.name}
                       </td>
                       <td className="px-6 py-4"><Badge type="relation">{r.type.replace("_", " ")}</Badge></td>
-                      <td className="px-6 py-4 font-medium text-zinc-300">
-                        <span className="text-zinc-500 mr-2 text-[10px]">{target.type[0]}</span>
+                      <td className="px-6 py-4 font-medium text-[var(--color-text-primary)]">
+                        <span className="text-[var(--color-text-muted)] mr-2 text-[10px]">{target.type[0]}</span>
                         {target.name}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="w-16 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                             <div className="h-full bg-emerald-500" style={{ width: `${r.weight * 100}%` }} />
                           </div>
-                          <span className="text-[10px] text-zinc-500 font-mono">{(r.weight * 100).toFixed(0)}%</span>
+                          <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{(r.weight * 100).toFixed(0)}%</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-zinc-500 text-xs font-mono">{r.createdDate}</td>
+                      <td className="px-6 py-4 text-[var(--color-text-muted)] text-xs font-mono">{r.createdDate}</td>
                     </tr>
                   );
                 })}
@@ -503,7 +503,7 @@ export default function KnowledgeGraphViewer() {
               placeholder="Search entities by name, description, or relations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-12 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-zinc-600"
+              className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl px-12 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-[var(--color-text-muted)]"
             />
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl opacity-40">🔍</span>
           </div>
@@ -512,7 +512,7 @@ export default function KnowledgeGraphViewer() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Entity Results */}
               <div>
-                <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4 flex justify-between">
+                <h3 className="text-[var(--color-text-muted)] text-[10px] font-bold uppercase tracking-widest mb-4 flex justify-between">
                   Entities <span>{searchResults.entities.length} results</span>
                 </h3>
                 <div className="space-y-3">
@@ -526,20 +526,20 @@ export default function KnowledgeGraphViewer() {
                       className="group"
                     >
                       <div className="flex justify-between mb-1">
-                        <span className="text-white font-medium group-hover:text-indigo-400 transition-colors">{e.name}</span>
+                        <span className="text-[var(--color-text-primary)] font-medium group-hover:text-indigo-400 transition-colors">{e.name}</span>
                         <Badge type={e.type}>{e.type}</Badge>
                       </div>
-                      <p className="text-xs text-zinc-500 line-clamp-1">{e.description}</p>
+                      <p className="text-xs text-[var(--color-text-muted)] line-clamp-1">{e.description}</p>
                     </Card>
                   )) : (
-                    <div className="text-zinc-700 text-sm italic py-4">No entities matching "{searchQuery}"</div>
+                    <div className="text-[var(--color-text-muted)] text-sm italic py-4">No entities matching "{searchQuery}"</div>
                   )}
                 </div>
               </div>
 
               {/* Relation Results */}
               <div>
-                <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4 flex justify-between">
+                <h3 className="text-[var(--color-text-muted)] text-[10px] font-bold uppercase tracking-widest mb-4 flex justify-between">
                   Relations <span>{searchResults.relations.length} results</span>
                 </h3>
                 <div className="space-y-3">
@@ -547,18 +547,18 @@ export default function KnowledgeGraphViewer() {
                     const source = INITIAL_ENTITIES.find(e => e.id === r.sourceId)!;
                     const target = INITIAL_ENTITIES.find(e => e.id === r.targetId)!;
                     return (
-                      <div key={r.id} className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg">
+                      <div key={r.id} className="p-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg">
                         <div className="flex items-center justify-between gap-2 text-xs">
-                          <span className="text-zinc-400 font-medium truncate">{source.name}</span>
-                          <span className="px-2 py-0.5 bg-zinc-800 text-zinc-500 rounded text-[9px] uppercase font-bold shrink-0">
+                          <span className="text-[var(--color-text-secondary)] font-medium truncate">{source.name}</span>
+                          <span className="px-2 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-muted)] rounded text-[9px] uppercase font-bold shrink-0">
                             {r.type.replace("_", " ")}
                           </span>
-                          <span className="text-zinc-400 font-medium truncate">{target.name}</span>
+                          <span className="text-[var(--color-text-secondary)] font-medium truncate">{target.name}</span>
                         </div>
                       </div>
                     );
                   }) : (
-                    <div className="text-zinc-700 text-sm italic py-4">No relations matching "{searchQuery}"</div>
+                    <div className="text-[var(--color-text-muted)] text-sm italic py-4">No relations matching "{searchQuery}"</div>
                   )}
                 </div>
               </div>

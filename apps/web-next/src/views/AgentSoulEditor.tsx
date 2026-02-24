@@ -87,11 +87,11 @@ export default function AgentSoulEditor({ agentName = 'Horizon', agentEmoji = 'ð
   const charCount = content.length;
 
   return (
-    <div className="flex h-full w-full bg-gray-950 text-white overflow-hidden rounded-2xl border border-gray-800">
+    <div className="flex h-full w-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden rounded-2xl border border-[var(--color-border)]">
       {/* File Tree Panel */}
-      <div className="w-48 border-r border-gray-800 flex flex-col bg-gray-900/50">
-        <div className="p-4 border-b border-gray-800 flex items-center justify-between h-14">
-          <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Workspace</span>
+      <div className="w-48 border-r border-[var(--color-border)] flex flex-col bg-[var(--color-surface-1)]/50">
+        <div className="p-4 border-b border-[var(--color-border)] flex items-center justify-between h-14">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Workspace</span>
           {saveStatus !== 'idle' && (
             <span className="text-[10px] text-violet-400 animate-pulse">
               {saveStatus === 'saving' ? 'Saving...' : 'Saved âœ“'}
@@ -108,7 +108,7 @@ export default function AgentSoulEditor({ agentName = 'Horizon', agentEmoji = 'ð
                 "w-full px-4 py-2 flex items-center gap-2 text-sm transition-colors relative",
                 selectedFile === file 
                   ? "bg-violet-600/20 text-violet-400 border-r-2 border-violet-600" 
-                  : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+                  : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
               )}
             >
               <FileText size={14} />
@@ -120,8 +120,8 @@ export default function AgentSoulEditor({ agentName = 'Horizon', agentEmoji = 'ð
           ))}
         </div>
 
-        <div className="p-3 border-t border-gray-800">
-          <button className="w-full py-2 px-3 flex items-center justify-center gap-2 text-xs font-medium bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors text-gray-300">
+        <div className="p-3 border-t border-[var(--color-border)]">
+          <button className="w-full py-2 px-3 flex items-center justify-center gap-2 text-xs font-medium bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg transition-colors text-[var(--color-text-primary)]">
             <Plus size={14} />
             New File
           </button>
@@ -129,19 +129,19 @@ export default function AgentSoulEditor({ agentName = 'Horizon', agentEmoji = 'ð
       </div>
 
       {/* Editor Panel */}
-      <div className="flex-1 flex flex-col min-w-0 bg-gray-950">
+      <div className="flex-1 flex flex-col min-w-0 bg-[var(--color-surface-0)]">
         {/* Header */}
-        <div className="h-14 border-b border-gray-800 flex items-center justify-between px-6 bg-gray-900/20">
+        <div className="h-14 border-b border-[var(--color-border)] flex items-center justify-between px-6 bg-[var(--color-surface-1)]/20">
           <div className="flex items-center gap-3">
             <span className="text-xl">{agentEmoji}</span>
-            <h2 className="font-semibold text-gray-200">{selectedFile}</h2>
-            <span className="text-xs text-gray-500 font-mono bg-gray-800 px-2 py-0.5 rounded">
+            <h2 className="font-semibold text-[var(--color-text-primary)]">{selectedFile}</h2>
+            <span className="text-xs text-[var(--color-text-muted)] font-mono bg-[var(--color-surface-2)] px-2 py-0.5 rounded">
               /workspace/{selectedFile}
             </span>
           </div>
           
           <div className="flex items-center gap-4">
-            <span className="text-[10px] text-gray-500 uppercase tracking-widest hidden sm:block">
+            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest hidden sm:block">
               Cmd+S to save
             </span>
             <button
@@ -150,8 +150,8 @@ export default function AgentSoulEditor({ agentName = 'Horizon', agentEmoji = 'ð
               className={cn(
                 "px-4 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-all",
                 isModified 
-                  ? "bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-900/20" 
-                  : "bg-gray-800 text-gray-500 cursor-not-allowed"
+                  ? "bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] shadow-lg shadow-violet-900/20" 
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] cursor-not-allowed"
               )}
             >
               {saveStatus === 'saving' ? (
@@ -170,12 +170,12 @@ export default function AgentSoulEditor({ agentName = 'Horizon', agentEmoji = 'ð
             value={content}
             onChange={handleContentChange}
             spellCheck={false}
-            className="w-full h-full p-8 bg-gray-950 text-gray-200 font-mono text-sm resize-none focus:outline-none focus:ring-0 leading-relaxed custom-scrollbar"
+            className="w-full h-full p-8 bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-mono text-sm resize-none focus:outline-none focus:ring-0 leading-relaxed custom-scrollbar"
           />
         </div>
 
         {/* Footer info */}
-        <div className="h-8 border-t border-gray-800 flex items-center justify-between px-6 bg-gray-900/40 text-[10px] text-gray-500 font-mono uppercase tracking-wider">
+        <div className="h-8 border-t border-[var(--color-border)] flex items-center justify-between px-6 bg-[var(--color-surface-1)]/40 text-[10px] text-[var(--color-text-muted)] font-mono uppercase tracking-wider">
           <div className="flex gap-4">
             <span>Lines: {lineCount}</span>
             <span>UTF-8</span>

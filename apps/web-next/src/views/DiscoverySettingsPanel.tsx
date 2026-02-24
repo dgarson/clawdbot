@@ -100,8 +100,8 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg bg-zinc-800 border border-zinc-700 p-5 space-y-4">
-      <h3 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
+    <div className="rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] p-5 space-y-4">
+      <h3 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
         {title}
       </h3>
       {children}
@@ -122,8 +122,8 @@ function FieldRow({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-sm text-zinc-300 font-medium">{label}</label>
-      {hint && <p className="text-xs text-zinc-500">{hint}</p>}
+      <label className="text-sm text-[var(--color-text-primary)] font-medium">{label}</label>
+      {hint && <p className="text-xs text-[var(--color-text-muted)]">{hint}</p>}
       {children}
       {error && <p className="text-xs text-red-400">{error}</p>}
     </div>
@@ -145,7 +145,7 @@ function Toggle({
       onClick={() => onChange(!checked)}
       className={cn(
         "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-800",
-        checked ? "bg-indigo-600" : "bg-zinc-600"
+        checked ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
       )}
       aria-pressed={checked}
       aria-label={label}
@@ -195,9 +195,9 @@ function NumberInput({
         }
       }}
       className={cn(
-        "w-full rounded-md bg-zinc-700 border border-zinc-600 text-zinc-100 px-3 py-1.5 text-sm",
+        "w-full rounded-md bg-[var(--color-surface-3)] border border-[var(--color-surface-3)] text-[var(--color-text-primary)] px-3 py-1.5 text-sm",
         "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
-        "placeholder:text-zinc-500",
+        "placeholder:text-[var(--color-text-muted)]",
         className
       )}
     />
@@ -228,7 +228,7 @@ function SliderInput({
         onChange={(e) => onChange(Number(e.target.value))}
         className="flex-1 accent-indigo-500 cursor-pointer"
       />
-      <span className="w-8 text-right text-sm font-mono text-zinc-300">
+      <span className="w-8 text-right text-sm font-mono text-[var(--color-text-primary)]">
         {value}
       </span>
     </div>
@@ -251,7 +251,7 @@ function Select<T extends string>({
       value={value}
       onChange={(e) => onChange(e.target.value as T)}
       className={cn(
-        "rounded-md bg-zinc-700 border border-zinc-600 text-zinc-100 px-3 py-1.5 text-sm",
+        "rounded-md bg-[var(--color-surface-3)] border border-[var(--color-surface-3)] text-[var(--color-text-primary)] px-3 py-1.5 text-sm",
         "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
         className
       )}
@@ -300,38 +300,38 @@ function ModelRoutingTable({
 
   return (
     <div className="space-y-2">
-      <div className="overflow-x-auto rounded-md border border-zinc-700">
-        <table className="w-full text-sm text-zinc-300 min-w-[540px]">
-          <thead className="bg-zinc-700/60">
+      <div className="overflow-x-auto rounded-md border border-[var(--color-border)]">
+        <table className="w-full text-sm text-[var(--color-text-primary)] min-w-[540px]">
+          <thead className="bg-[var(--color-surface-3)]/60">
             <tr>
-              <th className="px-3 py-2 text-left font-medium text-zinc-400 text-xs uppercase">
+              <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)] text-xs uppercase">
                 Slot Name
               </th>
-              <th className="px-3 py-2 text-left font-medium text-zinc-400 text-xs uppercase">
+              <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)] text-xs uppercase">
                 Model
               </th>
-              <th className="px-3 py-2 text-left font-medium text-zinc-400 text-xs uppercase">
+              <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)] text-xs uppercase">
                 Fallback
               </th>
-              <th className="px-3 py-2 text-left font-medium text-zinc-400 text-xs uppercase">
+              <th className="px-3 py-2 text-left font-medium text-[var(--color-text-secondary)] text-xs uppercase">
                 Weight %
               </th>
               <th className="px-3 py-2 w-8" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-700">
+          <tbody className="divide-y divide-[var(--color-border)]">
             {slots.length === 0 && (
               <tr>
                 <td
                   colSpan={5}
-                  className="px-3 py-4 text-center text-zinc-500 text-xs"
+                  className="px-3 py-4 text-center text-[var(--color-text-muted)] text-xs"
                 >
                   No model slots configured. Add one below.
                 </td>
               </tr>
             )}
             {slots.map((slot) => (
-              <tr key={slot.id} className="hover:bg-zinc-700/30 transition-colors">
+              <tr key={slot.id} className="hover:bg-[var(--color-surface-3)]/30 transition-colors">
                 <td className="px-2 py-1.5">
                   <input
                     type="text"
@@ -339,7 +339,7 @@ function ModelRoutingTable({
                     onChange={(e) =>
                       update(slot.id, { slotName: e.target.value })
                     }
-                    className="w-full bg-transparent border-b border-zinc-600 focus:border-indigo-500 text-zinc-100 text-sm px-1 py-0.5 outline-none"
+                    className="w-full bg-transparent border-b border-[var(--color-surface-3)] focus:border-indigo-500 text-[var(--color-text-primary)] text-sm px-1 py-0.5 outline-none"
                   />
                 </td>
                 <td className="px-2 py-1.5">
@@ -373,7 +373,7 @@ function ModelRoutingTable({
                   <button
                     type="button"
                     onClick={() => removeRow(slot.id)}
-                    className="text-zinc-500 hover:text-red-400 transition-colors text-xs px-1"
+                    className="text-[var(--color-text-muted)] hover:text-red-400 transition-colors text-xs px-1"
                     aria-label="Remove row"
                   >
                     ✕
@@ -443,12 +443,12 @@ export default function DiscoverySettingsPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-zinc-100 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-1)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-3xl mx-auto space-y-6">
         {/* ── Header ── */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold text-zinc-100">
+            <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">
               Discovery Settings
             </h1>
             {isDirty && (
@@ -466,8 +466,8 @@ export default function DiscoverySettingsPanel() {
               className={cn(
                 "px-4 py-1.5 rounded-md text-sm font-medium border transition-colors",
                 isDirty
-                  ? "border-zinc-600 text-zinc-300 hover:bg-zinc-700"
-                  : "border-zinc-700 text-zinc-600 cursor-not-allowed"
+                  ? "border-[var(--color-surface-3)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
+                  : "border-[var(--color-border)] text-[var(--color-text-muted)] cursor-not-allowed"
               )}
             >
               Reset
@@ -475,7 +475,7 @@ export default function DiscoverySettingsPanel() {
             <button
               type="button"
               onClick={handleSave}
-              className="px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-900"
+              className="px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-900"
             >
               Save
             </button>
@@ -519,7 +519,7 @@ export default function DiscoverySettingsPanel() {
                 onChange={(v) => patch("waveOverlap", v)}
                 label="Wave overlap"
               />
-              <span className="text-xs text-zinc-400">
+              <span className="text-xs text-[var(--color-text-secondary)]">
                 {form.waveOverlap ? "Enabled" : "Disabled"}
               </span>
             </div>
@@ -528,7 +528,7 @@ export default function DiscoverySettingsPanel() {
 
         {/* ── 2. Model Routing ── */}
         <SectionCard title="Model Routing">
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-[var(--color-text-muted)]">
             Define model slots with weights. Weights are advisory — total need not
             sum to 100%.
           </p>
@@ -577,7 +577,7 @@ export default function DiscoverySettingsPanel() {
                 onChange={(v) => patch("autoPauseAt80", v)}
                 label="Auto-pause at 80%"
               />
-              <span className="text-xs text-zinc-400">
+              <span className="text-xs text-[var(--color-text-secondary)]">
                 {form.autoPauseAt80 ? "Enabled" : "Disabled"}
               </span>
             </div>
@@ -672,14 +672,14 @@ export default function DiscoverySettingsPanel() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="px-3 py-1 rounded text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                className="px-3 py-1 rounded text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
               >
                 Discard
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="px-4 py-1.5 rounded-md text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+                className="px-4 py-1.5 rounded-md text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] transition-colors"
               >
                 Save changes
               </button>

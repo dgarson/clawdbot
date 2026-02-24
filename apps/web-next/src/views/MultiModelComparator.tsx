@@ -144,7 +144,7 @@ const providerColor = (provider: string) => {
   if (provider === "OpenAI")    {return "text-emerald-400 bg-emerald-400/10";}
   if (provider === "Google")    {return "text-blue-400 bg-blue-400/10";}
   if (provider === "MiniMax")   {return "text-amber-400 bg-amber-400/10";}
-  return "text-zinc-400 bg-zinc-400/10";
+  return "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10";
 };
 
 const qualityBar = (score: number) => {
@@ -204,16 +204,16 @@ export default function MultiModelComparator() {
   }
 
   return (
-    <div className="flex h-full bg-zinc-950 overflow-hidden flex-col">
+    <div className="flex h-full bg-[var(--color-surface-0)] overflow-hidden flex-col">
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 bg-zinc-900 flex-shrink-0">
+      <div className="flex border-b border-[var(--color-border)] bg-[var(--color-surface-1)] flex-shrink-0">
         {(["compare", "runs"] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
               "px-5 py-2.5 text-sm font-medium transition-colors border-b-2 capitalize",
-              activeTab === tab ? "border-indigo-500 text-indigo-300" : "border-transparent text-zinc-500 hover:text-zinc-300"
+              activeTab === tab ? "border-indigo-500 text-indigo-300" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {tab === "compare" ? "⚡ Compare" : `📋 History (${SAVED_RUNS.length})`}
@@ -224,21 +224,21 @@ export default function MultiModelComparator() {
       {activeTab === "compare" ? (
         <div className="flex-1 flex overflow-hidden">
           {/* Config sidebar */}
-          <div className="w-64 flex-shrink-0 bg-zinc-900 border-r border-zinc-800 flex flex-col overflow-y-auto">
+          <div className="w-64 flex-shrink-0 bg-[var(--color-surface-1)] border-r border-[var(--color-border)] flex flex-col overflow-y-auto">
             <div className="p-4">
-              <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Models</div>
+              <div className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Models</div>
               <div className="space-y-1.5">
                 {MODELS.map(m => (
                   <div
                     key={m.id}
                     onClick={() => toggleModel(m.id)}
-                    className={cn("flex items-center gap-2 px-2 py-1.5 rounded border cursor-pointer transition-colors", enabledModels.has(m.id) ? "bg-zinc-800 border-zinc-700" : "border-zinc-800/50 opacity-50")}
+                    className={cn("flex items-center gap-2 px-2 py-1.5 rounded border cursor-pointer transition-colors", enabledModels.has(m.id) ? "bg-[var(--color-surface-2)] border-[var(--color-border)]" : "border-[var(--color-border)]/50 opacity-50")}
                   >
-                    <div className={cn("w-3 h-3 rounded border flex items-center justify-center text-[8px] flex-shrink-0", enabledModels.has(m.id) ? "bg-indigo-500 border-indigo-500 text-white" : "border-zinc-600")}>
+                    <div className={cn("w-3 h-3 rounded border flex items-center justify-center text-[8px] flex-shrink-0", enabledModels.has(m.id) ? "bg-indigo-500 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-surface-3)]")}>
                       {enabledModels.has(m.id) && "✓"}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[10px] font-medium text-white truncate">{m.name}</div>
+                      <div className="text-[10px] font-medium text-[var(--color-text-primary)] truncate">{m.name}</div>
                       <span className={cn("text-[9px] px-1 rounded", providerColor(m.provider))}>{m.provider}</span>
                     </div>
                   </div>
@@ -246,19 +246,19 @@ export default function MultiModelComparator() {
               </div>
 
               <div className="mt-4">
-                <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">System Prompt</div>
+                <div className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">System Prompt</div>
                 <textarea
                   value={systemPromptText}
                   onChange={e => setSystemPromptText(e.target.value)}
                   rows={3}
-                  className="w-full bg-zinc-800 border border-zinc-700 text-white text-[10px] px-2 py-1.5 rounded resize-none focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-[10px] px-2 py-1.5 rounded resize-none focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div className="mt-3">
                 <div className="flex items-center justify-between mb-1">
-                  <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Temperature</div>
-                  <span className="text-[10px] text-zinc-300">{temperature}</span>
+                  <div className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Temperature</div>
+                  <span className="text-[10px] text-[var(--color-text-primary)]">{temperature}</span>
                 </div>
                 <input
                   type="range"
@@ -276,19 +276,19 @@ export default function MultiModelComparator() {
           {/* Main area */}
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Prompt input */}
-            <div className="p-4 border-b border-zinc-800 flex-shrink-0">
+            <div className="p-4 border-b border-[var(--color-border)] flex-shrink-0">
               <div className="flex gap-3">
                 <textarea
                   value={promptText}
                   onChange={e => setPromptText(e.target.value)}
                   placeholder="Enter your prompt to compare across models..."
                   rows={3}
-                  className="flex-1 bg-zinc-800 border border-zinc-700 text-white text-sm px-3 py-2 rounded resize-none placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                  className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm px-3 py-2 rounded resize-none placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
                 />
                 <button
                   onClick={runComparison}
                   disabled={!promptText.trim() || enabledModels.size === 0 || status === "running"}
-                  className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium text-sm transition-colors self-start"
+                  className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-text-primary)] px-4 py-2 rounded font-medium text-sm transition-colors self-start"
                 >
                   {status === "running" ? (
                     <span className="flex items-center gap-2"><span className="animate-spin w-3 h-3 border border-white border-t-transparent rounded-full inline-block" />Running…</span>
@@ -301,25 +301,25 @@ export default function MultiModelComparator() {
             <div className="flex-1 overflow-y-auto p-4">
               {/* Metric toggle */}
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-xs text-zinc-500">Rank by:</span>
+                <span className="text-xs text-[var(--color-text-muted)]">Rank by:</span>
                 <div className="flex gap-1">
                   {(["quality", "speed", "cost", "tokens"] as MetricKind[]).map(m => (
                     <button
                       key={m}
                       onClick={() => setMetric(m)}
-                      className={cn("text-xs px-3 py-1 rounded border transition-colors capitalize", metric === m ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "border-zinc-700 text-zinc-500 hover:text-zinc-300 bg-zinc-800")}
+                      className={cn("text-xs px-3 py-1 rounded border transition-colors capitalize", metric === m ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]")}
                     >
                       {m}
                     </button>
                   ))}
                 </div>
-                <span className="ml-auto text-xs text-zinc-500">{selectedRun.ranAt} · {selectedRun.results.length} models</span>
+                <span className="ml-auto text-xs text-[var(--color-text-muted)]">{selectedRun.ranAt} · {selectedRun.results.length} models</span>
               </div>
 
               {/* Prompt preview */}
-              <div className="bg-zinc-900 rounded border border-zinc-800 p-3 mb-4">
-                <div className="text-[10px] text-zinc-500 mb-1">Prompt</div>
-                <p className="text-xs text-zinc-300">{selectedRun.prompt}</p>
+              <div className="bg-[var(--color-surface-1)] rounded border border-[var(--color-border)] p-3 mb-4">
+                <div className="text-[10px] text-[var(--color-text-muted)] mb-1">Prompt</div>
+                <p className="text-xs text-[var(--color-text-primary)]">{selectedRun.prompt}</p>
               </div>
 
               {/* Model outputs */}
@@ -328,35 +328,35 @@ export default function MultiModelComparator() {
                   const barPct = getMetricBar(result, selectedRun.results);
                   const isExpanded = expandedResultId === result.modelId;
                   return (
-                    <div key={result.modelId} className={cn("bg-zinc-900 rounded border overflow-hidden", i === 0 ? "border-indigo-500/40" : "border-zinc-800")}>
+                    <div key={result.modelId} className={cn("bg-[var(--color-surface-1)] rounded border overflow-hidden", i === 0 ? "border-indigo-500/40" : "border-[var(--color-border)]")}>
                       {/* Model header */}
                       <div className="flex items-center gap-3 px-4 py-3">
                         {i === 0 && <span className="text-xs text-indigo-400 font-bold">🥇</span>}
-                        {i === 1 && <span className="text-xs text-zinc-400">🥈</span>}
-                        {i >= 2 && <span className="text-xs text-zinc-600">{i + 1}.</span>}
+                        {i === 1 && <span className="text-xs text-[var(--color-text-secondary)]">🥈</span>}
+                        {i >= 2 && <span className="text-xs text-[var(--color-text-muted)]">{i + 1}.</span>}
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-white">{result.modelName}</span>
+                            <span className="text-sm font-semibold text-[var(--color-text-primary)]">{result.modelName}</span>
                             <span className={cn("text-[9px] px-1.5 py-0.5 rounded", providerColor(result.provider))}>{result.provider}</span>
                           </div>
                           <div className="flex items-center gap-2 mt-1">
-                            <div className="flex-1 h-1.5 bg-zinc-800 rounded overflow-hidden">
+                            <div className="flex-1 h-1.5 bg-[var(--color-surface-2)] rounded overflow-hidden">
                               <div
                                 className={cn("h-full rounded transition-all", metric === "quality" ? qualityBar(result.qualityScore) : "bg-indigo-400")}
                                 style={{ width: `${barPct}%` }}
                               />
                             </div>
-                            <span className="text-xs font-mono text-white w-20 text-right">{getMetricValue(result)}</span>
+                            <span className="text-xs font-mono text-[var(--color-text-primary)] w-20 text-right">{getMetricValue(result)}</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 text-[10px] text-zinc-500">
+                        <div className="flex items-center gap-3 text-[10px] text-[var(--color-text-muted)]">
                           <span>{result.latencyMs}ms</span>
                           <span>${result.costUsd.toFixed(5)}</span>
                           <span>{result.outputTokens}t</span>
                         </div>
                         <button
                           onClick={() => setExpandedResultId(isExpanded ? null : result.modelId)}
-                          className="text-xs text-zinc-500 hover:text-zinc-300 ml-2"
+                          className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] ml-2"
                         >
                           {isExpanded ? "▲" : "▼"}
                         </button>
@@ -364,7 +364,7 @@ export default function MultiModelComparator() {
 
                       {/* Output preview */}
                       <div className={cn("px-4 pb-3", isExpanded ? "" : "line-clamp-3")}>
-                        <pre className={cn("text-xs text-zinc-300 whitespace-pre-wrap font-mono leading-relaxed", !isExpanded && "line-clamp-2 overflow-hidden")}>
+                        <pre className={cn("text-xs text-[var(--color-text-primary)] whitespace-pre-wrap font-mono leading-relaxed", !isExpanded && "line-clamp-2 overflow-hidden")}>
                           {result.output}
                         </pre>
                       </div>
@@ -380,17 +380,17 @@ export default function MultiModelComparator() {
         <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-4 max-w-3xl">
             {SAVED_RUNS.map(run => (
-              <div key={run.id} className={cn("bg-zinc-900 rounded border cursor-pointer transition-colors hover:border-zinc-700", selectedRunId === run.id ? "border-indigo-500/40" : "border-zinc-800")} onClick={() => { setSelectedRunId(run.id); setActiveTab("compare"); }}>
+              <div key={run.id} className={cn("bg-[var(--color-surface-1)] rounded border cursor-pointer transition-colors hover:border-[var(--color-border)]", selectedRunId === run.id ? "border-indigo-500/40" : "border-[var(--color-border)]")} onClick={() => { setSelectedRunId(run.id); setActiveTab("compare"); }}>
                 <div className="p-4">
                   <div className="flex items-start justify-between">
-                    <p className="text-sm text-white font-medium">{run.prompt}</p>
-                    <span className="text-[10px] text-zinc-500 ml-4 flex-shrink-0">{run.ranAt}</span>
+                    <p className="text-sm text-[var(--color-text-primary)] font-medium">{run.prompt}</p>
+                    <span className="text-[10px] text-[var(--color-text-muted)] ml-4 flex-shrink-0">{run.ranAt}</span>
                   </div>
                   <div className="flex items-center gap-4 mt-3">
                     {run.results.map(r => (
                       <div key={r.modelId} className="flex items-center gap-1">
                         <span className={cn("text-[9px] px-1.5 py-0.5 rounded", providerColor(r.provider))}>{r.modelName.split(" ").slice(0, 2).join(" ")}</span>
-                        <span className="text-[10px] text-zinc-500">{r.qualityScore}/100</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{r.qualityScore}/100</span>
                       </div>
                     ))}
                   </div>

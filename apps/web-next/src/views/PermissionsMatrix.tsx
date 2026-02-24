@@ -101,7 +101,7 @@ const ROLES: Role[] = [
     permissions: makePerms("billing.read","billing.manage","users.read"),
   },
   {
-    id: "r6", name: "Viewer", description: "Read-only access", color: "bg-zinc-500",
+    id: "r6", name: "Viewer", description: "Read-only access", color: "bg-[var(--color-surface-3)]",
     userCount: 9, isSystem: true,
     permissions: makePerms("users.read","projects.read","analytics.read"),
   },
@@ -169,20 +169,20 @@ export default function PermissionsMatrix() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Permissions Matrix</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">Role-based access control — {ROLES.length} roles · {PERMISSIONS.length} permissions · {USERS.length} users</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Permissions Matrix</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Role-based access control — {ROLES.length} roles · {PERMISSIONS.length} permissions · {USERS.length} users</p>
         </div>
-        <button className="text-sm px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors">
+        <button className="text-sm px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors">
           + New Role
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)] w-fit">
         {TABS.map(t => (
           <button
             key={t.id}
@@ -190,8 +190,8 @@ export default function PermissionsMatrix() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-white"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t.emoji} {t.label}
@@ -203,7 +203,7 @@ export default function PermissionsMatrix() {
       {activeTab === "matrix" && (
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <div className="text-xs text-zinc-400">Filter by category:</div>
+            <div className="text-xs text-[var(--color-text-secondary)]">Filter by category:</div>
             <div className="flex gap-1">
               {["all", ...CATEGORIES].map(cat => (
                 <button
@@ -213,7 +213,7 @@ export default function PermissionsMatrix() {
                     "text-xs px-3 py-1 rounded border transition-colors capitalize",
                     filterCategory === cat
                       ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300"
-                      : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                      : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
                   {cat}
@@ -222,17 +222,17 @@ export default function PermissionsMatrix() {
             </div>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800">
-                    <th className="px-4 py-3 text-left text-xs text-zinc-400 font-medium w-48 sticky left-0 bg-zinc-900">Permission</th>
+                  <tr className="border-b border-[var(--color-border)]">
+                    <th className="px-4 py-3 text-left text-xs text-[var(--color-text-secondary)] font-medium w-48 sticky left-0 bg-[var(--color-surface-1)]">Permission</th>
                     {ROLES.map(role => (
                       <th key={role.id} className="px-3 py-3 text-center">
                         <div className="flex flex-col items-center gap-1">
-                          <span className={cn("text-xs px-2 py-0.5 rounded text-white font-medium", role.color)}>{role.name}</span>
-                          <span className="text-zinc-500 text-xs">{role.userCount}u</span>
+                          <span className={cn("text-xs px-2 py-0.5 rounded text-[var(--color-text-primary)] font-medium", role.color)}>{role.name}</span>
+                          <span className="text-[var(--color-text-muted)] text-xs">{role.userCount}u</span>
                         </div>
                       </th>
                     ))}
@@ -241,23 +241,23 @@ export default function PermissionsMatrix() {
                 <tbody>
                   {CATEGORIES.filter(c => filterCategory === "all" || c === filterCategory).map(category => (
                     <React.Fragment key={category}>
-                      <tr className="bg-zinc-800/30">
-                        <td colSpan={ROLES.length + 1} className="px-4 py-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider sticky left-0 bg-zinc-800/30">
+                      <tr className="bg-[var(--color-surface-2)]/30">
+                        <td colSpan={ROLES.length + 1} className="px-4 py-2 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider sticky left-0 bg-[var(--color-surface-2)]/30">
                           {category}
                         </td>
                       </tr>
                       {filteredPerms.filter(p => p.category === category).map(perm => (
-                        <tr key={perm.id} className="border-t border-zinc-800/50 hover:bg-zinc-800/20 transition-colors">
-                          <td className="px-4 py-2.5 sticky left-0 bg-zinc-900">
-                            <div className="text-xs text-white font-medium">{perm.resource} · {perm.action}</div>
-                            <div className="text-xs text-zinc-500 mt-0.5">{perm.description}</div>
+                        <tr key={perm.id} className="border-t border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/20 transition-colors">
+                          <td className="px-4 py-2.5 sticky left-0 bg-[var(--color-surface-1)]">
+                            <div className="text-xs text-[var(--color-text-primary)] font-medium">{perm.resource} · {perm.action}</div>
+                            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{perm.description}</div>
                           </td>
                           {ROLES.map(role => (
                             <td key={role.id} className="px-3 py-2.5 text-center">
                               {role.permissions.has(perm.id) ? (
                                 <span className="text-emerald-400 text-base">✓</span>
                               ) : (
-                                <span className="text-zinc-700 text-base">—</span>
+                                <span className="text-[var(--color-text-muted)] text-base">—</span>
                               )}
                             </td>
                           ))}
@@ -281,17 +281,17 @@ export default function PermissionsMatrix() {
                 key={role.id}
                 onClick={() => { setSelectedRole(role); setEditingRole(null); }}
                 className={cn(
-                  "w-full bg-zinc-900 border rounded-lg p-4 text-left hover:border-zinc-600 transition-colors",
-                  selectedRole?.id === role.id ? "border-indigo-500/50" : "border-zinc-800"
+                  "w-full bg-[var(--color-surface-1)] border rounded-lg p-4 text-left hover:border-[var(--color-surface-3)] transition-colors",
+                  selectedRole?.id === role.id ? "border-indigo-500/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className={cn("w-2 h-2 rounded-full", role.color)} />
-                  <span className="text-sm font-medium text-white">{role.name}</span>
-                  {role.isSystem && <span className="text-xs bg-zinc-700 text-zinc-300 px-1.5 py-0.5 rounded">system</span>}
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">{role.name}</span>
+                  {role.isSystem && <span className="text-xs bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-1.5 py-0.5 rounded">system</span>}
                 </div>
-                <div className="text-xs text-zinc-400 mb-2">{role.description}</div>
-                <div className="flex items-center gap-3 text-xs text-zinc-500">
+                <div className="text-xs text-[var(--color-text-secondary)] mb-2">{role.description}</div>
+                <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                   <span>{role.userCount} users</span>
                   <span>{role.permissions.size} permissions</span>
                 </div>
@@ -301,12 +301,12 @@ export default function PermissionsMatrix() {
 
           <div className="col-span-3">
             {selectedRole && !editingRole ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-4">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={cn("w-3 h-3 rounded-full", selectedRole.color)} />
-                    <h3 className="text-base font-semibold text-white">{selectedRole.name}</h3>
-                    {selectedRole.isSystem && <span className="text-xs bg-zinc-700 text-zinc-300 px-1.5 py-0.5 rounded">system</span>}
+                    <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{selectedRole.name}</h3>
+                    {selectedRole.isSystem && <span className="text-xs bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-1.5 py-0.5 rounded">system</span>}
                   </div>
                   {!selectedRole.isSystem && (
                     <button
@@ -318,15 +318,15 @@ export default function PermissionsMatrix() {
                   )}
                 </div>
 
-                <p className="text-sm text-zinc-400">{selectedRole.description}</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{selectedRole.description}</p>
 
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="bg-zinc-800 rounded p-3">
-                    <div className="text-xs text-zinc-400">Users with this role</div>
-                    <div className="text-xl font-bold text-white mt-1">{selectedRole.userCount}</div>
+                  <div className="bg-[var(--color-surface-2)] rounded p-3">
+                    <div className="text-xs text-[var(--color-text-secondary)]">Users with this role</div>
+                    <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{selectedRole.userCount}</div>
                   </div>
-                  <div className="bg-zinc-800 rounded p-3">
-                    <div className="text-xs text-zinc-400">Permissions granted</div>
+                  <div className="bg-[var(--color-surface-2)] rounded p-3">
+                    <div className="text-xs text-[var(--color-text-secondary)]">Permissions granted</div>
                     <div className="text-xl font-bold text-indigo-400 mt-1">{selectedRole.permissions.size}</div>
                   </div>
                 </div>
@@ -338,7 +338,7 @@ export default function PermissionsMatrix() {
                     if (grantedPerms.length === 0) {return null;}
                     return (
                       <div key={cat}>
-                        <div className="text-xs font-medium text-zinc-400 mb-1.5">{cat}</div>
+                        <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-1.5">{cat}</div>
                         <div className="flex flex-wrap gap-1.5">
                           {grantedPerms.map(p => (
                             <span key={p.id} className="text-xs bg-emerald-400/10 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded font-mono">
@@ -346,7 +346,7 @@ export default function PermissionsMatrix() {
                             </span>
                           ))}
                           {catPerms.filter(p => !selectedRole.permissions.has(p.id)).map(p => (
-                            <span key={p.id} className="text-xs bg-zinc-800 border border-zinc-700 text-zinc-600 px-2 py-0.5 rounded font-mono">
+                            <span key={p.id} className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-muted)] px-2 py-0.5 rounded font-mono">
                               {p.action.toLowerCase()}
                             </span>
                           ))}
@@ -357,27 +357,27 @@ export default function PermissionsMatrix() {
                 </div>
               </div>
             ) : editingRole ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-4">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-white">Edit: {editingRole.name}</h3>
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Edit: {editingRole.name}</h3>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setEditingRole(null)}
-                      className="text-xs px-3 py-1.5 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-800"
+                      className="text-xs px-3 py-1.5 border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-2)]"
                     >Cancel</button>
                     <button
                       onClick={() => setEditingRole(null)}
-                      className="text-xs px-3 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-600"
+                      className="text-xs px-3 py-1.5 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600"
                     >Save Changes</button>
                   </div>
                 </div>
                 <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1">
                   {CATEGORIES.map(cat => (
                     <div key={cat}>
-                      <div className="text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">{cat}</div>
+                      <div className="text-xs font-semibold text-[var(--color-text-secondary)] mb-2 uppercase tracking-wider">{cat}</div>
                       <div className="space-y-1">
                         {PERMISSIONS.filter(p => p.category === cat).map(perm => (
-                          <label key={perm.id} className="flex items-start gap-3 cursor-pointer hover:bg-zinc-800/50 rounded p-2 transition-colors">
+                          <label key={perm.id} className="flex items-start gap-3 cursor-pointer hover:bg-[var(--color-surface-2)]/50 rounded p-2 transition-colors">
                             <input
                               type="checkbox"
                               checked={draftPerms.has(perm.id)}
@@ -385,8 +385,8 @@ export default function PermissionsMatrix() {
                               className="mt-0.5 accent-indigo-500"
                             />
                             <div>
-                              <div className="text-xs text-white font-medium">{perm.resource} · {perm.action}</div>
-                              <div className="text-xs text-zinc-500">{perm.description}</div>
+                              <div className="text-xs text-[var(--color-text-primary)] font-medium">{perm.resource} · {perm.action}</div>
+                              <div className="text-xs text-[var(--color-text-muted)]">{perm.description}</div>
                             </div>
                           </label>
                         ))}
@@ -396,7 +396,7 @@ export default function PermissionsMatrix() {
                 </div>
               </div>
             ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-10 text-center text-zinc-500 text-sm">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-10 text-center text-[var(--color-text-muted)] text-sm">
                 Select a role to view its permissions
               </div>
             )}
@@ -413,15 +413,15 @@ export default function PermissionsMatrix() {
               placeholder="Search users..."
               value={searchUser}
               onChange={e => setSearchUser(e.target.value)}
-              className="w-64 bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
+              className="w-64 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
             />
-            <div className="text-xs text-zinc-400">{filteredUsers.length} users</div>
+            <div className="text-xs text-[var(--color-text-secondary)]">{filteredUsers.length} users</div>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800 text-xs text-zinc-400">
+                <tr className="border-b border-[var(--color-border)] text-xs text-[var(--color-text-secondary)]">
                   <th className="px-4 py-3 text-left font-medium">User</th>
                   <th className="px-4 py-3 text-left font-medium">Department</th>
                   <th className="px-4 py-3 text-left font-medium">Roles</th>
@@ -430,48 +430,48 @@ export default function PermissionsMatrix() {
                   <th className="px-4 py-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {filteredUsers.map(user => {
                   const userRoles = user.roles.map(rid => ROLES.find(r => r.id === rid)).filter(Boolean) as Role[];
                   const effectivePerms = new Set<string>();
                   userRoles.forEach(r => r.permissions.forEach(p => effectivePerms.add(p)));
                   return (
-                    <tr key={user.id} className="hover:bg-zinc-800/30 transition-colors">
+                    <tr key={user.id} className="hover:bg-[var(--color-surface-2)]/30 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-indigo-500/30 border border-indigo-500/40 flex items-center justify-center text-xs font-bold text-indigo-300">
                             {user.avatar}
                           </div>
                           <div>
-                            <div className="text-sm text-white font-medium">{user.name}</div>
-                            <div className="text-xs text-zinc-400">{user.email}</div>
+                            <div className="text-sm text-[var(--color-text-primary)] font-medium">{user.name}</div>
+                            <div className="text-xs text-[var(--color-text-secondary)]">{user.email}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-xs text-zinc-400">{user.department}</td>
+                      <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{user.department}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">
                           {userRoles.map(r => (
-                            <span key={r.id} className={cn("text-xs text-white px-2 py-0.5 rounded", r.color)}>{r.name}</span>
+                            <span key={r.id} className={cn("text-xs text-[var(--color-text-primary)] px-2 py-0.5 rounded", r.color)}>{r.name}</span>
                           ))}
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5">
-                          <div className="w-24 bg-zinc-800 rounded-full h-1.5">
+                          <div className="w-24 bg-[var(--color-surface-2)] rounded-full h-1.5">
                             <div
                               className="h-full bg-indigo-500 rounded-full"
                               style={{ width: `${(effectivePerms.size / PERMISSIONS.length) * 100}%` }}
                             />
                           </div>
-                          <span className="text-xs text-zinc-400">{effectivePerms.size}/{PERMISSIONS.length}</span>
+                          <span className="text-xs text-[var(--color-text-secondary)]">{effectivePerms.size}/{PERMISSIONS.length}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <span className={cn("text-xs px-2 py-0.5 rounded border",
                           user.status === "active"
                             ? "bg-emerald-400/10 border-emerald-500/30 text-emerald-400"
-                            : "bg-zinc-800 border-zinc-700 text-zinc-500"
+                            : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)]"
                         )}>
                           {user.status}
                         </span>
@@ -493,22 +493,22 @@ export default function PermissionsMatrix() {
         <div className="space-y-4">
           <div className="flex items-center gap-4 mb-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-zinc-400">Role A:</label>
+              <label className="text-sm text-[var(--color-text-secondary)]">Role A:</label>
               <select
                 value={compareRoleA}
                 onChange={e => setCompareRoleA(e.target.value)}
-                className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-1.5 focus:outline-none"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-1.5 focus:outline-none"
               >
                 {ROLES.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
             </div>
-            <div className="text-zinc-500">vs</div>
+            <div className="text-[var(--color-text-muted)]">vs</div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-zinc-400">Role B:</label>
+              <label className="text-sm text-[var(--color-text-secondary)]">Role B:</label>
               <select
                 value={compareRoleB}
                 onChange={e => setCompareRoleB(e.target.value)}
-                className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-1.5 focus:outline-none"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-1.5 focus:outline-none"
               >
                 {ROLES.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
@@ -519,34 +519,34 @@ export default function PermissionsMatrix() {
             <>
               {/* Summary */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className={cn("w-2.5 h-2.5 rounded-full", roleA.color)} />
-                    <span className="text-sm font-semibold text-white">{roleA.name}</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{roleA.name}</span>
                   </div>
-                  <div className="text-2xl font-bold text-white">{roleA.permissions.size}</div>
-                  <div className="text-xs text-zinc-400">permissions</div>
+                  <div className="text-2xl font-bold text-[var(--color-text-primary)]">{roleA.permissions.size}</div>
+                  <div className="text-xs text-[var(--color-text-secondary)]">permissions</div>
                 </div>
-                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex flex-col items-center justify-center">
-                  <div className="text-xs text-zinc-400 mb-1">Shared</div>
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 flex flex-col items-center justify-center">
+                  <div className="text-xs text-[var(--color-text-secondary)] mb-1">Shared</div>
                   <div className="text-2xl font-bold text-indigo-400">
                     {[...roleA.permissions].filter(p => roleB.permissions.has(p)).length}
                   </div>
-                  <div className="text-xs text-zinc-400">in common</div>
+                  <div className="text-xs text-[var(--color-text-secondary)]">in common</div>
                 </div>
-                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className={cn("w-2.5 h-2.5 rounded-full", roleB.color)} />
-                    <span className="text-sm font-semibold text-white">{roleB.name}</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{roleB.name}</span>
                   </div>
-                  <div className="text-2xl font-bold text-white">{roleB.permissions.size}</div>
-                  <div className="text-xs text-zinc-400">permissions</div>
+                  <div className="text-2xl font-bold text-[var(--color-text-primary)]">{roleB.permissions.size}</div>
+                  <div className="text-xs text-[var(--color-text-secondary)]">permissions</div>
                 </div>
               </div>
 
               {/* Per-permission diff */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                <div className="grid grid-cols-3 text-xs text-zinc-400 font-medium border-b border-zinc-800 px-4 py-2">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+                <div className="grid grid-cols-3 text-xs text-[var(--color-text-secondary)] font-medium border-b border-[var(--color-border)] px-4 py-2">
                   <div className="text-center">{roleA.name} only</div>
                   <div className="text-center">Both</div>
                   <div className="text-center">{roleB.name} only</div>
@@ -559,15 +559,15 @@ export default function PermissionsMatrix() {
                   const anyDiff = aOnly.length > 0 || both.length > 0 || bOnly.length > 0;
                   if (!anyDiff) {return null;}
                   return (
-                    <div key={cat} className="border-b border-zinc-800 last:border-b-0">
-                      <div className="bg-zinc-800/40 px-4 py-1.5 text-xs text-zinc-400 font-medium">{cat}</div>
+                    <div key={cat} className="border-b border-[var(--color-border)] last:border-b-0">
+                      <div className="bg-[var(--color-surface-2)]/40 px-4 py-1.5 text-xs text-[var(--color-text-secondary)] font-medium">{cat}</div>
                       <div className="grid grid-cols-3 gap-0 px-4 py-2">
-                        <div className="space-y-1 pr-2 border-r border-zinc-800">
+                        <div className="space-y-1 pr-2 border-r border-[var(--color-border)]">
                           {aOnly.map(p => (
                             <div key={p.id} className="text-xs bg-rose-400/10 border border-rose-500/20 text-rose-300 px-2 py-0.5 rounded font-mono">{p.action}</div>
                           ))}
                         </div>
-                        <div className="space-y-1 px-2 border-r border-zinc-800">
+                        <div className="space-y-1 px-2 border-r border-[var(--color-border)]">
                           {both.map(p => (
                             <div key={p.id} className="text-xs bg-emerald-400/10 border border-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono">{p.action}</div>
                           ))}

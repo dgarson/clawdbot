@@ -139,13 +139,13 @@ const TABS: { key: Tab; label: string }[] = [
 function statusColor(s: ControlStatus): string {
   if (s === "passing") {return "text-emerald-400";}
   if (s === "failing") {return "text-rose-400";}
-  return "text-zinc-400";
+  return "text-[var(--color-text-secondary)]";
 }
 
 function statusBg(s: ControlStatus): string {
   if (s === "passing") {return "bg-emerald-400/15 text-emerald-400";}
   if (s === "failing") {return "bg-rose-400/15 text-rose-400";}
-  return "bg-zinc-700/40 text-zinc-400";
+  return "bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)]";
 }
 
 function evidenceStatusBg(s: EvidenceStatus): string {
@@ -180,9 +180,9 @@ function certBadge(status: string): string {
 
 function KpiCard({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
-    <div className="rounded-lg bg-zinc-900 border border-zinc-800 p-5 flex flex-col gap-1">
-      <span className="text-xs font-medium uppercase tracking-wider text-zinc-400">{label}</span>
-      <span className={cn("text-2xl font-bold", color ?? "text-white")}>{value}</span>
+    <div className="rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] p-5 flex flex-col gap-1">
+      <span className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">{label}</span>
+      <span className={cn("text-2xl font-bold", color ?? "text-[var(--color-text-primary)]")}>{value}</span>
     </div>
   );
 }
@@ -195,10 +195,10 @@ function OverviewTab() {
       {/* Score + KPIs row */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Compliance score card */}
-        <div className="lg:col-span-1 rounded-lg bg-zinc-900 border border-zinc-800 p-5 flex flex-col items-center justify-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-zinc-400">Compliance Score</span>
+        <div className="lg:col-span-1 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] p-5 flex flex-col items-center justify-center gap-2">
+          <span className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">Compliance Score</span>
           <span className="text-5xl font-extrabold text-indigo-400">78%</span>
-          <div className="w-full h-2 rounded-full bg-zinc-800 mt-1">
+          <div className="w-full h-2 rounded-full bg-[var(--color-surface-2)] mt-1">
             <div className="h-full rounded-full bg-indigo-500" style={{ width: "78%" }} />
           </div>
         </div>
@@ -207,40 +207,40 @@ function OverviewTab() {
         <KpiCard label="Total Controls" value={142} />
         <KpiCard label="Passing" value={111} color="text-emerald-400" />
         <KpiCard label="Failing" value={18} color="text-rose-400" />
-        <KpiCard label="Not Started" value={13} color="text-zinc-400" />
+        <KpiCard label="Not Started" value={13} color="text-[var(--color-text-secondary)]" />
       </div>
 
       {/* Risk distribution + Recent findings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Risk distribution */}
-        <div className="rounded-lg bg-zinc-900 border border-zinc-800 p-5">
-          <h3 className="text-sm font-semibold text-zinc-300 mb-4">Risk Distribution</h3>
+        <div className="rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Risk Distribution</h3>
           <div className="space-y-3">
             {RISK_DISTRIBUTION.map((r) => (
               <div key={r.level} className="flex items-center gap-3">
                 <span className={cn("text-xs font-medium w-16 capitalize", severityText(r.level))}>{r.level}</span>
-                <div className="flex-1 h-3 rounded-full bg-zinc-800 overflow-hidden">
+                <div className="flex-1 h-3 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                   <div
                     className={cn("h-full rounded-full transition-all", severityColor(r.level))}
                     style={{ width: `${(r.count / maxRisk) * 100}%` }}
                   />
                 </div>
-                <span className="text-xs text-zinc-400 w-6 text-right">{r.count}</span>
+                <span className="text-xs text-[var(--color-text-secondary)] w-6 text-right">{r.count}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Recent findings */}
-        <div className="rounded-lg bg-zinc-900 border border-zinc-800 p-5">
-          <h3 className="text-sm font-semibold text-zinc-300 mb-4">Recent Findings</h3>
+        <div className="rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Recent Findings</h3>
           <div className="space-y-2">
             {FINDINGS_DATA.map((f) => (
-              <div key={f.id} className="flex items-start gap-3 rounded-md bg-zinc-800/50 px-3 py-2">
+              <div key={f.id} className="flex items-start gap-3 rounded-md bg-[var(--color-surface-2)]/50 px-3 py-2">
                 <span className={cn("mt-0.5 inline-block h-2 w-2 rounded-full flex-shrink-0", severityColor(f.severity))} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-zinc-200 leading-snug">{f.title}</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">{f.id} · {f.framework} · {f.date}</p>
+                  <p className="text-sm text-[var(--color-text-primary)] leading-snug">{f.title}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{f.id} · {f.framework} · {f.date}</p>
                 </div>
                 <span className={cn("text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded", severityText(f.severity))}>{f.severity}</span>
               </div>
@@ -270,14 +270,14 @@ function ControlsTab() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-400">Status:</span>
+          <span className="text-xs text-[var(--color-text-secondary)]">Status:</span>
           {["all", "passing", "failing", "not-started"].map((s) => (
             <button
               key={s}
               onClick={() => setFilter(s)}
               className={cn(
                 "px-3 py-1 rounded-md text-xs font-medium transition-colors",
-                filter === s ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                filter === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
               )}
             >
               {s === "all" ? "All" : s === "not-started" ? "Not Started" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -285,14 +285,14 @@ function ControlsTab() {
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-400">Framework:</span>
+          <span className="text-xs text-[var(--color-text-secondary)]">Framework:</span>
           {["all", ...frameworks].map((fw) => (
             <button
               key={fw}
               onClick={() => setFwFilter(fw)}
               className={cn(
                 "px-3 py-1 rounded-md text-xs font-medium transition-colors",
-                fwFilter === fw ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                fwFilter === fw ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
               )}
             >
               {fw === "all" ? "All" : fw}
@@ -302,10 +302,10 @@ function ControlsTab() {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden">
+      <div className="rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 text-zinc-400 text-xs uppercase tracking-wider">
+            <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">
               <th className="text-left px-4 py-3 font-medium">ID</th>
               <th className="text-left px-4 py-3 font-medium">Name</th>
               <th className="text-left px-4 py-3 font-medium">Status</th>
@@ -319,26 +319,26 @@ function ControlsTab() {
               <React.Fragment key={c.id}>
                 <tr
                   onClick={() => setExpanded(expanded === c.id ? null : c.id)}
-                  className="border-b border-zinc-800/50 hover:bg-zinc-800/40 cursor-pointer transition-colors"
+                  className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/40 cursor-pointer transition-colors"
                 >
                   <td className="px-4 py-3 font-mono text-xs text-indigo-400">{c.id}</td>
-                  <td className="px-4 py-3 text-zinc-200">{c.name}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-primary)]">{c.name}</td>
                   <td className="px-4 py-3">
                     <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", statusBg(c.status))}>
                       {c.status === "not-started" ? "Not Started" : c.status.charAt(0).toUpperCase() + c.status.slice(1)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-zinc-400 hidden md:table-cell">{c.framework}</td>
-                  <td className="px-4 py-3 text-zinc-400 hidden lg:table-cell">{c.owner}</td>
-                  <td className="px-4 py-3 text-zinc-500 hidden lg:table-cell">{c.lastTested}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden md:table-cell">{c.framework}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden lg:table-cell">{c.owner}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-muted)] hidden lg:table-cell">{c.lastTested}</td>
                 </tr>
                 {expanded === c.id && (
-                  <tr className="bg-zinc-800/30">
+                  <tr className="bg-[var(--color-surface-2)]/30">
                     <td colSpan={6} className="px-4 py-4">
                       <div className="space-y-1 text-sm">
-                        <p className="text-zinc-300"><span className="text-zinc-500 font-medium">Description:</span> {c.description}</p>
-                        <p className="text-zinc-300"><span className="text-zinc-500 font-medium">Notes:</span> {c.notes}</p>
-                        <p className="text-zinc-300"><span className="text-zinc-500 font-medium">Owner:</span> {c.owner} · <span className="text-zinc-500 font-medium">Last Tested:</span> {c.lastTested}</p>
+                        <p className="text-[var(--color-text-primary)]"><span className="text-[var(--color-text-muted)] font-medium">Description:</span> {c.description}</p>
+                        <p className="text-[var(--color-text-primary)]"><span className="text-[var(--color-text-muted)] font-medium">Notes:</span> {c.notes}</p>
+                        <p className="text-[var(--color-text-primary)]"><span className="text-[var(--color-text-muted)] font-medium">Owner:</span> {c.owner} · <span className="text-[var(--color-text-muted)] font-medium">Last Tested:</span> {c.lastTested}</p>
                       </div>
                     </td>
                   </tr>
@@ -356,7 +356,7 @@ function ControlsTab() {
           />
         )}
       </div>
-      <p className="text-xs text-zinc-600">Showing {filtered.length} of {CONTROLS_DATA.length} controls</p>
+      <p className="text-xs text-[var(--color-text-muted)]">Showing {filtered.length} of {CONTROLS_DATA.length} controls</p>
     </div>
   );
 }
@@ -367,9 +367,9 @@ function FrameworksTab() {
       {FRAMEWORKS_DATA.map((fw) => {
         const notStarted = fw.totalControls - fw.passing - fw.failing;
         return (
-          <div key={fw.name} className="rounded-lg bg-zinc-900 border border-zinc-800 p-5 flex flex-col gap-4">
+          <div key={fw.name} className="rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] p-5 flex flex-col gap-4">
             <div className="flex items-start justify-between">
-              <h3 className="text-base font-semibold text-white">{fw.name}</h3>
+              <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{fw.name}</h3>
               <span className={cn("text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full", certBadge(fw.certificationStatus))}>
                 {fw.certificationStatus}
               </span>
@@ -378,10 +378,10 @@ function FrameworksTab() {
             {/* Compliance bar */}
             <div>
               <div className="flex items-end justify-between mb-1.5">
-                <span className="text-xs text-zinc-400">Compliance</span>
-                <span className="text-lg font-bold text-white">{fw.compliancePct}%</span>
+                <span className="text-xs text-[var(--color-text-secondary)]">Compliance</span>
+                <span className="text-lg font-bold text-[var(--color-text-primary)]">{fw.compliancePct}%</span>
               </div>
-              <div className="w-full h-2 rounded-full bg-zinc-800">
+              <div className="w-full h-2 rounded-full bg-[var(--color-surface-2)]">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all",
@@ -395,25 +395,25 @@ function FrameworksTab() {
             {/* Stats grid */}
             <div className="grid grid-cols-3 gap-3 text-center">
               <div>
-                <p className="text-lg font-bold text-zinc-200">{fw.totalControls}</p>
-                <p className="text-[10px] uppercase tracking-wider text-zinc-500">Total</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)]">{fw.totalControls}</p>
+                <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">Total</p>
               </div>
               <div>
                 <p className="text-lg font-bold text-emerald-400">{fw.passing}</p>
-                <p className="text-[10px] uppercase tracking-wider text-zinc-500">Passing</p>
+                <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">Passing</p>
               </div>
               <div>
                 <p className="text-lg font-bold text-rose-400">{fw.failing}</p>
-                <p className="text-[10px] uppercase tracking-wider text-zinc-500">Failing</p>
+                <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">Failing</p>
               </div>
             </div>
 
             {notStarted > 0 && (
-              <p className="text-xs text-zinc-500">{notStarted} controls not yet started</p>
+              <p className="text-xs text-[var(--color-text-muted)]">{notStarted} controls not yet started</p>
             )}
 
-            <div className="border-t border-zinc-800 pt-3 mt-auto">
-              <p className="text-xs text-zinc-500">Next Audit: <span className="text-zinc-300">{fw.nextAudit}</span></p>
+            <div className="border-t border-[var(--color-border)] pt-3 mt-auto">
+              <p className="text-xs text-[var(--color-text-muted)]">Next Audit: <span className="text-[var(--color-text-primary)]">{fw.nextAudit}</span></p>
             </div>
           </div>
         );
@@ -431,14 +431,14 @@ function EvidenceTab() {
     <div className="space-y-4">
       {/* Filters */}
       <div className="flex items-center gap-2">
-        <span className="text-xs text-zinc-400">Status:</span>
+        <span className="text-xs text-[var(--color-text-secondary)]">Status:</span>
         {["all", "approved", "pending", "expired"].map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
             className={cn(
               "px-3 py-1 rounded-md text-xs font-medium transition-colors",
-              statusFilter === s ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+              statusFilter === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
             )}
           >
             {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -447,10 +447,10 @@ function EvidenceTab() {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden">
+      <div className="rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 text-zinc-400 text-xs uppercase tracking-wider">
+            <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">
               <th className="text-left px-4 py-3 font-medium">Name</th>
               <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">Type</th>
               <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Framework</th>
@@ -462,13 +462,13 @@ function EvidenceTab() {
           </thead>
           <tbody>
             {filtered.map((e, idx) => (
-              <tr key={`${e.control}-${idx}`} className="border-b border-zinc-800/50 hover:bg-zinc-800/40 transition-colors">
-                <td className="px-4 py-3 text-zinc-200">{e.name}</td>
-                <td className="px-4 py-3 text-zinc-400 hidden sm:table-cell">{e.type}</td>
-                <td className="px-4 py-3 text-zinc-400 hidden md:table-cell">{e.framework}</td>
+              <tr key={`${e.control}-${idx}`} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/40 transition-colors">
+                <td className="px-4 py-3 text-[var(--color-text-primary)]">{e.name}</td>
+                <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden sm:table-cell">{e.type}</td>
+                <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden md:table-cell">{e.framework}</td>
                 <td className="px-4 py-3 font-mono text-xs text-indigo-400 hidden md:table-cell">{e.control}</td>
-                <td className="px-4 py-3 text-zinc-400 hidden lg:table-cell">{e.uploadedBy}</td>
-                <td className="px-4 py-3 text-zinc-500 hidden lg:table-cell">{e.uploadDate}</td>
+                <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden lg:table-cell">{e.uploadedBy}</td>
+                <td className="px-4 py-3 text-[var(--color-text-muted)] hidden lg:table-cell">{e.uploadDate}</td>
                 <td className="px-4 py-3">
                   <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", evidenceStatusBg(e.status))}>
                     {e.status.charAt(0).toUpperCase() + e.status.slice(1)}
@@ -487,7 +487,7 @@ function EvidenceTab() {
           />
         )}
       </div>
-      <p className="text-xs text-zinc-600">Showing {filtered.length} of {EVIDENCE_DATA.length} artifacts</p>
+      <p className="text-xs text-[var(--color-text-muted)]">Showing {filtered.length} of {EVIDENCE_DATA.length} artifacts</p>
     </div>
   );
 }
@@ -500,15 +500,15 @@ export default function ComplianceTracker() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 md:p-8">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 md:p-8">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-white">Compliance Tracker</h1>
-        <p className="text-sm text-zinc-400 mt-1">Regulatory compliance monitoring and evidence management</p>
+        <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">Compliance Tracker</h1>
+        <p className="text-sm text-[var(--color-text-secondary)] mt-1">Regulatory compliance monitoring and evidence management</p>
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-zinc-800 mb-6">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
         {TABS.map((tab) => (
           <button
             key={tab.key}
@@ -516,8 +516,8 @@ export default function ComplianceTracker() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium transition-colors relative",
               activeTab === tab.key
-                ? "text-white"
-                : "text-zinc-500 hover:text-zinc-300"
+                ? "text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {tab.label}

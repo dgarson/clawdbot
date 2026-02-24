@@ -276,19 +276,19 @@ export default function MetricsDrilldown() {
   const maxVal = Math.max(...m.data.map((d) => d.value));
   const changePct = Math.abs(((m.currentValue - m.previousValue) / m.previousValue) * 100);
   const isPositive = m.trend === "up" ? m.category === "throughput" || m.category === "sessions" : m.trend === "down";
-  const trendColor = m.trend === "flat" ? "text-zinc-400" : isPositive ? "text-emerald-400" : "text-rose-400";
+  const trendColor = m.trend === "flat" ? "text-[var(--color-text-secondary)]" : isPositive ? "text-emerald-400" : "text-rose-400";
   const trendArrow = m.trend === "up" ? "↑" : m.trend === "down" ? "↓" : "→";
 
   const dimData = m.dimensions[dimension];
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-zinc-800">
+      <div className="flex-shrink-0 px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-xl font-bold text-white">Metrics Drilldown</h1>
-            <p className="text-sm text-zinc-400">Deep-dive into system performance metrics</p>
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Metrics Drilldown</h1>
+            <p className="text-sm text-[var(--color-text-secondary)]">Deep-dive into system performance metrics</p>
           </div>
           <div className="flex items-center gap-2">
             {(["1m", "5m", "1h", "1d"] as Granularity[]).map((g) => (
@@ -296,7 +296,7 @@ export default function MetricsDrilldown() {
                 key={g}
                 className={cn(
                   "px-2.5 py-1 rounded text-xs",
-                  g === "1h" ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                  g === "1h" ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {g}
@@ -320,15 +320,15 @@ export default function MetricsDrilldown() {
                   "text-left p-3 rounded-xl border transition-all",
                   isSelected
                     ? `${mc.bg} ${mc.border} ring-1 ring-offset-0`
-                    : "bg-zinc-900 border-zinc-800 hover:border-zinc-600"
+                    : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                 )}
                 style={isSelected ? {} : {}}
               >
                 <div className={cn("text-xs font-medium mb-1", mc.color)}>{metric.category}</div>
-                <div className="text-lg font-bold text-white">{formatValue(metric.currentValue, metric.unit)}</div>
-                <div className="text-xs text-zinc-400 mb-1">{metric.name}</div>
+                <div className="text-lg font-bold text-[var(--color-text-primary)]">{formatValue(metric.currentValue, metric.unit)}</div>
+                <div className="text-xs text-[var(--color-text-secondary)] mb-1">{metric.name}</div>
                 <div className={cn("text-xs", metric.trend === "down" && metric.category !== "errors" ? "text-emerald-400" :
-                  metric.trend === "up" && metric.category !== "throughput" ? "text-rose-400" : "text-zinc-400")}>
+                  metric.trend === "up" && metric.category !== "throughput" ? "text-rose-400" : "text-[var(--color-text-secondary)]")}>
                   {arrow} {chg.toFixed(1)}% vs prev
                 </div>
               </button>
@@ -343,11 +343,11 @@ export default function MetricsDrilldown() {
           {/* Chart header */}
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h2 className="text-lg font-semibold text-white">{m.name}</h2>
-              <p className="text-sm text-zinc-400">{m.description}</p>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{m.name}</h2>
+              <p className="text-sm text-[var(--color-text-secondary)]">{m.description}</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-white">{formatValue(m.currentValue, m.unit)}</div>
+              <div className="text-2xl font-bold text-[var(--color-text-primary)]">{formatValue(m.currentValue, m.unit)}</div>
               <div className={cn("text-sm font-medium", trendColor)}>
                 {trendArrow} {changePct.toFixed(1)}% vs previous period
               </div>
@@ -355,7 +355,7 @@ export default function MetricsDrilldown() {
           </div>
 
           {/* Time series chart */}
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 mb-5">
+          <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5 mb-5">
             <div className="flex items-end gap-1.5 h-48">
               {m.data.map((point, i) => {
                 const heightPct = maxVal > 0 ? (point.value / maxVal) * 100 : 0;
@@ -369,7 +369,7 @@ export default function MetricsDrilldown() {
                   >
                     {/* Tooltip */}
                     <div className={cn(
-                      "text-[10px] text-white bg-zinc-800 rounded px-1.5 py-0.5 border border-zinc-700 whitespace-nowrap transition-opacity",
+                      "text-[10px] text-[var(--color-text-primary)] bg-[var(--color-surface-2)] rounded px-1.5 py-0.5 border border-[var(--color-border)] whitespace-nowrap transition-opacity",
                       isHovered ? "opacity-100" : "opacity-0"
                     )}>
                       {formatValue(point.value, m.unit)}
@@ -387,7 +387,7 @@ export default function MetricsDrilldown() {
                       </div>
                     </div>
                     {/* Label */}
-                    <div className={cn("text-[9px] text-zinc-600 group-hover:text-zinc-400 transition-colors", i % 2 !== 0 && "opacity-0")}>
+                    <div className={cn("text-[9px] text-[var(--color-text-muted)] group-hover:text-[var(--color-text-secondary)] transition-colors", i % 2 !== 0 && "opacity-0")}>
                       {point.ts}
                     </div>
                   </div>
@@ -397,9 +397,9 @@ export default function MetricsDrilldown() {
           </div>
 
           {/* Dimension breakdown */}
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+          <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white">Breakdown by</h3>
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Breakdown by</h3>
               <div className="flex gap-1">
                 {(["agent", "model", "squad", "tool"] as Dimension[]).map((d) => (
                   <button
@@ -407,7 +407,7 @@ export default function MetricsDrilldown() {
                     onClick={() => setDimension(d)}
                     className={cn(
                       "px-2.5 py-1 rounded text-xs capitalize",
-                      dimension === d ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                      dimension === d ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
                     {d}
@@ -419,13 +419,13 @@ export default function MetricsDrilldown() {
               {dimData.map((item) => (
                 <div key={item.name}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-white">{item.name}</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">{item.name}</span>
                     <div className="flex items-center gap-3">
                       <span className={cn("text-xs font-medium", cc.color)}>{formatValue(item.value, m.unit)}</span>
-                      <span className="text-xs text-zinc-500 w-8 text-right">{item.pct}%</span>
+                      <span className="text-xs text-[var(--color-text-muted)] w-8 text-right">{item.pct}%</span>
                     </div>
                   </div>
-                  <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -441,8 +441,8 @@ export default function MetricsDrilldown() {
         </div>
 
         {/* Right: stats sidebar */}
-        <div className="flex-shrink-0 w-56 border-l border-zinc-800 bg-zinc-900/30 p-4 overflow-y-auto">
-          <div className="text-xs text-zinc-500 font-medium uppercase tracking-wide mb-3">Stats</div>
+        <div className="flex-shrink-0 w-56 border-l border-[var(--color-border)] bg-[var(--color-surface-1)]/30 p-4 overflow-y-auto">
+          <div className="text-xs text-[var(--color-text-muted)] font-medium uppercase tracking-wide mb-3">Stats</div>
           <div className="space-y-3">
             {[
               { label: "Current", value: formatValue(m.currentValue, m.unit) },
@@ -451,14 +451,14 @@ export default function MetricsDrilldown() {
               { label: "Min (24h)", value: formatValue(Math.min(...m.data.map((d) => d.value)), m.unit) },
               { label: "Avg (24h)", value: formatValue(m.data.reduce((s, d) => s + d.value, 0) / m.data.length, m.unit) },
             ].map((s) => (
-              <div key={s.label} className="bg-zinc-800/50 rounded-lg p-3">
-                <div className="text-xs text-zinc-500 mb-0.5">{s.label}</div>
+              <div key={s.label} className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
+                <div className="text-xs text-[var(--color-text-muted)] mb-0.5">{s.label}</div>
                 <div className={cn("text-sm font-bold", cc.color)}>{s.value}</div>
               </div>
             ))}
           </div>
 
-          <div className="text-xs text-zinc-500 font-medium uppercase tracking-wide mt-5 mb-3">All Metrics</div>
+          <div className="text-xs text-[var(--color-text-muted)] font-medium uppercase tracking-wide mt-5 mb-3">All Metrics</div>
           <div className="space-y-1">
             {METRICS.map((metric) => {
               const mc = CATEGORY_CONFIG[metric.category];
@@ -469,11 +469,11 @@ export default function MetricsDrilldown() {
                   onClick={() => setSelectedMetric(metric)}
                   className={cn(
                     "w-full text-left px-2.5 py-2 rounded-lg transition-all text-xs",
-                    isSelected ? `${mc.bg} ${mc.color}` : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                    isSelected ? `${mc.bg} ${mc.color}` : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   <div className="font-medium">{metric.name}</div>
-                  <div className="text-zinc-500">{formatValue(metric.currentValue, metric.unit)}</div>
+                  <div className="text-[var(--color-text-muted)]">{formatValue(metric.currentValue, metric.unit)}</div>
                 </button>
               );
             })}

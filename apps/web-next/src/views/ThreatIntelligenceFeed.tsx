@@ -220,7 +220,7 @@ const SEVERITY_CONFIG: Record<Severity, { label: string; color: string; dot: str
 };
 
 const TLP_CONFIG: Record<string, { label: string; color: string }> = {
-  WHITE: { label: "TLP:WHITE", color: "text-white bg-zinc-700" },
+  WHITE: { label: "TLP:WHITE", color: "text-[var(--color-text-primary)] bg-[var(--color-surface-3)]" },
   GREEN: { label: "TLP:GREEN", color: "text-emerald-300 bg-emerald-900/50" },
   AMBER: { label: "TLP:AMBER", color: "text-amber-300 bg-amber-900/50" },
   RED:   { label: "TLP:RED",   color: "text-rose-300 bg-rose-900/50" },
@@ -235,7 +235,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   new:           { label: "New",           color: "text-rose-400 bg-rose-900/30" },
   investigating: { label: "Investigating", color: "text-amber-400 bg-amber-900/30" },
   mitigated:     { label: "Mitigated",     color: "text-emerald-400 bg-emerald-900/30" },
-  closed:        { label: "Closed",        color: "text-zinc-400 bg-zinc-800" },
+  closed:        { label: "Closed",        color: "text-[var(--color-text-secondary)] bg-[var(--color-surface-2)]" },
 };
 
 type Tab = "feed" | "actors" | "cves" | "iocs";
@@ -268,17 +268,17 @@ export default function ThreatIntelligenceFeed() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <h1 className="text-2xl font-bold text-white">Threat Intelligence Feed</h1>
-            <p className="text-zinc-400 text-sm mt-1">Live threat intelligence aggregated from CISA, FBI IC3, Cloudflare, and internal SOC</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Threat Intelligence Feed</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">Live threat intelligence aggregated from CISA, FBI IC3, Cloudflare, and internal SOC</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs text-zinc-400">Live Feed Active</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">Live Feed Active</span>
           </div>
         </div>
 
@@ -292,14 +292,14 @@ export default function ThreatIntelligenceFeed() {
           ].map(stat => (
             <div key={stat.label} className={cn("rounded-lg border p-3", stat.bg)}>
               <div className={cn("text-2xl font-bold", stat.color)}>{stat.value}</div>
-              <div className="text-xs text-zinc-400 mt-0.5">{stat.label}</div>
+              <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{stat.label}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-zinc-800 pb-0">
+      <div className="flex gap-1 mb-6 border-b border-[var(--color-border)] pb-0">
         {tabs.map(t => (
           <button
             key={t.id}
@@ -307,8 +307,8 @@ export default function ThreatIntelligenceFeed() {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
               tab === t.id
-                ? "text-white bg-zinc-800 border border-b-0 border-zinc-700"
-                : "text-zinc-400 hover:text-white"
+                ? "text-[var(--color-text-primary)] bg-[var(--color-surface-2)] border border-b-0 border-[var(--color-border)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t.emoji} {t.label}
@@ -322,7 +322,7 @@ export default function ThreatIntelligenceFeed() {
           {/* Sidebar filters */}
           <div className="w-56 shrink-0 space-y-4">
             <div>
-              <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Severity</div>
+              <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Severity</div>
               <div className="space-y-1">
                 {(["all", "critical", "high", "medium", "low"] as const).map(s => (
                   <button
@@ -330,12 +330,12 @@ export default function ThreatIntelligenceFeed() {
                     onClick={() => setSeverityFilter(s)}
                     className={cn(
                       "w-full text-left px-3 py-1.5 rounded text-sm flex items-center gap-2 transition-colors",
-                      severityFilter === s ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                      severityFilter === s ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]"
                     )}
                   >
                     {s !== "all" && <div className={cn("w-2 h-2 rounded-full", SEVERITY_CONFIG[s].dot)} />}
                     {s === "all" ? "All Severities" : SEVERITY_CONFIG[s].label}
-                    <span className="ml-auto text-xs text-zinc-600">
+                    <span className="ml-auto text-xs text-[var(--color-text-muted)]">
                       {s === "all" ? THREATS.length : THREATS.filter(t => t.severity === s).length}
                     </span>
                   </button>
@@ -344,7 +344,7 @@ export default function ThreatIntelligenceFeed() {
             </div>
 
             <div>
-              <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Category</div>
+              <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Category</div>
               <div className="space-y-1">
                 {(["all", "apt", "ransomware", "phishing", "vulnerability", "ddos", "insider"] as const).map(c => (
                   <button
@@ -352,7 +352,7 @@ export default function ThreatIntelligenceFeed() {
                     onClick={() => setCategoryFilter(c)}
                     className={cn(
                       "w-full text-left px-3 py-1.5 rounded text-sm flex items-center gap-2 transition-colors",
-                      categoryFilter === c ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                      categoryFilter === c ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]"
                     )}
                   >
                     {c !== "all" && CATEGORY_EMOJI[c]}
@@ -371,7 +371,7 @@ export default function ThreatIntelligenceFeed() {
                 placeholder="🔍 Search threats..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
               />
             </div>
 
@@ -381,18 +381,18 @@ export default function ThreatIntelligenceFeed() {
                   key={threat.id}
                   onClick={() => setSelectedThreat(selectedThreat?.id === threat.id ? null : threat)}
                   className={cn(
-                    "bg-zinc-900 border rounded-lg p-4 cursor-pointer transition-colors",
-                    selectedThreat?.id === threat.id ? "border-indigo-600" : "border-zinc-800 hover:border-zinc-700"
+                    "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
+                    selectedThreat?.id === threat.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="text-xs font-mono text-zinc-500">{threat.id}</span>
+                        <span className="text-xs font-mono text-[var(--color-text-muted)]">{threat.id}</span>
                         <span className={cn("text-xs px-2 py-0.5 rounded border font-medium", SEVERITY_CONFIG[threat.severity].color)}>
                           {SEVERITY_CONFIG[threat.severity].label}
                         </span>
-                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
+                        <span className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-primary)]">
                           {CATEGORY_EMOJI[threat.category]} {threat.category.toUpperCase()}
                         </span>
                         <span className={cn("text-xs px-2 py-0.5 rounded", TLP_CONFIG[threat.tlpLevel].color)}>
@@ -402,33 +402,33 @@ export default function ThreatIntelligenceFeed() {
                           {STATUS_CONFIG[threat.status].label}
                         </span>
                       </div>
-                      <div className="font-medium text-white text-sm">{threat.title}</div>
-                      <div className="text-xs text-zinc-500 mt-1">
+                      <div className="font-medium text-[var(--color-text-primary)] text-sm">{threat.title}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-1">
                         {threat.source} · {new Date(threat.publishedAt).toLocaleString()} · {threat.iocs.length} IOCs
                       </div>
                     </div>
                   </div>
 
                   {selectedThreat?.id === threat.id && (
-                    <div className="mt-4 space-y-4 border-t border-zinc-800 pt-4" onClick={e => e.stopPropagation()}>
-                      <p className="text-sm text-zinc-300">{threat.description}</p>
+                    <div className="mt-4 space-y-4 border-t border-[var(--color-border)] pt-4" onClick={e => e.stopPropagation()}>
+                      <p className="text-sm text-[var(--color-text-primary)]">{threat.description}</p>
 
                       {/* IOCs */}
                       {threat.iocs.length > 0 && (
                         <div>
-                          <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Indicators of Compromise</div>
+                          <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Indicators of Compromise</div>
                           <div className="space-y-1">
                             {threat.iocs.map((ioc, i) => (
-                              <div key={i} className="flex items-center gap-3 bg-zinc-950 rounded px-3 py-2">
-                                <span className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono w-16 text-center">
+                              <div key={i} className="flex items-center gap-3 bg-[var(--color-surface-0)] rounded px-3 py-2">
+                                <span className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] font-mono w-16 text-center">
                                   {ioc.type.toUpperCase()}
                                 </span>
                                 <span className="font-mono text-sm text-amber-300 flex-1">{ioc.value}</span>
                                 <div className="flex items-center gap-1.5">
-                                  <div className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                                  <div className="w-16 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                                     <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${ioc.confidence}%` }} />
                                   </div>
-                                  <span className="text-xs text-zinc-500">{ioc.confidence}%</span>
+                                  <span className="text-xs text-[var(--color-text-muted)]">{ioc.confidence}%</span>
                                 </div>
                               </div>
                             ))}
@@ -438,7 +438,7 @@ export default function ThreatIntelligenceFeed() {
 
                       {/* MITRE ATT&CK */}
                       <div>
-                        <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">MITRE ATT&CK Techniques</div>
+                        <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">MITRE ATT&CK Techniques</div>
                         <div className="flex flex-wrap gap-2">
                           {threat.mitreAttack.map(t => (
                             <span key={t} className="text-xs px-2 py-1 rounded bg-indigo-900/40 border border-indigo-800 text-indigo-300 font-mono">{t}</span>
@@ -449,18 +449,18 @@ export default function ThreatIntelligenceFeed() {
                       {/* Affected systems + tags */}
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Affected Systems</div>
+                          <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Affected Systems</div>
                           <div className="flex flex-wrap gap-1">
                             {threat.affectedSystems.map(s => (
-                              <span key={s} className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">{s}</span>
+                              <span key={s} className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-primary)]">{s}</span>
                             ))}
                           </div>
                         </div>
                         <div>
-                          <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Tags</div>
+                          <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Tags</div>
                           <div className="flex flex-wrap gap-1">
                             {threat.tags.map(tag => (
-                              <span key={tag} className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">#{tag}</span>
+                              <span key={tag} className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]">#{tag}</span>
                             ))}
                           </div>
                         </div>
@@ -469,7 +469,7 @@ export default function ThreatIntelligenceFeed() {
                       {/* CVSS */}
                       {threat.cvss && (
                         <div className="flex items-center gap-3">
-                          <span className="text-xs text-zinc-500">CVSS Score:</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">CVSS Score:</span>
                           <span className={cn("text-lg font-bold", threat.cvss >= 9 ? "text-rose-400" : threat.cvss >= 7 ? "text-orange-400" : "text-amber-400")}>
                             {threat.cvss}
                           </span>
@@ -489,16 +489,16 @@ export default function ThreatIntelligenceFeed() {
       {tab === "actors" && (
         <div className="grid grid-cols-2 gap-4">
           {THREAT_ACTORS.map(actor => (
-            <div key={actor.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+            <div key={actor.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-mono text-zinc-500">{actor.id}</span>
+                    <span className="text-xs font-mono text-[var(--color-text-muted)]">{actor.id}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded border", SEVERITY_CONFIG[actor.severity].color)}>
                       {SEVERITY_CONFIG[actor.severity].label}
                     </span>
                   </div>
-                  <div className="font-semibold text-white text-lg">{actor.name}</div>
+                  <div className="font-semibold text-[var(--color-text-primary)] text-lg">{actor.name}</div>
                 </div>
                 <div className="text-2xl">🕵️</div>
               </div>
@@ -509,23 +509,23 @@ export default function ThreatIntelligenceFeed() {
                   { label: "Active Since", value: actor.activeSince },
                   { label: "Campaigns", value: actor.campaigns.toString() },
                 ].map(item => (
-                  <div key={item.label} className="bg-zinc-950 rounded p-2 text-center">
-                    <div className="text-xs text-zinc-500 mb-1">{item.label}</div>
-                    <div className="text-sm font-medium text-white">{item.value}</div>
+                  <div key={item.label} className="bg-[var(--color-surface-0)] rounded p-2 text-center">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-1">{item.label}</div>
+                    <div className="text-sm font-medium text-[var(--color-text-primary)]">{item.value}</div>
                   </div>
                 ))}
               </div>
 
               <div className="mb-3">
-                <div className="text-xs text-zinc-500 mb-1">Motivation</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Motivation</div>
                 <div className="text-sm text-amber-300">{actor.motivation}</div>
               </div>
 
               <div>
-                <div className="text-xs text-zinc-500 mb-2">Known Techniques</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-2">Known Techniques</div>
                 <div className="flex flex-wrap gap-1">
                   {actor.techniques.map(t => (
-                    <span key={t} className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">{t}</span>
+                    <span key={t} className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-primary)]">{t}</span>
                   ))}
                 </div>
               </div>
@@ -539,31 +539,31 @@ export default function ThreatIntelligenceFeed() {
         <div>
           <div className="grid grid-cols-3 gap-3 mb-4">
             {[
-              { label: "Total Tracked", value: CVES.length, color: "text-white" },
+              { label: "Total Tracked", value: CVES.length, color: "text-[var(--color-text-primary)]" },
               { label: "Unpatched", value: openCVEs, color: "text-rose-400" },
               { label: "Exploited in Wild", value: exploitedCVEs, color: "text-orange-400" },
             ].map(s => (
-              <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+              <div key={s.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
                 <div className={cn("text-3xl font-bold", s.color)}>{s.value}</div>
-                <div className="text-xs text-zinc-500 mt-1">{s.label}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-1">{s.label}</div>
               </div>
             ))}
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
+                <tr className="border-b border-[var(--color-border)]">
                   {["CVE ID", "Product", "Score", "Severity", "Exploited", "Patched", "Published"].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">{h}</th>
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {CVES.map(cve => (
-                  <tr key={cve.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+                  <tr key={cve.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30">
                     <td className="px-4 py-3 font-mono text-sky-400 text-xs">{cve.id}</td>
-                    <td className="px-4 py-3 text-zinc-300">{cve.product} <span className="text-zinc-600 text-xs">({cve.vendor})</span></td>
+                    <td className="px-4 py-3 text-[var(--color-text-primary)]">{cve.product} <span className="text-[var(--color-text-muted)] text-xs">({cve.vendor})</span></td>
                     <td className="px-4 py-3">
                       <span className={cn("font-bold", cve.score >= 9 ? "text-rose-400" : cve.score >= 7 ? "text-orange-400" : "text-amber-400")}>
                         {cve.score}
@@ -577,14 +577,14 @@ export default function ThreatIntelligenceFeed() {
                     <td className="px-4 py-3">
                       {cve.exploited
                         ? <span className="text-xs text-rose-400 font-medium">⚠️ Yes</span>
-                        : <span className="text-xs text-zinc-500">No</span>}
+                        : <span className="text-xs text-[var(--color-text-muted)]">No</span>}
                     </td>
                     <td className="px-4 py-3">
                       {cve.patched
                         ? <span className="text-xs text-emerald-400">✅ Patched</span>
                         : <span className="text-xs text-rose-400">❌ Unpatched</span>}
                     </td>
-                    <td className="px-4 py-3 text-zinc-500 text-xs">{cve.published}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs">{cve.published}</td>
                   </tr>
                 ))}
               </tbody>
@@ -597,10 +597,10 @@ export default function ThreatIntelligenceFeed() {
               <span className="text-rose-400 font-semibold text-sm">⚠️ Priority: Actively Exploited CVE</span>
             </div>
             <div className="font-mono text-sky-400 font-bold">CVE-2026-11247</div>
-            <div className="text-sm text-zinc-300 mt-1">{CVES[0].description}</div>
-            <div className="font-mono text-xs text-zinc-500 mt-2">Vector: {CVES[0].vector}</div>
-            <div className="mt-3 text-sm text-zinc-400">
-              <strong className="text-zinc-200">Remediation:</strong> Upgrade Node.js to v22.14.1 or later. Apply available patches immediately. Monitor for unusual HTTP/2 traffic patterns.
+            <div className="text-sm text-[var(--color-text-primary)] mt-1">{CVES[0].description}</div>
+            <div className="font-mono text-xs text-[var(--color-text-muted)] mt-2">Vector: {CVES[0].vector}</div>
+            <div className="mt-3 text-sm text-[var(--color-text-secondary)]">
+              <strong className="text-[var(--color-text-primary)]">Remediation:</strong> Upgrade Node.js to v22.14.1 or later. Apply available patches immediately. Monitor for unusual HTTP/2 traffic patterns.
             </div>
           </div>
         </div>
@@ -609,13 +609,13 @@ export default function ThreatIntelligenceFeed() {
       {/* IOC Search Tab */}
       {tab === "iocs" && (
         <div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 mb-4">
-            <div className="text-sm font-semibold text-zinc-300 mb-3">Search IOC Database</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 mb-4">
+            <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Search IOC Database</div>
             <div className="flex gap-2">
               <input
                 type="text"
                 placeholder="Enter IP, domain, hash, URL, or email..."
-                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-zinc-600 focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] font-mono placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
               />
               <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors">
                 🔍 Search
@@ -623,34 +623,34 @@ export default function ThreatIntelligenceFeed() {
             </div>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-zinc-800 text-sm font-semibold text-zinc-300">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+            <div className="px-4 py-3 border-b border-[var(--color-border)] text-sm font-semibold text-[var(--color-text-primary)]">
               All Known IOCs ({THREATS.flatMap(t => t.iocs).length})
             </div>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
+                <tr className="border-b border-[var(--color-border)]">
                   {["Type", "Value", "Source", "Threat", "Confidence", "Severity"].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">{h}</th>
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {THREATS.flatMap(threat =>
                   threat.iocs.map((ioc, i) => (
-                    <tr key={`${threat.id}-${i}`} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+                    <tr key={`${threat.id}-${i}`} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30">
                       <td className="px-4 py-3">
-                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono">{ioc.type.toUpperCase()}</span>
+                        <span className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] font-mono">{ioc.type.toUpperCase()}</span>
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-amber-300 max-w-48 truncate">{ioc.value}</td>
-                      <td className="px-4 py-3 text-xs text-zinc-500">{threat.source}</td>
-                      <td className="px-4 py-3 text-xs text-zinc-400 max-w-40 truncate">{threat.id}</td>
+                      <td className="px-4 py-3 text-xs text-[var(--color-text-muted)]">{threat.source}</td>
+                      <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)] max-w-40 truncate">{threat.id}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="w-16 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                             <div className={cn("h-full rounded-full", ioc.confidence >= 90 ? "bg-emerald-500" : ioc.confidence >= 70 ? "bg-amber-500" : "bg-rose-500")} style={{ width: `${ioc.confidence}%` }} />
                           </div>
-                          <span className="text-xs text-zinc-500">{ioc.confidence}%</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">{ioc.confidence}%</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">

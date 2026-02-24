@@ -62,7 +62,7 @@ interface DeletionJob {
 const dataClassColor: Record<DataClass, string> = {
   pii:            "bg-rose-500/20 text-rose-400",
   financial:      "bg-amber-500/20 text-amber-400",
-  logs:           "bg-zinc-500/20 text-zinc-400",
+  logs:           "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
   metrics:        "bg-sky-500/20 text-sky-400",
   backups:        "bg-indigo-500/20 text-indigo-400",
   "user-content": "bg-violet-500/20 text-violet-400",
@@ -79,19 +79,19 @@ const statusBadge: Record<RetentionStatus, string> = {
   active:   "bg-emerald-500/20 text-emerald-400",
   expiring: "bg-amber-500/20 text-amber-400",
   expired:  "bg-rose-500/20 text-rose-400",
-  exempt:   "bg-zinc-500/20 text-zinc-400",
+  exempt:   "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
 };
 
 const jobBadge: Record<DeletionJob["status"], string> = {
   running:   "bg-sky-500/20 text-sky-400",
   completed: "bg-emerald-500/20 text-emerald-400",
   failed:    "bg-rose-500/20 text-rose-400",
-  queued:    "bg-zinc-500/20 text-zinc-400",
+  queued:    "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
 };
 
 const scanBadge: Record<ScanStatus, string> = {
   running:   "bg-sky-500/20 text-sky-400",
-  idle:      "bg-zinc-500/20 text-zinc-400",
+  idle:      "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
   failed:    "bg-rose-500/20 text-rose-400",
   scheduled: "bg-amber-500/20 text-amber-400",
 };
@@ -241,14 +241,14 @@ export default function DataRetentionManager() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Data Retention Manager</h1>
-            <p className="text-zinc-400 text-sm mt-1">Lifecycle policies, expiry tracking, and compliance records</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Data Retention Manager</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">Lifecycle policies, expiry tracking, and compliance records</p>
           </div>
           <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition-colors">
             + New Policy
@@ -256,7 +256,7 @@ export default function DataRetentionManager() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-zinc-800">
+        <div className="flex gap-1 border-b border-[var(--color-border)]">
           {tabs.map(t => (
             <button
               key={t.id}
@@ -264,8 +264,8 @@ export default function DataRetentionManager() {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
                 tab === t.id
-                  ? "border-indigo-500 text-white"
-                  : "border-transparent text-zinc-400 hover:text-zinc-200"
+                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.label}
@@ -284,16 +284,16 @@ export default function DataRetentionManager() {
                 { label: "Expiring Soon",     value: expiringCount,     color: "text-amber-400" },
                 { label: "Reclaimable GB",    value: totalExpiredGB.toFixed(1), color: "text-sky-400" },
               ].map(kpi => (
-                <div key={kpi.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider">{kpi.label}</p>
+                <div key={kpi.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+                  <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{kpi.label}</p>
                   <p className={cn("text-3xl font-bold mt-1", kpi.color)}>{kpi.value}</p>
                 </div>
               ))}
             </div>
 
             {/* Data stores */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-              <h2 className="text-sm font-semibold text-zinc-300 mb-4">Data Store Summary</h2>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Data Store Summary</h2>
               <div className="space-y-3">
                 {dataStores.map(ds => {
                   const expiringPct = Math.round((ds.expiringGB / ds.totalGB) * 100);
@@ -301,11 +301,11 @@ export default function DataRetentionManager() {
                   return (
                     <div key={ds.id} className="flex items-center gap-4">
                       <div className="w-36 min-w-0">
-                        <p className="text-xs font-medium text-white truncate">{ds.name}</p>
-                        <p className="text-xs text-zinc-500">{ds.type}</p>
+                        <p className="text-xs font-medium text-[var(--color-text-primary)] truncate">{ds.name}</p>
+                        <p className="text-xs text-[var(--color-text-muted)]">{ds.type}</p>
                       </div>
                       {/* Storage bar */}
-                      <div className="flex-1 bg-zinc-800 rounded-full h-2 relative">
+                      <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2 relative">
                         <div
                           className="absolute left-0 top-0 h-2 rounded-full bg-amber-500 opacity-70"
                           style={{ width: `${expiringPct}%` }}
@@ -315,29 +315,29 @@ export default function DataRetentionManager() {
                           style={{ width: `${expiredPct}%` }}
                         />
                       </div>
-                      <div className="text-xs text-zinc-400 w-20 text-right">{ds.totalGB} GB</div>
+                      <div className="text-xs text-[var(--color-text-secondary)] w-20 text-right">{ds.totalGB} GB</div>
                       <span className={cn("text-xs px-1.5 py-0.5 rounded", scanBadge[ds.scanStatus])}>{ds.scanStatus}</span>
-                      <span className="text-xs text-zinc-600 w-20 text-right">Scanned {ds.lastScanned}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] w-20 text-right">Scanned {ds.lastScanned}</span>
                     </div>
                   );
                 })}
               </div>
-              <div className="flex gap-4 mt-4 pt-3 border-t border-zinc-800">
-                <div className="flex items-center gap-2"><div className="w-3 h-1.5 rounded-full bg-amber-500 opacity-70" /><span className="text-xs text-zinc-400">Expiring</span></div>
-                <div className="flex items-center gap-2"><div className="w-3 h-1.5 rounded-full bg-rose-500" /><span className="text-xs text-zinc-400">Expired</span></div>
+              <div className="flex gap-4 mt-4 pt-3 border-t border-[var(--color-border)]">
+                <div className="flex items-center gap-2"><div className="w-3 h-1.5 rounded-full bg-amber-500 opacity-70" /><span className="text-xs text-[var(--color-text-secondary)]">Expiring</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-1.5 rounded-full bg-rose-500" /><span className="text-xs text-[var(--color-text-secondary)]">Expired</span></div>
               </div>
             </div>
 
             {/* Policy status grid */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-              <h2 className="text-sm font-semibold text-zinc-300 mb-4">Policy Overview</h2>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Policy Overview</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {policies.map(p => (
-                  <div key={p.id} className="bg-zinc-800/50 rounded-lg p-3 flex items-center gap-3">
-                    <div className={cn("w-2 h-2 rounded-full flex-shrink-0", p.enabled ? "bg-emerald-400" : "bg-zinc-500")} />
+                  <div key={p.id} className="bg-[var(--color-surface-2)]/50 rounded-lg p-3 flex items-center gap-3">
+                    <div className={cn("w-2 h-2 rounded-full flex-shrink-0", p.enabled ? "bg-emerald-400" : "bg-[var(--color-surface-3)]")} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{p.name}</p>
-                      <p className="text-xs text-zinc-500">{p.scope} · {p.retentionDays}d</p>
+                      <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{p.name}</p>
+                      <p className="text-xs text-[var(--color-text-muted)]">{p.scope} · {p.retentionDays}d</p>
                     </div>
                     <div className="flex gap-1.5 flex-shrink-0">
                       <span className={cn("text-xs px-1.5 py-0.5 rounded", dataClassColor[p.dataClass])}>{p.dataClass}</span>
@@ -357,7 +357,7 @@ export default function DataRetentionManager() {
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => setClassFilter("all")}
-                className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", classFilter === "all" ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200")}
+                className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", classFilter === "all" ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
               >
                 All
               </button>
@@ -365,7 +365,7 @@ export default function DataRetentionManager() {
                 <button
                   key={c}
                   onClick={() => setClassFilter(c)}
-                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", classFilter === c ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200")}
+                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", classFilter === c ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
                 >
                   {c}
                 </button>
@@ -373,15 +373,15 @@ export default function DataRetentionManager() {
             </div>
 
             {selectedPolicy ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-5">
-                <button onClick={() => setSelectedPolicy(null)} className="text-zinc-400 hover:text-white text-sm">← Back</button>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 space-y-5">
+                <button onClick={() => setSelectedPolicy(null)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-sm">← Back</button>
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold text-white">{selectedPolicy.name}</h2>
-                  <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", selectedPolicy.enabled ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-500/20 text-zinc-400")}>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedPolicy.name}</h2>
+                  <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", selectedPolicy.enabled ? "bg-emerald-500/20 text-emerald-400" : "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]")}>
                     {selectedPolicy.enabled ? "enabled" : "disabled"}
                   </span>
                 </div>
-                <p className="text-sm text-zinc-400">{selectedPolicy.description}</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{selectedPolicy.description}</p>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
@@ -394,16 +394,16 @@ export default function DataRetentionManager() {
                     { label: "Storage",       value: `${selectedPolicy.storageGB} GB` },
                     { label: "Last Run",      value: selectedPolicy.lastRun },
                   ].map(m => (
-                    <div key={m.label} className="bg-zinc-800/60 rounded-lg p-3">
-                      <p className="text-xs text-zinc-500">{m.label}</p>
-                      <p className="text-sm font-medium text-white mt-0.5">{m.value}</p>
+                    <div key={m.label} className="bg-[var(--color-surface-2)]/60 rounded-lg p-3">
+                      <p className="text-xs text-[var(--color-text-muted)]">{m.label}</p>
+                      <p className="text-sm font-medium text-[var(--color-text-primary)] mt-0.5">{m.value}</p>
                     </div>
                   ))}
                 </div>
 
                 <div className="flex gap-3">
                   <button className="px-4 py-2 bg-rose-600 hover:bg-rose-500 rounded-lg text-sm font-medium transition-colors">Run Now</button>
-                  <button className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm font-medium transition-colors">
+                  <button className="px-4 py-2 bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] rounded-lg text-sm font-medium transition-colors">
                     {selectedPolicy.enabled ? "Disable" : "Enable"}
                   </button>
                 </div>
@@ -414,19 +414,19 @@ export default function DataRetentionManager() {
                   <button
                     key={p.id}
                     onClick={() => setSelectedPolicy(p)}
-                    className="w-full text-left bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-xl p-4 transition-colors"
+                    className="w-full text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] hover:border-[var(--color-surface-3)] rounded-xl p-4 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-4 mb-2">
                       <div className="flex items-center gap-3">
-                        <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", p.enabled ? "bg-emerald-400" : "bg-zinc-500")} />
-                        <span className="text-sm font-semibold text-white">{p.name}</span>
+                        <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", p.enabled ? "bg-emerald-400" : "bg-[var(--color-surface-3)]")} />
+                        <span className="text-sm font-semibold text-[var(--color-text-primary)]">{p.name}</span>
                       </div>
                       <div className="flex gap-2">
                         <span className={cn("text-xs px-2 py-0.5 rounded", dataClassColor[p.dataClass])}>{p.dataClass}</span>
                         <span className={cn("text-xs px-2 py-0.5 rounded", actionBadge[p.action])}>{p.action}</span>
                       </div>
                     </div>
-                    <div className="flex gap-4 text-xs text-zinc-500 ml-5">
+                    <div className="flex gap-4 text-xs text-[var(--color-text-muted)] ml-5">
                       <span>{p.scope}</span>
                       <span>{p.retentionDays}d retention</span>
                       <span>{fmt(p.affectedRows)} rows</span>
@@ -443,18 +443,18 @@ export default function DataRetentionManager() {
         {/* Records / Inventory */}
         {tab === "records" && (
           <div className="space-y-3">
-            <p className="text-sm text-zinc-400">Data inventory by policy scope and expiry status</p>
+            <p className="text-sm text-[var(--color-text-secondary)]">Data inventory by policy scope and expiry status</p>
             {records.map(r => (
-              <div key={r.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+              <div key={r.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <span className={cn("text-xs px-2 py-0.5 rounded font-medium", statusBadge[r.status])}>{r.status}</span>
-                    <span className="text-sm font-semibold text-white">{r.dataStore}</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{r.dataStore}</span>
                     <span className={cn("text-xs px-1.5 py-0.5 rounded", dataClassColor[r.dataClass])}>{r.dataClass}</span>
                   </div>
-                  <span className="text-xs text-zinc-500">{r.policyName}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{r.policyName}</span>
                 </div>
-                <div className="grid grid-cols-3 gap-4 text-xs text-zinc-400">
+                <div className="grid grid-cols-3 gap-4 text-xs text-[var(--color-text-secondary)]">
                   <span>Records: {fmt(r.recordCount)}</span>
                   <span>Oldest: {r.oldestRecord}</span>
                   <span className={r.status === "expired" ? "text-rose-400" : r.status === "expiring" ? "text-amber-400" : ""}>
@@ -470,30 +470,30 @@ export default function DataRetentionManager() {
         {tab === "jobs" && (
           <div className="space-y-3">
             {deletionJobs.map(job => (
-              <div key={job.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+              <div key={job.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <span className={cn("text-xs px-2 py-0.5 rounded font-medium", jobBadge[job.status])}>{job.status}</span>
-                    <span className="text-sm font-semibold text-white">{job.policyName}</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{job.policyName}</span>
                   </div>
-                  <span className="text-xs text-zinc-500">{job.dataStore}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{job.dataStore}</span>
                 </div>
                 <div className="grid grid-cols-4 gap-3 mb-2">
-                  <div className="bg-zinc-800/50 rounded p-2">
-                    <p className="text-xs text-zinc-500">Processed</p>
-                    <p className="text-sm font-medium text-white">{fmt(job.rowsProcessed)}</p>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                    <p className="text-xs text-[var(--color-text-muted)]">Processed</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{fmt(job.rowsProcessed)}</p>
                   </div>
-                  <div className="bg-zinc-800/50 rounded p-2">
-                    <p className="text-xs text-zinc-500">Deleted</p>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                    <p className="text-xs text-[var(--color-text-muted)]">Deleted</p>
                     <p className="text-sm font-medium text-rose-400">{fmt(job.rowsDeleted)}</p>
                   </div>
-                  <div className="bg-zinc-800/50 rounded p-2">
-                    <p className="text-xs text-zinc-500">GB Freed</p>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                    <p className="text-xs text-[var(--color-text-muted)]">GB Freed</p>
                     <p className="text-sm font-medium text-emerald-400">{job.gbFreed}</p>
                   </div>
-                  <div className="bg-zinc-800/50 rounded p-2">
-                    <p className="text-xs text-zinc-500">Duration</p>
-                    <p className="text-sm font-medium text-zinc-300">
+                  <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                    <p className="text-xs text-[var(--color-text-muted)]">Duration</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">
                       {job.endTime ? `${Math.round((new Date(job.endTime).getTime() - new Date(job.startTime).getTime()) / 60000)}min` : "running"}
                     </p>
                   </div>
@@ -505,11 +505,11 @@ export default function DataRetentionManager() {
                 )}
                 {job.status === "running" && (
                   <div className="mt-2">
-                    <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                    <div className="flex justify-between text-xs text-[var(--color-text-muted)] mb-1">
                       <span>Progress</span>
                       <span>{Math.round((job.rowsProcessed / 4_200_000) * 100)}%</span>
                     </div>
-                    <div className="bg-zinc-800 rounded-full h-1.5">
+                    <div className="bg-[var(--color-surface-2)] rounded-full h-1.5">
                       <div
                         className="h-1.5 rounded-full bg-sky-500"
                         style={{ width: `${Math.round((job.rowsProcessed / 4_200_000) * 100)}%` }}

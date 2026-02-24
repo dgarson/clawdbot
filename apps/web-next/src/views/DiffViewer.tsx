@@ -41,7 +41,7 @@ const langColor = (lang: string) => {
   if (lang === "json")                  {return "text-amber-400";}
   if (lang === "sh" || lang === "bash") {return "text-emerald-400";}
   if (lang === "md")                    {return "text-purple-400";}
-  return "text-zinc-400";
+  return "text-[var(--color-text-secondary)]";
 };
 
 const DIFF_SETS: DiffSet[] = [
@@ -195,16 +195,16 @@ export default function DiffViewer() {
   const linePrefix = (type: ChangeType) => {
     if (type === "added")   {return <span className="text-emerald-400 select-none mr-2">+</span>;}
     if (type === "removed") {return <span className="text-rose-400 select-none mr-2">-</span>;}
-    return <span className="text-zinc-600 select-none mr-2"> </span>;
+    return <span className="text-[var(--color-text-muted)] select-none mr-2"> </span>;
   };
 
   return (
-    <div className="flex h-full bg-zinc-950 overflow-hidden">
+    <div className="flex h-full bg-[var(--color-surface-0)] overflow-hidden">
       {/* Left sidebar: diff sets + files */}
-      <div className="w-64 flex-shrink-0 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+      <div className="w-64 flex-shrink-0 bg-[var(--color-surface-1)] border-r border-[var(--color-border)] flex flex-col">
         {/* Diff set list */}
-        <div className="p-3 border-b border-zinc-800">
-          <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Commits</div>
+        <div className="p-3 border-b border-[var(--color-border)]">
+          <div className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Commits</div>
           <div className="space-y-1">
             {DIFF_SETS.map(ds => (
               <button
@@ -212,11 +212,11 @@ export default function DiffViewer() {
                 onClick={() => { setSelectedSetId(ds.id); setSelectedFileId(ds.files[0]?.id ?? ""); }}
                 className={cn(
                   "w-full text-left p-2 rounded text-xs transition-colors",
-                  selectedSetId === ds.id ? "bg-indigo-500/20 text-white" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                  selectedSetId === ds.id ? "bg-indigo-500/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 <div className="font-medium truncate">{ds.title}</div>
-                <div className="text-[10px] text-zinc-500 mt-0.5 flex items-center gap-2">
+                <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5 flex items-center gap-2">
                   <span className="text-emerald-400">+{ds.totalAdditions}</span>
                   <span className="text-rose-400">-{ds.totalDeletions}</span>
                   <span className="ml-auto">{ds.date.split(" ")[1]}</span>
@@ -228,7 +228,7 @@ export default function DiffViewer() {
 
         {/* Files in selected set */}
         <div className="flex-1 overflow-y-auto p-3">
-          <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+          <div className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
             Files ({selectedSet.files.length})
           </div>
           <div className="space-y-0.5">
@@ -238,7 +238,7 @@ export default function DiffViewer() {
                 onClick={() => setSelectedFileId(file.id)}
                 className={cn(
                   "w-full text-left px-2 py-1.5 rounded text-xs transition-colors",
-                  selectedFileId === file.id ? "bg-indigo-500/20 text-white" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                  selectedFileId === file.id ? "bg-indigo-500/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 <div className={cn("font-mono truncate text-[10px]", langColor(file.language))}>
@@ -254,21 +254,21 @@ export default function DiffViewer() {
         </div>
 
         {/* Author info */}
-        <div className="p-3 border-t border-zinc-800">
-          <div className="text-[10px] text-zinc-500">{selectedSet.author}</div>
-          <div className="text-[10px] text-zinc-600">{selectedSet.date}</div>
+        <div className="p-3 border-t border-[var(--color-border)]">
+          <div className="text-[10px] text-[var(--color-text-muted)]">{selectedSet.author}</div>
+          <div className="text-[10px] text-[var(--color-text-muted)]">{selectedSet.date}</div>
         </div>
       </div>
 
       {/* Main diff area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Diff toolbar */}
-        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-zinc-800 bg-zinc-900 flex-shrink-0">
+        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[var(--color-border)] bg-[var(--color-surface-1)] flex-shrink-0">
           <div className="flex-1 min-w-0">
             <div className={cn("font-mono text-sm font-semibold", langColor(selectedFile.language))}>
               {selectedFile.filename}
             </div>
-            <div className="text-xs text-zinc-500 mt-0.5">{selectedSet.description}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{selectedSet.description}</div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -277,14 +277,14 @@ export default function DiffViewer() {
             <span className="text-xs text-rose-400 bg-rose-400/10 px-2 py-0.5 rounded">-{selectedFile.deletions}</span>
 
             {/* Mode toggle */}
-            <div className="flex rounded border border-zinc-700 overflow-hidden">
+            <div className="flex rounded border border-[var(--color-border)] overflow-hidden">
               {(["side-by-side", "unified"] as const).map(m => (
                 <button
                   key={m}
                   onClick={() => setMode(m)}
                   className={cn(
                     "text-xs px-3 py-1 transition-colors",
-                    mode === m ? "bg-indigo-500 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                    mode === m ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {m === "side-by-side" ? "⏮⏭" : "≡"}
@@ -294,7 +294,7 @@ export default function DiffViewer() {
 
             <button
               onClick={() => setShowWhitespace(v => !v)}
-              className={cn("text-xs px-3 py-1 rounded border transition-colors", showWhitespace ? "border-indigo-500 text-indigo-300 bg-indigo-500/10" : "border-zinc-700 text-zinc-500 hover:text-zinc-300 bg-zinc-800")}
+              className={cn("text-xs px-3 py-1 rounded border transition-colors", showWhitespace ? "border-indigo-500 text-indigo-300 bg-indigo-500/10" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]")}
             >
               ¶ Space
             </button>
@@ -304,10 +304,10 @@ export default function DiffViewer() {
         {/* Diff content */}
         <div className="flex-1 overflow-auto">
           {selectedFile.hunks.length === 0 ? (
-            <div className="p-6 text-center text-zinc-600">
+            <div className="p-6 text-center text-[var(--color-text-muted)]">
               <div className="text-4xl mb-3">📄</div>
               <p className="text-sm">New file added — {selectedFile.additions} lines</p>
-              <p className="text-[10px] mt-1 text-zinc-700">Full content not shown in this preview</p>
+              <p className="text-[10px] mt-1 text-[var(--color-text-muted)]">Full content not shown in this preview</p>
             </div>
           ) : (
             <div className="font-mono text-xs">
@@ -332,16 +332,16 @@ export default function DiffViewer() {
                           <tbody>
                             {hunk.lines.map((line, li) => (
                               <tr key={li} className={cn("group", lineClass(line.type))}>
-                                <td className="w-10 text-right text-[10px] text-zinc-600 px-2 py-0.5 select-none border-r border-zinc-800">
+                                <td className="w-10 text-right text-[10px] text-[var(--color-text-muted)] px-2 py-0.5 select-none border-r border-[var(--color-border)]">
                                   {line.leftNum ?? ""}
                                 </td>
-                                <td className="w-10 text-right text-[10px] text-zinc-600 px-2 py-0.5 select-none border-r border-zinc-800">
+                                <td className="w-10 text-right text-[10px] text-[var(--color-text-muted)] px-2 py-0.5 select-none border-r border-[var(--color-border)]">
                                   {line.rightNum ?? ""}
                                 </td>
                                 <td className="px-4 py-0.5 whitespace-pre">
                                   {linePrefix(line.type)}
                                   <span className={cn(
-                                    line.type === "added" ? "text-emerald-100" : line.type === "removed" ? "text-rose-200" : "text-zinc-300"
+                                    line.type === "added" ? "text-emerald-100" : line.type === "removed" ? "text-rose-200" : "text-[var(--color-text-primary)]"
                                   )}>
                                     {showWhitespace ? line.content.replace(/ /g, "·").replace(/\t/g, "→") : line.content}
                                   </span>
@@ -354,27 +354,27 @@ export default function DiffViewer() {
                         /* Side-by-side diff */
                         <div className="flex">
                           {/* Left (old) */}
-                          <div className="flex-1 border-r border-zinc-800">
+                          <div className="flex-1 border-r border-[var(--color-border)]">
                             <table className="w-full border-collapse">
                               <tbody>
                                 {hunk.lines.map((line, li) => {
                                   if (line.type === "added") {
                                     return (
                                       <tr key={li}>
-                                        <td className="w-8 text-right text-[10px] text-zinc-700 px-2 py-0.5 select-none" />
-                                        <td className="px-3 py-0.5 bg-zinc-950/50" />
+                                        <td className="w-8 text-right text-[10px] text-[var(--color-text-muted)] px-2 py-0.5 select-none" />
+                                        <td className="px-3 py-0.5 bg-[var(--color-surface-0)]/50" />
                                       </tr>
                                     );
                                   }
                                   return (
                                     <tr key={li} className={line.type === "removed" ? "bg-rose-500/10 border-l-2 border-rose-500" : ""}>
-                                      <td className="w-8 text-right text-[10px] text-zinc-600 px-2 py-0.5 select-none border-r border-zinc-800">
+                                      <td className="w-8 text-right text-[10px] text-[var(--color-text-muted)] px-2 py-0.5 select-none border-r border-[var(--color-border)]">
                                         {line.leftNum ?? ""}
                                       </td>
                                       <td className="px-3 py-0.5 whitespace-pre text-xs">
                                         {line.type === "removed" && <span className="text-rose-400 mr-2">-</span>}
-                                        {line.type === "unchanged" && <span className="text-zinc-700 mr-2"> </span>}
-                                        <span className={cn(line.type === "removed" ? "text-rose-200" : "text-zinc-300")}>
+                                        {line.type === "unchanged" && <span className="text-[var(--color-text-muted)] mr-2"> </span>}
+                                        <span className={cn(line.type === "removed" ? "text-rose-200" : "text-[var(--color-text-primary)]")}>
                                           {showWhitespace ? line.content.replace(/ /g, "·") : line.content}
                                         </span>
                                       </td>
@@ -392,20 +392,20 @@ export default function DiffViewer() {
                                   if (line.type === "removed") {
                                     return (
                                       <tr key={li}>
-                                        <td className="w-8 text-right text-[10px] text-zinc-700 px-2 py-0.5 select-none" />
-                                        <td className="px-3 py-0.5 bg-zinc-950/50" />
+                                        <td className="w-8 text-right text-[10px] text-[var(--color-text-muted)] px-2 py-0.5 select-none" />
+                                        <td className="px-3 py-0.5 bg-[var(--color-surface-0)]/50" />
                                       </tr>
                                     );
                                   }
                                   return (
                                     <tr key={li} className={line.type === "added" ? "bg-emerald-500/10 border-l-2 border-emerald-500" : ""}>
-                                      <td className="w-8 text-right text-[10px] text-zinc-600 px-2 py-0.5 select-none border-r border-zinc-800">
+                                      <td className="w-8 text-right text-[10px] text-[var(--color-text-muted)] px-2 py-0.5 select-none border-r border-[var(--color-border)]">
                                         {line.rightNum ?? ""}
                                       </td>
                                       <td className="px-3 py-0.5 whitespace-pre text-xs">
                                         {line.type === "added" && <span className="text-emerald-400 mr-2">+</span>}
-                                        {line.type === "unchanged" && <span className="text-zinc-700 mr-2"> </span>}
-                                        <span className={cn(line.type === "added" ? "text-emerald-100" : "text-zinc-300")}>
+                                        {line.type === "unchanged" && <span className="text-[var(--color-text-muted)] mr-2"> </span>}
+                                        <span className={cn(line.type === "added" ? "text-emerald-100" : "text-[var(--color-text-primary)]")}>
                                           {showWhitespace ? line.content.replace(/ /g, "·") : line.content}
                                         </span>
                                       </td>

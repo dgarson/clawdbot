@@ -306,14 +306,14 @@ function TreeNode({ node, depth, selectedId, onSelect, openIds, onToggle }: Tree
           "w-full text-left flex items-center gap-1.5 py-1 pr-3 rounded transition-colors text-sm",
           "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
           selectedId === node.id
-            ? "bg-indigo-950/40 text-white"
-            : "text-zinc-300 hover:text-white hover:bg-zinc-800/40"
+            ? "bg-indigo-950/40 text-[var(--color-text-primary)]"
+            : "text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/40"
         )}
         style={{ paddingLeft: `${(depth * 16) + 8}px` }}
       >
         {isDir && (
           <span
-            className={cn("text-zinc-600 text-xs transition-transform", isOpen && "rotate-90")}
+            className={cn("text-[var(--color-text-muted)] text-xs transition-transform", isOpen && "rotate-90")}
             aria-hidden="true"
           >
             ▶
@@ -322,7 +322,7 @@ function TreeNode({ node, depth, selectedId, onSelect, openIds, onToggle }: Tree
         <span aria-hidden="true">{fileEmoji(node)}</span>
         <span className="truncate flex-1">{node.name}</span>
         {isDir && (
-          <span className="text-zinc-600 text-xs shrink-0">{fmtSize(totalSize(node))}</span>
+          <span className="text-[var(--color-text-muted)] text-xs shrink-0">{fmtSize(totalSize(node))}</span>
         )}
       </button>
 
@@ -371,17 +371,17 @@ export default function StorageExplorer() {
   const totalWorkspaceSize = useMemo(() => totalSize(ROOT), []);
 
   return (
-    <main className="flex h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Storage Explorer">
+    <main className="flex h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden" role="main" aria-label="Storage Explorer">
       {/* Left: Tree + search */}
-      <div className="w-72 shrink-0 flex flex-col border-r border-zinc-800 overflow-hidden">
+      <div className="w-72 shrink-0 flex flex-col border-r border-[var(--color-border)] overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-zinc-800">
-          <h1 className="text-lg font-bold text-white">Storage</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">Workspace: {fmtSize(totalWorkspaceSize)} used</p>
+        <div className="p-4 border-b border-[var(--color-border)]">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Storage</h1>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Workspace: {fmtSize(totalWorkspaceSize)} used</p>
         </div>
 
         {/* Search */}
-        <div className="p-3 border-b border-zinc-800">
+        <div className="p-3 border-b border-[var(--color-border)]">
           <input
             type="search"
             value={search}
@@ -389,7 +389,7 @@ export default function StorageExplorer() {
             placeholder="Search files…"
             aria-label="Search files"
             className={cn(
-              "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-zinc-500",
+              "w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
             )}
           />
@@ -399,7 +399,7 @@ export default function StorageExplorer() {
         <div className="flex-1 overflow-y-auto p-2" role="tree" aria-label="File system tree">
           {search.trim() ? (
             searchResults.length === 0 ? (
-              <p className="text-xs text-zinc-500 text-center py-8">No files found</p>
+              <p className="text-xs text-[var(--color-text-muted)] text-center py-8">No files found</p>
             ) : (
               searchResults.map(node => (
                 <button
@@ -410,13 +410,13 @@ export default function StorageExplorer() {
                     "w-full text-left px-2 py-1.5 rounded text-sm transition-colors flex items-center gap-2",
                     "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                     selectedNode?.id === node.id
-                      ? "bg-indigo-950/40 text-white"
-                      : "text-zinc-300 hover:text-white hover:bg-zinc-800/40"
+                      ? "bg-indigo-950/40 text-[var(--color-text-primary)]"
+                      : "text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/40"
                   )}
                 >
                   <span aria-hidden="true">{fileEmoji(node)}</span>
                   <span className="truncate flex-1 text-xs">{node.name}</span>
-                  <span className="text-zinc-600 text-[10px] shrink-0">{fmtSize(node.size)}</span>
+                  <span className="text-[var(--color-text-muted)] text-[10px] shrink-0">{fmtSize(node.size)}</span>
                 </button>
               ))
             )
@@ -441,8 +441,8 @@ export default function StorageExplorer() {
             <div className="flex items-start gap-4">
               <span className="text-5xl" aria-hidden="true">{fileEmoji(selectedNode)}</span>
               <div>
-                <h2 className="text-xl font-bold text-white">{selectedNode.name}</h2>
-                <p className="text-xs text-zinc-500 mt-1 font-mono break-all">{selectedNode.path}</p>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedNode.name}</h2>
+                <p className="text-xs text-[var(--color-text-muted)] mt-1 font-mono break-all">{selectedNode.path}</p>
               </div>
             </div>
 
@@ -456,21 +456,21 @@ export default function StorageExplorer() {
                 { label: "Created",  value: relTime(selectedNode.createdAt) },
                 { label: "Perms",    value: selectedNode.permissions },
               ].map(m => (
-                <div key={m.label} className="rounded-xl bg-zinc-900 border border-zinc-800 p-3">
-                  <p className="text-xs text-zinc-500 mb-1">{m.label}</p>
-                  <p className="text-sm font-mono text-white capitalize">{m.value}</p>
+                <div key={m.label} className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-3">
+                  <p className="text-xs text-[var(--color-text-muted)] mb-1">{m.label}</p>
+                  <p className="text-sm font-mono text-[var(--color-text-primary)] capitalize">{m.value}</p>
                 </div>
               ))}
             </div>
 
             {/* Directory contents */}
             {selectedNode.kind === "directory" && selectedNode.children && (
-              <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
-                <div className="px-4 py-3 border-b border-zinc-800">
-                  <h3 className="text-sm font-semibold text-white">Contents</h3>
-                  <p className="text-xs text-zinc-500 mt-0.5">{selectedNode.children.length} items · {fmtSize(totalSize(selectedNode))}</p>
+              <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] overflow-hidden">
+                <div className="px-4 py-3 border-b border-[var(--color-border)]">
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Contents</h3>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{selectedNode.children.length} items · {fmtSize(totalSize(selectedNode))}</p>
                 </div>
-                <div className="divide-y divide-zinc-800">
+                <div className="divide-y divide-[var(--color-border)]">
                   {selectedNode.children.map(child => (
                     <button
                       key={child.id}
@@ -479,16 +479,16 @@ export default function StorageExplorer() {
                         if (child.kind === "directory") {toggleDir(child.id);}
                       }}
                       className={cn(
-                        "w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-zinc-800/40 transition-colors",
+                        "w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-[var(--color-surface-2)]/40 transition-colors",
                         "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 focus-visible:outline-none"
                       )}
                     >
                       <span aria-hidden="true">{fileEmoji(child)}</span>
-                      <span className="flex-1 text-sm text-white truncate">{child.name}</span>
-                      <span className="text-xs text-zinc-500 font-mono">
+                      <span className="flex-1 text-sm text-[var(--color-text-primary)] truncate">{child.name}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] font-mono">
                         {fmtSize(child.kind === "directory" ? totalSize(child) : child.size)}
                       </span>
-                      <span className="text-xs text-zinc-600">{relTime(child.modifiedAt)}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{relTime(child.modifiedAt)}</span>
                     </button>
                   ))}
                 </div>
@@ -497,12 +497,12 @@ export default function StorageExplorer() {
 
             {/* File preview */}
             {selectedNode.kind === "file" && selectedNode.preview && (
-              <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
-                <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-white">Preview</h3>
+              <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] overflow-hidden">
+                <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Preview</h3>
                   <button
                     className={cn(
-                      "text-xs text-zinc-400 hover:text-white transition-colors px-2 py-1 rounded",
+                      "text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors px-2 py-1 rounded",
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
                     )}
                     aria-label="Copy file content"
@@ -511,7 +511,7 @@ export default function StorageExplorer() {
                     Copy
                   </button>
                 </div>
-                <pre className="p-4 text-xs text-zinc-300 overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed">
+                <pre className="p-4 text-xs text-[var(--color-text-primary)] overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed">
                   {selectedNode.preview}
                 </pre>
               </div>
@@ -519,17 +519,17 @@ export default function StorageExplorer() {
 
             {/* Audio player placeholder */}
             {selectedNode.category === "audio" && (
-              <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-6 text-center">
+              <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-6 text-center">
                 <p className="text-3xl mb-2">🎵</p>
-                <p className="text-sm text-zinc-400">Audio playback not available in browser preview</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">Audio playback not available in browser preview</p>
               </div>
             )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <p className="text-5xl mb-4">📂</p>
-            <p className="text-lg font-semibold text-white">Select a file or folder</p>
-            <p className="text-sm text-zinc-500 mt-1">Browse the workspace tree on the left</p>
+            <p className="text-lg font-semibold text-[var(--color-text-primary)]">Select a file or folder</p>
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">Browse the workspace tree on the left</p>
           </div>
         )}
       </div>

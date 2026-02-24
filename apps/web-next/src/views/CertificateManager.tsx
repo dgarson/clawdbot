@@ -129,7 +129,7 @@ const statusColor: Record<CertStatus, string> = {
   expiring: "text-amber-400 bg-amber-400/10 border-amber-400/30",
   expired:  "text-rose-400 bg-rose-400/10 border-rose-400/30",
   pending:  "text-blue-400 bg-blue-400/10 border-blue-400/30",
-  revoked:  "text-zinc-400 bg-zinc-400/10 border-zinc-400/30",
+  revoked:  "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30",
 };
 
 const typeColor: Record<CertType, string> = {
@@ -145,7 +145,7 @@ const actionColor: Record<CertAuditEntry["action"], string> = {
   renewed:  "text-indigo-400",
   revoked:  "text-rose-400",
   imported: "text-amber-400",
-  exported: "text-zinc-400",
+  exported: "text-[var(--color-text-secondary)]",
 };
 
 export default function CertificateManager(): React.ReactElement {
@@ -164,12 +164,12 @@ export default function CertificateManager(): React.ReactElement {
   const expiredCount = CERTIFICATES.filter(c => c.status === "expired").length;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div>
           <h1 className="text-lg font-semibold">Certificate Manager</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">TLS/SSL certificate lifecycle management, CSR generation, and renewal automation</p>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">TLS/SSL certificate lifecycle management, CSR generation, and renewal automation</p>
         </div>
         <div className="flex items-center gap-3">
           {expiringCount > 0 && (
@@ -185,7 +185,7 @@ export default function CertificateManager(): React.ReactElement {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 px-6 pt-3 border-b border-zinc-800 shrink-0">
+      <div className="flex gap-1 px-6 pt-3 border-b border-[var(--color-border)] shrink-0">
         {TABS.map((t) => (
           <button
             key={t}
@@ -194,7 +194,7 @@ export default function CertificateManager(): React.ReactElement {
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
                 ? "text-indigo-400 border-indigo-500"
-                : "text-zinc-400 border-transparent hover:text-white"
+                : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}
@@ -206,37 +206,37 @@ export default function CertificateManager(): React.ReactElement {
         {/* ── CERTIFICATES ── */}
         {tab === "Certificates" && (
           <div className="h-full flex">
-            <div className="w-72 border-r border-zinc-800 flex flex-col">
-              <div className="p-3 space-y-2 border-b border-zinc-800">
+            <div className="w-72 border-r border-[var(--color-border)] flex flex-col">
+              <div className="p-3 space-y-2 border-b border-[var(--color-border)]">
                 <div className="flex flex-wrap gap-1">
                   {(["all", "valid", "expiring", "expired", "revoked"] as const).map((s) => (
                     <button key={s} onClick={() => setStatusFilter(s)}
                       className={cn("px-2 py-0.5 text-[10px] rounded border transition-colors",
-                        statusFilter === s ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                        statusFilter === s ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                       )}>{s}</button>
                   ))}
                 </div>
                 <select value={envFilter} onChange={(e) => setEnvFilter(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300 focus:outline-none">
+                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none">
                   <option value="all">All environments</option>
                   <option value="production">Production</option>
                   <option value="staging">Staging</option>
                   <option value="development">Development</option>
                 </select>
               </div>
-              <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/50">
+              <div className="flex-1 overflow-y-auto divide-y divide-[var(--color-border)]/50">
                 {filteredCerts.map((cert) => {
                   const days = daysUntilExpiry(cert.validTo);
                   return (
                     <button key={cert.id} onClick={() => setSelectedCert(cert)}
                       className={cn("w-full text-left px-4 py-3 transition-colors",
-                        selectedCert.id === cert.id ? "bg-indigo-600/10" : "hover:bg-zinc-800/40"
+                        selectedCert.id === cert.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/40"
                       )}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-white truncate max-w-[130px]">{cert.commonName}</span>
+                        <span className="text-xs font-medium text-[var(--color-text-primary)] truncate max-w-[130px]">{cert.commonName}</span>
                         <span className={cn("text-[10px] px-1 py-0.5 rounded border shrink-0", statusColor[cert.status])}>{cert.status}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-[10px] text-zinc-500">
+                      <div className="flex items-center gap-2 text-[10px] text-[var(--color-text-muted)]">
                         <span className={typeColor[cert.type]}>{cert.type.replace("_", " ")}</span>
                         <span>{cert.environment}</span>
                       </div>
@@ -257,24 +257,24 @@ export default function CertificateManager(): React.ReactElement {
                   <h2 className="text-lg font-bold font-mono">{selectedCert.commonName}</h2>
                   <div className="flex items-center gap-2 mt-1">
                     <span className={cn("text-xs", typeColor[selectedCert.type])}>{selectedCert.type.replace("_", " ")}</span>
-                    <span className="text-xs text-zinc-500">{selectedCert.environment}</span>
-                    <span className="text-xs text-zinc-500">{selectedCert.algorithm}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{selectedCert.environment}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{selectedCert.algorithm}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={cn("text-xs px-2 py-0.5 rounded border", statusColor[selectedCert.status])}>{selectedCert.status}</span>
-                  <button className="px-3 py-1.5 text-xs border border-zinc-700 text-zinc-400 hover:border-zinc-600 rounded-md transition-colors">Renew</button>
-                  <button className="px-3 py-1.5 text-xs border border-zinc-700 text-zinc-400 hover:border-zinc-600 rounded-md transition-colors">Download</button>
+                  <button className="px-3 py-1.5 text-xs border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] rounded-md transition-colors">Renew</button>
+                  <button className="px-3 py-1.5 text-xs border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] rounded-md transition-colors">Download</button>
                 </div>
               </div>
 
               {/* Validity bar */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                <div className="flex justify-between text-xs text-zinc-400 mb-2">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mb-2">
                   <span>Valid from: {selectedCert.validFrom}</span>
                   <span>Expires: {selectedCert.validTo}</span>
                 </div>
-                <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   {(() => {
                     const start = new Date(selectedCert.validFrom).getTime();
                     const end = new Date(selectedCert.validTo).getTime();
@@ -286,7 +286,7 @@ export default function CertificateManager(): React.ReactElement {
                     );
                   })()}
                 </div>
-                <div className="text-xs text-zinc-500 mt-1">
+                <div className="text-xs text-[var(--color-text-muted)] mt-1">
                   {(() => {
                     const days = daysUntilExpiry(selectedCert.validTo);
                     return days > 0 ? `${days} days remaining` : `Expired ${Math.abs(days)} days ago`;
@@ -301,19 +301,19 @@ export default function CertificateManager(): React.ReactElement {
                   { label: "Fingerprint", value: selectedCert.fingerprint },
                   { label: "Auto Renew", value: selectedCert.autoRenew ? "Enabled" : "Disabled" },
                 ].map((m) => (
-                  <div key={m.label} className="flex gap-4 text-xs bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3">
-                    <span className="text-zinc-500 w-28 shrink-0">{m.label}</span>
-                    <span className="text-zinc-200 font-mono break-all">{m.value}</span>
+                  <div key={m.label} className="flex gap-4 text-xs bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-3">
+                    <span className="text-[var(--color-text-muted)] w-28 shrink-0">{m.label}</span>
+                    <span className="text-[var(--color-text-primary)] font-mono break-all">{m.value}</span>
                   </div>
                 ))}
               </div>
 
               {selectedCert.sans.length > 0 && (
-                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                  <div className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mb-3">Subject Alternative Names</div>
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                  <div className="text-xs text-[var(--color-text-secondary)] font-semibold uppercase tracking-wider mb-3">Subject Alternative Names</div>
                   <div className="flex flex-wrap gap-2">
                     {selectedCert.sans.map(san => (
-                      <span key={san} className="text-xs px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 font-mono text-zinc-300">{san}</span>
+                      <span key={san} className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] font-mono text-[var(--color-text-primary)]">{san}</span>
                     ))}
                   </div>
                 </div>
@@ -330,7 +330,7 @@ export default function CertificateManager(): React.ReactElement {
               <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">Generate CSR</button>
             </div>
             {CSR_REQUESTS.map((csr) => (
-              <div key={csr.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+              <div key={csr.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="font-mono text-sm font-semibold">{csr.commonName}</div>
                   <span className={cn("text-xs px-2 py-0.5 rounded border",
@@ -339,13 +339,13 @@ export default function CertificateManager(): React.ReactElement {
                     "text-amber-400 bg-amber-400/10 border-amber-400/30"
                   )}>{csr.status}</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs text-zinc-400">
-                  <div><span className="text-zinc-500">O: </span>{csr.organization}</div>
-                  <div><span className="text-zinc-500">C: </span>{csr.country}</div>
-                  <div><span className="text-zinc-500">ST: </span>{csr.state}</div>
-                  <div><span className="text-zinc-500">L: </span>{csr.locality}</div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-[var(--color-text-secondary)]">
+                  <div><span className="text-[var(--color-text-muted)]">O: </span>{csr.organization}</div>
+                  <div><span className="text-[var(--color-text-muted)]">C: </span>{csr.country}</div>
+                  <div><span className="text-[var(--color-text-muted)]">ST: </span>{csr.state}</div>
+                  <div><span className="text-[var(--color-text-muted)]">L: </span>{csr.locality}</div>
                 </div>
-                <div className="text-[10px] text-zinc-500 mt-2">Created: {csr.createdAt}</div>
+                <div className="text-[10px] text-[var(--color-text-muted)] mt-2">Created: {csr.createdAt}</div>
               </div>
             ))}
           </div>
@@ -355,13 +355,13 @@ export default function CertificateManager(): React.ReactElement {
         {tab === "Audit" && (
           <div className="h-full overflow-y-auto p-6 space-y-2">
             {AUDIT_LOG.map((entry) => (
-              <div key={entry.id} className="bg-zinc-900 border border-zinc-800 rounded-lg px-5 py-3 flex items-center gap-4">
+              <div key={entry.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-5 py-3 flex items-center gap-4">
                 <span className={cn("text-xs font-mono font-bold w-16 shrink-0", actionColor[entry.action])}>{entry.action}</span>
                 <div className="flex-1">
                   <div className="text-sm">{entry.certName}</div>
-                  <div className="text-xs text-zinc-500">{entry.actor}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">{entry.actor}</div>
                 </div>
-                <div className="text-xs text-zinc-500">{entry.timestamp.slice(0, 10)}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">{entry.timestamp.slice(0, 10)}</div>
               </div>
             ))}
           </div>
@@ -379,12 +379,12 @@ export default function CertificateManager(): React.ReactElement {
               { label: "Expiry Alert Threshold", value: "30 days", desc: "Send alerts when cert has this many days remaining" },
               { label: "Notification Email", value: "infra@openclaw.io", desc: "Recipient for expiry and renewal notifications" },
             ].map((s) => (
-              <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex items-center gap-4">
+              <div key={s.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 flex items-center gap-4">
                 <div className="flex-1">
                   <div className="text-sm font-medium">{s.label}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">{s.desc}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{s.desc}</div>
                 </div>
-                <div className="text-sm font-mono text-zinc-300 text-right">{s.value}</div>
+                <div className="text-sm font-mono text-[var(--color-text-primary)] text-right">{s.value}</div>
                 <button className="text-xs text-indigo-400 hover:text-indigo-300 shrink-0">Edit</button>
               </div>
             ))}

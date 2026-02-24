@@ -172,7 +172,7 @@ function Sparkline({ trend }: { trend: TrendPoint[] }) {
         return (
           <div
             key={point.week}
-            className={cn("w-1.5 rounded-sm transition-all", isLast ? "bg-indigo-400" : "bg-zinc-600")}
+            className={cn("w-1.5 rounded-sm transition-all", isLast ? "bg-indigo-400" : "bg-[var(--color-surface-3)]")}
             style={{ height: `${h}px` }}
             title={`${point.week}: ${point.score}`}
           />
@@ -189,19 +189,19 @@ function GaugeDisplay({ score }: { score: number }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3">
       <div className="relative w-32 h-32 flex items-center justify-center">
-        <div className="absolute inset-0 rounded-full border-4 border-zinc-800" />
+        <div className="absolute inset-0 rounded-full border-4 border-[var(--color-border)]" />
         <div
           className={cn("absolute inset-0 rounded-full border-4 transition-all duration-700", score >= 90 ? "border-emerald-500" : score >= 75 ? "border-indigo-500" : score >= 60 ? "border-amber-500" : "border-red-500")}
           style={{
             clipPath: `polygon(50% 50%, 50% 0%, ${score >= 25 ? "100% 0%" : `${50 + (score / 25) * 50}% 0%`}${score >= 25 ? `, 100% ${score >= 50 ? "100%" : `${((score - 25) / 25) * 100}%`}` : ""}${score >= 50 ? `, ${score >= 75 ? "0%" : `${100 - ((score - 50) / 25) * 100}%`} 100%` : ""}${score >= 75 ? `, 0% ${100 - ((score - 75) / 25) * 100}%` : ""})`,
           }}
         />
-        <div className="absolute inset-2 rounded-full bg-zinc-950 flex items-center justify-center">
+        <div className="absolute inset-2 rounded-full bg-[var(--color-surface-0)] flex items-center justify-center">
           <span className={cn("text-3xl font-bold tabular-nums", scoreTextColor(score))}>{score}</span>
         </div>
       </div>
-      <div className="text-xs text-zinc-400 font-medium uppercase tracking-wider">Overall Quality</div>
-      <div className="w-full max-w-[10rem] h-2 rounded-full bg-zinc-800 overflow-hidden">
+      <div className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wider">Overall Quality</div>
+      <div className="w-full max-w-[10rem] h-2 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
         <div
           className={cn("h-full rounded-full transition-all duration-700", scoreColor(score))}
           style={{ width: `${filled}%` }}
@@ -225,36 +225,36 @@ export default function DataQualityDashboard() {
   const infoCount = FAILED_CHECKS.filter((c) => c.severity === "info").length
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Data Quality Dashboard</h1>
-            <p className="text-sm text-zinc-400 mt-1">Monitor quality across agent outputs, pipelines, and stored records</p>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">Monitor quality across agent outputs, pipelines, and stored records</p>
           </div>
-          <div className="flex items-center gap-3 text-xs text-zinc-500">
+          <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live monitoring
             </div>
-            <span className="text-zinc-700">|</span>
+            <span className="text-[var(--color-text-muted)]">|</span>
             <span>Last refresh: 30s ago</span>
           </div>
         </div>
 
         {/* Top row: Gauge + Dimensions */}
         <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-3 bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex items-center justify-center">
+          <div className="col-span-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6 flex items-center justify-center">
             <GaugeDisplay score={OVERALL_SCORE} />
           </div>
-          <div className="col-span-9 bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <h2 className="text-sm font-semibold text-zinc-300 mb-4">Quality Dimensions</h2>
+          <div className="col-span-9 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+            <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Quality Dimensions</h2>
             <div className="space-y-3">
               {DIMENSIONS.map((dim) => (
                 <div key={dim.name} className="flex items-center gap-4">
-                  <span className="text-sm text-zinc-300 w-28 shrink-0">{dim.name}</span>
-                  <div className="flex-1 h-2.5 rounded-full bg-zinc-800 overflow-hidden">
+                  <span className="text-sm text-[var(--color-text-primary)] w-28 shrink-0">{dim.name}</span>
+                  <div className="flex-1 h-2.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                     <div
                       className={cn("h-full rounded-full transition-all duration-500", scoreColor(dim.score))}
                       style={{ width: `${dim.score}%` }}
@@ -275,13 +275,13 @@ export default function DataQualityDashboard() {
         {/* Summary badges */}
         <div className="grid grid-cols-4 gap-4">
           {[
-            { label: "Total Sources", value: String(DATA_SOURCES.length), accent: "text-white" },
+            { label: "Total Sources", value: String(DATA_SOURCES.length), accent: "text-[var(--color-text-primary)]" },
             { label: "Critical Issues", value: String(criticalCount), accent: "text-red-400" },
             { label: "Warnings", value: String(warningCount), accent: "text-amber-400" },
             { label: "Info Notices", value: String(infoCount), accent: "text-sky-400" },
           ].map((stat) => (
-            <div key={stat.label} className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-3 flex items-center justify-between">
-              <span className="text-xs text-zinc-400 font-medium">{stat.label}</span>
+            <div key={stat.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl px-5 py-3 flex items-center justify-between">
+              <span className="text-xs text-[var(--color-text-secondary)] font-medium">{stat.label}</span>
               <span className={cn("text-xl font-bold tabular-nums", stat.accent)}>{stat.value}</span>
             </div>
           ))}
@@ -290,11 +290,11 @@ export default function DataQualityDashboard() {
         {/* Main content: Sources table + Failed checks panel */}
         <div className="grid grid-cols-12 gap-4">
           {/* Sources table */}
-          <div className="col-span-7 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-zinc-800">
-              <h2 className="text-sm font-semibold text-zinc-300">Data Sources</h2>
+          <div className="col-span-7 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-[var(--color-border)]">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Data Sources</h2>
             </div>
-            <div className="divide-y divide-zinc-800/60">
+            <div className="divide-y divide-[var(--color-border)]/60">
               {DATA_SOURCES.map((source) => {
                 const badge = statusBadge(source.status)
                 const isExpanded = expandedSource === source.id
@@ -303,19 +303,19 @@ export default function DataQualityDashboard() {
                     <button
                       type="button"
                       className={cn(
-                        "w-full text-left px-5 py-3 flex items-center gap-4 hover:bg-zinc-800/40 transition-colors cursor-pointer",
-                        isExpanded && "bg-zinc-800/30"
+                        "w-full text-left px-5 py-3 flex items-center gap-4 hover:bg-[var(--color-surface-2)]/40 transition-colors cursor-pointer",
+                        isExpanded && "bg-[var(--color-surface-2)]/30"
                       )}
                       onClick={() => setExpandedSource(isExpanded ? null : source.id)}
                     >
-                      <span className={cn("text-[10px] transition-transform duration-200 text-zinc-500", isExpanded && "rotate-90")}>
+                      <span className={cn("text-[10px] transition-transform duration-200 text-[var(--color-text-muted)]", isExpanded && "rotate-90")}>
                         ▶
                       </span>
-                      <span className="text-sm text-zinc-200 font-mono w-36 shrink-0">{source.name}</span>
-                      <span className="text-xs text-zinc-500 tabular-nums w-16 shrink-0 text-right">
+                      <span className="text-sm text-[var(--color-text-primary)] font-mono w-36 shrink-0">{source.name}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] tabular-nums w-16 shrink-0 text-right">
                         {formatCount(source.recordCount)}
                       </span>
-                      <div className="flex-1 h-2 rounded-full bg-zinc-800 overflow-hidden">
+                      <div className="flex-1 h-2 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                         <div
                           className={cn("h-full rounded-full transition-all", scoreColor(source.qualityScore))}
                           style={{ width: `${source.qualityScore}%` }}
@@ -324,15 +324,15 @@ export default function DataQualityDashboard() {
                       <span className={cn("text-xs font-semibold tabular-nums w-8 text-right", scoreTextColor(source.qualityScore))}>
                         {source.qualityScore}
                       </span>
-                      <span className="text-[11px] text-zinc-500 w-20 shrink-0 text-right">{source.lastChecked}</span>
+                      <span className="text-[11px] text-[var(--color-text-muted)] w-20 shrink-0 text-right">{source.lastChecked}</span>
                       <span className={cn("text-[11px] px-2 py-0.5 rounded-full border font-medium shrink-0", badge.classes)}>
                         {badge.label}
                       </span>
                     </button>
                     {isExpanded && (
-                      <div className="px-5 pb-4 pt-1 pl-12 space-y-2 bg-zinc-800/15">
+                      <div className="px-5 pb-4 pt-1 pl-12 space-y-2 bg-[var(--color-surface-2)]/15">
                         {source.failedChecks.length === 0 ? (
-                          <p className="text-xs text-zinc-500 italic">No failed checks — all quality gates passing.</p>
+                          <p className="text-xs text-[var(--color-text-muted)] italic">No failed checks — all quality gates passing.</p>
                         ) : (
                           source.failedChecks.map((fc) => {
                             const sev = severityBadge(fc.severity)
@@ -340,10 +340,10 @@ export default function DataQualityDashboard() {
                               <div key={fc.id} className="flex items-start gap-3 text-xs">
                                 <div className={cn("w-1.5 h-1.5 rounded-full mt-1.5 shrink-0", sev.dot)} />
                                 <div className="space-y-0.5">
-                                  <div className="text-zinc-200 font-medium font-mono">{fc.check}</div>
-                                  <div className="text-zinc-400">{fc.description}</div>
-                                  <div className="text-zinc-500">
-                                    Fix: <span className="text-zinc-400">{fc.recommendedFix}</span>
+                                  <div className="text-[var(--color-text-primary)] font-medium font-mono">{fc.check}</div>
+                                  <div className="text-[var(--color-text-secondary)]">{fc.description}</div>
+                                  <div className="text-[var(--color-text-muted)]">
+                                    Fix: <span className="text-[var(--color-text-secondary)]">{fc.recommendedFix}</span>
                                   </div>
                                 </div>
                               </div>
@@ -359,10 +359,10 @@ export default function DataQualityDashboard() {
           </div>
 
           {/* Failed checks panel */}
-          <div className="col-span-5 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col">
-            <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-zinc-300">Failed Checks</h2>
-              <span className="text-xs text-zinc-500 tabular-nums">{filteredChecks.length} issues</span>
+          <div className="col-span-5 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden flex flex-col">
+            <div className="px-5 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Failed Checks</h2>
+              <span className="text-xs text-[var(--color-text-muted)] tabular-nums">{filteredChecks.length} issues</span>
             </div>
             {/* Filter tabs */}
             <div className="flex gap-1 px-4 pt-3 pb-2">
@@ -375,7 +375,7 @@ export default function DataQualityDashboard() {
                     "px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer",
                     activeFilter === tab.key
                       ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 border border-transparent"
+                      : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] border border-transparent"
                   )}
                 >
                   {tab.label}
@@ -383,29 +383,29 @@ export default function DataQualityDashboard() {
               ))}
             </div>
             {/* Check list */}
-            <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/50">
+            <div className="flex-1 overflow-y-auto divide-y divide-[var(--color-border)]/50">
               {filteredChecks.length === 0 ? (
-                <div className="p-6 text-center text-xs text-zinc-500 italic">No issues match this filter.</div>
+                <div className="p-6 text-center text-xs text-[var(--color-text-muted)] italic">No issues match this filter.</div>
               ) : (
                 filteredChecks.map((check) => {
                   const sev = severityBadge(check.severity)
                   return (
-                    <div key={check.id} className="px-5 py-3 space-y-1.5 hover:bg-zinc-800/20 transition-colors">
+                    <div key={check.id} className="px-5 py-3 space-y-1.5 hover:bg-[var(--color-surface-2)]/20 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", sev.dot)} />
                           <span className={cn("text-[11px] font-semibold uppercase tracking-wide", sev.classes)}>
                             {sev.label}
                           </span>
-                          <span className="text-[11px] text-zinc-600">·</span>
-                          <span className="text-[11px] text-zinc-500 font-mono">{check.source}</span>
+                          <span className="text-[11px] text-[var(--color-text-muted)]">·</span>
+                          <span className="text-[11px] text-[var(--color-text-muted)] font-mono">{check.source}</span>
                         </div>
-                        <span className="text-[10px] text-zinc-600">{check.timestamp}</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{check.timestamp}</span>
                       </div>
-                      <p className="text-xs text-zinc-300 leading-relaxed">{check.description}</p>
+                      <p className="text-xs text-[var(--color-text-primary)] leading-relaxed">{check.description}</p>
                       <div className="flex items-start gap-1.5">
                         <span className="text-[11px] text-indigo-400 font-medium shrink-0">Fix →</span>
-                        <span className="text-[11px] text-zinc-400 leading-relaxed">{check.recommendedFix}</span>
+                        <span className="text-[11px] text-[var(--color-text-secondary)] leading-relaxed">{check.recommendedFix}</span>
                       </div>
                     </div>
                   )

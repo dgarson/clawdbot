@@ -131,16 +131,16 @@ const failureLog: FailureLogEntry[] = [
 
 export default function ToolReliabilityDashboard() {
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-2">
-          <h1 className="text-2xl font-bold text-white">Tool Reliability Dashboard</h1>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Tool Reliability Dashboard</h1>
           <span className="px-3 py-1 text-sm font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full">
             PR #68 — Validation Layer (Intercept Mode)
           </span>
         </div>
-        <p className="text-gray-400 text-sm">
+        <p className="text-[var(--color-text-secondary)] text-sm">
           Last updated: Feb 22, 2026 10:00 AM MST
         </p>
       </div>
@@ -148,24 +148,24 @@ export default function ToolReliabilityDashboard() {
       {/* Summary Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {/* Overall Success Rate */}
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
-          <div className="text-sm text-gray-400 mb-1">Overall Success Rate</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+          <div className="text-sm text-[var(--color-text-secondary)] mb-1">Overall Success Rate</div>
           <div className="text-3xl font-bold text-green-400">
             {summaryMetrics.overallSuccessRate}%
           </div>
         </div>
 
         {/* Total Tool Calls Today */}
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
-          <div className="text-sm text-gray-400 mb-1">Total Tool Calls Today</div>
-          <div className="text-3xl font-bold text-white">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+          <div className="text-sm text-[var(--color-text-secondary)] mb-1">Total Tool Calls Today</div>
+          <div className="text-3xl font-bold text-[var(--color-text-primary)]">
             {summaryMetrics.totalToolCalls.toLocaleString()}
           </div>
         </div>
 
         {/* Failures Intercepted */}
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
-          <div className="text-sm text-gray-400 mb-1">Failures Intercepted</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+          <div className="text-sm text-[var(--color-text-secondary)] mb-1">Failures Intercepted</div>
           <div className="text-3xl font-bold text-red-400">
             {summaryMetrics.failuresIntercepted}
           </div>
@@ -178,14 +178,14 @@ export default function ToolReliabilityDashboard() {
           <div
             key={model.modelName}
             className={cn(
-              "bg-gray-900 border rounded-lg p-5",
+              "bg-[var(--color-surface-1)] border rounded-lg p-5",
               model.status === "reliable"
                 ? "border-green-500/30"
                 : "border-amber-500/30"
             )}
           >
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-white">{model.modelName}</h3>
+              <h3 className="font-semibold text-[var(--color-text-primary)]">{model.modelName}</h3>
               <span
                 className={cn(
                   "text-lg",
@@ -197,7 +197,7 @@ export default function ToolReliabilityDashboard() {
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-400">Success Rate</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Success Rate</span>
                 <span
                   className={cn(
                     "font-semibold",
@@ -212,11 +212,11 @@ export default function ToolReliabilityDashboard() {
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-400">Total Calls</span>
-                <span className="text-white">{model.totalCalls.toLocaleString()}</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Total Calls</span>
+                <span className="text-[var(--color-text-primary)]">{model.totalCalls.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-400">Failures</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">Failures</span>
                 <span
                   className={cn(
                     "font-semibold",
@@ -227,8 +227,8 @@ export default function ToolReliabilityDashboard() {
                 </span>
               </div>
               {model.topFailure && (
-                <div className="mt-3 pt-3 border-t border-gray-800">
-                  <div className="text-xs text-gray-500 mb-1">Top Failure</div>
+                <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-1">Top Failure</div>
                   <div className="text-sm text-red-300">{model.topFailure}</div>
                 </div>
               )}
@@ -250,14 +250,14 @@ export default function ToolReliabilityDashboard() {
       </div>
 
       {/* Failure Log Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden mb-8">
-        <div className="px-5 py-4 border-b border-gray-800">
-          <h2 className="text-lg font-semibold text-white">Failure Log (Last 8)</h2>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden mb-8">
+        <div className="px-5 py-4 border-b border-[var(--color-border)]">
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Failure Log (Last 8)</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-800/50 text-left text-sm text-gray-400">
+              <tr className="bg-[var(--color-surface-2)]/50 text-left text-sm text-[var(--color-text-secondary)]">
                 <th className="px-5 py-3 font-medium">Time</th>
                 <th className="px-5 py-3 font-medium">Agent</th>
                 <th className="px-5 py-3 font-medium">Model</th>
@@ -266,15 +266,15 @@ export default function ToolReliabilityDashboard() {
                 <th className="px-5 py-3 font-medium">Auto-recovered?</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {failureLog.map((entry) => (
-                <tr key={entry.id} className="hover:bg-gray-800/30">
-                  <td className="px-5 py-3 text-gray-300 font-mono text-sm">
+                <tr key={entry.id} className="hover:bg-[var(--color-surface-2)]/30">
+                  <td className="px-5 py-3 text-[var(--color-text-primary)] font-mono text-sm">
                     {entry.time}
                   </td>
-                  <td className="px-5 py-3 text-gray-300">{entry.agent}</td>
-                  <td className="px-5 py-3 text-gray-300">{entry.model}</td>
-                  <td className="px-5 py-3 text-gray-300 font-mono text-sm">
+                  <td className="px-5 py-3 text-[var(--color-text-primary)]">{entry.agent}</td>
+                  <td className="px-5 py-3 text-[var(--color-text-primary)]">{entry.model}</td>
+                  <td className="px-5 py-3 text-[var(--color-text-primary)] font-mono text-sm">
                     {entry.toolCalled}
                   </td>
                   <td className="px-5 py-3 text-red-300 text-sm">{entry.error}</td>

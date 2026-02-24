@@ -268,7 +268,7 @@ function ToolBadge({ toolType, toolName }: { toolType: ToolType; toolName: strin
     sessions_spawn: 'bg-violet-500/15 text-violet-400 border-violet-500/25',
     message: 'bg-green-500/15 text-green-400 border-green-500/25',
     browser: 'bg-orange-500/15 text-orange-400 border-orange-500/25',
-    other: 'bg-zinc-700/50 text-zinc-400 border-zinc-600/25',
+    other: 'bg-[var(--color-surface-3)]/50 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/25',
   };
   const icons: Record<ToolType, React.ElementType> = {
     exec: Terminal,
@@ -291,7 +291,7 @@ function ToolBadge({ toolType, toolName }: { toolType: ToolType; toolName: strin
 function ToolStatusBadge({ status }: { status: ToolCallStatus }) {
   const styles: Record<ToolCallStatus, string> = {
     running: 'bg-green-500/15 text-green-400 border-green-500/25',
-    complete: 'bg-zinc-700/50 text-zinc-400 border-zinc-600/25',
+    complete: 'bg-[var(--color-surface-3)]/50 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/25',
     error: 'bg-red-500/15 text-red-400 border-red-500/25',
   };
   return (
@@ -330,7 +330,7 @@ function TabButton({
         'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-[2px]',
         active
           ? 'text-violet-400 border-violet-400'
-          : 'text-zinc-400 border-transparent hover:text-zinc-300',
+          : 'text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]',
       )}
     >
       {children}
@@ -358,13 +358,13 @@ function ProgressBar({
     <div className="space-y-1">
       {label && (
         <div className="flex justify-between text-xs">
-          <span className="text-zinc-400">{label}</span>
-          <span className="text-zinc-500 font-mono">
+          <span className="text-[var(--color-text-secondary)]">{label}</span>
+          <span className="text-[var(--color-text-muted)] font-mono">
             {formatTokens(value)} / {formatTokens(max)}
           </span>
         </div>
       )}
-      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
         <div
           className={cn('h-full transition-all duration-300', barColor)}
           style={{ width: `${percent}%` }}
@@ -380,18 +380,18 @@ function ProgressBar({
 
 function SessionHeader({ session }: { session: SessionData }) {
   return (
-    <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+    <div className="flex items-center justify-between pb-4 border-b border-[var(--color-border)]">
       <div className="flex items-center gap-3">
         <span className="text-3xl">{session.agentEmoji}</span>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-white">{session.agentName}</h1>
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">{session.agentName}</h1>
             <SessionTypeBadge type={session.sessionType} />
           </div>
           <div className="flex items-center gap-2 mt-1">
-            <code className="text-xs text-zinc-500 font-mono">{session.id}</code>
-            <span className="text-zinc-700">·</span>
-            <span className="text-xs text-zinc-400 flex items-center gap-1">
+            <code className="text-xs text-[var(--color-text-muted)] font-mono">{session.id}</code>
+            <span className="text-[var(--color-text-muted)]">·</span>
+            <span className="text-xs text-[var(--color-text-secondary)] flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {formatDuration(session.elapsedSeconds)}
             </span>
@@ -431,13 +431,13 @@ function StatusBar({ status }: { status: SessionStatus }) {
       <Icon className={cn('w-4 h-4', status === 'RUNNING' && 'animate-pulse', style.text)} />
       <span className={cn('text-sm font-semibold', style.text)}>{status}</span>
       {status === 'RUNNING' && (
-        <span className="text-xs text-zinc-500 ml-2">Processing...</span>
+        <span className="text-xs text-[var(--color-text-muted)] ml-2">Processing...</span>
       )}
       {status === 'WAITING' && (
-        <span className="text-xs text-zinc-500 ml-2">Awaiting user input</span>
+        <span className="text-xs text-[var(--color-text-muted)] ml-2">Awaiting user input</span>
       )}
       {status === 'ERROR' && (
-        <span className="text-xs text-zinc-500 ml-2">Recoverable — agent may retry</span>
+        <span className="text-xs text-[var(--color-text-muted)] ml-2">Recoverable — agent may retry</span>
       )}
     </div>
   );
@@ -449,10 +449,10 @@ function StatusBar({ status }: { status: SessionStatus }) {
 
 function TokenBudgetPanel({ session }: { session: SessionData }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
         <Cpu className="w-4 h-4 text-violet-400" />
-        <span className="text-sm font-semibold text-white">Token Budget</span>
+        <span className="text-sm font-semibold text-[var(--color-text-primary)]">Token Budget</span>
       </div>
       
       <div className="space-y-4">
@@ -469,12 +469,12 @@ function TokenBudgetPanel({ session }: { session: SessionData }) {
           color="bg-violet-500"
         />
         
-        <div className="pt-3 border-t border-zinc-800 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-zinc-400">
+        <div className="pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-[var(--color-text-secondary)]">
             <Zap className="w-3.5 h-3.5 text-amber-400" />
             <span className="text-xs">Estimated Cost</span>
           </div>
-          <span className="text-sm font-mono text-white">${session.costEstimate.toFixed(2)}</span>
+          <span className="text-sm font-mono text-[var(--color-text-primary)]">${session.costEstimate.toFixed(2)}</span>
         </div>
       </div>
     </div>
@@ -505,37 +505,37 @@ function ToolCallWaterfall({ toolCalls }: { toolCalls: ToolCall[] }) {
   const errorCount = toolCalls.filter((t) => t.status === 'error').length;
   
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl">
+      <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Terminal className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-semibold text-white">Tool Calls</span>
+          <span className="text-sm font-semibold text-[var(--color-text-primary)]">Tool Calls</span>
         </div>
         <div className="flex items-center gap-2 text-xs">
           <span className="text-green-400">{runningCount} running</span>
-          <span className="text-zinc-600">·</span>
-          <span className="text-zinc-400">{completedCount} complete</span>
+          <span className="text-[var(--color-text-muted)]">·</span>
+          <span className="text-[var(--color-text-secondary)]">{completedCount} complete</span>
           {errorCount > 0 && (
             <>
-              <span className="text-zinc-600">·</span>
+              <span className="text-[var(--color-text-muted)]">·</span>
               <span className="text-red-400">{errorCount} error</span>
             </>
           )}
         </div>
       </div>
       
-      <div className="divide-y divide-zinc-800/60 max-h-80 overflow-y-auto">
+      <div className="divide-y divide-[var(--color-border)]/60 max-h-80 overflow-y-auto">
         {toolCalls.map((tc) => (
           <div key={tc.id} className={cn(tc.status === 'error' && 'bg-red-950/20')}>
             <div
-              className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-zinc-800/40 transition-colors"
+              className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-[var(--color-surface-2)]/40 transition-colors"
               onClick={() => toggleExpand(tc.id)}
             >
               <div className="flex items-center gap-3">
                 {expanded.has(tc.id) ? (
-                  <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
+                  <ChevronDown className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
                 ) : (
-                  <ChevronRight className="w-3.5 h-3.5 text-zinc-500" />
+                  <ChevronRight className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
                 )}
                 <ToolBadge toolType={tc.toolType} toolName={tc.toolName} />
                 {tc.status === 'running' && (
@@ -552,7 +552,7 @@ function ToolCallWaterfall({ toolCalls }: { toolCalls: ToolCall[] }) {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-500 flex items-center gap-1">
+                <span className="text-xs text-[var(--color-text-muted)] flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   {formatElapsed(tc.elapsedMs)}
                 </span>
@@ -562,7 +562,7 @@ function ToolCallWaterfall({ toolCalls }: { toolCalls: ToolCall[] }) {
             
             {expanded.has(tc.id) && tc.parameters && (
               <div className="px-4 pb-3">
-                <pre className="text-xs text-zinc-400 font-mono bg-zinc-800/50 rounded-md p-2 overflow-x-auto">
+                <pre className="text-xs text-[var(--color-text-secondary)] font-mono bg-[var(--color-surface-2)]/50 rounded-md p-2 overflow-x-auto">
                   {JSON.stringify(tc.parameters, null, 2)}
                 </pre>
               </div>
@@ -580,22 +580,22 @@ function ToolCallWaterfall({ toolCalls }: { toolCalls: ToolCall[] }) {
 
 function MemoryPanel({ entries }: { entries: MemoryEntry[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl">
+      <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
         <Database className="w-4 h-4 text-sky-400" />
-        <span className="text-sm font-semibold text-white">Active Memory</span>
-        <span className="text-xs text-zinc-500">{entries.length} entries</span>
+        <span className="text-sm font-semibold text-[var(--color-text-primary)]">Active Memory</span>
+        <span className="text-xs text-[var(--color-text-muted)]">{entries.length} entries</span>
       </div>
       
-      <div className="divide-y divide-zinc-800/60 max-h-60 overflow-y-auto">
+      <div className="divide-y divide-[var(--color-border)]/60 max-h-60 overflow-y-auto">
         {entries.map((entry, idx) => (
           <div key={idx} className="px-4 py-2 flex items-start gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono text-violet-400">{entry.key}</span>
-                <span className="text-xs text-zinc-600 px-1 py-0.5 bg-zinc-800 rounded">{entry.source}</span>
+                <span className="text-xs text-[var(--color-text-muted)] px-1 py-0.5 bg-[var(--color-surface-2)] rounded">{entry.source}</span>
               </div>
-              <p className="text-xs text-zinc-400 mt-0.5 font-mono truncate">{entry.value}</p>
+              <p className="text-xs text-[var(--color-text-secondary)] mt-0.5 font-mono truncate">{entry.value}</p>
             </div>
           </div>
         ))}
@@ -610,14 +610,14 @@ function MemoryPanel({ entries }: { entries: MemoryEntry[] }) {
 
 function AgentNotesPanel({ notes }: { notes: string }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl">
+      <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
         <FileCode className="w-4 h-4 text-amber-400" />
-        <span className="text-sm font-semibold text-white">Agent Notes</span>
-        <span className="text-xs text-zinc-600">Read-only</span>
+        <span className="text-sm font-semibold text-[var(--color-text-primary)]">Agent Notes</span>
+        <span className="text-xs text-[var(--color-text-muted)]">Read-only</span>
       </div>
       <div className="p-4">
-        <pre className="text-xs text-zinc-400 font-mono whitespace-pre-wrap leading-relaxed">
+        <pre className="text-xs text-[var(--color-text-secondary)] font-mono whitespace-pre-wrap leading-relaxed">
           {notes}
         </pre>
       </div>
@@ -631,11 +631,11 @@ function AgentNotesPanel({ notes }: { notes: string }) {
 
 function RawLogPanel({ logs }: { logs: LogLine[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl h-full flex flex-col">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
-        <FileText className="w-4 h-4 text-zinc-400" />
-        <span className="text-sm font-semibold text-white">Raw Log</span>
-        <span className="text-xs text-zinc-500">{logs.length} lines</span>
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl h-full flex flex-col">
+      <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
+        <FileText className="w-4 h-4 text-[var(--color-text-secondary)]" />
+        <span className="text-sm font-semibold text-[var(--color-text-primary)]">Raw Log</span>
+        <span className="text-xs text-[var(--color-text-muted)]">{logs.length} lines</span>
       </div>
       
       <div className="flex-1 overflow-y-auto font-mono text-xs">
@@ -643,14 +643,14 @@ function RawLogPanel({ logs }: { logs: LogLine[] }) {
           <div
             key={log.id}
             className={cn(
-              'px-4 py-1.5 flex items-start gap-2 hover:bg-zinc-800/40',
+              'px-4 py-1.5 flex items-start gap-2 hover:bg-[var(--color-surface-2)]/40',
               log.level === 'ERROR' && 'bg-red-950/20',
               log.level === 'WARN' && 'bg-amber-950/10',
             )}
           >
-            <span className="text-zinc-600 shrink-0">{formatTimestamp(log.timestamp)}</span>
+            <span className="text-[var(--color-text-muted)] shrink-0">{formatTimestamp(log.timestamp)}</span>
             <LogLevelBadge level={log.level} />
-            <span className="text-zinc-400">{log.message}</span>
+            <span className="text-[var(--color-text-secondary)]">{log.message}</span>
           </div>
         ))}
       </div>
@@ -684,12 +684,12 @@ function ControlStrip({
   setMessageInput: (v: string) => void;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 space-y-3">
       <div className="flex items-center gap-2">
         {status === 'RUNNING' ? (
           <button
             onClick={onPause}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-[var(--color-text-primary)] text-xs font-medium transition-colors"
           >
             <Pause className="w-3.5 h-3.5" />
             Pause
@@ -699,9 +699,9 @@ function ControlStrip({
             onClick={onResume}
             disabled={status === 'ERROR'}
             className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-medium transition-colors',
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[var(--color-text-primary)] text-xs font-medium transition-colors',
               status === 'ERROR'
-                ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
+                ? 'bg-[var(--color-surface-3)] text-[var(--color-text-muted)] cursor-not-allowed'
                 : 'bg-green-600 hover:bg-green-500',
             )}
           >
@@ -726,20 +726,20 @@ function ControlStrip({
             <AlertTriangle className="w-4 h-4" />
             <span className="text-sm font-medium">Confirm Kill Session?</span>
           </div>
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-[var(--color-text-secondary)]">
             This will immediately terminate the session. Any in-progress work will be lost.
           </p>
           <div className="flex gap-2 pt-1">
             <button
               onClick={onKill}
-              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-[var(--color-text-primary)] text-xs font-medium transition-colors"
             >
               <XCircle className="w-3.5 h-3.5" />
               Confirm Kill
             </button>
             <button
               onClick={() => setShowKillConfirm(false)}
-              className="flex-1 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors border border-zinc-700"
+              className="flex-1 px-3 py-1.5 rounded-lg bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs font-medium transition-colors border border-[var(--color-border)]"
             >
               Cancel
             </button>
@@ -748,13 +748,13 @@ function ControlStrip({
       )}
       
       {/* Message Input */}
-      <div className="flex items-center gap-2 pt-2 border-t border-zinc-800">
+      <div className="flex items-center gap-2 pt-2 border-t border-[var(--color-border)]">
         <input
           type="text"
           value={messageInput}
           onChange={(e) => setMessageInput(e.target.value)}
           placeholder="Send message to session..."
-          className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500"
+          className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && messageInput.trim()) {
               onSendMessage(messageInput.trim());
@@ -773,8 +773,8 @@ function ControlStrip({
           className={cn(
             'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
             messageInput.trim()
-              ? 'bg-violet-600 hover:bg-violet-500 text-white'
-              : 'bg-zinc-800 text-zinc-500 cursor-not-allowed',
+              ? 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]'
+              : 'bg-[var(--color-surface-2)] text-[var(--color-text-muted)] cursor-not-allowed',
           )}
         >
           <Send className="w-3.5 h-3.5" />
@@ -851,7 +851,7 @@ export default function LiveSessionInspector() {
   };
   
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Header */}
         <SessionHeader session={session} />
@@ -860,7 +860,7 @@ export default function LiveSessionInspector() {
         <StatusBar status={session.status} />
         
         {/* Tab Navigation */}
-        <div className="border-b border-zinc-800">
+        <div className="border-b border-[var(--color-border)]">
           <div className="flex gap-1">
             <TabButton active={activeTab === 'overview'} onClick={() => setActiveTab('overview')}>
               Overview

@@ -480,26 +480,26 @@ export default function FindingTrendChart() {
 
     return (
       <foreignObject x={adjustedX} y={adjustedY} width={tooltipWidth} height={tooltipHeight}>
-        <div className="bg-gray-800 border border-zinc-600 rounded-lg p-3 shadow-xl text-sm">
-          <div className="font-semibold text-gray-100 mb-2">{run.label}</div>
-          <div className="text-gray-300 mb-1">Total: {run.total} findings</div>
+        <div className="bg-[var(--color-surface-2)] border border-[var(--color-surface-3)] rounded-lg p-3 shadow-xl text-sm">
+          <div className="font-semibold text-[var(--color-text-primary)] mb-2">{run.label}</div>
+          <div className="text-[var(--color-text-primary)] mb-1">Total: {run.total} findings</div>
           {viewMode !== "total" && (
-            <div className="mt-2 pt-2 border-t border-zinc-600">
+            <div className="mt-2 pt-2 border-t border-[var(--color-surface-3)]">
               {viewMode === "severity" && (
                 <>
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: SEVERITY_COLORS.critical }} />
                     Critical: {run.severity.critical}
                   </div>
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: SEVERITY_COLORS.high }} />
                     High: {run.severity.high}
                   </div>
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: SEVERITY_COLORS.medium }} />
                     Medium: {run.severity.medium}
                   </div>
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: SEVERITY_COLORS.low }} />
                     Low: {run.severity.low}
                   </div>
@@ -507,19 +507,19 @@ export default function FindingTrendChart() {
               )}
               {viewMode === "category" && (
                 <>
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: CATEGORY_COLORS.security }} />
                     Security: {run.category.security}
                   </div>
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: CATEGORY_COLORS.performance }} />
                     Performance: {run.category.performance}
                   </div>
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: CATEGORY_COLORS.accessibility }} />
                     Accessibility: {run.category.accessibility}
                   </div>
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: CATEGORY_COLORS.compliance }} />
                     Compliance: {run.category.compliance}
                   </div>
@@ -555,7 +555,7 @@ export default function FindingTrendChart() {
         {items.map((item) => (
           <div key={item.label} className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: item.color }} />
-            <span className="text-gray-400 text-sm">{item.label}</span>
+            <span className="text-[var(--color-text-secondary)] text-sm">{item.label}</span>
           </div>
         ))}
       </div>
@@ -563,28 +563,28 @@ export default function FindingTrendChart() {
   };
 
   return (
-    <div className="bg-gray-900 rounded-xl p-6 border border-zinc-700">
+    <div className="bg-[var(--color-surface-1)] rounded-xl p-6 border border-[var(--color-border)]">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-100 flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-indigo-400" />
             Finding Trend Analysis
           </h2>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">
             Discovery run findings over time with severity breakdown
           </p>
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <div className="flex bg-gray-800 rounded-lg p-1 border border-zinc-700">
+          <div className="flex bg-[var(--color-surface-2)] rounded-lg p-1 border border-[var(--color-border)]">
             {(["total", "severity", "category"] as ViewMode[]).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150 ${
                   viewMode === mode
-                    ? "bg-indigo-600 text-white"
-                    : "text-gray-400 hover:text-gray-200 hover:bg-gray-700"
+                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
                 }`}
               >
                 {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -592,15 +592,15 @@ export default function FindingTrendChart() {
             ))}
           </div>
 
-          <div className="flex bg-gray-800 rounded-lg p-1 border border-zinc-700">
+          <div className="flex bg-[var(--color-surface-2)] rounded-lg p-1 border border-[var(--color-border)]">
             {([7, 14, 30, 90] as TimeRange[]).map((range) => (
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150 ${
                   timeRange === range
-                    ? "bg-indigo-600 text-white"
-                    : "text-gray-400 hover:text-gray-200 hover:bg-gray-700"
+                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
                 }`}
               >
                 {range}d
@@ -620,36 +620,36 @@ export default function FindingTrendChart() {
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-gray-800/50 rounded-lg p-4 border border-zinc-700">
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
+        <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-4 border border-[var(--color-border)]">
+          <div className="flex items-center gap-2 text-[var(--color-text-secondary)] text-sm mb-1">
             <Activity className="w-4 h-4" />
             Avg Findings/Run
           </div>
-          <div className="text-2xl font-bold text-gray-100">{stats.avg}</div>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">{stats.avg}</div>
         </div>
 
-        <div className="bg-gray-800/50 rounded-lg p-4 border border-zinc-700">
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
+        <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-4 border border-[var(--color-border)]">
+          <div className="flex items-center gap-2 text-[var(--color-text-secondary)] text-sm mb-1">
             <Target className="w-4 h-4" />
             Peak Run
           </div>
-          <div className="text-2xl font-bold text-gray-100">
-            {stats.peak} <span className="text-sm font-normal text-gray-500">({stats.peakRun})</span>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">
+            {stats.peak} <span className="text-sm font-normal text-[var(--color-text-muted)]">({stats.peakRun})</span>
           </div>
         </div>
 
-        <div className="bg-gray-800/50 rounded-lg p-4 border border-zinc-700">
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
+        <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-4 border border-[var(--color-border)]">
+          <div className="flex items-center gap-2 text-[var(--color-text-secondary)] text-sm mb-1">
             <TrendingDown className="w-4 h-4" />
             Lowest Run
           </div>
-          <div className="text-2xl font-bold text-gray-100">
-            {stats.lowest} <span className="text-sm font-normal text-gray-500">({stats.lowestRun})</span>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">
+            {stats.lowest} <span className="text-sm font-normal text-[var(--color-text-muted)]">({stats.lowestRun})</span>
           </div>
         </div>
 
-        <div className="bg-gray-800/50 rounded-lg p-4 border border-zinc-700">
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
+        <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-4 border border-[var(--color-border)]">
+          <div className="flex items-center gap-2 text-[var(--color-text-secondary)] text-sm mb-1">
             {stats.trendDirection === "up" ? (
               <TrendingUp className="w-4 h-4" />
             ) : stats.trendDirection === "down" ? (
@@ -666,7 +666,7 @@ export default function FindingTrendChart() {
                   ? "text-red-400"
                   : stats.trendDirection === "down"
                   ? "text-green-400"
-                  : "text-gray-400"
+                  : "text-[var(--color-text-secondary)]"
               }`}
             >
               {stats.trendChange}%
@@ -676,13 +676,13 @@ export default function FindingTrendChart() {
             ) : stats.trendDirection === "down" ? (
               <TrendingDown className="w-5 h-5 text-green-400" />
             ) : (
-              <Minus className="w-5 h-5 text-gray-400" />
+              <Minus className="w-5 h-5 text-[var(--color-text-secondary)]" />
             )}
           </div>
         </div>
       </div>
 
-      <div className="bg-gray-800/30 rounded-lg p-4 border border-zinc-700">
+      <div className="bg-[var(--color-surface-2)]/30 rounded-lg p-4 border border-[var(--color-border)]">
         <svg
           width="100%"
           height={chartDimensions.height}
@@ -708,7 +708,7 @@ export default function FindingTrendChart() {
         {renderLegend()}
       </div>
 
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
+      <div className="mt-4 flex items-center justify-between text-sm text-[var(--color-text-muted)]">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4" />
           <span>

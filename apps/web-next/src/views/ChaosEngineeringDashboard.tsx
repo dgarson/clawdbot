@@ -429,7 +429,7 @@ function statusColor(status: ExperimentStatus): string {
     case "paused":    return "text-amber-400 bg-amber-500/10 border-amber-500/30";
     case "completed": return "text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
     case "failed":    return "text-rose-400 bg-rose-500/10 border-rose-500/30";
-    default:          return "text-zinc-400 bg-zinc-800 border-zinc-700";
+    default:          return "text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] border-[var(--color-border)]";
   }
 }
 
@@ -438,7 +438,7 @@ function severityBadge(severity: Severity): string {
     case "critical": return "text-rose-400 bg-rose-500/10 border-rose-500/30";
     case "high":     return "text-amber-400 bg-amber-500/10 border-amber-500/30";
     case "medium":   return "text-yellow-400 bg-yellow-500/10 border-yellow-500/30";
-    default:         return "text-zinc-400 bg-zinc-800 border-zinc-700";
+    default:         return "text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] border-[var(--color-border)]";
   }
 }
 
@@ -447,7 +447,7 @@ function severityText(severity: Severity): string {
     case "critical": return "text-rose-400";
     case "high":     return "text-amber-400";
     case "medium":   return "text-yellow-400";
-    default:         return "text-zinc-400";
+    default:         return "text-[var(--color-text-secondary)]";
   }
 }
 
@@ -492,13 +492,13 @@ export default function ChaosEngineeringDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* ── Header ── */}
-      <div className="border-b border-zinc-800 px-6 py-4">
+      <div className="border-b border-[var(--color-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-white">Chaos Engineering</h1>
-            <p className="text-sm text-zinc-400 mt-0.5">
+            <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">Chaos Engineering</h1>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
               Controlled failure injection to build system resilience
             </p>
           </div>
@@ -522,8 +522,8 @@ export default function ChaosEngineeringDashboard() {
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2",
                 activeTab === tab.id
-                  ? "bg-zinc-800 text-white"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
+                  ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]"
               )}
             >
               {tab.label}
@@ -531,8 +531,8 @@ export default function ChaosEngineeringDashboard() {
                 className={cn(
                   "text-xs px-1.5 py-0.5 rounded-full",
                   activeTab === tab.id
-                    ? "bg-zinc-700 text-zinc-200"
-                    : "bg-zinc-900 text-zinc-500"
+                    ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+                    : "bg-[var(--color-surface-1)] text-[var(--color-text-muted)]"
                 )}
               >
                 {tab.count}
@@ -579,16 +579,16 @@ function ExperimentsTab({
             key={exp.id}
             onClick={() => onSelect(selected?.id === exp.id ? null : exp)}
             className={cn(
-              "w-full text-left bg-zinc-900 border rounded-xl p-4 transition-all",
+              "w-full text-left bg-[var(--color-surface-1)] border rounded-xl p-4 transition-all",
               selected?.id === exp.id
                 ? "border-indigo-500/50 ring-1 ring-indigo-500/20"
-                : "border-zinc-800 hover:border-zinc-700"
+                : "border-[var(--color-border)] hover:border-[var(--color-border)]"
             )}
           >
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-white text-sm">{exp.name}</span>
+                  <span className="font-medium text-[var(--color-text-primary)] text-sm">{exp.name}</span>
                   <span
                     className={cn(
                       "text-xs px-2 py-0.5 rounded-full border font-medium capitalize",
@@ -598,14 +598,14 @@ function ExperimentsTab({
                     {exp.status}
                   </span>
                 </div>
-                <div className="flex items-center gap-4 mt-1.5 text-xs text-zinc-500 flex-wrap">
-                  <span>Type: <span className="text-zinc-400">{exp.type}</span></span>
-                  <span>Target: <span className="text-zinc-400">{exp.targetService}</span></span>
-                  <span>Blast radius: <span className="text-zinc-400">{exp.blastRadius}</span></span>
-                  <span>Last run: <span className="text-zinc-400">{exp.lastRun}</span></span>
+                <div className="flex items-center gap-4 mt-1.5 text-xs text-[var(--color-text-muted)] flex-wrap">
+                  <span>Type: <span className="text-[var(--color-text-secondary)]">{exp.type}</span></span>
+                  <span>Target: <span className="text-[var(--color-text-secondary)]">{exp.targetService}</span></span>
+                  <span>Blast radius: <span className="text-[var(--color-text-secondary)]">{exp.blastRadius}</span></span>
+                  <span>Last run: <span className="text-[var(--color-text-secondary)]">{exp.lastRun}</span></span>
                 </div>
               </div>
-              <span className="text-zinc-600 text-sm shrink-0">›</span>
+              <span className="text-[var(--color-text-muted)] text-sm shrink-0">›</span>
             </div>
           </button>
         ))}
@@ -613,15 +613,15 @@ function ExperimentsTab({
 
       {/* Detail Panel */}
       {selected && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-5 h-fit sticky top-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 space-y-5 h-fit sticky top-4">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h2 className="font-semibold text-white leading-snug">{selected.name}</h2>
-              <p className="text-xs text-zinc-600 mt-0.5 font-mono">{selected.id}</p>
+              <h2 className="font-semibold text-[var(--color-text-primary)] leading-snug">{selected.name}</h2>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5 font-mono">{selected.id}</p>
             </div>
             <button
               onClick={() => onSelect(null)}
-              className="text-zinc-600 hover:text-zinc-300 text-xl leading-none transition-colors"
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xl leading-none transition-colors"
             >
               ×
             </button>
@@ -632,25 +632,25 @@ function ExperimentsTab({
             <span className={cn("text-xs px-2 py-0.5 rounded-full border font-medium capitalize", statusColor(selected.status))}>
               {selected.status}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400 bg-zinc-800">
+            <span className="text-xs px-2 py-0.5 rounded-full border border-[var(--color-border)] text-[var(--color-text-secondary)] bg-[var(--color-surface-2)]">
               {selected.type}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full border border-zinc-700 text-zinc-400 bg-zinc-800">
+            <span className="text-xs px-2 py-0.5 rounded-full border border-[var(--color-border)] text-[var(--color-text-secondary)] bg-[var(--color-surface-2)]">
               Blast {selected.blastRadius}
             </span>
           </div>
 
           {/* Hypothesis */}
           <div>
-            <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1.5">
+            <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
               Hypothesis
             </p>
-            <p className="text-sm text-zinc-300 leading-relaxed">{selected.hypothesis}</p>
+            <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{selected.hypothesis}</p>
           </div>
 
           {/* Steady State */}
           <div>
-            <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
+            <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
               Steady State Verifications
             </p>
             <div className="space-y-2">
@@ -667,8 +667,8 @@ function ExperimentsTab({
                   <span
                     className={cn(
                       chk.passed
-                        ? "text-zinc-300"
-                        : "text-zinc-500 line-through decoration-rose-500/40"
+                        ? "text-[var(--color-text-primary)]"
+                        : "text-[var(--color-text-muted)] line-through decoration-rose-500/40"
                     )}
                   >
                     {chk.check}
@@ -680,13 +680,13 @@ function ExperimentsTab({
 
           {/* Rollback */}
           <div>
-            <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
+            <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
               Rollback Steps
             </p>
             <ol className="space-y-1.5">
               {selected.rollbackSteps.map((step, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-sm text-zinc-400">
-                  <span className="text-zinc-600 shrink-0 tabular-nums w-4">{i + 1}.</span>
+                <li key={i} className="flex items-start gap-2.5 text-sm text-[var(--color-text-secondary)]">
+                  <span className="text-[var(--color-text-muted)] shrink-0 tabular-nums w-4">{i + 1}.</span>
                   <span>{step}</span>
                 </li>
               ))}
@@ -698,7 +698,7 @@ function ExperimentsTab({
             <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 transition-colors px-4 py-2.5 rounded-lg text-sm font-medium">
               Run Experiment
             </button>
-            <button className="px-4 py-2.5 rounded-lg text-sm font-medium bg-zinc-800 hover:bg-zinc-700 transition-colors text-zinc-300">
+            <button className="px-4 py-2.5 rounded-lg text-sm font-medium bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] transition-colors text-[var(--color-text-primary)]">
               Edit
             </button>
           </div>
@@ -713,8 +713,8 @@ function ExperimentsTab({
 function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
   if (runs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-zinc-500">
-        <p className="text-lg font-medium text-zinc-400">No active runs</p>
+      <div className="flex flex-col items-center justify-center py-24 text-[var(--color-text-muted)]">
+        <p className="text-lg font-medium text-[var(--color-text-secondary)]">No active runs</p>
         <p className="text-sm mt-1">All systems nominal. No experiments currently injecting failures.</p>
       </div>
     );
@@ -733,15 +733,15 @@ function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
         ];
 
         return (
-          <div key={run.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <div key={run.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
             {/* Header */}
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="inline-block w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-                  <h3 className="font-semibold text-white">{run.experimentName}</h3>
+                  <h3 className="font-semibold text-[var(--color-text-primary)]">{run.experimentName}</h3>
                 </div>
-                <p className="text-sm text-zinc-400 mt-0.5">{run.injectionType}</p>
+                <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">{run.injectionType}</p>
               </div>
               <div className="flex gap-2 shrink-0">
                 <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 transition-colors">
@@ -755,16 +755,16 @@ function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
 
             {/* Progress */}
             <div className="mb-4">
-              <div className="flex justify-between text-xs text-zinc-500 mb-1.5">
+              <div className="flex justify-between text-xs text-[var(--color-text-muted)] mb-1.5">
                 <span>
                   Remaining:{" "}
-                  <span className="text-zinc-300 font-medium">
+                  <span className="text-[var(--color-text-primary)] font-medium">
                     {formatDuration(run.durationRemaining)}
                   </span>
                 </span>
                 <span>{progress}% elapsed</span>
               </div>
-              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-indigo-500 rounded-full"
                   style={{ width: `${progress}%` }}
@@ -774,18 +774,18 @@ function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
 
             {/* Metric cards */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-4">
-              <div className="bg-zinc-800 rounded-lg p-3">
-                <p className="text-xs text-zinc-500 mb-1">Target Services</p>
-                <p className="text-xs text-zinc-300 font-medium leading-snug">
+              <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                <p className="text-xs text-[var(--color-text-muted)] mb-1">Target Services</p>
+                <p className="text-xs text-[var(--color-text-primary)] font-medium leading-snug">
                   {run.targetServices.join(", ")}
                 </p>
               </div>
-              <div className="bg-zinc-800 rounded-lg p-3">
-                <p className="text-xs text-zinc-500 mb-1">Affected Instances</p>
-                <p className="text-sm text-white font-semibold">{run.affectedPercent}%</p>
+              <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                <p className="text-xs text-[var(--color-text-muted)] mb-1">Affected Instances</p>
+                <p className="text-sm text-[var(--color-text-primary)] font-semibold">{run.affectedPercent}%</p>
               </div>
-              <div className="bg-zinc-800 rounded-lg p-3">
-                <p className="text-xs text-zinc-500 mb-1">Error Rate Δ</p>
+              <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                <p className="text-xs text-[var(--color-text-muted)] mb-1">Error Rate Δ</p>
                 <p
                   className={cn(
                     "text-sm font-semibold",
@@ -799,8 +799,8 @@ function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
                   {run.errorRateDelta > 0 ? "+" : ""}{run.errorRateDelta}%
                 </p>
               </div>
-              <div className="bg-zinc-800 rounded-lg p-3">
-                <p className="text-xs text-zinc-500 mb-1">Latency Δ</p>
+              <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                <p className="text-xs text-[var(--color-text-muted)] mb-1">Latency Δ</p>
                 <p
                   className={cn(
                     "text-sm font-semibold",
@@ -813,8 +813,8 @@ function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
             </div>
 
             {/* Latency bar chart */}
-            <div className="pt-4 border-t border-zinc-800">
-              <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3">
+            <div className="pt-4 border-t border-[var(--color-border)]">
+              <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
                 Latency Impact — Baseline vs. Current
               </p>
               <div className="space-y-2.5">
@@ -824,11 +824,11 @@ function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
                   const currW = Math.min(Math.round((current / row.max) * 100), 100);
                   return (
                     <div key={row.label} className="flex items-center gap-3">
-                      <span className="text-xs text-zinc-500 w-7 shrink-0">{row.label}</span>
-                      <div className="flex-1 h-5 bg-zinc-800 rounded overflow-hidden relative">
+                      <span className="text-xs text-[var(--color-text-muted)] w-7 shrink-0">{row.label}</span>
+                      <div className="flex-1 h-5 bg-[var(--color-surface-2)] rounded overflow-hidden relative">
                         {/* baseline */}
                         <div
-                          className="absolute inset-y-0 left-0 bg-zinc-600 rounded"
+                          className="absolute inset-y-0 left-0 bg-[var(--color-surface-3)] rounded"
                           style={{ width: `${baseW}%` }}
                         />
                         {/* current overlay */}
@@ -840,16 +840,16 @@ function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
                           style={{ width: `${currW}%` }}
                         />
                       </div>
-                      <span className="text-xs text-zinc-400 w-28 text-right shrink-0 tabular-nums">
+                      <span className="text-xs text-[var(--color-text-secondary)] w-28 text-right shrink-0 tabular-nums">
                         {row.baseline}ms → {current}ms
                       </span>
                     </div>
                   );
                 })}
               </div>
-              <div className="flex items-center gap-4 mt-3 text-xs text-zinc-600">
+              <div className="flex items-center gap-4 mt-3 text-xs text-[var(--color-text-muted)]">
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-2.5 rounded bg-zinc-600" /> Baseline
+                  <span className="inline-block w-3 h-2.5 rounded bg-[var(--color-surface-3)]" /> Baseline
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="inline-block w-3 h-2.5 rounded bg-indigo-500/60" /> Current
@@ -889,23 +889,23 @@ function FindingsTab({ findings }: { findings: Finding[] }) {
             key={sev}
             onClick={() => setFilter(filter === sev ? "all" : sev)}
             className={cn(
-              "bg-zinc-900 border rounded-xl p-4 text-left transition-all",
+              "bg-[var(--color-surface-1)] border rounded-xl p-4 text-left transition-all",
               filter === sev
-                ? "border-zinc-600 ring-1 ring-zinc-600"
-                : "border-zinc-800 hover:border-zinc-700"
+                ? "border-[var(--color-surface-3)] ring-1 ring-zinc-600"
+                : "border-[var(--color-border)] hover:border-[var(--color-border)]"
             )}
           >
             <p className={cn("text-3xl font-bold tabular-nums", severityText(sev))}>
               {counts[sev]}
             </p>
-            <p className="text-xs text-zinc-500 mt-1 capitalize">{sev}</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1 capitalize">{sev}</p>
           </button>
         ))}
       </div>
 
       {/* Filter pills */}
       <div className="flex items-center gap-2">
-        <span className="text-xs text-zinc-500">Filter:</span>
+        <span className="text-xs text-[var(--color-text-muted)]">Filter:</span>
         {(["all", ...severities] as (Severity | "all")[]).map((f) => (
           <button
             key={f}
@@ -913,8 +913,8 @@ function FindingsTab({ findings }: { findings: Finding[] }) {
             className={cn(
               "px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize",
               filter === f
-                ? "bg-indigo-600 text-white"
-                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
             )}
           >
             {f === "all" ? "All" : f}
@@ -927,7 +927,7 @@ function FindingsTab({ findings }: { findings: Finding[] }) {
         {filtered.map((finding) => (
           <div
             key={finding.id}
-            className="bg-zinc-900 border border-zinc-800 rounded-xl p-5"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5"
           >
             <div className="flex items-center gap-2 flex-wrap mb-2">
               <span
@@ -947,14 +947,14 @@ function FindingsTab({ findings }: { findings: Finding[] }) {
                 {remediationLabel(finding.remediationStatus)}
               </span>
             </div>
-            <h3 className="font-medium text-white text-sm mb-1.5">{finding.title}</h3>
-            <p className="text-sm text-zinc-400 leading-relaxed">{finding.description}</p>
-            <div className="flex items-center gap-4 mt-3 text-xs text-zinc-500 flex-wrap">
+            <h3 className="font-medium text-[var(--color-text-primary)] text-sm mb-1.5">{finding.title}</h3>
+            <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{finding.description}</p>
+            <div className="flex items-center gap-4 mt-3 text-xs text-[var(--color-text-muted)] flex-wrap">
               <span>
-                Service: <span className="text-zinc-400">{finding.affectedService}</span>
+                Service: <span className="text-[var(--color-text-secondary)]">{finding.affectedService}</span>
               </span>
               <span>
-                Discovered: <span className="text-zinc-400">{finding.discoveryDate}</span>
+                Discovered: <span className="text-[var(--color-text-secondary)]">{finding.discoveryDate}</span>
               </span>
               <span>
                 Experiment:{" "}
@@ -965,7 +965,7 @@ function FindingsTab({ findings }: { findings: Finding[] }) {
         ))}
 
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-zinc-500 text-sm">
+          <div className="text-center py-12 text-[var(--color-text-muted)] text-sm">
             No findings matching this filter.
           </div>
         )}
@@ -980,8 +980,8 @@ function ScheduleTab({ runs }: { runs: ScheduledRun[] }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-400">
-          Next <span className="text-white font-medium">{runs.length}</span> scheduled experiments
+        <p className="text-sm text-[var(--color-text-secondary)]">
+          Next <span className="text-[var(--color-text-primary)] font-medium">{runs.length}</span> scheduled experiments
         </p>
         <button className="bg-indigo-600 hover:bg-indigo-500 transition-colors px-3 py-1.5 rounded-lg text-xs font-medium">
           + Schedule Experiment
@@ -1003,27 +1003,27 @@ function ScheduleTab({ runs }: { runs: ScheduledRun[] }) {
           return (
             <div
               key={run.id}
-              className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-4 hover:border-zinc-700 transition-colors"
+              className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-center gap-4 hover:border-[var(--color-border)] transition-colors"
             >
               {/* Date badge */}
-              <div className="w-14 shrink-0 text-center bg-zinc-800 rounded-lg py-2 px-1">
-                <p className="text-xs text-zinc-500 uppercase tracking-wide">{month}</p>
-                <p className="text-2xl font-bold text-white leading-tight">{day}</p>
-                <p className="text-xs text-zinc-600 uppercase">{weekday}</p>
+              <div className="w-14 shrink-0 text-center bg-[var(--color-surface-2)] rounded-lg py-2 px-1">
+                <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">{month}</p>
+                <p className="text-2xl font-bold text-[var(--color-text-primary)] leading-tight">{day}</p>
+                <p className="text-xs text-[var(--color-text-muted)] uppercase">{weekday}</p>
               </div>
 
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-600 tabular-nums font-mono">
+                  <span className="text-xs text-[var(--color-text-muted)] tabular-nums font-mono">
                     {String(index + 1).padStart(2, "0")}
                   </span>
-                  <h3 className="font-medium text-white text-sm truncate">
+                  <h3 className="font-medium text-[var(--color-text-primary)] text-sm truncate">
                     {run.experimentName}
                   </h3>
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500 flex-wrap">
-                  <span className="text-zinc-400 font-medium">{time} UTC</span>
+                <div className="flex items-center gap-3 mt-1 text-xs text-[var(--color-text-muted)] flex-wrap">
+                  <span className="text-[var(--color-text-secondary)] font-medium">{time} UTC</span>
                   <span>·</span>
                   <span>Est. {run.estimatedDuration}</span>
                 </div>
@@ -1043,11 +1043,11 @@ function ScheduleTab({ runs }: { runs: ScheduledRun[] }) {
                     {run.preApproved ? "Approved" : "Awaiting Approval"}
                   </span>
                 ) : (
-                  <span className="text-xs px-2 py-0.5 rounded-full border font-medium text-zinc-400 bg-zinc-800 border-zinc-700">
+                  <span className="text-xs px-2 py-0.5 rounded-full border font-medium text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] border-[var(--color-border)]">
                     Auto-run
                   </span>
                 )}
-                <button className="text-zinc-700 hover:text-rose-400 transition-colors text-sm">
+                <button className="text-[var(--color-text-muted)] hover:text-rose-400 transition-colors text-sm">
                   ✕
                 </button>
               </div>

@@ -270,7 +270,7 @@ function statusBadge(status: OrgStatus | AccountStatus | Invoice["status"]): str
     case "overdue":
       return "bg-rose-400/15 text-rose-400 border-rose-400/30";
     default:
-      return "bg-zinc-700/40 text-zinc-400 border-zinc-600";
+      return "bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]";
   }
 }
 
@@ -283,9 +283,9 @@ function planBadge(plan: PlanTier): string {
     case "custom":
       return "bg-purple-500/15 text-purple-400 border-purple-500/30";
     case "starter":
-      return "bg-zinc-700/40 text-zinc-300 border-zinc-600";
+      return "bg-[var(--color-surface-3)]/40 text-[var(--color-text-primary)] border-[var(--color-surface-3)]";
     default:
-      return "bg-zinc-700/40 text-zinc-400 border-zinc-600";
+      return "bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]";
   }
 }
 
@@ -296,11 +296,11 @@ function roleBadge(role: UserRole): string {
     case "admin":
       return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30";
     case "member":
-      return "bg-zinc-700/40 text-zinc-300 border-zinc-600";
+      return "bg-[var(--color-surface-3)]/40 text-[var(--color-text-primary)] border-[var(--color-surface-3)]";
     case "viewer":
-      return "bg-zinc-800 text-zinc-500 border-zinc-700";
+      return "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border-[var(--color-border)]";
     default:
-      return "bg-zinc-700/40 text-zinc-400 border-zinc-600";
+      return "bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]";
   }
 }
 
@@ -359,14 +359,14 @@ function ProgressBar({ used, limit, unit }: { used: number; limit: number; unit:
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
-        <span className="text-zinc-400">
+        <span className="text-[var(--color-text-secondary)]">
           {typeof used === "number" && used % 1 !== 0 ? used.toFixed(1) : formatNumber(used)} / {typeof limit === "number" && limit % 1 !== 0 ? limit.toFixed(1) : formatNumber(limit)} {unit}
         </span>
-        <span className={cn("font-medium", pct >= 90 ? "text-rose-400" : pct >= 70 ? "text-amber-400" : "text-zinc-300")}>
+        <span className={cn("font-medium", pct >= 90 ? "text-rose-400" : pct >= 70 ? "text-amber-400" : "text-[var(--color-text-primary)]")}>
           {pct}%
         </span>
       </div>
-      <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="w-full h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
         <div className={cn("h-full rounded-full transition-all", progressColor(pct))} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -381,7 +381,7 @@ function OrganizationsTab() {
   return (
     <div className="space-y-1">
       {/* Table header */}
-      <div className="grid grid-cols-[2fr_1fr_0.7fr_1fr_0.7fr_0.8fr_1fr] gap-3 px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+      <div className="grid grid-cols-[2fr_1fr_0.7fr_1fr_0.7fr_0.8fr_1fr] gap-3 px-4 py-2.5 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
         <span>Organization</span>
         <span>Plan</span>
         <span>Users</span>
@@ -401,28 +401,28 @@ function OrganizationsTab() {
               onClick={() => setExpandedId(isExpanded ? null : org.id)}
               className={cn(
                 "w-full grid grid-cols-[2fr_1fr_0.7fr_1fr_0.7fr_0.8fr_1fr] gap-3 px-4 py-3 text-sm text-left transition-colors",
-                isExpanded ? "bg-zinc-800/80" : "bg-zinc-900 hover:bg-zinc-800/50"
+                isExpanded ? "bg-[var(--color-surface-2)]/80" : "bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)]/50"
               )}
             >
-              <span className="font-medium text-white flex items-center gap-2">
+              <span className="font-medium text-[var(--color-text-primary)] flex items-center gap-2">
                 <span className="text-base">{isExpanded ? "🔽" : "▶️"}</span>
                 {org.name}
               </span>
               <span><Badge label={org.plan} className={planBadge(org.plan)} /></span>
-              <span className="text-zinc-300">{org.userCount}</span>
-              <span className="text-zinc-300">{org.storageUsedGb} / {org.storageLimitGb} GB</span>
-              <span className="text-zinc-300">{org.agentCount} / {org.agentLimit}</span>
+              <span className="text-[var(--color-text-primary)]">{org.userCount}</span>
+              <span className="text-[var(--color-text-primary)]">{org.storageUsedGb} / {org.storageLimitGb} GB</span>
+              <span className="text-[var(--color-text-primary)]">{org.agentCount} / {org.agentLimit}</span>
               <span><Badge label={org.status} className={statusBadge(org.status)} /></span>
-              <span className="text-zinc-400">{formatDate(org.createdAt)}</span>
+              <span className="text-[var(--color-text-secondary)]">{formatDate(org.createdAt)}</span>
             </button>
 
             {/* Expanded detail */}
             {isExpanded && (
-              <div className="bg-zinc-900/60 border-t border-zinc-800 px-6 py-5 space-y-5">
+              <div className="bg-[var(--color-surface-1)]/60 border-t border-[var(--color-border)] px-6 py-5 space-y-5">
                 <div className="grid grid-cols-3 gap-6">
                   {/* Settings */}
                   <div className="space-y-3">
-                    <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider flex items-center gap-1.5">
                       ⚙️ Settings
                     </h4>
                     <div className="space-y-2 text-sm">
@@ -435,7 +435,7 @@ function OrganizationsTab() {
 
                   {/* Members */}
                   <div className="space-y-3">
-                    <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider flex items-center gap-1.5">
                       👥 Key Members
                     </h4>
                     <div className="space-y-2">
@@ -444,7 +444,7 @@ function OrganizationsTab() {
                         if (!user) {return null;}
                         return (
                           <div key={m.userId} className="flex items-center justify-between text-sm">
-                            <span className="text-zinc-200">{user.name}</span>
+                            <span className="text-[var(--color-text-primary)]">{user.name}</span>
                             <Badge label={m.role} className={roleBadge(m.role)} />
                           </div>
                         );
@@ -454,7 +454,7 @@ function OrganizationsTab() {
 
                   {/* Usage Stats */}
                   <div className="space-y-3">
-                    <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider flex items-center gap-1.5">
                       📈 Usage Stats
                     </h4>
                     <div className="grid grid-cols-2 gap-3">
@@ -467,7 +467,7 @@ function OrganizationsTab() {
                 </div>
 
                 {/* Domain */}
-                <div className="flex items-center gap-2 text-xs text-zinc-500 pt-2 border-t border-zinc-800">
+                <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] pt-2 border-t border-[var(--color-border)]">
                   <span>🌐</span>
                   <span>{org.domain}</span>
                   <span className="mx-2">•</span>
@@ -485,8 +485,8 @@ function OrganizationsTab() {
 function SettingRow({ label, enabled }: { label: string; enabled: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-zinc-300">{label}</span>
-      <span className={cn("text-xs font-medium", enabled ? "text-emerald-400" : "text-zinc-600")}>
+      <span className="text-[var(--color-text-primary)]">{label}</span>
+      <span className={cn("text-xs font-medium", enabled ? "text-emerald-400" : "text-[var(--color-text-muted)]")}>
         {enabled ? "✅ On" : "⛔ Off"}
       </span>
     </div>
@@ -495,9 +495,9 @@ function SettingRow({ label, enabled }: { label: string; enabled: boolean }) {
 
 function StatCard({ label, value, warn = false }: { label: string; value: string; warn?: boolean }) {
   return (
-    <div className="bg-zinc-800/60 rounded-md px-3 py-2">
-      <div className="text-xs text-zinc-500">{label}</div>
-      <div className={cn("text-sm font-semibold", warn ? "text-rose-400" : "text-white")}>{value}</div>
+    <div className="bg-[var(--color-surface-2)]/60 rounded-md px-3 py-2">
+      <div className="text-xs text-[var(--color-text-muted)]">{label}</div>
+      <div className={cn("text-sm font-semibold", warn ? "text-rose-400" : "text-[var(--color-text-primary)]")}>{value}</div>
     </div>
   );
 }
@@ -534,7 +534,7 @@ function UsersTab() {
       {/* Toolbar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-500 mr-1">Filter:</span>
+          <span className="text-xs text-[var(--color-text-muted)] mr-1">Filter:</span>
           {(["all", "active", "suspended", "invited"] as const).map((f) => (
             <button
               key={f}
@@ -544,7 +544,7 @@ function UsersTab() {
                 "px-3 py-1 text-xs rounded-md border transition-colors",
                 statusFilter === f
                   ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/40"
-                  : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700"
+                  : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)]"
               )}
             >
               {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
@@ -554,7 +554,7 @@ function UsersTab() {
 
         {selectedIds.size > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-400">{selectedIds.size} selected</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">{selectedIds.size} selected</span>
             <BulkButton label="🚫 Suspend" className="text-rose-400 border-rose-400/30 hover:bg-rose-400/10" />
             <BulkButton label="✅ Enable" className="text-emerald-400 border-emerald-400/30 hover:bg-emerald-400/10" />
             <BulkButton label="🔑 Reset Password" className="text-amber-400 border-amber-400/30 hover:bg-amber-400/10" />
@@ -564,13 +564,13 @@ function UsersTab() {
 
       {/* Table */}
       <div>
-        <div className="grid grid-cols-[2rem_1.5fr_2fr_1fr_0.8fr_0.7fr_0.6fr_0.8fr] gap-3 px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+        <div className="grid grid-cols-[2rem_1.5fr_2fr_1fr_0.8fr_0.7fr_0.6fr_0.8fr] gap-3 px-4 py-2.5 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
           <span>
             <input
               type="checkbox"
               checked={allSelected}
               onChange={toggleAll}
-              className="rounded border-zinc-600 bg-zinc-800 accent-indigo-500"
+              className="rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] accent-indigo-500"
             />
           </span>
           <span>Name</span>
@@ -586,8 +586,8 @@ function UsersTab() {
           <div
             key={user.id}
             className={cn(
-              "grid grid-cols-[2rem_1.5fr_2fr_1fr_0.8fr_0.7fr_0.6fr_0.8fr] gap-3 px-4 py-3 text-sm border-t border-zinc-800/50 transition-colors",
-              selectedIds.has(user.id) ? "bg-indigo-500/5" : "hover:bg-zinc-800/30"
+              "grid grid-cols-[2rem_1.5fr_2fr_1fr_0.8fr_0.7fr_0.6fr_0.8fr] gap-3 px-4 py-3 text-sm border-t border-[var(--color-border)]/50 transition-colors",
+              selectedIds.has(user.id) ? "bg-indigo-500/5" : "hover:bg-[var(--color-surface-2)]/30"
             )}
           >
             <span>
@@ -595,15 +595,15 @@ function UsersTab() {
                 type="checkbox"
                 checked={selectedIds.has(user.id)}
                 onChange={() => toggleUser(user.id)}
-                className="rounded border-zinc-600 bg-zinc-800 accent-indigo-500"
+                className="rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] accent-indigo-500"
               />
             </span>
-            <span className="text-white font-medium">{user.name}</span>
-            <span className="text-zinc-400 truncate">{user.email}</span>
-            <span className="text-zinc-300 truncate">{user.orgName}</span>
+            <span className="text-[var(--color-text-primary)] font-medium">{user.name}</span>
+            <span className="text-[var(--color-text-secondary)] truncate">{user.email}</span>
+            <span className="text-[var(--color-text-primary)] truncate">{user.orgName}</span>
             <span><Badge label={user.role} className={roleBadge(user.role)} /></span>
-            <span className="text-zinc-400 text-xs leading-6">{formatLoginTime(user.lastLogin)}</span>
-            <span className={cn("text-xs leading-6", user.mfaEnabled ? "text-emerald-400" : "text-zinc-600")}>
+            <span className="text-[var(--color-text-secondary)] text-xs leading-6">{formatLoginTime(user.lastLogin)}</span>
+            <span className={cn("text-xs leading-6", user.mfaEnabled ? "text-emerald-400" : "text-[var(--color-text-muted)]")}>
               {user.mfaEnabled ? "🔒 On" : "🔓 Off"}
             </span>
             <span><Badge label={user.status} className={statusBadge(user.status)} /></span>
@@ -611,7 +611,7 @@ function UsersTab() {
         ))}
       </div>
 
-      <div className="text-xs text-zinc-600 px-4">
+      <div className="text-xs text-[var(--color-text-muted)] px-4">
         Showing {filteredUsers.length} of {USERS.length} users
       </div>
     </div>
@@ -637,11 +637,11 @@ function QuotasTab() {
       {QUOTAS.map((q) => {
         const org = ORGANIZATIONS.find((o) => o.id === q.orgId);
         return (
-          <div key={q.orgId} className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-4">
+          <div key={q.orgId} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="text-lg">🏢</span>
-                <h3 className="text-white font-semibold">{q.orgName}</h3>
+                <h3 className="text-[var(--color-text-primary)] font-semibold">{q.orgName}</h3>
                 {org && <Badge label={org.plan} className={planBadge(org.plan)} />}
               </div>
               {org && <Badge label={org.status} className={statusBadge(org.status)} />}
@@ -649,19 +649,19 @@ function QuotasTab() {
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
               <div className="space-y-1">
-                <div className="text-xs font-medium text-zinc-400 flex items-center gap-1">📡 API Calls (monthly)</div>
+                <div className="text-xs font-medium text-[var(--color-text-secondary)] flex items-center gap-1">📡 API Calls (monthly)</div>
                 <ProgressBar used={q.apiCalls.used} limit={q.apiCalls.limit} unit="calls" />
               </div>
               <div className="space-y-1">
-                <div className="text-xs font-medium text-zinc-400 flex items-center gap-1">💾 Storage</div>
+                <div className="text-xs font-medium text-[var(--color-text-secondary)] flex items-center gap-1">💾 Storage</div>
                 <ProgressBar used={q.storage.usedGb} limit={q.storage.limitGb} unit="GB" />
               </div>
               <div className="space-y-1">
-                <div className="text-xs font-medium text-zinc-400 flex items-center gap-1">🤖 Agents</div>
+                <div className="text-xs font-medium text-[var(--color-text-secondary)] flex items-center gap-1">🤖 Agents</div>
                 <ProgressBar used={q.agents.used} limit={q.agents.limit} unit="agents" />
               </div>
               <div className="space-y-1">
-                <div className="text-xs font-medium text-zinc-400 flex items-center gap-1">🧠 Model Tokens</div>
+                <div className="text-xs font-medium text-[var(--color-text-secondary)] flex items-center gap-1">🧠 Model Tokens</div>
                 <ProgressBar used={q.modelTokens.usedM} limit={q.modelTokens.limitM} unit="M tokens" />
               </div>
             </div>
@@ -682,66 +682,66 @@ function BillingTab() {
       {BILLING.map((b) => {
         const isExpanded = expandedOrg === b.orgId;
         return (
-          <div key={b.orgId} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div key={b.orgId} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
             {/* Summary row */}
             <button
               type="button"
               onClick={() => setExpandedOrg(isExpanded ? null : b.orgId)}
-              className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-zinc-800/30 transition-colors"
+              className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-[var(--color-surface-2)]/30 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="text-base">{isExpanded ? "🔽" : "▶️"}</span>
-                <span className="text-white font-semibold">{b.orgName}</span>
+                <span className="text-[var(--color-text-primary)] font-semibold">{b.orgName}</span>
                 <Badge label={b.plan} className={planBadge(b.plan)} />
               </div>
               <div className="flex items-center gap-6 text-sm">
                 <div className="text-right">
-                  <div className="text-xs text-zinc-500">Monthly</div>
-                  <div className="text-white font-semibold">{formatCurrency(b.monthlySpend)}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Monthly</div>
+                  <div className="text-[var(--color-text-primary)] font-semibold">{formatCurrency(b.monthlySpend)}</div>
                 </div>
                 {b.overages > 0 && (
                   <div className="text-right">
-                    <div className="text-xs text-zinc-500">Overages</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Overages</div>
                     <div className="text-amber-400 font-semibold">+{formatCurrency(b.overages)}</div>
                   </div>
                 )}
                 <div className="text-right">
-                  <div className="text-xs text-zinc-500">Renewal</div>
-                  <div className="text-zinc-300">{formatDate(b.nextRenewal)}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">Renewal</div>
+                  <div className="text-[var(--color-text-primary)]">{formatDate(b.nextRenewal)}</div>
                 </div>
               </div>
             </button>
 
             {/* Invoice history */}
             {isExpanded && (
-              <div className="border-t border-zinc-800 px-5 py-4 space-y-3">
-                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+              <div className="border-t border-[var(--color-border)] px-5 py-4 space-y-3">
+                <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider flex items-center gap-1.5">
                   🧾 Invoice History
                 </h4>
                 <div>
-                  <div className="grid grid-cols-[1fr_1.5fr_1fr_1fr] gap-3 px-3 py-2 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                  <div className="grid grid-cols-[1fr_1.5fr_1fr_1fr] gap-3 px-3 py-2 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                     <span>Invoice</span>
                     <span>Date</span>
                     <span>Amount</span>
                     <span>Status</span>
                   </div>
                   {b.invoices.map((inv) => (
-                    <div key={inv.id} className="grid grid-cols-[1fr_1.5fr_1fr_1fr] gap-3 px-3 py-2.5 text-sm border-t border-zinc-800/50">
-                      <span className="text-zinc-300 font-mono text-xs">{inv.id}</span>
-                      <span className="text-zinc-400">{formatDate(inv.date)}</span>
-                      <span className="text-white font-medium">{formatCurrency(inv.amount)}</span>
+                    <div key={inv.id} className="grid grid-cols-[1fr_1.5fr_1fr_1fr] gap-3 px-3 py-2.5 text-sm border-t border-[var(--color-border)]/50">
+                      <span className="text-[var(--color-text-primary)] font-mono text-xs">{inv.id}</span>
+                      <span className="text-[var(--color-text-secondary)]">{formatDate(inv.date)}</span>
+                      <span className="text-[var(--color-text-primary)] font-medium">{formatCurrency(inv.amount)}</span>
                       <span><Badge label={inv.status} className={statusBadge(inv.status)} /></span>
                     </div>
                   ))}
                 </div>
 
                 {/* Totals summary */}
-                <div className="flex items-center gap-6 pt-3 border-t border-zinc-800">
-                  <div className="text-xs text-zinc-500">
-                    Total invoiced: <span className="text-white font-medium">{formatCurrency(b.invoices.reduce((sum, i) => sum + i.amount, 0))}</span>
+                <div className="flex items-center gap-6 pt-3 border-t border-[var(--color-border)]">
+                  <div className="text-xs text-[var(--color-text-muted)]">
+                    Total invoiced: <span className="text-[var(--color-text-primary)] font-medium">{formatCurrency(b.invoices.reduce((sum, i) => sum + i.amount, 0))}</span>
                   </div>
-                  <div className="text-xs text-zinc-500">
-                    Next charge: <span className="text-white font-medium">{formatCurrency(b.monthlySpend + b.overages)}</span> on {formatDate(b.nextRenewal)}
+                  <div className="text-xs text-[var(--color-text-muted)]">
+                    Next charge: <span className="text-[var(--color-text-primary)] font-medium">{formatCurrency(b.monthlySpend + b.overages)}</span> on {formatDate(b.nextRenewal)}
                   </div>
                 </div>
               </div>
@@ -751,10 +751,10 @@ function BillingTab() {
       })}
 
       {/* Total summary card */}
-      <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg px-5 py-4">
+      <div className="bg-[var(--color-surface-2)]/50 border border-[var(--color-border)] rounded-lg px-5 py-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-400">💰 Platform Total Monthly Revenue</span>
-          <span className="text-xl font-bold text-white">
+          <span className="text-sm text-[var(--color-text-secondary)]">💰 Platform Total Monthly Revenue</span>
+          <span className="text-xl font-bold text-[var(--color-text-primary)]">
             {formatCurrency(BILLING.reduce((sum, b) => sum + b.monthlySpend + b.overages, 0))}
           </span>
         </div>
@@ -774,20 +774,20 @@ function MultiTenantManager() {
   const suspendedCount = ORGANIZATIONS.filter((o) => o.status === "suspended").length;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="border-b border-zinc-800">
+      <div className="border-b border-[var(--color-border)]">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
                 🏢 Multi-Tenant Manager
               </h1>
-              <p className="text-sm text-zinc-500 mt-1">
+              <p className="text-sm text-[var(--color-text-muted)] mt-1">
                 Manage organizations, users, quotas, and billing across all tenants
               </p>
             </div>
-            <div className="flex items-center gap-1 text-xs text-zinc-600">
+            <div className="flex items-center gap-1 text-xs text-[var(--color-text-muted)]">
               <span>Last synced: just now</span>
             </div>
           </div>
@@ -816,8 +816,8 @@ function MultiTenantManager() {
                 className={cn(
                   "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors border-b-2",
                   activeTab === tab.id
-                    ? "text-white bg-zinc-900 border-indigo-500"
-                    : "text-zinc-500 bg-transparent border-transparent hover:text-zinc-300 hover:bg-zinc-900/50"
+                    ? "text-[var(--color-text-primary)] bg-[var(--color-surface-1)] border-indigo-500"
+                    : "text-[var(--color-text-muted)] bg-transparent border-transparent hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]/50"
                 )}
               >
                 <span className="mr-1.5">{tab.emoji}</span>
@@ -854,15 +854,15 @@ function SummaryCard({
 }) {
   return (
     <div className={cn(
-      "bg-zinc-900 border rounded-lg px-4 py-3",
-      alert ? "border-rose-400/30" : "border-zinc-800"
+      "bg-[var(--color-surface-1)] border rounded-lg px-4 py-3",
+      alert ? "border-rose-400/30" : "border-[var(--color-border)]"
     )}>
       <div className="flex items-center gap-2 mb-1">
         <span className="text-base">{emoji}</span>
-        <span className="text-xs text-zinc-500 font-medium">{label}</span>
+        <span className="text-xs text-[var(--color-text-muted)] font-medium">{label}</span>
       </div>
-      <div className={cn("text-xl font-bold", alert ? "text-rose-400" : "text-white")}>{value}</div>
-      <div className="text-xs text-zinc-600 mt-0.5">{subtext}</div>
+      <div className={cn("text-xl font-bold", alert ? "text-rose-400" : "text-[var(--color-text-primary)]")}>{value}</div>
+      <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{subtext}</div>
     </div>
   );
 }

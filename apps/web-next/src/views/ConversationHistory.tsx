@@ -224,21 +224,21 @@ export default function ConversationHistory() {
   }, [selectedSession]);
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-white font-sans selection:bg-indigo-500/30 overflow-hidden">
+    <div className="flex h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30 overflow-hidden">
       {/* Sidebar */}
       <aside 
-        className="w-[280px] border-r border-zinc-800 flex flex-col bg-zinc-950 z-10"
+        className="w-[280px] border-r border-[var(--color-border)] flex flex-col bg-[var(--color-surface-0)] z-10"
         role="complementary"
         aria-label="Conversation list"
       >
-        <div className="p-4 border-b border-zinc-800 space-y-4">
+        <div className="p-4 border-b border-[var(--color-border)] space-y-4">
           <h1 className="text-lg font-semibold tracking-tight">History</h1>
           
           <div className="relative">
             <input
               type="text"
               placeholder="Search history..."
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-sm text-zinc-300 placeholder:text-zinc-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-all"
+              className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Search conversations"
@@ -253,8 +253,8 @@ export default function ConversationHistory() {
                 className={cn(
                   "px-2 py-0.5 rounded text-[11px] font-medium uppercase tracking-wider transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   filter === f 
-                    ? "bg-indigo-600 text-white" 
-                    : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                    ? "bg-indigo-600 text-[var(--color-text-primary)]" 
+                    : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {f}
@@ -263,9 +263,9 @@ export default function ConversationHistory() {
           </div>
 
           <div className="flex items-center justify-between">
-             <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Sort By</span>
+             <span className="text-[10px] text-[var(--color-text-muted)] font-bold uppercase tracking-widest">Sort By</span>
               <select 
-              className="bg-transparent text-[11px] text-zinc-400 font-medium hover:text-zinc-200 cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 rounded px-1"
+              className="bg-transparent text-[11px] text-[var(--color-text-secondary)] font-medium hover:text-[var(--color-text-primary)] cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 rounded px-1"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "recent" | "messages" | "tokens")}
               aria-label="Sort sessions"
@@ -285,22 +285,22 @@ export default function ConversationHistory() {
               className={cn(
                 "w-full text-left p-3 rounded-lg border transition-all group relative focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                 selectedId === session.id
-                  ? "bg-zinc-900 border-zinc-700 ring-1 ring-zinc-700"
-                  : "bg-transparent border-transparent hover:bg-zinc-900/50"
+                  ? "bg-[var(--color-surface-1)] border-[var(--color-border)] ring-1 ring-[var(--color-border)]"
+                  : "bg-transparent border-transparent hover:bg-[var(--color-surface-1)]/50"
               )}
               aria-selected={selectedId === session.id}
             >
               <div className="flex items-start justify-between mb-1">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-base" role="img" aria-hidden="true">{session.agentEmoji}</span>
-                  <span className="text-xs font-semibold text-zinc-300 truncate">{session.agentName}</span>
+                  <span className="text-xs font-semibold text-[var(--color-text-primary)] truncate">{session.agentName}</span>
                 </div>
                 <StatusDot status={session.status} />
               </div>
-              <h3 className="text-sm font-medium text-white mb-2 line-clamp-1 group-hover:text-indigo-400 transition-colors">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-2 line-clamp-1 group-hover:text-indigo-400 transition-colors">
                 {session.title}
               </h3>
-              <div className="flex items-center justify-between text-[10px] text-zinc-500 font-medium">
+              <div className="flex items-center justify-between text-[10px] text-[var(--color-text-muted)] font-medium">
                 <div className="flex gap-2">
                   <span>{session.messageCount} msgs</span>
                   <span>{Math.round(session.totalTokens / 100) / 10}k tokens</span>
@@ -316,19 +316,19 @@ export default function ConversationHistory() {
       </aside>
 
       {/* Detail Panel */}
-      <main className="flex-1 flex flex-col min-w-0 bg-zinc-950" role="main">
+      <main className="flex-1 flex flex-col min-w-0 bg-[var(--color-surface-0)]" role="main">
         {selectedSession ? (
           <>
             {/* Header */}
-            <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-6 bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-10">
+            <header className="h-16 border-b border-[var(--color-border)] flex items-center justify-between px-6 bg-[var(--color-surface-0)]/80 backdrop-blur-sm sticky top-0 z-10">
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xl shadow-inner">
+                <div className="w-10 h-10 rounded-full bg-[var(--color-surface-1)] border border-[var(--color-border)] flex items-center justify-center text-xl shadow-inner">
                   {selectedSession.agentEmoji}
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-sm font-bold text-white truncate">{selectedSession.title}</h2>
-                  <div className="flex items-center gap-2 text-[11px] text-zinc-500">
-                    <span className="font-semibold text-zinc-400 uppercase tracking-wide">{selectedSession.agentName}</span>
+                  <h2 className="text-sm font-bold text-[var(--color-text-primary)] truncate">{selectedSession.title}</h2>
+                  <div className="flex items-center gap-2 text-[11px] text-[var(--color-text-muted)]">
+                    <span className="font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide">{selectedSession.agentName}</span>
                     <span>•</span>
                     <span>Started {new Date(selectedSession.startedAt).toLocaleString()}</span>
                   </div>
@@ -337,12 +337,12 @@ export default function ConversationHistory() {
 
               <div className="flex items-center gap-3">
                 <div className="hidden md:flex flex-col items-end mr-2">
-                  <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Total Usage</span>
-                  <span className="text-xs font-mono text-zinc-300">{selectedSession.totalTokens.toLocaleString()} tokens</span>
+                  <span className="text-[10px] text-[var(--color-text-muted)] uppercase font-bold tracking-widest">Total Usage</span>
+                  <span className="text-xs font-mono text-[var(--color-text-primary)]">{selectedSession.totalTokens.toLocaleString()} tokens</span>
                 </div>
                 <button
                   onClick={handleExport}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded text-xs font-semibold border border-zinc-700 transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+                  className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-3 py-1.5 rounded text-xs font-semibold border border-[var(--color-border)] transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
                   aria-label="Export session as JSON"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -372,9 +372,9 @@ export default function ConversationHistory() {
                         {msg.toolName}
                       </span>
                     )}
-                    <span className="text-[10px] text-zinc-500 font-mono">{msg.timestamp}</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{msg.timestamp}</span>
                     {msg.tokenCount && (
-                      <span className="text-[10px] text-zinc-600 font-mono">[{msg.tokenCount} tkn]</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)] font-mono">[{msg.tokenCount} tkn]</span>
                     )}
                   </div>
 
@@ -383,12 +383,12 @@ export default function ConversationHistory() {
                     className={cn(
                       "px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm transition-all",
                       msg.role === "user" 
-                        ? "bg-indigo-600 text-white rounded-tr-none" 
+                        ? "bg-indigo-600 text-[var(--color-text-primary)] rounded-tr-none" 
                         : msg.role === "assistant" 
-                        ? "bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-tl-none"
+                        ? "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] border border-[var(--color-border)] rounded-tl-none"
                         : msg.role === "tool"
                         ? "bg-amber-900/10 text-amber-200/90 border border-amber-800/20 rounded-tl-none italic"
-                        : "bg-transparent text-zinc-500 italic text-xs text-center border-y border-zinc-900/50 py-2 w-full"
+                        : "bg-transparent text-[var(--color-text-muted)] italic text-xs text-center border-y border-[var(--color-border)]/50 py-2 w-full"
                     )}
                   >
                     {msg.content}
@@ -399,11 +399,11 @@ export default function ConversationHistory() {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-12 animate-in fade-in zoom-in duration-500">
-            <div className="w-20 h-20 rounded-3xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-4xl mb-6 shadow-2xl">
+            <div className="w-20 h-20 rounded-3xl bg-[var(--color-surface-1)] border border-[var(--color-border)] flex items-center justify-center text-4xl mb-6 shadow-2xl">
               📂
             </div>
-            <h2 className="text-xl font-bold text-white mb-2">Select a conversation</h2>
-            <p className="text-zinc-500 max-w-xs text-sm">
+            <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">Select a conversation</h2>
+            <p className="text-[var(--color-text-muted)] max-w-xs text-sm">
               Review past agent interactions, monitor token usage, and replay session logs from your history.
             </p>
           </div>
@@ -440,7 +440,7 @@ function StatusDot({ status }: { status: SessionStatus }) {
   return (
     <div className="flex items-center gap-1.5">
       <span className={cn("w-1.5 h-1.5 rounded-full", colors[status])} />
-      <span className="text-[9px] uppercase font-black tracking-widest text-zinc-500">{status}</span>
+      <span className="text-[9px] uppercase font-black tracking-widest text-[var(--color-text-muted)]">{status}</span>
     </div>
   );
 }

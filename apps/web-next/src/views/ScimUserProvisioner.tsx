@@ -133,7 +133,7 @@ type Tab = typeof TABS[number];
 
 const statusColor: Record<ProvisionStatus, string> = {
   active:        "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
-  deprovisioned: "text-zinc-400 bg-zinc-400/10 border-zinc-400/30",
+  deprovisioned: "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30",
   pending:       "text-amber-400 bg-amber-400/10 border-amber-400/30",
   failed:        "text-rose-400 bg-rose-400/10 border-rose-400/30",
 };
@@ -141,7 +141,7 @@ const statusColor: Record<ProvisionStatus, string> = {
 const syncStatusColor: Record<SyncStatus, string> = {
   synced:      "text-emerald-400",
   out_of_sync: "text-amber-400",
-  not_mapped:  "text-zinc-400",
+  not_mapped:  "text-[var(--color-text-secondary)]",
   error:       "text-rose-400",
 };
 
@@ -170,18 +170,18 @@ export default function ScimUserProvisioner(): React.ReactElement {
   const unmappedCount = SCIM_USERS.filter(u => u.syncStatus === "not_mapped").length;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div>
           <h1 className="text-lg font-semibold">SCIM User Provisioner</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">Automated user/group provisioning via SCIM 2.0 from identity providers</p>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">Automated user/group provisioning via SCIM 2.0 from identity providers</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex gap-3 text-xs">
             <span className="text-emerald-400">{syncedCount} synced</span>
             <span className="text-amber-400">{outOfSyncCount} out-of-sync</span>
-            <span className="text-zinc-400">{unmappedCount} unmapped</span>
+            <span className="text-[var(--color-text-secondary)]">{unmappedCount} unmapped</span>
           </div>
           <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
             Sync Now
@@ -190,7 +190,7 @@ export default function ScimUserProvisioner(): React.ReactElement {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 px-6 pt-3 border-b border-zinc-800 shrink-0">
+      <div className="flex gap-1 px-6 pt-3 border-b border-[var(--color-border)] shrink-0">
         {TABS.map((t) => (
           <button
             key={t}
@@ -199,7 +199,7 @@ export default function ScimUserProvisioner(): React.ReactElement {
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
                 ? "text-indigo-400 border-indigo-500"
-                : "text-zinc-400 border-transparent hover:text-white"
+                : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}
@@ -212,14 +212,14 @@ export default function ScimUserProvisioner(): React.ReactElement {
         {tab === "Users" && (
           <div className="h-full flex">
             {/* List */}
-            <div className="w-72 border-r border-zinc-800 flex flex-col">
-              <div className="p-3 space-y-2 border-b border-zinc-800">
+            <div className="w-72 border-r border-[var(--color-border)] flex flex-col">
+              <div className="p-3 space-y-2 border-b border-[var(--color-border)]">
                 <input
                   type="text"
                   placeholder="Search users..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-2.5 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
                 />
                 <div className="flex flex-wrap gap-1">
                   {(["all", "active", "deprovisioned", "pending", "failed"] as const).map((s) => (
@@ -228,7 +228,7 @@ export default function ScimUserProvisioner(): React.ReactElement {
                       onClick={() => setStatusFilter(s)}
                       className={cn(
                         "px-1.5 py-0.5 text-[10px] rounded border transition-colors",
-                        statusFilter === s ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-zinc-700 text-zinc-500 hover:border-zinc-600"
+                        statusFilter === s ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       {s}
@@ -236,23 +236,23 @@ export default function ScimUserProvisioner(): React.ReactElement {
                   ))}
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/50">
+              <div className="flex-1 overflow-y-auto divide-y divide-[var(--color-border)]/50">
                 {filteredUsers.map((u) => (
                   <button
                     key={u.id}
                     onClick={() => setSelectedUser(u)}
                     className={cn(
                       "w-full text-left px-4 py-3 transition-colors",
-                      selectedUser.id === u.id ? "bg-indigo-600/10" : "hover:bg-zinc-800/40"
+                      selectedUser.id === u.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/40"
                     )}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-white">{u.firstName} {u.lastName}</span>
+                      <span className="text-xs font-medium text-[var(--color-text-primary)]">{u.firstName} {u.lastName}</span>
                       <span className={cn("text-[10px] px-1 py-0.5 rounded border shrink-0", statusColor[u.status])}>{u.status}</span>
                     </div>
-                    <div className="text-[10px] text-zinc-500 truncate">{u.email}</div>
+                    <div className="text-[10px] text-[var(--color-text-muted)] truncate">{u.email}</div>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-zinc-500">{idpLabel[u.idp]}</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)]">{idpLabel[u.idp]}</span>
                       <span className={cn("text-[10px]", syncStatusColor[u.syncStatus])}>● {u.syncStatus.replace("_", " ")}</span>
                     </div>
                   </button>
@@ -265,12 +265,12 @@ export default function ScimUserProvisioner(): React.ReactElement {
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-lg font-bold">{selectedUser.firstName} {selectedUser.lastName}</h2>
-                  <div className="text-sm text-zinc-400">{selectedUser.title} · {selectedUser.department}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5 font-mono">{selectedUser.email}</div>
+                  <div className="text-sm text-[var(--color-text-secondary)]">{selectedUser.title} · {selectedUser.department}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-0.5 font-mono">{selectedUser.email}</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={cn("text-xs px-2 py-0.5 rounded border", statusColor[selectedUser.status])}>{selectedUser.status}</span>
-                  <button className="px-3 py-1.5 text-xs border border-zinc-700 text-zinc-400 hover:border-zinc-600 rounded-md transition-colors">
+                  <button className="px-3 py-1.5 text-xs border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] rounded-md transition-colors">
                     {selectedUser.status === "active" ? "Deprovision" : "Provision"}
                   </button>
                 </div>
@@ -284,21 +284,21 @@ export default function ScimUserProvisioner(): React.ReactElement {
                   { label: "Sync Status", value: selectedUser.syncStatus.replace("_", " "), color: syncStatusColor[selectedUser.syncStatus] },
                   { label: "Last Sync", value: selectedUser.lastSync ? selectedUser.lastSync.slice(0, 16).replace("T", " ") : "Never" },
                 ].map((m) => (
-                  <div key={m.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500">{m.label}</div>
-                    <div className={cn("text-sm font-medium mt-1", m.color ?? "text-white")}>{m.value}</div>
+                  <div key={m.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)]">{m.label}</div>
+                    <div className={cn("text-sm font-medium mt-1", m.color ?? "text-[var(--color-text-primary)]")}>{m.value}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                <div className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mb-3">Group Memberships</div>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                <div className="text-xs text-[var(--color-text-secondary)] font-semibold uppercase tracking-wider mb-3">Group Memberships</div>
                 <div className="flex flex-wrap gap-2">
                   {selectedUser.groups.length > 0
                     ? selectedUser.groups.map(g => (
-                        <span key={g} className="text-xs px-2 py-1 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">{g}</span>
+                        <span key={g} className="text-xs px-2 py-1 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)]">{g}</span>
                       ))
-                    : <span className="text-xs text-zinc-500">No group memberships</span>
+                    : <span className="text-xs text-[var(--color-text-muted)]">No group memberships</span>
                   }
                 </div>
               </div>
@@ -309,26 +309,26 @@ export default function ScimUserProvisioner(): React.ReactElement {
         {/* ── GROUPS ── */}
         {tab === "Groups" && (
           <div className="h-full overflow-y-auto p-6">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="px-5 py-3 border-b border-zinc-800 flex items-center justify-between">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="px-5 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
                 <h3 className="text-sm font-medium">Synced Groups</h3>
-                <span className="text-xs text-zinc-500">{SCIM_GROUPS.length} groups</span>
+                <span className="text-xs text-[var(--color-text-muted)]">{SCIM_GROUPS.length} groups</span>
               </div>
-              <div className="divide-y divide-zinc-800">
+              <div className="divide-y divide-[var(--color-border)]">
                 {SCIM_GROUPS.map((g) => (
                   <div key={g.id} className="px-5 py-4 flex items-center gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">{g.displayName}</span>
-                        <span className="text-[10px] text-zinc-500">{idpLabel[g.idp]}</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{idpLabel[g.idp]}</span>
                       </div>
-                      <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{g.externalId}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)] font-mono mt-0.5">{g.externalId}</div>
                     </div>
-                    <div className="text-xs text-zinc-400">{g.memberCount} members</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{g.memberCount} members</div>
                     <div className="w-28 text-center">
                       {g.mappedRole
                         ? <span className="text-xs px-2 py-0.5 rounded bg-indigo-600/10 border border-indigo-600/30 text-indigo-300">{g.mappedRole}</span>
-                        : <span className="text-xs text-zinc-500">no role mapped</span>
+                        : <span className="text-xs text-[var(--color-text-muted)]">no role mapped</span>
                       }
                     </div>
                     <span className={cn("text-xs w-20 text-right", syncStatusColor[g.syncStatus])}>
@@ -348,27 +348,27 @@ export default function ScimUserProvisioner(): React.ReactElement {
             <div className="bg-amber-400/10 border border-amber-400/30 rounded-lg p-4 text-xs text-amber-300">
               Attribute mappings define how IdP user attributes map to SCIM user schema fields during provisioning.
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="px-5 py-3 border-b border-zinc-800">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="px-5 py-3 border-b border-[var(--color-border)]">
                 <h3 className="text-sm font-medium">SCIM ↔ IdP Attribute Mappings</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-800">
+                    <tr className="border-b border-[var(--color-border)]">
                       {["SCIM Attribute", "IdP Attribute", "Transform", "Required"].map(h => (
-                        <th key={h} className="px-4 py-2.5 text-left text-xs text-zinc-500 font-medium">{h}</th>
+                        <th key={h} className="px-4 py-2.5 text-left text-xs text-[var(--color-text-muted)] font-medium">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/50">
+                  <tbody className="divide-y divide-[var(--color-border)]/50">
                     {ATTRIBUTE_MAPPINGS.map((m, idx) => (
-                      <tr key={idx} className="hover:bg-zinc-800/30">
+                      <tr key={idx} className="hover:bg-[var(--color-surface-2)]/30">
                         <td className="px-4 py-3 text-xs font-mono text-indigo-300">{m.scimAttribute}</td>
-                        <td className="px-4 py-3 text-xs font-mono text-zinc-300">{m.idpAttribute}</td>
+                        <td className="px-4 py-3 text-xs font-mono text-[var(--color-text-primary)]">{m.idpAttribute}</td>
                         <td className="px-4 py-3 text-xs font-mono text-amber-300">{m.transform ?? "—"}</td>
                         <td className="px-4 py-3">
-                          <span className={cn("text-xs", m.required ? "text-rose-400" : "text-zinc-500")}>{m.required ? "required" : "optional"}</span>
+                          <span className={cn("text-xs", m.required ? "text-rose-400" : "text-[var(--color-text-muted)]")}>{m.required ? "required" : "optional"}</span>
                         </td>
                       </tr>
                     ))}
@@ -383,21 +383,21 @@ export default function ScimUserProvisioner(): React.ReactElement {
         {tab === "Sync Log" && (
           <div className="h-full overflow-y-auto p-6 space-y-3">
             {SYNC_LOGS.map((log) => (
-              <div key={log.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div key={log.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className={cn("w-2 h-2 rounded-full shrink-0", log.status === "success" ? "bg-emerald-400" : log.status === "failed" ? "bg-rose-400" : "bg-zinc-500")} />
+                  <div className={cn("w-2 h-2 rounded-full shrink-0", log.status === "success" ? "bg-emerald-400" : log.status === "failed" ? "bg-rose-400" : "bg-[var(--color-surface-3)]")} />
                   <span className={cn("text-xs font-mono font-bold",
                     log.operation === "create" ? "text-emerald-400" :
                     log.operation === "deactivate" ? "text-rose-400" :
                     log.operation === "full_sync" ? "text-indigo-400" : "text-amber-400"
                   )}>{log.operation.replace("_", " ")}</span>
-                  <span className="text-xs text-zinc-300">{log.entity}</span>
-                  <span className={cn("text-xs ml-auto", log.status === "success" ? "text-emerald-400" : log.status === "failed" ? "text-rose-400" : "text-zinc-500")}>
+                  <span className="text-xs text-[var(--color-text-primary)]">{log.entity}</span>
+                  <span className={cn("text-xs ml-auto", log.status === "success" ? "text-emerald-400" : log.status === "failed" ? "text-rose-400" : "text-[var(--color-text-muted)]")}>
                     {log.status}
                   </span>
-                  <span className="text-xs text-zinc-500 shrink-0">{log.timestamp.slice(0, 16).replace("T", " ")}</span>
+                  <span className="text-xs text-[var(--color-text-muted)] shrink-0">{log.timestamp.slice(0, 16).replace("T", " ")}</span>
                 </div>
-                <p className="text-xs text-zinc-400 leading-relaxed">{log.details}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{log.details}</p>
               </div>
             ))}
           </div>

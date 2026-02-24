@@ -221,7 +221,7 @@ const LANG_CONFIG: Record<SandboxLang, { label: string; color: string; bg: strin
 };
 
 const RUN_STATUS_CONFIG: Record<RunStatus, { label: string; color: string; dot: string }> = {
-  idle: { label: "Idle", color: "text-zinc-400", dot: "bg-zinc-400" },
+  idle: { label: "Idle", color: "text-[var(--color-text-secondary)]", dot: "bg-[var(--color-surface-3)]" },
   running: { label: "Running", color: "text-amber-400", dot: "bg-amber-400 animate-pulse" },
   success: { label: "Success", color: "text-emerald-400", dot: "bg-emerald-400" },
   error: { label: "Error", color: "text-rose-400", dot: "bg-rose-400" },
@@ -294,13 +294,13 @@ export default function SandboxRunner() {
   const avgDuration = runs.filter((r) => r.durationMs > 0).reduce((s, r, _, a) => s + r.durationMs / a.length, 0);
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-zinc-800">
+      <div className="flex-shrink-0 px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h1 className="text-xl font-bold text-white">Sandbox Runner</h1>
-            <p className="text-sm text-zinc-400">Execute code safely in an isolated environment</p>
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Sandbox Runner</h1>
+            <p className="text-sm text-[var(--color-text-secondary)]">Execute code safely in an isolated environment</p>
           </div>
           <div className="flex items-center gap-3">
             {/* Lang selector */}
@@ -313,7 +313,7 @@ export default function SandboxRunner() {
                     onClick={() => setLang(l)}
                     className={cn(
                       "px-2.5 py-1 rounded text-xs border transition-all",
-                      lang === l ? `${lc.bg} ${lc.color} ${lc.border}` : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:text-zinc-300"
+                      lang === l ? `${lc.bg} ${lc.color} ${lc.border}` : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
                     .{lc.mono}
@@ -328,8 +328,8 @@ export default function SandboxRunner() {
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
                 runStatus === "running"
-                  ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-500 text-white"
+                  ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
               )}
             >
               {runStatus === "running" ? (
@@ -343,10 +343,10 @@ export default function SandboxRunner() {
 
         {/* Stats */}
         <div className="flex items-center gap-6 text-sm">
-          <span><span className="text-zinc-500">Runs:</span> <span className="text-white font-medium">{runs.length}</span></span>
-          <span><span className="text-zinc-500">Success:</span> <span className="text-emerald-400 font-medium">{successCount}</span></span>
-          <span><span className="text-zinc-500">Errors:</span> <span className="text-rose-400 font-medium">{errorCount}</span></span>
-          <span><span className="text-zinc-500">Avg duration:</span> <span className="text-indigo-400 font-medium">{Math.round(avgDuration)}ms</span></span>
+          <span><span className="text-[var(--color-text-muted)]">Runs:</span> <span className="text-[var(--color-text-primary)] font-medium">{runs.length}</span></span>
+          <span><span className="text-[var(--color-text-muted)]">Success:</span> <span className="text-emerald-400 font-medium">{successCount}</span></span>
+          <span><span className="text-[var(--color-text-muted)]">Errors:</span> <span className="text-rose-400 font-medium">{errorCount}</span></span>
+          <span><span className="text-[var(--color-text-muted)]">Avg duration:</span> <span className="text-indigo-400 font-medium">{Math.round(avgDuration)}ms</span></span>
           <div className="flex items-center gap-1.5 ml-auto">
             <span className={cn("w-2 h-2 rounded-full", RUN_STATUS_CONFIG[runStatus].dot)} />
             <span className={cn("text-xs", RUN_STATUS_CONFIG[runStatus].color)}>{RUN_STATUS_CONFIG[runStatus].label}</span>
@@ -356,18 +356,18 @@ export default function SandboxRunner() {
 
       <div className="flex-1 overflow-hidden flex">
         {/* Left: code editor + output */}
-        <div className="flex-1 flex flex-col overflow-hidden border-r border-zinc-800">
+        <div className="flex-1 flex flex-col overflow-hidden border-r border-[var(--color-border)]">
           {/* Code editor */}
           <div className="flex-1 overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-4 py-2 bg-zinc-900/50 border-b border-zinc-800">
+            <div className="flex items-center justify-between px-4 py-2 bg-[var(--color-surface-1)]/50 border-b border-[var(--color-border)]">
               <div className="flex items-center gap-2">
                 <span className={cn("text-xs font-medium", LANG_CONFIG[lang].color)}>{LANG_CONFIG[lang].label}</span>
-                <span className="text-zinc-700">·</span>
-                <span className="text-xs text-zinc-500">{code.split("\n").length} lines</span>
+                <span className="text-[var(--color-text-muted)]">·</span>
+                <span className="text-xs text-[var(--color-text-muted)]">{code.split("\n").length} lines</span>
               </div>
               <button
                 onClick={() => setCode("")}
-                className="text-xs text-zinc-600 hover:text-zinc-400"
+                className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
               >
                 Clear
               </button>
@@ -376,14 +376,14 @@ export default function SandboxRunner() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               spellCheck={false}
-              className="flex-1 bg-zinc-950 text-zinc-200 font-mono text-xs p-4 resize-none outline-none leading-relaxed"
+              className="flex-1 bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-mono text-xs p-4 resize-none outline-none leading-relaxed"
               style={{ tabSize: 2 }}
             />
           </div>
 
           {/* Output panel */}
-          <div className="flex-shrink-0 h-48 border-t border-zinc-800 flex flex-col">
-            <div className="flex items-center gap-0 px-4 bg-zinc-900/50 border-b border-zinc-800">
+          <div className="flex-shrink-0 h-48 border-t border-[var(--color-border)] flex flex-col">
+            <div className="flex items-center gap-0 px-4 bg-[var(--color-surface-1)]/50 border-b border-[var(--color-border)]">
               {(["stdout", "stderr"] as const).map((tab) => (
                 <button
                   key={tab}
@@ -391,8 +391,8 @@ export default function SandboxRunner() {
                   className={cn(
                     "px-3 py-2 text-xs border-b-2 -mb-px transition-colors",
                     outputTab === tab
-                      ? "border-indigo-500 text-white"
-                      : "border-transparent text-zinc-500 hover:text-zinc-300"
+                      ? "border-indigo-500 text-[var(--color-text-primary)]"
+                      : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {tab}
@@ -407,9 +407,9 @@ export default function SandboxRunner() {
                     {RUN_STATUS_CONFIG[selectedRun.status].label}
                   </span>
                   {selectedRun.durationMs > 0 && (
-                    <span className="text-zinc-600">{selectedRun.durationMs}ms</span>
+                    <span className="text-[var(--color-text-muted)]">{selectedRun.durationMs}ms</span>
                   )}
-                  <span className="text-zinc-600">exit: {selectedRun.exitCode === -1 ? "…" : selectedRun.exitCode}</span>
+                  <span className="text-[var(--color-text-muted)]">exit: {selectedRun.exitCode === -1 ? "…" : selectedRun.exitCode}</span>
                 </div>
               )}
             </div>
@@ -419,15 +419,15 @@ export default function SandboxRunner() {
                   selectedRun.stdout ? (
                     <pre className="text-emerald-300 whitespace-pre-wrap">{selectedRun.stdout}</pre>
                   ) : (
-                    <span className="text-zinc-600">No output</span>
+                    <span className="text-[var(--color-text-muted)]">No output</span>
                   )
                 ) : selectedRun.stderr ? (
                   <pre className="text-rose-400 whitespace-pre-wrap">{selectedRun.stderr}</pre>
                 ) : (
-                  <span className="text-zinc-600">No stderr</span>
+                  <span className="text-[var(--color-text-muted)]">No stderr</span>
                 )
               ) : (
-                <span className="text-zinc-600">Run code to see output</span>
+                <span className="text-[var(--color-text-muted)]">Run code to see output</span>
               )}
             </div>
           </div>
@@ -436,7 +436,7 @@ export default function SandboxRunner() {
         {/* Right: snippets + history */}
         <div className="flex-shrink-0 w-72 flex flex-col overflow-hidden">
           {/* Tab header */}
-          <div className="flex border-b border-zinc-800 bg-zinc-900/30">
+          <div className="flex border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/30">
             {(["snippets", "history"] as const).map((tab) => (
               <button
                 key={tab}
@@ -444,8 +444,8 @@ export default function SandboxRunner() {
                 className={cn(
                   "flex-1 px-3 py-3 text-xs capitalize border-b-2 -mb-px transition-colors",
                   activePanel === tab
-                    ? "border-indigo-500 text-white"
-                    : "border-transparent text-zinc-500 hover:text-zinc-300"
+                    ? "border-indigo-500 text-[var(--color-text-primary)]"
+                    : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {tab}
@@ -462,18 +462,18 @@ export default function SandboxRunner() {
                     <button
                       key={snippet.id}
                       onClick={() => loadSnippet(snippet)}
-                      className="w-full text-left p-3 rounded-lg border bg-zinc-900 border-zinc-800 hover:border-zinc-600 transition-all"
+                      className="w-full text-left p-3 rounded-lg border bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)] transition-all"
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium text-white">{snippet.name}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{snippet.name}</span>
                         <span className={cn("text-[10px] px-1.5 py-0.5 rounded border", lc.bg, lc.color, lc.border)}>
                           .{lc.mono}
                         </span>
                       </div>
-                      <div className="text-xs text-zinc-400 mb-2">{snippet.description}</div>
+                      <div className="text-xs text-[var(--color-text-secondary)] mb-2">{snippet.description}</div>
                       <div className="flex flex-wrap gap-1">
                         {snippet.tags.map((tag) => (
-                          <span key={tag} className="text-[10px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">
+                          <span key={tag} className="text-[10px] bg-[var(--color-surface-2)] text-[var(--color-text-muted)] px-1.5 py-0.5 rounded">
                             {tag}
                           </span>
                         ))}
@@ -498,7 +498,7 @@ export default function SandboxRunner() {
                         "w-full text-left p-3 rounded-lg border transition-all",
                         isSelected
                           ? "bg-indigo-900/20 border-indigo-600/50"
-                          : "bg-zinc-900 border-zinc-800 hover:border-zinc-600"
+                          : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       <div className="flex items-center justify-between mb-1">
@@ -510,11 +510,11 @@ export default function SandboxRunner() {
                           .{lc.mono}
                         </span>
                       </div>
-                      <div className="text-[10px] text-zinc-500">
+                      <div className="text-[10px] text-[var(--color-text-muted)]">
                         {run.startedAt.slice(11, 19)} · {run.durationMs > 0 ? `${run.durationMs}ms` : "…"}
                       </div>
                       {run.stdout && (
-                        <div className="text-[10px] text-zinc-600 font-mono truncate mt-1">
+                        <div className="text-[10px] text-[var(--color-text-muted)] font-mono truncate mt-1">
                           {run.stdout.split("\n")[0]}
                         </div>
                       )}

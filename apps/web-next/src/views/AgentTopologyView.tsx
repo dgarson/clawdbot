@@ -134,23 +134,23 @@ function DetailPanel({ agent, onClose }: { agent: AgentNode; onClose: () => void
   ];
 
   return (
-    <div className="absolute top-4 right-4 w-64 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="absolute top-4 right-4 w-64 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl shadow-2xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-zinc-800" style={{ borderLeftColor: color, borderLeftWidth: 3 }}>
+      <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]" style={{ borderLeftColor: color, borderLeftWidth: 3 }}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: `${color}22`, border: `2px solid ${color}` }}>
             <span className="text-xs font-bold" style={{ color }}>{agent.name[0]}</span>
           </div>
           <div>
-            <div className="text-sm font-bold text-white">{agent.name}</div>
+            <div className="text-sm font-bold text-[var(--color-text-primary)]">{agent.name}</div>
             <div className="text-[10px] uppercase font-bold" style={{ color }}>{agent.roleType}</div>
           </div>
         </div>
-        <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors text-xs">✕</button>
+        <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors text-xs">✕</button>
       </div>
 
       {/* Status badge */}
-      <div className="px-4 py-2 flex items-center gap-2 border-b border-zinc-800/50">
+      <div className="px-4 py-2 flex items-center gap-2 border-b border-[var(--color-border)]/50">
         <div className="w-2 h-2 rounded-full" style={{ background: ringColor }} />
         <span className="text-xs font-bold uppercase" style={{ color: ringColor }}>{agent.status}</span>
       </div>
@@ -159,8 +159,8 @@ function DetailPanel({ agent, onClose }: { agent: AgentNode; onClose: () => void
       <div className="p-4 flex flex-col gap-2">
         {stats.map((s) => (
           <div key={s.label} className="flex justify-between items-center">
-            <span className="text-[10px] text-zinc-500 uppercase font-bold">{s.label}</span>
-            <span className="text-xs text-zinc-200 font-mono">{s.value}</span>
+            <span className="text-[10px] text-[var(--color-text-muted)] uppercase font-bold">{s.label}</span>
+            <span className="text-xs text-[var(--color-text-primary)] font-mono">{s.value}</span>
           </div>
         ))}
       </div>
@@ -168,8 +168,8 @@ function DetailPanel({ agent, onClose }: { agent: AgentNode; onClose: () => void
       {/* Error rate bar */}
       {agent.errorRate > 0 && (
         <div className="px-4 pb-4">
-          <div className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Error Rate</div>
-          <div className="h-1.5 bg-zinc-950 rounded-full overflow-hidden">
+          <div className="text-[9px] text-[var(--color-text-muted)] uppercase font-bold mb-1">Error Rate</div>
+          <div className="h-1.5 bg-[var(--color-surface-0)] rounded-full overflow-hidden">
             <div
               className="h-full rounded-full"
               style={{ width: `${Math.min(100, agent.errorRate * 5)}%`, background: agent.errorRate > 5 ? "#f43f5e" : "#f59e0b" }}
@@ -345,12 +345,12 @@ export default function AgentTopologyView() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Agent <span className="text-indigo-400">Topology</span></h1>
-          <p className="text-zinc-500 text-xs">Real-time agent network graph — {stats.total} agents</p>
+          <p className="text-[var(--color-text-muted)] text-xs">Real-time agent network graph — {stats.total} agents</p>
         </div>
         <div className="flex items-center gap-6">
           {/* Stats pills */}
@@ -361,7 +361,7 @@ export default function AgentTopologyView() {
           ].map((s) => (
             <div key={s.label} className="flex flex-col items-center">
               <span className={cn("text-lg font-bold font-mono", s.color)}>{s.value}</span>
-              <span className="text-[9px] uppercase font-bold text-zinc-600">{s.label}</span>
+              <span className="text-[9px] uppercase font-bold text-[var(--color-text-muted)]">{s.label}</span>
             </div>
           ))}
 
@@ -372,7 +372,7 @@ export default function AgentTopologyView() {
               "px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all border",
               running
                 ? "bg-indigo-500/10 border-indigo-500 text-indigo-400 hover:bg-indigo-500/20"
-                : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700"
+                : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
             )}
           >
             {running ? "⏸ Pause" : "▶ Run"}
@@ -381,18 +381,18 @@ export default function AgentTopologyView() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 px-6 py-3 border-b border-zinc-800/50 bg-zinc-900/30">
+      <div className="flex items-center gap-3 px-6 py-3 border-b border-[var(--color-border)]/50 bg-[var(--color-surface-1)]/30">
         <input
           type="text"
           placeholder="Search agents..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500 transition-colors w-40 placeholder-zinc-600"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500 transition-colors w-40 placeholder-[var(--color-text-muted)]"
         />
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value as AgentStatus | "all")}
-          className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500 transition-colors"
         >
           <option value="all">All Statuses</option>
           {(["active", "idle", "error", "spawning", "draining"] as AgentStatus[]).map((s) => (
@@ -402,7 +402,7 @@ export default function AgentTopologyView() {
         <select
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value as RoleType | "all")}
-          className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500 transition-colors"
         >
           <option value="all">All Roles</option>
           {(["orchestrator", "gateway", "monitor", "specialist", "worker"] as RoleType[]).map((r) => (
@@ -415,7 +415,7 @@ export default function AgentTopologyView() {
           {(Object.entries(EDGE_COLORS) as [AgentEdge["relationship"], string][]).map(([rel, col]) => (
             <div key={rel} className="flex items-center gap-1.5">
               <div className="w-4 h-0.5 rounded" style={{ background: col, opacity: 0.7 }} />
-              <span className="text-[9px] text-zinc-500 uppercase font-bold">{rel.replace("-", " ")}</span>
+              <span className="text-[9px] text-[var(--color-text-muted)] uppercase font-bold">{rel.replace("-", " ")}</span>
             </div>
           ))}
         </div>
@@ -434,15 +434,15 @@ export default function AgentTopologyView() {
         />
 
         {/* Performance stats overlay */}
-        <div className="absolute top-4 left-4 bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-lg px-3 py-2 flex items-center gap-3">
+        <div className="absolute top-4 left-4 bg-[var(--color-surface-1)]/80 backdrop-blur-sm border border-[var(--color-border)] rounded-lg px-3 py-2 flex items-center gap-3">
           <div className="flex flex-col">
-            <span className="text-[9px] text-zinc-500 uppercase font-bold">FPS</span>
+            <span className="text-[9px] text-[var(--color-text-muted)] uppercase font-bold">FPS</span>
             <span className={cn("text-lg font-bold font-mono", getPerformanceClass(fps))}>{fps}</span>
           </div>
-          <div className="w-px h-8 bg-zinc-700" />
+          <div className="w-px h-8 bg-[var(--color-surface-3)]" />
           <div className="flex flex-col">
-            <span className="text-[9px] text-zinc-500 uppercase font-bold">Zoom</span>
-            <span className="text-sm font-mono text-zinc-300">{Math.round(viewport.zoom * 100)}%</span>
+            <span className="text-[9px] text-[var(--color-text-muted)] uppercase font-bold">Zoom</span>
+            <span className="text-sm font-mono text-[var(--color-text-primary)]">{Math.round(viewport.zoom * 100)}%</span>
           </div>
         </div>
 
@@ -453,7 +453,7 @@ export default function AgentTopologyView() {
 
         {/* Empty state */}
         {physicsNodes.filter((n) => visibleIds.has(n.id)).length === 0 && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-zinc-600">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--color-text-muted)]">
             <span className="text-4xl">🕸️</span>
             <span className="text-sm font-medium">No agents match your filters</span>
             <button
@@ -466,8 +466,8 @@ export default function AgentTopologyView() {
         )}
 
         {/* Role size legend */}
-        <div className="absolute bottom-4 left-4 bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl p-3 flex flex-col gap-2">
-          <span className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Role → Size</span>
+        <div className="absolute bottom-4 left-4 bg-[var(--color-surface-1)]/80 backdrop-blur-sm border border-[var(--color-border)] rounded-xl p-3 flex flex-col gap-2">
+          <span className="text-[9px] text-[var(--color-text-muted)] uppercase font-bold mb-1">Role → Size</span>
           {(Object.entries(ROLE_SIZES) as [RoleType, number][]).map(([role, size]) => (
             <div key={role} className="flex items-center gap-2">
               <div
@@ -479,7 +479,7 @@ export default function AgentTopologyView() {
                   background: `${ROLE_COLORS[role]}22`
                 }}
               />
-              <span className="text-[9px] text-zinc-400 uppercase font-medium">{role}</span>
+              <span className="text-[9px] text-[var(--color-text-secondary)] uppercase font-medium">{role}</span>
             </div>
           ))}
         </div>

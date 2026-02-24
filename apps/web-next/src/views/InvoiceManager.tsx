@@ -106,8 +106,8 @@ const STATUS_STYLES: Record<string, string> = {
   paid:    "bg-emerald-400/15 text-emerald-400 border-emerald-500/30",
   pending: "bg-amber-400/15 text-amber-400 border-amber-500/30",
   overdue: "bg-rose-400/15 text-rose-400 border-rose-500/30",
-  draft:   "bg-zinc-700 text-zinc-400 border-zinc-600",
-  void:    "bg-zinc-800 text-zinc-500 border-zinc-700",
+  draft:   "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] border-[var(--color-surface-3)]",
+  void:    "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border-[var(--color-border)]",
 };
 
 type Tab = "invoices" | "detail" | "analytics" | "settings";
@@ -157,14 +157,14 @@ export default function InvoiceManager() {
   const maxRev = Math.max(...MONTHLY.map(m => m.rev));
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Invoice Manager</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">Manage invoices, track revenue, configure billing</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Invoice Manager</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Manage invoices, track revenue, configure billing</p>
         </div>
-        <button className="text-sm px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors">
+        <button className="text-sm px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors">
           + New Invoice
         </button>
       </div>
@@ -177,16 +177,16 @@ export default function InvoiceManager() {
           { label: "Overdue",        value: fmt(totals.overdue), sub: `${INVOICES.filter(i=>i.status==="overdue").length} invoices`, color: "text-rose-400"   },
           { label: "Total (Feb 26)", value: fmt(INVOICES.filter(i=>i.issueDate.startsWith("2026-02")).reduce((s,i)=>s+i.amount,0)), sub: "this month", color: "text-indigo-400" },
         ].map(card => (
-          <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <div className="text-xs text-zinc-400 mb-1">{card.label}</div>
+          <div key={card.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <div className="text-xs text-[var(--color-text-secondary)] mb-1">{card.label}</div>
             <div className={cn("text-xl font-bold", card.color)}>{card.value}</div>
-            <div className="text-xs text-zinc-500 mt-0.5">{card.sub}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{card.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)] w-fit">
         {TABS.map(t => (
           <button
             key={t.id}
@@ -194,8 +194,8 @@ export default function InvoiceManager() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-white"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t.emoji} {t.label}
@@ -213,7 +213,7 @@ export default function InvoiceManager() {
               placeholder="Search customer or invoice #..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-64 bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
+              className="w-64 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
             />
             <div className="flex gap-1">
               {["all","paid","pending","overdue","draft","void"].map(s => (
@@ -224,7 +224,7 @@ export default function InvoiceManager() {
                     "text-xs px-3 py-1.5 rounded border capitalize transition-colors",
                     filterStatus === s
                       ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300"
-                      : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                      : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
                   {s}
@@ -233,10 +233,10 @@ export default function InvoiceManager() {
             </div>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800 text-xs text-zinc-400">
+                <tr className="border-b border-[var(--color-border)] text-xs text-[var(--color-text-secondary)]">
                   <th className="px-4 py-3 text-left font-medium">Invoice</th>
                   <th className="px-4 py-3 text-left font-medium">Customer</th>
                   <th className="px-4 py-3 text-left font-medium">Amount</th>
@@ -245,20 +245,20 @@ export default function InvoiceManager() {
                   <th className="px-4 py-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {filteredInvoices.map(inv => (
-                  <tr key={inv.id} className="hover:bg-zinc-800/30 transition-colors">
+                  <tr key={inv.id} className="hover:bg-[var(--color-surface-2)]/30 transition-colors">
                     <td className="px-4 py-3">
-                      <div className="text-sm text-white font-mono">{inv.number}</div>
-                      <div className="text-xs text-zinc-500">{inv.issueDate}</div>
+                      <div className="text-sm text-[var(--color-text-primary)] font-mono">{inv.number}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">{inv.issueDate}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm text-white">{inv.customer}</div>
-                      <div className="text-xs text-zinc-500">{inv.customerEmail}</div>
+                      <div className="text-sm text-[var(--color-text-primary)]">{inv.customer}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">{inv.customerEmail}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm text-white font-medium">{fmt(inv.amount)}</div>
-                      <div className="text-xs text-zinc-500">+{fmt(inv.tax)} tax</div>
+                      <div className="text-sm text-[var(--color-text-primary)] font-medium">{fmt(inv.amount)}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">+{fmt(inv.tax)} tax</div>
                     </td>
                     <td className="px-4 py-3">
                       <span className={cn("text-xs px-2 py-0.5 rounded border capitalize", STATUS_STYLES[inv.status])}>
@@ -269,7 +269,7 @@ export default function InvoiceManager() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className={cn("text-sm", inv.status === "overdue" ? "text-rose-400" : "text-zinc-300")}>
+                      <div className={cn("text-sm", inv.status === "overdue" ? "text-rose-400" : "text-[var(--color-text-primary)]")}>
                         {inv.dueDate}
                       </div>
                       {inv.paidDate && <div className="text-xs text-emerald-400">Paid {inv.paidDate}</div>}
@@ -291,7 +291,7 @@ export default function InvoiceManager() {
                   </tr>
                 ))}
                 {filteredInvoices.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-zinc-500 text-sm">No invoices match</td></tr>
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-[var(--color-text-muted)] text-sm">No invoices match</td></tr>
                 )}
               </tbody>
             </table>
@@ -302,14 +302,14 @@ export default function InvoiceManager() {
       {/* Invoice Detail */}
       {activeTab === "detail" && selectedInvoice && (
         <div className="max-w-2xl">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
             {/* Invoice header */}
-            <div className="p-6 border-b border-zinc-800">
+            <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-white">{selectedInvoice.number}</h2>
-                  <div className="text-zinc-400 text-sm mt-0.5">{selectedInvoice.customer}</div>
-                  <div className="text-zinc-500 text-xs">{selectedInvoice.customerEmail}</div>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedInvoice.number}</h2>
+                  <div className="text-[var(--color-text-secondary)] text-sm mt-0.5">{selectedInvoice.customer}</div>
+                  <div className="text-[var(--color-text-muted)] text-xs">{selectedInvoice.customerEmail}</div>
                 </div>
                 <span className={cn("text-sm px-3 py-1 rounded border capitalize", STATUS_STYLES[selectedInvoice.status])}>
                   {selectedInvoice.status}
@@ -323,31 +323,31 @@ export default function InvoiceManager() {
                   { label: "Paid Date",  value: selectedInvoice.paidDate ?? "—" },
                 ].map(f => (
                   <div key={f.label}>
-                    <div className="text-xs text-zinc-400">{f.label}</div>
-                    <div className="text-sm text-white mt-0.5">{f.value}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{f.label}</div>
+                    <div className="text-sm text-[var(--color-text-primary)] mt-0.5">{f.value}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Line items */}
-            <div className="p-6 border-b border-zinc-800">
+            <div className="p-6 border-b border-[var(--color-border)]">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-zinc-400 border-b border-zinc-800">
+                  <tr className="text-xs text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
                     <th className="pb-2 text-left font-medium">Description</th>
                     <th className="pb-2 text-right font-medium">Qty</th>
                     <th className="pb-2 text-right font-medium">Unit Price</th>
                     <th className="pb-2 text-right font-medium">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-[var(--color-border)]">
                   {selectedInvoice.lineItems.map((li, i) => (
                     <tr key={i}>
-                      <td className="py-3 text-zinc-300">{li.description}</td>
-                      <td className="py-3 text-right text-zinc-400">{li.quantity}</td>
-                      <td className="py-3 text-right text-zinc-400">{fmt(li.unitPrice)}</td>
-                      <td className="py-3 text-right text-white font-medium">{fmt(li.quantity * li.unitPrice)}</td>
+                      <td className="py-3 text-[var(--color-text-primary)]">{li.description}</td>
+                      <td className="py-3 text-right text-[var(--color-text-secondary)]">{li.quantity}</td>
+                      <td className="py-3 text-right text-[var(--color-text-secondary)]">{fmt(li.unitPrice)}</td>
+                      <td className="py-3 text-right text-[var(--color-text-primary)] font-medium">{fmt(li.quantity * li.unitPrice)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -357,36 +357,36 @@ export default function InvoiceManager() {
             {/* Totals */}
             <div className="p-6">
               <div className="flex flex-col items-end gap-1 text-sm">
-                <div className="flex gap-8 text-zinc-400">
+                <div className="flex gap-8 text-[var(--color-text-secondary)]">
                   <span>Subtotal</span>
                   <span>{fmt(selectedInvoice.amount)}</span>
                 </div>
-                <div className="flex gap-8 text-zinc-400">
+                <div className="flex gap-8 text-[var(--color-text-secondary)]">
                   <span>Tax (9%)</span>
                   <span>{fmt(selectedInvoice.tax)}</span>
                 </div>
-                <div className="flex gap-8 text-white font-bold text-base mt-1 pt-2 border-t border-zinc-800 w-40">
+                <div className="flex gap-8 text-[var(--color-text-primary)] font-bold text-base mt-1 pt-2 border-t border-[var(--color-border)] w-40">
                   <span>Total</span>
                   <span>{fmt(selectedInvoice.amount + selectedInvoice.tax)}</span>
                 </div>
               </div>
 
               {selectedInvoice.notes && (
-                <div className="mt-4 p-3 bg-zinc-800 rounded text-xs text-zinc-400 italic">
+                <div className="mt-4 p-3 bg-[var(--color-surface-2)] rounded text-xs text-[var(--color-text-secondary)] italic">
                   {selectedInvoice.notes}
                 </div>
               )}
 
               <div className="flex gap-3 mt-5">
                 {selectedInvoice.status === "draft" && (
-                  <button className="px-4 py-2 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-600">Send Invoice</button>
+                  <button className="px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded hover:bg-indigo-600">Send Invoice</button>
                 )}
                 {selectedInvoice.status === "pending" && (
                   <button className="px-4 py-2 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-sm rounded hover:bg-amber-500/30">Send Reminder</button>
                 )}
-                <button className="px-4 py-2 border border-zinc-700 text-zinc-400 text-sm rounded hover:bg-zinc-800">⬇ Download PDF</button>
+                <button className="px-4 py-2 border border-[var(--color-border)] text-[var(--color-text-secondary)] text-sm rounded hover:bg-[var(--color-surface-2)]">⬇ Download PDF</button>
                 {selectedInvoice.status !== "void" && (
-                  <button className="px-4 py-2 border border-zinc-700 text-zinc-400 text-sm rounded hover:bg-zinc-800">📋 Duplicate</button>
+                  <button className="px-4 py-2 border border-[var(--color-border)] text-[var(--color-text-secondary)] text-sm rounded hover:bg-[var(--color-surface-2)]">📋 Duplicate</button>
                 )}
               </div>
             </div>
@@ -395,7 +395,7 @@ export default function InvoiceManager() {
       )}
 
       {activeTab === "detail" && !selectedInvoice && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center text-zinc-500 text-sm max-w-2xl">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-12 text-center text-[var(--color-text-muted)] text-sm max-w-2xl">
           Select an invoice from the list to view details
         </div>
       )}
@@ -404,21 +404,21 @@ export default function InvoiceManager() {
       {activeTab === "analytics" && (
         <div className="space-y-6">
           {/* Monthly bar chart */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-white mb-4">Monthly Revenue</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Monthly Revenue</h3>
             <div className="flex items-end gap-3 h-40">
               {MONTHLY.map(m => {
                 const pct = (m.rev / maxRev) * 100;
                 return (
                   <div key={m.month} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="text-xs text-zinc-400">{fmt(m.rev).replace("$","$").replace(".00","")}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{fmt(m.rev).replace("$","$").replace(".00","")}</div>
                     <div className="w-full flex items-end justify-center" style={{ height: "80px" }}>
                       <div
-                        className={cn("w-full rounded-t", m.month.includes("26") ? "bg-indigo-500" : "bg-zinc-700")}
+                        className={cn("w-full rounded-t", m.month.includes("26") ? "bg-indigo-500" : "bg-[var(--color-surface-3)]")}
                         style={{ height: `${pct}%` }}
                       />
                     </div>
-                    <div className="text-xs text-zinc-400">{m.month}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{m.month}</div>
                   </div>
                 );
               })}
@@ -426,8 +426,8 @@ export default function InvoiceManager() {
           </div>
 
           {/* Revenue by customer */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-white mb-4">Revenue by Customer</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Revenue by Customer</h3>
             <div className="space-y-3">
               {INVOICES
                 .filter(i => i.status === "paid" || i.status === "pending")
@@ -438,14 +438,14 @@ export default function InvoiceManager() {
                   const maxTotal = 26160;
                   return (
                     <div key={inv.id} className="flex items-center gap-3">
-                      <div className="w-36 text-xs text-zinc-300 truncate">{inv.customer}</div>
-                      <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                      <div className="w-36 text-xs text-[var(--color-text-primary)] truncate">{inv.customer}</div>
+                      <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                         <div
                           className={cn("h-full rounded-full", inv.status === "paid" ? "bg-emerald-500" : "bg-amber-500")}
                           style={{ width: `${(total / maxTotal) * 100}%` }}
                         />
                       </div>
-                      <div className="w-24 text-xs text-zinc-300 text-right">{fmt(total)}</div>
+                      <div className="w-24 text-xs text-[var(--color-text-primary)] text-right">{fmt(total)}</div>
                     </div>
                   );
                 })}
@@ -466,16 +466,16 @@ export default function InvoiceManager() {
             { label: "Billing Email",   value: "billing@clawdbot.io",   type: "email" },
           ].map(field => (
             <div key={field.label}>
-              <label className="block text-xs text-zinc-400 mb-1.5">{field.label}</label>
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-1.5">{field.label}</label>
               <input
                 type={field.type}
                 defaultValue={field.value}
-                className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500"
               />
             </div>
           ))}
           <div className="pt-2">
-            <button className="px-4 py-2 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-600 transition-colors">
+            <button className="px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded hover:bg-indigo-600 transition-colors">
               Save Settings
             </button>
           </div>

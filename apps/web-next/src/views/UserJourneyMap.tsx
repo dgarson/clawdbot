@@ -87,7 +87,7 @@ function SatisfactionDots({ score }: { score: number }) {
           key={i}
           className={cn(
             "w-2 h-2 rounded-full",
-            i < score ? "bg-indigo-500" : "bg-zinc-700"
+            i < score ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
           )}
         />
       ))}
@@ -99,10 +99,10 @@ function PercentBar({ value, label }: { value: number; label: string }) {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
-        <span className="text-zinc-400">{label}</span>
-        <span className="text-white font-medium">{value}%</span>
+        <span className="text-[var(--color-text-secondary)]">{label}</span>
+        <span className="text-[var(--color-text-primary)] font-medium">{value}%</span>
       </div>
-      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
         <div
           className="h-full bg-indigo-500 rounded-full transition-all duration-500"
           style={{ width: `${value}%` }}
@@ -124,18 +124,18 @@ export default function UserJourneyMap() {
   const maxTraffic = Math.max(...activeJourney.steps.map((s) => s.trafficWeight))
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold tracking-tight">User Journey Map</h1>
-          <p className="text-sm text-zinc-400 mt-1">
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">
             Visualize how users move through key application flows
           </p>
         </div>
 
         {/* Journey Tabs */}
-        <div className="flex items-center gap-1 bg-zinc-900 rounded-lg p-1 w-fit border border-zinc-800">
+        <div className="flex items-center gap-1 bg-[var(--color-surface-1)] rounded-lg p-1 w-fit border border-[var(--color-border)]">
           {journeys.map((journey) => (
             <button
               key={journey.id}
@@ -146,8 +146,8 @@ export default function UserJourneyMap() {
               className={cn(
                 "px-4 py-2 text-sm font-medium rounded-md transition-all duration-200",
                 activeJourneyId === journey.id
-                  ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                  ? "bg-indigo-500 text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               {journey.name}
@@ -160,7 +160,7 @@ export default function UserJourneyMap() {
           {/* Flow Area */}
           <div className="flex-1 space-y-4 min-w-0">
             {/* Steps Row */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 overflow-x-auto">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6 overflow-x-auto">
               <div className="flex items-stretch gap-0 min-w-max">
                 {activeJourney.steps.map((step, idx) => (
                   <React.Fragment key={step.id}>
@@ -175,27 +175,27 @@ export default function UserJourneyMap() {
                         "flex-shrink-0 w-48 rounded-lg border p-4 text-left transition-all duration-200",
                         selectedStepId === step.id
                           ? "border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/10"
-                          : "border-zinc-700 bg-zinc-800/50 hover:border-zinc-600 hover:bg-zinc-800"
+                          : "border-[var(--color-border)] bg-[var(--color-surface-2)]/50 hover:border-[var(--color-surface-3)] hover:bg-[var(--color-surface-2)]"
                       )}
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center">
                           {idx + 1}
                         </div>
-                        <span className="text-sm font-semibold text-white truncate">
+                        <span className="text-sm font-semibold text-[var(--color-text-primary)] truncate">
                           {step.name}
                         </span>
                       </div>
-                      <p className="text-xs text-zinc-400 mb-3 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-[var(--color-text-secondary)] mb-3 line-clamp-2 leading-relaxed">
                         {step.description}
                       </p>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-zinc-500">Avg time</span>
-                          <span className="text-zinc-300 font-medium">{step.avgTime}</span>
+                          <span className="text-[var(--color-text-muted)]">Avg time</span>
+                          <span className="text-[var(--color-text-primary)] font-medium">{step.avgTime}</span>
                         </div>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-zinc-500">Drop-off</span>
+                          <span className="text-[var(--color-text-muted)]">Drop-off</span>
                           <span
                             className={cn(
                               "font-medium",
@@ -210,7 +210,7 @@ export default function UserJourneyMap() {
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-zinc-500">Satisfaction</span>
+                          <span className="text-[var(--color-text-muted)]">Satisfaction</span>
                           <SatisfactionDots score={step.satisfaction} />
                         </div>
                       </div>
@@ -219,9 +219,9 @@ export default function UserJourneyMap() {
                     {/* Arrow Connector */}
                     {idx < activeJourney.steps.length - 1 && (
                       <div className="flex items-center flex-shrink-0 px-1">
-                        <div className="w-6 h-px bg-zinc-600" />
-                        <span className="text-zinc-500 text-sm leading-none">→</span>
-                        <div className="w-6 h-px bg-zinc-600" />
+                        <div className="w-6 h-px bg-[var(--color-surface-3)]" />
+                        <span className="text-[var(--color-text-muted)] text-sm leading-none">→</span>
+                        <div className="w-6 h-px bg-[var(--color-surface-3)]" />
                       </div>
                     )}
                   </React.Fragment>
@@ -230,8 +230,8 @@ export default function UserJourneyMap() {
             </div>
 
             {/* Heatmap Row */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+              <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
                 Relative Traffic Heatmap
               </h3>
               <div className="flex items-end gap-3 min-w-max">
@@ -240,7 +240,7 @@ export default function UserJourneyMap() {
                   const height = Math.max(16, Math.round(ratio * 56))
                   return (
                     <div key={step.id} className="flex flex-col items-center gap-1 w-48">
-                      <span className="text-[10px] text-zinc-500 font-medium">
+                      <span className="text-[10px] text-[var(--color-text-muted)] font-medium">
                         {step.trafficWeight}%
                       </span>
                       <div
@@ -256,7 +256,7 @@ export default function UserJourneyMap() {
                         )}
                         style={{ height: `${height}px` }}
                       />
-                      <span className="text-[10px] text-zinc-600 truncate w-full text-center">
+                      <span className="text-[10px] text-[var(--color-text-muted)] truncate w-full text-center">
                         {step.name}
                       </span>
                     </div>
@@ -267,19 +267,19 @@ export default function UserJourneyMap() {
 
             {/* Detail Panel */}
             {selectedStep && (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 animate-in fade-in duration-200">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6 animate-in fade-in duration-200">
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                       {selectedStep.name}
                     </h2>
-                    <p className="text-sm text-zinc-400 mt-0.5">
+                    <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
                       {selectedStep.description}
                     </p>
                   </div>
                   <button
                     onClick={() => setSelectedStepId(null)}
-                    className="text-zinc-500 hover:text-white text-sm px-2 py-1 rounded hover:bg-zinc-800 transition-colors"
+                    className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-sm px-2 py-1 rounded hover:bg-[var(--color-surface-2)] transition-colors"
                   >
                     Close
                   </button>
@@ -293,7 +293,7 @@ export default function UserJourneyMap() {
                     </h3>
                     <ul className="space-y-2">
                       {selectedStep.detail.actions.map((action, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-zinc-300">
+                        <li key={i} className="flex items-start gap-2 text-sm text-[var(--color-text-primary)]">
                           <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
                           {action}
                         </li>
@@ -308,7 +308,7 @@ export default function UserJourneyMap() {
                     </h3>
                     <ul className="space-y-2">
                       {selectedStep.detail.painPoints.map((point, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-zinc-300">
+                        <li key={i} className="flex items-start gap-2 text-sm text-[var(--color-text-primary)]">
                           <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
                           {point}
                         </li>
@@ -323,7 +323,7 @@ export default function UserJourneyMap() {
                     </h3>
                     <ul className="space-y-2">
                       {selectedStep.detail.suggestions.map((suggestion, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-zinc-300">
+                        <li key={i} className="flex items-start gap-2 text-sm text-[var(--color-text-primary)]">
                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
                           {suggestion}
                         </li>
@@ -337,8 +337,8 @@ export default function UserJourneyMap() {
 
           {/* Metrics Sidebar */}
           <div className="w-64 flex-shrink-0 space-y-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-5">
-              <h3 className="text-sm font-semibold text-white">Journey Metrics</h3>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 space-y-5">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Journey Metrics</h3>
 
               <PercentBar
                 value={activeJourney.completionRate}
@@ -346,14 +346,14 @@ export default function UserJourneyMap() {
               />
 
               <div className="space-y-1">
-                <span className="text-xs text-zinc-400">Avg Time to Complete</span>
-                <p className="text-lg font-semibold text-white">
+                <span className="text-xs text-[var(--color-text-secondary)]">Avg Time to Complete</span>
+                <p className="text-lg font-semibold text-[var(--color-text-primary)]">
                   {activeJourney.avgTotalTime}
                 </p>
               </div>
 
               <div className="space-y-1">
-                <span className="text-xs text-zinc-400">Most Common Exit</span>
+                <span className="text-xs text-[var(--color-text-secondary)]">Most Common Exit</span>
                 <p className="text-sm font-medium text-amber-400">
                   {activeJourney.commonExitPoint}
                 </p>
@@ -361,12 +361,12 @@ export default function UserJourneyMap() {
             </div>
 
             {/* Per-Step Drop-off Breakdown */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
-              <h3 className="text-sm font-semibold text-white">Drop-off by Step</h3>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 space-y-4">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Drop-off by Step</h3>
               {activeJourney.steps.map((step) => (
                 <div key={step.id} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-400 truncate mr-2">{step.name}</span>
+                    <span className="text-[var(--color-text-secondary)] truncate mr-2">{step.name}</span>
                     <span
                       className={cn(
                         "font-medium flex-shrink-0",
@@ -380,7 +380,7 @@ export default function UserJourneyMap() {
                       {step.dropOffRate}%
                     </span>
                   </div>
-                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className={cn(
                         "h-full rounded-full transition-all duration-500",
@@ -398,11 +398,11 @@ export default function UserJourneyMap() {
             </div>
 
             {/* Satisfaction Overview */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
-              <h3 className="text-sm font-semibold text-white">Satisfaction</h3>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 space-y-4">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Satisfaction</h3>
               {activeJourney.steps.map((step) => (
                 <div key={step.id} className="flex items-center justify-between">
-                  <span className="text-xs text-zinc-400 truncate mr-2">
+                  <span className="text-xs text-[var(--color-text-secondary)] truncate mr-2">
                     {step.name}
                   </span>
                   <SatisfactionDots score={step.satisfaction} />

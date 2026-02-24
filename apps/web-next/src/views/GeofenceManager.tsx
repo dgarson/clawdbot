@@ -448,7 +448,7 @@ const getEventTypeColor = (eventType: "enter" | "exit" | "dwell"): string => {
     case "dwell":
       return "text-indigo-400";
     default:
-      return "text-white";
+      return "text-[var(--color-text-primary)]";
   }
 };
 
@@ -474,7 +474,7 @@ const DivMap: React.FC<DivMapProps> = ({ geofence }) => {
   const isPolygon = geofence.shape === "polygon";
   
   return (
-    <div className="relative w-full h-48 bg-zinc-800 rounded-lg border border-zinc-700 overflow-hidden">
+    <div className="relative w-full h-48 bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)] overflow-hidden">
       {/* Grid background */}
       <div 
         className="absolute inset-0 opacity-20"
@@ -562,68 +562,68 @@ const GeofencesTab: React.FC<GeofencesTabProps> = ({ geofences }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-white">Geofences</h2>
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Geofences</h2>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors duration-150"
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded-lg transition-colors duration-150"
         >
           {showCreateForm ? "Cancel" : "+ Create New"}
         </button>
       </div>
 
       {showCreateForm && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
-          <h3 className="text-lg font-medium text-white">Create New Geofence</h3>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 space-y-4">
+          <h3 className="text-lg font-medium text-[var(--color-text-primary)]">Create New Geofence</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Name</label>
+              <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Name</label>
               <input
                 type="text"
                 value={newGeofence.name}
                 onChange={(e) => setNewGeofence({ ...newGeofence, name: e.target.value })}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                 placeholder="Geofence name"
               />
             </div>
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Shape</label>
+              <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Shape</label>
               <select
                 value={newGeofence.shape}
                 onChange={(e) => setNewGeofence({ ...newGeofence, shape: e.target.value as "circle" | "polygon" })}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
               >
                 <option value="circle">Circle</option>
                 <option value="polygon">Polygon</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Center Latitude</label>
+              <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Center Latitude</label>
               <input
                 type="number"
                 step="0.0001"
                 value={newGeofence.centerLat}
                 onChange={(e) => setNewGeofence({ ...newGeofence, centerLat: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
               />
             </div>
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Center Longitude</label>
+              <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Center Longitude</label>
               <input
                 type="number"
                 step="0.0001"
                 value={newGeofence.centerLng}
                 onChange={(e) => setNewGeofence({ ...newGeofence, centerLng: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
               />
             </div>
             {newGeofence.shape === "circle" && (
               <div>
-                <label className="block text-sm text-zinc-400 mb-1">Radius (meters)</label>
+                <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Radius (meters)</label>
                 <input
                   type="number"
                   value={newGeofence.radius}
                   onChange={(e) => setNewGeofence({ ...newGeofence, radius: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                 />
               </div>
             )}
@@ -633,14 +633,14 @@ const GeofencesTab: React.FC<GeofencesTabProps> = ({ geofences }) => {
                 id="active"
                 checked={newGeofence.isActive}
                 onChange={(e) => setNewGeofence({ ...newGeofence, isActive: e.target.checked })}
-                className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 text-indigo-600 focus:ring-indigo-500"
+                className="w-4 h-4 rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] text-indigo-600 focus:ring-indigo-500"
               />
-              <label htmlFor="active" className="ml-2 text-sm text-white">Active</label>
+              <label htmlFor="active" className="ml-2 text-sm text-[var(--color-text-primary)]">Active</label>
             </div>
           </div>
           <button
             onClick={handleCreate}
-            className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors duration-150"
+            className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded-lg transition-colors duration-150"
           >
             Create Geofence
           </button>
@@ -651,20 +651,20 @@ const GeofencesTab: React.FC<GeofencesTabProps> = ({ geofences }) => {
         {geofences.map((geofence) => (
           <div
             key={geofence.id}
-            className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden"
           >
             <div
               onClick={() => setExpandedId(expandedId === geofence.id ? null : geofence.id)}
-              className="p-4 cursor-pointer hover:bg-zinc-800/50 transition-colors duration-150"
+              className="p-4 cursor-pointer hover:bg-[var(--color-surface-2)]/50 transition-colors duration-150"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <span className={cn("text-lg", geofence.isActive ? "text-emerald-400" : "text-zinc-500")}>
+                  <span className={cn("text-lg", geofence.isActive ? "text-emerald-400" : "text-[var(--color-text-muted)]")}>
                     {geofence.isActive ? "🟢" : "🔴"}
                   </span>
                   <div>
-                    <h3 className="font-medium text-white">{geofence.name}</h3>
-                    <p className="text-sm text-zinc-400">
+                    <h3 className="font-medium text-[var(--color-text-primary)]">{geofence.name}</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">
                       {geofence.shape === "circle" 
                         ? `Circle • ${geofence.radius}m radius`
                         : `Polygon • ${geofence.area?.toLocaleString()} m²`
@@ -673,7 +673,7 @@ const GeofencesTab: React.FC<GeofencesTabProps> = ({ geofences }) => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-zinc-400">
+                  <p className="text-sm text-[var(--color-text-secondary)]">
                     {geofence.centerLat.toFixed(4)}, {geofence.centerLng.toFixed(4)}
                   </p>
                   <p className="text-sm text-indigo-400">
@@ -684,20 +684,20 @@ const GeofencesTab: React.FC<GeofencesTabProps> = ({ geofences }) => {
             </div>
             
             {expandedId === geofence.id && (
-              <div className="p-4 border-t border-zinc-800 bg-zinc-800/30">
+              <div className="p-4 border-t border-[var(--color-border)] bg-[var(--color-surface-2)]/30">
                 <DivMap geofence={geofence} />
                 <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-zinc-500">Center:</span>
-                    <p className="text-white">{geofence.centerLat.toFixed(6)}, {geofence.centerLng.toFixed(6)}</p>
+                    <span className="text-[var(--color-text-muted)]">Center:</span>
+                    <p className="text-[var(--color-text-primary)]">{geofence.centerLat.toFixed(6)}, {geofence.centerLng.toFixed(6)}</p>
                   </div>
                   <div>
-                    <span className="text-zinc-500">Shape:</span>
-                    <p className="text-white capitalize">{geofence.shape}</p>
+                    <span className="text-[var(--color-text-muted)]">Shape:</span>
+                    <p className="text-[var(--color-text-primary)] capitalize">{geofence.shape}</p>
                   </div>
                   <div>
-                    <span className="text-zinc-500">Status:</span>
-                    <p className={geofence.isActive ? "text-emerald-400" : "text-zinc-500"}>
+                    <span className="text-[var(--color-text-muted)]">Status:</span>
+                    <p className={geofence.isActive ? "text-emerald-400" : "text-[var(--color-text-muted)]"}>
                       {geofence.isActive ? "Active" : "Inactive"}
                     </p>
                   </div>
@@ -784,7 +784,7 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
       case "dwell":
         return "text-indigo-400 bg-indigo-400/10";
       default:
-        return "text-zinc-400 bg-zinc-400/10";
+        return "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10";
     }
   };
 
@@ -806,35 +806,35 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-white">Geofence Rules</h2>
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Geofence Rules</h2>
         <button
           onClick={() => setShowBuilder(!showBuilder)}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors duration-150"
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded-lg transition-colors duration-150"
         >
           {showBuilder ? "Cancel" : "+ Rule Builder"}
         </button>
       </div>
 
       {showBuilder && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
-          <h3 className="text-lg font-medium text-white">Create New Rule</h3>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 space-y-4">
+          <h3 className="text-lg font-medium text-[var(--color-text-primary)]">Create New Rule</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Rule Name</label>
+              <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Rule Name</label>
               <input
                 type="text"
                 value={newRule.name}
                 onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                 placeholder="Enter rule name"
               />
             </div>
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Trigger</label>
+              <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Trigger</label>
               <select
                 value={newRule.trigger}
                 onChange={(e) => setNewRule({ ...newRule, trigger: e.target.value as "enter" | "exit" | "dwell" })}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
               >
                 <option value="enter">Enter</option>
                 <option value="exit">Exit</option>
@@ -842,11 +842,11 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Geofence</label>
+              <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Geofence</label>
               <select
                 value={newRule.geofenceId}
                 onChange={(e) => handleGeofenceChange(e.target.value)}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
               >
                 <option value="">Select geofence</option>
                 {geofences.map((g) => (
@@ -855,11 +855,11 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-zinc-400 mb-1">Action</label>
+              <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Action</label>
               <select
                 value={newRule.action}
                 onChange={(e) => setNewRule({ ...newRule, action: e.target.value as GeofenceRule["action"] })}
-                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
               >
                 <option value="send_notification">Send Notification</option>
                 <option value="block_access">Block Access</option>
@@ -870,19 +870,19 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
           </div>
           
           <div>
-            <label className="block text-sm text-zinc-400 mb-1">Conditions</label>
+            <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Conditions</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={conditionInput}
                 onChange={(e) => setConditionInput(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && addCondition()}
-                className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                className="flex-1 px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                 placeholder="Add condition (press Enter)"
               />
               <button
                 onClick={addCondition}
-                className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors duration-150"
+                className="px-4 py-2 bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] rounded-lg transition-colors duration-150"
               >
                 Add
               </button>
@@ -892,12 +892,12 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
                 {newRule.conditions.map((cond, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center px-2 py-1 bg-zinc-800 text-zinc-300 rounded text-sm"
+                    className="inline-flex items-center px-2 py-1 bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded text-sm"
                   >
                     {cond}
                     <button
                       onClick={() => removeCondition(idx)}
-                      className="ml-2 text-zinc-500 hover:text-rose-400"
+                      className="ml-2 text-[var(--color-text-muted)] hover:text-rose-400"
                     >
                       ×
                     </button>
@@ -913,14 +913,14 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
               id="ruleEnabled"
               checked={newRule.isEnabled}
               onChange={(e) => setNewRule({ ...newRule, isEnabled: e.target.checked })}
-              className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] text-indigo-600 focus:ring-indigo-500"
             />
-            <label htmlFor="ruleEnabled" className="ml-2 text-sm text-white">Enable rule</label>
+            <label htmlFor="ruleEnabled" className="ml-2 text-sm text-[var(--color-text-primary)]">Enable rule</label>
           </div>
 
           <button
             onClick={handleCreate}
-            className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors duration-150"
+            className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded-lg transition-colors duration-150"
           >
             Create Rule
           </button>
@@ -931,7 +931,7 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
         {rules.map((rule) => (
           <div
             key={rule.id}
-            className="bg-zinc-900 border border-zinc-800 rounded-lg p-4"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -939,8 +939,8 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
                   {rule.trigger.toUpperCase()}
                 </span>
                 <div>
-                  <h3 className="font-medium text-white">{rule.name}</h3>
-                  <p className="text-sm text-zinc-400">
+                  <h3 className="font-medium text-[var(--color-text-primary)]">{rule.name}</h3>
+                  <p className="text-sm text-[var(--color-text-secondary)]">
                     {rule.geofenceName} • {getActionLabel(rule.action)}
                   </p>
                 </div>
@@ -950,7 +950,7 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
                   onClick={() => toggleRule(rule.id)}
                   className={cn(
                     "relative w-12 h-6 rounded-full transition-colors duration-150",
-                    rule.isEnabled ? "bg-emerald-500" : "bg-zinc-600"
+                    rule.isEnabled ? "bg-emerald-500" : "bg-[var(--color-surface-3)]"
                   )}
                 >
                   <span
@@ -967,7 +967,7 @@ const RulesTab: React.FC<RulesTabProps> = ({ rules, geofences }) => {
                 {rule.conditions.map((cond, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-1 bg-zinc-800 text-zinc-400 rounded text-xs"
+                    className="px-2 py-1 bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded text-xs"
                   >
                     {cond}
                   </span>
@@ -1000,17 +1000,17 @@ const EventsTab: React.FC<EventsTabProps> = ({ events, geofences }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-white">Geofence Events</h2>
-        <span className="text-sm text-zinc-400">{filteredEvents.length} events</span>
+        <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Geofence Events</h2>
+        <span className="text-sm text-[var(--color-text-secondary)]">{filteredEvents.length} events</span>
       </div>
 
       <div className="flex gap-4">
         <div className="flex-1">
-          <label className="block text-sm text-zinc-400 mb-1">Filter by Geofence</label>
+          <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Filter by Geofence</label>
           <select
             value={geofenceFilter}
             onChange={(e) => setGeofenceFilter(e.target.value)}
-            className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+            className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Geofences</option>
             {geofences.map((g) => (
@@ -1019,11 +1019,11 @@ const EventsTab: React.FC<EventsTabProps> = ({ events, geofences }) => {
           </select>
         </div>
         <div className="flex-1">
-          <label className="block text-sm text-zinc-400 mb-1">Filter by Event Type</label>
+          <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Filter by Event Type</label>
           <select
             value={eventTypeFilter}
             onChange={(e) => setEventTypeFilter(e.target.value)}
-            className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+            className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Events</option>
             <option value="enter">Enter</option>
@@ -1037,7 +1037,7 @@ const EventsTab: React.FC<EventsTabProps> = ({ events, geofences }) => {
         {filteredEvents.map((event) => (
           <div
             key={event.id}
-            className="bg-zinc-900 border border-zinc-800 rounded-lg p-4"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4"
           >
             <div className="flex items-start justify-between">
               <div className="flex items-start space-x-3">
@@ -1047,27 +1047,27 @@ const EventsTab: React.FC<EventsTabProps> = ({ events, geofences }) => {
                     <span className={cn("font-medium", getEventTypeColor(event.eventType))}>
                       {event.eventType.toUpperCase()}
                     </span>
-                    <span className="text-zinc-500">•</span>
-                    <span className="text-white">{event.geofenceName}</span>
+                    <span className="text-[var(--color-text-muted)]">•</span>
+                    <span className="text-[var(--color-text-primary)]">{event.geofenceName}</span>
                   </div>
-                  <p className="text-sm text-zinc-400 mt-1">
+                  <p className="text-sm text-[var(--color-text-secondary)] mt-1">
                     User: {event.userId} • Device: {event.deviceId}
                   </p>
-                  <p className="text-xs text-zinc-500 mt-1">
+                  <p className="text-xs text-[var(--color-text-muted)] mt-1">
                     {event.lat.toFixed(6)}, {event.lng.toFixed(6)}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm text-zinc-400">{formatTimestamp(event.timestamp)}</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{formatTimestamp(event.timestamp)}</p>
                 {event.duration && (
                   <p className="text-xs text-indigo-400 mt-1">{event.duration} min dwell</p>
                 )}
               </div>
             </div>
-            <div className="mt-3 pt-3 border-t border-zinc-800">
-              <p className="text-xs text-zinc-500">
-                Action: <span className="text-zinc-300">{event.actionTaken}</span>
+            <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+              <p className="text-xs text-[var(--color-text-muted)]">
+                Action: <span className="text-[var(--color-text-primary)]">{event.actionTaken}</span>
               </p>
             </div>
           </div>
@@ -1075,7 +1075,7 @@ const EventsTab: React.FC<EventsTabProps> = ({ events, geofences }) => {
       </div>
 
       {filteredEvents.length === 0 && (
-        <div className="text-center py-8 text-zinc-500">
+        <div className="text-center py-8 text-[var(--color-text-muted)]">
           No events match your filters
         </div>
       )}
@@ -1099,33 +1099,33 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ settings, onUpdate }) => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-white">Settings</h2>
+      <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">Settings</h2>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
-        <h3 className="text-lg font-medium text-white">Location Settings</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 space-y-4">
+        <h3 className="text-lg font-medium text-[var(--color-text-primary)]">Location Settings</h3>
         
         <div>
-          <label className="block text-sm text-zinc-400 mb-1">Location Accuracy</label>
+          <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Location Accuracy</label>
           <select
             value={localSettings.locationAccuracy}
             onChange={(e) => setLocalSettings({ ...localSettings, locationAccuracy: e.target.value as Settings["locationAccuracy"] })}
-            className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+            className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
           >
             <option value="high">High (GPS)</option>
             <option value="balanced">Balanced (Wi-Fi + Cell)</option>
             <option value="low">Low (Cell only)</option>
           </select>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-xs text-[var(--color-text-muted)] mt-1">
             Higher accuracy uses more battery but provides better geofence precision
           </p>
         </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
-        <h3 className="text-lg font-medium text-white">Data Retention</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 space-y-4">
+        <h3 className="text-lg font-medium text-[var(--color-text-primary)]">Data Retention</h3>
         
         <div>
-          <label className="block text-sm text-zinc-400 mb-1">Event Retention Period</label>
+          <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Event Retention Period</label>
           <div className="flex items-center gap-2">
             <input
               type="number"
@@ -1133,48 +1133,48 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ settings, onUpdate }) => {
               max="365"
               value={localSettings.eventRetentionDays}
               onChange={(e) => setLocalSettings({ ...localSettings, eventRetentionDays: parseInt(e.target.value) || 30 })}
-              className="w-24 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+              className="w-24 px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
             />
-            <span className="text-zinc-400">days</span>
+            <span className="text-[var(--color-text-secondary)]">days</span>
           </div>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-xs text-[var(--color-text-muted)] mt-1">
             Events older than this will be automatically deleted
           </p>
         </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
-        <h3 className="text-lg font-medium text-white">Webhook Configuration</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 space-y-4">
+        <h3 className="text-lg font-medium text-[var(--color-text-primary)]">Webhook Configuration</h3>
         
         <div>
-          <label className="block text-sm text-zinc-400 mb-1">Webhook Endpoint</label>
+          <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Webhook Endpoint</label>
           <input
             type="url"
             value={localSettings.webhookEndpoint}
             onChange={(e) => setLocalSettings({ ...localSettings, webhookEndpoint: e.target.value })}
-            className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+            className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
             placeholder="https://api.example.com/webhook"
           />
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-xs text-[var(--color-text-muted)] mt-1">
             Events will be forwarded to this endpoint as JSON
           </p>
         </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
-        <h3 className="text-lg font-medium text-white">Batch Processing</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 space-y-4">
+        <h3 className="text-lg font-medium text-[var(--color-text-primary)]">Batch Processing</h3>
         
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-white">Enable Batch Processing</p>
-              <p className="text-xs text-zinc-500">Process events in batches for better performance</p>
+              <p className="text-sm text-[var(--color-text-primary)]">Enable Batch Processing</p>
+              <p className="text-xs text-[var(--color-text-muted)]">Process events in batches for better performance</p>
             </div>
             <button
               onClick={() => setLocalSettings({ ...localSettings, batchProcessingEnabled: !localSettings.batchProcessingEnabled })}
               className={cn(
                 "relative w-12 h-6 rounded-full transition-colors duration-150",
-                localSettings.batchProcessingEnabled ? "bg-emerald-500" : "bg-zinc-600"
+                localSettings.batchProcessingEnabled ? "bg-emerald-500" : "bg-[var(--color-surface-3)]"
               )}
             >
               <span
@@ -1187,27 +1187,27 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ settings, onUpdate }) => {
           </div>
 
           {localSettings.batchProcessingEnabled && (
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-800">
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[var(--color-border)]">
               <div>
-                <label className="block text-sm text-zinc-400 mb-1">Batch Size</label>
+                <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Batch Size</label>
                 <input
                   type="number"
                   min="10"
                   max="1000"
                   value={localSettings.batchSize}
                   onChange={(e) => setLocalSettings({ ...localSettings, batchSize: parseInt(e.target.value) || 100 })}
-                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                 />
               </div>
               <div>
-                <label className="block text-sm text-zinc-400 mb-1">Batch Interval (seconds)</label>
+                <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Batch Interval (seconds)</label>
                 <input
                   type="number"
                   min="10"
                   max="600"
                   value={localSettings.batchInterval}
                   onChange={(e) => setLocalSettings({ ...localSettings, batchInterval: parseInt(e.target.value) || 60 })}
-                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
                 />
               </div>
             </div>
@@ -1217,7 +1217,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({ settings, onUpdate }) => {
 
       <button
         onClick={handleSave}
-        className="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors duration-150 font-medium"
+        className="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded-lg transition-colors duration-150 font-medium"
       >
         Save Settings
       </button>
@@ -1238,15 +1238,15 @@ const GeofenceManager: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">Geofence Manager</h1>
-          <p className="text-zinc-400 mt-1">Manage location-based triggers and rules</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Geofence Manager</h1>
+          <p className="text-[var(--color-text-secondary)] mt-1">Manage location-based triggers and rules</p>
         </div>
 
         {/* Tab Navigation */}
-        <div className="mb-6 border-b border-zinc-800">
+        <div className="mb-6 border-b border-[var(--color-border)]">
           <nav className="flex space-x-1">
             {tabs.map((tab) => (
               <button
@@ -1256,7 +1256,7 @@ const GeofenceManager: React.FC = () => {
                   "px-4 py-2 text-sm font-medium transition-colors duration-150 border-b-2 -mb-px",
                   activeTab === tab.id
                     ? "text-indigo-400 border-indigo-500"
-                    : "text-zinc-400 border-transparent hover:text-white hover:border-zinc-600"
+                    : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
                 )}
               >
                 {tab.label}
@@ -1266,7 +1266,7 @@ const GeofenceManager: React.FC = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-6">
           {activeTab === "geofences" && <GeofencesTab geofences={sampleGeofences} />}
           {activeTab === "rules" && <RulesTab rules={sampleRules} geofences={sampleGeofences} />}
           {activeTab === "events" && <EventsTab events={sampleEvents} geofences={sampleGeofences} />}

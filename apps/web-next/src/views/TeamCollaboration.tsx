@@ -417,8 +417,8 @@ heading-xl:  text-2xl  font-bold    tracking-tight
 heading-lg:  text-xl   font-semibold
 heading-md:  text-lg   font-semibold
 body:        text-sm   font-normal
-caption:     text-xs   font-normal  text-zinc-400
-code:        text-sm   font-mono    bg-zinc-800/50
+caption:     text-xs   font-normal  text-[var(--color-text-secondary)]
+code:        text-sm   font-mono    bg-[var(--color-surface-2)]/50
 \`\`\`
 
 ## Border Radius
@@ -459,7 +459,7 @@ const AVAILABILITY_CONFIG: Record<Availability, { label: string; dot: string; te
   available: { label: "Available", dot: "bg-emerald-400", textClass: "text-emerald-400" },
   busy: { label: "Busy", dot: "bg-rose-400", textClass: "text-rose-400" },
   away: { label: "Away", dot: "bg-amber-400", textClass: "text-amber-400" },
-  offline: { label: "Offline", dot: "bg-zinc-600", textClass: "text-zinc-500" },
+  offline: { label: "Offline", dot: "bg-[var(--color-surface-3)]", textClass: "text-[var(--color-text-muted)]" },
 };
 
 const TAG_STYLES: Record<DiscussionTag, string> = {
@@ -494,7 +494,7 @@ function renderNoteContent(raw: string): React.ReactNode {
         elements.push(
           <pre
             key={`code-${codeKey++}`}
-            className="bg-zinc-800/60 border border-zinc-700/50 rounded-lg p-3 text-sm font-mono text-zinc-300 overflow-x-auto my-2"
+            className="bg-[var(--color-surface-2)]/60 border border-[var(--color-border)]/50 rounded-lg p-3 text-sm font-mono text-[var(--color-text-primary)] overflow-x-auto my-2"
           >
             {codeLines.join("\n")}
           </pre>
@@ -514,20 +514,20 @@ function renderNoteContent(raw: string): React.ReactNode {
 
     if (line.startsWith("# ")) {
       elements.push(
-        <h2 key={i} className="text-lg font-bold text-white mt-4 mb-2">
+        <h2 key={i} className="text-lg font-bold text-[var(--color-text-primary)] mt-4 mb-2">
           {line.slice(2)}
         </h2>
       );
     } else if (line.startsWith("## ")) {
       elements.push(
-        <h3 key={i} className="text-base font-semibold text-zinc-200 mt-3 mb-1">
+        <h3 key={i} className="text-base font-semibold text-[var(--color-text-primary)] mt-3 mb-1">
           {line.slice(3)}
         </h3>
       );
     } else if (line.startsWith("- ")) {
       elements.push(
-        <div key={i} className="flex gap-2 text-sm text-zinc-300 ml-2 my-0.5">
-          <span className="text-zinc-500">•</span>
+        <div key={i} className="flex gap-2 text-sm text-[var(--color-text-primary)] ml-2 my-0.5">
+          <span className="text-[var(--color-text-muted)]">•</span>
           <span>{line.slice(2)}</span>
         </div>
       );
@@ -535,8 +535,8 @@ function renderNoteContent(raw: string): React.ReactNode {
       const match = line.match(/^(\d+)\.\s(.*)$/);
       if (match) {
         elements.push(
-          <div key={i} className="flex gap-2 text-sm text-zinc-300 ml-2 my-0.5">
-            <span className="text-zinc-500 min-w-[1.2rem]">{match[1]}.</span>
+          <div key={i} className="flex gap-2 text-sm text-[var(--color-text-primary)] ml-2 my-0.5">
+            <span className="text-[var(--color-text-muted)] min-w-[1.2rem]">{match[1]}.</span>
             <span>{match[2]}</span>
           </div>
         );
@@ -551,7 +551,7 @@ function renderNoteContent(raw: string): React.ReactNode {
           return (
             <code
               key={pi}
-              className="bg-zinc-800/60 text-indigo-300 px-1.5 py-0.5 rounded text-xs font-mono"
+              className="bg-[var(--color-surface-2)]/60 text-indigo-300 px-1.5 py-0.5 rounded text-xs font-mono"
             >
               {part.slice(1, -1)}
             </code>
@@ -560,7 +560,7 @@ function renderNoteContent(raw: string): React.ReactNode {
         return <span key={pi}>{part}</span>;
       });
       elements.push(
-        <p key={i} className="text-sm text-zinc-300 my-0.5">
+        <p key={i} className="text-sm text-[var(--color-text-primary)] my-0.5">
           {rendered}
         </p>
       );
@@ -572,7 +572,7 @@ function renderNoteContent(raw: string): React.ReactNode {
     elements.push(
       <pre
         key={`code-${codeKey}`}
-        className="bg-zinc-800/60 border border-zinc-700/50 rounded-lg p-3 text-sm font-mono text-zinc-300 overflow-x-auto my-2"
+        className="bg-[var(--color-surface-2)]/60 border border-[var(--color-border)]/50 rounded-lg p-3 text-sm font-mono text-[var(--color-text-primary)] overflow-x-auto my-2"
       >
         {codeLines.join("\n")}
       </pre>
@@ -604,9 +604,9 @@ export default function TeamCollaboration() {
       : 0;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="border-b border-zinc-800">
+      <div className="border-b border-[var(--color-border)]">
         <div className="max-w-7xl mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
             <div>
@@ -614,13 +614,13 @@ export default function TeamCollaboration() {
                 <span>👥</span>
                 <span>Team Collaboration Hub</span>
               </h1>
-              <p className="text-sm text-zinc-400 mt-1">
+              <p className="text-sm text-[var(--color-text-secondary)] mt-1">
                 Product &amp; UI Squad — {onlineMembers.length}/{TEAM_MEMBERS.length} online
               </p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">Team Capacity</p>
+                <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Team Capacity</p>
                 <p className="text-lg font-semibold">
                   <span
                     className={cn(
@@ -635,7 +635,7 @@ export default function TeamCollaboration() {
                   </span>
                 </p>
               </div>
-              <div className="w-24 h-3 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="w-24 h-3 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all",
@@ -661,7 +661,7 @@ export default function TeamCollaboration() {
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                   activeTab === tab.id
                     ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
-                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50"
                 )}
               >
                 <span>{tab.icon}</span>
@@ -678,7 +678,7 @@ export default function TeamCollaboration() {
         {activeTab === "workspace" && (
           <div className="space-y-6">
             {/* Capacity Overview */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
               <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
                 <span>📊</span> Team Capacity Overview
               </h2>
@@ -688,12 +688,12 @@ export default function TeamCollaboration() {
                     { label: "Available", count: TEAM_MEMBERS.filter((m) => m.availability === "available").length, cls: "text-emerald-400" },
                     { label: "Busy", count: TEAM_MEMBERS.filter((m) => m.availability === "busy").length, cls: "text-rose-400" },
                     { label: "Away", count: TEAM_MEMBERS.filter((m) => m.availability === "away").length, cls: "text-amber-400" },
-                    { label: "Offline", count: TEAM_MEMBERS.filter((m) => m.availability === "offline").length, cls: "text-zinc-500" },
+                    { label: "Offline", count: TEAM_MEMBERS.filter((m) => m.availability === "offline").length, cls: "text-[var(--color-text-muted)]" },
                   ] as const
                 ).map((stat) => (
                   <div key={stat.label} className="text-center">
                     <p className={cn("text-2xl font-bold", stat.cls)}>{stat.count}</p>
-                    <p className="text-xs text-zinc-500">{stat.label}</p>
+                    <p className="text-xs text-[var(--color-text-muted)]">{stat.label}</p>
                   </div>
                 ))}
               </div>
@@ -701,8 +701,8 @@ export default function TeamCollaboration() {
               <div className="space-y-2">
                 {TEAM_MEMBERS.filter((m) => m.availability !== "offline").map((member) => (
                   <div key={member.id} className="flex items-center gap-3">
-                    <span className="text-sm w-20 truncate text-zinc-300">{member.name}</span>
-                    <div className="flex-1 h-2.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <span className="text-sm w-20 truncate text-[var(--color-text-primary)]">{member.name}</span>
+                    <div className="flex-1 h-2.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                       <div
                         className={cn(
                           "h-full rounded-full transition-all",
@@ -715,7 +715,7 @@ export default function TeamCollaboration() {
                         style={{ width: `${member.capacityPercent}%` }}
                       />
                     </div>
-                    <span className="text-xs text-zinc-500 w-10 text-right">
+                    <span className="text-xs text-[var(--color-text-muted)] w-10 text-right">
                       {member.capacityPercent}%
                     </span>
                   </div>
@@ -731,7 +731,7 @@ export default function TeamCollaboration() {
                   <div
                     key={member.id}
                     className={cn(
-                      "bg-zinc-900 border border-zinc-800 rounded-xl p-4 transition-colors",
+                      "bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 transition-colors",
                       member.availability === "offline" && "opacity-60"
                     )}
                   >
@@ -740,32 +740,32 @@ export default function TeamCollaboration() {
                         <span className="text-2xl">{member.avatar}</span>
                         <div
                           className={cn(
-                            "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-zinc-900",
+                            "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[var(--color-border)]",
                             avail.dot
                           )}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-semibold text-white">{member.name}</h3>
+                          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{member.name}</h3>
                           <span className={cn("text-xs", avail.textClass)}>
                             {avail.label}
                           </span>
                         </div>
-                        <p className="text-xs text-zinc-500">{member.role}</p>
+                        <p className="text-xs text-[var(--color-text-muted)]">{member.role}</p>
                       </div>
                     </div>
 
                     <div className="mt-3">
-                      <p className="text-xs text-zinc-500 mb-1">Current Task</p>
-                      <p className="text-sm text-zinc-300 truncate">{member.currentTask}</p>
+                      <p className="text-xs text-[var(--color-text-muted)] mb-1">Current Task</p>
+                      <p className="text-sm text-[var(--color-text-primary)] truncate">{member.currentTask}</p>
                     </div>
 
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {member.skills.map((skill) => (
                         <span
                           key={skill}
-                          className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700/50"
+                          className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)]/50"
                         >
                           {skill}
                         </span>
@@ -773,9 +773,9 @@ export default function TeamCollaboration() {
                     </div>
 
                     {member.availability !== "offline" && (
-                      <div className="mt-3 pt-3 border-t border-zinc-800/50">
+                      <div className="mt-3 pt-3 border-t border-[var(--color-border)]/50">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-zinc-500">Workload</span>
+                          <span className="text-[var(--color-text-muted)]">Workload</span>
                           <span
                             className={cn(
                               member.capacityPercent > 75
@@ -788,7 +788,7 @@ export default function TeamCollaboration() {
                             {member.capacityPercent}%
                           </span>
                         </div>
-                        <div className="mt-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="mt-1 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                           <div
                             className={cn(
                               "h-full rounded-full",
@@ -817,7 +817,7 @@ export default function TeamCollaboration() {
               <h2 className="text-base font-semibold flex items-center gap-2">
                 <span>💬</span> Team Discussions
               </h2>
-              <span className="text-xs text-zinc-500">{DISCUSSIONS.length} threads</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{DISCUSSIONS.length} threads</span>
             </div>
 
             {DISCUSSIONS.map((discussion) => {
@@ -825,18 +825,18 @@ export default function TeamCollaboration() {
               return (
                 <div
                   key={discussion.id}
-                  className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"
+                  className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden"
                 >
                   <button
                     onClick={() =>
                       setExpandedDiscussion(isExpanded ? null : discussion.id)
                     }
-                    className="w-full text-left p-4 hover:bg-zinc-800/30 transition-colors"
+                    className="w-full text-left p-4 hover:bg-[var(--color-surface-2)]/30 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-sm font-semibold text-white">
+                          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
                             {discussion.title}
                           </h3>
                           {discussion.tags.map((tag) => (
@@ -851,25 +851,25 @@ export default function TeamCollaboration() {
                             </span>
                           ))}
                         </div>
-                        <p className="text-xs text-zinc-500 mt-1 line-clamp-1">
+                        <p className="text-xs text-[var(--color-text-muted)] mt-1 line-clamp-1">
                           {discussion.preview}
                         </p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         <div className="text-right">
-                          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                          <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
                             <span>{discussion.avatar}</span>
                             <span>{discussion.author}</span>
                           </div>
-                          <p className="text-xs text-zinc-600 mt-0.5">
+                          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                             {discussion.lastActivity}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-zinc-500 bg-zinc-800 px-2 py-1 rounded-lg">
+                        <div className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-2)] px-2 py-1 rounded-lg">
                           <span>💬</span>
                           <span>{discussion.replyCount}</span>
                         </div>
-                        <span className="text-zinc-600 text-sm">
+                        <span className="text-[var(--color-text-muted)] text-sm">
                           {isExpanded ? "▼" : "▶"}
                         </span>
                       </div>
@@ -877,18 +877,18 @@ export default function TeamCollaboration() {
                   </button>
 
                   {isExpanded && (
-                    <div className="border-t border-zinc-800">
+                    <div className="border-t border-[var(--color-border)]">
                       {/* Original post */}
-                      <div className="p-4 bg-zinc-900/50">
+                      <div className="p-4 bg-[var(--color-surface-1)]/50">
                         <div className="flex items-center gap-2 mb-2">
                           <span>{discussion.avatar}</span>
-                          <span className="text-sm font-medium text-white">
+                          <span className="text-sm font-medium text-[var(--color-text-primary)]">
                             {discussion.author}
                           </span>
-                          <span className="text-xs text-zinc-600">•</span>
-                          <span className="text-xs text-zinc-500">Original post</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">•</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">Original post</span>
                         </div>
-                        <p className="text-sm text-zinc-300 leading-relaxed">
+                        <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">
                           {discussion.preview}
                         </p>
                       </div>
@@ -897,26 +897,26 @@ export default function TeamCollaboration() {
                       {discussion.replies.map((reply) => (
                         <div
                           key={reply.id}
-                          className="p-4 border-t border-zinc-800/50 ml-6"
+                          className="p-4 border-t border-[var(--color-border)]/50 ml-6"
                         >
                           <div className="flex items-center gap-2 mb-1.5">
                             <span className="text-sm">{reply.avatar}</span>
-                            <span className="text-sm font-medium text-white">
+                            <span className="text-sm font-medium text-[var(--color-text-primary)]">
                               {reply.author}
                             </span>
-                            <span className="text-xs text-zinc-600">•</span>
-                            <span className="text-xs text-zinc-500">
+                            <span className="text-xs text-[var(--color-text-muted)]">•</span>
+                            <span className="text-xs text-[var(--color-text-muted)]">
                               {reply.timestamp}
                             </span>
                           </div>
-                          <p className="text-sm text-zinc-300 leading-relaxed">
+                          <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">
                             {reply.content}
                           </p>
                         </div>
                       ))}
 
                       {discussion.replyCount > discussion.replies.length && (
-                        <div className="px-4 py-3 border-t border-zinc-800/50 text-center">
+                        <div className="px-4 py-3 border-t border-[var(--color-border)]/50 text-center">
                           <span className="text-xs text-indigo-400">
                             + {discussion.replyCount - discussion.replies.length} more{" "}
                             {discussion.replyCount - discussion.replies.length === 1
@@ -940,7 +940,7 @@ export default function TeamCollaboration() {
               <h2 className="text-base font-semibold flex items-center gap-2">
                 <span>📋</span> Shared Notes
               </h2>
-              <span className="text-xs text-zinc-500">
+              <span className="text-xs text-[var(--color-text-muted)]">
                 {NOTE_SECTIONS.length} sections
               </span>
             </div>
@@ -951,17 +951,17 @@ export default function TeamCollaboration() {
               return (
                 <div
                   key={section.id}
-                  className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"
+                  className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden"
                 >
-                  <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+                  <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)]">
                     <div>
-                      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
                         <span>📄</span>
                         {section.title}
                       </h3>
-                      <p className="text-xs text-zinc-500 mt-0.5">
+                      <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                         Last edited by{" "}
-                        <span className="text-zinc-400">{section.lastEditedBy}</span>{" "}
+                        <span className="text-[var(--color-text-secondary)]">{section.lastEditedBy}</span>{" "}
                         • {section.lastEditedAt}
                       </p>
                     </div>
@@ -973,7 +973,7 @@ export default function TeamCollaboration() {
                         "text-xs px-3 py-1.5 rounded-lg border transition-colors",
                         isEditing
                           ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/30"
-                          : "text-zinc-400 border-zinc-700 hover:bg-zinc-800"
+                          : "text-[var(--color-text-secondary)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)]"
                       )}
                     >
                       {isEditing ? "✅ Done" : "✏️ Edit"}
@@ -990,7 +990,7 @@ export default function TeamCollaboration() {
                             [section.id]: e.target.value,
                           }))
                         }
-                        className="w-full h-80 bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-3 text-sm font-mono text-zinc-300 resize-y focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
+                        className="w-full h-80 bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-lg p-3 text-sm font-mono text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
                       />
                     ) : (
                       <div className="prose-invert max-w-none">
@@ -1011,30 +1011,30 @@ export default function TeamCollaboration() {
               <h2 className="text-base font-semibold flex items-center gap-2">
                 <span>⚡</span> Activity Feed
               </h2>
-              <span className="text-xs text-zinc-500">
+              <span className="text-xs text-[var(--color-text-muted)]">
                 {ACTIVITY_ITEMS.length} events
               </span>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden divide-y divide-zinc-800/50">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden divide-y divide-[var(--color-border)]/50">
               {ACTIVITY_ITEMS.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-start gap-3 p-3.5 hover:bg-zinc-800/20 transition-colors"
+                  className="flex items-start gap-3 p-3.5 hover:bg-[var(--color-surface-2)]/20 transition-colors"
                 >
                   <span className="text-lg shrink-0 mt-0.5">
                     {ACTIVITY_ICONS[item.kind]}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-zinc-200">
-                      <span className="font-medium text-white">{item.actor}</span>{" "}
-                      <span className="text-zinc-400">{item.description}</span>
+                    <p className="text-sm text-[var(--color-text-primary)]">
+                      <span className="font-medium text-[var(--color-text-primary)]">{item.actor}</span>{" "}
+                      <span className="text-[var(--color-text-secondary)]">{item.description}</span>
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-indigo-400/80 bg-indigo-500/10 px-2 py-0.5 rounded font-mono truncate max-w-xs">
                         {item.target}
                       </span>
-                      <span className="text-xs text-zinc-600">{item.timestamp}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{item.timestamp}</span>
                     </div>
                   </div>
                   <span className="text-sm shrink-0">{item.avatar}</span>

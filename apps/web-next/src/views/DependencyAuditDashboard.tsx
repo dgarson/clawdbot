@@ -57,7 +57,7 @@ const severityColor: Record<VulnSeverity, string> = {
   high:     "text-rose-400",
   medium:   "text-amber-400",
   low:      "text-yellow-400",
-  info:     "text-zinc-400",
+  info:     "text-[var(--color-text-secondary)]",
 };
 
 const severityBg: Record<VulnSeverity, string> = {
@@ -65,14 +65,14 @@ const severityBg: Record<VulnSeverity, string> = {
   high:     "bg-rose-500/20 text-rose-400",
   medium:   "bg-amber-500/20 text-amber-400",
   low:      "bg-yellow-500/20 text-yellow-400",
-  info:     "bg-zinc-500/20 text-zinc-400",
+  info:     "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
 };
 
 const licenseRiskBg: Record<LicenseRisk, string> = {
   high:    "bg-rose-500/20 text-rose-400",
   medium:  "bg-amber-500/20 text-amber-400",
   low:     "bg-emerald-500/20 text-emerald-400",
-  unknown: "bg-zinc-500/20 text-zinc-400",
+  unknown: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
 };
 
 const updateBadge: Record<UpdateType, string> = {
@@ -127,14 +127,14 @@ export default function DependencyAuditDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Dependency Audit</h1>
-            <p className="text-zinc-400 text-sm mt-1">CVE scanning, outdated packages, and license compliance</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Dependency Audit</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">CVE scanning, outdated packages, and license compliance</p>
           </div>
           <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition-colors">
             Run Audit
@@ -149,15 +149,15 @@ export default function DependencyAuditDashboard() {
             { label: "Vulnerable Deps", value: vulnerableDeps, color: "text-amber-400" },
             { label: "License Issues",  value: licenseIssues.length, color: "text-orange-400" },
           ].map(kpi => (
-            <div key={kpi.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">{kpi.label}</p>
+            <div key={kpi.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+              <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{kpi.label}</p>
               <p className={cn("text-3xl font-bold mt-1", kpi.color)}>{kpi.value}</p>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-zinc-800">
+        <div className="flex gap-1 border-b border-[var(--color-border)]">
           {tabs.map(t => (
             <button
               key={t.id}
@@ -165,8 +165,8 @@ export default function DependencyAuditDashboard() {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
                 tab === t.id
-                  ? "border-indigo-500 text-white"
-                  : "border-transparent text-zinc-400 hover:text-zinc-200"
+                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.label}
@@ -177,57 +177,57 @@ export default function DependencyAuditDashboard() {
         {/* Overview */}
         {tab === "overview" && (
           <div className="space-y-6">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-              <h2 className="text-sm font-semibold text-zinc-300 mb-4">Status Distribution</h2>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Status Distribution</h2>
               {(["vulnerable", "deprecated", "outdated", "ok"] as DepStatus[]).map(s => {
                 const count = deps.filter(d => d.status === s).length;
                 const pct = Math.round((count / deps.length) * 100);
                 return (
                   <div key={s} className="flex items-center gap-3 mb-2">
                     <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium w-24 text-center", statusBadge[s])}>{s}</span>
-                    <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                    <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                       <div
                         className={cn("h-2 rounded-full", s === "vulnerable" ? "bg-rose-500" : s === "deprecated" ? "bg-orange-500" : s === "outdated" ? "bg-amber-500" : "bg-emerald-500")}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <span className="text-xs text-zinc-400 w-6 text-right">{count}</span>
+                    <span className="text-xs text-[var(--color-text-secondary)] w-6 text-right">{count}</span>
                   </div>
                 );
               })}
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-              <h2 className="text-sm font-semibold text-zinc-300 mb-4">Vulnerability Severity Breakdown</h2>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Vulnerability Severity Breakdown</h2>
               {(["critical","high","medium","low"] as VulnSeverity[]).map(s => {
                 const count = vulns.filter(v => v.severity === s).length;
                 return (
                   <div key={s} className="flex items-center gap-3 mb-2">
                     <span className={cn("text-xs px-2 py-0.5 rounded font-medium w-16 text-center", severityBg[s])}>{s}</span>
-                    <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                    <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                       <div
                         className={cn("h-2 rounded-full", s === "critical" ? "bg-red-500" : s === "high" ? "bg-rose-500" : s === "medium" ? "bg-amber-500" : "bg-yellow-500")}
                         style={{ width: `${(count / vulns.length) * 100}%` }}
                       />
                     </div>
-                    <span className="text-xs text-zinc-400 w-4 text-right">{count}</span>
+                    <span className="text-xs text-[var(--color-text-secondary)] w-4 text-right">{count}</span>
                   </div>
                 );
               })}
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-              <h2 className="text-sm font-semibold text-zinc-300 mb-4">Top Risk: Immediate Action Required</h2>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Top Risk: Immediate Action Required</h2>
               <div className="space-y-2">
                 {vulns.filter(v => v.severity === "critical").map(v => (
                   <div key={v.id} className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
                     <div className="flex items-center gap-3 mb-1">
                       <span className="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded font-bold">CRITICAL</span>
-                      <span className="text-sm font-semibold text-white">{v.cve}</span>
-                      <span className="text-xs text-zinc-400">{v.depName}@{v.depVersion}</span>
-                      <span className="text-xs text-zinc-500 ml-auto">CVSS: {v.cvss}</span>
+                      <span className="text-sm font-semibold text-[var(--color-text-primary)]">{v.cve}</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">{v.depName}@{v.depVersion}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] ml-auto">CVSS: {v.cvss}</span>
                     </div>
-                    <p className="text-xs text-zinc-400">{v.title}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{v.title}</p>
                     {v.fixedIn && <p className="text-xs text-emerald-400 mt-1">Fix available in v{v.fixedIn}</p>}
                   </div>
                 ))}
@@ -244,7 +244,7 @@ export default function DependencyAuditDashboard() {
                 <button
                   key={f}
                   onClick={() => { setStatusFilter(f === "all" ? "all" : f); setSelectedDep(null); }}
-                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", statusFilter === f ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200")}
+                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", statusFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
                 >
                   {f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
@@ -252,11 +252,11 @@ export default function DependencyAuditDashboard() {
             </div>
 
             {selectedDep ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-5">
-                <button onClick={() => setSelectedDep(null)} className="text-zinc-400 hover:text-white text-sm">← Back</button>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 space-y-5">
+                <button onClick={() => setSelectedDep(null)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-sm">← Back</button>
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold text-white">{selectedDep.name}</h2>
-                  <code className="text-xs text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded">v{selectedDep.version}</code>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedDep.name}</h2>
+                  <code className="text-xs text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-2 py-0.5 rounded">v{selectedDep.version}</code>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusBadge[selectedDep.status])}>{selectedDep.status}</span>
                 </div>
 
@@ -271,18 +271,18 @@ export default function DependencyAuditDashboard() {
                     { label: "CVEs",         value: selectedDep.vulns },
                     { label: "Max Severity", value: selectedDep.maxSeverity ?? "none" },
                   ].map(m => (
-                    <div key={m.label} className="bg-zinc-800/60 rounded-lg p-3">
-                      <p className="text-xs text-zinc-500">{m.label}</p>
-                      <p className="text-sm font-medium text-white mt-0.5">{m.value}</p>
+                    <div key={m.label} className="bg-[var(--color-surface-2)]/60 rounded-lg p-3">
+                      <p className="text-xs text-[var(--color-text-muted)]">{m.label}</p>
+                      <p className="text-sm font-medium text-[var(--color-text-primary)] mt-0.5">{m.value}</p>
                     </div>
                   ))}
                 </div>
 
                 {selectedDep.updateType && (
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-zinc-400">Update available:</span>
+                    <span className="text-sm text-[var(--color-text-secondary)]">Update available:</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded font-medium", updateBadge[selectedDep.updateType])}>{selectedDep.updateType.toUpperCase()}</span>
-                    <span className="text-sm text-zinc-300">→ v{selectedDep.latestVersion}</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">→ v{selectedDep.latestVersion}</span>
                   </div>
                 )}
 
@@ -293,10 +293,10 @@ export default function DependencyAuditDashboard() {
                 )}
 
                 <div>
-                  <p className="text-xs text-zinc-500 mb-2">Used by</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mb-2">Used by</p>
                   <div className="flex gap-2 flex-wrap">
                     {selectedDep.usedBy.map(u => (
-                      <span key={u} className="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded">{u}</span>
+                      <span key={u} className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-primary)] px-2 py-1 rounded">{u}</span>
                     ))}
                   </div>
                 </div>
@@ -304,16 +304,16 @@ export default function DependencyAuditDashboard() {
                 {/* Relevant vulns */}
                 {vulns.filter(v => v.depName === selectedDep.name).length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold text-zinc-300 mb-3">CVEs</h3>
+                    <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">CVEs</h3>
                     <div className="space-y-2">
                       {vulns.filter(v => v.depName === selectedDep.name).map(v => (
-                        <div key={v.id} className="bg-zinc-800/60 rounded-lg p-3">
+                        <div key={v.id} className="bg-[var(--color-surface-2)]/60 rounded-lg p-3">
                           <div className="flex items-center gap-2 mb-1">
                             <span className={cn("text-xs px-1.5 py-0.5 rounded font-medium", severityBg[v.severity])}>{v.severity}</span>
-                            <span className="text-xs text-zinc-400 font-mono">{v.cve}</span>
-                            <span className="text-xs text-zinc-500 ml-auto">CVSS {v.cvss}</span>
+                            <span className="text-xs text-[var(--color-text-secondary)] font-mono">{v.cve}</span>
+                            <span className="text-xs text-[var(--color-text-muted)] ml-auto">CVSS {v.cvss}</span>
                           </div>
-                          <p className="text-xs text-zinc-300">{v.title}</p>
+                          <p className="text-xs text-[var(--color-text-primary)]">{v.title}</p>
                           {v.fixedIn && <p className="text-xs text-emerald-400 mt-1">Fixed in v{v.fixedIn}</p>}
                         </div>
                       ))}
@@ -327,18 +327,18 @@ export default function DependencyAuditDashboard() {
                   <button
                     key={dep.id}
                     onClick={() => setSelectedDep(dep)}
-                    className="w-full text-left bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-xl p-4 transition-colors"
+                    className="w-full text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] hover:border-[var(--color-surface-3)] rounded-xl p-4 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-sm font-semibold text-white">{dep.name}</span>
-                          <code className="text-xs text-zinc-500">v{dep.version}</code>
+                          <span className="text-sm font-semibold text-[var(--color-text-primary)]">{dep.name}</span>
+                          <code className="text-xs text-[var(--color-text-muted)]">v{dep.version}</code>
                           {dep.updateType && <span className={cn("text-xs px-1.5 py-0.5 rounded", updateBadge[dep.updateType])}>→ v{dep.latestVersion}</span>}
                           <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusBadge[dep.status])}>{dep.status}</span>
-                          {dep.transitive && <span className="text-xs text-zinc-600">transitive</span>}
+                          {dep.transitive && <span className="text-xs text-[var(--color-text-muted)]">transitive</span>}
                         </div>
-                        <div className="flex gap-3 text-xs text-zinc-500">
+                        <div className="flex gap-3 text-xs text-[var(--color-text-muted)]">
                           <span>{dep.license}</span>
                           <span>{dep.size} KB</span>
                           <span>Used by: {dep.usedBy.join(", ")}</span>
@@ -361,20 +361,20 @@ export default function DependencyAuditDashboard() {
         {tab === "vulns" && (
           <div className="space-y-3">
             {vulns.toSorted((a, b) => b.cvss - a.cvss).map(v => (
-              <div key={v.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+              <div key={v.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
                 <div className="flex items-start justify-between gap-4 mb-2">
                   <div className="flex items-center gap-3">
                     <span className={cn("text-xs px-2 py-0.5 rounded font-bold", severityBg[v.severity])}>{v.severity.toUpperCase()}</span>
-                    <span className="text-xs font-mono text-zinc-400">{v.cve}</span>
-                    <span className="text-xs text-zinc-600">CVSS: {v.cvss}</span>
+                    <span className="text-xs font-mono text-[var(--color-text-secondary)]">{v.cve}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">CVSS: {v.cvss}</span>
                   </div>
-                  <span className="text-xs text-zinc-500">{v.publishedAt}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{v.publishedAt}</span>
                 </div>
-                <p className="text-sm font-semibold text-white mb-1">{v.title}</p>
-                <p className="text-xs text-zinc-400 mb-2">{v.description}</p>
+                <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">{v.title}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] mb-2">{v.description}</p>
                 <div className="flex items-center gap-3 text-xs">
-                  <span className="text-zinc-500">Package:</span>
-                  <span className="text-zinc-300">{v.depName}@{v.depVersion}</span>
+                  <span className="text-[var(--color-text-muted)]">Package:</span>
+                  <span className="text-[var(--color-text-primary)]">{v.depName}@{v.depVersion}</span>
                   {v.fixedIn
                     ? <span className="text-emerald-400">✓ Fixed in v{v.fixedIn}</span>
                     : <span className="text-rose-400">✗ No fix available</span>
@@ -391,21 +391,21 @@ export default function DependencyAuditDashboard() {
             <div className="space-y-3">
               {licenseIssues.map((issue, i) => (
                 <div key={i} className={cn(
-                  "bg-zinc-900 border rounded-xl p-4",
+                  "bg-[var(--color-surface-1)] border rounded-xl p-4",
                   issue.risk === "high" ? "border-rose-500/30" : "border-amber-500/30"
                 )}>
                   <div className="flex items-center gap-3 mb-2">
                     <span className={cn("text-xs px-2 py-0.5 rounded font-medium", licenseRiskBg[issue.risk])}>{issue.risk} risk</span>
-                    <span className="text-sm font-semibold text-white">{issue.dep}</span>
-                    <code className="text-xs text-zinc-400">{issue.license}</code>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{issue.dep}</span>
+                    <code className="text-xs text-[var(--color-text-secondary)]">{issue.license}</code>
                   </div>
-                  <p className="text-xs text-zinc-400">{issue.reason}</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">{issue.reason}</p>
                 </div>
               ))}
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-              <h2 className="text-sm font-semibold text-zinc-300 mb-3">All Licenses</h2>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">All Licenses</h2>
               <div className="space-y-2">
                 {Array.from(new Set(deps.map(d => d.license))).map(lic => {
                   const count = deps.filter(d => d.license === lic).length;
@@ -413,8 +413,8 @@ export default function DependencyAuditDashboard() {
                   return (
                     <div key={lic} className="flex items-center gap-3">
                       <span className={cn("text-xs px-2 py-0.5 rounded font-medium w-16 text-center", licenseRiskBg[risk])}>{risk}</span>
-                      <code className="text-xs text-zinc-300 flex-1">{lic}</code>
-                      <span className="text-xs text-zinc-500">{count} package{count !== 1 ? "s" : ""}</span>
+                      <code className="text-xs text-[var(--color-text-primary)] flex-1">{lic}</code>
+                      <span className="text-xs text-[var(--color-text-muted)]">{count} package{count !== 1 ? "s" : ""}</span>
                     </div>
                   );
                 })}

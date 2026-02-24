@@ -1113,7 +1113,9 @@ function AppContent() {
   const [activeView, setActiveView] = useState("dashboard");
   const [navHistory, setNavHistory] = useState<string[]>(["dashboard"]);
   const [historyIndex, setHistoryIndex] = useState(0);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return localStorage.getItem("oc_sidebar_collapsed") === "true"; } catch { return false; }
+  });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -1156,6 +1158,7 @@ function AppContent() {
     try { return localStorage.getItem("oc_operator_mode") === "true"; } catch { return false; }
   });
   const [copilotOpen, setCopilotOpen] = useState(false);
+  const [presetsOpen, setPresetsOpen] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const toggleOperatorMode = useCallback(() => {
@@ -1302,6 +1305,7 @@ function AppContent() {
       // Escape — close in priority order
       if (e.key === "Escape") {
         if (cmdPaletteOpen) { setCmdPaletteOpen(false); return; }
+        if (presetsOpen) { setPresetsOpen(false); return; }
         if (copilotOpen) { setCopilotOpen(false); return; }
         if (shortcutsOpen) { setShortcutsOpen(false); return; }
         if (mobileSidebarOpen) { setMobileSidebarOpen(false); return; }
@@ -1354,6 +1358,10 @@ function AppContent() {
   useEffect(() => {
     localStorage.setItem("oc_nav_presets", JSON.stringify(savedPresets));
   }, [savedPresets]);
+
+  useEffect(() => {
+    try { localStorage.setItem("oc_sidebar_collapsed", String(sidebarCollapsed)); } catch {}
+  }, [sidebarCollapsed]);
 
   // Filtered commands for palette
   const filteredNav = navItems.filter(
@@ -2073,7 +2081,7 @@ function AppContent() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         {/* Top header bar */}
         <header className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card/50 backdrop-blur-sm shrink-0">
           {/* Mobile hamburger */}
@@ -2152,29 +2160,42 @@ function AppContent() {
           <div className="flex-1" />
 
           {/* Presets */}
-          <div className="hidden lg:flex items-center gap-2">
-            <select
-              className="bg-secondary/30 border border-border rounded-md px-2 py-1 text-xs text-foreground"
-              defaultValue=""
-              onChange={(e) => {
-                if (e.target.value) {
-                  applyPreset(e.target.value);
-                  e.target.value = "";
-                }
-              }}
-              aria-label="Apply saved preset"
-            >
-              <option value="">Presets</option>
-              {savedPresets.map((preset) => (
-                <option key={preset.id} value={preset.id}>{preset.name}</option>
-              ))}
-            </select>
+          <div className="relative hidden lg:block">
             <button
-              onClick={saveCurrentPreset}
-              className="px-2 py-1 text-xs rounded-md border border-border bg-secondary/30 text-muted-foreground hover:text-foreground"
+              onClick={() => setPresetsOpen(!presetsOpen)}
+              className="flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1.5 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] transition-colors"
             >
-              Save preset
+              <span>Presets</span>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" className={cn("transition-transform", presetsOpen && "rotate-180")}>
+                <path d="M2 4l3 3 3-3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+              </svg>
             </button>
+            {presetsOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setPresetsOpen(false)} />
+                <div className="absolute right-0 top-full mt-1 z-50 min-w-[180px] rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] py-1 shadow-xl">
+                  <button
+                    onClick={() => { saveCurrentPreset(); setPresetsOpen(false); }}
+                    className="w-full px-3 py-2 text-left text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)] transition-colors"
+                  >
+                    + Save current view as preset
+                  </button>
+                  {savedPresets.length > 0 && <div className="my-1 border-t border-[var(--color-border)]" />}
+                  {savedPresets.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => { applyPreset(preset.id); setPresetsOpen(false); }}
+                      className="w-full px-3 py-2 text-left text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)] transition-colors"
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                  {savedPresets.length === 0 && (
+                    <p className="px-3 py-2 text-[11px] text-[var(--color-text-muted)]">No saved presets</p>
+                  )}
+                </div>
+              </>
+            )}
           </div>
           {/* Operator Mode indicator */}
           {operatorMode && (

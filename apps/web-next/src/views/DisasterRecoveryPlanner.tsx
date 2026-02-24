@@ -62,14 +62,14 @@ interface FailoverEvent {
 const statusBadge: Record<DRStatus, string> = {
   ready:    "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
   degraded: "bg-amber-500/20 text-amber-400 border border-amber-500/30",
-  untested: "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
+  untested: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border border-[var(--color-surface-3)]/30",
   failed:   "bg-rose-500/20 text-rose-400 border border-rose-500/30",
 };
 
 const statusDot: Record<DRStatus, string> = {
   ready:    "bg-emerald-400",
   degraded: "bg-amber-400",
-  untested: "bg-zinc-400",
+  untested: "bg-[var(--color-surface-3)]",
   failed:   "bg-rose-400",
 };
 
@@ -77,13 +77,13 @@ const testBadge: Record<TestResult, string> = {
   pass:    "bg-emerald-500/20 text-emerald-400",
   fail:    "bg-rose-500/20 text-rose-400",
   partial: "bg-amber-500/20 text-amber-400",
-  skipped: "bg-zinc-500/20 text-zinc-400",
+  skipped: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
 };
 
 const roleBadge: Record<SiteRole, string> = {
   primary:   "bg-indigo-500/20 text-indigo-400",
   secondary: "bg-sky-500/20 text-sky-400",
-  tertiary:  "bg-zinc-500/20 text-zinc-400",
+  tertiary:  "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
 };
 
 const drSites: DRSite[] = [
@@ -217,14 +217,14 @@ export default function DisasterRecoveryPlanner() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Disaster Recovery Planner</h1>
-            <p className="text-zinc-400 text-sm mt-1">Failover plans, test schedules, and recovery history</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Disaster Recovery Planner</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">Failover plans, test schedules, and recovery history</p>
           </div>
           <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition-colors">
             + New Plan
@@ -232,7 +232,7 @@ export default function DisasterRecoveryPlanner() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-zinc-800">
+        <div className="flex gap-1 border-b border-[var(--color-border)]">
           {tabs.map(t => (
             <button
               key={t.id}
@@ -240,8 +240,8 @@ export default function DisasterRecoveryPlanner() {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
                 tab === t.id
-                  ? "border-indigo-500 text-white"
-                  : "border-transparent text-zinc-400 hover:text-zinc-200"
+                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.label}
@@ -255,41 +255,41 @@ export default function DisasterRecoveryPlanner() {
             {/* KPI cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: "Total Plans",     value: drPlans.length, color: "text-white" },
+                { label: "Total Plans",     value: drPlans.length, color: "text-[var(--color-text-primary)]" },
                 { label: "Ready",           value: readyCt,        color: "text-emerald-400" },
                 { label: "Degraded/Untested", value: degradedCt + drPlans.filter(p=>p.status==="untested").length, color: "text-amber-400" },
                 { label: "Sites Online",    value: `${drSites.filter(s=>s.status==="ready").length}/${drSites.length}`, color: "text-indigo-400" },
               ].map(kpi => (
-                <div key={kpi.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider">{kpi.label}</p>
+                <div key={kpi.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+                  <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{kpi.label}</p>
                   <p className={cn("text-3xl font-bold mt-1", kpi.color)}>{kpi.value}</p>
                 </div>
               ))}
             </div>
 
             {/* Site status */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-              <h2 className="text-sm font-semibold text-zinc-300 mb-4">Site Health</h2>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Site Health</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {drSites.map(site => (
-                  <div key={site.id} className="bg-zinc-800/50 rounded-lg p-4 flex items-center gap-4">
+                  <div key={site.id} className="bg-[var(--color-surface-2)]/50 rounded-lg p-4 flex items-center gap-4">
                     <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", statusDot[site.status])} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium text-white">{site.name}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{site.name}</span>
                         <span className={cn("text-xs px-1.5 py-0.5 rounded font-medium", roleBadge[site.role])}>{site.role}</span>
                         <span className={cn("text-xs px-1.5 py-0.5 rounded font-medium", statusBadge[site.status])}>{site.status}</span>
                       </div>
-                      <p className="text-xs text-zinc-500">{site.region} · Sync: {site.lastSync}{site.lagMs > 0 ? ` · Lag: ${site.lagMs}ms` : " · In sync"}</p>
+                      <p className="text-xs text-[var(--color-text-muted)]">{site.region} · Sync: {site.lastSync}{site.lagMs > 0 ? ` · Lag: ${site.lagMs}ms` : " · In sync"}</p>
                       {/* Capacity bar */}
                       <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1 bg-zinc-700 rounded-full h-1.5">
+                        <div className="flex-1 bg-[var(--color-surface-3)] rounded-full h-1.5">
                           <div
                             className={cn("h-1.5 rounded-full", site.capacity > 80 ? "bg-rose-500" : site.capacity > 60 ? "bg-amber-500" : "bg-emerald-500")}
                             style={{ width: `${site.capacity}%` }}
                           />
                         </div>
-                        <span className="text-xs text-zinc-400 w-8 text-right">{site.capacity}%</span>
+                        <span className="text-xs text-[var(--color-text-secondary)] w-8 text-right">{site.capacity}%</span>
                       </div>
                     </div>
                   </div>
@@ -298,12 +298,12 @@ export default function DisasterRecoveryPlanner() {
             </div>
 
             {/* Plan coverage matrix */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-              <h2 className="text-sm font-semibold text-zinc-300 mb-4">RTO / RPO Coverage</h2>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">RTO / RPO Coverage</h2>
               <div className="space-y-3">
                 {drPlans.map(plan => (
                   <div key={plan.id} className="flex items-center gap-4">
-                    <div className="w-40 text-xs text-zinc-300 truncate">{plan.name}</div>
+                    <div className="w-40 text-xs text-[var(--color-text-primary)] truncate">{plan.name}</div>
                     <div className="flex gap-2">
                       <span className="text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded">RTO: {plan.rto}</span>
                       <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded">RPO: {plan.rpo}</span>
@@ -311,7 +311,7 @@ export default function DisasterRecoveryPlanner() {
                     <div className="flex-1">
                       <div className={cn("w-2.5 h-2.5 rounded-full inline-block", statusDot[plan.status])} />
                     </div>
-                    <span className="text-xs text-zinc-500">Next test: {plan.nextTest}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">Next test: {plan.nextTest}</span>
                   </div>
                 ))}
               </div>
@@ -330,7 +330,7 @@ export default function DisasterRecoveryPlanner() {
                   onClick={() => { setStatusFilter(f); setSelectedPlan(null); }}
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                    statusFilter === f ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                    statusFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
@@ -340,14 +340,14 @@ export default function DisasterRecoveryPlanner() {
 
             {selectedPlan ? (
               /* Plan detail */
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-5">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 space-y-5">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setSelectedPlan(null)} className="text-zinc-400 hover:text-white text-sm">← Back</button>
+                  <button onClick={() => setSelectedPlan(null)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-sm">← Back</button>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusBadge[selectedPlan.status])}>{selectedPlan.status}</span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">{selectedPlan.name}</h2>
-                  <p className="text-zinc-400 text-sm mt-1">{selectedPlan.description}</p>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedPlan.name}</h2>
+                  <p className="text-[var(--color-text-secondary)] text-sm mt-1">{selectedPlan.description}</p>
                 </div>
 
                 {/* Metadata grid */}
@@ -362,21 +362,21 @@ export default function DisasterRecoveryPlanner() {
                     { label: "Last Tested",   value: selectedPlan.lastTested },
                     { label: "Next Test",     value: selectedPlan.nextTest },
                   ].map(m => (
-                    <div key={m.label} className="bg-zinc-800/60 rounded-lg p-3">
-                      <p className="text-xs text-zinc-500">{m.label}</p>
-                      <p className="text-sm font-medium text-white mt-0.5">{m.value}</p>
+                    <div key={m.label} className="bg-[var(--color-surface-2)]/60 rounded-lg p-3">
+                      <p className="text-xs text-[var(--color-text-muted)]">{m.label}</p>
+                      <p className="text-sm font-medium text-[var(--color-text-primary)] mt-0.5">{m.value}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Failover steps */}
                 <div>
-                  <h3 className="text-sm font-semibold text-zinc-300 mb-3">Failover Steps</h3>
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Failover Steps</h3>
                   <ol className="space-y-2">
                     {selectedPlan.steps.map((step, i) => (
                       <li key={i} className="flex gap-3 items-start">
                         <span className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs flex items-center justify-center flex-shrink-0 font-bold">{i + 1}</span>
-                        <span className="text-sm text-zinc-300 leading-relaxed">{step}</span>
+                        <span className="text-sm text-[var(--color-text-primary)] leading-relaxed">{step}</span>
                       </li>
                     ))}
                   </ol>
@@ -384,26 +384,26 @@ export default function DisasterRecoveryPlanner() {
 
                 {/* Contacts */}
                 <div>
-                  <h3 className="text-sm font-semibold text-zinc-300 mb-2">Emergency Contacts</h3>
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-2">Emergency Contacts</h3>
                   <div className="flex gap-2 flex-wrap">
                     {selectedPlan.contacts.map(c => (
-                      <span key={c} className="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded">{c}</span>
+                      <span key={c} className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-primary)] px-2 py-1 rounded">{c}</span>
                     ))}
                   </div>
                 </div>
 
                 {/* Test history for this plan */}
                 <div>
-                  <h3 className="text-sm font-semibold text-zinc-300 mb-3">Test History</h3>
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Test History</h3>
                   <div className="space-y-2">
                     {testRuns.filter(t => t.planId === selectedPlan.id).length === 0
-                      ? <p className="text-zinc-500 text-sm">No tests recorded.</p>
+                      ? <p className="text-[var(--color-text-muted)] text-sm">No tests recorded.</p>
                       : testRuns.filter(t => t.planId === selectedPlan.id).map(t => (
-                          <div key={t.id} className="bg-zinc-800/60 rounded-lg p-3 flex items-center gap-4">
+                          <div key={t.id} className="bg-[var(--color-surface-2)]/60 rounded-lg p-3 flex items-center gap-4">
                             <span className={cn("text-xs px-2 py-0.5 rounded font-medium", testBadge[t.result])}>{t.result}</span>
-                            <span className="text-xs text-zinc-400">{t.date}</span>
-                            <span className="text-xs text-zinc-500">RTO: {t.rtoActual}min / RPO: {t.rpoActual}min</span>
-                            <span className="text-xs text-zinc-500 flex-1">{t.notes}</span>
+                            <span className="text-xs text-[var(--color-text-secondary)]">{t.date}</span>
+                            <span className="text-xs text-[var(--color-text-muted)]">RTO: {t.rtoActual}min / RPO: {t.rpoActual}min</span>
+                            <span className="text-xs text-[var(--color-text-muted)] flex-1">{t.notes}</span>
                           </div>
                         ))
                     }
@@ -417,14 +417,14 @@ export default function DisasterRecoveryPlanner() {
                   <button
                     key={plan.id}
                     onClick={() => setSelectedPlan(plan)}
-                    className="w-full text-left bg-zinc-900 border border-zinc-800 hover:border-zinc-600 rounded-xl p-4 transition-colors"
+                    className="w-full text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] hover:border-[var(--color-surface-3)] rounded-xl p-4 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0 mt-0.5", statusDot[plan.status])} />
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-white truncate">{plan.name}</p>
-                          <p className="text-xs text-zinc-500 mt-0.5">{plan.service} · Owner: {plan.owner}</p>
+                          <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{plan.name}</p>
+                          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{plan.service} · Owner: {plan.owner}</p>
                         </div>
                       </div>
                       <div className="flex gap-2 flex-shrink-0">
@@ -433,7 +433,7 @@ export default function DisasterRecoveryPlanner() {
                         <span className={cn("text-xs px-2 py-0.5 rounded font-medium", statusBadge[plan.status])}>{plan.status}</span>
                       </div>
                     </div>
-                    <p className="text-xs text-zinc-500 mt-2 ml-5">
+                    <p className="text-xs text-[var(--color-text-muted)] mt-2 ml-5">
                       {plan.primarySite} → {plan.failoverSite} · Last tested: {plan.lastTested} · Next: {plan.nextTest}
                     </p>
                   </button>
@@ -448,42 +448,42 @@ export default function DisasterRecoveryPlanner() {
           <div className="space-y-3">
             <div className="grid grid-cols-4 gap-3 mb-4">
               {[
-                { label: "Total Tests", value: testRuns.length, color: "text-white" },
+                { label: "Total Tests", value: testRuns.length, color: "text-[var(--color-text-primary)]" },
                 { label: "Passed",  value: testRuns.filter(t=>t.result==="pass").length,    color: "text-emerald-400" },
                 { label: "Failed",  value: testRuns.filter(t=>t.result==="fail").length,    color: "text-rose-400" },
                 { label: "Partial", value: testRuns.filter(t=>t.result==="partial").length, color: "text-amber-400" },
               ].map(kpi => (
-                <div key={kpi.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider">{kpi.label}</p>
+                <div key={kpi.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+                  <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{kpi.label}</p>
                   <p className={cn("text-2xl font-bold mt-1", kpi.color)}>{kpi.value}</p>
                 </div>
               ))}
             </div>
             {testRuns.map(run => (
-              <div key={run.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+              <div key={run.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <span className={cn("text-xs px-2 py-0.5 rounded font-medium", testBadge[run.result])}>{run.result.toUpperCase()}</span>
-                    <span className="text-sm font-medium text-white">{run.planName}</span>
+                    <span className="text-sm font-medium text-[var(--color-text-primary)]">{run.planName}</span>
                   </div>
-                  <span className="text-xs text-zinc-500">{run.date}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{run.date}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-4 mb-2">
-                  <div className="bg-zinc-800/50 rounded p-2">
-                    <p className="text-xs text-zinc-500">Duration</p>
-                    <p className="text-sm font-medium text-white">{run.duration}min</p>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                    <p className="text-xs text-[var(--color-text-muted)]">Duration</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{run.duration}min</p>
                   </div>
-                  <div className="bg-zinc-800/50 rounded p-2">
-                    <p className="text-xs text-zinc-500">Actual RTO</p>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                    <p className="text-xs text-[var(--color-text-muted)]">Actual RTO</p>
                     <p className="text-sm font-medium text-sky-400">{run.rtoActual}min</p>
                   </div>
-                  <div className="bg-zinc-800/50 rounded p-2">
-                    <p className="text-xs text-zinc-500">Actual RPO</p>
+                  <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
+                    <p className="text-xs text-[var(--color-text-muted)]">Actual RPO</p>
                     <p className="text-sm font-medium text-violet-400">{run.rpoActual}min</p>
                   </div>
                 </div>
-                <p className="text-xs text-zinc-400">{run.notes}</p>
-                <p className="text-xs text-zinc-600 mt-1">Tester: {run.tester}</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{run.notes}</p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-1">Tester: {run.tester}</p>
               </div>
             ))}
           </div>
@@ -492,9 +492,9 @@ export default function DisasterRecoveryPlanner() {
         {/* Failover Events */}
         {tab === "history" && (
           <div className="space-y-3">
-            <p className="text-sm text-zinc-400">Real failover events (planned and unplanned)</p>
+            <p className="text-sm text-[var(--color-text-secondary)]">Real failover events (planned and unplanned)</p>
             {failoverEvents.map(ev => (
-              <div key={ev.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+              <div key={ev.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <span className={cn(
@@ -503,16 +503,16 @@ export default function DisasterRecoveryPlanner() {
                       ev.outcome === "partial"  ? "bg-amber-500/20 text-amber-400" :
                       "bg-rose-500/20 text-rose-400"
                     )}>{ev.outcome}</span>
-                    <span className="text-sm font-semibold text-white">{ev.service}</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{ev.service}</span>
                   </div>
-                  <span className="text-xs text-zinc-500">{ev.date}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{ev.date}</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm text-zinc-300 mb-1">
-                  <span className="text-zinc-500">{ev.from}</span>
-                  <span className="text-zinc-600">→</span>
-                  <span className="text-zinc-300">{ev.to}</span>
+                <div className="flex items-center gap-3 text-sm text-[var(--color-text-primary)] mb-1">
+                  <span className="text-[var(--color-text-muted)]">{ev.from}</span>
+                  <span className="text-[var(--color-text-muted)]">→</span>
+                  <span className="text-[var(--color-text-primary)]">{ev.to}</span>
                 </div>
-                <div className="flex gap-4 text-xs text-zinc-500">
+                <div className="flex gap-4 text-xs text-[var(--color-text-muted)]">
                   <span>Trigger: {ev.trigger}</span>
                   <span>Duration: {ev.duration}min</span>
                 </div>

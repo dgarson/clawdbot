@@ -136,7 +136,7 @@ type Tab = typeof TABS[number];
 
 const statusColor: Record<DeviceStatus, string> = {
   online:       "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
-  offline:      "text-zinc-400 bg-zinc-400/10 border-zinc-400/30",
+  offline:      "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30",
   warning:      "text-amber-400 bg-amber-400/10 border-amber-400/30",
   updating:     "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
   provisioning: "text-blue-400 bg-blue-400/10 border-blue-400/30",
@@ -174,18 +174,18 @@ export default function FleetDeviceManager(): React.ReactElement {
   const updatingCount = DEVICES.filter(d => d.status === "updating").length;
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div>
           <h1 className="text-lg font-semibold">Fleet Device Manager</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">IoT device fleet management — monitoring, OTA updates, and diagnostics</p>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">IoT device fleet management — monitoring, OTA updates, and diagnostics</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex gap-3 text-xs">
             <span className="text-emerald-400">{onlineCount} online</span>
             <span className="text-amber-400">{warningCount} warning</span>
-            <span className="text-zinc-400">{offlineCount} offline</span>
+            <span className="text-[var(--color-text-secondary)]">{offlineCount} offline</span>
           </div>
           <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
             + Provision Device
@@ -194,7 +194,7 @@ export default function FleetDeviceManager(): React.ReactElement {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 px-6 pt-3 border-b border-zinc-800 shrink-0">
+      <div className="flex gap-1 px-6 pt-3 border-b border-[var(--color-border)] shrink-0">
         {TABS.map((t) => (
           <button
             key={t}
@@ -203,7 +203,7 @@ export default function FleetDeviceManager(): React.ReactElement {
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
                 ? "text-indigo-400 border-indigo-500"
-                : "text-zinc-400 border-transparent hover:text-white"
+                : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}
@@ -216,8 +216,8 @@ export default function FleetDeviceManager(): React.ReactElement {
         {tab === "Fleet" && (
           <div className="h-full flex">
             {/* Filter + list */}
-            <div className="w-72 border-r border-zinc-800 flex flex-col">
-              <div className="p-3 space-y-2 border-b border-zinc-800">
+            <div className="w-72 border-r border-[var(--color-border)] flex flex-col">
+              <div className="p-3 space-y-2 border-b border-[var(--color-border)]">
                 <div className="flex flex-wrap gap-1">
                   {(["all", "online", "offline", "warning", "updating"] as const).map((s) => (
                     <button
@@ -225,7 +225,7 @@ export default function FleetDeviceManager(): React.ReactElement {
                       onClick={() => setStatusFilter(s)}
                       className={cn(
                         "px-2 py-0.5 text-[10px] rounded border transition-colors",
-                        statusFilter === s ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                        statusFilter === s ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       {s}
@@ -235,37 +235,37 @@ export default function FleetDeviceManager(): React.ReactElement {
                 <select
                   value={groupFilter}
                   onChange={(e) => setGroupFilter(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-300 focus:outline-none"
+                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none"
                 >
                   <option value="all">All groups</option>
                   {DEVICE_GROUPS.map(g => <option key={g.id} value={g.name}>{g.name}</option>)}
                 </select>
               </div>
-              <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/50">
+              <div className="flex-1 overflow-y-auto divide-y divide-[var(--color-border)]/50">
                 {filteredDevices.map((d) => (
                   <button
                     key={d.id}
                     onClick={() => setSelectedDevice(d)}
                     className={cn(
                       "w-full text-left px-4 py-3 transition-colors",
-                      selectedDevice.id === d.id ? "bg-indigo-600/10" : "hover:bg-zinc-800/40"
+                      selectedDevice.id === d.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/40"
                     )}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm">{deviceTypeEmoji[d.type]}</span>
-                        <span className="text-xs font-medium text-white truncate max-w-[110px]">{d.name}</span>
+                        <span className="text-xs font-medium text-[var(--color-text-primary)] truncate max-w-[110px]">{d.name}</span>
                       </div>
                       <span className={cn("text-[10px] px-1 py-0.5 rounded border shrink-0", statusColor[d.status])}>{d.status}</span>
                     </div>
-                    <div className="text-[10px] text-zinc-500">{d.location} · fw {d.firmware}</div>
+                    <div className="text-[10px] text-[var(--color-text-muted)]">{d.location} · fw {d.firmware}</div>
                     {d.batteryPct !== null && (
                       <div className="flex items-center gap-1 mt-1">
-                        <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="w-16 h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                           <div className={cn("h-full rounded-full", d.batteryPct > 50 ? "bg-emerald-500" : d.batteryPct > 20 ? "bg-amber-500" : "bg-rose-500")}
                             style={{ width: `${d.batteryPct}%` }} />
                         </div>
-                        <span className="text-[10px] text-zinc-500">{d.batteryPct}%</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{d.batteryPct}%</span>
                       </div>
                     )}
                   </button>
@@ -280,13 +280,13 @@ export default function FleetDeviceManager(): React.ReactElement {
                   <span className="text-3xl">{deviceTypeEmoji[selectedDevice.type]}</span>
                   <div>
                     <h2 className="text-lg font-bold">{selectedDevice.name}</h2>
-                    <div className="text-xs text-zinc-400">{selectedDevice.location} · {selectedDevice.group}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{selectedDevice.location} · {selectedDevice.group}</div>
                   </div>
                   <span className={cn("text-xs px-2 py-0.5 rounded border", statusColor[selectedDevice.status])}>{selectedDevice.status}</span>
                 </div>
                 <div className="flex gap-2">
-                  <button className="px-3 py-1.5 text-xs border border-zinc-700 text-zinc-400 hover:border-zinc-600 rounded-md transition-colors">Reboot</button>
-                  <button className="px-3 py-1.5 text-xs border border-zinc-700 text-zinc-400 hover:border-zinc-600 rounded-md transition-colors">SSH</button>
+                  <button className="px-3 py-1.5 text-xs border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] rounded-md transition-colors">Reboot</button>
+                  <button className="px-3 py-1.5 text-xs border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] rounded-md transition-colors">SSH</button>
                 </div>
               </div>
 
@@ -297,9 +297,9 @@ export default function FleetDeviceManager(): React.ReactElement {
                   { label: "Uptime", value: selectedDevice.uptime > 0 ? `${selectedDevice.uptime}h` : "—" },
                   { label: "Last Seen", value: selectedDevice.lastSeen.slice(11, 19) },
                 ].map((m) => (
-                  <div key={m.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500">{m.label}</div>
-                    <div className={cn("text-sm font-medium mt-1", m.warn ? "text-amber-400" : "text-white")}>
+                  <div key={m.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)]">{m.label}</div>
+                    <div className={cn("text-sm font-medium mt-1", m.warn ? "text-amber-400" : "text-[var(--color-text-primary)]")}>
                       {m.value} {m.warn && <span className="text-[10px]">⚠ update available</span>}
                     </div>
                   </div>
@@ -307,8 +307,8 @@ export default function FleetDeviceManager(): React.ReactElement {
               </div>
 
               {/* Resource meters */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-                <h3 className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mb-4">Resources</h3>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+                <h3 className="text-xs text-[var(--color-text-secondary)] font-semibold uppercase tracking-wider mb-4">Resources</h3>
                 <div className="space-y-4">
                   {[
                     { label: "CPU", value: selectedDevice.cpuPct },
@@ -318,12 +318,12 @@ export default function FleetDeviceManager(): React.ReactElement {
                   ].map((r) => (
                     <div key={r.label}>
                       <div className="flex justify-between text-xs mb-1.5">
-                        <span className="text-zinc-400">{r.label}</span>
+                        <span className="text-[var(--color-text-secondary)]">{r.label}</span>
                         <span className={cn("font-mono", r.value > 80 ? "text-rose-400" : r.value > 60 ? "text-amber-400" : "text-emerald-400")}>
                           {r.value}%
                         </span>
                       </div>
-                      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div
                           className={cn("h-full rounded-full transition-all", r.value > 80 ? "bg-rose-500" : r.value > 60 ? "bg-amber-500" : "bg-emerald-500")}
                           style={{ width: `${r.value}%` }}
@@ -337,7 +337,7 @@ export default function FleetDeviceManager(): React.ReactElement {
               {/* Tags */}
               <div className="flex flex-wrap gap-2">
                 {selectedDevice.tags.map(tag => (
-                  <span key={tag} className="text-xs px-2 py-1 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">{tag}</span>
+                  <span key={tag} className="text-xs px-2 py-1 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)]">{tag}</span>
                 ))}
               </div>
             </div>
@@ -348,7 +348,7 @@ export default function FleetDeviceManager(): React.ReactElement {
         {tab === "Updates" && (
           <div className="h-full overflow-y-auto p-6 space-y-4">
             {OTA_UPDATES.map((update) => (
-              <div key={update.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+              <div key={update.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <div className="flex items-center gap-3">
@@ -357,35 +357,35 @@ export default function FleetDeviceManager(): React.ReactElement {
                       <span className={cn("text-xs",
                         update.status === "completed" ? "text-emerald-400" :
                         update.status === "failed" ? "text-rose-400" :
-                        update.status === "in_progress" ? "text-indigo-400" : "text-zinc-400"
+                        update.status === "in_progress" ? "text-indigo-400" : "text-[var(--color-text-secondary)]"
                       )}>{update.status.replace("_", " ")}</span>
                     </div>
-                    <div className="text-xs text-zinc-500 mt-1">Released {update.releaseDate} · Groups: {update.deviceGroups.join(", ")}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-1">Released {update.releaseDate} · Groups: {update.deviceGroups.join(", ")}</div>
                   </div>
                 </div>
                 {update.status === "in_progress" && (
                   <div className="mb-3">
-                    <div className="flex justify-between text-xs text-zinc-400 mb-1.5">
+                    <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mb-1.5">
                       <span>Deployment Progress</span>
                       <span>{update.completedDevices}/{update.totalDevices} devices</span>
                     </div>
-                    <div className="h-2.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="h-2.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                       <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${update.progress}%` }} />
                     </div>
                   </div>
                 )}
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <div className="text-lg font-bold text-white">{update.totalDevices}</div>
-                    <div className="text-xs text-zinc-500">Total</div>
+                    <div className="text-lg font-bold text-[var(--color-text-primary)]">{update.totalDevices}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Total</div>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-emerald-400">{update.completedDevices}</div>
-                    <div className="text-xs text-zinc-500">Completed</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Completed</div>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-rose-400">{update.failedDevices}</div>
-                    <div className="text-xs text-zinc-500">Failed</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Failed</div>
                   </div>
                 </div>
               </div>
@@ -397,21 +397,21 @@ export default function FleetDeviceManager(): React.ReactElement {
         {tab === "Groups" && (
           <div className="h-full overflow-y-auto p-6 space-y-4">
             {DEVICE_GROUPS.map((g) => (
-              <div key={g.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+              <div key={g.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-base font-semibold">{g.name}</h3>
-                    <div className="text-xs text-zinc-400 mt-0.5">Firmware: v{g.firmware} · Auto-update: {g.autoUpdate ? "enabled" : "disabled"}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">Firmware: v{g.firmware} · Auto-update: {g.autoUpdate ? "enabled" : "disabled"}</div>
                   </div>
                   <button className="text-xs text-indigo-400 hover:text-indigo-300">Configure</button>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
-                    <div className="flex justify-between text-xs text-zinc-400 mb-1.5">
+                    <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mb-1.5">
                       <span>Online</span>
                       <span>{g.onlineCount}/{g.deviceCount}</span>
                     </div>
-                    <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                       <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(g.onlineCount / g.deviceCount) * 100}%` }} />
                     </div>
                   </div>
@@ -427,28 +427,28 @@ export default function FleetDeviceManager(): React.ReactElement {
         {/* ── DIAGNOSTICS ── */}
         {tab === "Diagnostics" && (
           <div className="h-full overflow-y-auto p-6 space-y-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="px-5 py-3 border-b border-zinc-800">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="px-5 py-3 border-b border-[var(--color-border)]">
                 <h3 className="text-sm font-medium">Device Health Overview</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-800">
+                    <tr className="border-b border-[var(--color-border)]">
                       {["Device", "Status", "CPU", "Memory", "Battery", "Signal", "FW"].map(h => (
-                        <th key={h} className="px-4 py-2.5 text-left text-xs text-zinc-500 font-medium">{h}</th>
+                        <th key={h} className="px-4 py-2.5 text-left text-xs text-[var(--color-text-muted)] font-medium">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/50">
+                  <tbody className="divide-y divide-[var(--color-border)]/50">
                     {DEVICES.map((d) => (
-                      <tr key={d.id} className="hover:bg-zinc-800/30">
+                      <tr key={d.id} className="hover:bg-[var(--color-surface-2)]/30">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <span>{deviceTypeEmoji[d.type]}</span>
                             <div>
                               <div className="text-sm">{d.name}</div>
-                              <div className="text-[10px] text-zinc-500">{d.group}</div>
+                              <div className="text-[10px] text-[var(--color-text-muted)]">{d.group}</div>
                             </div>
                           </div>
                         </td>
@@ -456,23 +456,23 @@ export default function FleetDeviceManager(): React.ReactElement {
                           <span className={cn("text-xs", statusColor[d.status].split(" ")[0])}>{d.status}</span>
                         </td>
                         <td className="px-4 py-3">
-                          <span className={cn("text-xs font-mono", d.cpuPct > 80 ? "text-rose-400" : d.cpuPct > 60 ? "text-amber-400" : "text-zinc-300")}>
+                          <span className={cn("text-xs font-mono", d.cpuPct > 80 ? "text-rose-400" : d.cpuPct > 60 ? "text-amber-400" : "text-[var(--color-text-primary)]")}>
                             {d.cpuPct}%
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <span className={cn("text-xs font-mono", d.memPct > 80 ? "text-rose-400" : d.memPct > 60 ? "text-amber-400" : "text-zinc-300")}>
+                          <span className={cn("text-xs font-mono", d.memPct > 80 ? "text-rose-400" : d.memPct > 60 ? "text-amber-400" : "text-[var(--color-text-primary)]")}>
                             {d.memPct}%
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="text-xs text-zinc-400">{d.batteryPct !== null ? `${d.batteryPct}%` : "—"}</span>
+                          <span className="text-xs text-[var(--color-text-secondary)]">{d.batteryPct !== null ? `${d.batteryPct}%` : "—"}</span>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="text-xs text-zinc-400">{d.signalStrength !== null ? `${d.signalStrength}%` : "—"}</span>
+                          <span className="text-xs text-[var(--color-text-secondary)]">{d.signalStrength !== null ? `${d.signalStrength}%` : "—"}</span>
                         </td>
                         <td className="px-4 py-3">
-                          <span className={cn("text-xs", d.pendingUpdates ? "text-amber-400" : "text-zinc-400")}>
+                          <span className={cn("text-xs", d.pendingUpdates ? "text-amber-400" : "text-[var(--color-text-secondary)]")}>
                             {d.firmware} {d.pendingUpdates && "⚠"}
                           </span>
                         </td>

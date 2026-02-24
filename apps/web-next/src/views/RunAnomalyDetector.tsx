@@ -182,14 +182,14 @@ function SummaryCard({ title, value, subtitle, trend }: { title: string; value: 
   const trendColors = {
     up: 'text-red-400',
     down: 'text-green-400',
-    neutral: 'text-gray-400',
+    neutral: 'text-[var(--color-text-secondary)]',
   };
   
   return (
-    <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm">
-      <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">{title}</div>
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-4 rounded-lg shadow-sm">
+      <div className="text-[var(--color-text-secondary)] text-xs font-medium uppercase tracking-wider mb-1">{title}</div>
       <div className="flex items-baseline gap-2">
-        <div className="text-2xl font-bold text-white">{value}</div>
+        <div className="text-2xl font-bold text-[var(--color-text-primary)]">{value}</div>
         {trend && (
           <svg 
             className={cn("w-4 h-4", trend === 'up' && "rotate-180", trendColors[trend])} 
@@ -201,7 +201,7 @@ function SummaryCard({ title, value, subtitle, trend }: { title: string; value: 
           </svg>
         )}
       </div>
-      <div className="text-gray-500 text-xs mt-1">{subtitle}</div>
+      <div className="text-[var(--color-text-muted)] text-xs mt-1">{subtitle}</div>
     </div>
   );
 }
@@ -266,9 +266,9 @@ function ThresholdPanel({
   stats: { cost: ReturnType<typeof calculateStats>; findings: ReturnType<typeof calculateStats>; duration: ReturnType<typeof calculateStats> };
 }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 space-y-4">
-      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 space-y-4">
+      <h3 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+        <svg className="w-4 h-4 text-[var(--color-text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
@@ -278,71 +278,71 @@ function ThresholdPanel({
       <div className="grid grid-cols-3 gap-4">
         {/* Cost Threshold */}
         <div className="space-y-2">
-          <label className="text-xs text-gray-400 uppercase tracking-wider">Cost ($)</label>
+          <label className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wider">Cost ($)</label>
           <div className="flex items-center gap-2">
             <input
               type="number"
               value={thresholds.cost.min}
               onChange={(e) => onChange({ ...thresholds, cost: { ...thresholds.cost, min: Number(e.target.value) } })}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-blue-500"
               aria-label="Minimum cost threshold"
             />
-            <span className="text-gray-500">-</span>
+            <span className="text-[var(--color-text-muted)]">-</span>
             <input
               type="number"
               value={thresholds.cost.max}
               onChange={(e) => onChange({ ...thresholds, cost: { ...thresholds.cost, max: Number(e.target.value) } })}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-blue-500"
               aria-label="Maximum cost threshold"
             />
           </div>
-          <div className="text-xs text-gray-500">Avg: ${stats.cost.mean.toFixed(2)}</div>
+          <div className="text-xs text-[var(--color-text-muted)]">Avg: ${stats.cost.mean.toFixed(2)}</div>
         </div>
         
         {/* Findings Threshold */}
         <div className="space-y-2">
-          <label className="text-xs text-gray-400 uppercase tracking-wider">Findings</label>
+          <label className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wider">Findings</label>
           <div className="flex items-center gap-2">
             <input
               type="number"
               value={thresholds.findings.min}
               onChange={(e) => onChange({ ...thresholds, findings: { ...thresholds.findings, min: Number(e.target.value) } })}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-blue-500"
               aria-label="Minimum findings threshold"
             />
-            <span className="text-gray-500">-</span>
+            <span className="text-[var(--color-text-muted)]">-</span>
             <input
               type="number"
               value={thresholds.findings.max}
               onChange={(e) => onChange({ ...thresholds, findings: { ...thresholds.findings, max: Number(e.target.value) } })}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-blue-500"
               aria-label="Maximum findings threshold"
             />
           </div>
-          <div className="text-xs text-gray-500">Avg: {stats.findings.mean.toFixed(0)}</div>
+          <div className="text-xs text-[var(--color-text-muted)]">Avg: {stats.findings.mean.toFixed(0)}</div>
         </div>
         
         {/* Duration Threshold */}
         <div className="space-y-2">
-          <label className="text-xs text-gray-400 uppercase tracking-wider">Duration (min)</label>
+          <label className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wider">Duration (min)</label>
           <div className="flex items-center gap-2">
             <input
               type="number"
               value={Math.floor(thresholds.duration.min / 60)}
               onChange={(e) => onChange({ ...thresholds, duration: { ...thresholds.duration, min: Number(e.target.value) * 60 } })}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-blue-500"
               aria-label="Minimum duration threshold in minutes"
             />
-            <span className="text-gray-500">-</span>
+            <span className="text-[var(--color-text-muted)]">-</span>
             <input
               type="number"
               value={Math.floor(thresholds.duration.max / 60)}
               onChange={(e) => onChange({ ...thresholds, duration: { ...thresholds.duration, max: Number(e.target.value) * 60 } })}
-              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-blue-500"
               aria-label="Maximum duration threshold in minutes"
             />
           </div>
-          <div className="text-xs text-gray-500">Avg: {formatDuration(stats.duration.mean)}</div>
+          <div className="text-xs text-[var(--color-text-muted)]">Avg: {formatDuration(stats.duration.mean)}</div>
         </div>
       </div>
     </div>
@@ -376,13 +376,13 @@ export default function RunAnomalyDetector() {
   };
   
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200 p-8 font-sans">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">Run Anomaly Detector</h1>
-            <p className="text-gray-500 mt-1">Monitor and detect anomalies in discovery runs</p>
+            <h1 className="text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">Run Anomaly Detector</h1>
+            <p className="text-[var(--color-text-muted)] mt-1">Monitor and detect anomalies in discovery runs</p>
           </div>
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-sm font-medium">
@@ -422,7 +422,7 @@ export default function RunAnomalyDetector() {
         {/* Alerts Section */}
         {activeAlerts.length > 0 && (
           <section aria-labelledby="alerts-heading">
-            <h2 id="alerts-heading" className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+            <h2 id="alerts-heading" className="text-lg font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true"></span>
               Active Alerts ({activeAlerts.length})
             </h2>
@@ -432,7 +432,7 @@ export default function RunAnomalyDetector() {
               ))}
             </div>
             {activeAlerts.length > 6 && (
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-[var(--color-text-muted)] mt-2">
                 +{activeAlerts.length - 6} more alerts
               </p>
             )}
@@ -441,7 +441,7 @@ export default function RunAnomalyDetector() {
         
         {/* Threshold Configuration */}
         <section aria-labelledby="thresholds-heading">
-          <h2 id="thresholds-heading" className="text-lg font-semibold text-white mb-3">Threshold Configuration</h2>
+          <h2 id="thresholds-heading" className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Threshold Configuration</h2>
           <ThresholdPanel 
             thresholds={thresholds} 
             onChange={setThresholds}
@@ -451,42 +451,42 @@ export default function RunAnomalyDetector() {
         
         {/* Charts Section */}
         <section aria-labelledby="charts-heading">
-          <h2 id="charts-heading" className="text-lg font-semibold text-white mb-4">Trend Analysis</h2>
+          <h2 id="charts-heading" className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Trend Analysis</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Cost Chart */}
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-gray-300">Cost Over Time</h3>
-                <span className="text-xs text-gray-500">USD</span>
+                <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Cost Over Time</h3>
+                <span className="text-xs text-[var(--color-text-muted)]">USD</span>
               </div>
               <MiniChart data={RUNS_DATA} field="cost" color="#3b82f6" />
-              <div className="mt-3 flex justify-between text-xs text-gray-500">
+              <div className="mt-3 flex justify-between text-xs text-[var(--color-text-muted)]">
                 <span>${stats.cost.min.toFixed(2)}</span>
                 <span>${stats.cost.max.toFixed(2)}</span>
               </div>
             </div>
             
             {/* Findings Chart */}
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-gray-300">Findings Over Time</h3>
-                <span className="text-xs text-gray-500">Count</span>
+                <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Findings Over Time</h3>
+                <span className="text-xs text-[var(--color-text-muted)]">Count</span>
               </div>
               <MiniChart data={RUNS_DATA} field="findings" color="#10b981" />
-              <div className="mt-3 flex justify-between text-xs text-gray-500">
+              <div className="mt-3 flex justify-between text-xs text-[var(--color-text-muted)]">
                 <span>{stats.findings.min}</span>
                 <span>{stats.findings.max}</span>
               </div>
             </div>
             
             {/* Duration Chart */}
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-gray-300">Duration Over Time</h3>
-                <span className="text-xs text-gray-500">Seconds</span>
+                <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Duration Over Time</h3>
+                <span className="text-xs text-[var(--color-text-muted)]">Seconds</span>
               </div>
               <MiniChart data={RUNS_DATA} field="duration" color="#8b5cf6" />
-              <div className="mt-3 flex justify-between text-xs text-gray-500">
+              <div className="mt-3 flex justify-between text-xs text-[var(--color-text-muted)]">
                 <span>{formatDuration(stats.duration.min)}</span>
                 <span>{formatDuration(stats.duration.max)}</span>
               </div>
@@ -496,11 +496,11 @@ export default function RunAnomalyDetector() {
         
         {/* Runs Table */}
         <section aria-labelledby="runs-heading">
-          <h2 id="runs-heading" className="text-lg font-semibold text-white mb-4">All Runs</h2>
-          <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+          <h2 id="runs-heading" className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">All Runs</h2>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="bg-gray-800/50 text-gray-400 border-b border-gray-800">
+                <thead className="bg-[var(--color-surface-2)]/50 text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
                   <tr>
                     <th className="px-4 py-3 font-medium">Run Name</th>
                     <th className="px-4 py-3 font-medium">Timestamp</th>
@@ -510,7 +510,7 @@ export default function RunAnomalyDetector() {
                     <th className="px-4 py-3 font-medium text-center">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800">
+                <tbody className="divide-y divide-[var(--color-border)]">
                   {RUNS_DATA.map(run => {
                     const isOutlier = outlierIds.has(run.id);
                     const isSelected = selectedRun === run.id;
@@ -519,7 +519,7 @@ export default function RunAnomalyDetector() {
                       <tr 
                         key={run.id} 
                         className={cn(
-                          "hover:bg-gray-800/30 cursor-pointer transition-colors",
+                          "hover:bg-[var(--color-surface-2)]/30 cursor-pointer transition-colors",
                           isOutlier && "bg-red-500/5",
                           isSelected && "bg-blue-500/10"
                         )}
@@ -532,10 +532,10 @@ export default function RunAnomalyDetector() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                               </svg>
                             )}
-                            <span className="text-white font-medium">{run.name}</span>
+                            <span className="text-[var(--color-text-primary)] font-medium">{run.name}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-gray-400">
+                        <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                           {new Date(run.timestamp).toLocaleDateString('en-US', { 
                             month: 'short', 
                             day: 'numeric',
@@ -545,19 +545,19 @@ export default function RunAnomalyDetector() {
                         </td>
                         <td className={cn(
                           "px-4 py-3 text-right font-mono",
-                          run.cost > thresholds.cost.max || run.cost < thresholds.cost.min ? "text-red-400" : "text-gray-300"
+                          run.cost > thresholds.cost.max || run.cost < thresholds.cost.min ? "text-red-400" : "text-[var(--color-text-primary)]"
                         )}>
                           ${run.cost.toFixed(2)}
                         </td>
                         <td className={cn(
                           "px-4 py-3 text-right font-mono",
-                          run.findings > thresholds.findings.max || run.findings < thresholds.findings.min ? "text-red-400" : "text-gray-300"
+                          run.findings > thresholds.findings.max || run.findings < thresholds.findings.min ? "text-red-400" : "text-[var(--color-text-primary)]"
                         )}>
                           {run.findings}
                         </td>
                         <td className={cn(
                           "px-4 py-3 text-right font-mono",
-                          run.duration > thresholds.duration.max || run.duration < thresholds.duration.min ? "text-red-400" : "text-gray-300"
+                          run.duration > thresholds.duration.max || run.duration < thresholds.duration.min ? "text-red-400" : "text-[var(--color-text-primary)]"
                         )}>
                           {formatDuration(run.duration)}
                         </td>
@@ -585,8 +585,8 @@ export default function RunAnomalyDetector() {
         </section>
         
         {/* Info Note */}
-        <div className="flex items-center gap-3 p-4 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-400">
-          <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex items-center gap-3 p-4 bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-secondary)]">
+          <svg className="w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p>

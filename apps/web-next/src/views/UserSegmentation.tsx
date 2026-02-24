@@ -71,7 +71,7 @@ const SEGMENTS: Segment[] = [
   },
   {
     id: "s5", name: "Dormant (90d)", description: "Users inactive for 90+ days",
-    color: "bg-zinc-500", tags: ["re-engagement", "cleanup"],
+    color: "bg-[var(--color-surface-3)]", tags: ["re-engagement", "cleanup"],
     conditions: [
       { field: "days_since_login",  operator: "greater_than", value: "90" },
     ],
@@ -144,16 +144,16 @@ export default function UserSegmentation() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">User Segmentation</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">{SEGMENTS.length} segments · {totalUsers.toLocaleString()} total users</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">User Segmentation</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">{SEGMENTS.length} segments · {totalUsers.toLocaleString()} total users</p>
         </div>
         <button
           onClick={() => setActiveTab("builder")}
-          className="text-sm px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+          className="text-sm px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors"
         >
           + New Segment
         </button>
@@ -163,19 +163,19 @@ export default function UserSegmentation() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Segments",    value: SEGMENTS.length,                                          color: "text-indigo-400" },
-          { label: "Largest Segment",   value: SEGMENTS.reduce((a,s)=>s.userCount>a.userCount?s:a).name, color: "text-white"     },
+          { label: "Largest Segment",   value: SEGMENTS.reduce((a,s)=>s.userCount>a.userCount?s:a).name, color: "text-[var(--color-text-primary)]"     },
           { label: "Users Segmented",   value: `${Math.round((SEGMENTS.reduce((a,s)=>a+s.userCount,0)/totalUsers)*100)}%`, color: "text-emerald-400" },
           { label: "Avg Segment Size",  value: Math.round(SEGMENTS.reduce((a,s)=>a+s.userCount,0)/SEGMENTS.length).toLocaleString(), color: "text-amber-400" },
         ].map(card => (
-          <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <div className="text-xs text-zinc-400 mb-1">{card.label}</div>
+          <div key={card.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <div className="text-xs text-[var(--color-text-secondary)] mb-1">{card.label}</div>
             <div className={cn("text-lg font-bold truncate", card.color)}>{card.value}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)] w-fit">
         {TABS.map(t => (
           <button
             key={t.id}
@@ -183,8 +183,8 @@ export default function UserSegmentation() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-white"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t.emoji} {t.label}
@@ -197,14 +197,14 @@ export default function UserSegmentation() {
         <div className="grid grid-cols-5 gap-4">
           <div className="col-span-2 space-y-3">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs text-zinc-400">Sort by:</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">Sort by:</span>
               {(["count","pct","trend"] as const).map(s => (
                 <button
                   key={s}
                   onClick={() => setSortBy(s)}
                   className={cn(
                     "text-xs px-2.5 py-1 rounded border capitalize transition-colors",
-                    sortBy === s ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300" : "border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                    sortBy === s ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
                   {s}
@@ -217,22 +217,22 @@ export default function UserSegmentation() {
                 key={seg.id}
                 onClick={() => setSelectedSegment(seg)}
                 className={cn(
-                  "w-full bg-zinc-900 border rounded-lg p-4 text-left hover:border-zinc-600 transition-colors",
-                  selectedSegment?.id === seg.id ? "border-indigo-500/50" : "border-zinc-800"
+                  "w-full bg-[var(--color-surface-1)] border rounded-lg p-4 text-left hover:border-[var(--color-surface-3)] transition-colors",
+                  selectedSegment?.id === seg.id ? "border-indigo-500/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-center gap-2 mb-2">
                   <span className={cn("w-2.5 h-2.5 rounded-full", seg.color)} />
-                  <span className="text-sm font-medium text-white">{seg.name}</span>
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">{seg.name}</span>
                 </div>
-                <div className="text-xs text-zinc-400 mb-3">{seg.description}</div>
+                <div className="text-xs text-[var(--color-text-secondary)] mb-3">{seg.description}</div>
 
                 <div className="mb-2">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-zinc-400">{seg.userCount.toLocaleString()} users</span>
-                    <span className="text-zinc-400">{seg.percentage}%</span>
+                    <span className="text-[var(--color-text-secondary)]">{seg.userCount.toLocaleString()} users</span>
+                    <span className="text-[var(--color-text-secondary)]">{seg.percentage}%</span>
                   </div>
-                  <div className="w-full bg-zinc-800 rounded-full h-1.5">
+                  <div className="w-full bg-[var(--color-surface-2)] rounded-full h-1.5">
                     <div className={cn("h-full rounded-full", seg.color)} style={{ width: `${seg.percentage * 3}%` }} />
                   </div>
                 </div>
@@ -240,7 +240,7 @@ export default function UserSegmentation() {
                 <div className="flex items-center justify-between">
                   <div className="flex flex-wrap gap-1">
                     {seg.tags.map(t => (
-                      <span key={t} className="text-xs bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">{t}</span>
+                      <span key={t} className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-1.5 py-0.5 rounded">{t}</span>
                     ))}
                   </div>
                   <span className={cn("text-xs font-medium", seg.trend > 0 ? "text-emerald-400" : "text-rose-400")}>
@@ -253,36 +253,36 @@ export default function UserSegmentation() {
 
           <div className="col-span-3">
             {selectedSegment ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-5">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 space-y-5">
                 <div className="flex items-center gap-3">
                   <span className={cn("w-4 h-4 rounded-full", selectedSegment.color)} />
-                  <h3 className="text-base font-semibold text-white">{selectedSegment.name}</h3>
+                  <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{selectedSegment.name}</h3>
                   <span className={cn("text-xs ml-auto", selectedSegment.trend > 0 ? "text-emerald-400" : "text-rose-400")}>
                     {selectedSegment.trend > 0 ? "↑" : "↓"}{Math.abs(selectedSegment.trend)}% vs last week
                   </span>
                 </div>
 
-                <p className="text-sm text-zinc-400">{selectedSegment.description}</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{selectedSegment.description}</p>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-zinc-800 rounded-lg p-3">
-                    <div className="text-xs text-zinc-400">Users</div>
-                    <div className="text-2xl font-bold text-white mt-1">{selectedSegment.userCount.toLocaleString()}</div>
+                  <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-secondary)]">Users</div>
+                    <div className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">{selectedSegment.userCount.toLocaleString()}</div>
                   </div>
-                  <div className="bg-zinc-800 rounded-lg p-3">
-                    <div className="text-xs text-zinc-400">% of Total</div>
+                  <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-secondary)]">% of Total</div>
                     <div className="text-2xl font-bold text-indigo-400 mt-1">{selectedSegment.percentage}%</div>
                   </div>
                 </div>
 
                 {/* Conditions */}
                 <div>
-                  <div className="text-xs font-medium text-zinc-400 mb-2">Conditions ({selectedSegment.conditions.length})</div>
+                  <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Conditions ({selectedSegment.conditions.length})</div>
                   <div className="space-y-2">
                     {selectedSegment.conditions.map((c, i) => (
-                      <div key={i} className="flex items-center gap-2 bg-zinc-800 rounded p-2.5 text-xs">
-                        <span className="text-zinc-300 font-mono">{c.field}</span>
-                        <span className="text-zinc-500">{c.operator.replace(/_/g," ")}</span>
+                      <div key={i} className="flex items-center gap-2 bg-[var(--color-surface-2)] rounded p-2.5 text-xs">
+                        <span className="text-[var(--color-text-primary)] font-mono">{c.field}</span>
+                        <span className="text-[var(--color-text-muted)]">{c.operator.replace(/_/g," ")}</span>
                         <span className="text-indigo-300 font-mono">{c.value}</span>
                       </div>
                     ))}
@@ -291,8 +291,8 @@ export default function UserSegmentation() {
 
                 {/* Bar chart — trend last 7 days */}
                 <div>
-                  <div className="text-xs font-medium text-zinc-400 mb-2">User count — last 7 days</div>
-                  <div className="flex items-end gap-1 h-16 bg-zinc-800 rounded p-2">
+                  <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">User count — last 7 days</div>
+                  <div className="flex items-end gap-1 h-16 bg-[var(--color-surface-2)] rounded p-2">
                     {Array.from({ length: 7 }, (_, i) => {
                       const base = selectedSegment.userCount;
                       const v = base * (0.92 + (i / 7) * 0.16);
@@ -306,14 +306,14 @@ export default function UserSegmentation() {
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-2 border-t border-zinc-800">
+                <div className="flex gap-2 pt-2 border-t border-[var(--color-border)]">
                   <button className="flex-1 text-xs py-2 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded hover:bg-indigo-500/30 transition-colors">Export CSV</button>
-                  <button className="flex-1 text-xs py-2 bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700 transition-colors">Create Campaign</button>
-                  <button className="text-xs py-2 px-3 bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700 transition-colors">Edit</button>
+                  <button className="flex-1 text-xs py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-3)] transition-colors">Create Campaign</button>
+                  <button className="text-xs py-2 px-3 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-3)] transition-colors">Edit</button>
                 </div>
               </div>
             ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-10 text-center text-zinc-500 text-sm">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-10 text-center text-[var(--color-text-muted)] text-sm">
                 Select a segment to view details
               </div>
             )}
@@ -325,35 +325,35 @@ export default function UserSegmentation() {
       {activeTab === "builder" && (
         <div className="max-w-xl space-y-5">
           <div>
-            <label className="block text-xs text-zinc-400 mb-1.5">Segment Name</label>
+            <label className="block text-xs text-[var(--color-text-secondary)] mb-1.5">Segment Name</label>
             <input
               type="text"
               value={builderName}
               onChange={e => setBuilderName(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-medium text-white">Conditions</div>
-              <div className="text-xs text-zinc-400">Match <span className="text-indigo-300 font-semibold">ALL</span> conditions</div>
+              <div className="text-sm font-medium text-[var(--color-text-primary)]">Conditions</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">Match <span className="text-indigo-300 font-semibold">ALL</span> conditions</div>
             </div>
 
             <div className="space-y-3">
               {builderConditions.map((cond, i) => (
-                <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex items-center gap-2">
+                <div key={i} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3 flex items-center gap-2">
                   <select
                     value={cond.field}
                     onChange={e => updateCondition(i, "field", e.target.value)}
-                    className="bg-zinc-800 border border-zinc-700 text-white text-xs rounded px-2 py-1.5 focus:outline-none"
+                    className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none"
                   >
                     {FIELDS.map(f => <option key={f} value={f}>{f}</option>)}
                   </select>
                   <select
                     value={cond.operator}
                     onChange={e => updateCondition(i, "operator", e.target.value)}
-                    className="bg-zinc-800 border border-zinc-700 text-white text-xs rounded px-2 py-1.5 focus:outline-none"
+                    className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none"
                   >
                     {OPERATORS.map(o => <option key={o} value={o}>{o.replace(/_/g," ")}</option>)}
                   </select>
@@ -362,43 +362,43 @@ export default function UserSegmentation() {
                     value={cond.value}
                     onChange={e => updateCondition(i, "value", e.target.value)}
                     placeholder="value"
-                    className="flex-1 bg-zinc-800 border border-zinc-700 text-white text-xs rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500"
+                    className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500"
                   />
-                  <button onClick={() => removeCondition(i)} className="text-zinc-500 hover:text-rose-400 transition-colors text-lg leading-none">×</button>
+                  <button onClick={() => removeCondition(i)} className="text-[var(--color-text-muted)] hover:text-rose-400 transition-colors text-lg leading-none">×</button>
                 </div>
               ))}
             </div>
 
             <button
               onClick={addCondition}
-              className="mt-3 w-full text-xs py-2 border border-dashed border-zinc-700 text-zinc-400 rounded hover:border-indigo-500/50 hover:text-indigo-300 transition-colors"
+              className="mt-3 w-full text-xs py-2 border border-dashed border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:border-indigo-500/50 hover:text-indigo-300 transition-colors"
             >
               + Add Condition
             </button>
           </div>
 
           {/* Preview */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <div className="text-xs font-medium text-zinc-400 mb-2">Estimated Audience</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Estimated Audience</div>
             <div className="flex items-center gap-3">
               <div className="text-2xl font-bold text-indigo-400">~3,200</div>
-              <div className="text-xs text-zinc-400">users (6.6% of total)</div>
+              <div className="text-xs text-[var(--color-text-secondary)]">users (6.6% of total)</div>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <button className="px-4 py-2 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-600 transition-colors">Save Segment</button>
-            <button className="px-4 py-2 border border-zinc-700 text-zinc-400 text-sm rounded hover:bg-zinc-800 transition-colors">Preview Users</button>
+            <button className="px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded hover:bg-indigo-600 transition-colors">Save Segment</button>
+            <button className="px-4 py-2 border border-[var(--color-border)] text-[var(--color-text-secondary)] text-sm rounded hover:bg-[var(--color-surface-2)] transition-colors">Preview Users</button>
           </div>
         </div>
       )}
 
       {/* Users */}
       {activeTab === "users" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800 text-xs text-zinc-400">
+              <tr className="border-b border-[var(--color-border)] text-xs text-[var(--color-text-secondary)]">
                 <th className="px-4 py-3 text-left font-medium">User</th>
                 <th className="px-4 py-3 text-left font-medium">Plan</th>
                 <th className="px-4 py-3 text-left font-medium">Country</th>
@@ -406,30 +406,30 @@ export default function UserSegmentation() {
                 <th className="px-4 py-3 text-left font-medium">Segments</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {SEGMENT_USERS.map(u => (
-                <tr key={u.id} className="hover:bg-zinc-800/30 transition-colors">
+                <tr key={u.id} className="hover:bg-[var(--color-surface-2)]/30 transition-colors">
                   <td className="px-4 py-3">
-                    <div className="text-sm text-white">{u.name}</div>
-                    <div className="text-xs text-zinc-500">{u.email}</div>
+                    <div className="text-sm text-[var(--color-text-primary)]">{u.name}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">{u.email}</div>
                   </td>
                   <td className="px-4 py-3">
                     <span className={cn(
                       "text-xs px-2 py-0.5 rounded border",
                       u.plan === "enterprise" ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-300" :
                       u.plan === "pro"        ? "bg-amber-500/10 border-amber-500/30 text-amber-300" :
-                                               "bg-zinc-700 border-zinc-600 text-zinc-400"
+                                               "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
                     )}>{u.plan}</span>
                   </td>
-                  <td className="px-4 py-3 text-zinc-300 text-xs">{u.country}</td>
-                  <td className="px-4 py-3 text-zinc-400 text-xs">{u.joinDate}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-primary)] text-xs">{u.country}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{u.joinDate}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       {u.segments.map(sid => {
                         const seg = SEGMENTS.find(s => s.id === sid);
                         if (!seg) {return null;}
                         return (
-                          <span key={sid} className={cn("text-xs text-white px-2 py-0.5 rounded", seg.color)}>
+                          <span key={sid} className={cn("text-xs text-[var(--color-text-primary)] px-2 py-0.5 rounded", seg.color)}>
                             {seg.name}
                           </span>
                         );
@@ -446,8 +446,8 @@ export default function UserSegmentation() {
       {/* Overlap Matrix */}
       {activeTab === "overlap" && (
         <div className="space-y-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-white mb-4">Segment Overlap Matrix</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Segment Overlap Matrix</h3>
             <div className="overflow-x-auto">
               <table className="text-xs">
                 <thead>
@@ -457,25 +457,25 @@ export default function UserSegmentation() {
                       <th key={s.id} className="px-2 pb-2 text-center">
                         <div className="flex items-center justify-center gap-1">
                           <span className={cn("w-2 h-2 rounded-full", s.color)} />
-                          <span className="text-zinc-400 truncate max-w-[60px]">{s.name}</span>
+                          <span className="text-[var(--color-text-secondary)] truncate max-w-[60px]">{s.name}</span>
                         </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-[var(--color-border)]">
                   {SEGMENTS.map((rowSeg, ri) => (
                     <tr key={rowSeg.id}>
                       <td className="py-2 pr-3 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <span className={cn("w-2 h-2 rounded-full", rowSeg.color)} />
-                          <span className="text-zinc-400 truncate max-w-[80px]">{rowSeg.name}</span>
+                          <span className="text-[var(--color-text-secondary)] truncate max-w-[80px]">{rowSeg.name}</span>
                         </div>
                       </td>
                       {SEGMENTS.map((colSeg, ci) => {
                         if (ri === ci) {return (
                           <td key={colSeg.id} className="px-2 py-2 text-center">
-                            <div className="bg-zinc-700 rounded text-zinc-300 py-1 px-2">—</div>
+                            <div className="bg-[var(--color-surface-3)] rounded text-[var(--color-text-primary)] py-1 px-2">—</div>
                           </td>
                         );}
                         // simulate overlap
@@ -489,7 +489,7 @@ export default function UserSegmentation() {
                               "rounded py-1 px-2 text-xs",
                               pct > 30 ? "bg-rose-500/20 text-rose-300" :
                               pct > 10 ? "bg-amber-500/20 text-amber-300" :
-                                         "bg-zinc-800 text-zinc-400"
+                                         "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
                             )}>
                               {pct}%
                             </div>
@@ -501,10 +501,10 @@ export default function UserSegmentation() {
                 </tbody>
               </table>
             </div>
-            <div className="mt-4 flex items-center gap-4 text-xs text-zinc-400">
+            <div className="mt-4 flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
               <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-rose-500/20 rounded" /> &gt;30% overlap</div>
               <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-amber-500/20 rounded" /> 10–30% overlap</div>
-              <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-zinc-800 rounded" /> &lt;10% overlap</div>
+              <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-[var(--color-surface-2)] rounded" /> &lt;10% overlap</div>
             </div>
           </div>
         </div>

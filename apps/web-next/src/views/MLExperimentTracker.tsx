@@ -56,7 +56,7 @@ const statusBadge: Record<ExpStatus, string> = {
   running:   "bg-blue-500/20 text-blue-300 border border-blue-500/30",
   completed: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
   failed:    "bg-rose-500/20 text-rose-300 border border-rose-500/30",
-  queued:    "bg-zinc-500/20 text-zinc-300 border border-zinc-500/30",
+  queued:    "bg-[var(--color-surface-3)]/20 text-[var(--color-text-primary)] border border-[var(--color-surface-3)]/30",
   stopped:   "bg-amber-500/20 text-amber-300 border border-amber-500/30",
 };
 
@@ -64,7 +64,7 @@ const statusDot: Record<ExpStatus, string> = {
   running:   "bg-blue-400 animate-pulse",
   completed: "bg-emerald-400",
   failed:    "bg-rose-400",
-  queued:    "bg-zinc-400",
+  queued:    "bg-[var(--color-surface-3)]",
   stopped:   "bg-amber-400",
 };
 
@@ -80,7 +80,7 @@ const stageBadge: Record<ModelVersion["stage"], string> = {
   development: "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
   staging:     "bg-amber-500/20 text-amber-300 border border-amber-500/30",
   production:  "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
-  archived:    "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
+  archived:    "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border border-[var(--color-surface-3)]/30",
 };
 
 const EXPERIMENTS: Experiment[] = [
@@ -256,19 +256,19 @@ export default function MLExperimentTracker() {
   const completedExps = EXPERIMENTS.filter(e => e.status === "completed");
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">ML Experiment Tracker</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Runs · Compare · Model Registry</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Runs · Compare · Model Registry</p>
         </div>
         <div className="flex items-center gap-4 text-sm">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-            <span className="text-zinc-400">{EXPERIMENTS.filter(e => e.status === "running").length} running</span>
+            <span className="text-[var(--color-text-secondary)]">{EXPERIMENTS.filter(e => e.status === "running").length} running</span>
           </span>
-          <span className="text-zinc-400">{completedExps.length} completed</span>
+          <span className="text-[var(--color-text-secondary)]">{completedExps.length} completed</span>
           <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
             + New Experiment
           </button>
@@ -276,14 +276,14 @@ export default function MLExperimentTracker() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-[var(--color-border)] px-6">
         {(["experiments", "compare", "models", "artifacts"] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize",
-              tab === t ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200"
+              tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t === "models" ? "Model Registry" : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -295,22 +295,22 @@ export default function MLExperimentTracker() {
       {tab === "experiments" && (
         <div className="flex flex-1 overflow-hidden">
           {/* List */}
-          <div className="w-80 border-r border-zinc-800 overflow-y-auto">
+          <div className="w-80 border-r border-[var(--color-border)] overflow-y-auto">
             {EXPERIMENTS.map(exp => (
               <button
                 key={exp.id}
                 onClick={() => setSelectedExp(exp)}
                 className={cn(
-                  "w-full text-left px-4 py-3 border-b border-zinc-800/60 hover:bg-zinc-800/40 transition-colors",
-                  selectedExp.id === exp.id && "bg-zinc-800/60"
+                  "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface-2)]/40 transition-colors",
+                  selectedExp.id === exp.id && "bg-[var(--color-surface-2)]/60"
                 )}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className={cn("w-2 h-2 rounded-full flex-shrink-0", statusDot[exp.status])} />
-                  <span className="text-xs font-mono text-zinc-500">{exp.id}</span>
+                  <span className="text-xs font-mono text-[var(--color-text-muted)]">{exp.id}</span>
                   <span className={cn("ml-auto text-xs px-1.5 py-0.5 rounded-full", statusBadge[exp.status])}>{exp.status}</span>
                 </div>
-                <div className="text-xs font-medium text-white mb-1 leading-snug">{exp.name}</div>
+                <div className="text-xs font-medium text-[var(--color-text-primary)] mb-1 leading-snug">{exp.name}</div>
                 <div className="flex items-center gap-2">
                   <span className={cn("text-xs px-1.5 py-0.5 rounded", frameworkBadge[exp.framework])}>{exp.framework}</span>
                   {exp.bestAccuracy !== null && (
@@ -325,42 +325,42 @@ export default function MLExperimentTracker() {
           <div className="flex-1 overflow-y-auto p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <div className="font-mono text-xs text-zinc-500 mb-1">{selectedExp.id}</div>
+                <div className="font-mono text-xs text-[var(--color-text-muted)] mb-1">{selectedExp.id}</div>
                 <h2 className="text-base font-semibold mb-1">{selectedExp.name}</h2>
-                <p className="text-xs text-zinc-400 mb-2">{selectedExp.description}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] mb-2">{selectedExp.description}</p>
                 <div className="flex items-center gap-2">
                   <span className={cn("text-xs px-2 py-0.5 rounded", frameworkBadge[selectedExp.framework])}>{selectedExp.framework}</span>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full", statusBadge[selectedExp.status])}>{selectedExp.status}</span>
                 </div>
               </div>
               <div className="text-right text-sm">
-                <div className="text-xs text-zinc-500">GPU</div>
-                <div className="text-white">{selectedExp.gpuCount > 0 ? `${selectedExp.gpuCount}× ${selectedExp.gpuType}` : selectedExp.gpuType}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">GPU</div>
+                <div className="text-[var(--color-text-primary)]">{selectedExp.gpuCount > 0 ? `${selectedExp.gpuCount}× ${selectedExp.gpuType}` : selectedExp.gpuType}</div>
               </div>
             </div>
 
             {/* Metric summary */}
             {selectedExp.bestAccuracy !== null && (
               <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="bg-zinc-900 rounded-lg p-3 text-center">
+                <div className="bg-[var(--color-surface-1)] rounded-lg p-3 text-center">
                   <div className="text-xl font-bold font-mono text-emerald-400">{(selectedExp.bestAccuracy * 100).toFixed(1)}%</div>
-                  <div className="text-xs text-zinc-500">best accuracy</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">best accuracy</div>
                 </div>
-                <div className="bg-zinc-900 rounded-lg p-3 text-center">
-                  <div className="text-xl font-bold font-mono text-white">{selectedExp.bestValLoss}</div>
-                  <div className="text-xs text-zinc-500">best val loss</div>
+                <div className="bg-[var(--color-surface-1)] rounded-lg p-3 text-center">
+                  <div className="text-xl font-bold font-mono text-[var(--color-text-primary)]">{selectedExp.bestValLoss}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">best val loss</div>
                 </div>
-                <div className="bg-zinc-900 rounded-lg p-3 text-center">
-                  <div className="text-xl font-bold font-mono text-white">{selectedExp.durationMin !== null ? `${selectedExp.durationMin}m` : "—"}</div>
-                  <div className="text-xs text-zinc-500">duration</div>
+                <div className="bg-[var(--color-surface-1)] rounded-lg p-3 text-center">
+                  <div className="text-xl font-bold font-mono text-[var(--color-text-primary)]">{selectedExp.durationMin !== null ? `${selectedExp.durationMin}m` : "—"}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">duration</div>
                 </div>
               </div>
             )}
 
             {/* Loss chart */}
             {selectedExp.metrics.length > 0 && (
-              <div className="bg-zinc-900 rounded-lg p-4 mb-4">
-                <div className="text-sm font-medium text-zinc-300 mb-3">Loss Curve</div>
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-4 mb-4">
+                <div className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Loss Curve</div>
                 <div className="flex items-end gap-2 h-28">
                   {selectedExp.metrics.map(m => (
                     <div key={m.step} className="flex-1 flex gap-0.5 items-end h-full">
@@ -378,36 +378,36 @@ export default function MLExperimentTracker() {
                   ))}
                 </div>
                 <div className="flex items-center gap-3 mt-2 text-xs">
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-indigo-500" /><span className="text-zinc-400">Train</span></span>
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500/70" /><span className="text-zinc-400">Val</span></span>
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-indigo-500" /><span className="text-[var(--color-text-secondary)]">Train</span></span>
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500/70" /><span className="text-[var(--color-text-secondary)]">Val</span></span>
                 </div>
               </div>
             )}
 
             {/* Hyperparams */}
-            <div className="bg-zinc-900 rounded-lg p-4 mb-4">
-              <div className="text-sm font-medium text-zinc-300 mb-3">Hyperparameters</div>
+            <div className="bg-[var(--color-surface-1)] rounded-lg p-4 mb-4">
+              <div className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Hyperparameters</div>
               <div className="grid grid-cols-2 gap-2">
                 {selectedExp.hyperParams.map(hp => (
-                  <div key={hp.name} className="flex items-center justify-between bg-zinc-800 rounded px-3 py-2">
-                    <span className="font-mono text-xs text-zinc-400">{hp.name}</span>
-                    <span className="font-mono text-xs text-white">{String(hp.value)}</span>
+                  <div key={hp.name} className="flex items-center justify-between bg-[var(--color-surface-2)] rounded px-3 py-2">
+                    <span className="font-mono text-xs text-[var(--color-text-secondary)]">{hp.name}</span>
+                    <span className="font-mono text-xs text-[var(--color-text-primary)]">{String(hp.value)}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Tags + dataset */}
-            <div className="text-xs text-zinc-500">
-              Dataset: <span className="text-zinc-300">{selectedExp.dataset}</span>
+            <div className="text-xs text-[var(--color-text-muted)]">
+              Dataset: <span className="text-[var(--color-text-primary)]">{selectedExp.dataset}</span>
               <span className="mx-2">·</span>
-              By <span className="text-zinc-300">{selectedExp.createdBy}</span>
+              By <span className="text-[var(--color-text-primary)]">{selectedExp.createdBy}</span>
               <span className="mx-2">·</span>
               {selectedExp.createdAt}
             </div>
             <div className="flex flex-wrap gap-1.5 mt-2">
               {selectedExp.tags.map(t => (
-                <span key={t} className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">{t}</span>
+                <span key={t} className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]">{t}</span>
               ))}
             </div>
           </div>
@@ -420,14 +420,14 @@ export default function MLExperimentTracker() {
           <h2 className="text-base font-semibold mb-4">Compare Experiments</h2>
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>
-              <label className="block text-xs text-zinc-400 mb-1.5">Experiment A</label>
-              <select value={compareA} onChange={e => setCompareA(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white">
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-1.5">Experiment A</label>
+              <select value={compareA} onChange={e => setCompareA(e.target.value)} className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)]">
                 {EXPERIMENTS.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-zinc-400 mb-1.5">Experiment B</label>
-              <select value={compareB} onChange={e => setCompareB(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white">
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-1.5">Experiment B</label>
+              <select value={compareB} onChange={e => setCompareB(e.target.value)} className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)]">
                 {EXPERIMENTS.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
               </select>
             </div>
@@ -444,16 +444,16 @@ export default function MLExperimentTracker() {
                 { label: "GPU", a: `${expA.gpuCount > 0 ? `${expA.gpuCount}× ` : ""}${expA.gpuType}`, b: `${expB.gpuCount > 0 ? `${expB.gpuCount}× ` : ""}${expB.gpuType}` },
               ].map(row => (
                 <div key={row.label} className="grid grid-cols-3 gap-3">
-                  <div className="bg-zinc-900 rounded p-3 text-center col-span-1">
-                    <div className="text-xs text-zinc-500">{row.label}</div>
+                  <div className="bg-[var(--color-surface-1)] rounded p-3 text-center col-span-1">
+                    <div className="text-xs text-[var(--color-text-muted)]">{row.label}</div>
                   </div>
-                  <div className="bg-zinc-900 rounded p-3 text-center">
+                  <div className="bg-[var(--color-surface-1)] rounded p-3 text-center">
                     <div className="text-xs font-mono text-indigo-300">{row.a}</div>
-                    <div className="text-xs text-zinc-600 mt-0.5">Exp A</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Exp A</div>
                   </div>
-                  <div className="bg-zinc-900 rounded p-3 text-center">
+                  <div className="bg-[var(--color-surface-1)] rounded p-3 text-center">
                     <div className="text-xs font-mono text-emerald-300">{row.b}</div>
-                    <div className="text-xs text-zinc-600 mt-0.5">Exp B</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Exp B</div>
                   </div>
                 </div>
               ))}
@@ -467,7 +467,7 @@ export default function MLExperimentTracker() {
         <div className="flex-1 overflow-y-auto p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-semibold">Model Registry</h2>
-            <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
               <span className="text-emerald-400">●</span> Production
               <span className="text-amber-400 ml-2">●</span> Staging
               <span className="text-indigo-400 ml-2">●</span> Dev
@@ -475,27 +475,27 @@ export default function MLExperimentTracker() {
           </div>
           <div className="space-y-3">
             {MODEL_VERSIONS.map(mv => (
-              <div key={mv.id} className="bg-zinc-900 rounded-xl p-4 flex items-center gap-6">
+              <div key={mv.id} className="bg-[var(--color-surface-1)] rounded-xl p-4 flex items-center gap-6">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
-                    <span className="font-mono text-sm font-semibold text-white">{mv.name}</span>
-                    <span className="font-mono text-xs text-zinc-500">{mv.version}</span>
+                    <span className="font-mono text-sm font-semibold text-[var(--color-text-primary)]">{mv.name}</span>
+                    <span className="font-mono text-xs text-[var(--color-text-muted)]">{mv.version}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", stageBadge[mv.stage])}>{mv.stage}</span>
                   </div>
-                  <div className="text-xs text-zinc-500">from {mv.experimentId} · registered {mv.registeredAt} · {mv.size}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">from {mv.experimentId} · registered {mv.registeredAt} · {mv.size}</div>
                 </div>
                 <div className="flex items-center gap-6 text-center">
                   <div>
                     <div className="text-lg font-bold font-mono text-emerald-400">{(mv.accuracy * 100).toFixed(1)}%</div>
-                    <div className="text-xs text-zinc-500">accuracy</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">accuracy</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold font-mono text-white">{(mv.f1 * 100).toFixed(1)}%</div>
-                    <div className="text-xs text-zinc-500">F1</div>
+                    <div className="text-lg font-bold font-mono text-[var(--color-text-primary)]">{(mv.f1 * 100).toFixed(1)}%</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">F1</div>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="text-xs px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded border border-zinc-700 transition-colors">Download</button>
+                  <button className="text-xs px-2.5 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded border border-[var(--color-border)] transition-colors">Download</button>
                   <button className="text-xs px-2.5 py-1.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 rounded transition-colors">Promote</button>
                 </div>
               </div>
@@ -519,14 +519,14 @@ export default function MLExperimentTracker() {
               { exp: "exp-003", name: "roc_curve.png", size: "96 KB", type: "plot", created: "2026-02-20 10:21" },
               { exp: "exp-001", name: "checkpoint_epoch8.pt", size: "412 MB", type: "checkpoint", created: "2026-02-22 10:12" },
             ].map((a, i) => (
-              <div key={i} className="bg-zinc-900 rounded-lg p-3 flex items-center gap-4">
+              <div key={i} className="bg-[var(--color-surface-1)] rounded-lg p-3 flex items-center gap-4">
                 <span className="text-sm">{a.type === "model" ? "🤖" : a.type === "plot" ? "📊" : a.type === "metrics" ? "📋" : a.type === "checkpoint" ? "💾" : a.type === "config" ? "⚙️" : "📄"}</span>
                 <div className="flex-1">
-                  <div className="font-mono text-sm text-white">{a.name}</div>
-                  <div className="text-xs text-zinc-500">{a.exp} · {a.size}</div>
+                  <div className="font-mono text-sm text-[var(--color-text-primary)]">{a.name}</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">{a.exp} · {a.size}</div>
                 </div>
-                <div className="text-xs text-zinc-500">{a.created}</div>
-                <button className="text-xs px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 rounded border border-zinc-700 transition-colors">⬇</button>
+                <div className="text-xs text-[var(--color-text-muted)]">{a.created}</div>
+                <button className="text-xs px-2.5 py-1 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded border border-[var(--color-border)] transition-colors">⬇</button>
               </div>
             ))}
           </div>

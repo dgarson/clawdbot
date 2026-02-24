@@ -165,7 +165,7 @@ function statusBadge(status: KeyStatus): string {
 function webhookStatusBadge(status: Webhook["status"]): string {
   return {
     active: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
-    paused: "bg-zinc-500/15 text-zinc-400 border border-zinc-500/30",
+    paused: "bg-[var(--color-surface-3)]/15 text-[var(--color-text-secondary)] border border-[var(--color-surface-3)]/30",
     failing: "bg-red-500/15 text-red-400 border border-red-500/30",
   }[status];
 }
@@ -257,7 +257,7 @@ function CreateKeyModal({ onClose, onCreated }: CreateKeyModalProps) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => { if (e.target === e.currentTarget) {onClose();} }}
     >
-      <div className="w-full max-w-lg bg-zinc-900 border border-white/10 rounded-xl shadow-2xl">
+      <div className="w-full max-w-lg bg-[var(--color-surface-1)] border border-white/10 rounded-xl shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <h2 className="font-semibold text-base">
@@ -303,7 +303,7 @@ function CreateKeyModal({ onClose, onCreated }: CreateKeyModalProps) {
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-xs font-medium border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
                       expiry === v
-                        ? "bg-violet-600 border-violet-500 text-white"
+                        ? "bg-violet-600 border-violet-500 text-[var(--color-text-primary)]"
                         : "bg-white/5 border-white/10 text-muted-foreground hover:text-foreground hover:bg-white/10"
                     )}
                   >
@@ -374,7 +374,7 @@ function CreateKeyModal({ onClose, onCreated }: CreateKeyModalProps) {
                 type="button"
                 onClick={handleCreate}
                 disabled={!name.trim() || selectedScopes.size === 0}
-                className="px-4 py-2 text-sm rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                className="px-4 py-2 text-sm rounded-lg bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
               >
                 Generate Key
               </button>
@@ -420,7 +420,7 @@ function CreateKeyModal({ onClose, onCreated }: CreateKeyModalProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                className="px-4 py-2 text-sm rounded-lg bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
               >
                 Done
               </button>
@@ -480,7 +480,7 @@ function CreateWebhookModal({ onClose, onCreated }: CreateWebhookModalProps) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => { if (e.target === e.currentTarget) {onClose();} }}
     >
-      <div className="w-full max-w-lg bg-zinc-900 border border-white/10 rounded-xl shadow-2xl">
+      <div className="w-full max-w-lg bg-[var(--color-surface-1)] border border-white/10 rounded-xl shadow-2xl">
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <h2 className="font-semibold text-base">Create Webhook</h2>
           <button type="button" onClick={onClose} aria-label="Close modal"
@@ -519,7 +519,7 @@ function CreateWebhookModal({ onClose, onCreated }: CreateWebhookModalProps) {
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-mono border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
                     selectedEvents.has(ev)
-                      ? "bg-violet-600 border-violet-500 text-white"
+                      ? "bg-violet-600 border-violet-500 text-[var(--color-text-primary)]"
                       : "bg-white/5 border-white/10 text-muted-foreground hover:text-foreground hover:bg-white/10"
                   )}
                 >
@@ -536,7 +536,7 @@ function CreateWebhookModal({ onClose, onCreated }: CreateWebhookModalProps) {
             </button>
             <button type="button" onClick={handleCreate}
               disabled={!name.trim() || !url.trim() || selectedEvents.size === 0}
-              className="px-4 py-2 text-sm rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+              className="px-4 py-2 text-sm rounded-lg bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
               Create Webhook
             </button>
           </div>
@@ -635,7 +635,7 @@ function ApiKeysTab({ keys, onRevoke, onDelete, onRotate, onCreate, revealedKeys
         </div>
 
         <button type="button" onClick={onCreate}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
           <span aria-hidden>+</span> Generate New Key
         </button>
       </div>
@@ -811,7 +811,7 @@ function WebhooksTab({ webhooks, onDelete, onToggle, onCreate }: WebhooksTabProp
         </div>
 
         <button type="button" onClick={onCreate}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
           <span aria-hidden>+</span> Add Webhook
         </button>
       </div>
@@ -1008,14 +1008,14 @@ export default function ApiKeysManager() {
             className={cn(
               "flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
               activeTab === tab.id
-                ? "bg-violet-600 text-white shadow"
+                ? "bg-violet-600 text-[var(--color-text-primary)] shadow"
                 : "text-muted-foreground hover:text-foreground hover:bg-white/5"
             )}
           >
             {tab.label}
             <span className={cn(
               "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
-              activeTab === tab.id ? "bg-white/20 text-white" : "bg-white/10 text-muted-foreground"
+              activeTab === tab.id ? "bg-white/20 text-[var(--color-text-primary)]" : "bg-white/10 text-muted-foreground"
             )}>
               {tab.count}
             </span>

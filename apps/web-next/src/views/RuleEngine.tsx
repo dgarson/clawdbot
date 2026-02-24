@@ -59,7 +59,7 @@ function priorityColor(p: number): string {
   if (p >= 9) {return "text-rose-400 bg-rose-500/15";}
   if (p >= 7) {return "text-amber-400 bg-amber-500/15";}
   if (p >= 4) {return "text-indigo-400 bg-indigo-500/15";}
-  return "text-zinc-400 bg-zinc-700/40";
+  return "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/40";
 }
 
 function evaluateCondition(cond: Condition, payload: Record<string, unknown>): boolean {
@@ -122,11 +122,11 @@ export default function RuleEngine() {
   const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-2xl font-bold tracking-tight">Rule Engine</h1>
-        <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-sm font-medium">
+        <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
           + New Rule
         </button>
       </div>
@@ -138,8 +138,8 @@ export default function RuleEngine() {
           className={cn(
             "px-3 py-1 rounded-full text-xs font-medium border transition-colors",
             categoryFilter === null
-              ? "bg-indigo-600 border-indigo-500 text-white"
-              : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-600"
+              ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+              : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
           )}
         >
           All
@@ -152,7 +152,7 @@ export default function RuleEngine() {
               "px-3 py-1 rounded-full text-xs font-medium border transition-colors capitalize",
               categoryFilter === cat
                 ? CATEGORY_COLORS[cat]
-                : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
             )}
           >
             {cat}
@@ -168,8 +168,8 @@ export default function RuleEngine() {
           { label: "Top Category", value: topCategory },
           { label: "Matches (7d)", value: totalMatches.toLocaleString() },
         ].map((s) => (
-          <div key={s.label} className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3">
-            <div className="text-zinc-500 text-xs mb-1">{s.label}</div>
+          <div key={s.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-3">
+            <div className="text-[var(--color-text-muted)] text-xs mb-1">{s.label}</div>
             <div className="text-lg font-semibold capitalize">{s.value}</div>
           </div>
         ))}
@@ -184,10 +184,10 @@ export default function RuleEngine() {
               key={rule.id}
               onClick={() => { setSelectedId(rule.id); setTestResults(null); }}
               className={cn(
-                "w-full text-left bg-zinc-900 border rounded-lg px-4 py-3 transition-colors",
+                "w-full text-left bg-[var(--color-surface-1)] border rounded-lg px-4 py-3 transition-colors",
                 selectedId === rule.id
                   ? "border-indigo-500 ring-1 ring-indigo-500/30"
-                  : "border-zinc-800 hover:border-zinc-700"
+                  : "border-[var(--color-border)] hover:border-[var(--color-border)]"
               )}
             >
               <div className="flex items-center justify-between mb-2">
@@ -203,18 +203,18 @@ export default function RuleEngine() {
               </div>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 {rule.conditions.slice(0, 2).map((c, i) => (
-                  <span key={i} className="text-xs bg-zinc-800 border border-zinc-700 text-zinc-300 px-2 py-0.5 rounded">
+                  <span key={i} className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-2 py-0.5 rounded">
                     {c.field} {c.operator} {c.value}
                   </span>
                 ))}
                 {rule.conditions.length > 2 && (
-                  <span className="text-xs text-zinc-500">+{rule.conditions.length - 2} more</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">+{rule.conditions.length - 2} more</span>
                 )}
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-zinc-500">→ {rule.action}</span>
-                  <span className="text-xs text-zinc-500">{rule.matchCount.toLocaleString()} matches</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">→ {rule.action}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{rule.matchCount.toLocaleString()} matches</span>
                 </div>
                 <div
                   role="switch"
@@ -222,7 +222,7 @@ export default function RuleEngine() {
                   onClick={(e) => { e.stopPropagation(); toggleEnabled(rule.id); }}
                   className={cn(
                     "w-8 h-4 rounded-full relative cursor-pointer transition-colors",
-                    rule.enabled ? "bg-emerald-500" : "bg-zinc-700"
+                    rule.enabled ? "bg-emerald-500" : "bg-[var(--color-surface-3)]"
                   )}
                 >
                   <div className={cn(
@@ -246,7 +246,7 @@ export default function RuleEngine() {
         {/* Detail panel — right 45% */}
         <div className="w-[45%] max-h-[calc(100vh-280px)] overflow-y-auto">
           {selected ? (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-5">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 space-y-5">
               {/* Name + description */}
               <div>
                 <div className="flex items-center justify-between mb-1">
@@ -255,23 +255,23 @@ export default function RuleEngine() {
                     {selected.category}
                   </span>
                 </div>
-                <p className="text-sm text-zinc-400">{selected.description}</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{selected.description}</p>
               </div>
 
               {/* Conditions table */}
               <div>
-                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Conditions</h3>
-                <div className="border border-zinc-800 rounded overflow-hidden">
-                  <div className="grid grid-cols-3 gap-px bg-zinc-800 text-xs font-medium text-zinc-500">
-                    <div className="bg-zinc-900 px-3 py-2">Field</div>
-                    <div className="bg-zinc-900 px-3 py-2">Operator</div>
-                    <div className="bg-zinc-900 px-3 py-2">Value</div>
+                <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Conditions</h3>
+                <div className="border border-[var(--color-border)] rounded overflow-hidden">
+                  <div className="grid grid-cols-3 gap-px bg-[var(--color-surface-2)] text-xs font-medium text-[var(--color-text-muted)]">
+                    <div className="bg-[var(--color-surface-1)] px-3 py-2">Field</div>
+                    <div className="bg-[var(--color-surface-1)] px-3 py-2">Operator</div>
+                    <div className="bg-[var(--color-surface-1)] px-3 py-2">Value</div>
                   </div>
                   {selected.conditions.map((c, i) => (
-                    <div key={i} className="grid grid-cols-3 gap-px bg-zinc-800 text-sm">
-                      <div className="bg-zinc-900 px-3 py-2 font-mono text-indigo-400">{c.field}</div>
-                      <div className="bg-zinc-900 px-3 py-2 text-zinc-300">{OPERATOR_LABELS[c.operator]}</div>
-                      <div className="bg-zinc-900 px-3 py-2 font-mono text-amber-400">{c.value}</div>
+                    <div key={i} className="grid grid-cols-3 gap-px bg-[var(--color-surface-2)] text-sm">
+                      <div className="bg-[var(--color-surface-1)] px-3 py-2 font-mono text-indigo-400">{c.field}</div>
+                      <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[var(--color-text-primary)]">{OPERATOR_LABELS[c.operator]}</div>
+                      <div className="bg-[var(--color-surface-1)] px-3 py-2 font-mono text-amber-400">{c.value}</div>
                     </div>
                   ))}
                 </div>
@@ -279,27 +279,27 @@ export default function RuleEngine() {
 
               {/* Action */}
               <div>
-                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Action</h3>
-                <div className="flex items-center gap-2 bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm">
-                  <span className="text-zinc-500">→</span>
+                <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Action</h3>
+                <div className="flex items-center gap-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm">
+                  <span className="text-[var(--color-text-muted)]">→</span>
                   <span className="text-emerald-400 font-medium">{selected.action}</span>
                 </div>
               </div>
 
               {/* Match history bar chart */}
               <div>
-                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
                   Match History (7 days)
                 </h3>
-                <div className="flex items-end gap-1.5 h-24 bg-zinc-800 border border-zinc-700 rounded p-3">
+                <div className="flex items-end gap-1.5 h-24 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded p-3">
                   {selected.matchHistory.map((count, i) => (
                     <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                      <span className="text-[10px] text-zinc-500">{count}</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)]">{count}</span>
                       <div
                         className="w-full bg-indigo-500 rounded-sm min-h-[2px] transition-all"
                         style={{ height: `${(count / maxBar) * 100}%` }}
                       />
-                      <span className="text-[10px] text-zinc-600">{dayLabels[i]}</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)]">{dayLabels[i]}</span>
                     </div>
                   ))}
                 </div>
@@ -310,8 +310,8 @@ export default function RuleEngine() {
                 <span className={cn("px-2 py-0.5 rounded font-mono text-xs", priorityColor(selected.priority))}>
                   Priority {selected.priority}
                 </span>
-                <span className="text-zinc-500">{selected.matchCount.toLocaleString()} total matches</span>
-                <span className="text-zinc-600 text-xs">Last: {new Date(selected.lastMatched).toLocaleString()}</span>
+                <span className="text-[var(--color-text-muted)]">{selected.matchCount.toLocaleString()} total matches</span>
+                <span className="text-[var(--color-text-muted)] text-xs">Last: {new Date(selected.lastMatched).toLocaleString()}</span>
               </div>
 
               {/* Action buttons */}
@@ -321,13 +321,13 @@ export default function RuleEngine() {
                   className={cn(
                     "px-3 py-1.5 rounded text-sm font-medium",
                     selected.enabled
-                      ? "bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-700"
-                      : "bg-emerald-600 hover:bg-emerald-500 text-white"
+                      ? "bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
+                      : "bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-primary)]"
                   )}
                 >
                   {selected.enabled ? "Disable" : "Enable"}
                 </button>
-                <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-sm">
+                <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm">
                   Edit
                 </button>
                 <button
@@ -339,10 +339,10 @@ export default function RuleEngine() {
               </div>
 
               {/* Rule Tester — collapsible */}
-              <div className="border-t border-zinc-800 pt-4">
+              <div className="border-t border-[var(--color-border)] pt-4">
                 <button
                   onClick={() => setTesterOpen(!testerOpen)}
-                  className="flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+                  className="flex items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
                 >
                   <span className={cn("inline-block transition-transform text-xs", testerOpen && "rotate-90")}>
                     ▶
@@ -355,12 +355,12 @@ export default function RuleEngine() {
                       value={testPayload}
                       onChange={(e) => setTestPayload(e.target.value)}
                       rows={5}
-                      className="w-full bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm font-mono resize-y"
+                      className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm font-mono resize-y"
                       placeholder='{"field": "value"}'
                     />
                     <button
                       onClick={runTest}
-                      className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-sm font-medium"
+                      className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium"
                     >
                       Test Rule
                     </button>
@@ -387,9 +387,9 @@ export default function RuleEngine() {
               </div>
             </div>
           ) : (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center">
-              <div className="text-zinc-600 text-3xl mb-3">⚙</div>
-              <div className="text-zinc-500 text-sm">Select a rule to view details</div>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-12 text-center">
+              <div className="text-[var(--color-text-muted)] text-3xl mb-3">⚙</div>
+              <div className="text-[var(--color-text-muted)] text-sm">Select a rule to view details</div>
             </div>
           )}
         </div>

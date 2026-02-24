@@ -103,7 +103,7 @@ export default function EmbeddingExplorer() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Embedding Explorer</h1>
@@ -111,7 +111,7 @@ export default function EmbeddingExplorer() {
           <select
             value={modelFilter}
             onChange={(e) => setModelFilter(e.target.value as "all" | Model)}
-            className="bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm"
           >
             <option value="all">All Models</option>
             <option value="text-embedding-3-small">text-embedding-3-small</option>
@@ -123,8 +123,8 @@ export default function EmbeddingExplorer() {
             className={cn(
               "px-3 py-1.5 rounded text-sm font-medium transition-colors",
               !query.trim() || isEmbedding
-                ? "bg-zinc-700 text-zinc-500 cursor-not-allowed"
-                : "bg-indigo-600 hover:bg-indigo-500 text-white"
+                ? "bg-[var(--color-surface-3)] text-[var(--color-text-muted)] cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
             )}
           >
             {isEmbedding ? "Embedding..." : "Embed Query"}
@@ -140,10 +140,10 @@ export default function EmbeddingExplorer() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleEmbedQuery()}
-          className="flex-1 bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm placeholder:text-zinc-500"
+          className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm placeholder:text-[var(--color-text-muted)]"
         />
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-zinc-400 text-xs whitespace-nowrap">
+          <span className="text-[var(--color-text-secondary)] text-xs whitespace-nowrap">
             Threshold: {threshold.toFixed(2)}
           </span>
           <input
@@ -162,20 +162,20 @@ export default function EmbeddingExplorer() {
       <div className="flex gap-5">
         {/* Scatter plot panel */}
         <div className="w-[60%]">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <div className="text-xs text-zinc-500 mb-2">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <div className="text-xs text-[var(--color-text-muted)] mb-2">
               2D Projection &middot; {filtered.length} embeddings
             </div>
-            <div className="relative h-[420px] bg-zinc-950 rounded border border-zinc-800 overflow-hidden">
+            <div className="relative h-[420px] bg-[var(--color-surface-0)] rounded border border-[var(--color-border)] overflow-hidden">
               {/* Grid lines */}
               {[25, 50, 75].map((p) => (
                 <React.Fragment key={p}>
                   <div
-                    className="absolute top-0 bottom-0 border-l border-zinc-800/50"
+                    className="absolute top-0 bottom-0 border-l border-[var(--color-border)]/50"
                     style={{ left: `${p}%` }}
                   />
                   <div
-                    className="absolute left-0 right-0 border-t border-zinc-800/50"
+                    className="absolute left-0 right-0 border-t border-[var(--color-border)]/50"
                     style={{ top: `${p}%` }}
                   />
                 </React.Fragment>
@@ -184,7 +184,7 @@ export default function EmbeddingExplorer() {
               {/* Shimmer overlay during embedding */}
               {isEmbedding && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center">
-                  <div className="bg-zinc-900/80 rounded-lg px-4 py-2 text-sm text-indigo-400 animate-pulse">
+                  <div className="bg-[var(--color-surface-1)]/80 rounded-lg px-4 py-2 text-sm text-indigo-400 animate-pulse">
                     Computing embedding vector...
                   </div>
                 </div>
@@ -215,18 +215,18 @@ export default function EmbeddingExplorer() {
                     {/* Tooltip */}
                     {isHovered && (
                       <div
-                        className="absolute z-30 bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs pointer-events-none shadow-lg max-w-[220px]"
+                        className="absolute z-30 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-xs pointer-events-none shadow-lg max-w-[220px]"
                         style={{
                           left: `${emb.x}%`,
                           top: `${emb.y}%`,
                           transform: `translate(${emb.x > 70 ? "-100%" : "8px"}, -110%)`,
                         }}
                       >
-                        <div className="text-white font-medium mb-1 truncate">{emb.text}</div>
+                        <div className="text-[var(--color-text-primary)] font-medium mb-1 truncate">{emb.text}</div>
                         <div className="flex items-center gap-2">
                           <span className={cn("text-xs", colors.text)}>{emb.category}</span>
-                          <span className="text-zinc-500">&middot;</span>
-                          <span className="text-zinc-400">sim: {emb.similarity.toFixed(2)}</span>
+                          <span className="text-[var(--color-text-muted)]">&middot;</span>
+                          <span className="text-[var(--color-text-secondary)]">sim: {emb.similarity.toFixed(2)}</span>
                         </div>
                       </div>
                     )}
@@ -241,7 +241,7 @@ export default function EmbeddingExplorer() {
                 ([cat, colors]) => (
                   <div key={cat} className="flex items-center gap-1.5">
                     <div className={cn("w-2.5 h-2.5 rounded-full", colors.dot)} />
-                    <span className="text-xs text-zinc-400">{colors.label}</span>
+                    <span className="text-xs text-[var(--color-text-secondary)]">{colors.label}</span>
                   </div>
                 )
               )}
@@ -252,33 +252,33 @@ export default function EmbeddingExplorer() {
         {/* Right detail panel */}
         <div className="w-[40%] space-y-4">
           {/* Selected embedding detail */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
               Selected Embedding
             </h3>
             {selected ? (
               <div className="space-y-3">
                 <div>
-                  <div className="text-white font-medium text-sm">{selected.text}</div>
-                  <div className="text-xs text-zinc-500 mt-1">{selected.id}</div>
+                  <div className="text-[var(--color-text-primary)] font-medium text-sm">{selected.text}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-1">{selected.id}</div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-zinc-500">Category</span>
+                    <span className="text-[var(--color-text-muted)]">Category</span>
                     <div className={cn("font-medium mt-0.5", CATEGORY_COLORS[selected.category].text)}>
                       {selected.category}
                     </div>
                   </div>
                   <div>
-                    <span className="text-zinc-500">Model</span>
-                    <div className="text-white font-medium mt-0.5 truncate">{selected.model}</div>
+                    <span className="text-[var(--color-text-muted)]">Model</span>
+                    <div className="text-[var(--color-text-primary)] font-medium mt-0.5 truncate">{selected.model}</div>
                   </div>
                   <div>
-                    <span className="text-zinc-500">Dimensions</span>
-                    <div className="text-white font-medium mt-0.5">{selected.dimensions}</div>
+                    <span className="text-[var(--color-text-muted)]">Dimensions</span>
+                    <div className="text-[var(--color-text-primary)] font-medium mt-0.5">{selected.dimensions}</div>
                   </div>
                   <div>
-                    <span className="text-zinc-500">Similarity</span>
+                    <span className="text-[var(--color-text-muted)]">Similarity</span>
                     <div className={cn(
                       "font-medium mt-0.5",
                       selected.similarity >= 0.8 ? "text-emerald-400" :
@@ -292,7 +292,7 @@ export default function EmbeddingExplorer() {
                   {selected.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-2 py-0.5 rounded"
+                      className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-2 py-0.5 rounded"
                     >
                       {tag}
                     </span>
@@ -300,11 +300,11 @@ export default function EmbeddingExplorer() {
                 </div>
                 {/* Similarity bar */}
                 <div>
-                  <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                  <div className="flex justify-between text-xs text-[var(--color-text-muted)] mb-1">
                     <span>Similarity</span>
                     <span>{(selected.similarity * 100).toFixed(1)}%</span>
                   </div>
-                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className={cn(
                         "h-full rounded-full transition-all duration-300",
@@ -317,7 +317,7 @@ export default function EmbeddingExplorer() {
                 </div>
               </div>
             ) : (
-              <div className="text-zinc-500 text-sm py-6 text-center">
+              <div className="text-[var(--color-text-muted)] text-sm py-6 text-center">
                 Click an embedding point to view details
               </div>
             )}
@@ -325,8 +325,8 @@ export default function EmbeddingExplorer() {
 
           {/* Similar embeddings */}
           {selected && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
                 Similar Embeddings
               </h3>
               <div className="space-y-2.5">
@@ -334,15 +334,15 @@ export default function EmbeddingExplorer() {
                   <div
                     key={emb.id}
                     className={cn(
-                      "p-2 rounded cursor-pointer transition-colors hover:bg-zinc-800",
-                      emb.id === hoveredId && "bg-zinc-800"
+                      "p-2 rounded cursor-pointer transition-colors hover:bg-[var(--color-surface-2)]",
+                      emb.id === hoveredId && "bg-[var(--color-surface-2)]"
                     )}
                     onClick={() => setSelectedId(emb.id)}
                     onMouseEnter={() => setHoveredId(emb.id)}
                     onMouseLeave={() => setHoveredId(null)}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="text-xs text-white truncate flex-1">{emb.text}</div>
+                      <div className="text-xs text-[var(--color-text-primary)] truncate flex-1">{emb.text}</div>
                       <span className={cn(
                         "text-xs font-mono shrink-0",
                         emb.similarity >= 0.8 ? "text-emerald-400" :
@@ -351,7 +351,7 @@ export default function EmbeddingExplorer() {
                         {emb.similarity.toFixed(2)}
                       </span>
                     </div>
-                    <div className="h-1 bg-zinc-800 rounded-full mt-1.5 overflow-hidden">
+                    <div className="h-1 bg-[var(--color-surface-2)] rounded-full mt-1.5 overflow-hidden">
                       <div
                         className="h-full bg-indigo-500 rounded-full"
                         style={{ width: `${emb.similarity * 100}%` }}
@@ -365,10 +365,10 @@ export default function EmbeddingExplorer() {
 
           {/* Vector preview */}
           {selected && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">
                 Vector Preview
-                <span className="text-zinc-500 font-normal ml-1">
+                <span className="text-[var(--color-text-muted)] font-normal ml-1">
                   (first 8 of {selected.dimensions})
                 </span>
               </h3>
@@ -407,7 +407,7 @@ export default function EmbeddingExplorer() {
                     );
                   })}
                 </div>
-                <span className="text-zinc-500 text-xs">magnitude</span>
+                <span className="text-[var(--color-text-muted)] text-xs">magnitude</span>
               </div>
             </div>
           )}

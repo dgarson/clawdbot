@@ -481,7 +481,7 @@ function QueueTypeBadge({ type }: { type: QueueType }) {
   const cls =
     type === "fifo"     ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/30" :
     type === "priority" ? "bg-amber-400/20 text-amber-400 border-amber-400/30"   :
-                          "bg-zinc-700/60 text-zinc-400 border-zinc-600/50";
+                          "bg-[var(--color-surface-3)]/60 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/50";
   return (
     <span className={cn("px-1.5 py-0.5 text-xs rounded border font-mono uppercase tracking-wide", cls)}>
       {type}
@@ -492,7 +492,7 @@ function QueueTypeBadge({ type }: { type: QueueType }) {
 function StatusDot({ status }: { status: ConsumerStatus }) {
   const cls =
     status === "active"   ? "bg-emerald-400" :
-    status === "idle"     ? "bg-zinc-500"    :
+    status === "idle"     ? "bg-[var(--color-surface-3)]"    :
                             "bg-amber-400";
   return <span className={cn("inline-block w-2 h-2 rounded-full shrink-0", cls)} />;
 }
@@ -502,7 +502,7 @@ function TrajectoryBadge({ status }: { status: TrajectoryStatus }) {
     status === "delivered"  ? "bg-emerald-400/20 text-emerald-400 border-emerald-400/30" :
     status === "failed"     ? "bg-rose-400/20 text-rose-400 border-rose-400/30"          :
     status === "processing" ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/30"    :
-                              "bg-zinc-700/60 text-zinc-400 border-zinc-600/50";
+                              "bg-[var(--color-surface-3)]/60 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/50";
   return (
     <span className={cn("px-1.5 py-0.5 text-xs rounded border capitalize", cls)}>
       {status}
@@ -512,15 +512,15 @@ function TrajectoryBadge({ status }: { status: TrajectoryStatus }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">{children}</div>
+    <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">{children}</div>
   );
 }
 
 function KV({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-1 border-b border-zinc-800/60 last:border-0">
-      <span className="text-xs text-zinc-500 shrink-0">{label}</span>
-      <span className={cn("text-xs text-zinc-300 text-right break-all", mono && "font-mono")}>{value}</span>
+    <div className="flex items-start justify-between gap-4 py-1 border-b border-[var(--color-border)]/60 last:border-0">
+      <span className="text-xs text-[var(--color-text-muted)] shrink-0">{label}</span>
+      <span className={cn("text-xs text-[var(--color-text-primary)] text-right break-all", mono && "font-mono")}>{value}</span>
     </div>
   );
 }
@@ -550,8 +550,8 @@ function DualBarChart({ data }: { data: MetricPoint[] }) {
   return (
     <div>
       <div className="flex gap-4 mb-2">
-        <div className="flex items-center gap-1.5"><div className="w-3 h-1.5 rounded bg-indigo-500" /><span className="text-xs text-zinc-400">Messages In</span></div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-1.5 rounded bg-emerald-400" /><span className="text-xs text-zinc-400">Messages Out</span></div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-1.5 rounded bg-indigo-500" /><span className="text-xs text-[var(--color-text-secondary)]">Messages In</span></div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-1.5 rounded bg-emerald-400" /><span className="text-xs text-[var(--color-text-secondary)]">Messages Out</span></div>
       </div>
       <div className="flex items-end gap-1 h-24">
         {data.map((d, i) => (
@@ -567,7 +567,7 @@ function DualBarChart({ data }: { data: MetricPoint[] }) {
       </div>
       <div className="flex justify-between mt-1">
         {data.map((d, i) => (
-          i % 3 === 0 ? <span key={i} className="text-xs text-zinc-600">{d.time}</span> : null
+          i % 3 === 0 ? <span key={i} className="text-xs text-[var(--color-text-muted)]">{d.time}</span> : null
         ))}
       </div>
     </div>
@@ -612,10 +612,10 @@ function AgeGauge({ label, value, max }: { label: string; value: number; max: nu
   return (
     <div>
       <div className="flex justify-between mb-1">
-        <span className="text-xs text-zinc-400">{label}</span>
-        <span className="text-xs text-white font-mono">{value}m</span>
+        <span className="text-xs text-[var(--color-text-secondary)]">{label}</span>
+        <span className="text-xs text-[var(--color-text-primary)] font-mono">{value}m</span>
       </div>
-      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
         <div className={cn("h-full rounded-full transition-all", color)} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -628,14 +628,14 @@ function QueueBarChart({ queues }: { queues: Queue[] }) {
     <div className="flex flex-col gap-1.5">
       {queues.map((q) => (
         <div key={q.id} className="flex items-center gap-2">
-          <span className="text-xs text-zinc-400 w-36 truncate shrink-0 font-mono">{q.name}</span>
-          <div className="flex-1 h-4 bg-zinc-800 rounded overflow-hidden">
+          <span className="text-xs text-[var(--color-text-secondary)] w-36 truncate shrink-0 font-mono">{q.name}</span>
+          <div className="flex-1 h-4 bg-[var(--color-surface-2)] rounded overflow-hidden">
             <div
               className="h-full bg-indigo-500 opacity-75 rounded"
               style={{ width: `${Math.round((q.depth / max) * 100)}%`, minWidth: "2px" }}
             />
           </div>
-          <span className="text-xs text-zinc-300 font-mono w-10 text-right shrink-0">{formatDepth(q.depth)}</span>
+          <span className="text-xs text-[var(--color-text-primary)] font-mono w-10 text-right shrink-0">{formatDepth(q.depth)}</span>
         </div>
       ))}
     </div>
@@ -646,7 +646,7 @@ function QueueBarChart({ queues }: { queues: Queue[] }) {
 
 function TrajectoryTimeline({ steps }: { steps: TrajectoryStep[] }) {
   const dotColor: Record<TrajectoryStatus, string> = {
-    received:   "bg-zinc-500",
+    received:   "bg-[var(--color-surface-3)]",
     processing: "bg-indigo-500",
     delivered:  "bg-emerald-400",
     failed:     "bg-rose-400",
@@ -657,14 +657,14 @@ function TrajectoryTimeline({ steps }: { steps: TrajectoryStep[] }) {
         <div key={i} className="flex gap-3">
           <div className="flex flex-col items-center">
             <div className={cn("w-2.5 h-2.5 rounded-full mt-0.5 shrink-0", dotColor[step.status])} />
-            {i < steps.length - 1 && <div className="w-px bg-zinc-700 flex-1 my-1" />}
+            {i < steps.length - 1 && <div className="w-px bg-[var(--color-surface-3)] flex-1 my-1" />}
           </div>
           <div className="pb-3 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-xs text-white font-medium capitalize">{step.status}</span>
+              <span className="text-xs text-[var(--color-text-primary)] font-medium capitalize">{step.status}</span>
             </div>
-            <div className="text-xs text-zinc-400">{step.detail}</div>
-            <div className="text-xs text-zinc-600 font-mono">{step.timestamp}</div>
+            <div className="text-xs text-[var(--color-text-secondary)]">{step.detail}</div>
+            <div className="text-xs text-[var(--color-text-muted)] font-mono">{step.timestamp}</div>
           </div>
         </div>
       ))}
@@ -689,21 +689,21 @@ function QueuesTab({ selectedQueueId, onSelectQueue }: { selectedQueueId: string
             className={cn(
               "w-full text-left px-3 py-2.5 rounded-lg border transition-colors",
               q.id === selectedQueueId
-                ? "bg-zinc-800 border-indigo-500/40"
-                : "bg-zinc-900 border-zinc-800 hover:bg-zinc-800/60"
+                ? "bg-[var(--color-surface-2)] border-indigo-500/40"
+                : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/60"
             )}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium text-white truncate">{q.name}</span>
+              <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{q.name}</span>
               <QueueTypeBadge type={q.type} />
             </div>
-            <div className="flex items-center gap-3 text-xs text-zinc-500">
-              <span>depth <span className="text-zinc-300 font-mono">{formatDepth(q.depth)}</span></span>
-              <span>consumers <span className="text-zinc-300 font-mono">{q.consumers}</span></span>
+            <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
+              <span>depth <span className="text-[var(--color-text-primary)] font-mono">{formatDepth(q.depth)}</span></span>
+              <span>consumers <span className="text-[var(--color-text-primary)] font-mono">{q.consumers}</span></span>
             </div>
-            <div className="flex items-center gap-3 text-xs text-zinc-500 mt-0.5">
-              <span><span className="text-zinc-300 font-mono">{q.throughputPerSec.toFixed(1)}</span>/s</span>
-              <span>age <span className="text-zinc-300 font-mono">{q.oldestMessageAge}</span></span>
+            <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)] mt-0.5">
+              <span><span className="text-[var(--color-text-primary)] font-mono">{q.throughputPerSec.toFixed(1)}</span>/s</span>
+              <span>age <span className="text-[var(--color-text-primary)] font-mono">{q.oldestMessageAge}</span></span>
               {q.dlqDepth > 0 && (
                 <span className="text-rose-400 font-semibold">DLQ {q.dlqDepth}</span>
               )}
@@ -715,14 +715,14 @@ function QueuesTab({ selectedQueueId, onSelectQueue }: { selectedQueueId: string
       {/* Right — Queue Detail */}
       <div className="flex-1 min-w-0 overflow-y-auto flex flex-col gap-4">
         {/* Header */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <div className="flex items-start justify-between mb-3">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg font-semibold text-white font-mono">{selectedQueue.name}</span>
+                <span className="text-lg font-semibold text-[var(--color-text-primary)] font-mono">{selectedQueue.name}</span>
                 <QueueTypeBadge type={selectedQueue.type} />
               </div>
-              <div className="text-xs text-zinc-500">Queue ID: {selectedQueue.id}</div>
+              <div className="text-xs text-[var(--color-text-muted)]">Queue ID: {selectedQueue.id}</div>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -736,38 +736,38 @@ function QueuesTab({ selectedQueueId, onSelectQueue }: { selectedQueueId: string
               { label: "Throughput",   value: selectedQueue.throughputPerSec.toFixed(1),      sub: "msg/sec" },
               { label: "Oldest Msg",   value: selectedQueue.oldestMessageAge,                 sub: "in queue" },
             ].map((stat) => (
-              <div key={stat.label} className="bg-zinc-800/60 rounded-lg p-3">
-                <div className="text-xs text-zinc-500 mb-1">{stat.label}</div>
-                <div className="text-xl font-bold text-white font-mono">{stat.value}</div>
-                <div className="text-xs text-zinc-600">{stat.sub}</div>
+              <div key={stat.label} className="bg-[var(--color-surface-2)]/60 rounded-lg p-3">
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">{stat.label}</div>
+                <div className="text-xl font-bold text-[var(--color-text-primary)] font-mono">{stat.value}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">{stat.sub}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Throughput Chart */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <SectionLabel>Throughput — last 12 intervals</SectionLabel>
           <BarChart data={selectedQueue.throughputHistory} colorClass="bg-indigo-500 opacity-80 hover:opacity-100" />
           <div className="flex justify-between mt-2">
-            <span className="text-xs text-zinc-600">−11</span>
-            <span className="text-xs text-zinc-600">now</span>
+            <span className="text-xs text-[var(--color-text-muted)]">−11</span>
+            <span className="text-xs text-[var(--color-text-muted)]">now</span>
           </div>
         </div>
 
         {/* Consumers */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <SectionLabel>Consumers ({queueConsumers.length})</SectionLabel>
           <div className="flex flex-col gap-1">
             {queueConsumers.map((c) => (
-              <div key={c.id} className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-zinc-800/40 transition-colors">
+              <div key={c.id} className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-[var(--color-surface-2)]/40 transition-colors">
                 <StatusDot status={c.status} />
-                <span className="text-xs font-mono text-zinc-300 flex-1">{c.host}</span>
-                <span className="text-xs text-zinc-500 capitalize">{c.status}</span>
-                <span className="text-xs font-mono text-white w-14 text-right">
+                <span className="text-xs font-mono text-[var(--color-text-primary)] flex-1">{c.host}</span>
+                <span className="text-xs text-[var(--color-text-muted)] capitalize">{c.status}</span>
+                <span className="text-xs font-mono text-[var(--color-text-primary)] w-14 text-right">
                   {c.messagesPerSec.toFixed(1)}/s
                 </span>
-                <span className="text-xs text-zinc-600 w-16 text-right">{c.lastHeartbeat}</span>
+                <span className="text-xs text-[var(--color-text-muted)] w-16 text-right">{c.lastHeartbeat}</span>
               </div>
             ))}
             {queueConsumers.length === 0 && (
@@ -789,14 +789,14 @@ function QueuesTab({ selectedQueueId, onSelectQueue }: { selectedQueueId: string
               <div className="text-2xl font-bold text-rose-400 font-mono">{selectedQueue.dlqDepth}</div>
               <div>
                 <div className="text-sm text-rose-300">failed messages</div>
-                <div className="text-xs text-zinc-500">Inspect in Dead Letter tab</div>
+                <div className="text-xs text-[var(--color-text-muted)]">Inspect in Dead Letter tab</div>
               </div>
             </div>
           </div>
         )}
 
         {/* Configuration */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <SectionLabel>Configuration</SectionLabel>
           <KV label="Type"                     value={selectedQueue.type.toUpperCase()} />
           <KV label="Visibility Timeout"       value={formatSeconds(selectedQueue.visibilityTimeout)} />
@@ -834,7 +834,7 @@ function MessagesTab() {
           <select
             value={msgQueueFilter}
             onChange={(e) => setMsgQueueFilter(e.target.value)}
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-indigo-500"
           >
             <option value="all">All Queues</option>
             {QUEUES.map((q) => (
@@ -846,7 +846,7 @@ function MessagesTab() {
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
             placeholder="Search message ID or body…"
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-indigo-500"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500"
           />
         </div>
 
@@ -869,16 +869,16 @@ function MessagesTab() {
                 className={cn(
                   "w-full text-left px-3 py-2.5 rounded-lg border transition-colors",
                   m.id === (selected?.id)
-                    ? "bg-zinc-800 border-indigo-500/40"
-                    : "bg-zinc-900 border-zinc-800 hover:bg-zinc-800/60"
+                    ? "bg-[var(--color-surface-2)] border-indigo-500/40"
+                    : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/60"
                 )}
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-mono text-indigo-400">{m.id}</span>
                   <TrajectoryBadge status={m.trajectory[m.trajectory.length - 1].status} />
                 </div>
-                <div className="text-xs text-zinc-400 truncate mb-1">{truncate(m.bodyPreview, 58)}</div>
-                <div className="flex items-center gap-3 text-xs text-zinc-600">
+                <div className="text-xs text-[var(--color-text-secondary)] truncate mb-1">{truncate(m.bodyPreview, 58)}</div>
+                <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                   <span>{queue?.name ?? m.queueId}</span>
                   <span>recv ×{m.receiveCount}</span>
                   <span>{m.sendTimestamp.slice(11, 19)}</span>
@@ -893,40 +893,40 @@ function MessagesTab() {
       {selected ? (
         <div className="flex-1 min-w-0 overflow-y-auto flex flex-col gap-4">
           {/* Header */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
             <div className="flex items-start justify-between mb-2">
               <div>
-                <div className="text-xs text-zinc-500 mb-1">Message ID</div>
-                <div className="text-sm font-mono text-white">{selected.id}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Message ID</div>
+                <div className="text-sm font-mono text-[var(--color-text-primary)]">{selected.id}</div>
               </div>
               <TrajectoryBadge status={selected.trajectory[selected.trajectory.length - 1].status} />
             </div>
             <div className="grid grid-cols-3 gap-2 mt-3">
-              <div className="bg-zinc-800/60 rounded-lg p-2">
-                <div className="text-xs text-zinc-500">Receive Count</div>
-                <div className="text-lg font-bold text-white font-mono">{selected.receiveCount}</div>
+              <div className="bg-[var(--color-surface-2)]/60 rounded-lg p-2">
+                <div className="text-xs text-[var(--color-text-muted)]">Receive Count</div>
+                <div className="text-lg font-bold text-[var(--color-text-primary)] font-mono">{selected.receiveCount}</div>
               </div>
-              <div className="bg-zinc-800/60 rounded-lg p-2">
-                <div className="text-xs text-zinc-500">Sent</div>
-                <div className="text-xs font-mono text-zinc-300">{selected.sendTimestamp.slice(11, 19)}</div>
+              <div className="bg-[var(--color-surface-2)]/60 rounded-lg p-2">
+                <div className="text-xs text-[var(--color-text-muted)]">Sent</div>
+                <div className="text-xs font-mono text-[var(--color-text-primary)]">{selected.sendTimestamp.slice(11, 19)}</div>
               </div>
-              <div className="bg-zinc-800/60 rounded-lg p-2">
-                <div className="text-xs text-zinc-500">First Received</div>
-                <div className="text-xs font-mono text-zinc-300">{selected.firstReceiveTimestamp.slice(11, 19)}</div>
+              <div className="bg-[var(--color-surface-2)]/60 rounded-lg p-2">
+                <div className="text-xs text-[var(--color-text-muted)]">First Received</div>
+                <div className="text-xs font-mono text-[var(--color-text-primary)]">{selected.firstReceiveTimestamp.slice(11, 19)}</div>
               </div>
             </div>
           </div>
 
           {/* Body */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
             <SectionLabel>Message Body</SectionLabel>
-            <pre className="text-xs font-mono text-zinc-300 bg-zinc-800/60 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+            <pre className="text-xs font-mono text-[var(--color-text-primary)] bg-[var(--color-surface-2)]/60 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
               {selected.body}
             </pre>
           </div>
 
           {/* Attributes */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
             <SectionLabel>Attributes</SectionLabel>
             {Object.entries(selected.attributes).map(([k, v]) => (
               <KV key={k} label={k} value={v} mono />
@@ -934,25 +934,25 @@ function MessagesTab() {
           </div>
 
           {/* Trajectory */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
             <SectionLabel>Message Trajectory</SectionLabel>
             <TrajectoryTimeline steps={selected.trajectory} />
           </div>
 
           {/* Retry History */}
           {selected.retryHistory.length > 0 && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
               <SectionLabel>Retry History</SectionLabel>
               <div className="flex flex-col gap-2">
                 {selected.retryHistory.map((r) => (
-                  <div key={r.attempt} className="flex items-start gap-3 px-3 py-2 bg-zinc-800/40 rounded-lg">
-                    <span className="text-xs font-mono text-zinc-500 shrink-0">#{r.attempt}</span>
+                  <div key={r.attempt} className="flex items-start gap-3 px-3 py-2 bg-[var(--color-surface-2)]/40 rounded-lg">
+                    <span className="text-xs font-mono text-[var(--color-text-muted)] shrink-0">#{r.attempt}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className={cn("text-xs font-semibold", r.result === "success" ? "text-emerald-400" : "text-rose-400")}>
                           {r.result === "success" ? "Succeeded" : "Failed"}
                         </span>
-                        <span className="text-xs text-zinc-600 font-mono">{r.timestamp.slice(11, 19)}</span>
+                        <span className="text-xs text-[var(--color-text-muted)] font-mono">{r.timestamp.slice(11, 19)}</span>
                       </div>
                       {r.error && <div className="text-xs text-rose-400/80 mt-0.5">{r.error}</div>}
                     </div>
@@ -963,7 +963,7 @@ function MessagesTab() {
           )}
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm">
+        <div className="flex-1 flex items-center justify-center text-[var(--color-text-muted)] text-sm">
           Select a message to inspect
         </div>
       )}
@@ -982,7 +982,7 @@ function DeadLetterTab() {
       {/* Left — DLQ List */}
       <div className="w-80 shrink-0 flex flex-col gap-1 overflow-y-auto">
         <div className="flex items-center justify-between mb-2 px-1 shrink-0">
-          <span className="text-xs text-zinc-500">{DLQ_ENTRIES.length} failed messages</span>
+          <span className="text-xs text-[var(--color-text-muted)]">{DLQ_ENTRIES.length} failed messages</span>
           <span className="text-xs text-rose-400 font-semibold">DLQ Active</span>
         </div>
         {DLQ_ENTRIES.map((d) => (
@@ -992,8 +992,8 @@ function DeadLetterTab() {
             className={cn(
               "w-full text-left px-3 py-2.5 rounded-lg border transition-colors",
               d.id === (selected?.id)
-                ? "bg-zinc-800 border-rose-500/40"
-                : "bg-zinc-900 border-zinc-800 hover:bg-zinc-800/60"
+                ? "bg-[var(--color-surface-2)] border-rose-500/40"
+                : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/60"
             )}
           >
             <div className="flex items-center justify-between mb-1">
@@ -1002,8 +1002,8 @@ function DeadLetterTab() {
                 ×{d.receiveCount}
               </span>
             </div>
-            <div className="text-xs text-zinc-400 mb-1 truncate">{truncate(d.failureReason, 55)}</div>
-            <div className="flex items-center gap-2 text-xs text-zinc-600">
+            <div className="text-xs text-[var(--color-text-secondary)] mb-1 truncate">{truncate(d.failureReason, 55)}</div>
+            <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
               <span>{d.originalQueueName}</span>
               <span>{d.firstSentTimestamp.slice(11, 16)}</span>
             </div>
@@ -1018,39 +1018,39 @@ function DeadLetterTab() {
           <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-4">
             <div className="flex items-start justify-between mb-2">
               <div>
-                <div className="text-xs text-zinc-500 mb-1">Dead Letter Message</div>
-                <div className="text-sm font-mono text-white">{selected.messageId}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Dead Letter Message</div>
+                <div className="text-sm font-mono text-[var(--color-text-primary)]">{selected.messageId}</div>
               </div>
               <span className="text-xs bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2 py-1 rounded-lg font-semibold">
                 Failed ×{selected.receiveCount}
               </span>
             </div>
             <div className="bg-rose-500/10 rounded-lg p-3 mt-2">
-              <div className="text-xs text-zinc-500 mb-1">Failure Reason</div>
+              <div className="text-xs text-[var(--color-text-muted)] mb-1">Failure Reason</div>
               <div className="text-sm text-rose-300">{selected.failureReason}</div>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-3">
-              <div className="bg-zinc-800/60 rounded-lg p-2">
-                <div className="text-xs text-zinc-500">Original Queue</div>
-                <div className="text-xs font-mono text-zinc-300">{selected.originalQueueName}</div>
+              <div className="bg-[var(--color-surface-2)]/60 rounded-lg p-2">
+                <div className="text-xs text-[var(--color-text-muted)]">Original Queue</div>
+                <div className="text-xs font-mono text-[var(--color-text-primary)]">{selected.originalQueueName}</div>
               </div>
-              <div className="bg-zinc-800/60 rounded-lg p-2">
-                <div className="text-xs text-zinc-500">First Sent</div>
-                <div className="text-xs font-mono text-zinc-300">{selected.firstSentTimestamp}</div>
+              <div className="bg-[var(--color-surface-2)]/60 rounded-lg p-2">
+                <div className="text-xs text-[var(--color-text-muted)]">First Sent</div>
+                <div className="text-xs font-mono text-[var(--color-text-primary)]">{selected.firstSentTimestamp}</div>
               </div>
             </div>
           </div>
 
           {/* Body */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
             <SectionLabel>Message Body</SectionLabel>
-            <pre className="text-xs font-mono text-zinc-300 bg-zinc-800/60 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+            <pre className="text-xs font-mono text-[var(--color-text-primary)] bg-[var(--color-surface-2)]/60 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
               {selected.body}
             </pre>
           </div>
 
           {/* Attributes */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
             <SectionLabel>Attributes & Context</SectionLabel>
             {Object.entries(selected.attributes).map(([k, v]) => (
               <KV key={k} label={k} value={v} mono />
@@ -1058,13 +1058,13 @@ function DeadLetterTab() {
           </div>
 
           {/* Actions */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
             <SectionLabel>Actions</SectionLabel>
             <div className="flex gap-3">
-              <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold py-2.5 rounded-lg transition-colors">
+              <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm font-semibold py-2.5 rounded-lg transition-colors">
                 Retry Message
               </button>
-              <button className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-semibold py-2.5 rounded-lg transition-colors">
+              <button className="flex-1 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm font-semibold py-2.5 rounded-lg transition-colors">
                 Redrive to Queue
               </button>
               <button className="px-4 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-sm font-semibold py-2.5 rounded-lg transition-colors border border-rose-500/30">
@@ -1074,7 +1074,7 @@ function DeadLetterTab() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm">
+        <div className="flex-1 flex items-center justify-center text-[var(--color-text-muted)] text-sm">
           Select a failed message to inspect
         </div>
       )}
@@ -1101,51 +1101,51 @@ function MetricsTab() {
           { label: "Avg Error Rate",           value: avgError.toFixed(2) + "%", sub: "per interval", color: "text-rose-400" },
           { label: "Consumer Lag",             value: String(currentLag),        sub: "messages",   color: "text-amber-400" },
         ].map((kpi) => (
-          <div key={kpi.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <div className="text-xs text-zinc-500 mb-1">{kpi.label}</div>
+          <div key={kpi.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+            <div className="text-xs text-[var(--color-text-muted)] mb-1">{kpi.label}</div>
             <div className={cn("text-2xl font-bold font-mono", kpi.color)}>{kpi.value}</div>
-            <div className="text-xs text-zinc-600">{kpi.sub}</div>
+            <div className="text-xs text-[var(--color-text-muted)]">{kpi.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Throughput Chart */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
         <SectionLabel>Throughput — messages in/out per 5-minute interval</SectionLabel>
         <DualBarChart data={METRICS} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         {/* Error Rate */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <SectionLabel>Error Rate %</SectionLabel>
           <ErrorRateChart data={METRICS} />
           <div className="flex justify-between mt-1">
-            <span className="text-xs text-zinc-600">{METRICS[0].time}</span>
-            <span className="text-xs text-zinc-600">{METRICS[METRICS.length - 1].time}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">{METRICS[0].time}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">{METRICS[METRICS.length - 1].time}</span>
           </div>
-          <div className="mt-2 text-xs text-zinc-500">
+          <div className="mt-2 text-xs text-[var(--color-text-muted)]">
             Peak: <span className="text-rose-400 font-mono">{Math.max(...METRICS.map((d) => d.errorRate)).toFixed(2)}%</span>
             {" "}at {METRICS.reduce((a, b) => a.errorRate > b.errorRate ? a : b).time}
           </div>
         </div>
 
         {/* Consumer Lag */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <SectionLabel>Consumer Lag</SectionLabel>
           <ConsumerLagChart data={METRICS} />
           <div className="flex justify-between mt-1">
-            <span className="text-xs text-zinc-600">{METRICS[0].time}</span>
-            <span className="text-xs text-zinc-600">{METRICS[METRICS.length - 1].time}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">{METRICS[0].time}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">{METRICS[METRICS.length - 1].time}</span>
           </div>
-          <div className="mt-2 text-xs text-zinc-500">
+          <div className="mt-2 text-xs text-[var(--color-text-muted)]">
             Current: <span className="text-amber-400 font-mono">{currentLag}</span> messages behind
           </div>
         </div>
       </div>
 
       {/* Oldest Message Age Gauges */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
         <SectionLabel>Oldest Message Age by Queue</SectionLabel>
         <div className="grid grid-cols-2 gap-3">
           {QUEUES.map((q) => {
@@ -1164,7 +1164,7 @@ function MetricsTab() {
       </div>
 
       {/* Message Count by Queue */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
         <SectionLabel>Queue Depth Comparison</SectionLabel>
         <QueueBarChart queues={QUEUES} />
       </div>
@@ -1188,13 +1188,13 @@ export default function QueueInspector() {
   const totalDLQ = QUEUES.reduce((s, q) => s + q.dlqDepth, 0);
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 min-h-0">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] min-h-0">
       {/* Page Header */}
       <div className="shrink-0 px-6 pt-6 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Queue Inspector</h1>
-            <p className="text-sm text-zinc-400 mt-0.5">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] tracking-tight">Queue Inspector</h1>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
               {QUEUES.length} queues · {QUEUES.reduce((s, q) => s + q.depth, 0).toLocaleString()} messages ·{" "}
               {QUEUES.reduce((s, q) => s + q.consumers, 0)} consumers
               {totalDLQ > 0 && (
@@ -1204,13 +1204,13 @@ export default function QueueInspector() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs text-zinc-400">Live</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">Live</span>
           </div>
         </div>
       </div>
 
       {/* Tab Bar */}
-      <div className="shrink-0 flex gap-1 px-6 border-b border-zinc-800 pb-0">
+      <div className="shrink-0 flex gap-1 px-6 border-b border-[var(--color-border)] pb-0">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -1218,8 +1218,8 @@ export default function QueueInspector() {
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg border-b-2 transition-colors",
               activeTab === tab.id
-                ? "text-white border-indigo-500 bg-zinc-900/60"
-                : "text-zinc-500 border-transparent hover:text-zinc-300 hover:bg-zinc-900/30"
+                ? "text-[var(--color-text-primary)] border-indigo-500 bg-[var(--color-surface-1)]/60"
+                : "text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]/30"
             )}
           >
             {tab.label}
@@ -1228,7 +1228,7 @@ export default function QueueInspector() {
                 "text-xs px-1.5 py-0.5 rounded font-mono",
                 activeTab === tab.id
                   ? (tab.id === "deadletter" ? "bg-rose-500/30 text-rose-300" : "bg-indigo-500/30 text-indigo-300")
-                  : "bg-zinc-800 text-zinc-500"
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
               )}>
                 {tab.badge}
               </span>

@@ -80,7 +80,7 @@ const VOLUME_THICKNESS: Record<Connection["volume"], string> = {
 }
 
 const VOLUME_COLOR: Record<Connection["volume"], string> = {
-  low: "bg-zinc-700",
+  low: "bg-[var(--color-surface-3)]",
   medium: "bg-indigo-500/60",
   high: "bg-indigo-400",
 }
@@ -113,17 +113,17 @@ function NodeCard({
       onClick={() => onSelect(node.id)}
       className={cn(
         "absolute flex flex-col gap-1 rounded-lg border px-3 py-2 text-left transition-all",
-        "bg-zinc-900 hover:bg-zinc-800/80 focus:outline-none",
-        selected ? "ring-2 ring-indigo-500 border-indigo-500" : cn("border-zinc-800", sc.border),
+        "bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)]/80 focus:outline-none",
+        selected ? "ring-2 ring-indigo-500 border-indigo-500" : cn("border-[var(--color-border)]", sc.border),
       )}
       style={{ width: CARD_W, height: CARD_H, left: node.x, top: node.y }}
     >
       <div className="flex items-center gap-2">
         <span className="text-base leading-none">{node.icon}</span>
-        <span className="truncate text-sm font-medium text-white">{node.name}</span>
+        <span className="truncate text-sm font-medium text-[var(--color-text-primary)]">{node.name}</span>
         <span className={cn("ml-auto h-2 w-2 shrink-0 rounded-full", sc.dot)} />
       </div>
-      <div className="flex items-center gap-3 text-xs text-zinc-400">
+      <div className="flex items-center gap-3 text-xs text-[var(--color-text-secondary)]">
         <span>CPU {node.cpu}%</span>
         <span>RAM {node.ram}%</span>
         <span className={cn("ml-auto capitalize text-xs font-medium", sc.text)}>{node.status}</span>
@@ -202,17 +202,17 @@ function ConnectionLine({ conn, nodes }: { conn: Connection; nodes: InfraNode[] 
 function DetailSidebar({ node, onClose }: { node: InfraNode; onClose: () => void }) {
   const sc = STATUS_COLORS[node.status]
   return (
-    <div className="flex w-80 shrink-0 flex-col border-l border-zinc-800 bg-zinc-900">
+    <div className="flex w-80 shrink-0 flex-col border-l border-[var(--color-border)] bg-[var(--color-surface-1)]">
       {/* Header */}
-      <div className="flex items-center gap-3 border-b border-zinc-800 px-5 py-4">
+      <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-5 py-4">
         <span className="text-2xl">{node.icon}</span>
         <div className="flex-1">
-          <h2 className="text-sm font-semibold text-white">{node.name}</h2>
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">{node.name}</h2>
           <span className={cn("text-xs font-medium capitalize", sc.text)}>{node.status}</span>
         </div>
         <button
           onClick={onClose}
-          className="rounded p-1 text-zinc-500 hover:bg-zinc-800 hover:text-white"
+          className="rounded p-1 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
         >
           ✕
         </button>
@@ -228,9 +228,9 @@ function DetailSidebar({ node, onClose }: { node: InfraNode; onClose: () => void
           ["Error %", `${node.errorRate}%`],
           ["Region", node.region],
         ] as const).map(([label, value]) => (
-          <div key={label} className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2">
-            <p className="text-[10px] uppercase tracking-wider text-zinc-500">{label}</p>
-            <p className="mt-0.5 text-sm font-semibold text-white">{value}</p>
+          <div key={label} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3 py-2">
+            <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">{label}</p>
+            <p className="mt-0.5 text-sm font-semibold text-[var(--color-text-primary)]">{value}</p>
           </div>
         ))}
       </div>
@@ -242,11 +242,11 @@ function DetailSidebar({ node, onClose }: { node: InfraNode; onClose: () => void
           const color = pct > 85 ? "bg-rose-500" : pct > 60 ? "bg-amber-500" : "bg-emerald-500"
           return (
             <div key={key}>
-              <div className="mb-1 flex justify-between text-xs text-zinc-400">
+              <div className="mb-1 flex justify-between text-xs text-[var(--color-text-secondary)]">
                 <span className="uppercase">{key}</span>
                 <span>{pct}%</span>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-zinc-800">
+              <div className="h-1.5 w-full rounded-full bg-[var(--color-surface-2)]">
                 <div className={cn("h-full rounded-full transition-all", color)} style={{ width: `${pct}%` }} />
               </div>
             </div>
@@ -256,10 +256,10 @@ function DetailSidebar({ node, onClose }: { node: InfraNode; onClose: () => void
 
       {/* Events */}
       <div className="mt-4 flex-1 overflow-y-auto px-5 pb-5">
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Recent Events</h3>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Recent Events</h3>
         <ul className="space-y-2">
           {node.events.map((evt, i) => (
-            <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+            <li key={i} className="flex items-start gap-2 text-xs text-[var(--color-text-primary)]">
               <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-indigo-500" />
               {evt}
             </li>
@@ -297,12 +297,12 @@ export default function InfrastructureMap() {
   const statusCount = (s: NodeStatus) => NODES.filter((n) => n.status === s).length
 
   return (
-    <div className="flex h-full min-h-screen flex-col bg-zinc-950 text-white">
+    <div className="flex h-full min-h-screen flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Top bar */}
-      <header className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
+      <header className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
         <div>
           <h1 className="text-lg font-bold tracking-tight">Infrastructure Map</h1>
-          <p className="text-xs text-zinc-500">Real-time topology &middot; {NODES.length} nodes</p>
+          <p className="text-xs text-[var(--color-text-muted)]">Real-time topology &middot; {NODES.length} nodes</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -313,10 +313,10 @@ export default function InfrastructureMap() {
               "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition",
               autoRefresh
                 ? "border-indigo-500/50 bg-indigo-500/10 text-indigo-400"
-                : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-white",
+                : "border-[var(--color-border)] bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",
             )}
           >
-            <span className={cn("h-1.5 w-1.5 rounded-full", autoRefresh ? "bg-indigo-500 animate-pulse" : "bg-zinc-600")} />
+            <span className={cn("h-1.5 w-1.5 rounded-full", autoRefresh ? "bg-indigo-500 animate-pulse" : "bg-[var(--color-surface-3)]")} />
             {autoRefresh ? `Auto-refresh · ${lastUpdated}s ago` : "Auto-refresh off"}
           </button>
 
@@ -336,7 +336,7 @@ export default function InfrastructureMap() {
       </header>
 
       {/* Filter chips */}
-      <div className="flex items-center gap-2 border-b border-zinc-800 px-6 py-3">
+      <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-6 py-3">
         {FILTERS.map((f) => (
           <button
             key={f}
@@ -345,7 +345,7 @@ export default function InfrastructureMap() {
               "rounded-full border px-3 py-1 text-xs font-medium capitalize transition",
               filter === f
                 ? "border-indigo-500 bg-indigo-500/15 text-indigo-400"
-                : "border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-white",
+                : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]",
             )}
           >
             {f === "all" ? `All (${NODES.length})` : `${f} (${statusCount(f)})`}
@@ -360,10 +360,10 @@ export default function InfrastructureMap() {
           <div className="flex flex-col gap-6">
             {/* Region: us-east-1 */}
             {eastNodes.length > 0 && (
-              <section className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
+              <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-0)] p-5">
                 <div className="mb-3 flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">us-east-1</span>
-                  <span className="h-px flex-1 bg-zinc-800" />
+                  <span className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)]">us-east-1</span>
+                  <span className="h-px flex-1 bg-[var(--color-surface-2)]" />
                 </div>
                 <div className="relative" style={{ height: 260 }}>
                   {/* Connections for this region */}
@@ -389,10 +389,10 @@ export default function InfrastructureMap() {
 
             {/* Region: us-west-2 */}
             {westNodes.length > 0 && (
-              <section className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
+              <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-0)] p-5">
                 <div className="mb-3 flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">us-west-2</span>
-                  <span className="h-px flex-1 bg-zinc-800" />
+                  <span className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-muted)]">us-west-2</span>
+                  <span className="h-px flex-1 bg-[var(--color-surface-2)]" />
                 </div>
                 <div className="relative" style={{ height: 260 }}>
                   {CONNECTIONS.filter((c) => {
@@ -416,8 +416,8 @@ export default function InfrastructureMap() {
             )}
 
             {/* Cross-region connections legend */}
-            <div className="flex items-center gap-3 rounded-lg border border-dashed border-zinc-800 px-4 py-2.5">
-              <span className="text-xs text-zinc-600">Cross-region links</span>
+            <div className="flex items-center gap-3 rounded-lg border border-dashed border-[var(--color-border)] px-4 py-2.5">
+              <span className="text-xs text-[var(--color-text-muted)]">Cross-region links</span>
               {CONNECTIONS.filter((c) => {
                 const fn = NODES.find((n) => n.id === c.from)
                 const tn = NODES.find((n) => n.id === c.to)
@@ -426,10 +426,10 @@ export default function InfrastructureMap() {
                 const fn = NODES.find((n) => n.id === c.from)
                 const tn = NODES.find((n) => n.id === c.to)
                 return (
-                  <span key={i} className="flex items-center gap-1.5 text-[10px] text-zinc-500">
-                    <span className="font-medium text-zinc-300">{fn?.name}</span>
+                  <span key={i} className="flex items-center gap-1.5 text-[10px] text-[var(--color-text-muted)]">
+                    <span className="font-medium text-[var(--color-text-primary)]">{fn?.name}</span>
                     <span className={cn("inline-block h-px w-4 rounded-full", VOLUME_COLOR[c.volume])} />
-                    <span className="font-medium text-zinc-300">{tn?.name}</span>
+                    <span className="font-medium text-[var(--color-text-primary)]">{tn?.name}</span>
                   </span>
                 )
               })}

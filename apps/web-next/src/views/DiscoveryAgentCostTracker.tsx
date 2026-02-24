@@ -46,10 +46,10 @@ const WAVES = [
 ];
 
 const SummaryCard = ({ title, value, subtitle }: { title: string; value: string; subtitle: string }) => (
-  <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg shadow-sm">
-    <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">{title}</div>
-    <div className="text-2xl font-bold text-white mb-1">{value}</div>
-    <div className="text-gray-500 text-xs">{subtitle}</div>
+  <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-4 rounded-lg shadow-sm">
+    <div className="text-[var(--color-text-secondary)] text-xs font-medium uppercase tracking-wider mb-1">{title}</div>
+    <div className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{value}</div>
+    <div className="text-[var(--color-text-muted)] text-xs">{subtitle}</div>
   </div>
 );
 
@@ -57,20 +57,20 @@ const WaveSection = ({ wave }: { wave: typeof WAVES[0] }) => {
   const [isOpen, setIsOpen] = useState(wave.id === 1);
 
   return (
-    <div className="mb-4 border border-gray-800 rounded-lg overflow-hidden bg-gray-950">
+    <div className="mb-4 border border-[var(--color-border)] rounded-lg overflow-hidden bg-[var(--color-surface-0)]">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 bg-gray-900/50 hover:bg-gray-900 transition-colors"
+        className="w-full flex items-center justify-between p-4 bg-[var(--color-surface-1)]/50 hover:bg-[var(--color-surface-1)] transition-colors"
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-3">
-          <span className="text-lg font-semibold text-white">{wave.name}</span>
-          <span className="px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 text-xs">
+          <span className="text-lg font-semibold text-[var(--color-text-primary)]">{wave.name}</span>
+          <span className="px-2 py-0.5 rounded-full bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] text-xs">
             {wave.agents.length} Agents
           </span>
         </div>
         <svg
-          className={cn("w-5 h-5 text-gray-400 transition-transform", isOpen && "rotate-180")}
+          className={cn("w-5 h-5 text-[var(--color-text-secondary)] transition-transform", isOpen && "rotate-180")}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -82,7 +82,7 @@ const WaveSection = ({ wave }: { wave: typeof WAVES[0] }) => {
       {isOpen && (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-900/30 text-gray-400 border-b border-gray-800">
+            <thead className="bg-[var(--color-surface-1)]/30 text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
               <tr>
                 <th className="px-4 py-3 font-medium">Agent</th>
                 <th className="px-4 py-3 font-medium">Domain</th>
@@ -92,20 +92,20 @@ const WaveSection = ({ wave }: { wave: typeof WAVES[0] }) => {
                 <th className="px-4 py-3 font-medium text-center">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {wave.agents.map((agent) => (
-                <tr key={agent.name} className="hover:bg-gray-900/20">
-                  <td className="px-4 py-3 text-white font-medium">{agent.name}</td>
-                  <td className="px-4 py-3 text-gray-400">{agent.domain}</td>
-                  <td className="px-4 py-3 text-gray-400">{agent.model}</td>
-                  <td className="px-4 py-3 text-gray-300 text-right font-mono">{agent.estTokens}</td>
-                  <td className="px-4 py-3 text-gray-300 text-right font-mono">${agent.estCost.toFixed(2)}</td>
+                <tr key={agent.name} className="hover:bg-[var(--color-surface-1)]/20">
+                  <td className="px-4 py-3 text-[var(--color-text-primary)] font-medium">{agent.name}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">{agent.domain}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">{agent.model}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-primary)] text-right font-mono">{agent.estTokens}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-primary)] text-right font-mono">${agent.estCost.toFixed(2)}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={cn(
                       "inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight",
                       agent.status === 'Complete' && "bg-green-500/10 text-green-500",
                       agent.status === 'Running' && "bg-blue-500/10 text-blue-500 animate-pulse",
-                      agent.status === 'Pending' && "bg-gray-800 text-gray-500"
+                      agent.status === 'Pending' && "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                     )}>
                       {agent.status}
                     </span>
@@ -126,12 +126,12 @@ export default function DiscoveryAgentCostTracker() {
   const percentUsed = (totalCost / budget) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200 p-8 font-sans">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <header>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Discovery Run Cost Tracker</h1>
-          <p className="text-gray-500 mt-1">Feb 23, 2026 — Estimated</p>
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)] tracking-tight">Discovery Run Cost Tracker</h1>
+          <p className="text-[var(--color-text-muted)] mt-1">Feb 23, 2026 — Estimated</p>
         </header>
 
         {/* Summary Cards */}
@@ -159,17 +159,17 @@ export default function DiscoveryAgentCostTracker() {
         </div>
 
         {/* Budget Gauge */}
-        <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-6 rounded-lg">
           <div className="flex justify-between items-end mb-2">
             <div>
-              <h2 className="text-sm font-medium text-gray-400 uppercase tracking-wider">Budget Utilization</h2>
-              <div className="text-xl font-bold text-white mt-1">
-                ${totalCost.toFixed(2)} <span className="text-gray-600 font-normal text-sm">/ ${budget.toFixed(2)} budget</span>
+              <h2 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Budget Utilization</h2>
+              <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">
+                ${totalCost.toFixed(2)} <span className="text-[var(--color-text-muted)] font-normal text-sm">/ ${budget.toFixed(2)} budget</span>
               </div>
             </div>
             <div className="text-green-500 font-bold text-lg">{percentUsed.toFixed(1)}%</div>
           </div>
-          <div className="h-3 w-full bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-3 w-full bg-[var(--color-surface-2)] rounded-full overflow-hidden">
             <div 
               className="h-full bg-green-500 rounded-full transition-all duration-1000"
               style={{ width: `${percentUsed}%` }}
@@ -183,15 +183,15 @@ export default function DiscoveryAgentCostTracker() {
 
         {/* Waves */}
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-white mb-4">Wave Breakdown</h2>
+          <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-4">Wave Breakdown</h2>
           {WAVES.map(wave => (
             <WaveSection key={wave.id} wave={wave} />
           ))}
         </div>
 
         {/* Note Banner */}
-        <div className="flex items-center gap-3 p-4 bg-gray-900/50 border border-gray-800 rounded-lg text-sm text-gray-400">
-          <svg className="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex items-center gap-3 p-4 bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-secondary)]">
+          <svg className="w-5 h-5 text-[var(--color-text-muted)] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p>All costs are estimates based on 200K token budget per agent. Actual costs will vary. (estimated)</p>

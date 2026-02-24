@@ -37,17 +37,17 @@ interface ChangeRequest {
 }
 
 const statusBadge: Record<ChangeStatus, string> = {
-  draft:       "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30",
+  draft:       "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border border-[var(--color-surface-3)]/30",
   pending:     "bg-amber-500/20 text-amber-400 border border-amber-500/30",
   approved:    "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
   rejected:    "bg-rose-500/20 text-rose-400 border border-rose-500/30",
   "in-progress":"bg-sky-500/20 text-sky-400 border border-sky-500/30",
   completed:   "bg-violet-500/20 text-violet-400 border border-violet-500/30",
-  cancelled:   "bg-zinc-500/20 text-zinc-500 border border-zinc-600/30",
+  cancelled:   "bg-[var(--color-surface-3)]/20 text-[var(--color-text-muted)] border border-[var(--color-surface-3)]/30",
 };
 
 const typeColor: Record<ChangeType, string> = {
-  standard:   "bg-zinc-500/20 text-zinc-400",
+  standard:   "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
   normal:     "bg-sky-500/20 text-sky-400",
   major:      "bg-indigo-500/20 text-indigo-400",
   emergency:  "bg-rose-500/20 text-rose-400",
@@ -63,8 +63,8 @@ const riskBadge: Record<RiskLevel, string> = {
 const decisionIcon: Record<ApprovalDecision, { icon: string; color: string }> = {
   approved: { icon: "✓", color: "text-emerald-400" },
   rejected: { icon: "✗", color: "text-rose-400" },
-  pending:  { icon: "⋯", color: "text-zinc-500" },
-  abstain:  { icon: "—", color: "text-zinc-600" },
+  pending:  { icon: "⋯", color: "text-[var(--color-text-muted)]" },
+  abstain:  { icon: "—", color: "text-[var(--color-text-muted)]" },
 };
 
 const changes: ChangeRequest[] = [
@@ -236,14 +236,14 @@ export default function ChangeApprovalBoard() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Change Approval Board</h1>
-            <p className="text-zinc-400 text-sm mt-1">Change requests, approvals, and change management workflow</p>
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Change Approval Board</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">Change requests, approvals, and change management workflow</p>
           </div>
           <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition-colors">
             + Submit Change
@@ -256,17 +256,17 @@ export default function ChangeApprovalBoard() {
             { label: "Pending Approval",   value: pendingCount,                   color: "text-amber-400" },
             { label: "Approved (7d)",      value: approvedCount,                  color: "text-emerald-400" },
             { label: "Active Emergencies", value: emergencyCount,                 color: "text-rose-400" },
-            { label: "Total (30d)",        value: changes.length,                 color: "text-white" },
+            { label: "Total (30d)",        value: changes.length,                 color: "text-[var(--color-text-primary)]" },
           ].map(kpi => (
-            <div key={kpi.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">{kpi.label}</p>
+            <div key={kpi.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+              <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{kpi.label}</p>
               <p className={cn("text-3xl font-bold mt-1", kpi.color)}>{kpi.value}</p>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-zinc-800">
+        <div className="flex gap-1 border-b border-[var(--color-border)]">
           {tabs.map(t => (
             <button
               key={t.id}
@@ -274,8 +274,8 @@ export default function ChangeApprovalBoard() {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
                 tab === t.id
-                  ? "border-indigo-500 text-white"
-                  : "border-transparent text-zinc-400 hover:text-zinc-200"
+                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.label}
@@ -292,7 +292,7 @@ export default function ChangeApprovalBoard() {
                 <button
                   key={f}
                   onClick={() => { setStatusFilter(f === "all" ? "all" : f); setSelectedChange(null); }}
-                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", statusFilter === f ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200")}
+                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", statusFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
                 >
                   {f === "all" ? "All" : f.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
                 </button>
@@ -302,7 +302,7 @@ export default function ChangeApprovalBoard() {
                   <button
                     key={f}
                     onClick={() => setTypeFilter(f === "all" ? "all" : f)}
-                    className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", typeFilter === f ? "bg-zinc-600 text-white" : "bg-zinc-800 text-zinc-500 hover:text-zinc-300")}
+                    className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", typeFilter === f ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}
                   >
                     {f === "all" ? "All types" : f}
                   </button>
@@ -312,18 +312,18 @@ export default function ChangeApprovalBoard() {
 
             {selectedChange ? (
               /* Detail view */
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-5">
-                <button onClick={() => setSelectedChange(null)} className="text-zinc-400 hover:text-white text-sm">← Back</button>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 space-y-5">
+                <button onClick={() => setSelectedChange(null)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-sm">← Back</button>
 
                 <div>
                   <div className="flex items-center gap-3 mb-2 flex-wrap">
-                    <span className="text-xs font-mono text-zinc-500">{selectedChange.id}</span>
+                    <span className="text-xs font-mono text-[var(--color-text-muted)]">{selectedChange.id}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusBadge[selectedChange.status])}>{selectedChange.status}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded font-medium", typeColor[selectedChange.type])}>{selectedChange.type}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded font-medium", riskBadge[selectedChange.risk])}>risk: {selectedChange.risk}</span>
                     {selectedChange.maintenanceWindow && <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded">maintenance window</span>}
                   </div>
-                  <h2 className="text-xl font-bold text-white">{selectedChange.title}</h2>
+                  <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedChange.title}</h2>
                 </div>
 
                 {/* Meta */}
@@ -338,9 +338,9 @@ export default function ChangeApprovalBoard() {
                     { label: "Created",      value: selectedChange.createdAt },
                     { label: "Updated",      value: selectedChange.updatedAt },
                   ].map(m => (
-                    <div key={m.label} className="bg-zinc-800/60 rounded-lg p-3">
-                      <p className="text-xs text-zinc-500">{m.label}</p>
-                      <p className="text-sm font-medium text-white mt-0.5">{m.value}</p>
+                    <div key={m.label} className="bg-[var(--color-surface-2)]/60 rounded-lg p-3">
+                      <p className="text-xs text-[var(--color-text-muted)]">{m.label}</p>
+                      <p className="text-sm font-medium text-[var(--color-text-primary)] mt-0.5">{m.value}</p>
                     </div>
                   ))}
                 </div>
@@ -351,29 +351,29 @@ export default function ChangeApprovalBoard() {
                   { label: "Rollback Plan", text: selectedChange.rollbackPlan },
                   { label: "Test Plan",     text: selectedChange.testPlan },
                 ].map(s => (
-                  <div key={s.label} className="bg-zinc-800/40 rounded-lg p-4">
-                    <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">{s.label}</p>
-                    <p className="text-sm text-zinc-300 leading-relaxed">{s.text}</p>
+                  <div key={s.label} className="bg-[var(--color-surface-2)]/40 rounded-lg p-4">
+                    <p className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">{s.label}</p>
+                    <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{s.text}</p>
                   </div>
                 ))}
 
                 {/* Approvals */}
                 <div>
-                  <h3 className="text-sm font-semibold text-zinc-300 mb-3">Approvals ({selectedChange.approvers.filter(a => a.decision !== "pending").length}/{selectedChange.approvers.length})</h3>
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Approvals ({selectedChange.approvers.filter(a => a.decision !== "pending").length}/{selectedChange.approvers.length})</h3>
                   <div className="space-y-2">
                     {selectedChange.approvers.map(a => {
                       const d = decisionIcon[a.decision];
                       return (
-                        <div key={a.name} className="bg-zinc-800/50 rounded-lg p-3 flex items-start gap-3">
-                          <div className="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold flex-shrink-0">{a.name[0].toUpperCase()}</div>
+                        <div key={a.name} className="bg-[var(--color-surface-2)]/50 rounded-lg p-3 flex items-start gap-3">
+                          <div className="w-7 h-7 rounded-full bg-[var(--color-surface-3)] flex items-center justify-center text-xs font-bold flex-shrink-0">{a.name[0].toUpperCase()}</div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-white">{a.name}</span>
-                              <span className="text-xs text-zinc-500">{a.role}</span>
+                              <span className="text-sm font-medium text-[var(--color-text-primary)]">{a.name}</span>
+                              <span className="text-xs text-[var(--color-text-muted)]">{a.role}</span>
                               <span className={cn("text-sm font-bold ml-auto", d.color)}>{d.icon} {a.decision}</span>
                             </div>
-                            {a.comment && <p className="text-xs text-zinc-400 mt-1">{a.comment}</p>}
-                            {a.decidedAt && <p className="text-xs text-zinc-600 mt-0.5">{a.decidedAt}</p>}
+                            {a.comment && <p className="text-xs text-[var(--color-text-secondary)] mt-1">{a.comment}</p>}
+                            {a.decidedAt && <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{a.decidedAt}</p>}
                           </div>
                         </div>
                       );
@@ -384,10 +384,10 @@ export default function ChangeApprovalBoard() {
                 {/* Linked tickets */}
                 {selectedChange.linkedTickets.length > 0 && (
                   <div>
-                    <p className="text-xs text-zinc-500 mb-2">Linked tickets</p>
+                    <p className="text-xs text-[var(--color-text-muted)] mb-2">Linked tickets</p>
                     <div className="flex gap-2 flex-wrap">
                       {selectedChange.linkedTickets.map(t => (
-                        <span key={t} className="text-xs bg-zinc-800 text-indigo-400 px-2 py-1 rounded font-mono">{t}</span>
+                        <span key={t} className="text-xs bg-[var(--color-surface-2)] text-indigo-400 px-2 py-1 rounded font-mono">{t}</span>
                       ))}
                     </div>
                   </div>
@@ -398,7 +398,7 @@ export default function ChangeApprovalBoard() {
                   <div className="flex gap-3">
                     <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-medium transition-colors">Approve</button>
                     <button className="px-4 py-2 bg-rose-600 hover:bg-rose-500 rounded-lg text-sm font-medium transition-colors">Reject</button>
-                    <button className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm font-medium transition-colors">Abstain</button>
+                    <button className="px-4 py-2 bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] rounded-lg text-sm font-medium transition-colors">Abstain</button>
                   </div>
                 )}
               </div>
@@ -413,29 +413,29 @@ export default function ChangeApprovalBoard() {
                       key={cr.id}
                       onClick={() => setSelectedChange(cr)}
                       className={cn(
-                        "w-full text-left bg-zinc-900 border rounded-xl p-4 transition-colors hover:border-zinc-600",
-                        cr.type === "emergency" ? "border-rose-500/30" : "border-zinc-800"
+                        "w-full text-left bg-[var(--color-surface-1)] border rounded-xl p-4 transition-colors hover:border-[var(--color-surface-3)]",
+                        cr.type === "emergency" ? "border-rose-500/30" : "border-[var(--color-border)]"
                       )}
                     >
                       <div className="flex items-start justify-between gap-4 mb-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <span className="text-xs font-mono text-zinc-500">{cr.id}</span>
+                            <span className="text-xs font-mono text-[var(--color-text-muted)]">{cr.id}</span>
                             <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusBadge[cr.status])}>{cr.status}</span>
                             <span className={cn("text-xs px-1.5 py-0.5 rounded", typeColor[cr.type])}>{cr.type}</span>
                             <span className={cn("text-xs px-1.5 py-0.5 rounded", riskBadge[cr.risk])}>{cr.risk} risk</span>
                           </div>
-                          <p className="text-sm font-semibold text-white truncate">{cr.title}</p>
-                          <p className="text-xs text-zinc-500 mt-0.5">{cr.service} · {cr.team} · by {cr.requestedBy} · {cr.updatedAt}</p>
+                          <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{cr.title}</p>
+                          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{cr.service} · {cr.team} · by {cr.requestedBy} · {cr.updatedAt}</p>
                         </div>
                         <div className="flex-shrink-0 text-right">
                           <div className={cn(
                             "text-xs font-medium px-2 py-1 rounded",
-                            approvedCount === totalApprovers ? "text-emerald-400 bg-emerald-500/10" : "text-zinc-400 bg-zinc-800"
+                            approvedCount === totalApprovers ? "text-emerald-400 bg-emerald-500/10" : "text-[var(--color-text-secondary)] bg-[var(--color-surface-2)]"
                           )}>
                             {approvedCount}/{totalApprovers} approved
                           </div>
-                          <p className="text-xs text-zinc-600 mt-1">{cr.scheduledStart}</p>
+                          <p className="text-xs text-[var(--color-text-muted)] mt-1">{cr.scheduledStart}</p>
                         </div>
                       </div>
                     </button>
@@ -449,12 +449,12 @@ export default function ChangeApprovalBoard() {
         {/* Calendar / Scheduled view */}
         {tab === "calendar" && (
           <div className="space-y-3">
-            <p className="text-sm text-zinc-400">Upcoming scheduled changes</p>
+            <p className="text-sm text-[var(--color-text-secondary)]">Upcoming scheduled changes</p>
             {changes
               .filter(c => !["completed","rejected","cancelled"].includes(c.status))
               .toSorted((a, b) => a.scheduledStart.localeCompare(b.scheduledStart))
               .map(cr => (
-                <div key={cr.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-4">
+                <div key={cr.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-center gap-4">
                   <div className="bg-indigo-500/20 border border-indigo-500/30 rounded-lg p-3 text-center flex-shrink-0 w-20">
                     <p className="text-xs text-indigo-400 font-medium">{cr.scheduledStart.slice(5, 10)}</p>
                     <p className="text-xs text-indigo-300">{cr.scheduledStart.slice(11, 16)}</p>
@@ -464,12 +464,12 @@ export default function ChangeApprovalBoard() {
                       <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusBadge[cr.status])}>{cr.status}</span>
                       <span className={cn("text-xs px-1.5 py-0.5 rounded", typeColor[cr.type])}>{cr.type}</span>
                     </div>
-                    <p className="text-sm font-semibold text-white truncate">{cr.title}</p>
-                    <p className="text-xs text-zinc-500">{cr.service} · {cr.team}</p>
+                    <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{cr.title}</p>
+                    <p className="text-xs text-[var(--color-text-muted)]">{cr.service} · {cr.team}</p>
                   </div>
                   <div className="flex-shrink-0 text-right">
                     <span className={cn("text-xs px-2 py-0.5 rounded", riskBadge[cr.risk])}>{cr.risk} risk</span>
-                    <p className="text-xs text-zinc-600 mt-1">to {cr.scheduledEnd.slice(11, 16)}</p>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-1">to {cr.scheduledEnd.slice(11, 16)}</p>
                   </div>
                 </div>
               ))

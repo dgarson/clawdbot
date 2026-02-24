@@ -29,7 +29,7 @@ const AGENTS: Agent[] = [
 ];
 
 const LEVEL_STYLES: Record<LogLevel, string> = {
-  DEBUG: "bg-zinc-700 text-zinc-300",
+  DEBUG: "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]",
   INFO:  "bg-blue-900 text-blue-300",
   WARN:  "bg-yellow-900 text-yellow-300",
   ERROR: "bg-red-900 text-red-400",
@@ -126,7 +126,7 @@ function LiveDot({ active }: { active: boolean }) {
       <span
         className={cn(
           "relative inline-flex rounded-full h-2.5 w-2.5",
-          active ? "bg-green-400" : "bg-zinc-600"
+          active ? "bg-green-400" : "bg-[var(--color-surface-3)]"
         )}
       />
     </span>
@@ -140,15 +140,15 @@ interface SidePanelProps {
 
 function SidePanel({ line, onClose }: SidePanelProps) {
   return (
-    <div className="w-80 shrink-0 border-l border-zinc-800 bg-zinc-900 flex flex-col overflow-hidden">
+    <div className="w-80 shrink-0 border-l border-[var(--color-border)] bg-[var(--color-surface-1)] flex flex-col overflow-hidden">
       {/* Panel header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
-        <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
+        <span className="text-xs font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
           Error Detail
         </span>
         <button
           onClick={onClose}
-          className="text-zinc-500 hover:text-zinc-200 transition-colors"
+          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
           aria-label="Close panel"
         >
           ✕
@@ -158,24 +158,24 @@ function SidePanel({ line, onClose }: SidePanelProps) {
       {/* Panel body */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div>
-          <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Timestamp</p>
-          <p className="text-xs text-zinc-300 font-mono">{line.timestamp}</p>
+          <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Timestamp</p>
+          <p className="text-xs text-[var(--color-text-primary)] font-mono">{line.timestamp}</p>
         </div>
 
         <div>
-          <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Level</p>
+          <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Level</p>
           <LevelBadge level={line.level} />
         </div>
 
         <div>
-          <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Message</p>
+          <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Message</p>
           <p className="text-xs text-red-300 font-mono break-all leading-relaxed">{line.message}</p>
         </div>
 
         {line.detail && (
           <div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Detail</p>
-            <pre className="text-xs text-zinc-300 font-mono whitespace-pre-wrap break-all leading-relaxed bg-zinc-950 rounded p-3">
+            <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Detail</p>
+            <pre className="text-xs text-[var(--color-text-primary)] font-mono whitespace-pre-wrap break-all leading-relaxed bg-[var(--color-surface-0)] rounded p-3">
               {line.detail}
             </pre>
           </div>
@@ -183,10 +183,10 @@ function SidePanel({ line, onClose }: SidePanelProps) {
       </div>
 
       {/* Panel footer */}
-      <div className="px-4 py-3 border-t border-zinc-800">
+      <div className="px-4 py-3 border-t border-[var(--color-border)]">
         <button
           onClick={() => alert(`[mock] Opening line #${line.id} in Inspector…`)}
-          className="w-full rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-xs font-medium py-2 transition-colors"
+          className="w-full rounded bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs font-medium py-2 transition-colors"
         >
           Open in Inspector
         </button>
@@ -303,12 +303,12 @@ export default function AgentLogStream() {
   const LEVEL_FILTERS: LevelFilter[] = ["ALL", "DEBUG", "INFO", "WARN", "ERROR"];
 
   return (
-    <div className="flex flex-col h-full bg-zinc-900 text-zinc-100 overflow-hidden">
+    <div className="flex flex-col h-full bg-[var(--color-surface-1)] text-[var(--color-text-primary)] overflow-hidden">
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--color-border)] shrink-0">
         <div className="flex items-center gap-3">
-          <h1 className="text-base font-semibold text-zinc-100 tracking-tight">
+          <h1 className="text-base font-semibold text-[var(--color-text-primary)] tracking-tight">
             Agent Log Stream
           </h1>
 
@@ -321,7 +321,7 @@ export default function AgentLogStream() {
               nextIdRef.current = INITIAL_LOGS.length + 1;
               setSelectedLine(null);
             }}
-            className="rounded bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            className="rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-zinc-500"
           >
             {AGENTS.map((a) => (
               <option key={a.id} value={a.id}>
@@ -338,7 +338,7 @@ export default function AgentLogStream() {
             "flex items-center gap-2 rounded px-3 py-1.5 text-xs font-medium border transition-colors",
             isLive
               ? "border-green-700 bg-green-950 text-green-300 hover:bg-green-900"
-              : "border-zinc-700 bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+              : "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           )}
         >
           <LiveDot active={isLive} />
@@ -347,7 +347,7 @@ export default function AgentLogStream() {
       </div>
 
       {/* ── Filter bar ── */}
-      <div className="flex items-center gap-3 px-5 py-2.5 border-b border-zinc-800 shrink-0 flex-wrap">
+      <div className="flex items-center gap-3 px-5 py-2.5 border-b border-[var(--color-border)] shrink-0 flex-wrap">
         {/* Level chips */}
         <div className="flex items-center gap-1.5">
           {LEVEL_FILTERS.map((f) => (
@@ -358,7 +358,7 @@ export default function AgentLogStream() {
                 "rounded px-2.5 py-0.5 text-xs font-medium border transition-colors",
                 levelFilter === f
                   ? "border-blue-600 bg-blue-900 text-blue-200"
-                  : "border-zinc-700 bg-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600"
+                  : "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
               )}
             >
               {f}
@@ -372,18 +372,18 @@ export default function AgentLogStream() {
           placeholder="Search messages…"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          className="flex-1 min-w-[160px] rounded bg-zinc-800 border border-zinc-700 text-zinc-200 placeholder-zinc-600 text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+          className="flex-1 min-w-[160px] rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] text-xs px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-zinc-500"
         />
 
         {/* Line count */}
-        <span className="text-xs text-zinc-500 whitespace-nowrap">
+        <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap">
           {filteredLogs.length} line{filteredLogs.length !== 1 ? "s" : ""}
         </span>
 
         {/* Copy All */}
         <button
           onClick={handleCopyAll}
-          className="rounded bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 text-xs px-3 py-1.5 transition-colors whitespace-nowrap"
+          className="rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)] text-xs px-3 py-1.5 transition-colors whitespace-nowrap"
         >
           {copied ? "✓ Copied" : "Copy All"}
         </button>
@@ -396,10 +396,10 @@ export default function AgentLogStream() {
         <div
           ref={logContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto bg-zinc-950 font-mono text-xs leading-relaxed relative"
+          className="flex-1 overflow-y-auto bg-[var(--color-surface-0)] font-mono text-xs leading-relaxed relative"
         >
           {filteredLogs.length === 0 ? (
-            <div className="flex items-center justify-center h-full text-zinc-600 text-sm">
+            <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">
               No log lines match the current filter.
             </div>
           ) : (
@@ -413,7 +413,7 @@ export default function AgentLogStream() {
                       key={line.id}
                       onClick={() => handleLineClick(line)}
                       className={cn(
-                        "group border-b border-zinc-900 transition-colors",
+                        "group border-b border-[var(--color-border)] transition-colors",
                         LEVEL_ROW_HIGHLIGHT[line.level],
                         isSelected && "ring-1 ring-inset ring-red-600 bg-red-950/50",
                         isError && !isSelected && "cursor-pointer hover:bg-red-950/20",
@@ -421,12 +421,12 @@ export default function AgentLogStream() {
                       )}
                     >
                       {/* Line number */}
-                      <td className="w-10 pl-3 pr-2 py-1 text-zinc-700 text-right select-none align-top tabular-nums">
+                      <td className="w-10 pl-3 pr-2 py-1 text-[var(--color-text-muted)] text-right select-none align-top tabular-nums">
                         {line.id}
                       </td>
 
                       {/* Timestamp */}
-                      <td className="w-48 pr-3 py-1 text-zinc-500 whitespace-nowrap align-top tabular-nums">
+                      <td className="w-48 pr-3 py-1 text-[var(--color-text-muted)] whitespace-nowrap align-top tabular-nums">
                         {line.timestamp}
                       </td>
 
@@ -439,10 +439,10 @@ export default function AgentLogStream() {
                       <td className="py-1 pr-4 align-top break-all">
                         <span
                           className={cn(
-                            "text-zinc-200",
+                            "text-[var(--color-text-primary)]",
                             line.level === "ERROR" && "text-red-300",
                             line.level === "WARN" && "text-yellow-200",
-                            line.level === "DEBUG" && "text-zinc-500"
+                            line.level === "DEBUG" && "text-[var(--color-text-muted)]"
                           )}
                         >
                           {line.message}
@@ -465,7 +465,7 @@ export default function AgentLogStream() {
             <div className="sticky bottom-4 flex justify-center pointer-events-none">
               <button
                 onClick={handleResume}
-                className="pointer-events-auto flex items-center gap-2 rounded-full bg-zinc-700 hover:bg-zinc-600 border border-zinc-600 text-zinc-200 text-xs font-medium px-4 py-2 shadow-lg transition-colors"
+                className="pointer-events-auto flex items-center gap-2 rounded-full bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] border border-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs font-medium px-4 py-2 shadow-lg transition-colors"
               >
                 <LiveDot active />
                 Resume live scroll ↓

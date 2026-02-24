@@ -79,7 +79,7 @@ const BOT_SCOPES: BotConfig[] = [
 
 const webhookStatusColor = (s: WebhookStatus) => {
   if (s === "active")   {return "text-emerald-400 bg-emerald-400/10";}
-  if (s === "inactive") {return "text-zinc-400 bg-zinc-400/10";}
+  if (s === "inactive") {return "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10";}
   return "text-rose-400 bg-rose-400/10";
 };
 
@@ -87,7 +87,7 @@ const permColor = (p: BotPermission) => {
   if (p === "admin")  {return "text-rose-400";}
   if (p === "write")  {return "text-amber-400";}
   if (p === "read")   {return "text-emerald-400";}
-  return "text-zinc-600";
+  return "text-[var(--color-text-muted)]";
 };
 
 export default function SlackIntegrationManager() {
@@ -134,13 +134,13 @@ export default function SlackIntegrationManager() {
   ];
 
   return (
-    <div className="flex h-full bg-zinc-950 flex-col overflow-hidden">
+    <div className="flex h-full bg-[var(--color-surface-0)] flex-col overflow-hidden">
       {/* Header stats */}
-      <div className="flex items-center gap-6 px-6 py-3 border-b border-zinc-800 bg-zinc-900 flex-shrink-0">
+      <div className="flex items-center gap-6 px-6 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-1)] flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-xl">💬</span>
           <div>
-            <div className="text-xs font-semibold text-white">OpenClaw Slack App</div>
+            <div className="text-xs font-semibold text-[var(--color-text-primary)]">OpenClaw Slack App</div>
             <div className="text-[10px] text-emerald-400">Connected · workspace: openclaw-hq</div>
           </div>
         </div>
@@ -152,22 +152,22 @@ export default function SlackIntegrationManager() {
             { label: "Total Triggers",     value: totalTriggers.toLocaleString() },
           ].map(({ label, value }) => (
             <div key={label}>
-              <div className="text-xs font-semibold text-white">{value}</div>
-              <div className="text-[10px] text-zinc-500">{label}</div>
+              <div className="text-xs font-semibold text-[var(--color-text-primary)]">{value}</div>
+              <div className="text-[10px] text-[var(--color-text-muted)]">{label}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 bg-zinc-900 flex-shrink-0">
+      <div className="flex border-b border-[var(--color-border)] bg-[var(--color-surface-1)] flex-shrink-0">
         {(["channels", "webhooks", "bot", "logs"] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
               "px-5 py-2.5 text-sm font-medium transition-colors border-b-2 capitalize",
-              activeTab === tab ? "border-indigo-500 text-indigo-300" : "border-transparent text-zinc-500 hover:text-zinc-300"
+              activeTab === tab ? "border-indigo-500 text-indigo-300" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {tab === "channels" ? `📢 Channels (${channels.length})` :
@@ -183,14 +183,14 @@ export default function SlackIntegrationManager() {
             {/* Channel list */}
             <div className="flex-1 overflow-y-auto">
               {/* Filter */}
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-zinc-800">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--color-border)]">
                 {(["all", "public", "private", "shared"] as const).map(f => (
                   <button
                     key={f}
                     onClick={() => setFilterType(f)}
                     className={cn(
                       "text-xs px-3 py-1 rounded border transition-colors capitalize",
-                      filterType === f ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "border-zinc-700 text-zinc-500 hover:text-zinc-300 bg-zinc-800"
+                      filterType === f ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]"
                     )}
                   >
                     {f}
@@ -200,7 +200,7 @@ export default function SlackIntegrationManager() {
 
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-zinc-800 text-[10px] text-zinc-500 uppercase tracking-wider">
+                  <tr className="border-b border-[var(--color-border)] text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">
                     <th className="text-left px-4 py-2">Channel</th>
                     <th className="text-left px-4 py-2">Type</th>
                     <th className="text-left px-4 py-2">Members</th>
@@ -209,27 +209,27 @@ export default function SlackIntegrationManager() {
                     <th className="text-left px-4 py-2">Last Active</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800/50">
+                <tbody className="divide-y divide-[var(--color-border)]/50">
                   {filteredChannels.map(ch => (
                     <tr
                       key={ch.id}
                       onClick={() => setSelectedChannelId(selectedChannelId === ch.id ? null : ch.id)}
-                      className={cn("cursor-pointer hover:bg-zinc-900 transition-colors", selectedChannelId === ch.id && "bg-indigo-500/5")}
+                      className={cn("cursor-pointer hover:bg-[var(--color-surface-1)] transition-colors", selectedChannelId === ch.id && "bg-indigo-500/5")}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-zinc-500">{ch.type === "private" ? "🔒" : "#"}</span>
-                          <span className="text-sm text-white">{ch.name}</span>
+                          <span className="text-[var(--color-text-muted)]">{ch.type === "private" ? "🔒" : "#"}</span>
+                          <span className="text-sm text-[var(--color-text-primary)]">{ch.name}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={cn("text-[10px] px-2 py-0.5 rounded capitalize", ch.type === "private" ? "bg-purple-500/10 text-purple-400" : ch.type === "shared" ? "bg-blue-500/10 text-blue-400" : "bg-zinc-800 text-zinc-400")}>
+                        <span className={cn("text-[10px] px-2 py-0.5 rounded capitalize", ch.type === "private" ? "bg-purple-500/10 text-purple-400" : ch.type === "shared" ? "bg-blue-500/10 text-blue-400" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]")}>
                           {ch.type}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-zinc-400">{ch.members}</td>
+                      <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{ch.members}</td>
                       <td className="px-4 py-3">
-                        <span className={cn("text-xs", ch.isBotMember ? "text-emerald-400" : "text-zinc-600")}>
+                        <span className={cn("text-xs", ch.isBotMember ? "text-emerald-400" : "text-[var(--color-text-muted)]")}>
                           {ch.isBotMember ? "✓ Member" : "—"}
                         </span>
                       </td>
@@ -238,13 +238,13 @@ export default function SlackIntegrationManager() {
                           onClick={e => { e.stopPropagation(); toggleMonitor(ch.id); }}
                           className={cn(
                             "text-[10px] px-2 py-1 rounded border transition-colors",
-                            ch.isMonitored ? "bg-emerald-500/10 border-emerald-500 text-emerald-400" : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:border-zinc-600"
+                            ch.isMonitored ? "bg-emerald-500/10 border-emerald-500 text-emerald-400" : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-surface-3)]"
                           )}
                         >
                           {ch.isMonitored ? "Monitored" : "Off"}
                         </button>
                       </td>
-                      <td className="px-4 py-3 text-xs text-zinc-500">{ch.lastMessage}</td>
+                      <td className="px-4 py-3 text-xs text-[var(--color-text-muted)]">{ch.lastMessage}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -253,21 +253,21 @@ export default function SlackIntegrationManager() {
 
             {/* Channel detail */}
             {selectedChannel && (
-              <div className="w-72 flex-shrink-0 border-l border-zinc-800 p-4 bg-zinc-900 overflow-y-auto">
+              <div className="w-72 flex-shrink-0 border-l border-[var(--color-border)] p-4 bg-[var(--color-surface-1)] overflow-y-auto">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-white text-sm">#{selectedChannel.name}</span>
-                  <button onClick={() => setSelectedChannelId(null)} className="text-zinc-500 hover:text-white text-xs">✕</button>
+                  <span className="font-semibold text-[var(--color-text-primary)] text-sm">#{selectedChannel.name}</span>
+                  <button onClick={() => setSelectedChannelId(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xs">✕</button>
                 </div>
-                <p className="text-xs text-zinc-400 mb-4">{selectedChannel.purpose}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] mb-4">{selectedChannel.purpose}</p>
 
-                <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Event Notifications</div>
+                <div className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Event Notifications</div>
                 <div className="space-y-1.5">
                   {EVENT_TYPES.map(ev => (
-                    <div key={ev} onClick={() => toggleEventNotification(selectedChannel.id, ev)} className={cn("flex items-center gap-2 px-2 py-1.5 rounded border cursor-pointer transition-colors", selectedChannel.notifyOnEvents.includes(ev) ? "bg-indigo-500/10 border-indigo-500/30" : "border-zinc-800 hover:bg-zinc-800")}>
-                      <div className={cn("w-3 h-3 rounded border flex items-center justify-center text-[8px]", selectedChannel.notifyOnEvents.includes(ev) ? "bg-indigo-500 border-indigo-500 text-white" : "border-zinc-600")}>
+                    <div key={ev} onClick={() => toggleEventNotification(selectedChannel.id, ev)} className={cn("flex items-center gap-2 px-2 py-1.5 rounded border cursor-pointer transition-colors", selectedChannel.notifyOnEvents.includes(ev) ? "bg-indigo-500/10 border-indigo-500/30" : "border-[var(--color-border)] hover:bg-[var(--color-surface-2)]")}>
+                      <div className={cn("w-3 h-3 rounded border flex items-center justify-center text-[8px]", selectedChannel.notifyOnEvents.includes(ev) ? "bg-indigo-500 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-surface-3)]")}>
                         {selectedChannel.notifyOnEvents.includes(ev) && "✓"}
                       </div>
-                      <span className="text-[10px] font-mono text-zinc-400">{ev}</span>
+                      <span className="text-[10px] font-mono text-[var(--color-text-secondary)]">{ev}</span>
                     </div>
                   ))}
                 </div>
@@ -279,31 +279,31 @@ export default function SlackIntegrationManager() {
         {activeTab === "webhooks" && (
           <div className="flex-1 flex overflow-hidden">
             <div className="flex-1 overflow-y-auto">
-              <div className="divide-y divide-zinc-800/50">
+              <div className="divide-y divide-[var(--color-border)]/50">
                 {webhooks.map(wh => (
                   <div
                     key={wh.id}
                     onClick={() => setSelectedWebhookId(selectedWebhookId === wh.id ? null : wh.id)}
-                    className={cn("p-4 cursor-pointer hover:bg-zinc-900 transition-colors", selectedWebhookId === wh.id && "bg-indigo-500/5")}
+                    className={cn("p-4 cursor-pointer hover:bg-[var(--color-surface-1)] transition-colors", selectedWebhookId === wh.id && "bg-indigo-500/5")}
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-1">
-                          <span className="text-sm font-semibold text-white">{wh.name}</span>
+                          <span className="text-sm font-semibold text-[var(--color-text-primary)]">{wh.name}</span>
                           <span className={cn("text-[10px] px-2 py-0.5 rounded font-medium capitalize", webhookStatusColor(wh.status))}>{wh.status}</span>
                         </div>
-                        <div className="text-xs text-zinc-500">→ {wh.channel}</div>
-                        <div className="flex items-center gap-4 mt-2 text-[10px] text-zinc-500">
+                        <div className="text-xs text-[var(--color-text-muted)]">→ {wh.channel}</div>
+                        <div className="flex items-center gap-4 mt-2 text-[10px] text-[var(--color-text-muted)]">
                           <span>Last: {wh.lastTriggered}</span>
                           <span>Total: {wh.triggerCount.toLocaleString()} triggers</span>
                         </div>
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {wh.events.map(ev => <span key={ev} className="text-[9px] font-mono bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">{ev}</span>)}
+                          {wh.events.map(ev => <span key={ev} className="text-[9px] font-mono bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-1.5 py-0.5 rounded">{ev}</span>)}
                         </div>
                       </div>
                       <button
                         onClick={e => { e.stopPropagation(); toggleWebhookStatus(wh.id); }}
-                        className={cn("text-xs px-3 py-1.5 rounded border transition-colors", wh.status === "active" ? "border-emerald-600 text-emerald-400 hover:bg-emerald-500/10" : "border-zinc-700 text-zinc-500 hover:border-zinc-600")}
+                        className={cn("text-xs px-3 py-1.5 rounded border transition-colors", wh.status === "active" ? "border-emerald-600 text-emerald-400 hover:bg-emerald-500/10" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-surface-3)]")}
                       >
                         {wh.status === "active" ? "Pause" : "Enable"}
                       </button>
@@ -318,17 +318,17 @@ export default function SlackIntegrationManager() {
         {activeTab === "bot" && (
           <div className="flex-1 overflow-y-auto p-6">
             <div className="max-w-2xl">
-              <p className="text-xs text-zinc-400 mb-4">OAuth scopes granted to the ClawdBot Slack app</p>
-              <div className="bg-zinc-900 rounded border border-zinc-800 divide-y divide-zinc-800">
+              <p className="text-xs text-[var(--color-text-secondary)] mb-4">OAuth scopes granted to the ClawdBot Slack app</p>
+              <div className="bg-[var(--color-surface-1)] rounded border border-[var(--color-border)] divide-y divide-[var(--color-border)]">
                 {BOT_SCOPES.map(sc => (
                   <div key={sc.scope} className="flex items-center gap-4 px-4 py-3">
-                    <div className={cn("w-2 h-2 rounded-full flex-shrink-0", sc.required ? "bg-indigo-500" : "bg-zinc-600")} />
+                    <div className={cn("w-2 h-2 rounded-full flex-shrink-0", sc.required ? "bg-indigo-500" : "bg-[var(--color-surface-3)]")} />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <code className="text-xs font-mono text-white">{sc.scope}</code>
+                        <code className="text-xs font-mono text-[var(--color-text-primary)]">{sc.scope}</code>
                         {sc.required && <span className="text-[9px] text-indigo-400 border border-indigo-400/30 px-1 rounded">required</span>}
                       </div>
-                      <div className="text-[10px] text-zinc-500 mt-0.5">{sc.description}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{sc.description}</div>
                     </div>
                     <span className={cn("text-[10px] font-medium uppercase tracking-wider", permColor(sc.permission))}>
                       {sc.permission}
@@ -344,7 +344,7 @@ export default function SlackIntegrationManager() {
           <div className="flex-1 overflow-y-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-zinc-800 text-[10px] text-zinc-500 uppercase tracking-wider sticky top-0 bg-zinc-950">
+                <tr className="border-b border-[var(--color-border)] text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider sticky top-0 bg-[var(--color-surface-0)]">
                   <th className="text-left px-4 py-2">Time</th>
                   <th className="text-left px-4 py-2">Event</th>
                   <th className="text-left px-4 py-2">Channel</th>
@@ -352,18 +352,18 @@ export default function SlackIntegrationManager() {
                   <th className="text-left px-4 py-2">Payload</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-[var(--color-border)]/50">
                 {MOCK_LOGS.map((log, i) => (
-                  <tr key={i} className="hover:bg-zinc-900 transition-colors">
-                    <td className="px-4 py-2 font-mono text-zinc-500">{log.time}</td>
+                  <tr key={i} className="hover:bg-[var(--color-surface-1)] transition-colors">
+                    <td className="px-4 py-2 font-mono text-[var(--color-text-muted)]">{log.time}</td>
                     <td className="px-4 py-2 font-mono text-indigo-300">{log.event}</td>
-                    <td className="px-4 py-2 text-zinc-400">{log.channel}</td>
+                    <td className="px-4 py-2 text-[var(--color-text-secondary)]">{log.channel}</td>
                     <td className="px-4 py-2">
                       <span className={cn("px-1.5 py-0.5 rounded text-[10px]", log.status === "delivered" ? "bg-emerald-400/10 text-emerald-400" : "bg-rose-400/10 text-rose-400")}>
                         {log.status}
                       </span>
                     </td>
-                    <td className="px-4 py-2 font-mono text-[10px] text-zinc-600 max-w-xs truncate">{log.payload}</td>
+                    <td className="px-4 py-2 font-mono text-[10px] text-[var(--color-text-muted)] max-w-xs truncate">{log.payload}</td>
                   </tr>
                 ))}
               </tbody>

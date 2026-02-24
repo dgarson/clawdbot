@@ -240,13 +240,13 @@ function scopeBg(s: PolicyScope) {
   if (s === "global") {return "bg-purple-500/10 text-purple-400";}
   if (s === "region") {return "bg-cyan-500/10 text-cyan-400";}
   if (s === "tenant") {return "bg-indigo-500/10 text-indigo-400";}
-  return "bg-zinc-700 text-zinc-300";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]";
 }
 function categoryBg(c: DataCategory) {
   const m: Record<DataCategory, string> = {
     pii: "bg-rose-500/10 text-rose-400",
     financial: "bg-emerald-500/10 text-emerald-400",
-    logs: "bg-zinc-700 text-zinc-300",
+    logs: "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]",
     analytics: "bg-indigo-500/10 text-indigo-400",
     config: "bg-amber-500/10 text-amber-400",
     media: "bg-purple-500/10 text-purple-400",
@@ -257,20 +257,20 @@ function categoryBg(c: DataCategory) {
 function statusBg(s: PolicyStatus) {
   if (s === "active") {return "bg-emerald-400/10 text-emerald-400";}
   if (s === "draft") {return "bg-amber-400/10 text-amber-400";}
-  return "bg-zinc-700 text-zinc-400";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 function jobStatusBg(s: JobStatus) {
   if (s === "running") {return "bg-indigo-400/10 text-indigo-400 animate-pulse";}
   if (s === "completed") {return "bg-emerald-400/10 text-emerald-400";}
   if (s === "failed") {return "bg-rose-400/10 text-rose-400";}
   if (s === "scheduled") {return "bg-cyan-400/10 text-cyan-400";}
-  return "bg-zinc-700 text-zinc-400";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 function methodBg(m: DeletionMethod) {
   if (m === "hard-delete") {return "bg-rose-500/10 text-rose-400";}
   if (m === "soft-delete") {return "bg-amber-500/10 text-amber-400";}
   if (m === "anonymize") {return "bg-indigo-500/10 text-indigo-400";}
-  return "bg-zinc-700 text-zinc-300";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]";
 }
 function fmtBytes(kb: number) {
   if (kb >= 1_000_000) {return (kb / 1_000_000).toFixed(1) + " TB";}
@@ -304,12 +304,12 @@ export default function DataRetentionPolicyManager() {
   const totalStorage = POLICIES.reduce((a, p) => a + p.dataSize, 0);
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+      <div className="border-b border-[var(--color-border)] px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold">Data Retention Policy Manager</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Define retention schedules, monitor purge jobs, and ensure compliance</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Define retention schedules, monitor purge jobs, and ensure compliance</p>
         </div>
         <div className="flex items-center gap-2">
           {runningJobs > 0 && (
@@ -322,29 +322,29 @@ export default function DataRetentionPolicyManager() {
               {failedJobs} job failed
             </span>
           )}
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
+          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">
             + New Policy
           </button>
         </div>
       </div>
 
       {/* Stat bar */}
-      <div className="border-b border-zinc-800 px-6 py-3 grid grid-cols-4 gap-4">
+      <div className="border-b border-[var(--color-border)] px-6 py-3 grid grid-cols-4 gap-4">
         {[
           { label: "Active Policies", value: activeCount, color: "text-emerald-400" },
-          { label: "Running Jobs", value: runningJobs, color: runningJobs > 0 ? "text-indigo-400" : "text-zinc-400" },
+          { label: "Running Jobs", value: runningJobs, color: runningJobs > 0 ? "text-indigo-400" : "text-[var(--color-text-secondary)]" },
           { label: "Failed Jobs", value: failedJobs, color: failedJobs > 0 ? "text-rose-400" : "text-emerald-400" },
-          { label: "Total Data Under Policy", value: fmtBytes(totalStorage), color: "text-zinc-100" },
+          { label: "Total Data Under Policy", value: fmtBytes(totalStorage), color: "text-[var(--color-text-primary)]" },
         ].map((s, i) => (
           <div key={i} className="text-center">
             <div className={cn("text-xl font-bold", s.color)}>{s.value}</div>
-            <div className="text-xs text-zinc-500">{s.label}</div>
+            <div className="text-xs text-[var(--color-text-muted)]">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-zinc-800 px-6">
+      <div className="border-b border-[var(--color-border)] px-6">
         <div className="flex gap-6">
           {(["policies", "jobs", "storage", "legal-holds"] as const).map(t => (
             <button
@@ -352,12 +352,12 @@ export default function DataRetentionPolicyManager() {
               onClick={() => setTab(t)}
               className={cn(
                 "py-3 text-sm font-medium border-b-2 capitalize transition-colors",
-                tab === t ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200"
+                tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.replace("-", " ")}
               {t === "jobs" && failedJobs > 0 && (
-                <span className="ml-1.5 bg-rose-500 text-white text-xs px-1.5 rounded-full">{failedJobs}</span>
+                <span className="ml-1.5 bg-rose-500 text-[var(--color-text-primary)] text-xs px-1.5 rounded-full">{failedJobs}</span>
               )}
             </button>
           ))}
@@ -368,20 +368,20 @@ export default function DataRetentionPolicyManager() {
         {/* POLICIES TAB */}
         {tab === "policies" && (
           <div className="flex h-full">
-            <div className="w-96 border-r border-zinc-800 flex flex-col">
-              <div className="p-4 border-b border-zinc-800 space-y-3">
+            <div className="w-96 border-r border-[var(--color-border)] flex flex-col">
+              <div className="p-4 border-b border-[var(--color-border)] space-y-3">
                 <input
                   type="text"
                   placeholder="Search policies..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full bg-zinc-800 text-sm rounded-lg px-3 py-2 text-zinc-200 placeholder-zinc-500 outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full bg-[var(--color-surface-2)] text-sm rounded-lg px-3 py-2 text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:ring-1 focus:ring-indigo-500"
                 />
                 <div className="flex gap-2">
                   <select
                     value={categoryFilter}
                     onChange={e => setCategoryFilter(e.target.value as DataCategory | "all")}
-                    className="flex-1 bg-zinc-800 text-sm rounded-lg px-2 py-1.5 text-zinc-300 outline-none"
+                    className="flex-1 bg-[var(--color-surface-2)] text-sm rounded-lg px-2 py-1.5 text-[var(--color-text-primary)] outline-none"
                   >
                     <option value="all">All Categories</option>
                     <option value="pii">PII</option>
@@ -395,7 +395,7 @@ export default function DataRetentionPolicyManager() {
                   <select
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value as PolicyStatus | "all")}
-                    className="flex-1 bg-zinc-800 text-sm rounded-lg px-2 py-1.5 text-zinc-300 outline-none"
+                    className="flex-1 bg-[var(--color-surface-2)] text-sm rounded-lg px-2 py-1.5 text-[var(--color-text-primary)] outline-none"
                   >
                     <option value="all">All Status</option>
                     <option value="active">Active</option>
@@ -410,19 +410,19 @@ export default function DataRetentionPolicyManager() {
                     key={p.id}
                     onClick={() => setSelected(p)}
                     className={cn(
-                      "w-full text-left px-4 py-3 border-b border-zinc-800 hover:bg-zinc-900 transition-colors",
-                      selected?.id === p.id && "bg-zinc-900 border-l-2 border-l-indigo-500"
+                      "w-full text-left px-4 py-3 border-b border-[var(--color-border)] hover:bg-[var(--color-surface-1)] transition-colors",
+                      selected?.id === p.id && "bg-[var(--color-surface-1)] border-l-2 border-l-indigo-500"
                     )}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-zinc-100 truncate">{p.name}</span>
+                      <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{p.name}</span>
                       <span className={cn("text-xs px-1.5 py-0.5 rounded-full ml-2 shrink-0", statusBg(p.status))}>{p.status}</span>
                     </div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className={cn("text-xs px-1.5 py-0.5 rounded", categoryBg(p.dataCategory))}>{p.dataCategory}</span>
                       <span className={cn("text-xs px-1.5 py-0.5 rounded", scopeBg(p.scope))}>{p.scope}</span>
                     </div>
-                    <div className="text-xs text-zinc-500">
+                    <div className="text-xs text-[var(--color-text-muted)]">
                       {p.retentionPeriod} {p.retentionUnit} · {fmtBytes(p.dataSize)} · Next purge {p.nextPurgeAt}
                     </div>
                     {p.legalHoldOverride && (
@@ -431,7 +431,7 @@ export default function DataRetentionPolicyManager() {
                   </button>
                 ))}
                 {filtered.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-16 text-zinc-500">
+                  <div className="flex flex-col items-center justify-center py-16 text-[var(--color-text-muted)]">
                     <span className="text-3xl mb-2">📋</span>
                     <span className="text-sm">No policies match filters</span>
                   </div>
@@ -444,7 +444,7 @@ export default function DataRetentionPolicyManager() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-5">
                     <div>
-                      <h2 className="text-xl font-semibold text-zinc-100 mb-2">{selected.name}</h2>
+                      <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">{selected.name}</h2>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className={cn("text-xs px-2 py-0.5 rounded", categoryBg(selected.dataCategory))}>{selected.dataCategory}</span>
                         <span className={cn("text-xs px-2 py-0.5 rounded", scopeBg(selected.scope))}>{selected.scope}</span>
@@ -453,8 +453,8 @@ export default function DataRetentionPolicyManager() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">Run Now</button>
-                      <button className="bg-zinc-800 hover:bg-zinc-700 text-sm px-3 py-1.5 rounded-lg text-zinc-300 transition-colors">Edit</button>
+                      <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">Run Now</button>
+                      <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-sm px-3 py-1.5 rounded-lg text-[var(--color-text-primary)] transition-colors">Edit</button>
                     </div>
                   </div>
 
@@ -466,17 +466,17 @@ export default function DataRetentionPolicyManager() {
                       { label: "Record Count", value: fmtCount(selected.recordCount) },
                       { label: "Next Purge", value: selected.nextPurgeAt },
                     ].map((s, i) => (
-                      <div key={i} className="bg-zinc-900 rounded-xl p-4">
-                        <div className="text-sm font-semibold text-zinc-100">{s.value}</div>
-                        <div className="text-xs text-zinc-500 mt-0.5">{s.label}</div>
+                      <div key={i} className="bg-[var(--color-surface-1)] rounded-xl p-4">
+                        <div className="text-sm font-semibold text-[var(--color-text-primary)]">{s.value}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{s.label}</div>
                       </div>
                     ))}
                   </div>
 
                   {/* Compliance frameworks */}
                   {selected.complianceFrameworks.length > 0 && (
-                    <div className="bg-zinc-900 rounded-xl p-5 mb-4">
-                      <h3 className="text-sm font-medium text-zinc-300 mb-3">Compliance Frameworks</h3>
+                    <div className="bg-[var(--color-surface-1)] rounded-xl p-5 mb-4">
+                      <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Compliance Frameworks</h3>
                       <div className="flex flex-wrap gap-2">
                         {selected.complianceFrameworks.map(f => (
                           <span key={f} className="bg-indigo-500/10 text-indigo-400 text-xs px-2 py-1 rounded-lg border border-indigo-500/20">{f}</span>
@@ -486,45 +486,45 @@ export default function DataRetentionPolicyManager() {
                   )}
 
                   {/* Regions */}
-                  <div className="bg-zinc-900 rounded-xl p-5 mb-4">
-                    <h3 className="text-sm font-medium text-zinc-300 mb-3">Regions</h3>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-5 mb-4">
+                    <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Regions</h3>
                     <div className="flex flex-wrap gap-2">
                       {selected.regions.map(r => (
-                        <span key={r} className="bg-zinc-800 text-zinc-300 text-xs px-2 py-1 rounded font-mono">{r}</span>
+                        <span key={r} className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-xs px-2 py-1 rounded font-mono">{r}</span>
                       ))}
                     </div>
                   </div>
 
                   {/* Legal hold & settings */}
-                  <div className="bg-zinc-900 rounded-xl p-5 mb-4">
-                    <h3 className="text-sm font-medium text-zinc-300 mb-3">Settings</h3>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-5 mb-4">
+                    <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Settings</h3>
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center justify-between">
-                        <span className="text-zinc-400">Legal Hold Override</span>
-                        <span className={selected.legalHoldOverride ? "text-amber-400" : "text-zinc-500"}>
+                        <span className="text-[var(--color-text-secondary)]">Legal Hold Override</span>
+                        <span className={selected.legalHoldOverride ? "text-amber-400" : "text-[var(--color-text-muted)]"}>
                           {selected.legalHoldOverride ? "⚖ Enabled" : "Disabled"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-zinc-400">Deletion Method</span>
+                        <span className="text-[var(--color-text-secondary)]">Deletion Method</span>
                         <span className={cn("text-xs px-2 py-0.5 rounded", methodBg(selected.deletionMethod))}>{selected.deletionMethod}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-zinc-400">Owner</span>
-                        <span className="text-zinc-300">{selected.owner}</span>
+                        <span className="text-[var(--color-text-secondary)]">Owner</span>
+                        <span className="text-[var(--color-text-primary)]">{selected.owner}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-zinc-400">Last Purged</span>
-                        <span className="text-zinc-300">{selected.lastPurgedAt || "Never"}</span>
+                        <span className="text-[var(--color-text-secondary)]">Last Purged</span>
+                        <span className="text-[var(--color-text-primary)]">{selected.lastPurgedAt || "Never"}</span>
                       </div>
                     </div>
                     {selected.notes && (
-                      <div className="mt-3 p-3 bg-zinc-800 rounded-lg text-xs text-zinc-400">{selected.notes}</div>
+                      <div className="mt-3 p-3 bg-[var(--color-surface-2)] rounded-lg text-xs text-[var(--color-text-secondary)]">{selected.notes}</div>
                     )}
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-zinc-500">
+                <div className="flex flex-col items-center justify-center h-full text-[var(--color-text-muted)]">
                   <span className="text-4xl mb-3">🗂️</span>
                   <span className="text-sm">Select a policy to view details</span>
                 </div>
@@ -538,14 +538,14 @@ export default function DataRetentionPolicyManager() {
           <div className="p-6">
             <div className="space-y-4">
               {PURGE_JOBS.map(job => (
-                <div key={job.id} className="bg-zinc-900 rounded-xl p-5">
+                <div key={job.id} className="bg-[var(--color-surface-1)] rounded-xl p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium text-zinc-100">{job.policyName}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{job.policyName}</span>
                         <span className={cn("text-xs px-2 py-0.5 rounded-full", jobStatusBg(job.status))}>{job.status}</span>
                       </div>
-                      <div className="text-xs text-zinc-500">Triggered by {job.triggeredBy} · {job.scheduledAt}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">Triggered by {job.triggeredBy} · {job.scheduledAt}</div>
                     </div>
                     {job.status === "failed" && (
                       <button className="text-xs bg-indigo-900/40 text-indigo-400 px-2 py-1 rounded hover:bg-indigo-900/60 transition-colors">Retry</button>
@@ -560,25 +560,25 @@ export default function DataRetentionPolicyManager() {
 
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                      <div className="text-xs text-zinc-500 mb-0.5">Records Scanned</div>
-                      <div className="text-zinc-200">{fmtCount(job.recordsScanned)}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Records Scanned</div>
+                      <div className="text-[var(--color-text-primary)]">{fmtCount(job.recordsScanned)}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-zinc-500 mb-0.5">Records Deleted</div>
-                      <div className={cn("font-medium", job.recordsDeleted > 0 ? "text-emerald-400" : "text-zinc-400")}>{fmtCount(job.recordsDeleted)}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Records Deleted</div>
+                      <div className={cn("font-medium", job.recordsDeleted > 0 ? "text-emerald-400" : "text-[var(--color-text-secondary)]")}>{fmtCount(job.recordsDeleted)}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-zinc-500 mb-0.5">Storage Reclaimed</div>
-                      <div className={cn("font-medium", job.bytesReclaimed > 0 ? "text-emerald-400" : "text-zinc-400")}>{fmtBytes(job.bytesReclaimed)}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Storage Reclaimed</div>
+                      <div className={cn("font-medium", job.bytesReclaimed > 0 ? "text-emerald-400" : "text-[var(--color-text-secondary)]")}>{fmtBytes(job.bytesReclaimed)}</div>
                     </div>
                   </div>
 
                   {job.status === "running" && job.recordsScanned > 0 && (
                     <div className="mt-3">
-                      <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div className="h-full bg-indigo-500 rounded-full animate-pulse" style={{ width: `${(job.recordsDeleted / job.recordsScanned) * 100}%` }} />
                       </div>
-                      <div className="text-xs text-zinc-500 mt-1">{((job.recordsDeleted / job.recordsScanned) * 100).toFixed(1)}% complete</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-1">{((job.recordsDeleted / job.recordsScanned) * 100).toFixed(1)}% complete</div>
                     </div>
                   )}
                 </div>
@@ -590,9 +590,9 @@ export default function DataRetentionPolicyManager() {
         {/* STORAGE TAB */}
         {tab === "storage" && (
           <div className="p-6">
-            <div className="bg-zinc-900 rounded-xl p-5 mb-4">
-              <h3 className="text-sm font-medium text-zinc-300 mb-1">Storage by Category — 6 Month Trend</h3>
-              <p className="text-xs text-zinc-500 mb-4">Media dominates at {fmtBytes(STORAGE_TREND[STORAGE_TREND.length - 1].media)} · Logs at {fmtBytes(STORAGE_TREND[STORAGE_TREND.length - 1].logs)}</p>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 mb-4">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-1">Storage by Category — 6 Month Trend</h3>
+              <p className="text-xs text-[var(--color-text-muted)] mb-4">Media dominates at {fmtBytes(STORAGE_TREND[STORAGE_TREND.length - 1].media)} · Logs at {fmtBytes(STORAGE_TREND[STORAGE_TREND.length - 1].logs)}</p>
               <div className="flex items-end gap-2 h-28">
                 {STORAGE_TREND.map((d, i) => {
                   const maxVal = 2800000;
@@ -604,29 +604,29 @@ export default function DataRetentionPolicyManager() {
                         <div className="bg-indigo-500" style={{ height: `${logPct}%` }} />
                         <div className="bg-purple-500" style={{ height: `${Math.min(mediaPct, 100 - logPct)}%` }} />
                       </div>
-                      <span className="text-xs text-zinc-600">{d.month}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{d.month}</span>
                     </div>
                   );
                 })}
               </div>
-              <div className="flex gap-4 mt-2 text-xs text-zinc-500">
+              <div className="flex gap-4 mt-2 text-xs text-[var(--color-text-muted)]">
                 <span><span className="inline-block w-2 h-2 bg-indigo-500 rounded-sm mr-1" />Logs</span>
                 <span><span className="inline-block w-2 h-2 bg-purple-500 rounded-sm mr-1" />Media</span>
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-xl p-5">
-              <h3 className="text-sm font-medium text-zinc-300 mb-4">Storage by Policy</h3>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Storage by Policy</h3>
               <div className="space-y-3">
                 {POLICIES.toSorted((a, b) => b.dataSize - a.dataSize).map(p => {
                   const maxSize = Math.max(...POLICIES.map(x => x.dataSize));
                   return (
                     <div key={p.id} className="flex items-center gap-3">
-                      <div className="w-48 text-xs text-zinc-300 truncate">{p.name}</div>
-                      <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="w-48 text-xs text-[var(--color-text-primary)] truncate">{p.name}</div>
+                      <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(p.dataSize / maxSize) * 100}%` }} />
                       </div>
-                      <div className="text-xs text-zinc-400 w-16 text-right">{fmtBytes(p.dataSize)}</div>
+                      <div className="text-xs text-[var(--color-text-secondary)] w-16 text-right">{fmtBytes(p.dataSize)}</div>
                     </div>
                   );
                 })}
@@ -647,23 +647,23 @@ export default function DataRetentionPolicyManager() {
             </div>
             <div className="space-y-4">
               {POLICIES.filter(p => p.legalHoldOverride).map(p => (
-                <div key={p.id} className="bg-zinc-900 rounded-xl p-5">
+                <div key={p.id} className="bg-[var(--color-surface-1)] rounded-xl p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <div className="text-sm font-medium text-zinc-100">{p.name}</div>
+                      <div className="text-sm font-medium text-[var(--color-text-primary)]">{p.name}</div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={cn("text-xs px-1.5 py-0.5 rounded", categoryBg(p.dataCategory))}>{p.dataCategory}</span>
                         <span className="text-xs text-amber-400">⚖ Legal hold active</span>
                       </div>
                     </div>
-                    <button className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg transition-colors">
+                    <button className="text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-3 py-1.5 rounded-lg transition-colors">
                       Release Hold
                     </button>
                   </div>
                   <div className="grid grid-cols-3 gap-3 text-sm">
-                    <div><div className="text-xs text-zinc-500 mb-0.5">Data Size</div><div className="text-zinc-200">{fmtBytes(p.dataSize)}</div></div>
-                    <div><div className="text-xs text-zinc-500 mb-0.5">Records</div><div className="text-zinc-200">{fmtCount(p.recordCount)}</div></div>
-                    <div><div className="text-xs text-zinc-500 mb-0.5">Scheduled Purge</div><div className="text-amber-400">Suspended</div></div>
+                    <div><div className="text-xs text-[var(--color-text-muted)] mb-0.5">Data Size</div><div className="text-[var(--color-text-primary)]">{fmtBytes(p.dataSize)}</div></div>
+                    <div><div className="text-xs text-[var(--color-text-muted)] mb-0.5">Records</div><div className="text-[var(--color-text-primary)]">{fmtCount(p.recordCount)}</div></div>
+                    <div><div className="text-xs text-[var(--color-text-muted)] mb-0.5">Scheduled Purge</div><div className="text-amber-400">Suspended</div></div>
                   </div>
                   {p.complianceFrameworks.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1">

@@ -203,7 +203,7 @@ function Legend() {
   return (
     <div className="flex flex-wrap items-center gap-4">
       {Object.entries(STATUS_CONFIG).map(([key, { label, icon: Icon, color, bg }]) => (
-        <div key={key} className="flex items-center gap-1.5 text-xs text-zinc-400">
+        <div key={key} className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
           <span className={cn('inline-flex items-center justify-center w-5 h-5 rounded', bg)}>
             <Icon className={cn('w-3 h-3', color)} aria-hidden="true" />
           </span>
@@ -236,27 +236,27 @@ export default function AgentCapabilityMatrix() {
       {/* Skip link — WCAG 2.4.1 */}
       <a
         href="#capability-matrix-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
 
-      <div className="min-h-screen bg-zinc-950 text-white">
+      <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
         <main id="capability-matrix-main" className="p-6 space-y-6 max-w-full">
 
           {/* Header */}
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
                 <Bot className="w-6 h-6 text-violet-400" aria-hidden="true" />
                 Agent Capability Matrix
               </h1>
-              <p className="text-sm text-zinc-400 mt-0.5">
+              <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
                 Compare feature support across all agent variants
               </p>
             </div>
             <button
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500 text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)] text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               onClick={() => window.print()}
             >
               <Download className="w-4 h-4" aria-hidden="true" />
@@ -275,17 +275,17 @@ export default function AgentCapabilityMatrix() {
                 sub: 'of matrix cells',
               },
             ].map(({ label, value, sub }) => (
-              <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-                <div className="text-xs text-zinc-400 uppercase tracking-wide">{label}</div>
-                <div className="text-2xl font-bold text-white mt-1">{value}</div>
-                <div className="text-xs text-zinc-500 mt-0.5">{sub}</div>
+              <div key={label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+                <div className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">{label}</div>
+                <div className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">{value}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{sub}</div>
               </div>
             ))}
           </div>
 
           {/* Filters */}
-          <section aria-label="Filter controls" className="flex flex-wrap items-center gap-4 bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <Filter className="w-4 h-4 text-zinc-400 flex-shrink-0" aria-hidden="true" />
+          <section aria-label="Filter controls" className="flex flex-wrap items-center gap-4 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+            <Filter className="w-4 h-4 text-[var(--color-text-secondary)] flex-shrink-0" aria-hidden="true" />
 
             <div>
               <label htmlFor="capability-search" className="sr-only">Search capabilities</label>
@@ -295,17 +295,17 @@ export default function AgentCapabilityMatrix() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search capabilities…"
-                className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-[var(--color-text-primary)] text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               />
             </div>
 
             <div className="flex items-center gap-2">
-              <label htmlFor="category-filter" className="text-sm text-zinc-400 whitespace-nowrap">Category:</label>
+              <label htmlFor="category-filter" className="text-sm text-[var(--color-text-secondary)] whitespace-nowrap">Category:</label>
               <select
                 id="category-filter"
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-[var(--color-text-primary)] text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               >
                 {categories.map((c) => (
                   <option key={c} value={c}>{c === 'all' ? 'All Categories' : c}</option>
@@ -314,12 +314,12 @@ export default function AgentCapabilityMatrix() {
             </div>
 
             <div className="flex items-center gap-2">
-              <label htmlFor="tier-filter" className="text-sm text-zinc-400 whitespace-nowrap">Agent tier:</label>
+              <label htmlFor="tier-filter" className="text-sm text-[var(--color-text-secondary)] whitespace-nowrap">Agent tier:</label>
               <select
                 id="tier-filter"
                 value={tierFilter}
                 onChange={(e) => setTierFilter(e.target.value as AgentTier | 'all')}
-                className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-[var(--color-text-primary)] text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               >
                 <option value="all">All Tiers</option>
                 {Object.entries(TIER_CONFIG).map(([key, { label }]) => (
@@ -331,25 +331,25 @@ export default function AgentCapabilityMatrix() {
 
           {/* Legend */}
           <section aria-label="Status legend" className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs text-zinc-500 font-medium uppercase tracking-wide">Legend:</span>
+            <span className="text-xs text-[var(--color-text-muted)] font-medium uppercase tracking-wide">Legend:</span>
             <Legend />
           </section>
 
           {/* Matrix table */}
           <section aria-label="Capability matrix table">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <caption className="sr-only">
                     Agent capability matrix — {filteredAgents.length} agents, {filteredCapabilities.length} capabilities shown
                   </caption>
-                  <thead className="bg-zinc-800/60">
+                  <thead className="bg-[var(--color-surface-2)]/60">
                     <tr>
                       {/* Capability column header */}
-                      <th scope="col" className="text-left text-zinc-400 font-medium px-4 py-3 min-w-[200px] sticky left-0 bg-zinc-800/60 z-10">
+                      <th scope="col" className="text-left text-[var(--color-text-secondary)] font-medium px-4 py-3 min-w-[200px] sticky left-0 bg-[var(--color-surface-2)]/60 z-10">
                         Capability
                       </th>
-                      <th scope="col" className="text-left text-zinc-400 font-medium px-3 py-3 w-20 hidden md:table-cell">
+                      <th scope="col" className="text-left text-[var(--color-text-secondary)] font-medium px-3 py-3 w-20 hidden md:table-cell">
                         Category
                       </th>
                       {/* Agent column headers */}
@@ -358,25 +358,25 @@ export default function AgentCapabilityMatrix() {
                         return (
                           <th key={agent.id} scope="col" className="text-center px-3 py-3 min-w-[110px]">
                             <div className="flex flex-col items-center gap-1">
-                              <span className="text-white font-semibold text-xs leading-tight">{agent.name}</span>
+                              <span className="text-[var(--color-text-primary)] font-semibold text-xs leading-tight">{agent.name}</span>
                               <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium', tierCfg.bg, tierCfg.color)}>
                                 {tierCfg.label}
                               </span>
-                              <span className="text-zinc-500 text-[10px]">{agent.version}</span>
+                              <span className="text-[var(--color-text-muted)] text-[10px]">{agent.version}</span>
                             </div>
                           </th>
                         );
                       })}
                       {/* Coverage column */}
-                      <th scope="col" className="text-center text-zinc-400 font-medium px-3 py-3 min-w-[80px]">
+                      <th scope="col" className="text-center text-[var(--color-text-secondary)] font-medium px-3 py-3 min-w-[80px]">
                         Coverage
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/50">
+                  <tbody className="divide-y divide-[var(--color-border)]/50">
                     {filteredCapabilities.length === 0 ? (
                       <tr>
-                        <td colSpan={filteredAgents.length + 3} className="px-4 py-8 text-center text-zinc-500">
+                        <td colSpan={filteredAgents.length + 3} className="px-4 py-8 text-center text-[var(--color-text-muted)]">
                           No capabilities match your filters.
                         </td>
                       </tr>
@@ -385,19 +385,19 @@ export default function AgentCapabilityMatrix() {
                         const CapIcon = cap.icon;
                         const score = getCapabilityScore(cap.id);
                         return (
-                          <tr key={cap.id} className="hover:bg-zinc-800/20 transition-colors">
+                          <tr key={cap.id} className="hover:bg-[var(--color-surface-2)]/20 transition-colors">
                             {/* th scope="row" — capability name is the row header for AT navigation (WCAG 1.3.1) */}
-                            <th scope="row" className="px-4 py-3 sticky left-0 bg-zinc-900 hover:bg-zinc-800/20 z-10 font-normal text-left">
+                            <th scope="row" className="px-4 py-3 sticky left-0 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)]/20 z-10 font-normal text-left">
                               <div className="flex items-center gap-2">
-                                <CapIcon className="w-4 h-4 text-zinc-400 flex-shrink-0" aria-hidden="true" />
+                                <CapIcon className="w-4 h-4 text-[var(--color-text-secondary)] flex-shrink-0" aria-hidden="true" />
                                 <div>
-                                  <div className="text-white font-medium text-xs">{cap.name}</div>
-                                  <div className="text-zinc-500 text-[10px] hidden md:block">{cap.description}</div>
+                                  <div className="text-[var(--color-text-primary)] font-medium text-xs">{cap.name}</div>
+                                  <div className="text-[var(--color-text-muted)] text-[10px] hidden md:block">{cap.description}</div>
                                 </div>
                               </div>
                             </th>
                             <td className="px-3 py-3 hidden md:table-cell">
-                              <span className="text-xs text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">{cap.category}</span>
+                              <span className="text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-2)] px-1.5 py-0.5 rounded">{cap.category}</span>
                             </td>
                             {filteredAgents.map((agent) => {
                               const cell = getCell(agent.id, cap.id);
@@ -406,7 +406,7 @@ export default function AgentCapabilityMatrix() {
                                   {cell ? (
                                     <StatusCell status={cell.status} notes={cell.notes} />
                                   ) : (
-                                    <span className="text-zinc-600 text-xs" aria-label="No data">—</span>
+                                    <span className="text-[var(--color-text-muted)] text-xs" aria-label="No data">—</span>
                                   )}
                                 </td>
                               );
@@ -435,7 +435,7 @@ export default function AgentCapabilityMatrix() {
 
           {/* Per-agent summary */}
           <section aria-label="Agent summary cards">
-            <h2 className="text-lg font-semibold text-white mb-4">Agent Summaries</h2>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Agent Summaries</h2>
             <div className="grid grid-cols-3 gap-4">
               {AGENTS.map((agent) => {
                 const cells = CAPABILITIES.map((cap) => getCell(agent.id, cap.id));
@@ -444,11 +444,11 @@ export default function AgentCapabilityMatrix() {
                 const unsupported = cells.filter((c) => c?.status === 'unsupported').length;
                 const tierCfg = TIER_CONFIG[agent.tier];
                 return (
-                  <div key={agent.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                  <div key={agent.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <div className="text-white font-semibold text-sm">{agent.name}</div>
-                        <div className="text-zinc-500 text-xs mt-0.5">{agent.description}</div>
+                        <div className="text-[var(--color-text-primary)] font-semibold text-sm">{agent.name}</div>
+                        <div className="text-[var(--color-text-muted)] text-xs mt-0.5">{agent.description}</div>
                       </div>
                       <span className={cn('text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0', tierCfg.bg, tierCfg.color)}>
                         {tierCfg.label}
@@ -460,9 +460,9 @@ export default function AgentCapabilityMatrix() {
                         { label: 'Partial', value: partial, color: 'text-amber-400' },
                         { label: 'Not supported', value: unsupported, color: 'text-red-400' },
                       ].map(({ label, value, color }) => (
-                        <div key={label} className="bg-zinc-800 rounded-lg py-2 px-1">
+                        <div key={label} className="bg-[var(--color-surface-2)] rounded-lg py-2 px-1">
                           <div className={cn('text-lg font-bold', color)}>{value}</div>
-                          <div className="text-[10px] text-zinc-500 mt-0.5">{label}</div>
+                          <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{label}</div>
                         </div>
                       ))}
                     </div>

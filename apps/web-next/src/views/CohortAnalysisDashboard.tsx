@@ -138,7 +138,7 @@ function channelColor(ch: AcquisitionChannel): string {
 
 function planColor(p: PlanType): string {
   const map: Record<PlanType, string> = {
-    starter: "bg-zinc-500",
+    starter: "bg-[var(--color-surface-3)]",
     pro: "bg-indigo-500",
     enterprise: "bg-emerald-500",
   };
@@ -176,14 +176,14 @@ function MetricCard({
   accent?: string;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col gap-1">
-      <span className="text-zinc-400 text-xs uppercase tracking-wider font-medium">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 flex flex-col gap-1">
+      <span className="text-[var(--color-text-secondary)] text-xs uppercase tracking-wider font-medium">
         {label}
       </span>
-      <span className={cn("text-2xl font-bold", accent ?? "text-white")}>
+      <span className={cn("text-2xl font-bold", accent ?? "text-[var(--color-text-primary)]")}>
         {value}
       </span>
-      {sub && <span className="text-zinc-500 text-xs">{sub}</span>}
+      {sub && <span className="text-[var(--color-text-muted)] text-xs">{sub}</span>}
     </div>
   );
 }
@@ -198,20 +198,20 @@ function RetentionMatrix({
   onSelect: (idx: number) => void;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 overflow-x-auto">
-      <h3 className="text-white font-semibold text-sm mb-4">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 overflow-x-auto">
+      <h3 className="text-[var(--color-text-primary)] font-semibold text-sm mb-4">
         📊 Retention Matrix
       </h3>
       <div className="min-w-[640px]">
         {/* Header */}
         <div className="grid grid-cols-[140px_repeat(8,1fr)] gap-1 mb-1">
-          <div className="text-zinc-500 text-xs font-medium px-2 py-1">
+          <div className="text-[var(--color-text-muted)] text-xs font-medium px-2 py-1">
             Cohort
           </div>
           {WEEK_LABELS.map((w) => (
             <div
               key={w}
-              className="text-zinc-500 text-xs font-medium text-center py-1"
+              className="text-[var(--color-text-muted)] text-xs font-medium text-center py-1"
             >
               {w}
             </div>
@@ -225,15 +225,15 @@ function RetentionMatrix({
             className={cn(
               "grid grid-cols-[140px_repeat(8,1fr)] gap-1 mb-1 cursor-pointer rounded-lg transition-all",
               selectedIndex === idx
-                ? "ring-1 ring-indigo-500 bg-zinc-800/50"
-                : "hover:bg-zinc-800/30"
+                ? "ring-1 ring-indigo-500 bg-[var(--color-surface-2)]/50"
+                : "hover:bg-[var(--color-surface-2)]/30"
             )}
           >
             <div className="flex items-center gap-2 px-2 py-1">
-              <span className="text-white text-xs font-medium">
+              <span className="text-[var(--color-text-primary)] text-xs font-medium">
                 {cohort.label}
               </span>
-              <span className="text-zinc-500 text-[10px]">
+              <span className="text-[var(--color-text-muted)] text-[10px]">
                 ({formatNumber(cohort.size)})
               </span>
             </div>
@@ -252,8 +252,8 @@ function RetentionMatrix({
         ))}
       </div>
       {/* Legend */}
-      <div className="flex items-center gap-4 mt-4 pt-3 border-t border-zinc-800">
-        <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+      <div className="flex items-center gap-4 mt-4 pt-3 border-t border-[var(--color-border)]">
+        <span className="text-[var(--color-text-muted)] text-[10px] uppercase tracking-wider">
           Legend:
         </span>
         {[
@@ -264,7 +264,7 @@ function RetentionMatrix({
         ].map((item) => (
           <div key={item.label} className="flex items-center gap-1.5">
             <div className={cn("w-3 h-3 rounded-sm", item.cls)} />
-            <span className="text-zinc-400 text-[10px]">{item.label}</span>
+            <span className="text-[var(--color-text-secondary)] text-[10px]">{item.label}</span>
           </div>
         ))}
       </div>
@@ -282,14 +282,14 @@ function CohortComparisonChart({ cohorts }: { cohorts: CohortData[] }) {
   const maxVal = 100;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-      <h3 className="text-white font-semibold text-sm mb-4">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+      <h3 className="text-[var(--color-text-primary)] font-semibold text-sm mb-4">
         📈 Cohort Comparison
       </h3>
       <div className="space-y-6">
         {weeks.map((week) => (
           <div key={week.label}>
-            <div className="text-zinc-400 text-xs font-medium mb-2">
+            <div className="text-[var(--color-text-secondary)] text-xs font-medium mb-2">
               {week.label} Retention
             </div>
             <div className="space-y-1.5">
@@ -298,10 +298,10 @@ function CohortComparisonChart({ cohorts }: { cohorts: CohortData[] }) {
                 const widthPct = (val / maxVal) * 100;
                 return (
                   <div key={cohort.month} className="flex items-center gap-2">
-                    <span className="text-zinc-500 text-[10px] w-16 text-right shrink-0">
+                    <span className="text-[var(--color-text-muted)] text-[10px] w-16 text-right shrink-0">
                       {cohort.label}
                     </span>
-                    <div className="flex-1 h-5 bg-zinc-800 rounded-full overflow-hidden relative">
+                    <div className="flex-1 h-5 bg-[var(--color-surface-2)] rounded-full overflow-hidden relative">
                       <div
                         className={cn(
                           "h-full rounded-full transition-all",
@@ -310,7 +310,7 @@ function CohortComparisonChart({ cohorts }: { cohorts: CohortData[] }) {
                         style={{ width: `${widthPct}%` }}
                       />
                     </div>
-                    <span className="text-zinc-300 text-[10px] w-8 shrink-0">
+                    <span className="text-[var(--color-text-primary)] text-[10px] w-8 shrink-0">
                       {val}%
                     </span>
                   </div>
@@ -326,32 +326,32 @@ function CohortComparisonChart({ cohorts }: { cohorts: CohortData[] }) {
 
 function CohortDetails({ cohort }: { cohort: CohortData }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-      <h3 className="text-white font-semibold text-sm mb-1">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+      <h3 className="text-[var(--color-text-primary)] font-semibold text-sm mb-1">
         🔍 {cohort.label} Details
       </h3>
-      <p className="text-zinc-500 text-xs mb-4">
+      <p className="text-[var(--color-text-muted)] text-xs mb-4">
         Cohort size: {cohort.size.toLocaleString()} users
       </p>
 
       {/* Acquisition Channels */}
       <div className="mb-5">
-        <span className="text-zinc-400 text-xs font-medium uppercase tracking-wider">
+        <span className="text-[var(--color-text-secondary)] text-xs font-medium uppercase tracking-wider">
           Acquisition Channels
         </span>
         <div className="mt-2 space-y-2">
           {CHANNEL_OPTIONS.map((ch) => (
             <div key={ch} className="flex items-center gap-2">
-              <span className="text-zinc-400 text-xs w-16 capitalize shrink-0">
+              <span className="text-[var(--color-text-secondary)] text-xs w-16 capitalize shrink-0">
                 {ch}
               </span>
-              <div className="flex-1 h-4 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="flex-1 h-4 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
                   className={cn("h-full rounded-full", channelColor(ch))}
                   style={{ width: `${cohort.channels[ch]}%` }}
                 />
               </div>
-              <span className="text-zinc-300 text-xs w-8 shrink-0">
+              <span className="text-[var(--color-text-primary)] text-xs w-8 shrink-0">
                 {cohort.channels[ch]}%
               </span>
             </div>
@@ -361,7 +361,7 @@ function CohortDetails({ cohort }: { cohort: CohortData }) {
 
       {/* Plan Distribution */}
       <div className="mb-5">
-        <span className="text-zinc-400 text-xs font-medium uppercase tracking-wider">
+        <span className="text-[var(--color-text-secondary)] text-xs font-medium uppercase tracking-wider">
           Plan Distribution
         </span>
         <div className="mt-2 flex gap-1 h-6 rounded-full overflow-hidden">
@@ -369,7 +369,7 @@ function CohortDetails({ cohort }: { cohort: CohortData }) {
             <div
               key={p}
               className={cn(
-                "h-full flex items-center justify-center text-[10px] font-medium text-white",
+                "h-full flex items-center justify-center text-[10px] font-medium text-[var(--color-text-primary)]",
                 planColor(p)
               )}
               style={{ width: `${cohort.plans[p]}%` }}
@@ -383,7 +383,7 @@ function CohortDetails({ cohort }: { cohort: CohortData }) {
           {PLAN_OPTIONS.map((p) => (
             <div key={p} className="flex items-center gap-1.5">
               <div className={cn("w-2.5 h-2.5 rounded-sm", planColor(p))} />
-              <span className="text-zinc-500 text-[10px] capitalize">
+              <span className="text-[var(--color-text-muted)] text-[10px] capitalize">
                 {p} ({cohort.plans[p]}%)
               </span>
             </div>
@@ -393,12 +393,12 @@ function CohortDetails({ cohort }: { cohort: CohortData }) {
 
       {/* API Usage */}
       <div>
-        <span className="text-zinc-400 text-xs font-medium uppercase tracking-wider">
+        <span className="text-[var(--color-text-secondary)] text-xs font-medium uppercase tracking-wider">
           Avg API Usage
         </span>
-        <div className="mt-1 text-white text-lg font-bold">
+        <div className="mt-1 text-[var(--color-text-primary)] text-lg font-bold">
           {cohort.avgApiUsage.toLocaleString()}{" "}
-          <span className="text-zinc-500 text-xs font-normal">
+          <span className="text-[var(--color-text-muted)] text-xs font-normal">
             calls / user / month
           </span>
         </div>
@@ -422,7 +422,7 @@ function FilterBar({
     <div className="flex flex-wrap items-center gap-3">
       {/* Channel filter */}
       <div className="flex items-center gap-2">
-        <span className="text-zinc-500 text-xs">Channel:</span>
+        <span className="text-[var(--color-text-muted)] text-xs">Channel:</span>
         <div className="flex gap-1">
           {(["all", ...CHANNEL_OPTIONS] as const).map((opt) => (
             <button
@@ -431,8 +431,8 @@ function FilterBar({
               className={cn(
                 "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
                 channelFilter === opt
-                  ? "bg-indigo-500 text-white"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300"
+                  ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {opt === "all" ? "All" : opt.charAt(0).toUpperCase() + opt.slice(1)}
@@ -443,7 +443,7 @@ function FilterBar({
 
       {/* Plan filter */}
       <div className="flex items-center gap-2">
-        <span className="text-zinc-500 text-xs">Plan:</span>
+        <span className="text-[var(--color-text-muted)] text-xs">Plan:</span>
         <div className="flex gap-1">
           {(["all", ...PLAN_OPTIONS] as const).map((opt) => (
             <button
@@ -452,8 +452,8 @@ function FilterBar({
               className={cn(
                 "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
                 planFilter === opt
-                  ? "bg-indigo-500 text-white"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300"
+                  ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {opt === "all"
@@ -515,15 +515,15 @@ export default function CohortAnalysisDashboard() {
       : null;
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6 md:p-8">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-white text-2xl font-bold">
+            <h1 className="text-[var(--color-text-primary)] text-2xl font-bold">
               Cohort Analysis
             </h1>
-            <p className="text-zinc-400 text-sm mt-1">
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">
               User retention and cohort performance · Aug 2025 – Mar 2026
             </p>
           </div>
@@ -579,10 +579,10 @@ export default function CohortAnalysisDashboard() {
           {selectedCohort ? (
             <CohortDetails cohort={selectedCohort} />
           ) : (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex items-center justify-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 flex items-center justify-center">
               <div className="text-center">
                 <span className="text-3xl mb-2 block">👆</span>
-                <p className="text-zinc-400 text-sm">
+                <p className="text-[var(--color-text-secondary)] text-sm">
                   Click a cohort row to view details
                 </p>
               </div>

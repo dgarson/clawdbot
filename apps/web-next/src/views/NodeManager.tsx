@@ -28,7 +28,7 @@ function getPlatformLabel(platform: string) {
 function getStatusConfig(status: NodeStatus) {
   const configs = {
     online: { color: 'text-green-400', dot: 'bg-green-500', pulse: true, label: 'Online' },
-    offline: { color: 'text-gray-500', dot: 'bg-gray-600', pulse: false, label: 'Offline' },
+    offline: { color: 'text-[var(--color-text-muted)]', dot: 'bg-[var(--color-surface-3)]', pulse: false, label: 'Offline' },
     pairing: { color: 'text-amber-400', dot: 'bg-amber-500', pulse: true, label: 'Pairing' },
     error: { color: 'text-red-400', dot: 'bg-red-500', pulse: false, label: 'Error' },
   };
@@ -65,23 +65,23 @@ function NodeCard({ node, selected, onSelect }: NodeCardProps) {
         selected
           ? 'bg-violet-600/10 border-violet-500 ring-2 ring-violet-500/20'
           : isOnline
-          ? 'bg-gray-900 border-gray-800 hover:border-green-500/40'
-          : 'bg-gray-900/50 border-gray-800/60 hover:border-gray-700'
+          ? 'bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-green-500/40'
+          : 'bg-[var(--color-surface-1)]/50 border-[var(--color-border)]/60 hover:border-[var(--color-border)]'
       )}
     >
       <div className="flex items-start gap-4">
         {/* Platform icon */}
         <div className={cn(
           'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
-          isOnline ? 'bg-green-500/10' : 'bg-gray-800'
+          isOnline ? 'bg-green-500/10' : 'bg-[var(--color-surface-2)]'
         )}>
-          <PlatformIcon className={cn('w-6 h-6', isOnline ? 'text-green-400' : 'text-gray-500')} />
+          <PlatformIcon className={cn('w-6 h-6', isOnline ? 'text-green-400' : 'text-[var(--color-text-muted)]')} />
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <h3 className="text-sm font-semibold text-white truncate">{node.name}</h3>
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{node.name}</h3>
             {/* Status dot */}
             <div className="flex items-center gap-1.5 ml-auto flex-shrink-0">
               <div className={cn('w-2 h-2 rounded-full', statusConfig.dot, statusConfig.pulse && 'animate-pulse')} />
@@ -89,7 +89,7 @@ function NodeCard({ node, selected, onSelect }: NodeCardProps) {
             </div>
           </div>
 
-          <p className="text-xs text-gray-500 mb-3">{getPlatformLabel(node.platform)} · {node.version}</p>
+          <p className="text-xs text-[var(--color-text-muted)] mb-3">{getPlatformLabel(node.platform)} · {node.version}</p>
 
           {/* Capabilities */}
           <div className="flex flex-wrap gap-1.5 mb-3">
@@ -98,7 +98,7 @@ function NodeCard({ node, selected, onSelect }: NodeCardProps) {
               return (
                 <div key={cap} className={cn(
                   'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs',
-                  isOnline ? 'bg-gray-800 text-gray-300' : 'bg-gray-800/50 text-gray-600'
+                  isOnline ? 'bg-[var(--color-surface-2)] text-[var(--color-text-primary)]' : 'bg-[var(--color-surface-2)]/50 text-[var(--color-text-muted)]'
                 )}>
                   <CapIcon className="w-3 h-3" />
                   {cap}
@@ -109,11 +109,11 @@ function NodeCard({ node, selected, onSelect }: NodeCardProps) {
 
           {/* Last seen */}
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-[var(--color-text-muted)]">
               {isOnline ? 'Active now' : `Last seen ${formatRelativeTime(node.lastSeen)}`}
             </p>
             {node.ipAddress && (
-              <p className="text-xs font-mono text-gray-600">{node.ipAddress}</p>
+              <p className="text-xs font-mono text-[var(--color-text-muted)]">{node.ipAddress}</p>
             )}
           </div>
         </div>
@@ -135,15 +135,15 @@ function PendingPairingCard({ onApprove, onReject }: PendingPairingProps) {
           <Smartphone className="w-5 h-5 text-amber-400" />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-semibold text-white mb-0.5">New pairing request</p>
+          <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-0.5">New pairing request</p>
           <p className="text-xs text-amber-400/80 mb-1">iPhone 15 Pro — iOS 17.4</p>
-          <p className="text-xs text-gray-500 font-mono">Pair code: <span className="text-amber-300">4821</span></p>
+          <p className="text-xs text-[var(--color-text-muted)] font-mono">Pair code: <span className="text-amber-300">4821</span></p>
         </div>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={onReject}
-            className="w-9 h-9 rounded-lg bg-gray-800 hover:bg-red-600/20 text-gray-400 hover:text-red-400 flex items-center justify-center transition-all"
+            className="w-9 h-9 rounded-lg bg-[var(--color-surface-2)] hover:bg-red-600/20 text-[var(--color-text-secondary)] hover:text-red-400 flex items-center justify-center transition-all"
           >
             <X className="w-4 h-4" />
           </button>
@@ -166,14 +166,14 @@ function NodeDetailPanel({ node, onClose }: { node: Node; onClose: () => void })
   const isOnline = node.status === 'online';
 
   return (
-    <div className="bg-gray-900 rounded-2xl border border-gray-800 h-fit sticky top-0">
+    <div className="bg-[var(--color-surface-1)] rounded-2xl border border-[var(--color-border)] h-fit sticky top-0">
       {/* Header */}
-      <div className="flex items-center justify-between p-5 border-b border-gray-800">
-        <h3 className="text-sm font-semibold text-white">Node Details</h3>
+      <div className="flex items-center justify-between p-5 border-b border-[var(--color-border)]">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Node Details</h3>
         <button
           type="button"
           onClick={onClose}
-          className="w-7 h-7 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 flex items-center justify-center transition-colors"
+          className="w-7 h-7 rounded-lg bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] flex items-center justify-center transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -182,11 +182,11 @@ function NodeDetailPanel({ node, onClose }: { node: Node; onClose: () => void })
       <div className="p-5">
         {/* Identity */}
         <div className="flex items-center gap-3 mb-5">
-          <div className={cn('w-14 h-14 rounded-2xl flex items-center justify-center', isOnline ? 'bg-green-500/10' : 'bg-gray-800')}>
-            <PlatformIcon className={cn('w-7 h-7', isOnline ? 'text-green-400' : 'text-gray-500')} />
+          <div className={cn('w-14 h-14 rounded-2xl flex items-center justify-center', isOnline ? 'bg-green-500/10' : 'bg-[var(--color-surface-2)]')}>
+            <PlatformIcon className={cn('w-7 h-7', isOnline ? 'text-green-400' : 'text-[var(--color-text-muted)]')} />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white">{node.name}</h2>
+            <h2 className="text-base font-bold text-[var(--color-text-primary)]">{node.name}</h2>
             <div className="flex items-center gap-1.5 mt-0.5">
               <div className={cn('w-2 h-2 rounded-full', statusConfig.dot, statusConfig.pulse && 'animate-pulse')} />
               <span className={cn('text-xs', statusConfig.color)}>{statusConfig.label}</span>
@@ -202,34 +202,34 @@ function NodeDetailPanel({ node, onClose }: { node: Node; onClose: () => void })
             { label: 'Last Seen', value: isOnline ? 'Now' : formatRelativeTime(node.lastSeen), icon: Wifi },
             { label: 'Capabilities', value: `${node.capabilities.length} features`, icon: Play },
           ].map(({ label, value, icon: Icon }) => (
-            <div key={label} className="bg-gray-800/50 rounded-xl p-3">
+            <div key={label} className="bg-[var(--color-surface-2)]/50 rounded-xl p-3">
               <div className="flex items-center gap-1.5 mb-1">
-                <Icon className="w-3 h-3 text-gray-500" />
-                <p className="text-xs text-gray-500">{label}</p>
+                <Icon className="w-3 h-3 text-[var(--color-text-muted)]" />
+                <p className="text-xs text-[var(--color-text-muted)]">{label}</p>
               </div>
-              <p className="text-sm font-medium text-white">{value}</p>
+              <p className="text-sm font-medium text-[var(--color-text-primary)]">{value}</p>
             </div>
           ))}
         </div>
 
         {/* IP */}
         {node.ipAddress && (
-          <div className="bg-gray-800/50 rounded-xl p-3 mb-5">
-            <p className="text-xs text-gray-500 mb-1">IP Address</p>
-            <p className="text-sm font-mono text-gray-300">{node.ipAddress}</p>
+          <div className="bg-[var(--color-surface-2)]/50 rounded-xl p-3 mb-5">
+            <p className="text-xs text-[var(--color-text-muted)] mb-1">IP Address</p>
+            <p className="text-sm font-mono text-[var(--color-text-primary)]">{node.ipAddress}</p>
           </div>
         )}
 
         {/* Capabilities detail */}
         <div className="mb-5">
-          <p className="text-xs text-gray-500 mb-2">Capabilities</p>
+          <p className="text-xs text-[var(--color-text-muted)] mb-2">Capabilities</p>
           <div className="space-y-2">
             {node.capabilities.map((cap) => {
               const CapIcon = CAPABILITY_ICONS[cap] ?? Globe;
               return (
-                <div key={cap} className="flex items-center gap-2 py-1.5 px-3 bg-gray-800/40 rounded-lg">
+                <div key={cap} className="flex items-center gap-2 py-1.5 px-3 bg-[var(--color-surface-2)]/40 rounded-lg">
                   <CapIcon className="w-3.5 h-3.5 text-violet-400" />
-                  <span className="text-sm text-gray-300 capitalize">{cap}</span>
+                  <span className="text-sm text-[var(--color-text-primary)] capitalize">{cap}</span>
                   <Check className="w-3 h-3 text-green-500 ml-auto" />
                 </div>
               );
@@ -239,8 +239,8 @@ function NodeDetailPanel({ node, onClose }: { node: Node; onClose: () => void })
 
         {/* Node ID */}
         <div className="mb-5">
-          <p className="text-xs text-gray-500 mb-1">Node ID</p>
-          <p className="text-xs font-mono text-gray-400 bg-gray-800 rounded-lg px-2 py-1.5 break-all">{node.id}</p>
+          <p className="text-xs text-[var(--color-text-muted)] mb-1">Node ID</p>
+          <p className="text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] rounded-lg px-2 py-1.5 break-all">{node.id}</p>
         </div>
 
         {/* Actions */}
@@ -251,7 +251,7 @@ function NodeDetailPanel({ node, onClose }: { node: Node; onClose: () => void })
                 <Bell className="w-4 h-4" />
                 Send Notification
               </button>
-              <button type="button" className="w-full py-2 px-4 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+              <button type="button" className="w-full py-2 px-4 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
                 <Play className="w-4 h-4" />
                 Run Command
               </button>
@@ -288,30 +288,30 @@ export default function NodeManager() {
   const onlineCount = nodes.filter(n => n.status === 'online').length;
 
   return (
-    <div className="min-h-screen bg-gray-950 p-8">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-8">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-3">
               <Smartphone className="w-6 h-6 text-violet-400" />
               Nodes
             </h1>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
               {onlineCount} of {nodes.length} device{nodes.length !== 1 ? 's' : ''} online
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="flex items-center gap-2 px-3 py-2 bg-gray-900 hover:bg-gray-800 text-gray-400 rounded-xl text-sm border border-gray-800 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded-xl text-sm border border-[var(--color-border)] transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               Refresh
             </button>
             <button
               type="button"
-              className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] rounded-xl text-sm font-medium transition-colors"
             >
               <Plus className="w-4 h-4" />
               Pair Device
@@ -333,7 +333,7 @@ export default function NodeManager() {
           {/* Left: node list */}
           <div className="flex-1">
             {/* Filter tabs */}
-            <div className="flex items-center gap-1 mb-4 bg-gray-900 rounded-xl p-1 border border-gray-800 w-fit">
+            <div className="flex items-center gap-1 mb-4 bg-[var(--color-surface-1)] rounded-xl p-1 border border-[var(--color-border)] w-fit">
               {(['all', 'online', 'offline'] as const).map((f) => (
                 <button
                   key={f}
@@ -341,7 +341,7 @@ export default function NodeManager() {
                   onClick={() => setFilter(f)}
                   className={cn(
                     'px-4 py-1.5 rounded-lg text-sm font-medium capitalize transition-all',
-                    filter === f ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'
+                    filter === f ? 'bg-violet-600 text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                   )}
                 >
                   {f}
@@ -362,9 +362,9 @@ export default function NodeManager() {
 
               {filteredNodes.length === 0 && (
                 <div className="text-center py-16">
-                  <WifiOff className="w-12 h-12 text-gray-700 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-600 mb-2">No {filter} devices</h3>
-                  <p className="text-sm text-gray-700">
+                  <WifiOff className="w-12 h-12 text-[var(--color-text-muted)] mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-[var(--color-text-muted)] mb-2">No {filter} devices</h3>
+                  <p className="text-sm text-[var(--color-text-muted)]">
                     {filter === 'online' ? 'All your devices are currently offline.' : 'All devices are online.'}
                   </p>
                 </div>
@@ -372,19 +372,19 @@ export default function NodeManager() {
             </div>
 
             {/* Stats bar */}
-            <div className="mt-6 bg-gray-900 rounded-xl border border-gray-800 p-4">
+            <div className="mt-6 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <p className="text-xl font-bold text-white">{nodes.length}</p>
-                  <p className="text-xs text-gray-500">Total Devices</p>
+                  <p className="text-xl font-bold text-[var(--color-text-primary)]">{nodes.length}</p>
+                  <p className="text-xs text-[var(--color-text-muted)]">Total Devices</p>
                 </div>
                 <div>
                   <p className="text-xl font-bold text-green-400">{onlineCount}</p>
-                  <p className="text-xs text-gray-500">Online</p>
+                  <p className="text-xs text-[var(--color-text-muted)]">Online</p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-gray-500">{nodes.length - onlineCount}</p>
-                  <p className="text-xs text-gray-500">Offline</p>
+                  <p className="text-xl font-bold text-[var(--color-text-muted)]">{nodes.length - onlineCount}</p>
+                  <p className="text-xs text-[var(--color-text-muted)]">Offline</p>
                 </div>
               </div>
             </div>

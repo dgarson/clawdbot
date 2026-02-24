@@ -178,7 +178,7 @@ const SCHEDULES: ScheduledTask[] = [
 const STATUS_COLORS: Record<ScheduleStatus, string> = {
   active:    "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
   paused:    "text-amber-400 bg-amber-400/10 border-amber-400/20",
-  completed: "text-fg-secondary bg-zinc-400/10 border-zinc-400/20",
+  completed: "text-fg-secondary bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20",
   error:     "text-rose-400 bg-rose-400/10 border-rose-400/20",
 };
 

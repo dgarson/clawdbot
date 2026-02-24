@@ -107,13 +107,13 @@ function UsageBar({ value, className }: { value: number; className?: string }) {
     value >= 85 ? "bg-rose-400" : value >= 65 ? "bg-amber-400" : "bg-emerald-400";
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <div className="h-2 w-24 rounded-full bg-zinc-800 overflow-hidden">
+      <div className="h-2 w-24 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
         <div
           className={cn("h-full rounded-full transition-all", barColor)}
           style={{ width: `${Math.min(value, 100)}%` }}
         />
       </div>
-      <span className="text-xs text-zinc-400 tabular-nums w-9 text-right">{value}%</span>
+      <span className="text-xs text-[var(--color-text-secondary)] tabular-nums w-9 text-right">{value}%</span>
     </div>
   );
 }
@@ -124,13 +124,13 @@ function QuotaBar({ used, limit, unit }: { used: number; limit: number; unit: st
     pct >= 85 ? "bg-rose-400" : pct >= 65 ? "bg-amber-400" : "bg-indigo-500";
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex justify-between text-xs text-zinc-400">
+      <div className="flex justify-between text-xs text-[var(--color-text-secondary)]">
         <span>
           {used}{unit} / {limit}{unit}
         </span>
         <span>{pct}%</span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+      <div className="h-1.5 w-full rounded-full bg-[var(--color-surface-2)] overflow-hidden">
         <div
           className={cn("h-full rounded-full", barColor)}
           style={{ width: `${Math.min(pct, 100)}%` }}
@@ -147,7 +147,7 @@ function StatusBadge({ status }: { status: string }) {
     Running: "bg-emerald-400/15 text-emerald-400",
     Pending: "bg-amber-400/15 text-amber-400",
     CrashLoopBackOff: "bg-rose-400/15 text-rose-400",
-    Completed: "bg-zinc-600/20 text-zinc-400",
+    Completed: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
     Active: "bg-emerald-400/15 text-emerald-400",
     Terminating: "bg-rose-400/15 text-rose-400",
     Healthy: "bg-emerald-400/15 text-emerald-400",
@@ -156,7 +156,7 @@ function StatusBadge({ status }: { status: string }) {
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
-        styles[status] ?? "bg-zinc-700 text-zinc-300"
+        styles[status] ?? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
       )}
     >
       {status}
@@ -186,7 +186,7 @@ function NodesPanel() {
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left">
         <thead>
-          <tr className="border-b border-zinc-800 text-zinc-400 text-xs uppercase tracking-wider">
+          <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">
             <th className="py-3 px-4 font-medium">Name</th>
             <th className="py-3 px-4 font-medium">Role</th>
             <th className="py-3 px-4 font-medium">Status</th>
@@ -201,16 +201,16 @@ function NodesPanel() {
           {NODES.map((n) => (
             <tr
               key={n.name}
-              className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
+              className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30 transition-colors"
             >
-              <td className="py-3 px-4 font-mono text-white text-xs">{n.name}</td>
+              <td className="py-3 px-4 font-mono text-[var(--color-text-primary)] text-xs">{n.name}</td>
               <td className="py-3 px-4">
                 <span
                   className={cn(
                     "text-xs rounded px-2 py-0.5",
                     n.role === "control-plane"
                       ? "bg-indigo-500/15 text-indigo-400"
-                      : "bg-zinc-700/50 text-zinc-300"
+                      : "bg-[var(--color-surface-3)]/50 text-[var(--color-text-primary)]"
                   )}
                 >
                   {n.role}
@@ -225,9 +225,9 @@ function NodesPanel() {
               <td className="py-3 px-4">
                 <UsageBar value={n.memUsage} />
               </td>
-              <td className="py-3 px-4 text-right text-zinc-300 tabular-nums">{n.podCount}</td>
-              <td className="py-3 px-4 text-zinc-400 text-xs font-mono">{n.version}</td>
-              <td className="py-3 px-4 text-zinc-400 text-xs">{n.os}</td>
+              <td className="py-3 px-4 text-right text-[var(--color-text-primary)] tabular-nums">{n.podCount}</td>
+              <td className="py-3 px-4 text-[var(--color-text-secondary)] text-xs font-mono">{n.version}</td>
+              <td className="py-3 px-4 text-[var(--color-text-secondary)] text-xs">{n.os}</td>
             </tr>
           ))}
         </tbody>
@@ -241,7 +241,7 @@ function PodsPanel() {
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left">
         <thead>
-          <tr className="border-b border-zinc-800 text-zinc-400 text-xs uppercase tracking-wider">
+          <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">
             <th className="py-3 px-4 font-medium">Name</th>
             <th className="py-3 px-4 font-medium">Namespace</th>
             <th className="py-3 px-4 font-medium">Status</th>
@@ -256,13 +256,13 @@ function PodsPanel() {
           {PODS.map((p) => (
             <tr
               key={p.name}
-              className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
+              className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30 transition-colors"
             >
-              <td className="py-3 px-4 font-mono text-white text-xs max-w-[280px] truncate">
+              <td className="py-3 px-4 font-mono text-[var(--color-text-primary)] text-xs max-w-[280px] truncate">
                 {p.name}
               </td>
               <td className="py-3 px-4">
-                <span className="text-xs rounded bg-zinc-800 px-2 py-0.5 text-zinc-300">
+                <span className="text-xs rounded bg-[var(--color-surface-2)] px-2 py-0.5 text-[var(--color-text-primary)]">
                   {p.namespace}
                 </span>
               </td>
@@ -270,16 +270,16 @@ function PodsPanel() {
                 <StatusBadge status={p.status} />
               </td>
               <td className="py-3 px-4 text-right tabular-nums">
-                <span className={cn(p.restarts > 5 ? "text-rose-400" : "text-zinc-300")}>
+                <span className={cn(p.restarts > 5 ? "text-rose-400" : "text-[var(--color-text-primary)]")}>
                   {p.restarts}
                 </span>
               </td>
-              <td className="py-3 px-4 text-zinc-400 text-xs">{p.age}</td>
-              <td className="py-3 px-4 text-zinc-400 text-xs font-mono">{p.node}</td>
-              <td className="py-3 px-4 text-zinc-400 text-xs font-mono tabular-nums">
+              <td className="py-3 px-4 text-[var(--color-text-secondary)] text-xs">{p.age}</td>
+              <td className="py-3 px-4 text-[var(--color-text-secondary)] text-xs font-mono">{p.node}</td>
+              <td className="py-3 px-4 text-[var(--color-text-secondary)] text-xs font-mono tabular-nums">
                 {p.cpuRequest} / {p.cpuLimit}
               </td>
-              <td className="py-3 px-4 text-zinc-400 text-xs font-mono tabular-nums">
+              <td className="py-3 px-4 text-[var(--color-text-secondary)] text-xs font-mono tabular-nums">
                 {p.memRequest} / {p.memLimit}
               </td>
             </tr>
@@ -296,22 +296,22 @@ function NamespacesPanel() {
       {NAMESPACES.map((ns) => (
         <div
           key={ns.name}
-          className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col gap-3"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 flex flex-col gap-3"
         >
           <div className="flex items-center justify-between">
-            <span className="text-white font-semibold font-mono text-sm">{ns.name}</span>
+            <span className="text-[var(--color-text-primary)] font-semibold font-mono text-sm">{ns.name}</span>
             <StatusBadge status={ns.status} />
           </div>
-          <div className="text-xs text-zinc-400">
+          <div className="text-xs text-[var(--color-text-secondary)]">
             {ns.podCount} pod{ns.podCount !== 1 ? "s" : ""}
           </div>
           <div className="flex flex-col gap-2">
             <div>
-              <span className="text-xs text-zinc-500 uppercase tracking-wider">CPU (m)</span>
+              <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">CPU (m)</span>
               <QuotaBar used={ns.cpuUsed} limit={ns.cpuLimit} unit="m" />
             </div>
             <div>
-              <span className="text-xs text-zinc-500 uppercase tracking-wider">Memory (Mi)</span>
+              <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Memory (Mi)</span>
               <QuotaBar used={ns.memUsed} limit={ns.memLimit} unit="Mi" />
             </div>
           </div>
@@ -328,19 +328,19 @@ function EventsPanel() {
         <div
           key={i}
           className={cn(
-            "bg-zinc-900 border rounded-lg px-5 py-4 flex flex-col gap-1.5",
-            e.type === "Warning" ? "border-amber-400/20" : "border-zinc-800"
+            "bg-[var(--color-surface-1)] border rounded-lg px-5 py-4 flex flex-col gap-1.5",
+            e.type === "Warning" ? "border-amber-400/20" : "border-[var(--color-border)]"
           )}
         >
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <EventTypeBadge type={e.type} />
-              <span className="text-xs font-medium text-white">{e.reason}</span>
+              <span className="text-xs font-medium text-[var(--color-text-primary)]">{e.reason}</span>
               <span className="text-xs font-mono text-indigo-400">{e.object}</span>
             </div>
-            <span className="text-xs text-zinc-500 whitespace-nowrap">{e.age}</span>
+            <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap">{e.age}</span>
           </div>
-          <p className="text-xs text-zinc-400 leading-relaxed">{e.message}</p>
+          <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{e.message}</p>
         </div>
       ))}
     </div>
@@ -384,13 +384,13 @@ function KubernetesClusterViewer() {
   const [activeTab, setActiveTab] = useState<Tab>("nodes");
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 md:p-8">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 md:p-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
           ☸ Kubernetes Cluster
         </h1>
-        <p className="text-zinc-400 text-sm mt-1">
+        <p className="text-[var(--color-text-secondary)] text-sm mt-1">
           prod-us-west-2 — v1.29.2 — {totalNodes} nodes
         </p>
       </div>
@@ -400,27 +400,27 @@ function KubernetesClusterViewer() {
         {overviewCards.map((card) => (
           <div
             key={card.label}
-            className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-1"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col gap-1"
           >
-            <span className="text-zinc-400 text-xs uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-[var(--color-text-secondary)] text-xs uppercase tracking-wider flex items-center gap-1.5">
               <span>{card.emoji}</span>
               {card.label}
             </span>
             <span
               className={cn(
                 "text-xl font-bold tabular-nums",
-                card.label === "Health" && !clusterHealthy ? "text-amber-400" : "text-white"
+                card.label === "Health" && !clusterHealthy ? "text-amber-400" : "text-[var(--color-text-primary)]"
               )}
             >
               {card.value}
             </span>
-            {card.sub && <span className="text-xs text-zinc-500">{card.sub}</span>}
+            {card.sub && <span className="text-xs text-[var(--color-text-muted)]">{card.sub}</span>}
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 mb-6 border-b border-zinc-800 pb-px overflow-x-auto">
+      <div className="flex items-center gap-1 mb-6 border-b border-[var(--color-border)] pb-px overflow-x-auto">
         {TABS.map((tab) => (
           <button
             key={tab.key}
@@ -428,24 +428,24 @@ function KubernetesClusterViewer() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap flex items-center gap-1.5",
               activeTab === tab.key
-                ? "bg-zinc-900 text-white border border-zinc-800 border-b-zinc-900 -mb-px"
-                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50"
+                ? "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] border border-[var(--color-border)] border-b-zinc-900 -mb-px"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]/50"
             )}
           >
             <span>{tab.emoji}</span>
             {tab.label}
             {tab.key === "nodes" && (
-              <span className="ml-1 text-xs bg-zinc-800 rounded-full px-1.5 py-0.5 tabular-nums text-zinc-400">
+              <span className="ml-1 text-xs bg-[var(--color-surface-2)] rounded-full px-1.5 py-0.5 tabular-nums text-[var(--color-text-secondary)]">
                 {totalNodes}
               </span>
             )}
             {tab.key === "pods" && (
-              <span className="ml-1 text-xs bg-zinc-800 rounded-full px-1.5 py-0.5 tabular-nums text-zinc-400">
+              <span className="ml-1 text-xs bg-[var(--color-surface-2)] rounded-full px-1.5 py-0.5 tabular-nums text-[var(--color-text-secondary)]">
                 {totalPods}
               </span>
             )}
             {tab.key === "namespaces" && (
-              <span className="ml-1 text-xs bg-zinc-800 rounded-full px-1.5 py-0.5 tabular-nums text-zinc-400">
+              <span className="ml-1 text-xs bg-[var(--color-surface-2)] rounded-full px-1.5 py-0.5 tabular-nums text-[var(--color-text-secondary)]">
                 {totalNamespaces}
               </span>
             )}
@@ -459,7 +459,7 @@ function KubernetesClusterViewer() {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
         <div className="p-1">
           {activeTab === "nodes" && <NodesPanel />}
           {activeTab === "pods" && <PodsPanel />}

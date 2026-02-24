@@ -185,7 +185,7 @@ function scoreColor(score: number): string {
   if (score >= 90) {return "text-emerald-400";}
   if (score >= 80) {return "text-indigo-400";}
   if (score >= 70) {return "text-amber-400";}
-  if (score === 0) {return "text-zinc-600";}
+  if (score === 0) {return "text-[var(--color-text-muted)]";}
   return "text-rose-400";
 }
 
@@ -193,7 +193,7 @@ function scoreBg(score: number): string {
   if (score >= 90) {return "bg-emerald-400";}
   if (score >= 80) {return "bg-indigo-400";}
   if (score >= 70) {return "bg-amber-400";}
-  if (score === 0) {return "bg-zinc-700";}
+  if (score === 0) {return "bg-[var(--color-surface-3)]";}
   return "bg-rose-400";
 }
 
@@ -201,7 +201,7 @@ function scoreBg(score: number): string {
 
 function ScoreBar({ score, max = 100 }: { score: number; max?: number }) {
   return (
-    <div className="relative h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+    <div className="relative h-1.5 w-full rounded-full bg-[var(--color-surface-2)] overflow-hidden">
       <div
         className={cn("h-full rounded-full transition-all", scoreBg(score))}
         style={{ width: score === 0 ? "0%" : `${(score / max) * 100}%` }}
@@ -242,14 +242,14 @@ function ModelCard({ model, rank, selected, onSelect }: ModelCardProps) {
         "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
         selected
           ? "border-indigo-500 bg-indigo-950/40"
-          : "border-zinc-800 bg-zinc-900 hover:border-zinc-700"
+          : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-border)]"
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-2xl font-black text-zinc-600 w-7 shrink-0">#{rank}</span>
+          <span className="text-2xl font-black text-[var(--color-text-muted)] w-7 shrink-0">#{rank}</span>
           <div className="min-w-0">
-            <p className="font-semibold text-white truncate">{model.name}</p>
+            <p className="font-semibold text-[var(--color-text-primary)] truncate">{model.name}</p>
             <p className={cn("text-xs capitalize", PROVIDER_COLORS[model.provider])}>
               {model.provider}
             </p>
@@ -259,22 +259,22 @@ function ModelCard({ model, rank, selected, onSelect }: ModelCardProps) {
           <p className={cn("text-xl font-bold font-mono", scoreColor(model.avgScore))}>
             {model.avgScore}
           </p>
-          <p className="text-xs text-zinc-500">avg score</p>
+          <p className="text-xs text-[var(--color-text-muted)]">avg score</p>
         </div>
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
         <div>
-          <p className="text-zinc-500 mb-0.5">Latency</p>
-          <p className="text-white font-mono">{fmtMs(model.avgLatencyMs)}</p>
+          <p className="text-[var(--color-text-muted)] mb-0.5">Latency</p>
+          <p className="text-[var(--color-text-primary)] font-mono">{fmtMs(model.avgLatencyMs)}</p>
         </div>
         <div>
-          <p className="text-zinc-500 mb-0.5">Context</p>
-          <p className="text-white font-mono">{fmtCtx(model.contextWindow)}</p>
+          <p className="text-[var(--color-text-muted)] mb-0.5">Context</p>
+          <p className="text-[var(--color-text-primary)] font-mono">{fmtCtx(model.contextWindow)}</p>
         </div>
         <div>
-          <p className="text-zinc-500 mb-0.5">$/1K tok</p>
-          <p className="text-white font-mono">${model.avgCostPer1k.toFixed(4)}</p>
+          <p className="text-[var(--color-text-muted)] mb-0.5">$/1K tok</p>
+          <p className="text-[var(--color-text-primary)] font-mono">${model.avgCostPer1k.toFixed(4)}</p>
         </div>
       </div>
 
@@ -335,17 +335,17 @@ export default function ModelBenchmark() {
   }, [providerFilter, selectedCategory]);
 
   return (
-    <main className="flex h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Model Benchmark">
+    <main className="flex h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden" role="main" aria-label="Model Benchmark">
       {/* Left: Leaderboard */}
-      <div className="w-80 shrink-0 flex flex-col border-r border-zinc-800 overflow-hidden">
+      <div className="w-80 shrink-0 flex flex-col border-r border-[var(--color-border)] overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-zinc-800">
-          <h1 className="text-lg font-bold text-white">Model Benchmark</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">Performance across {MODELS.length} models · {200} samples/task</p>
+        <div className="p-4 border-b border-[var(--color-border)]">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Model Benchmark</h1>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Performance across {MODELS.length} models · {200} samples/task</p>
         </div>
 
         {/* Provider filter */}
-        <div className="p-3 border-b border-zinc-800">
+        <div className="p-3 border-b border-[var(--color-border)]">
           <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by provider">
             {providers.map(p => (
               <button
@@ -356,8 +356,8 @@ export default function ModelBenchmark() {
                   "text-xs px-2 py-1 rounded capitalize transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   providerFilter === p
-                    ? "bg-indigo-600 text-white"
-                    : "bg-zinc-800 text-zinc-400 hover:text-white"
+                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {p === "all" ? "All" : p}
@@ -367,8 +367,8 @@ export default function ModelBenchmark() {
         </div>
 
         {/* Category filter */}
-        <div className="p-3 border-b border-zinc-800">
-          <p className="text-xs text-zinc-500 mb-2">Score by category</p>
+        <div className="p-3 border-b border-[var(--color-border)]">
+          <p className="text-xs text-[var(--color-text-muted)] mb-2">Score by category</p>
           <div className="flex flex-col gap-1" role="group" aria-label="Score category">
             <button
               onClick={() => setSelectedCategory("all")}
@@ -377,8 +377,8 @@ export default function ModelBenchmark() {
                 "text-xs px-2 py-1 rounded text-left transition-colors",
                 "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                 selectedCategory === "all"
-                  ? "bg-zinc-700 text-white"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               📊 Overall Average
@@ -392,8 +392,8 @@ export default function ModelBenchmark() {
                   "text-xs px-2 py-1 rounded text-left transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   selectedCategory === cat
-                    ? "bg-zinc-700 text-white"
-                    : "text-zinc-400 hover:text-white"
+                    ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+                    : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {CATEGORY_EMOJIS[cat]} {CATEGORY_LABELS[cat]}
@@ -425,7 +425,7 @@ export default function ModelBenchmark() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-3">
-                  <h2 className="text-2xl font-bold text-white">{selected.name}</h2>
+                  <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">{selected.name}</h2>
                   {selected.highlighted && (
                     <span className="rounded text-xs px-2 py-0.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                       Default
@@ -440,7 +440,7 @@ export default function ModelBenchmark() {
                 <p className={cn("text-4xl font-black font-mono", scoreColor(selected.avgScore))}>
                   {selected.avgScore}
                 </p>
-                <p className="text-xs text-zinc-500">overall score</p>
+                <p className="text-xs text-[var(--color-text-muted)]">overall score</p>
               </div>
             </div>
 
@@ -451,28 +451,28 @@ export default function ModelBenchmark() {
                 { label: "Cost / 1K tokens", value: `$${selected.avgCostPer1k.toFixed(4)}`,   sub: "USD" },
                 { label: "Context Window",  value: fmtCtx(selected.contextWindow),             sub: "max tokens" },
               ].map(kpi => (
-                <div key={kpi.label} className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-                  <p className="text-xs text-zinc-500">{kpi.label}</p>
-                  <p className="text-2xl font-bold text-white mt-1 font-mono">{kpi.value}</p>
-                  <p className="text-xs text-zinc-600 mt-0.5">{kpi.sub}</p>
+                <div key={kpi.label} className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-4">
+                  <p className="text-xs text-[var(--color-text-muted)]">{kpi.label}</p>
+                  <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1 font-mono">{kpi.value}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{kpi.sub}</p>
                 </div>
               ))}
             </div>
 
             {/* Category breakdown */}
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-5">
-              <h3 className="text-sm font-semibold text-zinc-300 mb-4">Category Breakdown</h3>
+            <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-5">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Category Breakdown</h3>
               <div className="space-y-5">
                 {selected.scores.map(sc => (
                   <div key={sc.category}>
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         <span>{CATEGORY_EMOJIS[sc.category]}</span>
-                        <span className="text-sm text-zinc-300">{CATEGORY_LABELS[sc.category]}</span>
+                        <span className="text-sm text-[var(--color-text-primary)]">{CATEGORY_LABELS[sc.category]}</span>
                       </div>
                       <div className="flex items-center gap-4 text-xs font-mono">
-                        <span className="text-zinc-500">{fmtMs(sc.latencyMs)}</span>
-                        <span className="text-zinc-500">{sc.tokensPerSec > 0 ? `${sc.tokensPerSec} tok/s` : "—"}</span>
+                        <span className="text-[var(--color-text-muted)]">{fmtMs(sc.latencyMs)}</span>
+                        <span className="text-[var(--color-text-muted)]">{sc.tokensPerSec > 0 ? `${sc.tokensPerSec} tok/s` : "—"}</span>
                         <span className={cn("font-semibold text-sm", scoreColor(sc.score))}>
                           {sc.score === 0 ? "N/A" : sc.score}
                         </span>
@@ -485,26 +485,26 @@ export default function ModelBenchmark() {
             </div>
 
             {/* Competitive comparison table */}
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
-              <div className="p-4 border-b border-zinc-800">
-                <h3 className="text-sm font-semibold text-zinc-300">Head-to-Head Comparison</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">
+            <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] overflow-hidden">
+              <div className="p-4 border-b border-[var(--color-border)]">
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Head-to-Head Comparison</h3>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                   {selectedCategory === "all" ? "Overall average scores" : `${CATEGORY_LABELS[selectedCategory]} task scores`}
                 </p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm" role="table" aria-label="Model comparison">
                   <thead>
-                    <tr className="border-b border-zinc-800">
-                      <th className="text-left p-3 text-zinc-500 font-medium">Model</th>
+                    <tr className="border-b border-[var(--color-border)]">
+                      <th className="text-left p-3 text-[var(--color-text-muted)] font-medium">Model</th>
                       {CATEGORIES.map(cat => (
-                        <th key={cat} className="text-center p-3 text-zinc-500 font-medium min-w-[60px]">
+                        <th key={cat} className="text-center p-3 text-[var(--color-text-muted)] font-medium min-w-[60px]">
                           {CATEGORY_EMOJIS[cat]}
                         </th>
                       ))}
-                      <th className="text-center p-3 text-zinc-500 font-medium">Avg</th>
-                      <th className="text-center p-3 text-zinc-500 font-medium">Latency</th>
-                      <th className="text-center p-3 text-zinc-500 font-medium">$/1K</th>
+                      <th className="text-center p-3 text-[var(--color-text-muted)] font-medium">Avg</th>
+                      <th className="text-center p-3 text-[var(--color-text-muted)] font-medium">Latency</th>
+                      <th className="text-center p-3 text-[var(--color-text-muted)] font-medium">$/1K</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -512,10 +512,10 @@ export default function ModelBenchmark() {
                       <tr
                         key={model.id}
                         className={cn(
-                          "border-b border-zinc-800/50 transition-colors",
+                          "border-b border-[var(--color-border)]/50 transition-colors",
                           model.id === selected.id
                             ? "bg-indigo-950/30"
-                            : "hover:bg-zinc-800/40"
+                            : "hover:bg-[var(--color-surface-2)]/40"
                         )}
                       >
                         <td className="p-3">
@@ -523,7 +523,7 @@ export default function ModelBenchmark() {
                             {model.id === selected.id && (
                               <span className="text-indigo-400">▶</span>
                             )}
-                            <span className={cn("font-medium", model.id === selected.id ? "text-white" : "text-zinc-300")}>
+                            <span className={cn("font-medium", model.id === selected.id ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)]")}>
                               {model.name}
                             </span>
                           </div>
@@ -541,10 +541,10 @@ export default function ModelBenchmark() {
                             {model.avgScore}
                           </span>
                         </td>
-                        <td className="text-center p-3 text-zinc-400 font-mono text-xs">
+                        <td className="text-center p-3 text-[var(--color-text-secondary)] font-mono text-xs">
                           {fmtMs(model.avgLatencyMs)}
                         </td>
-                        <td className="text-center p-3 text-zinc-400 font-mono text-xs">
+                        <td className="text-center p-3 text-[var(--color-text-secondary)] font-mono text-xs">
                           ${model.avgCostPer1k.toFixed(4)}
                         </td>
                       </tr>
@@ -556,7 +556,7 @@ export default function ModelBenchmark() {
 
             {/* Sort controls */}
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-zinc-500">Sort leaderboard by:</span>
+              <span className="text-[var(--color-text-muted)]">Sort leaderboard by:</span>
               {([
                 ["avgScore", "Score"],
                 ["avgLatencyMs", "Latency"],
@@ -571,7 +571,7 @@ export default function ModelBenchmark() {
                     "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                     sortKey === key
                       ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                      : "border-zinc-700 text-zinc-400 hover:text-white"
+                      : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {label} {sortKey === key ? (sortAsc ? "↑" : "↓") : ""}
@@ -582,8 +582,8 @@ export default function ModelBenchmark() {
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
             <p className="text-4xl mb-4">📊</p>
-            <p className="text-lg font-semibold text-white">Select a model</p>
-            <p className="text-sm text-zinc-500 mt-1">Choose a model from the leaderboard to view detailed benchmarks</p>
+            <p className="text-lg font-semibold text-[var(--color-text-primary)]">Select a model</p>
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">Choose a model from the leaderboard to view detailed benchmarks</p>
           </div>
         )}
       </div>

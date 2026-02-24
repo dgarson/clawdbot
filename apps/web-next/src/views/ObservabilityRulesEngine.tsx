@@ -176,21 +176,21 @@ function stateColor(s: RuleState) {
   if (s === "ok") {return "text-emerald-400";}
   if (s === "pending") {return "text-amber-400";}
   if (s === "error") {return "text-rose-400";}
-  return "text-zinc-400";
+  return "text-[var(--color-text-secondary)]";
 }
 function stateBg(s: RuleState) {
   if (s === "firing") {return "bg-rose-400/10 text-rose-400";}
   if (s === "ok") {return "bg-emerald-400/10 text-emerald-400";}
   if (s === "pending") {return "bg-amber-400/10 text-amber-400";}
   if (s === "error") {return "bg-rose-400/10 text-rose-400";}
-  return "bg-zinc-600 text-zinc-400";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 function severityColor(s: RuleSeverity) {
   if (s === "critical") {return "bg-rose-500/10 text-rose-400";}
   if (s === "high") {return "bg-orange-500/10 text-orange-400";}
   if (s === "medium") {return "bg-amber-500/10 text-amber-400";}
   if (s === "low") {return "bg-blue-500/10 text-blue-400";}
-  return "bg-zinc-500/10 text-zinc-400";
+  return "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)]";
 }
 function typeBadge(t: RuleType) {
   const colors: Record<RuleType, string> = {
@@ -198,7 +198,7 @@ function typeBadge(t: RuleType) {
     anomaly: "bg-purple-500/10 text-purple-400",
     trend: "bg-blue-500/10 text-blue-400",
     composite: "bg-orange-500/10 text-orange-400",
-    absence: "bg-zinc-500/10 text-zinc-400",
+    absence: "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)]",
   };
   return colors[t];
 }
@@ -240,46 +240,46 @@ export default function ObservabilityRulesEngine() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Observability Rules Engine</h1>
-          <p className="text-zinc-400 text-sm mt-1">Define, manage, and monitor alerting rules across your infrastructure</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Observability Rules Engine</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Define, manage, and monitor alerting rules across your infrastructure</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-300 transition-colors">Import Rules</button>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors">+ New Rule</button>
+          <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Import Rules</button>
+          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Rule</button>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-zinc-900 rounded-xl p-4 border border-rose-500/30">
-          <div className="text-xs text-zinc-500 mb-1">Firing</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-rose-500/30">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Firing</div>
           <div className="text-2xl font-bold text-rose-400">{firingCount}</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-amber-500/20">
-          <div className="text-xs text-zinc-500 mb-1">Pending</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-amber-500/20">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Pending</div>
           <div className="text-2xl font-bold text-amber-400">{pendingCount}</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">OK</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">OK</div>
           <div className="text-2xl font-bold text-emerald-400">{okCount}</div>
         </div>
-        <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-          <div className="text-xs text-zinc-500 mb-1">Active Alerts</div>
-          <div className="text-2xl font-bold text-white">{activeAlerts}</div>
+        <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+          <div className="text-xs text-[var(--color-text-muted)] mb-1">Active Alerts</div>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">{activeAlerts}</div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-zinc-800 mb-6">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => { setTab(t.id); setSelectedRule(null); }}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200")}
+            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             {t.label}
           </button>
@@ -290,21 +290,21 @@ export default function ObservabilityRulesEngine() {
       {tab === "rules" && !selectedRule && (
         <div>
           <div className="flex flex-wrap gap-3 mb-4">
-            <select value={filterState} onChange={e => setFilterState(e.target.value as RuleState | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterState} onChange={e => setFilterState(e.target.value as RuleState | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All States</option>
               <option value="firing">Firing</option>
               <option value="pending">Pending</option>
               <option value="ok">OK</option>
               <option value="disabled">Disabled</option>
             </select>
-            <select value={filterSeverity} onChange={e => setFilterSeverity(e.target.value as RuleSeverity | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterSeverity} onChange={e => setFilterSeverity(e.target.value as RuleSeverity | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Severity</option>
               <option value="critical">Critical</option>
               <option value="high">High</option>
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
-            <select value={filterType} onChange={e => setFilterType(e.target.value as RuleType | "all")} className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200">
+            <select value={filterType} onChange={e => setFilterType(e.target.value as RuleType | "all")} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Types</option>
               <option value="threshold">Threshold</option>
               <option value="anomaly">Anomaly</option>
@@ -319,19 +319,19 @@ export default function ObservabilityRulesEngine() {
               <div
                 key={rule.id}
                 onClick={() => setSelectedRule(rule)}
-                className={cn("bg-zinc-900 rounded-xl p-4 border hover:border-zinc-600 cursor-pointer transition-colors", rule.state === "firing" ? "border-rose-500/30" : rule.state === "pending" ? "border-amber-500/20" : "border-zinc-800")}
+                className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border hover:border-[var(--color-surface-3)] cursor-pointer transition-colors", rule.state === "firing" ? "border-rose-500/30" : rule.state === "pending" ? "border-amber-500/20" : "border-[var(--color-border)]")}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <div className={cn("w-2 h-2 rounded-full", rule.state === "firing" ? "bg-rose-400 animate-pulse" : rule.state === "pending" ? "bg-amber-400" : rule.state === "ok" ? "bg-emerald-400" : "bg-zinc-500")} />
-                      <span className="font-medium text-zinc-200">{rule.name}</span>
+                      <div className={cn("w-2 h-2 rounded-full", rule.state === "firing" ? "bg-rose-400 animate-pulse" : rule.state === "pending" ? "bg-amber-400" : rule.state === "ok" ? "bg-emerald-400" : "bg-[var(--color-surface-3)]")} />
+                      <span className="font-medium text-[var(--color-text-primary)]">{rule.name}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", stateBg(rule.state))}>{rule.state}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", severityColor(rule.severity))}>{rule.severity}</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", typeBadge(rule.type))}>{rule.type}</span>
                     </div>
-                    <div className="text-xs text-zinc-400">{rule.description}</div>
-                    <div className="flex gap-3 mt-2 text-xs text-zinc-500">
+                    <div className="text-xs text-[var(--color-text-secondary)]">{rule.description}</div>
+                    <div className="flex gap-3 mt-2 text-xs text-[var(--color-text-muted)]">
                       <span>Every {rule.evaluationInterval}</span>
                       <span>Pending: {rule.pendingDuration}</span>
                       <span>Fired: {rule.firingCount}x</span>
@@ -353,23 +353,23 @@ export default function ObservabilityRulesEngine() {
       {/* Rule Detail */}
       {tab === "rules" && selectedRule && (
         <div>
-          <button onClick={() => setSelectedRule(null)} className="flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-200 mb-4 transition-colors">← Back</button>
+          <button onClick={() => setSelectedRule(null)} className="flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] mb-4 transition-colors">← Back</button>
           <div className="grid md:grid-cols-2 gap-5 mb-5">
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <h2 className="text-xl font-bold text-white">{selectedRule.name}</h2>
+                    <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedRule.name}</h2>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full", stateBg(selectedRule.state))}>{selectedRule.state}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", severityColor(selectedRule.severity))}>{selectedRule.severity}</span>
                   </div>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", typeBadge(selectedRule.type))}>{selectedRule.type}</span>
                 </div>
-                <button className={cn("px-3 py-1.5 text-xs rounded-lg transition-colors", selectedRule.enabled ? "bg-rose-600 hover:bg-rose-500 text-white" : "bg-emerald-600 hover:bg-emerald-500 text-white")}>
+                <button className={cn("px-3 py-1.5 text-xs rounded-lg transition-colors", selectedRule.enabled ? "bg-rose-600 hover:bg-rose-500 text-[var(--color-text-primary)]" : "bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-primary)]")}>
                   {selectedRule.enabled ? "Disable" : "Enable"}
                 </button>
               </div>
-              <p className="text-sm text-zinc-300 mb-4">{selectedRule.description}</p>
+              <p className="text-sm text-[var(--color-text-primary)] mb-4">{selectedRule.description}</p>
               <div className="space-y-2 text-xs">
                 {[
                   { label: "Interval", value: selectedRule.evaluationInterval },
@@ -380,47 +380,47 @@ export default function ObservabilityRulesEngine() {
                   { label: "Created by", value: selectedRule.createdBy },
                 ].map(row => (
                   <div key={row.label} className="flex justify-between">
-                    <span className="text-zinc-500">{row.label}</span>
-                    <span className="text-zinc-300">{row.value}</span>
+                    <span className="text-[var(--color-text-muted)]">{row.label}</span>
+                    <span className="text-[var(--color-text-primary)]">{row.value}</span>
                   </div>
                 ))}
               </div>
               <div className="mt-4">
-                <div className="text-xs text-zinc-500 mb-2">Labels</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-2">Labels</div>
                 <div className="flex flex-wrap gap-1">
                   {Object.entries(selectedRule.labels).map(([k, v]) => (
-                    <span key={k} className="text-xs px-2 py-0.5 rounded bg-zinc-700 text-zinc-300">{k}={v}</span>
+                    <span key={k} className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-3)] text-[var(--color-text-primary)]">{k}={v}</span>
                   ))}
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-                <h3 className="text-sm font-medium text-zinc-300 mb-3">Conditions</h3>
+              <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+                <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Conditions</h3>
                 {selectedRule.conditions.map((cond, i) => (
-                  <div key={i} className="p-3 bg-zinc-800 rounded-lg font-mono text-sm">
+                  <div key={i} className="p-3 bg-[var(--color-surface-2)] rounded-lg font-mono text-sm">
                     <span className="text-indigo-400">{cond.aggregation}</span>
-                    <span className="text-zinc-300">({cond.metric})</span>
-                    <span className="text-zinc-200">[{cond.window}] </span>
+                    <span className="text-[var(--color-text-primary)]">({cond.metric})</span>
+                    <span className="text-[var(--color-text-primary)]">[{cond.window}] </span>
                     <span className="text-amber-400">{opLabel(cond.operator)} </span>
                     <span className="text-emerald-400">{cond.threshold}</span>
                   </div>
                 ))}
               </div>
-              <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-                <h3 className="text-sm font-medium text-zinc-300 mb-3">Actions</h3>
+              <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+                <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Actions</h3>
                 <div className="space-y-2">
                   {selectedRule.actions.map((action, i) => (
-                    <div key={i} className="flex items-start gap-2 p-3 bg-zinc-800 rounded-lg">
+                    <div key={i} className="flex items-start gap-2 p-3 bg-[var(--color-surface-2)] rounded-lg">
                       <span className="text-base">{actionTypeEmoji(action.type)}</span>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-zinc-300 capitalize">{action.type}</span>
-                          <span className="text-xs text-zinc-500">→ {action.target}</span>
-                          {action.cooldown !== "0" && <span className="text-xs text-zinc-600">cooldown: {action.cooldown}</span>}
+                          <span className="text-xs font-medium text-[var(--color-text-primary)] capitalize">{action.type}</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">→ {action.target}</span>
+                          {action.cooldown !== "0" && <span className="text-xs text-[var(--color-text-muted)]">cooldown: {action.cooldown}</span>}
                         </div>
-                        <div className="text-xs text-zinc-400 mt-1 font-mono">{action.message}</div>
+                        <div className="text-xs text-[var(--color-text-secondary)] mt-1 font-mono">{action.message}</div>
                       </div>
                     </div>
                   ))}
@@ -435,30 +435,30 @@ export default function ObservabilityRulesEngine() {
       {tab === "alerts" && (
         <div className="space-y-3">
           {FIRING_ALERTS.map(alert => (
-            <div key={alert.id} className={cn("bg-zinc-900 rounded-xl p-4 border", alert.status === "firing" ? "border-rose-500/30" : "border-zinc-800")}>
+            <div key={alert.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border", alert.status === "firing" ? "border-rose-500/30" : "border-[var(--color-border)]")}>
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-zinc-200">{alert.ruleName}</span>
+                    <span className="font-medium text-[var(--color-text-primary)]">{alert.ruleName}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", severityColor(alert.severity))}>{alert.severity}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", alert.status === "firing" ? "bg-rose-400/10 text-rose-400" : "bg-emerald-400/10 text-emerald-400")}>{alert.status}</span>
                   </div>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {Object.entries(alert.labels).map(([k, v]) => (
-                      <span key={k} className="text-xs px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-400">{k}={v}</span>
+                      <span key={k} className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]">{k}={v}</span>
                     ))}
                   </div>
                 </div>
-                <div className="text-right text-xs text-zinc-500">
+                <div className="text-right text-xs text-[var(--color-text-muted)]">
                   <div>Started: {alert.startedAt}</div>
                   <div>Duration: {alert.duration}</div>
                   {alert.resolvedAt && <div className="text-emerald-400">Resolved: {alert.resolvedAt}</div>}
                 </div>
               </div>
-              <div className="mt-3 pt-3 border-t border-zinc-800 flex gap-6 text-xs">
-                <div><span className="text-zinc-500">Value: </span><span className={cn("font-bold", alert.status === "firing" ? "text-rose-400" : "text-zinc-300")}>{alert.value}</span></div>
-                <div><span className="text-zinc-500">Threshold: </span><span className="text-zinc-400">{alert.threshold}</span></div>
-                <div><span className="text-zinc-500">Excess: </span><span className="text-rose-400">+{(alert.value - alert.threshold).toFixed(1)}</span></div>
+              <div className="mt-3 pt-3 border-t border-[var(--color-border)] flex gap-6 text-xs">
+                <div><span className="text-[var(--color-text-muted)]">Value: </span><span className={cn("font-bold", alert.status === "firing" ? "text-rose-400" : "text-[var(--color-text-primary)]")}>{alert.value}</span></div>
+                <div><span className="text-[var(--color-text-muted)]">Threshold: </span><span className="text-[var(--color-text-secondary)]">{alert.threshold}</span></div>
+                <div><span className="text-[var(--color-text-muted)]">Excess: </span><span className="text-rose-400">+{(alert.value - alert.threshold).toFixed(1)}</span></div>
               </div>
             </div>
           ))}
@@ -468,9 +468,9 @@ export default function ObservabilityRulesEngine() {
       {/* Eval History chart */}
       {tab === "history" && (
         <div className="space-y-5">
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-1">Rule: "High API Error Rate" — Recent Evaluations</h3>
-            <p className="text-xs text-zinc-500 mb-4">HTTP error rate (%) vs 5% threshold</p>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-1">Rule: "High API Error Rate" — Recent Evaluations</h3>
+            <p className="text-xs text-[var(--color-text-muted)] mb-4">HTTP error rate (%) vs 5% threshold</p>
             <div className="flex items-end gap-2" style={{ height: 100 }}>
               {EVAL_HISTORY.map(pt => {
                 const heightPct = (pt.value / (maxValue * 1.1)) * 100;
@@ -483,12 +483,12 @@ export default function ObservabilityRulesEngine() {
                         title={`${pt.value}% at ${pt.time}`}
                       />
                     </div>
-                    <span className="text-[10px] text-zinc-500">{pt.time}</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)]">{pt.time}</span>
                   </div>
                 );
               })}
             </div>
-            <div className="flex gap-4 mt-3 text-xs text-zinc-500">
+            <div className="flex gap-4 mt-3 text-xs text-[var(--color-text-muted)]">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-rose-500 inline-block" />Firing</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" />OK</span>
               <span className="ml-auto">Threshold: 5%</span>
@@ -502,19 +502,19 @@ export default function ObservabilityRulesEngine() {
         <div className="space-y-5">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
-              { label: "Total Rules", value: RULES.length, color: "text-white" },
+              { label: "Total Rules", value: RULES.length, color: "text-[var(--color-text-primary)]" },
               { label: "Enabled Rules", value: RULES.filter(r => r.enabled).length, color: "text-emerald-400" },
               { label: "Total Fire Events", value: RULES.reduce((s, r) => s + r.firingCount, 0), color: "text-rose-400" },
             ].map(stat => (
-              <div key={stat.label} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 text-center">
+              <div key={stat.label} className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)] text-center">
                 <div className={cn("text-3xl font-bold mb-1", stat.color)}>{stat.value}</div>
-                <div className="text-xs text-zinc-500">{stat.label}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">{stat.label}</div>
               </div>
             ))}
           </div>
 
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Rules by Severity</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Rules by Severity</h3>
             <div className="space-y-3">
               {(["critical", "high", "medium", "low", "info"] as RuleSeverity[]).map(sev => {
                 const count = RULES.filter(r => r.severity === sev).length;
@@ -522,12 +522,12 @@ export default function ObservabilityRulesEngine() {
                 return (
                   <div key={sev}>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="capitalize text-zinc-400">{sev}</span>
+                      <span className="capitalize text-[var(--color-text-secondary)]">{sev}</span>
                       <span className={severityColor(sev).split(" ")[1]}>{count} rules</span>
                     </div>
-                    <div className="h-2 bg-zinc-700 rounded-full overflow-hidden">
+                    <div className="h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                       <div
-                        className={cn("h-full rounded-full", sev === "critical" ? "bg-rose-500" : sev === "high" ? "bg-orange-500" : sev === "medium" ? "bg-amber-500" : sev === "low" ? "bg-blue-500" : "bg-zinc-500")}
+                        className={cn("h-full rounded-full", sev === "critical" ? "bg-rose-500" : sev === "high" ? "bg-orange-500" : sev === "medium" ? "bg-amber-500" : sev === "low" ? "bg-blue-500" : "bg-[var(--color-surface-3)]")}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -537,8 +537,8 @@ export default function ObservabilityRulesEngine() {
             </div>
           </div>
 
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Most Active Rules</h3>
+          <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Most Active Rules</h3>
             <div className="space-y-3">
               {[...RULES].toSorted((a, b) => b.firingCount - a.firingCount).slice(0, 5).map(rule => {
                 const maxFire = Math.max(...RULES.map(r => r.firingCount), 1);
@@ -546,10 +546,10 @@ export default function ObservabilityRulesEngine() {
                 return (
                   <div key={rule.id}>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-zinc-300">{rule.name}</span>
+                      <span className="text-[var(--color-text-primary)]">{rule.name}</span>
                       <span className={stateColor(rule.state)}>{rule.firingCount} fires</span>
                     </div>
-                    <div className="h-2 bg-zinc-700 rounded-full overflow-hidden">
+                    <div className="h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                       <div className={cn("h-full rounded-full", rule.state === "firing" ? "bg-rose-500" : "bg-indigo-500")} style={{ width: `${pct}%` }} />
                     </div>
                   </div>

@@ -145,7 +145,7 @@ const TypeBadge = ({ type, latest }: { type: ReleaseType; latest?: boolean }) =>
   const colors = {
     major: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
     minor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    patch: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+    patch: "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/20",
     beta: "bg-amber-500/10 text-amber-400 border-amber-500/20",
   };
 
@@ -155,7 +155,7 @@ const TypeBadge = ({ type, latest }: { type: ReleaseType; latest?: boolean }) =>
         {type}
       </span>
       {latest && (
-        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium border border-indigo-500/50 bg-indigo-500 text-white uppercase tracking-wider">
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium border border-indigo-500/50 bg-indigo-500 text-[var(--color-text-primary)] uppercase tracking-wider">
           Latest
         </span>
       )}
@@ -181,11 +181,11 @@ const Section = ({ title, icon, items, colorClass, iconColor }: {
       <ul className="space-y-4">
         {items.map((item, i) => (
           <li key={i} className="group">
-            <h4 className="text-zinc-100 font-medium group-hover:text-white transition-colors">
+            <h4 className="text-[var(--color-text-primary)] font-medium group-hover:text-[var(--color-text-primary)] transition-colors">
               {item.title}
             </h4>
             {item.description && (
-              <p className="text-zinc-400 text-sm mt-1 leading-relaxed">
+              <p className="text-[var(--color-text-secondary)] text-sm mt-1 leading-relaxed">
                 {item.description}
               </p>
             )}
@@ -220,16 +220,16 @@ export default function ChangelogView() {
   };
 
   return (
-    <div className="flex h-full bg-zinc-950 text-zinc-100 font-sans selection:bg-indigo-500/30">
+    <div className="flex h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30">
       {/* Sidebar */}
-      <aside className="w-80 border-r border-zinc-800 flex flex-col shrink-0">
-        <div className="p-6 border-b border-zinc-800">
-          <h2 className="text-xl font-bold text-white mb-4">Changelog</h2>
+      <aside className="w-80 border-r border-[var(--color-border)] flex flex-col shrink-0">
+        <div className="p-6 border-b border-[var(--color-border)]">
+          <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-4">Changelog</h2>
           <div className="relative">
             <input
               type="text"
               placeholder="Search versions..."
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+              className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -250,20 +250,20 @@ export default function ChangelogView() {
               className={cn(
                 "w-full text-left p-4 rounded-lg transition-all duration-200 group relative",
                 selectedVersion === release.version 
-                  ? "bg-zinc-900 border border-zinc-800 shadow-xl" 
-                  : "hover:bg-zinc-900/50 border border-transparent"
+                  ? "bg-[var(--color-surface-1)] border border-[var(--color-border)] shadow-xl" 
+                  : "hover:bg-[var(--color-surface-1)]/50 border border-transparent"
               )}
             >
               <div className="flex justify-between items-start mb-2">
                 <span className={cn(
                   "font-mono font-bold text-lg transition-colors",
-                  selectedVersion === release.version ? "text-indigo-400" : "text-zinc-400 group-hover:text-zinc-200"
+                  selectedVersion === release.version ? "text-indigo-400" : "text-[var(--color-text-secondary)] group-hover:text-[var(--color-text-primary)]"
                 )}>
                   v{release.version}
                 </span>
                 <TypeBadge type={release.type} latest={idx === 0 && release.version === RELEASES[0].version} />
               </div>
-              <div className="text-xs text-zinc-500 font-medium">
+              <div className="text-xs text-[var(--color-text-muted)] font-medium">
                 {release.date}
               </div>
               {selectedVersion === release.version && (
@@ -273,8 +273,8 @@ export default function ChangelogView() {
           ))}
         </nav>
 
-        <div className="p-6 border-t border-zinc-800 bg-zinc-900/20">
-          <button className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg transition-colors shadow-lg shadow-indigo-500/10">
+        <div className="p-6 border-t border-[var(--color-border)] bg-[var(--color-surface-1)]/20">
+          <button className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm font-semibold rounded-lg transition-colors shadow-lg shadow-indigo-500/10">
             Subscribe to updates
           </button>
         </div>
@@ -286,16 +286,16 @@ export default function ChangelogView() {
           {/* Version Header */}
           <header className="mb-12">
             <div className="flex items-center gap-4 mb-4">
-              <h1 className="text-5xl font-black text-white tracking-tight">
+              <h1 className="text-5xl font-black text-[var(--color-text-primary)] tracking-tight">
                 v{currentRelease.version}
               </h1>
               <TypeBadge type={currentRelease.type} latest={currentRelease.version === RELEASES[0].version} />
             </div>
-            <div className="text-zinc-400 font-medium mb-6 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-zinc-700" />
+            <div className="text-[var(--color-text-secondary)] font-medium mb-6 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[var(--color-surface-3)]" />
               Released on {currentRelease.date}
             </div>
-            <p className="text-xl text-zinc-300 leading-relaxed border-l-4 border-indigo-500 pl-6 py-2 bg-indigo-500/5 rounded-r-lg">
+            <p className="text-xl text-[var(--color-text-primary)] leading-relaxed border-l-4 border-indigo-500 pl-6 py-2 bg-indigo-500/5 rounded-r-lg">
               {currentRelease.tagline}
             </p>
           </header>
@@ -320,8 +320,8 @@ export default function ChangelogView() {
               title="Bug Fixes" 
               icon="🐛" 
               items={currentRelease.bugFixes} 
-              colorClass="text-zinc-400"
-              iconColor="text-zinc-500"
+              colorClass="text-[var(--color-text-secondary)]"
+              iconColor="text-[var(--color-text-muted)]"
             />
             
             {currentRelease.type === "major" && currentRelease.breakingChanges && (
@@ -338,19 +338,19 @@ export default function ChangelogView() {
               <div className="pt-4">
                 <button 
                   onClick={() => setDepsOpen(!depsOpen)}
-                  className="flex items-center gap-2 text-zinc-500 text-xs font-bold uppercase tracking-widest hover:text-zinc-300 transition-colors"
+                  className="flex items-center gap-2 text-[var(--color-text-muted)] text-xs font-bold uppercase tracking-widest hover:text-[var(--color-text-primary)] transition-colors"
                 >
                   <span className="text-sm">📦</span>
                   Dependencies
                   <span className={cn("ml-1 transition-transform", depsOpen ? "rotate-180" : "")}>↓</span>
                 </button>
                 {depsOpen && (
-                  <div className="mt-4 p-4 rounded-lg bg-zinc-900 border border-zinc-800">
+                  <div className="mt-4 p-4 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)]">
                     <ul className="space-y-2">
                       {currentRelease.dependencies.map((dep, i) => (
-                        <li key={i} className="text-zinc-400 text-xs flex justify-between">
+                        <li key={i} className="text-[var(--color-text-secondary)] text-xs flex justify-between">
                           <span className="font-mono">{dep.title}</span>
-                          <span className="text-zinc-600">{dep.description}</span>
+                          <span className="text-[var(--color-text-muted)]">{dep.description}</span>
                         </li>
                       ))}
                     </ul>
@@ -361,16 +361,16 @@ export default function ChangelogView() {
           </div>
 
           {/* Navigation Footer */}
-          <footer className="mt-20 pt-8 border-t border-zinc-800 flex justify-between">
+          <footer className="mt-20 pt-8 border-t border-[var(--color-border)] flex justify-between">
             <button
               onClick={goToPrev}
               disabled={currentIndex === RELEASES.length - 1}
               className="group flex flex-col items-start disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">
+              <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">
                 ← Previous
               </span>
-              <span className="text-zinc-300 group-hover:text-white transition-colors">
+              <span className="text-[var(--color-text-primary)] group-hover:text-[var(--color-text-primary)] transition-colors">
                 {currentIndex === RELEASES.length - 1 ? "End of history" : `v${RELEASES[currentIndex + 1].version}`}
               </span>
             </button>
@@ -380,10 +380,10 @@ export default function ChangelogView() {
               disabled={currentIndex === 0}
               className="group flex flex-col items-end disabled:opacity-30 disabled:cursor-not-allowed text-right"
             >
-              <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">
+              <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">
                 Next →
               </span>
-              <span className="text-zinc-300 group-hover:text-white transition-colors">
+              <span className="text-[var(--color-text-primary)] group-hover:text-[var(--color-text-primary)] transition-colors">
                 {currentIndex === 0 ? "Latest Version" : `v${RELEASES[currentIndex - 1].version}`}
               </span>
             </button>

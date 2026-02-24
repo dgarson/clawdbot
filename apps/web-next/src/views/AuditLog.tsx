@@ -745,7 +745,7 @@ export default function AuditLog({ isLoading = false }: { isLoading?: boolean })
                 <div className="flex-none text-right">
                   <p className="text-xs text-fg-muted">{relTime(event.timestamp)}</p>
                   {event.duration !== undefined && (
-                    <p className="text-xs text-zinc-700 mt-0.5">{event.duration.toLocaleString()}ms</p>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{event.duration.toLocaleString()}ms</p>
                   )}
                 </div>
               </button>

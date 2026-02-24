@@ -885,7 +885,7 @@ function accessBadgeColor(level: AccessLevel): string {
 function typeBadgeColor(type: DatasetType): string {
   if (type === "table") {return "bg-indigo-900 text-indigo-300"}
   if (type === "view") {return "bg-violet-900 text-violet-300"}
-  if (type === "file") {return "bg-zinc-700 text-zinc-300"}
+  if (type === "file") {return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"}
   return "bg-sky-900 text-sky-300"
 }
 
@@ -914,9 +914,9 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-end">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative h-full w-full max-w-2xl bg-zinc-950 border-l border-zinc-800 flex flex-col overflow-hidden">
+      <div className="relative h-full w-full max-w-2xl bg-[var(--color-surface-0)] border-l border-[var(--color-border)] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-zinc-800 flex-shrink-0">
+        <div className="flex items-start justify-between p-6 border-b border-[var(--color-border)] flex-shrink-0">
           <div className="flex-1 min-w-0 mr-4">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className={cn("text-xs px-2 py-0.5 rounded font-medium", typeBadgeColor(dataset.type))}>
@@ -929,34 +929,34 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
                 {dataset.accessLevel}
               </span>
             </div>
-            <h2 className="text-xl font-bold text-white font-mono break-all">{dataset.name}</h2>
-            <p className="text-sm text-zinc-400 mt-1">{dataset.description}</p>
+            <h2 className="text-xl font-bold text-[var(--color-text-primary)] font-mono break-all">{dataset.name}</h2>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">{dataset.description}</p>
           </div>
           <button
             onClick={onClose}
-            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
           >
             ✕
           </button>
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-4 border-b border-zinc-800 flex-shrink-0">
+        <div className="grid grid-cols-4 border-b border-[var(--color-border)] flex-shrink-0">
           {[
             { label: "Rows", value: formatNumber(dataset.rowCount) },
             { label: "Size", value: dataset.sizeGB + " GB" },
             { label: "Quality", value: dataset.qualityScore + "%" },
             { label: "Owner", value: dataset.owner.split(" ")[0] },
           ].map((stat) => (
-            <div key={stat.label} className="px-4 py-3 border-r border-zinc-800 last:border-r-0">
-              <div className="text-xs text-zinc-500 mb-0.5">{stat.label}</div>
-              <div className="text-sm font-semibold text-white">{stat.value}</div>
+            <div key={stat.label} className="px-4 py-3 border-r border-[var(--color-border)] last:border-r-0">
+              <div className="text-xs text-[var(--color-text-muted)] mb-0.5">{stat.label}</div>
+              <div className="text-sm font-semibold text-[var(--color-text-primary)]">{stat.value}</div>
             </div>
           ))}
         </div>
 
         {/* Freshness & tags */}
-        <div className="px-6 py-3 border-b border-zinc-800 flex items-center gap-4 flex-shrink-0 flex-wrap">
+        <div className="px-6 py-3 border-b border-[var(--color-border)] flex items-center gap-4 flex-shrink-0 flex-wrap">
           <div className="flex items-center gap-2">
             <span className={cn("w-2 h-2 rounded-full", freshnessDot(dataset.freshnessStatus))} />
             <span className={cn("text-xs", freshnessColor(dataset.freshnessStatus))}>
@@ -965,7 +965,7 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
           </div>
           <div className="flex items-center gap-1.5 flex-wrap">
             {dataset.tags.map((tag) => (
-              <span key={tag} className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
+              <span key={tag} className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-2 py-0.5 rounded">
                 {tag}
               </span>
             ))}
@@ -973,7 +973,7 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
         </div>
 
         {/* Section tabs */}
-        <div className="flex border-b border-zinc-800 flex-shrink-0">
+        <div className="flex border-b border-[var(--color-border)] flex-shrink-0">
           {(["schema", "sample", "lineage"] as Array<"schema" | "sample" | "lineage">).map((s) => (
             <button
               key={s}
@@ -982,7 +982,7 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
                 "px-5 py-2.5 text-sm font-medium capitalize transition-colors border-b-2",
                 activeSection === s
                   ? "text-indigo-400 border-indigo-500"
-                  : "text-zinc-500 border-transparent hover:text-zinc-300"
+                  : "text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-primary)]"
               )}
             >
               {s === "sample" ? "Sample Data" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -994,12 +994,12 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
         <div className="flex-1 overflow-y-auto p-6">
           {activeSection === "schema" && (
             <div>
-              <p className="text-xs text-zinc-500 mb-3">{dataset.schema.length} fields</p>
+              <p className="text-xs text-[var(--color-text-muted)] mb-3">{dataset.schema.length} fields</p>
               <div className="space-y-1">
                 {dataset.schema.map((field) => (
                   <div
                     key={field.name}
-                    className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-800"
+                    className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)]"
                   >
                     <div className="flex-shrink-0 mt-0.5">
                       <span className="text-xs font-mono bg-indigo-950 text-indigo-400 border border-indigo-800 px-1.5 py-0.5 rounded">
@@ -1008,12 +1008,12 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono text-white">{field.name}</span>
+                        <span className="text-sm font-mono text-[var(--color-text-primary)]">{field.name}</span>
                         {!field.nullable && (
                           <span className="text-xs text-rose-400">NOT NULL</span>
                         )}
                       </div>
-                      <p className="text-xs text-zinc-500 mt-0.5">{field.description}</p>
+                      <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{field.description}</p>
                     </div>
                   </div>
                 ))}
@@ -1023,14 +1023,14 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
 
           {activeSection === "sample" && (
             <div className="overflow-x-auto">
-              <p className="text-xs text-zinc-500 mb-3">{dataset.sampleData.length} sample rows</p>
+              <p className="text-xs text-[var(--color-text-muted)] mb-3">{dataset.sampleData.length} sample rows</p>
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-zinc-800">
+                  <tr className="border-b border-[var(--color-border)]">
                     {Object.keys(dataset.sampleData[0] || {}).map((col) => (
                       <th
                         key={col}
-                        className="text-left py-2 pr-4 text-zinc-400 font-medium font-mono whitespace-nowrap"
+                        className="text-left py-2 pr-4 text-[var(--color-text-secondary)] font-medium font-mono whitespace-nowrap"
                       >
                         {col}
                       </th>
@@ -1039,10 +1039,10 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
                 </thead>
                 <tbody>
                   {dataset.sampleData.map((row, i) => (
-                    <tr key={i} className="border-b border-zinc-800/50 hover:bg-zinc-900">
+                    <tr key={i} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-1)]">
                       {Object.values(row).map((val, j) => (
-                        <td key={j} className="py-2 pr-4 font-mono text-zinc-300 whitespace-nowrap">
-                          {val || <span className="text-zinc-600">NULL</span>}
+                        <td key={j} className="py-2 pr-4 font-mono text-[var(--color-text-primary)] whitespace-nowrap">
+                          {val || <span className="text-[var(--color-text-muted)]">NULL</span>}
                         </td>
                       ))}
                     </tr>
@@ -1055,38 +1055,38 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
           {activeSection === "lineage" && (
             <div className="space-y-5">
               <div>
-                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">
                   Upstream Sources ({dataset.lineage.upstream.length})
                 </h4>
                 <div className="space-y-1.5">
                   {dataset.lineage.upstream.map((src) => (
-                    <div key={src} className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg">
+                    <div key={src} className="flex items-center gap-2 px-3 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg">
                       <span className="text-emerald-400 text-xs">▲</span>
-                      <span className="text-sm font-mono text-zinc-200">{src}</span>
+                      <span className="text-sm font-mono text-[var(--color-text-primary)]">{src}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div>
-                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">
                   Downstream Consumers ({dataset.lineage.downstream.length})
                 </h4>
                 <div className="space-y-1.5">
                   {dataset.lineage.downstream.map((dst) => (
-                    <div key={dst} className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg">
+                    <div key={dst} className="flex items-center gap-2 px-3 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg">
                       <span className="text-indigo-400 text-xs">▼</span>
-                      <span className="text-sm font-mono text-zinc-200">{dst}</span>
+                      <span className="text-sm font-mono text-[var(--color-text-primary)]">{dst}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div>
-                <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">
                   Transformations ({dataset.lineage.transformations.length})
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {dataset.lineage.transformations.map((t) => (
-                    <span key={t} className="text-xs bg-zinc-800 text-zinc-300 border border-zinc-700 px-2.5 py-1 rounded-full">
+                    <span key={t} className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border border-[var(--color-border)] px-2.5 py-1 rounded-full">
                       {t}
                     </span>
                   ))}
@@ -1137,13 +1137,13 @@ function BrowseTab({ domainFilter, onClearDomainFilter }: BrowseTabProps) {
             placeholder="Search datasets, owners, tags…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value as DatasetType | "")}
-          className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500 transition-colors"
         >
           <option value="">All Types</option>
           <option value="table">Table</option>
@@ -1154,7 +1154,7 @@ function BrowseTab({ domainFilter, onClearDomainFilter }: BrowseTabProps) {
         <select
           value={accessFilter}
           onChange={(e) => setAccessFilter(e.target.value as AccessLevel | "")}
-          className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500 transition-colors"
         >
           <option value="">All Access</option>
           <option value="public">Public</option>
@@ -1172,7 +1172,7 @@ function BrowseTab({ domainFilter, onClearDomainFilter }: BrowseTabProps) {
             </button>
           </div>
         )}
-        <span className="text-sm text-zinc-500 ml-auto">{filtered.length} datasets</span>
+        <span className="text-sm text-[var(--color-text-muted)] ml-auto">{filtered.length} datasets</span>
       </div>
 
       {/* Dataset grid */}
@@ -1181,7 +1181,7 @@ function BrowseTab({ domainFilter, onClearDomainFilter }: BrowseTabProps) {
           <button
             key={ds.id}
             onClick={() => setSelectedDataset(ds)}
-            className="w-full text-left bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-indigo-600 hover:bg-zinc-900/80 transition-all group"
+            className="w-full text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 hover:border-indigo-600 hover:bg-[var(--color-surface-1)]/80 transition-all group"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
@@ -1197,7 +1197,7 @@ function BrowseTab({ domainFilter, onClearDomainFilter }: BrowseTabProps) {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-semibold font-mono text-white group-hover:text-indigo-300 transition-colors">
+                  <h3 className="text-sm font-semibold font-mono text-[var(--color-text-primary)] group-hover:text-indigo-300 transition-colors">
                     {ds.name}
                   </h3>
                   <div className="flex items-center gap-1">
@@ -1207,23 +1207,23 @@ function BrowseTab({ domainFilter, onClearDomainFilter }: BrowseTabProps) {
                     </span>
                   </div>
                 </div>
-                <p className="text-xs text-zinc-500 line-clamp-1">{ds.description}</p>
+                <p className="text-xs text-[var(--color-text-muted)] line-clamp-1">{ds.description}</p>
                 <div className="flex items-center gap-3 mt-2">
-                  <span className="text-xs text-zinc-600">
-                    <span className="text-zinc-400">{ds.owner}</span> · {ds.ownerTeam}
+                  <span className="text-xs text-[var(--color-text-muted)]">
+                    <span className="text-[var(--color-text-secondary)]">{ds.owner}</span> · {ds.ownerTeam}
                   </span>
-                  <span className="text-xs text-zinc-600">{formatNumber(ds.rowCount)} rows</span>
-                  <span className="text-xs text-zinc-600">{ds.sizeGB} GB</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{formatNumber(ds.rowCount)} rows</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{ds.sizeGB} GB</span>
                 </div>
               </div>
               <div className="flex-shrink-0 flex flex-col items-end gap-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-zinc-500">Quality</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">Quality</span>
                   <span className={cn("text-sm font-bold", qualityColor(ds.qualityScore))}>
                     {ds.qualityScore}%
                   </span>
                 </div>
-                <div className="w-24 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="w-24 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div
                     className={cn("h-full rounded-full transition-all", qualityBg(ds.qualityScore))}
                     style={{ width: ds.qualityScore + "%" }}
@@ -1234,7 +1234,7 @@ function BrowseTab({ domainFilter, onClearDomainFilter }: BrowseTabProps) {
           </button>
         ))}
         {filtered.length === 0 && (
-          <div className="text-center py-20 text-zinc-600">
+          <div className="text-center py-20 text-[var(--color-text-muted)]">
             <div className="text-4xl mb-3">⊘</div>
             <p className="text-sm">No datasets match your filters</p>
           </div>
@@ -1261,12 +1261,12 @@ function DomainsTab({ onSelectDomain }: DomainsTabProps) {
         <button
           key={domain.id}
           onClick={() => onSelectDomain(domain.id)}
-          className="text-left bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-indigo-600 transition-all group"
+          className="text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 hover:border-indigo-600 transition-all group"
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
               <span className={cn("w-3 h-3 rounded-full flex-shrink-0", domain.color)} />
-              <h3 className="text-base font-semibold text-white group-hover:text-indigo-300 transition-colors">
+              <h3 className="text-base font-semibold text-[var(--color-text-primary)] group-hover:text-indigo-300 transition-colors">
                 {domain.label}
               </h3>
             </div>
@@ -1274,19 +1274,19 @@ function DomainsTab({ onSelectDomain }: DomainsTabProps) {
               <span className={cn("text-lg font-bold leading-none", qualityColor(domain.qualityScore))}>
                 {domain.qualityScore}%
               </span>
-              <span className="text-xs text-zinc-600 mt-0.5">quality</span>
+              <span className="text-xs text-[var(--color-text-muted)] mt-0.5">quality</span>
             </div>
           </div>
 
-          <p className="text-xs text-zinc-500 mb-4 line-clamp-2">{domain.description}</p>
+          <p className="text-xs text-[var(--color-text-muted)] mb-4 line-clamp-2">{domain.description}</p>
 
           <div className="flex items-center gap-4 mb-4">
             <div className="text-center">
-              <div className="text-lg font-bold text-white">{domain.datasetCount}</div>
-              <div className="text-xs text-zinc-600">datasets</div>
+              <div className="text-lg font-bold text-[var(--color-text-primary)]">{domain.datasetCount}</div>
+              <div className="text-xs text-[var(--color-text-muted)]">datasets</div>
             </div>
             <div className="flex-1">
-              <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
                   className={cn("h-full rounded-full", domain.color)}
                   style={{ width: domain.qualityScore + "%" }}
@@ -1295,22 +1295,22 @@ function DomainsTab({ onSelectDomain }: DomainsTabProps) {
             </div>
           </div>
 
-          <div className="border-t border-zinc-800 pt-3 mb-3">
-            <p className="text-xs text-zinc-600 mb-1.5 font-medium">Top Contributors</p>
+          <div className="border-t border-[var(--color-border)] pt-3 mb-3">
+            <p className="text-xs text-[var(--color-text-muted)] mb-1.5 font-medium">Top Contributors</p>
             <div className="flex flex-wrap gap-1.5">
               {domain.topContributors.map((c) => (
-                <span key={c} className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full">
+                <span key={c} className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-2 py-0.5 rounded-full">
                   {c}
                 </span>
               ))}
             </div>
           </div>
 
-          <div className="border-t border-zinc-800 pt-3">
-            <p className="text-xs text-zinc-600 mb-1.5 font-medium">Recent Activity</p>
+          <div className="border-t border-[var(--color-border)] pt-3">
+            <p className="text-xs text-[var(--color-text-muted)] mb-1.5 font-medium">Recent Activity</p>
             <ul className="space-y-1">
               {domain.recentActivity.slice(0, 2).map((activity) => (
-                <li key={activity} className="text-xs text-zinc-500 flex items-start gap-1.5">
+                <li key={activity} className="text-xs text-[var(--color-text-muted)] flex items-start gap-1.5">
                   <span className="text-indigo-500 mt-0.5 flex-shrink-0">·</span>
                   {activity}
                 </li>
@@ -1318,7 +1318,7 @@ function DomainsTab({ onSelectDomain }: DomainsTabProps) {
             </ul>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-zinc-800">
+          <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
             <span className="text-xs text-indigo-500 group-hover:text-indigo-400 transition-colors">
               Browse {domain.datasetCount} datasets →
             </span>
@@ -1361,13 +1361,13 @@ function GlossaryTab() {
             placeholder="Search terms, definitions, aliases…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
         <select
           value={domainFilter}
           onChange={(e) => setDomainFilter(e.target.value as Domain | "")}
-          className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500 transition-colors"
         >
           <option value="">All Domains</option>
           {DATA_DOMAINS.map((d) => (
@@ -1377,14 +1377,14 @@ function GlossaryTab() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm text-zinc-300 focus:outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500 transition-colors"
         >
           <option value="">All Categories</option>
           {categories.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
-        <span className="text-sm text-zinc-500 ml-auto">{filtered.length} terms</span>
+        <span className="text-sm text-[var(--color-text-muted)] ml-auto">{filtered.length} terms</span>
       </div>
 
       {/* Terms list */}
@@ -1395,22 +1395,22 @@ function GlossaryTab() {
             <div
               key={term.id}
               className={cn(
-                "bg-zinc-900 border rounded-xl overflow-hidden transition-all",
-                isExpanded ? "border-indigo-700" : "border-zinc-800"
+                "bg-[var(--color-surface-1)] border rounded-xl overflow-hidden transition-all",
+                isExpanded ? "border-indigo-700" : "border-[var(--color-border)]"
               )}
             >
               <button
-                className="w-full text-left p-4 hover:bg-zinc-800/40 transition-colors"
+                className="w-full text-left p-4 hover:bg-[var(--color-surface-2)]/40 transition-colors"
                 onClick={() => setExpandedTerm(isExpanded ? null : term.id)}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="text-sm font-semibold text-white">{term.term}</h3>
+                      <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{term.term}</h3>
                       {term.aliases.length > 0 && (
                         <div className="flex gap-1.5">
                           {term.aliases.slice(0, 2).map((alias) => (
-                            <span key={alias} className="text-xs bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">
+                            <span key={alias} className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-muted)] px-1.5 py-0.5 rounded">
                               {alias}
                             </span>
                           ))}
@@ -1421,30 +1421,30 @@ function GlossaryTab() {
                       <span className={cn("text-xs px-2 py-0.5 rounded font-medium", domainBadgeColor(term.domain))}>
                         {term.domain}
                       </span>
-                      <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">
+                      <span className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-2 py-0.5 rounded">
                         {term.category}
                       </span>
-                      <span className="text-xs text-zinc-600">{term.owner}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{term.owner}</span>
                     </div>
                   </div>
                   <span className={cn(
-                    "text-zinc-500 transition-transform flex-shrink-0 mt-1",
+                    "text-[var(--color-text-muted)] transition-transform flex-shrink-0 mt-1",
                     isExpanded ? "rotate-180" : ""
                   )}>
                     ▾
                   </span>
                 </div>
                 {!isExpanded && (
-                  <p className="text-xs text-zinc-500 mt-2 line-clamp-2">{term.definition}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mt-2 line-clamp-2">{term.definition}</p>
                 )}
               </button>
 
               {isExpanded && (
-                <div className="px-4 pb-4 border-t border-zinc-800">
-                  <p className="text-sm text-zinc-300 mt-4 leading-relaxed">{term.definition}</p>
+                <div className="px-4 pb-4 border-t border-[var(--color-border)]">
+                  <p className="text-sm text-[var(--color-text-primary)] mt-4 leading-relaxed">{term.definition}</p>
                   <div className="mt-4 grid grid-cols-2 gap-4">
                     <div>
-                      <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                      <h4 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
                         Related Datasets
                       </h4>
                       <div className="space-y-1">
@@ -1456,17 +1456,17 @@ function GlossaryTab() {
                       </div>
                     </div>
                     <div>
-                      <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                      <h4 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
                         Aliases
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
                         {term.aliases.map((alias) => (
-                          <span key={alias} className="text-xs bg-zinc-800 text-zinc-300 px-2 py-1 rounded">
+                          <span key={alias} className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-primary)] px-2 py-1 rounded">
                             {alias}
                           </span>
                         ))}
                         {term.aliases.length === 0 && (
-                          <span className="text-xs text-zinc-600">None</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">None</span>
                         )}
                       </div>
                     </div>
@@ -1477,7 +1477,7 @@ function GlossaryTab() {
           )
         })}
         {filtered.length === 0 && (
-          <div className="text-center py-20 text-zinc-600">
+          <div className="text-center py-20 text-[var(--color-text-muted)]">
             <div className="text-4xl mb-3">⊘</div>
             <p className="text-sm">No terms match your search</p>
           </div>
@@ -1539,26 +1539,26 @@ function QualityTab() {
           { label: "Accuracy", value: avgAccuracy + "%", sub: "avg across datasets" },
           { label: "Uniqueness", value: avgUniqueness + "%", sub: "avg across datasets" },
         ].map((card) => (
-          <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <p className="text-xs text-zinc-500 mb-1">{card.label}</p>
+          <div key={card.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+            <p className="text-xs text-[var(--color-text-muted)] mb-1">{card.label}</p>
             <p className={cn("text-2xl font-bold", qualityColor(parseInt(card.value)))}>
               {card.value}
             </p>
-            <p className="text-xs text-zinc-600 mt-0.5">{card.sub}</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{card.sub}</p>
           </div>
         ))}
       </div>
 
       {/* Line chart: Quality over time */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-        <h3 className="text-sm font-semibold text-white mb-1">Overall Quality Score — Last 30 Days</h3>
-        <p className="text-xs text-zinc-500 mb-5">Weighted average quality score across all catalog datasets</p>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Overall Quality Score — Last 30 Days</h3>
+        <p className="text-xs text-[var(--color-text-muted)] mb-5">Weighted average quality score across all catalog datasets</p>
 
         <div className="flex gap-4">
           {/* Y axis labels */}
           <div className="flex flex-col justify-between text-right w-8 flex-shrink-0">
             {[chartMax, Math.round(chartMin + chartRange * 0.75), Math.round(chartMin + chartRange * 0.5), Math.round(chartMin + chartRange * 0.25), chartMin].map((val) => (
-              <span key={val} className="text-xs text-zinc-600">{val}</span>
+              <span key={val} className="text-xs text-[var(--color-text-muted)]">{val}</span>
             ))}
           </div>
 
@@ -1567,7 +1567,7 @@ function QualityTab() {
             {/* Grid lines */}
             <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
               {[0, 1, 2, 3, 4].map((i) => (
-                <div key={i} className="border-t border-zinc-800 w-full" />
+                <div key={i} className="border-t border-[var(--color-border)] w-full" />
               ))}
             </div>
 
@@ -1588,7 +1588,7 @@ function QualityTab() {
                       />
                       {/* Tooltip */}
                       <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                        <div className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-white whitespace-nowrap">
+                        <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] whitespace-nowrap">
                           {point.score}%
                         </div>
                       </div>
@@ -1603,7 +1603,7 @@ function QualityTab() {
               {QUALITY_HISTORY.map((point, i) => (
                 <div key={i} className="flex-1 text-center">
                   {i % 3 === 0 && (
-                    <span className="text-xs text-zinc-600">{point.date.replace("Feb ", "")}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{point.date.replace("Feb ", "")}</span>
                   )}
                 </div>
               ))}
@@ -1613,13 +1613,13 @@ function QualityTab() {
       </div>
 
       {/* Quality heatmap */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-        <h3 className="text-sm font-semibold text-white mb-1">Quality Dimensions Heatmap</h3>
-        <p className="text-xs text-zinc-500 mb-5">Per-dataset scores across completeness, accuracy, freshness, and uniqueness dimensions</p>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Quality Dimensions Heatmap</h3>
+        <p className="text-xs text-[var(--color-text-muted)] mb-5">Per-dataset scores across completeness, accuracy, freshness, and uniqueness dimensions</p>
 
         {/* Legend */}
         <div className="flex items-center gap-4 mb-5 flex-wrap">
-          <span className="text-xs text-zinc-500">Score:</span>
+          <span className="text-xs text-[var(--color-text-muted)]">Score:</span>
           {[
             { label: "≥95%", color: "bg-emerald-600" },
             { label: "85–95%", color: "bg-emerald-700" },
@@ -1629,7 +1629,7 @@ function QualityTab() {
           ].map((l) => (
             <div key={l.label} className="flex items-center gap-1.5">
               <span className={cn("w-3 h-3 rounded-sm flex-shrink-0", l.color)} />
-              <span className="text-xs text-zinc-500">{l.label}</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{l.label}</span>
             </div>
           ))}
         </div>
@@ -1639,13 +1639,13 @@ function QualityTab() {
           <table className="w-full text-xs">
             <thead>
               <tr>
-                <th className="text-left py-2 pr-4 text-zinc-500 font-medium w-48">Dataset</th>
+                <th className="text-left py-2 pr-4 text-[var(--color-text-muted)] font-medium w-48">Dataset</th>
                 {dimensions.map((d) => (
-                  <th key={d.key} className="text-center py-2 px-2 text-zinc-500 font-medium min-w-24">
+                  <th key={d.key} className="text-center py-2 px-2 text-[var(--color-text-muted)] font-medium min-w-24">
                     {d.label}
                   </th>
                 ))}
-                <th className="text-center py-2 px-2 text-zinc-500 font-medium min-w-20">Overall</th>
+                <th className="text-center py-2 px-2 text-[var(--color-text-muted)] font-medium min-w-20">Overall</th>
               </tr>
             </thead>
             <tbody>
@@ -1657,9 +1657,9 @@ function QualityTab() {
                   ds.uniqueness,
                 ]
                 return (
-                  <tr key={ds.id} className="border-t border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
+                  <tr key={ds.id} className="border-t border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/30 transition-colors">
                     <td className="py-2 pr-4">
-                      <div className="font-mono text-zinc-300 truncate max-w-44">{ds.name}</div>
+                      <div className="font-mono text-[var(--color-text-primary)] truncate max-w-44">{ds.name}</div>
                       <div className={cn("text-xs mt-0.5", domainBadgeColor(ds.domain).split(" ")[1])}>
                         {ds.domain}
                       </div>
@@ -1668,7 +1668,7 @@ function QualityTab() {
                       <td key={i} className="py-2 px-2 text-center">
                         <div
                           className={cn(
-                            "inline-flex items-center justify-center w-14 h-7 rounded text-white text-xs font-semibold",
+                            "inline-flex items-center justify-center w-14 h-7 rounded text-[var(--color-text-primary)] text-xs font-semibold",
                             heatmapColor(score)
                           )}
                         >
@@ -1679,7 +1679,7 @@ function QualityTab() {
                     <td className="py-2 px-2 text-center">
                       <div
                         className={cn(
-                          "inline-flex items-center justify-center w-14 h-7 rounded text-white text-xs font-bold",
+                          "inline-flex items-center justify-center w-14 h-7 rounded text-[var(--color-text-primary)] text-xs font-bold",
                           heatmapColor(ds.qualityScore)
                         )}
                       >
@@ -1695,14 +1695,14 @@ function QualityTab() {
       </div>
 
       {/* Domain quality breakdown */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-        <h3 className="text-sm font-semibold text-white mb-1">Quality by Domain</h3>
-        <p className="text-xs text-zinc-500 mb-5">Average quality scores per data domain</p>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Quality by Domain</h3>
+        <p className="text-xs text-[var(--color-text-muted)] mb-5">Average quality scores per data domain</p>
         <div className="space-y-3">
           {DATA_DOMAINS.toSorted((a, b) => b.qualityScore - a.qualityScore).map((domain) => (
             <div key={domain.id} className="flex items-center gap-4">
-              <div className="w-28 text-sm text-zinc-300 flex-shrink-0">{domain.label}</div>
-              <div className="flex-1 h-4 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="w-28 text-sm text-[var(--color-text-primary)] flex-shrink-0">{domain.label}</div>
+              <div className="flex-1 h-4 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
                   className={cn("h-full rounded-full transition-all", domain.color)}
                   style={{ width: domain.qualityScore + "%" }}
@@ -1711,7 +1711,7 @@ function QualityTab() {
               <span className={cn("w-12 text-right text-sm font-semibold flex-shrink-0", qualityColor(domain.qualityScore))}>
                 {domain.qualityScore}%
               </span>
-              <span className="text-xs text-zinc-600 w-20 flex-shrink-0">
+              <span className="text-xs text-[var(--color-text-muted)] w-20 flex-shrink-0">
                 {domain.datasetCount} datasets
               </span>
             </div>
@@ -1741,38 +1741,38 @@ export default function DataCatalog() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Page header */}
         <div className="mb-8">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Data Catalog</h1>
-              <p className="text-sm text-zinc-500 mt-1">
+              <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Data Catalog</h1>
+              <p className="text-sm text-[var(--color-text-muted)] mt-1">
                 Discover, understand, and access your organization's data assets
               </p>
             </div>
             <div className="flex items-center gap-6">
               <div className="text-center">
-                <div className="text-xl font-bold text-white">{DATASETS.length}</div>
-                <div className="text-xs text-zinc-500">datasets</div>
+                <div className="text-xl font-bold text-[var(--color-text-primary)]">{DATASETS.length}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">datasets</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold text-white">{DATA_DOMAINS.length}</div>
-                <div className="text-xs text-zinc-500">domains</div>
+                <div className="text-xl font-bold text-[var(--color-text-primary)]">{DATA_DOMAINS.length}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">domains</div>
               </div>
               <div className="text-center">
                 <div className="text-xl font-bold text-emerald-400">
                   {Math.round(DATASETS.reduce((s, d) => s + d.qualityScore, 0) / DATASETS.length)}%
                 </div>
-                <div className="text-xs text-zinc-500">avg quality</div>
+                <div className="text-xs text-[var(--color-text-muted)]">avg quality</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 mb-8 border-b border-zinc-800">
+        <div className="flex items-center gap-1 mb-8 border-b border-[var(--color-border)]">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -1781,7 +1781,7 @@ export default function DataCatalog() {
                 "flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
                 activeTab === tab.id
                   ? "text-indigo-400 border-indigo-500"
-                  : "text-zinc-500 border-transparent hover:text-zinc-300 hover:border-zinc-700"
+                  : "text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
               )}
             >
               {tab.label}
@@ -1791,7 +1791,7 @@ export default function DataCatalog() {
                     "text-xs px-1.5 py-0.5 rounded-full font-normal",
                     activeTab === tab.id
                       ? "bg-indigo-950 text-indigo-400"
-                      : "bg-zinc-800 text-zinc-500"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                   )}
                 >
                   {tab.count}

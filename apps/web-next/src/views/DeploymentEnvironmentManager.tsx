@@ -251,14 +251,14 @@ function healthColor(h: HealthStatus): string {
   if (h === "healthy") {return "text-emerald-400"}
   if (h === "degraded") {return "text-amber-400"}
   if (h === "down") {return "text-rose-400"}
-  return "text-zinc-500"
+  return "text-[var(--color-text-muted)]"
 }
 
 function healthDot(h: HealthStatus): string {
   if (h === "healthy") {return "bg-emerald-400"}
   if (h === "degraded") {return "bg-amber-400"}
   if (h === "down") {return "bg-rose-500"}
-  return "bg-zinc-600"
+  return "bg-[var(--color-surface-3)]"
 }
 
 function statusColor(s: DeployStatus): string {
@@ -266,7 +266,7 @@ function statusColor(s: DeployStatus): string {
   if (s === "failed") {return "text-rose-400"}
   if (s === "in_progress") {return "text-indigo-400"}
   if (s === "rolled_back") {return "text-amber-400"}
-  return "text-zinc-400"
+  return "text-[var(--color-text-secondary)]"
 }
 
 function statusBadge(s: DeployStatus): string {
@@ -274,13 +274,13 @@ function statusBadge(s: DeployStatus): string {
   if (s === "failed") {return "bg-rose-500/15 text-rose-400 border-rose-500/30"}
   if (s === "in_progress") {return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30"}
   if (s === "rolled_back") {return "bg-amber-500/15 text-amber-400 border-amber-500/30"}
-  return "bg-zinc-800 text-zinc-400 border-zinc-700"
+  return "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]"
 }
 
 function roleBadge(r: AccessRole): string {
   if (r === "admin") {return "bg-rose-500/15 text-rose-400 border-rose-500/30"}
   if (r === "deployer") {return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30"}
-  return "bg-zinc-800 text-zinc-400 border-zinc-700"
+  return "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]"
 }
 
 function approvalBadge(s: ApprovalStatus): string {
@@ -292,10 +292,10 @@ function approvalBadge(s: ApprovalStatus): string {
 function MiniBar({ value, color }: { value: number; color: string }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="w-20 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="w-20 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
         <div className={cn("h-full rounded-full", color)} style={{ width: `${value}%` }} />
       </div>
-      <span className="text-xs text-zinc-500">{value}%</span>
+      <span className="text-xs text-[var(--color-text-muted)]">{value}%</span>
     </div>
   )
 }
@@ -316,13 +316,13 @@ function EnvHealthBadge({ health }: { health: HealthStatus }) {
 function ServiceRow({ svc }: { svc: Service }) {
   const replicaOk = svc.replicas === svc.desiredReplicas
   return (
-    <div className="flex items-center gap-4 px-4 py-3 border-b border-zinc-800 last:border-0 hover:bg-zinc-800/40 transition-colors">
+    <div className="flex items-center gap-4 px-4 py-3 border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-surface-2)]/40 transition-colors">
       <div className="flex items-center gap-2 w-44 min-w-0">
         <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", healthDot(svc.status))} />
-        <span className="text-sm text-white truncate">{svc.name}</span>
+        <span className="text-sm text-[var(--color-text-primary)] truncate">{svc.name}</span>
       </div>
-      <span className="text-xs text-zinc-500 font-mono w-36 flex-shrink-0">{svc.version}</span>
-      <span className={cn("text-xs w-20 flex-shrink-0", replicaOk ? "text-zinc-400" : "text-amber-400")}>
+      <span className="text-xs text-[var(--color-text-muted)] font-mono w-36 flex-shrink-0">{svc.version}</span>
+      <span className={cn("text-xs w-20 flex-shrink-0", replicaOk ? "text-[var(--color-text-secondary)]" : "text-amber-400")}>
         {svc.replicas}/{svc.desiredReplicas} pods
       </span>
       <div className="w-28 flex-shrink-0">
@@ -338,39 +338,39 @@ function ServiceRow({ svc }: { svc: Service }) {
 function EnvDetail({ env }: { env: Environment }) {
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="p-5 border-b border-zinc-800">
+      <div className="p-5 border-b border-[var(--color-border)]">
         <div className="flex items-start justify-between mb-3">
           <div>
-            <h3 className="text-white font-semibold text-lg">{env.name}</h3>
-            <p className="text-zinc-500 text-sm mt-0.5">{env.slug} · {env.region}</p>
+            <h3 className="text-[var(--color-text-primary)] font-semibold text-lg">{env.name}</h3>
+            <p className="text-[var(--color-text-muted)] text-sm mt-0.5">{env.slug} · {env.region}</p>
           </div>
           <EnvHealthBadge health={env.health} />
         </div>
         <div className="grid grid-cols-3 gap-3 mt-4">
-          <div className="bg-zinc-800 rounded-lg p-3">
-            <p className="text-zinc-500 text-xs mb-1">Last Deploy</p>
-            <p className="text-white text-sm font-medium">{timeAgo(env.lastDeploy)}</p>
-            <p className="text-zinc-500 text-xs">by {env.lastDeployBy}</p>
+          <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+            <p className="text-[var(--color-text-muted)] text-xs mb-1">Last Deploy</p>
+            <p className="text-[var(--color-text-primary)] text-sm font-medium">{timeAgo(env.lastDeploy)}</p>
+            <p className="text-[var(--color-text-muted)] text-xs">by {env.lastDeployBy}</p>
           </div>
-          <div className="bg-zinc-800 rounded-lg p-3">
-            <p className="text-zinc-500 text-xs mb-1">Deploys (30d)</p>
-            <p className="text-white text-sm font-medium">{env.deployCount}</p>
-            <p className="text-zinc-500 text-xs">deployments</p>
+          <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+            <p className="text-[var(--color-text-muted)] text-xs mb-1">Deploys (30d)</p>
+            <p className="text-[var(--color-text-primary)] text-sm font-medium">{env.deployCount}</p>
+            <p className="text-[var(--color-text-muted)] text-xs">deployments</p>
           </div>
-          <div className="bg-zinc-800 rounded-lg p-3">
-            <p className="text-zinc-500 text-xs mb-1">Uptime</p>
+          <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+            <p className="text-[var(--color-text-muted)] text-xs mb-1">Uptime</p>
             <p className={cn("text-sm font-medium", env.uptime > 99.5 ? "text-emerald-400" : env.uptime > 98 ? "text-amber-400" : "text-rose-400")}>{env.uptime}%</p>
-            <p className="text-zinc-500 text-xs">30-day avg</p>
+            <p className="text-[var(--color-text-muted)] text-xs">30-day avg</p>
           </div>
         </div>
         <div className="mt-3 flex items-center gap-2">
-          <span className="text-zinc-500 text-xs">Branch:</span>
+          <span className="text-[var(--color-text-muted)] text-xs">Branch:</span>
           <code className="text-indigo-400 text-xs bg-indigo-500/10 px-2 py-0.5 rounded font-mono">{env.branch}</code>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="flex items-center gap-4 px-4 py-2 bg-zinc-800/60 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wide">
+        <div className="flex items-center gap-4 px-4 py-2 bg-[var(--color-surface-2)]/60 border-b border-[var(--color-border)] text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
           <span className="w-44">Service</span>
           <span className="w-36">Version</span>
           <span className="w-20">Replicas</span>
@@ -399,21 +399,21 @@ function EnvironmentsTab() {
               "w-full text-left rounded-xl border p-4 transition-all",
               selectedId === env.id
                 ? "border-indigo-500/50 bg-indigo-500/10"
-                : "border-zinc-800 bg-zinc-900 hover:border-zinc-700 hover:bg-zinc-800"
+                : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className={cn("text-sm font-semibold", selectedId === env.id ? "text-white" : "text-white")}>{env.name}</span>
+              <span className={cn("text-sm font-semibold", selectedId === env.id ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)]")}>{env.name}</span>
               <span className={cn("w-2 h-2 rounded-full", healthDot(env.health))} />
             </div>
-            <p className="text-xs text-zinc-500 mb-1">{env.slug} · {env.services.length} services</p>
-            <p className="text-xs text-zinc-500">Deployed {timeAgo(env.lastDeploy)}</p>
+            <p className="text-xs text-[var(--color-text-muted)] mb-1">{env.slug} · {env.services.length} services</p>
+            <p className="text-xs text-[var(--color-text-muted)]">Deployed {timeAgo(env.lastDeploy)}</p>
           </button>
         ))}
       </div>
 
       {/* Detail */}
-      <div className="flex-1 bg-zinc-900 rounded-xl border border-zinc-800 flex flex-col min-h-0 overflow-hidden">
+      <div className="flex-1 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] flex flex-col min-h-0 overflow-hidden">
         <EnvDetail env={selected} />
       </div>
     </div>
@@ -444,18 +444,18 @@ function DeploymentsTab() {
               "px-3 py-1.5 rounded-lg text-sm font-medium border transition-all capitalize",
               filterEnv === env
                 ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/40"
-                : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-300"
+                : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {env}
           </button>
         ))}
-        <span className="ml-auto text-sm text-zinc-500">{filtered.length} events</span>
+        <span className="ml-auto text-sm text-[var(--color-text-muted)]">{filtered.length} events</span>
       </div>
 
       {/* Events */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-        <div className="grid grid-cols-[1fr_120px_130px_140px_120px_130px] gap-4 px-5 py-2.5 bg-zinc-800/60 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wide">
+      <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+        <div className="grid grid-cols-[1fr_120px_130px_140px_120px_130px] gap-4 px-5 py-2.5 bg-[var(--color-surface-2)]/60 border-b border-[var(--color-border)] text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
           <span>Service / Message</span>
           <span>Environment</span>
           <span>Version</span>
@@ -466,21 +466,21 @@ function DeploymentsTab() {
         {filtered.map(dep => {
           const wasRolledBack = rolledBack.includes(dep.id)
           return (
-            <div key={dep.id} className="grid grid-cols-[1fr_120px_130px_140px_120px_130px] gap-4 px-5 py-4 border-b border-zinc-800 last:border-0 hover:bg-zinc-800/30 transition-colors items-center">
+            <div key={dep.id} className="grid grid-cols-[1fr_120px_130px_140px_120px_130px] gap-4 px-5 py-4 border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-surface-2)]/30 transition-colors items-center">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-white">{dep.service}</span>
-                  <code className="text-xs text-zinc-500 font-mono">{dep.commit}</code>
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">{dep.service}</span>
+                  <code className="text-xs text-[var(--color-text-muted)] font-mono">{dep.commit}</code>
                 </div>
-                <p className="text-xs text-zinc-500 mt-0.5 truncate">{dep.message}</p>
-                <p className="text-xs text-zinc-600 mt-0.5">{timeAgo(dep.deployedAt)} · {dep.duration}</p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5 truncate">{dep.message}</p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{timeAgo(dep.deployedAt)} · {dep.duration}</p>
               </div>
-              <span className="text-sm text-zinc-300 capitalize">{dep.env}</span>
+              <span className="text-sm text-[var(--color-text-primary)] capitalize">{dep.env}</span>
               <div>
-                <p className="text-xs font-mono text-white">{dep.version}</p>
-                <p className="text-xs font-mono text-zinc-600">← {dep.previousVersion}</p>
+                <p className="text-xs font-mono text-[var(--color-text-primary)]">{dep.version}</p>
+                <p className="text-xs font-mono text-[var(--color-text-muted)]">← {dep.previousVersion}</p>
               </div>
-              <span className="text-sm text-zinc-300">{dep.deployedBy}</span>
+              <span className="text-sm text-[var(--color-text-primary)]">{dep.deployedBy}</span>
               <span className={cn("text-xs font-medium px-2 py-1 rounded-md border inline-block", statusBadge(wasRolledBack ? "rolled_back" : dep.status))}>
                 {wasRolledBack ? "rolled back" : dep.status.replace(/_/g, " ")}
               </span>
@@ -488,13 +488,13 @@ function DeploymentsTab() {
                 {!wasRolledBack && dep.status !== "in_progress" && dep.env !== "prod" && (
                   <button
                     onClick={() => handleRollback(dep.id)}
-                    className="text-xs px-2.5 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white transition-all"
+                    className="text-xs px-2.5 py-1.5 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] transition-all"
                   >
                     ↩ Rollback
                   </button>
                 )}
                 {dep.env === "prod" && !wasRolledBack && dep.status !== "in_progress" && (
-                  <span className="text-xs text-zinc-600 italic">Approval req.</span>
+                  <span className="text-xs text-[var(--color-text-muted)] italic">Approval req.</span>
                 )}
                 {wasRolledBack && (
                   <span className="text-xs text-amber-400">✓ Initiated</span>
@@ -537,7 +537,7 @@ function ConfigTab() {
                 "px-3 py-1.5 rounded-lg text-sm font-medium border transition-all capitalize",
                 selectedEnvId === env.id
                   ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/40"
-                  : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-300"
+                  : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {env.slug}
@@ -551,7 +551,7 @@ function ConfigTab() {
               "px-3 py-1.5 rounded-lg text-sm font-medium border transition-all flex items-center gap-1.5",
               diffMode
                 ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/40"
-                : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700"
+                : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)]"
             )}
           >
             <span>⎇</span> Diff vs staging
@@ -560,8 +560,8 @@ function ConfigTab() {
       </div>
 
       {/* Table */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-        <div className="grid grid-cols-[240px_1fr_120px_160px_130px] gap-4 px-5 py-2.5 bg-zinc-800/60 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wide">
+      <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+        <div className="grid grid-cols-[240px_1fr_120px_160px_130px] gap-4 px-5 py-2.5 bg-[var(--color-surface-2)]/60 border-b border-[var(--color-border)] text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
           <span>Key</span>
           <span>Value</span>
           <span>Type</span>
@@ -575,34 +575,34 @@ function ConfigTab() {
             <div
               key={v.key}
               className={cn(
-                "grid grid-cols-[240px_1fr_120px_160px_130px] gap-4 px-5 py-3.5 border-b border-zinc-800 last:border-0 transition-colors items-start",
-                diffMode && diff === "different" ? "bg-amber-500/5 hover:bg-amber-500/10" : "hover:bg-zinc-800/30",
+                "grid grid-cols-[240px_1fr_120px_160px_130px] gap-4 px-5 py-3.5 border-b border-[var(--color-border)] last:border-0 transition-colors items-start",
+                diffMode && diff === "different" ? "bg-amber-500/5 hover:bg-amber-500/10" : "hover:bg-[var(--color-surface-2)]/30",
                 diffMode && diff === "new" ? "bg-emerald-500/5 hover:bg-emerald-500/10" : ""
               )}
             >
               <div className="flex items-center gap-2">
-                <code className="text-sm font-mono text-white">{v.key}</code>
+                <code className="text-sm font-mono text-[var(--color-text-primary)]">{v.key}</code>
                 {diffMode && diff === "different" && <span className="text-xs text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">changed</span>}
                 {diffMode && diff === "new" && <span className="text-xs text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">new</span>}
               </div>
               <div>
-                <code className={cn("text-sm font-mono", v.secret ? "text-zinc-600" : "text-indigo-300")}>{v.value}</code>
+                <code className={cn("text-sm font-mono", v.secret ? "text-[var(--color-text-muted)]" : "text-indigo-300")}>{v.value}</code>
                 {diffMode && diff === "different" && stagingVal && (
-                  <p className="text-xs font-mono text-zinc-500 mt-1 line-through">{stagingVal} <span className="no-underline text-zinc-600">(staging)</span></p>
+                  <p className="text-xs font-mono text-[var(--color-text-muted)] mt-1 line-through">{stagingVal} <span className="no-underline text-[var(--color-text-muted)]">(staging)</span></p>
                 )}
               </div>
-              <span className={cn("text-xs px-2 py-0.5 rounded-md border inline-block", v.secret ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-zinc-800 text-zinc-400 border-zinc-700")}>
+              <span className={cn("text-xs px-2 py-0.5 rounded-md border inline-block", v.secret ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]")}>
                 {v.secret ? "secret" : "plain"}
               </span>
-              <span className="text-sm text-zinc-400">{v.modifiedBy}</span>
-              <span className="text-sm text-zinc-500">{v.lastModified}</span>
+              <span className="text-sm text-[var(--color-text-secondary)]">{v.modifiedBy}</span>
+              <span className="text-sm text-[var(--color-text-muted)]">{v.lastModified}</span>
             </div>
           )
         })}
       </div>
 
       {diffMode && selectedEnvId !== "env-staging" && (
-        <div className="flex items-center gap-4 text-xs text-zinc-500">
+        <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
           <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-amber-500/30 inline-block" /> Changed vs staging</span>
           <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-emerald-500/20 inline-block" /> Not in staging</span>
         </div>
@@ -631,26 +631,26 @@ function AccessTab() {
     <div className="flex flex-col gap-6">
       {/* Pending Approvals */}
       {pendingCount > 0 && (
-        <div className="bg-zinc-900 rounded-xl border border-amber-500/30 overflow-hidden">
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-amber-500/30 overflow-hidden">
           <div className="px-5 py-3 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2">
             <span className="text-amber-400 text-sm font-semibold">⏳ Pending Approvals</span>
             <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-medium">{pendingCount}</span>
           </div>
-          <div className="divide-y divide-zinc-800">
+          <div className="divide-y divide-[var(--color-border)]">
             {approvals.map(req => {
               const env = ENVIRONMENTS.find(e => e.id === req.envId)
               return (
                 <div key={req.id} className="px-5 py-4 flex items-center gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-white">{req.requestedBy}</span>
-                      <span className="text-zinc-500 text-xs">→</span>
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">{req.requestedBy}</span>
+                      <span className="text-[var(--color-text-muted)] text-xs">→</span>
                       <span className={cn("text-xs px-2 py-0.5 rounded border", roleBadge(req.role))}>{req.role}</span>
-                      <span className="text-xs text-zinc-500">on</span>
-                      <span className="text-xs text-white font-medium">{env?.name}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">on</span>
+                      <span className="text-xs text-[var(--color-text-primary)] font-medium">{env?.name}</span>
                     </div>
-                    <p className="text-xs text-zinc-400 truncate">{req.reason}</p>
-                    <p className="text-xs text-zinc-600 mt-0.5">{timeAgo(req.requestedAt)}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)] truncate">{req.reason}</p>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{timeAgo(req.requestedAt)}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {req.status === "pending" ? (
@@ -684,7 +684,7 @@ function AccessTab() {
       {/* Access list */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-zinc-400 mr-1">Filter:</span>
+          <span className="text-sm text-[var(--color-text-secondary)] mr-1">Filter:</span>
           {[{ id: "all", label: "All" }, ...ENVIRONMENTS.map(e => ({ id: e.id, label: e.name }))].map(opt => (
             <button
               key={opt.id}
@@ -693,7 +693,7 @@ function AccessTab() {
                 "px-3 py-1.5 rounded-lg text-sm font-medium border transition-all",
                 selectedEnvId === opt.id
                   ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/40"
-                  : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-300"
+                  : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {opt.label}
@@ -701,8 +701,8 @@ function AccessTab() {
           ))}
         </div>
 
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-          <div className="grid grid-cols-[1fr_160px_120px_120px_80px] gap-4 px-5 py-2.5 bg-zinc-800/60 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wide">
+        <div className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+          <div className="grid grid-cols-[1fr_160px_120px_120px_80px] gap-4 px-5 py-2.5 bg-[var(--color-surface-2)]/60 border-b border-[var(--color-border)] text-xs text-[var(--color-text-muted)] uppercase tracking-wide">
             <span>User</span>
             <span>Environment</span>
             <span>Role</span>
@@ -712,16 +712,16 @@ function AccessTab() {
           {filteredAccess.map(entry => {
             const env = ENVIRONMENTS.find(e => e.id === entry.envId)
             return (
-              <div key={entry.id} className="grid grid-cols-[1fr_160px_120px_120px_80px] gap-4 px-5 py-3.5 border-b border-zinc-800 last:border-0 hover:bg-zinc-800/30 transition-colors items-center">
+              <div key={entry.id} className="grid grid-cols-[1fr_160px_120px_120px_80px] gap-4 px-5 py-3.5 border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-surface-2)]/30 transition-colors items-center">
                 <div>
-                  <p className="text-sm text-white font-medium">{entry.name}</p>
-                  <p className="text-xs text-zinc-500">{entry.email}</p>
+                  <p className="text-sm text-[var(--color-text-primary)] font-medium">{entry.name}</p>
+                  <p className="text-xs text-[var(--color-text-muted)]">{entry.email}</p>
                 </div>
-                <span className="text-sm text-zinc-300">{env?.name}</span>
+                <span className="text-sm text-[var(--color-text-primary)]">{env?.name}</span>
                 <span className={cn("text-xs px-2 py-0.5 rounded-md border inline-block w-fit", roleBadge(entry.role))}>{entry.role}</span>
                 <div>
-                  <p className="text-sm text-zinc-400">{entry.grantedBy}</p>
-                  <p className="text-xs text-zinc-600">{entry.grantedAt}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{entry.grantedBy}</p>
+                  <p className="text-xs text-[var(--color-text-muted)]">{entry.grantedAt}</p>
                 </div>
                 <span className={cn("text-xs font-medium", entry.mfaEnabled ? "text-emerald-400" : "text-rose-400")}>
                   {entry.mfaEnabled ? "✓ On" : "✕ Off"}
@@ -756,12 +756,12 @@ export default function DeploymentEnvironmentManager() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 flex flex-col gap-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Deployment Environment Manager</h1>
-          <p className="text-zinc-400 text-sm mt-1">Manage environments, track deployments, configure variables, and control access.</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Deployment Environment Manager</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Manage environments, track deployments, configure variables, and control access.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-xs text-emerald-400">
@@ -784,7 +784,7 @@ export default function DeploymentEnvironmentManager() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-zinc-800 pb-0">
+      <div className="flex items-center gap-1 border-b border-[var(--color-border)] pb-0">
         {TABS.map(tab => (
           <button
             key={tab.id}
@@ -792,8 +792,8 @@ export default function DeploymentEnvironmentManager() {
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px",
               activeTab === tab.id
-                ? "border-indigo-500 text-white"
-                : "border-transparent text-zinc-500 hover:text-zinc-300 hover:border-zinc-600"
+                ? "border-indigo-500 text-[var(--color-text-primary)]"
+                : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
             )}
           >
             <span>{tab.icon}</span>

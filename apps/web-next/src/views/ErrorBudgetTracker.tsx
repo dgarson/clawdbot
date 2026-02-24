@@ -137,7 +137,7 @@ function BudgetBar({ used, total, status }: { used: number; total: number; statu
   const pct = Math.min((used / total) * 100, 100);
   const color = status === "breached" ? "bg-rose-500" : status === "at-risk" ? "bg-amber-400" : "bg-emerald-400";
   return (
-    <div className="relative h-2 bg-zinc-800 rounded overflow-hidden">
+    <div className="relative h-2 bg-[var(--color-surface-2)] rounded overflow-hidden">
       <div className={cn("h-full rounded transition-all", color)} style={{ width: `${pct}%` }} />
       {pct >= 80 && (
         <div className="absolute right-0 top-0 bottom-0 w-px bg-rose-500 opacity-50" />
@@ -187,37 +187,37 @@ export default function ErrorBudgetTracker() {
   const breachedCount = SLOS.filter(s => s.status === "breached").length;
 
   return (
-    <div className="flex h-full bg-zinc-950 overflow-hidden flex-col">
+    <div className="flex h-full bg-[var(--color-surface-0)] overflow-hidden flex-col">
       {/* Header */}
-      <div className="flex items-center gap-6 px-6 py-3 border-b border-zinc-800 bg-zinc-900 flex-shrink-0">
+      <div className="flex items-center gap-6 px-6 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-1)] flex-shrink-0">
         <div>
-          <div className="text-sm font-semibold text-white">Error Budget Tracker</div>
-          <div className="text-xs text-zinc-500 mt-0.5">30-day rolling window · SLO compliance</div>
+          <div className="text-sm font-semibold text-[var(--color-text-primary)]">Error Budget Tracker</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-0.5">30-day rolling window · SLO compliance</div>
         </div>
         <div className="flex items-center gap-4 ml-6">
           <div className="text-center">
             <div className="text-sm font-bold text-emerald-400">{healthyCount}</div>
-            <div className="text-[10px] text-zinc-500">Healthy</div>
+            <div className="text-[10px] text-[var(--color-text-muted)]">Healthy</div>
           </div>
           <div className="text-center">
             <div className="text-sm font-bold text-amber-400">{atRiskCount}</div>
-            <div className="text-[10px] text-zinc-500">At Risk</div>
+            <div className="text-[10px] text-[var(--color-text-muted)]">At Risk</div>
           </div>
           <div className="text-center">
             <div className="text-sm font-bold text-rose-400">{breachedCount}</div>
-            <div className="text-[10px] text-zinc-500">Breached</div>
+            <div className="text-[10px] text-[var(--color-text-muted)]">Breached</div>
           </div>
         </div>
 
         {/* Burn rate window */}
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-[10px] text-zinc-500">Burn Rate Window:</span>
-          <div className="flex rounded border border-zinc-700 overflow-hidden">
+          <span className="text-[10px] text-[var(--color-text-muted)]">Burn Rate Window:</span>
+          <div className="flex rounded border border-[var(--color-border)] overflow-hidden">
             {(["1h", "6h", "24h"] as BurnRateWindow[]).map(w => (
               <button
                 key={w}
                 onClick={() => setBurnWindow(w)}
-                className={cn("text-xs px-3 py-1 transition-colors", burnWindow === w ? "bg-indigo-500 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white")}
+                className={cn("text-xs px-3 py-1 transition-colors", burnWindow === w ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
               >
                 {w}
               </button>
@@ -243,14 +243,14 @@ export default function ErrorBudgetTracker() {
                   );
                 })}
               </div>
-              <button onClick={() => setShowAlerts(false)} className="text-[10px] text-zinc-500 hover:text-zinc-300">Dismiss</button>
+              <button onClick={() => setShowAlerts(false)} className="text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">Dismiss</button>
             </div>
           )}
 
           {/* SLO table */}
           <table className="w-full">
             <thead>
-              <tr className="border-b border-zinc-800 text-[10px] text-zinc-500 uppercase tracking-wider">
+              <tr className="border-b border-[var(--color-border)] text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">
                 <th className="text-left px-4 py-3">SLO</th>
                 <th className="text-left px-4 py-3">Status</th>
                 <th className="text-left px-4 py-3 w-32">Error Budget</th>
@@ -259,7 +259,7 @@ export default function ErrorBudgetTracker() {
                 <th className="text-left px-4 py-3">Current SLI</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/50">
+            <tbody className="divide-y divide-[var(--color-border)]/50">
               {SLOS.map(slo => {
                 const budgetPct = Math.min((slo.errorBudgetUsedMinutes / slo.errorBudgetMinutes) * 100, 100);
                 const burnRate = getBurnRate(slo);
@@ -268,14 +268,14 @@ export default function ErrorBudgetTracker() {
                   <tr
                     key={slo.id}
                     onClick={() => setSelectedSLOId(isSelected ? null : slo.id)}
-                    className={cn("cursor-pointer hover:bg-zinc-900 transition-colors", isSelected && "bg-indigo-500/5")}
+                    className={cn("cursor-pointer hover:bg-[var(--color-surface-1)] transition-colors", isSelected && "bg-indigo-500/5")}
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <span className={cn("w-2 h-2 rounded-full flex-shrink-0", statusDot(slo.status))} />
                         <div>
-                          <div className="text-sm font-medium text-white">{slo.name}</div>
-                          <div className="text-[10px] text-zinc-500">{slo.service} · Target {slo.target}%</div>
+                          <div className="text-sm font-medium text-[var(--color-text-primary)]">{slo.name}</div>
+                          <div className="text-[10px] text-[var(--color-text-muted)]">{slo.service} · Target {slo.target}%</div>
                         </div>
                       </div>
                     </td>
@@ -287,7 +287,7 @@ export default function ErrorBudgetTracker() {
                     <td className="px-4 py-3">
                       <div className="space-y-1">
                         <BudgetBar used={slo.errorBudgetUsedMinutes} total={slo.errorBudgetMinutes} status={slo.status} />
-                        <div className="text-[10px] text-zinc-500">
+                        <div className="text-[10px] text-[var(--color-text-muted)]">
                           {budgetPct.toFixed(0)}% used · {(slo.errorBudgetMinutes - slo.errorBudgetUsedMinutes).toFixed(1)}m left
                         </div>
                       </div>
@@ -296,7 +296,7 @@ export default function ErrorBudgetTracker() {
                       <span className={cn("text-sm font-bold font-mono", burnRateColor(burnRate))}>
                         {burnRate.toFixed(1)}×
                       </span>
-                      <div className="text-[10px] text-zinc-600">
+                      <div className="text-[10px] text-[var(--color-text-muted)]">
                         {burnRate > 1 ? `⚠ ${(burnRate).toFixed(1)}× faster than replenish rate` : "Within safe range"}
                       </div>
                     </td>
@@ -307,7 +307,7 @@ export default function ErrorBudgetTracker() {
                       <span className={cn("text-sm font-mono font-semibold", slo.current >= slo.target ? "text-emerald-400" : "text-rose-400")}>
                         {slo.current.toFixed(2)}%
                       </span>
-                      <div className="text-[10px] text-zinc-600">vs {slo.target}% target</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">vs {slo.target}% target</div>
                     </td>
                   </tr>
                 );
@@ -318,13 +318,13 @@ export default function ErrorBudgetTracker() {
 
         {/* Detail panel */}
         {selectedSLO && (
-          <div className="w-80 flex-shrink-0 border-l border-zinc-800 bg-zinc-900 overflow-y-auto p-4">
+          <div className="w-80 flex-shrink-0 border-l border-[var(--color-border)] bg-[var(--color-surface-1)] overflow-y-auto p-4">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <div className="text-sm font-semibold text-white">{selectedSLO.name}</div>
-                <div className="text-[10px] text-zinc-500 mt-0.5">{selectedSLO.service}</div>
+                <div className="text-sm font-semibold text-[var(--color-text-primary)]">{selectedSLO.name}</div>
+                <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{selectedSLO.service}</div>
               </div>
-              <button onClick={() => setSelectedSLOId(null)} className="text-zinc-500 hover:text-white text-xs">✕</button>
+              <button onClick={() => setSelectedSLOId(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xs">✕</button>
             </div>
 
             {/* Status */}
@@ -338,20 +338,20 @@ export default function ErrorBudgetTracker() {
 
             {/* Error budget breakdown */}
             <div className="mb-4">
-              <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">Error Budget (30d)</div>
+              <div className="text-[10px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Error Budget (30d)</div>
               <div className="space-y-2">
                 <div className="flex justify-between text-xs">
-                  <span className="text-zinc-400">Total budget</span>
-                  <span className="text-white">{selectedSLO.errorBudgetMinutes.toFixed(1)} min</span>
+                  <span className="text-[var(--color-text-secondary)]">Total budget</span>
+                  <span className="text-[var(--color-text-primary)]">{selectedSLO.errorBudgetMinutes.toFixed(1)} min</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-zinc-400">Used</span>
+                  <span className="text-[var(--color-text-secondary)]">Used</span>
                   <span className={selectedSLO.status === "breached" ? "text-rose-400" : "text-amber-400"}>
                     {selectedSLO.errorBudgetUsedMinutes.toFixed(1)} min
                   </span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-zinc-400">Remaining</span>
+                  <span className="text-[var(--color-text-secondary)]">Remaining</span>
                   <span className="text-emerald-400">
                     {Math.max(0, selectedSLO.errorBudgetMinutes - selectedSLO.errorBudgetUsedMinutes).toFixed(1)} min
                   </span>
@@ -366,7 +366,7 @@ export default function ErrorBudgetTracker() {
 
             {/* Burn rates */}
             <div className="mb-4">
-              <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">Burn Rates</div>
+              <div className="text-[10px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Burn Rates</div>
               <div className="space-y-2">
                 {[
                   { label: "1-hour",  rate: selectedSLO.burnRate1h },
@@ -374,8 +374,8 @@ export default function ErrorBudgetTracker() {
                   { label: "24-hour", rate: selectedSLO.burnRate24h },
                 ].map(({ label, rate }) => (
                   <div key={label} className="flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-500 w-14">{label}</span>
-                    <div className="flex-1 h-1.5 bg-zinc-800 rounded overflow-hidden">
+                    <span className="text-[10px] text-[var(--color-text-muted)] w-14">{label}</span>
+                    <div className="flex-1 h-1.5 bg-[var(--color-surface-2)] rounded overflow-hidden">
                       <div
                         className={cn("h-full rounded", rate < 1 ? "bg-emerald-400" : rate < 5 ? "bg-amber-400" : "bg-rose-500")}
                         style={{ width: `${Math.min(rate * 10, 100)}%` }}
@@ -391,7 +391,7 @@ export default function ErrorBudgetTracker() {
 
             {/* Alerts for this SLO */}
             <div>
-              <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+              <div className="text-[10px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">
                 Alerts ({ALERTS.filter(a => a.sloId === selectedSLO.id).length})
               </div>
               <div className="space-y-1.5">
@@ -402,10 +402,10 @@ export default function ErrorBudgetTracker() {
                       "flex items-center gap-2 px-3 py-2 rounded border text-[10px]",
                       alert.triggered
                         ? "bg-rose-500/10 border-rose-500/30 text-rose-300"
-                        : "bg-zinc-800 border-zinc-700 text-zinc-500"
+                        : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)]"
                     )}
                   >
-                    <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", alert.triggered ? "bg-rose-500 animate-pulse" : "bg-zinc-600")} />
+                    <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", alert.triggered ? "bg-rose-500 animate-pulse" : "bg-[var(--color-surface-3)]")} />
                     <span>{alert.window} burn rate &gt; {alert.threshold}×</span>
                     {alert.triggeredAt && <span className="ml-auto">{alert.triggeredAt}</span>}
                   </div>

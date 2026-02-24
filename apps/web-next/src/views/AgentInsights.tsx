@@ -201,19 +201,19 @@ function BarChart({ data, labels, color, label, formatValue }: BarChartProps) {
 
   return (
     <div>
-      <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">{label}</p>
+      <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">{label}</p>
       <div className="flex items-end gap-0" aria-label={label}>
         {data.map((v, i) => {
           const barH = max > 0 ? Math.max(4, (v / max) * H) : 4;
           return (
             <div key={i} className="flex flex-col items-center gap-1" style={{ width: barW + gap, paddingRight: gap }}>
-              <span className="text-xs text-zinc-600 tabular-nums" style={{ fontSize: "0.6rem" }}>{formatValue(v)}</span>
+              <span className="text-xs text-[var(--color-text-muted)] tabular-nums" style={{ fontSize: "0.6rem" }}>{formatValue(v)}</span>
               <div
                 className={cn("w-full rounded-t-sm transition-all", color)}
                 style={{ height: barH, width: barW }}
                 title={`${labels[i]}: ${formatValue(v)}`}
               />
-              <span className="text-zinc-600 tabular-nums" style={{ fontSize: "0.6rem" }}>{labels[i]}</span>
+              <span className="text-[var(--color-text-muted)] tabular-nums" style={{ fontSize: "0.6rem" }}>{labels[i]}</span>
             </div>
           );
         })}
@@ -231,13 +231,13 @@ function StatusBadge({ status }: { status: AgentStat["status"] }) {
     <span className={cn(
       "inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded-full ring-1",
       status === "active"  && "bg-emerald-500/15 text-emerald-300 ring-emerald-500/25",
-      status === "idle"    && "bg-zinc-500/15 text-zinc-400 ring-zinc-500/25",
+      status === "idle"    && "bg-[var(--color-surface-3)]/15 text-[var(--color-text-secondary)] ring-zinc-500/25",
       status === "offline" && "bg-rose-500/15 text-rose-300 ring-rose-500/25",
     )}>
       <span className={cn(
         "h-1.5 w-1.5 rounded-full",
         status === "active"  && "bg-emerald-500",
-        status === "idle"    && "bg-zinc-500",
+        status === "idle"    && "bg-[var(--color-surface-3)]",
         status === "offline" && "bg-rose-500",
       )} />
       {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -260,24 +260,24 @@ function AgentListItem({ agent, selected, onSelect }: AgentListItemProps) {
       aria-selected={selected}
       onClick={onSelect}
       className={cn(
-        "w-full flex items-center gap-3 px-4 py-3 text-left border-b border-zinc-800/50 transition-colors",
-        "hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-        selected && "bg-zinc-900 border-l-2 border-l-indigo-500"
+        "w-full flex items-center gap-3 px-4 py-3 text-left border-b border-[var(--color-border)]/50 transition-colors",
+        "hover:bg-[var(--color-surface-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
+        selected && "bg-[var(--color-surface-1)] border-l-2 border-l-indigo-500"
       )}
     >
-      <div className="flex-none h-9 w-9 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-lg">
+      <div className="flex-none h-9 w-9 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center text-lg">
         {agent.emoji}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-white">{agent.name}</span>
+          <span className="text-sm font-semibold text-[var(--color-text-primary)]">{agent.name}</span>
           <StatusBadge status={agent.status} />
         </div>
-        <p className="text-xs text-zinc-500 truncate">{agent.role}</p>
+        <p className="text-xs text-[var(--color-text-muted)] truncate">{agent.role}</p>
       </div>
       <div className="text-right flex-none">
-        <p className="text-xs font-mono text-zinc-300">{fmtTokens(agent.totalTokens)}</p>
-        <p className="text-xs text-zinc-600">tokens</p>
+        <p className="text-xs font-mono text-[var(--color-text-primary)]">{fmtTokens(agent.totalTokens)}</p>
+        <p className="text-xs text-[var(--color-text-muted)]">tokens</p>
       </div>
     </button>
   );
@@ -289,40 +289,40 @@ function AgentDetailPanel({ agent }: { agent: AgentStat }) {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center gap-4">
-          <div className="h-14 w-14 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-3xl">
+          <div className="h-14 w-14 rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center text-3xl">
             {agent.emoji}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-white">{agent.name}</h2>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{agent.name}</h2>
               <StatusBadge status={agent.status} />
             </div>
-            <p className="text-sm text-zinc-500">{agent.role}</p>
-            <p className="text-xs text-zinc-600 mt-0.5 font-mono">{agent.model} · last active {relTime(agent.lastActive)}</p>
+            <p className="text-sm text-[var(--color-text-muted)]">{agent.role}</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5 font-mono">{agent.model} · last active {relTime(agent.lastActive)}</p>
           </div>
         </div>
       </div>
 
       {/* KPI row */}
-      <div className="flex-none grid grid-cols-2 sm:grid-cols-4 gap-px bg-zinc-800 border-b border-zinc-800">
+      <div className="flex-none grid grid-cols-2 sm:grid-cols-4 gap-px bg-[var(--color-surface-2)] border-b border-[var(--color-border)]">
         {[
           { label: "Total Sessions",  value: agent.totalSessions.toLocaleString(), sub: "all time" },
           { label: "Total Tokens",    value: fmtTokens(agent.totalTokens),         sub: `$${agent.totalCostUsd.toFixed(2)} spent` },
           { label: "Avg Session",     value: fmtDuration(agent.avgSessionDuration), sub: "duration" },
           { label: "Avg Response",    value: `${agent.avgResponseMs.toLocaleString()}ms`, sub: "response time" },
         ].map(({ label, value, sub }) => (
-          <div key={label} className="bg-zinc-950 px-5 py-4">
-            <p className="text-xs text-zinc-500">{label}</p>
-            <p className="text-lg font-semibold text-white mt-1 tabular-nums">{value}</p>
-            <p className="text-xs text-zinc-600">{sub}</p>
+          <div key={label} className="bg-[var(--color-surface-0)] px-5 py-4">
+            <p className="text-xs text-[var(--color-text-muted)]">{label}</p>
+            <p className="text-lg font-semibold text-[var(--color-text-primary)] mt-1 tabular-nums">{value}</p>
+            <p className="text-xs text-[var(--color-text-muted)]">{sub}</p>
           </div>
         ))}
       </div>
 
       {/* Charts row */}
-      <div className="flex-none px-6 py-5 border-b border-zinc-800 grid grid-cols-1 sm:grid-cols-2 gap-8">
+      <div className="flex-none px-6 py-5 border-b border-[var(--color-border)] grid grid-cols-1 sm:grid-cols-2 gap-8">
         <BarChart
           data={agent.weeklyTokens}
           labels={DAY_LABELS}
@@ -340,10 +340,10 @@ function AgentDetailPanel({ agent }: { agent: AgentStat }) {
       </div>
 
       {/* Performance + actions row */}
-      <div className="flex-none px-6 py-5 border-b border-zinc-800 grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="flex-none px-6 py-5 border-b border-[var(--color-border)] grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Performance */}
         <div>
-          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Performance</p>
+          <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Performance</p>
           <div className="space-y-3">
             {[
               { label: "Success Rate", value: agent.successRate, bar: "bg-emerald-500", text: "text-emerald-400", fmt: (v: number) => `${v.toFixed(1)}%` },
@@ -351,10 +351,10 @@ function AgentDetailPanel({ agent }: { agent: AgentStat }) {
             ].map(({ label, value, bar, text, fmt, invert }) => (
               <div key={label}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-zinc-400">{label}</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">{label}</span>
                   <span className={cn("text-xs font-mono font-semibold", text)}>{fmt(value)}</span>
                 </div>
-                <div className="h-1.5 w-full bg-zinc-800 rounded-full">
+                <div className="h-1.5 w-full bg-[var(--color-surface-2)] rounded-full">
                   <div
                     className={cn("h-1.5 rounded-full", bar)}
                     style={{ width: `${invert ? value * 10 : value}%` }}
@@ -363,13 +363,13 @@ function AgentDetailPanel({ agent }: { agent: AgentStat }) {
               </div>
             ))}
             <div className="grid grid-cols-2 gap-3 mt-1">
-              <div className="px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800">
-                <p className="text-xs text-zinc-500">Cost / Session</p>
-                <p className="text-sm font-mono text-zinc-200 mt-0.5">${(agent.totalCostUsd / agent.totalSessions).toFixed(3)}</p>
+              <div className="px-3 py-2 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)]">
+                <p className="text-xs text-[var(--color-text-muted)]">Cost / Session</p>
+                <p className="text-sm font-mono text-[var(--color-text-primary)] mt-0.5">${(agent.totalCostUsd / agent.totalSessions).toFixed(3)}</p>
               </div>
-              <div className="px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800">
-                <p className="text-xs text-zinc-500">Tokens / Session</p>
-                <p className="text-sm font-mono text-zinc-200 mt-0.5">{fmtTokens(Math.round(agent.totalTokens / agent.totalSessions))}</p>
+              <div className="px-3 py-2 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)]">
+                <p className="text-xs text-[var(--color-text-muted)]">Tokens / Session</p>
+                <p className="text-sm font-mono text-[var(--color-text-primary)] mt-0.5">{fmtTokens(Math.round(agent.totalTokens / agent.totalSessions))}</p>
               </div>
             </div>
           </div>
@@ -377,17 +377,17 @@ function AgentDetailPanel({ agent }: { agent: AgentStat }) {
 
         {/* Top actions */}
         <div>
-          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Top Actions</p>
+          <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Top Actions</p>
           <div className="space-y-2">
             {agent.topActions.map((action, i) => {
               const max = agent.topActions[0].count;
               return (
                 <div key={action.action}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-mono text-zinc-400">{action.action}</span>
-                    <span className="text-xs text-zinc-500 tabular-nums">{action.count}</span>
+                    <span className="text-xs font-mono text-[var(--color-text-secondary)]">{action.action}</span>
+                    <span className="text-xs text-[var(--color-text-muted)] tabular-nums">{action.count}</span>
                   </div>
-                  <div className="h-1 w-full bg-zinc-800 rounded-full">
+                  <div className="h-1 w-full bg-[var(--color-surface-2)] rounded-full">
                     <div
                       className="h-1 rounded-full bg-indigo-500 opacity-80"
                       style={{ width: `${(action.count / max) * 100}%` }}
@@ -402,14 +402,14 @@ function AgentDetailPanel({ agent }: { agent: AgentStat }) {
 
       {/* Collaborators */}
       <div className="flex-none px-6 py-5">
-        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Top Collaborators</p>
+        <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-3">Top Collaborators</p>
         <div className="flex flex-wrap gap-2">
           {agent.collaborators.map((name) => {
             const collab = AGENTS.find((a) => a.name === name);
             return (
-              <div key={name} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800">
+              <div key={name} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)]">
                 <span className="text-base">{collab?.emoji ?? "🤖"}</span>
-                <span className="text-sm text-zinc-300">{name}</span>
+                <span className="text-sm text-[var(--color-text-primary)]">{name}</span>
               </div>
             );
           })}
@@ -446,16 +446,16 @@ export default function AgentInsights() {
   const activeCount = AGENTS.filter((a) => a.status === "active").length;
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-lg font-semibold text-white">Agent Insights</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Per-agent analytics, performance, and usage breakdowns</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Agent Insights</h1>
+            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">Per-agent analytics, performance, and usage breakdowns</p>
           </div>
-          <div className="flex items-center gap-4 text-xs text-zinc-500">
-            <span><span className="text-white font-semibold">{AGENTS.length}</span> agents</span>
+          <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
+            <span><span className="text-[var(--color-text-primary)] font-semibold">{AGENTS.length}</span> agents</span>
             <span><span className="text-emerald-400 font-semibold">{activeCount}</span> active</span>
             <span><span className="text-indigo-400 font-semibold">{fmtTokens(totalTokens)}</span> total tokens</span>
             <span><span className="text-amber-400 font-semibold">${totalCost.toFixed(2)}</span> total cost</span>
@@ -465,22 +465,22 @@ export default function AgentInsights() {
 
       <div className="flex flex-1 min-h-0">
         {/* Left: Agent list */}
-        <div className="w-64 flex-none flex flex-col border-r border-zinc-800">
+        <div className="w-64 flex-none flex flex-col border-r border-[var(--color-border)]">
           {/* Search + sort */}
-          <div className="flex-none px-3 py-2 border-b border-zinc-800 space-y-2">
+          <div className="flex-none px-3 py-2 border-b border-[var(--color-border)] space-y-2">
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Filter agents…"
               aria-label="Filter agents"
-              className="w-full px-3 py-1.5 text-xs bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-1.5 text-xs bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <select
               value={sortKey}
               onChange={(e) => setSortKey(e.target.value as SortKey)}
               aria-label="Sort agents by"
-              className="w-full py-1 pl-2 pr-6 text-xs bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
+              className="w-full py-1 pl-2 pr-6 text-xs bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
             >
               <option value="tokens">Most Tokens</option>
               <option value="sessions">Most Sessions</option>
@@ -500,7 +500,7 @@ export default function AgentInsights() {
               />
             ))}
             {filtered.length === 0 && (
-              <p className="px-4 py-8 text-xs text-zinc-600 text-center">No agents match</p>
+              <p className="px-4 py-8 text-xs text-[var(--color-text-muted)] text-center">No agents match</p>
             )}
           </div>
         </div>

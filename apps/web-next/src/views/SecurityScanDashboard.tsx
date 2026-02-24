@@ -72,14 +72,14 @@ const severityColor: Record<ScanSeverity, string> = {
   high: "text-orange-400 bg-orange-400/10 border-orange-400/20",
   medium: "text-amber-400 bg-amber-400/10 border-amber-400/20",
   low: "text-blue-400 bg-blue-400/10 border-blue-400/20",
-  info: "text-zinc-400 bg-zinc-400/10 border-zinc-400/20",
+  info: "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20",
 }
 
 const findingStatusColor: Record<FindingStatus, string> = {
   open: "text-rose-400",
   "in-progress": "text-amber-400",
   resolved: "text-emerald-400",
-  accepted: "text-zinc-400",
+  accepted: "text-[var(--color-text-secondary)]",
 }
 
 const scanTypeLabel: Record<ScanType, string> = {
@@ -95,7 +95,7 @@ const scanStatusColor: Record<ScanStatus, string> = {
   running: "text-indigo-400",
   completed: "text-emerald-400",
   failed: "text-rose-400",
-  scheduled: "text-zinc-400",
+  scheduled: "text-[var(--color-text-secondary)]",
 }
 
 function SeverityPill({ severity }: { severity: ScanSeverity }) {
@@ -170,12 +170,12 @@ export default function SecurityScanDashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Security Scan Dashboard</h1>
-          <p className="text-zinc-400 text-sm mt-1">SAST · DAST · SCA · Container · IaC · Secrets</p>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">SAST · DAST · SCA · Container · IaC · Secrets</p>
         </div>
         <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm font-medium transition-colors">
           ▶ Run All Scans
@@ -184,30 +184,30 @@ export default function SecurityScanDashboard() {
 
       {/* Severity summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-zinc-900 border border-rose-400/20 rounded-lg p-4 cursor-pointer" onClick={() => setSeverityFilter(severityFilter === "critical" ? "all" : "critical")}>
-          <div className="text-xs text-zinc-400 mb-1">Critical Open</div>
+        <div className="bg-[var(--color-surface-1)] border border-rose-400/20 rounded-lg p-4 cursor-pointer" onClick={() => setSeverityFilter(severityFilter === "critical" ? "all" : "critical")}>
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Critical Open</div>
           <div className="text-3xl font-bold text-rose-400">{openCritical}</div>
-          <div className="text-xs text-zinc-500 mt-1">requires immediate action</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">requires immediate action</div>
         </div>
-        <div className="bg-zinc-900 border border-orange-400/20 rounded-lg p-4 cursor-pointer" onClick={() => setSeverityFilter(severityFilter === "high" ? "all" : "high")}>
-          <div className="text-xs text-zinc-400 mb-1">High Open</div>
+        <div className="bg-[var(--color-surface-1)] border border-orange-400/20 rounded-lg p-4 cursor-pointer" onClick={() => setSeverityFilter(severityFilter === "high" ? "all" : "high")}>
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">High Open</div>
           <div className="text-3xl font-bold text-orange-400">{openHigh}</div>
-          <div className="text-xs text-zinc-500 mt-1">fix within 30 days</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">fix within 30 days</div>
         </div>
-        <div className="bg-zinc-900 border border-amber-400/20 rounded-lg p-4 cursor-pointer" onClick={() => setSeverityFilter(severityFilter === "medium" ? "all" : "medium")}>
-          <div className="text-xs text-zinc-400 mb-1">Medium Open</div>
+        <div className="bg-[var(--color-surface-1)] border border-amber-400/20 rounded-lg p-4 cursor-pointer" onClick={() => setSeverityFilter(severityFilter === "medium" ? "all" : "medium")}>
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Medium Open</div>
           <div className="text-3xl font-bold text-amber-400">{openMedium}</div>
-          <div className="text-xs text-zinc-500 mt-1">next sprint</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">next sprint</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Resolved This Month</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Resolved This Month</div>
           <div className="text-3xl font-bold text-emerald-400">{resolvedTotal}</div>
-          <div className="text-xs text-zinc-500 mt-1">{openTotal} still open</div>
+          <div className="text-xs text-[var(--color-text-muted)] mt-1">{openTotal} still open</div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
+      <div className="flex gap-1 mb-6 border-b border-[var(--color-border)]">
         {tabs.map(t => (
           <button
             key={t.id}
@@ -215,8 +215,8 @@ export default function SecurityScanDashboard() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-white bg-zinc-900"
-                : "border-transparent text-zinc-400 hover:text-zinc-300"
+                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t.emoji} {t.label}
@@ -229,14 +229,14 @@ export default function SecurityScanDashboard() {
         <div className="space-y-4">
           {/* Filters */}
           <div className="flex gap-2 flex-wrap">
-            <select value={severityFilter} onChange={e => setSeverityFilter(e.target.value)} className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white">
+            <select value={severityFilter} onChange={e => setSeverityFilter(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Severities</option>
               <option value="critical">Critical</option>
               <option value="high">High</option>
               <option value="medium">Medium</option>
               <option value="low">Low</option>
             </select>
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white">
+            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Types</option>
               <option value="sast">SAST</option>
               <option value="dast">DAST</option>
@@ -245,37 +245,37 @@ export default function SecurityScanDashboard() {
               <option value="iac">IaC</option>
               <option value="secrets">Secrets</option>
             </select>
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white">
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Statuses</option>
               <option value="open">Open</option>
               <option value="in-progress">In Progress</option>
               <option value="resolved">Resolved</option>
               <option value="accepted">Accepted</option>
             </select>
-            <span className="text-sm text-zinc-400 self-center">{filteredFindings.length} findings</span>
+            <span className="text-sm text-[var(--color-text-secondary)] self-center">{filteredFindings.length} findings</span>
           </div>
 
           <div className="space-y-2">
             {filteredFindings.map(f => (
-              <div key={f.id} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+              <div key={f.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
                 <button
                   onClick={() => setSelectedFinding(selectedFinding === f.id ? null : f.id)}
-                  className="w-full text-left p-4 hover:bg-zinc-800/50 transition-colors"
+                  className="w-full text-left p-4 hover:bg-[var(--color-surface-2)]/50 transition-colors"
                 >
                   <div className="flex items-start gap-3">
                     <SeverityPill severity={f.severity} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-zinc-100">{f.title}</span>
-                        <span className="text-xs px-1.5 py-0.5 bg-zinc-800 text-zinc-400 rounded">{scanTypeLabel[f.scanType]}</span>
+                        <span className="font-medium text-[var(--color-text-primary)]">{f.title}</span>
+                        <span className="text-xs px-1.5 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded">{scanTypeLabel[f.scanType]}</span>
                         {f.cve && <span className="text-xs px-1.5 py-0.5 bg-rose-400/5 border border-rose-400/20 text-rose-300 rounded font-mono">{f.cve}</span>}
-                        {f.cvss && <span className="text-xs text-zinc-500">CVSS {f.cvss}</span>}
+                        {f.cvss && <span className="text-xs text-[var(--color-text-muted)]">CVSS {f.cvss}</span>}
                       </div>
                       {f.file && (
-                        <div className="text-xs text-zinc-500 font-mono mt-0.5">{f.file}{f.line ? `:${f.line}` : ""}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] font-mono mt-0.5">{f.file}{f.line ? `:${f.line}` : ""}</div>
                       )}
                       {f.package && (
-                        <div className="text-xs text-zinc-500 mt-0.5">
+                        <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
                           {f.package} {f.currentVersion} → <span className="text-emerald-400">{f.fixedVersion}</span>
                         </div>
                       )}
@@ -284,24 +284,24 @@ export default function SecurityScanDashboard() {
                       <span className={cn("text-xs font-medium", findingStatusColor[f.status])}>
                         {f.status}
                       </span>
-                      {f.assignee && <span className="text-xs text-zinc-500">@{f.assignee}</span>}
-                      <span className="text-zinc-600">{selectedFinding === f.id ? "▲" : "▼"}</span>
+                      {f.assignee && <span className="text-xs text-[var(--color-text-muted)]">@{f.assignee}</span>}
+                      <span className="text-[var(--color-text-muted)]">{selectedFinding === f.id ? "▲" : "▼"}</span>
                     </div>
                   </div>
                 </button>
 
                 {selectedFinding === f.id && (
-                  <div className="border-t border-zinc-800 p-4 bg-zinc-950 space-y-3">
+                  <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-surface-0)] space-y-3">
                     <div>
-                      <div className="text-xs font-medium text-zinc-400 uppercase mb-1">Description</div>
-                      <p className="text-sm text-zinc-300">{f.description}</p>
+                      <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase mb-1">Description</div>
+                      <p className="text-sm text-[var(--color-text-primary)]">{f.description}</p>
                     </div>
                     <div>
-                      <div className="text-xs font-medium text-zinc-400 uppercase mb-1">Remediation</div>
+                      <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase mb-1">Remediation</div>
                       <p className="text-sm text-emerald-300">{f.remediation}</p>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-zinc-500">First seen: {f.firstSeen}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">First seen: {f.firstSeen}</span>
                       <div className="flex gap-2">
                         <button className="px-3 py-1 text-xs bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-md transition-colors">
                           Assign to Me
@@ -309,7 +309,7 @@ export default function SecurityScanDashboard() {
                         <button className="px-3 py-1 text-xs bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20 rounded-md transition-colors">
                           Mark Resolved
                         </button>
-                        <button className="px-3 py-1 text-xs bg-zinc-800 text-zinc-400 hover:bg-zinc-700 rounded-md transition-colors">
+                        <button className="px-3 py-1 text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] rounded-md transition-colors">
                           Accept Risk
                         </button>
                       </div>
@@ -324,30 +324,30 @@ export default function SecurityScanDashboard() {
 
       {/* Scan Runs Tab */}
       {tab === "scans" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800">
-                <th className="text-left p-3 text-zinc-400 font-medium">Type</th>
-                <th className="text-left p-3 text-zinc-400 font-medium">Target</th>
-                <th className="text-left p-3 text-zinc-400 font-medium">Started</th>
-                <th className="text-left p-3 text-zinc-400 font-medium">Duration</th>
-                <th className="text-left p-3 text-zinc-400 font-medium">Findings</th>
-                <th className="text-left p-3 text-zinc-400 font-medium">Status</th>
+              <tr className="border-b border-[var(--color-border)]">
+                <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Type</th>
+                <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Target</th>
+                <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Started</th>
+                <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Duration</th>
+                <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Findings</th>
+                <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
               {SCANS.map(s => (
-                <tr key={s.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20">
+                <tr key={s.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/20">
                   <td className="p-3">
-                    <span className="text-xs px-2 py-0.5 bg-zinc-800 text-zinc-300 rounded font-mono">{scanTypeLabel[s.type]}</span>
+                    <span className="text-xs px-2 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded font-mono">{scanTypeLabel[s.type]}</span>
                   </td>
                   <td className="p-3">
-                    <div className="text-zinc-300 font-mono text-xs">{s.target}</div>
-                    {s.branch && <div className="text-xs text-zinc-500 mt-0.5">↳ {s.branch}</div>}
+                    <div className="text-[var(--color-text-primary)] font-mono text-xs">{s.target}</div>
+                    {s.branch && <div className="text-xs text-[var(--color-text-muted)] mt-0.5">↳ {s.branch}</div>}
                   </td>
-                  <td className="p-3 text-zinc-400 text-xs">{fmtTime(s.startedAt)}</td>
-                  <td className="p-3 text-zinc-400">{fmtDuration(s.duration)}</td>
+                  <td className="p-3 text-[var(--color-text-secondary)] text-xs">{fmtTime(s.startedAt)}</td>
+                  <td className="p-3 text-[var(--color-text-secondary)]">{fmtDuration(s.duration)}</td>
                   <td className="p-3">
                     {s.status === "completed" ? (
                       <div className="flex items-center gap-1.5 text-xs">
@@ -360,7 +360,7 @@ export default function SecurityScanDashboard() {
                         )}
                       </div>
                     ) : (
-                      <span className="text-zinc-600 text-xs">—</span>
+                      <span className="text-[var(--color-text-muted)] text-xs">—</span>
                     )}
                   </td>
                   <td className="p-3">
@@ -378,8 +378,8 @@ export default function SecurityScanDashboard() {
       {/* Trends Tab */}
       {tab === "trends" && (
         <div className="space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Open Finding Trend (Last 8 Weeks)</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Open Finding Trend (Last 8 Weeks)</h3>
             <div className="flex items-end gap-2 h-40">
               {weeklyTrend.map(w => {
                 const total = w.critical + w.high + w.medium
@@ -390,30 +390,30 @@ export default function SecurityScanDashboard() {
                       <div className="w-full bg-orange-500/70" style={{ height: `${(w.high / maxTrend) * 120}px` }} />
                       <div className="w-full bg-rose-500 rounded-b-sm" style={{ height: `${(w.critical / maxTrend) * 120}px` }} />
                     </div>
-                    <div className="text-xs text-zinc-400 text-center" style={{ fontSize: "10px" }}>{w.week}</div>
-                    <div className="text-xs text-zinc-300 font-mono">{total}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] text-center" style={{ fontSize: "10px" }}>{w.week}</div>
+                    <div className="text-xs text-[var(--color-text-primary)] font-mono">{total}</div>
                   </div>
                 )
               })}
             </div>
-            <div className="flex gap-4 mt-2 text-xs text-zinc-400">
+            <div className="flex gap-4 mt-2 text-xs text-[var(--color-text-secondary)]">
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-rose-500 inline-block" /> Critical</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-orange-500 inline-block" /> High</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-500 inline-block" /> Medium</span>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
               <div className="text-3xl font-bold text-emerald-400">↓ 33%</div>
-              <div className="text-sm text-zinc-400 mt-1">Critical findings reduction (8 weeks)</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Critical findings reduction (8 weeks)</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-zinc-300">4.2d</div>
-              <div className="text-sm text-zinc-400 mt-1">Avg time to resolve critical</div>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
+              <div className="text-3xl font-bold text-[var(--color-text-primary)]">4.2d</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Avg time to resolve critical</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
               <div className="text-3xl font-bold text-indigo-400">94%</div>
-              <div className="text-sm text-zinc-400 mt-1">Scan coverage of codebase</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Scan coverage of codebase</div>
             </div>
           </div>
         </div>
@@ -422,18 +422,18 @@ export default function SecurityScanDashboard() {
       {/* Security Posture Tab */}
       {tab === "posture" && (
         <div className="space-y-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
             <div className="flex items-center justify-between mb-1">
-              <h3 className="text-sm font-medium text-zinc-300">Overall Security Score</h3>
-              <span className="text-xs text-zinc-500">based on open findings + coverage</span>
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Overall Security Score</h3>
+              <span className="text-xs text-[var(--color-text-muted)]">based on open findings + coverage</span>
             </div>
             <div className="flex items-center gap-4 mt-3">
               <div className="text-5xl font-bold text-amber-400">76</div>
               <div className="flex-1">
-                <div className="w-full h-3 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="w-full h-3 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div className="h-full bg-amber-500 rounded-full" style={{ width: "76%" }} />
                 </div>
-                <div className="flex justify-between text-xs text-zinc-500 mt-1">
+                <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
                   <span>0</span>
                   <span>Needs Improvement (60-79)</span>
                   <span>100</span>
@@ -446,17 +446,17 @@ export default function SecurityScanDashboard() {
             {postureCategories.map(cat => {
               const score = cat.score
               return (
-                <div key={cat.name} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                <div key={cat.name} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">{cat.name}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-zinc-400">{cat.trend !== "0" ? (cat.trend.startsWith("+") ? <span className="text-emerald-400">{cat.trend}</span> : <span className="text-rose-400">{cat.trend}</span>) : <span className="text-zinc-500">→</span>}</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">{cat.trend !== "0" ? (cat.trend.startsWith("+") ? <span className="text-emerald-400">{cat.trend}</span> : <span className="text-rose-400">{cat.trend}</span>) : <span className="text-[var(--color-text-muted)]">→</span>}</span>
                       <span className={cn("text-xl font-bold", score >= 80 ? "text-emerald-400" : score >= 65 ? "text-amber-400" : "text-rose-400")}>
                         {score}
                       </span>
                     </div>
                   </div>
-                  <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className={cn("h-full rounded-full", score >= 80 ? "bg-emerald-500" : score >= 65 ? "bg-amber-500" : "bg-rose-500")}
                       style={{ width: `${score}%` }}

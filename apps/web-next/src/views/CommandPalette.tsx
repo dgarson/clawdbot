@@ -75,7 +75,7 @@ const KIND_COLORS: Record<CommandKind, string> = {
   navigate: "text-indigo-400",
   action:   "text-emerald-400",
   agent:    "text-violet-400",
-  file:     "text-zinc-400",
+  file:     "text-[var(--color-text-secondary)]",
   model:    "text-orange-400",
   setting:  "text-amber-400",
   search:   "text-blue-400",
@@ -112,7 +112,7 @@ function CommandItem({ command, active, query, onActivate }: CommandItemProps) {
       className={cn(
         "w-full text-left flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors",
         "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 focus-visible:outline-none",
-        active ? "bg-indigo-600/20 text-white" : "text-zinc-300 hover:bg-zinc-800/60 hover:text-white"
+        active ? "bg-indigo-600/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/60 hover:text-[var(--color-text-primary)]"
       )}
     >
       <span className="text-lg w-7 text-center shrink-0" aria-hidden="true">{command.emoji}</span>
@@ -121,7 +121,7 @@ function CommandItem({ command, active, query, onActivate }: CommandItemProps) {
           {highlight(command.label, query)}
         </p>
         {command.description && (
-          <p className="text-xs text-zinc-500 truncate">{command.description}</p>
+          <p className="text-xs text-[var(--color-text-muted)] truncate">{command.description}</p>
         )}
       </div>
       {command.shortcut && (
@@ -129,7 +129,7 @@ function CommandItem({ command, active, query, onActivate }: CommandItemProps) {
           {command.shortcut.map((k, i) => (
             <kbd
               key={i}
-              className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-700 border border-zinc-600 text-zinc-300 font-mono"
+              className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-surface-3)] border border-[var(--color-surface-3)] text-[var(--color-text-primary)] font-mono"
             >
               {k}
             </kbd>
@@ -217,22 +217,22 @@ export default function CommandPalette() {
   let flatIndex = 0;
 
   return (
-    <main className="flex flex-col h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Command Palette">
+    <main className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden" role="main" aria-label="Command Palette">
       <div className="flex flex-col h-full max-w-2xl mx-auto w-full px-6 py-8">
 
         {/* Page header */}
         <div className="mb-6">
-          <h1 className="text-xl font-bold text-white">Command Palette</h1>
-          <p className="text-sm text-zinc-500 mt-1">
-            Keyboard-driven command interface. Press <kbd className="text-xs bg-zinc-800 border border-zinc-700 px-1.5 py-0.5 rounded font-mono">⌘K</kbd> anywhere to open.
+          <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Command Palette</h1>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">
+            Keyboard-driven command interface. Press <kbd className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] px-1.5 py-0.5 rounded font-mono">⌘K</kbd> anywhere to open.
           </p>
         </div>
 
         {/* Palette UI */}
-        <div className="rounded-2xl bg-zinc-900 border border-zinc-800 overflow-hidden shadow-2xl">
+        <div className="rounded-2xl bg-[var(--color-surface-1)] border border-[var(--color-border)] overflow-hidden shadow-2xl">
           {/* Input */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800">
-            <span className="text-zinc-500 text-lg" aria-hidden="true">🔍</span>
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)]">
+            <span className="text-[var(--color-text-muted)] text-lg" aria-hidden="true">🔍</span>
             <input
               ref={inputRef}
               type="text"
@@ -247,7 +247,7 @@ export default function CommandPalette() {
               aria-expanded="true"
               aria-activedescendant={flatResults[activeIndex] ? `cmd-${flatResults[activeIndex].id}` : undefined}
               className={cn(
-                "flex-1 bg-transparent text-white placeholder:text-zinc-500 text-base outline-none",
+                "flex-1 bg-transparent text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] text-base outline-none",
                 "focus-visible:outline-none"
               )}
             />
@@ -256,14 +256,14 @@ export default function CommandPalette() {
                 onClick={() => setQuery("")}
                 aria-label="Clear search"
                 className={cn(
-                  "text-zinc-500 hover:text-white transition-colors text-sm",
+                  "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors text-sm",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded"
                 )}
               >
                 ✕
               </button>
             )}
-            <kbd className="text-xs text-zinc-600 bg-zinc-800 border border-zinc-700 px-1.5 py-0.5 rounded font-mono">Esc</kbd>
+            <kbd className="text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-2)] border border-[var(--color-border)] px-1.5 py-0.5 rounded font-mono">Esc</kbd>
           </div>
 
           {/* Results */}
@@ -274,14 +274,14 @@ export default function CommandPalette() {
             className="max-h-96 overflow-y-auto p-2"
           >
             {flatResults.length === 0 ? (
-              <div className="text-center py-10 text-zinc-500">
+              <div className="text-center py-10 text-[var(--color-text-muted)]">
                 <p className="text-3xl mb-2">🔍</p>
                 <p className="text-sm">No commands match "{query}"</p>
               </div>
             ) : (
               Object.entries(grouped).map(([cat, cmds]) => (
                 <div key={cat}>
-                  <p className="px-4 py-1 text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">
+                  <p className="px-4 py-1 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-widest">
                     {cat}
                   </p>
                   {cmds.map(cmd => {
@@ -303,7 +303,7 @@ export default function CommandPalette() {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-zinc-800 px-4 py-2 flex items-center gap-4 text-[10px] text-zinc-600">
+          <div className="border-t border-[var(--color-border)] px-4 py-2 flex items-center gap-4 text-[10px] text-[var(--color-text-muted)]">
             <span><kbd className="font-mono">↑↓</kbd> navigate</span>
             <span><kbd className="font-mono">↵</kbd> execute</span>
             <span><kbd className="font-mono">Esc</kbd> clear</span>
@@ -322,8 +322,8 @@ export default function CommandPalette() {
         )}
 
         {/* Shortcut cheatsheet */}
-        <div className="mt-6 rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-          <h2 className="text-sm font-semibold text-white mb-3">Keyboard Shortcuts</h2>
+        <div className="mt-6 rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-4">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Keyboard Shortcuts</h2>
           <div className="grid grid-cols-2 gap-2">
             {[
               { keys: ["⌘", "K"],    label: "Open command palette" },
@@ -338,12 +338,12 @@ export default function CommandPalette() {
               <div key={s.label} className="flex items-center gap-2">
                 <div className="flex items-center gap-1 shrink-0">
                   {s.keys.map((k, i) => (
-                    <kbd key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono">
+                    <kbd key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] font-mono">
                       {k}
                     </kbd>
                   ))}
                 </div>
-                <span className="text-xs text-zinc-500">{s.label}</span>
+                <span className="text-xs text-[var(--color-text-muted)]">{s.label}</span>
               </div>
             ))}
           </div>
@@ -357,9 +357,9 @@ export default function CommandPalette() {
             { label: "Agents",     count: COMMANDS.filter(c => c.kind === "agent").length,    color: "text-violet-400" },
             { label: "Models",     count: COMMANDS.filter(c => c.kind === "model").length,    color: "text-orange-400" },
           ].map(cat => (
-            <div key={cat.label} className="rounded-xl bg-zinc-900 border border-zinc-800 p-3 text-center">
+            <div key={cat.label} className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-3 text-center">
               <p className={cn("text-xl font-bold", cat.color)}>{cat.count}</p>
-              <p className="text-xs text-zinc-500 mt-0.5">{cat.label}</p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{cat.label}</p>
             </div>
           ))}
         </div>

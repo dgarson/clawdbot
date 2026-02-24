@@ -138,8 +138,8 @@ const BUDGET_DATA: BudgetRow[] = [
 // --- Components ---
 
 const Card = ({ children, className, title }: { children: React.ReactNode; className?: string; title?: string }) => (
-  <div className={cn("bg-zinc-900 border border-zinc-800 rounded-xl p-6 overflow-hidden", className)}>
-    {title && <h3 className="text-zinc-400 text-sm font-medium mb-4">{title}</h3>}
+  <div className={cn("bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6 overflow-hidden", className)}>
+    {title && <h3 className="text-[var(--color-text-secondary)] text-sm font-medium mb-4">{title}</h3>}
     {children}
   </div>
 );
@@ -149,7 +149,7 @@ const Badge = ({ children, variant }: { children: React.ReactNode; variant: "suc
     success: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
     error: "bg-rose-400/10 text-rose-400 border-rose-400/20",
     warning: "bg-amber-400/10 text-amber-400 border-amber-400/20",
-    neutral: "bg-zinc-800 text-zinc-400 border-zinc-700",
+    neutral: "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]",
   };
   return (
     <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase border", styles[variant])}>
@@ -178,8 +178,8 @@ const OverviewTab = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {KPI_SUMMARY.map((kpi) => (
           <Card key={kpi.label}>
-            <p className="text-zinc-500 text-xs mb-1 uppercase tracking-wider font-semibold">{kpi.label}</p>
-            <p className="text-2xl font-bold text-white mb-2">{kpi.value}</p>
+            <p className="text-[var(--color-text-muted)] text-xs mb-1 uppercase tracking-wider font-semibold">{kpi.label}</p>
+            <p className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">{kpi.value}</p>
             <div className="flex items-center gap-1.5">
               <span className={cn(
                 "text-xs font-medium",
@@ -187,7 +187,7 @@ const OverviewTab = () => {
               )}>
                 {kpi.trend > 0 ? "↑" : "↓"} {Math.abs(kpi.trend)}%
               </span>
-              <span className="text-zinc-600 text-[10px]">vs last month</span>
+              <span className="text-[var(--color-text-muted)] text-[10px]">vs last month</span>
             </div>
           </Card>
         ))}
@@ -200,7 +200,7 @@ const OverviewTab = () => {
             {/* Grid lines */}
             <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
               {[0, 1, 2, 3, 4].map((i) => (
-                <div key={i} className="border-t border-zinc-800/50 w-full h-px" />
+                <div key={i} className="border-t border-[var(--color-border)]/50 w-full h-px" />
               ))}
             </div>
 
@@ -212,7 +212,7 @@ const OverviewTab = () => {
               if (item.type === "base" || item.type === "total") {
                 height = (item.value / 1300000) * 100;
                 bottom = 0;
-                color = item.type === "total" ? "bg-indigo-600" : "bg-zinc-700";
+                color = item.type === "total" ? "bg-indigo-600" : "bg-[var(--color-surface-3)]";
               } else {
                 const prevSum = REVENUE_WATERFALL.slice(0, i).reduce((acc, curr) => 
                   curr.type === "base" || curr.type === "total" ? curr.value : acc + curr.value, startVal
@@ -235,10 +235,10 @@ const OverviewTab = () => {
                     className={cn("w-full rounded-t-sm transition-all duration-300 group-hover:brightness-110", color)}
                     style={{ height: `${height}%`, marginBottom: `${bottom}%` }}
                   />
-                  <span className="text-[10px] text-zinc-500 mt-2 rotate-[-45deg] origin-top-left whitespace-nowrap">
+                  <span className="text-[10px] text-[var(--color-text-muted)] mt-2 rotate-[-45deg] origin-top-left whitespace-nowrap">
                     {item.label}
                   </span>
-                  <div className="absolute -top-6 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-800 text-white text-[10px] px-2 py-1 rounded border border-zinc-700 pointer-events-none">
+                  <div className="absolute -top-6 opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-[10px] px-2 py-1 rounded border border-[var(--color-border)] pointer-events-none">
                     {formatCurrency(item.value)}
                   </div>
                 </div>
@@ -252,7 +252,7 @@ const OverviewTab = () => {
           <div className="flex flex-col items-center justify-center h-64">
             <div className="relative w-40 h-40">
               {/* Outer ring */}
-              <div className="absolute inset-0 rounded-full border-[12px] border-zinc-800" />
+              <div className="absolute inset-0 rounded-full border-[12px] border-[var(--color-border)]" />
               
               {/* Segmented Ring (Visual Approximation with CSS) */}
               <div className="absolute inset-0 rounded-full border-[12px] border-indigo-500" 
@@ -261,8 +261,8 @@ const OverviewTab = () => {
                    style={{ clipPath: 'polygon(50% 50%, 0% 50%, 0% 0%, 50% 0%)', transform: 'rotate(20deg)' }} />
               
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-white">$1.24M</span>
-                <span className="text-[10px] text-zinc-500 uppercase">Total MRR</span>
+                <span className="text-2xl font-bold text-[var(--color-text-primary)]">$1.24M</span>
+                <span className="text-[10px] text-[var(--color-text-muted)] uppercase">Total MRR</span>
               </div>
             </div>
             
@@ -271,9 +271,9 @@ const OverviewTab = () => {
                 <div key={source.label} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <div className={cn("w-2 h-2 rounded-full", source.color)} />
-                    <span className="text-zinc-400">{source.label}</span>
+                    <span className="text-[var(--color-text-secondary)]">{source.label}</span>
                   </div>
-                  <span className="text-white font-medium">{formatCurrency(source.value)}</span>
+                  <span className="text-[var(--color-text-primary)] font-medium">{formatCurrency(source.value)}</span>
                 </div>
               ))}
             </div>
@@ -286,31 +286,31 @@ const OverviewTab = () => {
             <div className="space-y-4">
                <div className="flex items-end justify-between">
                   <div>
-                    <p className="text-3xl font-bold text-white">$4,250</p>
-                    <p className="text-xs text-zinc-500">Blended CAC</p>
+                    <p className="text-3xl font-bold text-[var(--color-text-primary)]">$4,250</p>
+                    <p className="text-xs text-[var(--color-text-muted)]">Blended CAC</p>
                   </div>
                   <div className="text-right">
                     <p className="text-xl font-semibold text-emerald-400">5.2 months</p>
-                    <p className="text-xs text-zinc-500">Payback Period</p>
+                    <p className="text-xs text-[var(--color-text-muted)]">Payback Period</p>
                   </div>
                </div>
-               <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden flex">
+               <div className="w-full bg-[var(--color-surface-2)] h-2 rounded-full overflow-hidden flex">
                   <div className="h-full bg-indigo-500" style={{ width: '65%' }} />
                   <div className="h-full bg-indigo-400" style={{ width: '25%' }} />
                   <div className="h-full bg-indigo-300" style={{ width: '10%' }} />
                </div>
                <div className="grid grid-cols-3 gap-2 text-[10px]">
-                  <div className="text-zinc-400">● Ad Spend (65%)</div>
-                  <div className="text-zinc-400">● Sales (25%)</div>
-                  <div className="text-zinc-400">● Other (10%)</div>
+                  <div className="text-[var(--color-text-secondary)]">● Ad Spend (65%)</div>
+                  <div className="text-[var(--color-text-secondary)]">● Sales (25%)</div>
+                  <div className="text-[var(--color-text-secondary)]">● Other (10%)</div>
                </div>
             </div>
         </Card>
         <Card title="LTV : CAC Ratio">
             <div className="flex items-center justify-between h-full pb-4">
               <div className="space-y-1">
-                <p className="text-4xl font-bold text-white">4.8x</p>
-                <p className="text-sm text-zinc-400">Health: <span className="text-emerald-400 font-bold">EXCELLENT</span></p>
+                <p className="text-4xl font-bold text-[var(--color-text-primary)]">4.8x</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">Health: <span className="text-emerald-400 font-bold">EXCELLENT</span></p>
               </div>
               <div className="flex items-end gap-1 h-16">
                 {[30, 45, 40, 55, 60, 75, 85].map((h, i) => (
@@ -331,15 +331,15 @@ const PLTab = () => {
     <Card className="p-0 overflow-x-auto">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="border-b border-zinc-800 bg-zinc-900/50">
-            <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Profit & Loss Statement</th>
-            <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider text-right">Current Month</th>
-            <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider text-right">YTD Total</th>
-            <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider text-right">Prior Year (YTD)</th>
-            <th className="px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider text-right">Variance</th>
+          <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
+            <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Profit & Loss Statement</th>
+            <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Current Month</th>
+            <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">YTD Total</th>
+            <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Prior Year (YTD)</th>
+            <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Variance</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-800/50">
+        <tbody className="divide-y divide-[var(--color-border)]/50">
           {PL_DATA.map((row, i) => {
             const variance = ((row.ytd - row.prior) / row.prior) * 100;
             const isRevenue = row.label.includes("Revenue") || row.label.includes("Profit") || row.label === "EBITDA" || row.label === "Net Income";
@@ -348,25 +348,25 @@ const PLTab = () => {
 
             return (
               <tr key={i} className={cn(
-                "hover:bg-zinc-800/30 transition-colors",
-                row.isHeader && "bg-zinc-900/30",
+                "hover:bg-[var(--color-surface-2)]/30 transition-colors",
+                row.isHeader && "bg-[var(--color-surface-1)]/30",
                 row.isTotal && "bg-indigo-500/5"
               )}>
                 <td className={cn(
                   "px-6 py-3 text-sm",
-                  row.isHeader ? "font-bold text-zinc-300" : "text-zinc-400",
-                  row.isTotal ? "font-bold text-white border-t border-zinc-700" : "",
+                  row.isHeader ? "font-bold text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)]",
+                  row.isTotal ? "font-bold text-[var(--color-text-primary)] border-t border-[var(--color-border)]" : "",
                   row.indent ? "pl-10" : ""
                 )}>
                   {row.label}
                 </td>
-                <td className={cn("px-6 py-3 text-sm text-right font-medium", row.isTotal ? "text-white" : "text-zinc-300")}>
+                <td className={cn("px-6 py-3 text-sm text-right font-medium", row.isTotal ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)]")}>
                   {formatCurrency(row.current)}
                 </td>
-                <td className={cn("px-6 py-3 text-sm text-right font-medium", row.isTotal ? "text-white" : "text-zinc-300")}>
+                <td className={cn("px-6 py-3 text-sm text-right font-medium", row.isTotal ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)]")}>
                   {formatCurrency(row.ytd)}
                 </td>
-                <td className="px-6 py-3 text-sm text-right text-zinc-500">
+                <td className="px-6 py-3 text-sm text-right text-[var(--color-text-muted)]">
                   {formatCurrency(row.prior)}
                 </td>
                 <td className={cn(
@@ -391,14 +391,14 @@ const CashFlowTab = () => {
   
   const FlowSection = ({ title, items }: { title: string; items: CashFlowItem[] }) => (
     <div className="mb-6">
-      <h4 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-2 px-2">{title}</h4>
+      <h4 className="text-[var(--color-text-muted)] text-[10px] font-bold uppercase tracking-widest mb-2 px-2">{title}</h4>
       <div className="space-y-1">
         {items.map((item, i) => (
           <div key={i} className={cn(
             "flex justify-between items-center px-2 py-1.5 rounded",
-            item.isTotal ? "bg-zinc-800/50 font-bold border-t border-zinc-700 mt-2" : "text-sm"
+            item.isTotal ? "bg-[var(--color-surface-2)]/50 font-bold border-t border-[var(--color-border)] mt-2" : "text-sm"
           )}>
-            <span className={item.isTotal ? "text-white" : "text-zinc-400"}>{item.label}</span>
+            <span className={item.isTotal ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)]"}>{item.label}</span>
             <span className={cn(
               item.amount < 0 ? "text-rose-400" : "text-emerald-400",
               item.isTotal ? "font-bold" : "font-medium"
@@ -419,12 +419,12 @@ const CashFlowTab = () => {
           <FlowSection title="Investing Activities" items={CASH_FLOW_DATA.investing} />
           <FlowSection title="Financing Activities" items={CASH_FLOW_DATA.financing} />
           
-          <div className="mt-8 pt-4 border-t border-zinc-800">
-            <div className="flex justify-between text-xs text-zinc-500 mb-1">
+          <div className="mt-8 pt-4 border-t border-[var(--color-border)]">
+            <div className="flex justify-between text-xs text-[var(--color-text-muted)] mb-1">
               <span>Beginning Balance</span>
               <span>{formatCurrency(CASH_FLOW_DATA.balances.beginning)}</span>
             </div>
-            <div className="flex justify-between text-lg font-bold text-white">
+            <div className="flex justify-between text-lg font-bold text-[var(--color-text-primary)]">
               <span>Ending Cash Balance</span>
               <span>{formatCurrency(CASH_FLOW_DATA.balances.ending)}</span>
             </div>
@@ -434,7 +434,7 @@ const CashFlowTab = () => {
 
       <div className="lg:col-span-2 space-y-6">
         <Card title="12-Month Cash Position Trend">
-          <div className="h-64 flex items-end justify-between gap-3 mt-8 px-4 border-b border-zinc-800">
+          <div className="h-64 flex items-end justify-between gap-3 mt-8 px-4 border-b border-[var(--color-border)]">
             {CASH_POSITION_HISTORY.map((val, i) => {
               const height = (val / maxCash) * 100;
               const months = ["Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb"];
@@ -444,8 +444,8 @@ const CashFlowTab = () => {
                     className="w-full bg-indigo-500/40 border-t-2 border-indigo-500 rounded-t-sm group-hover:bg-indigo-500/60 transition-all"
                     style={{ height: `${height}%` }}
                   />
-                  <span className="text-[10px] text-zinc-500 mt-2">{months[i]}</span>
-                  <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-800 text-white text-[10px] px-2 py-1 rounded border border-zinc-700 pointer-events-none whitespace-nowrap z-20">
+                  <span className="text-[10px] text-[var(--color-text-muted)] mt-2">{months[i]}</span>
+                  <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-[10px] px-2 py-1 rounded border border-[var(--color-border)] pointer-events-none whitespace-nowrap z-20">
                     {formatCurrency(val)}
                   </div>
                 </div>
@@ -456,14 +456,14 @@ const CashFlowTab = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="bg-emerald-400/5 border-emerald-400/20">
-            <p className="text-zinc-500 text-xs font-medium uppercase mb-1">Free Cash Flow</p>
+            <p className="text-[var(--color-text-muted)] text-xs font-medium uppercase mb-1">Free Cash Flow</p>
             <p className="text-2xl font-bold text-emerald-400">{formatCurrency(130600)}</p>
-            <p className="text-[10px] text-zinc-400 mt-2 italic">Cash from operations minus CapEx</p>
+            <p className="text-[10px] text-[var(--color-text-secondary)] mt-2 italic">Cash from operations minus CapEx</p>
           </Card>
           <Card className="bg-indigo-500/5 border-indigo-500/20">
-            <p className="text-zinc-500 text-xs font-medium uppercase mb-1">Months of Runway</p>
+            <p className="text-[var(--color-text-muted)] text-xs font-medium uppercase mb-1">Months of Runway</p>
             <p className="text-2xl font-bold text-indigo-400">20.4 Months</p>
-            <p className="text-[10px] text-zinc-400 mt-2 italic">Based on 3-month avg net burn</p>
+            <p className="text-[10px] text-[var(--color-text-secondary)] mt-2 italic">Based on 3-month avg net burn</p>
           </Card>
         </div>
       </div>
@@ -491,10 +491,10 @@ const BudgetTab = () => {
                   <div className="w-full flex items-end justify-center gap-1 h-full">
                     {/* Budget Bar */}
                     <div 
-                      className="w-1/2 bg-zinc-800 rounded-t-sm relative group"
+                      className="w-1/2 bg-[var(--color-surface-2)] rounded-t-sm relative group"
                       style={{ height: `${bHeight}%` }}
                     >
-                       <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-zinc-800 text-[8px] px-1 py-0.5 rounded border border-zinc-700 whitespace-nowrap">B: {formatCurrency(d.budget)}</div>
+                       <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-[var(--color-surface-2)] text-[8px] px-1 py-0.5 rounded border border-[var(--color-border)] whitespace-nowrap">B: {formatCurrency(d.budget)}</div>
                     </div>
                     {/* Actual Bar */}
                     <div 
@@ -504,10 +504,10 @@ const BudgetTab = () => {
                       )}
                       style={{ height: `${aHeight}%` }}
                     >
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-zinc-800 text-[8px] px-1 py-0.5 rounded border border-zinc-700 whitespace-nowrap">A: {formatCurrency(d.actual)}</div>
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-[var(--color-surface-2)] text-[8px] px-1 py-0.5 rounded border border-[var(--color-border)] whitespace-nowrap">A: {formatCurrency(d.actual)}</div>
                     </div>
                   </div>
-                  <span className="text-[10px] text-zinc-500 mt-2 truncate w-full text-center">
+                  <span className="text-[10px] text-[var(--color-text-muted)] mt-2 truncate w-full text-center">
                     {d.department}
                   </span>
                 </div>
@@ -515,13 +515,13 @@ const BudgetTab = () => {
             })}
           </div>
           <div className="mt-8 flex justify-center gap-6">
-             <div className="flex items-center gap-2 text-[10px] text-zinc-400">
-               <div className="w-3 h-3 bg-zinc-800 rounded-sm" /> Budget
+             <div className="flex items-center gap-2 text-[10px] text-[var(--color-text-secondary)]">
+               <div className="w-3 h-3 bg-[var(--color-surface-2)] rounded-sm" /> Budget
              </div>
-             <div className="flex items-center gap-2 text-[10px] text-zinc-400">
+             <div className="flex items-center gap-2 text-[10px] text-[var(--color-text-secondary)]">
                <div className="w-3 h-3 bg-emerald-400 rounded-sm" /> Under Budget
              </div>
-             <div className="flex items-center gap-2 text-[10px] text-zinc-400">
+             <div className="flex items-center gap-2 text-[10px] text-[var(--color-text-secondary)]">
                <div className="w-3 h-3 bg-rose-400 rounded-sm" /> Over Budget
              </div>
           </div>
@@ -530,7 +530,7 @@ const BudgetTab = () => {
         <Card title="Variance Analysis (Budget - Actual)">
            <div className="h-80 flex flex-col justify-center relative px-10">
               {/* Zero Line */}
-              <div className="absolute left-10 right-10 top-1/2 border-t-2 border-zinc-800 z-0" />
+              <div className="absolute left-10 right-10 top-1/2 border-t-2 border-[var(--color-border)] z-0" />
               
               <div className="flex items-center justify-between h-full relative z-10">
                 {BUDGET_DATA.map((d) => {
@@ -551,7 +551,7 @@ const BudgetTab = () => {
                           marginBottom: !isPositive ? `-${Math.abs(variancePercent)}%` : '0'
                         }}
                       />
-                      <div className="absolute bottom-4 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-800 text-white text-[10px] px-2 py-1 rounded border border-zinc-700 pointer-events-none whitespace-nowrap">
+                      <div className="absolute bottom-4 opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-[10px] px-2 py-1 rounded border border-[var(--color-border)] pointer-events-none whitespace-nowrap">
                         {isPositive ? "+" : ""}{formatCurrency(variance)}
                       </div>
                     </div>
@@ -559,23 +559,23 @@ const BudgetTab = () => {
                 })}
               </div>
            </div>
-           <p className="text-[10px] text-zinc-500 text-center mt-4 uppercase tracking-tighter">Positive indicates savings (Under budget)</p>
+           <p className="text-[10px] text-[var(--color-text-muted)] text-center mt-4 uppercase tracking-tighter">Positive indicates savings (Under budget)</p>
         </Card>
       </div>
 
       <Card className="p-0">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-zinc-800">
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400">Department</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 text-right">Budget</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 text-right">Actual</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 text-right">Variance $</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 text-right">Variance %</th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-400 text-center">Status</th>
+            <tr className="border-b border-[var(--color-border)]">
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)]">Department</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] text-right">Budget</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] text-right">Actual</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] text-right">Variance $</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] text-right">Variance %</th>
+              <th className="px-6 py-4 text-xs font-semibold text-[var(--color-text-secondary)] text-center">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/50">
+          <tbody className="divide-y divide-[var(--color-border)]/50">
             {BUDGET_DATA.map((d) => {
               const variance = d.budget - d.actual;
               const varPercent = (variance / d.budget) * 100;
@@ -583,10 +583,10 @@ const BudgetTab = () => {
               const isCritical = (d.actual / d.budget) > 1.1;
 
               return (
-                <tr key={d.department} className="hover:bg-zinc-800/30">
-                  <td className="px-6 py-4 text-sm font-medium text-white">{d.department}</td>
-                  <td className="px-6 py-4 text-sm text-zinc-300 text-right">{formatCurrency(d.budget)}</td>
-                  <td className="px-6 py-4 text-sm text-zinc-300 text-right">{formatCurrency(d.actual)}</td>
+                <tr key={d.department} className="hover:bg-[var(--color-surface-2)]/30">
+                  <td className="px-6 py-4 text-sm font-medium text-[var(--color-text-primary)]">{d.department}</td>
+                  <td className="px-6 py-4 text-sm text-[var(--color-text-primary)] text-right">{formatCurrency(d.budget)}</td>
+                  <td className="px-6 py-4 text-sm text-[var(--color-text-primary)] text-right">{formatCurrency(d.actual)}</td>
                   <td className={cn("px-6 py-4 text-sm text-right font-medium", variance >= 0 ? "text-emerald-400" : "text-rose-400")}>
                     {variance >= 0 ? "+" : ""}{formatCurrency(variance)}
                   </td>
@@ -625,17 +625,17 @@ export default function FinancialReportingDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30">
       <div className="max-w-7xl mx-auto px-6 py-8">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Financial Reporting</h1>
-            <p className="text-zinc-500 text-sm mt-1">Fiscal Year 2026 • Reporting Period: February</p>
+            <p className="text-[var(--color-text-muted)] text-sm mt-1">Fiscal Year 2026 • Reporting Period: February</p>
           </div>
           <div className="flex items-center gap-3">
-             <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm font-medium hover:bg-zinc-800 transition-colors">
+             <button className="px-4 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-sm font-medium hover:bg-[var(--color-surface-2)] transition-colors">
                Export PDF
              </button>
              <button className="px-4 py-2 bg-indigo-600 rounded-lg text-sm font-semibold hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/20">
@@ -645,7 +645,7 @@ export default function FinancialReportingDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center border-b border-zinc-800 mb-8 overflow-x-auto no-scrollbar">
+        <div className="flex items-center border-b border-[var(--color-border)] mb-8 overflow-x-auto no-scrollbar">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -654,7 +654,7 @@ export default function FinancialReportingDashboard() {
                 "px-6 py-4 text-sm font-medium transition-all relative whitespace-nowrap",
                 activeTab === tab.id 
                   ? "text-indigo-400" 
-                  : "text-zinc-500 hover:text-zinc-300"
+                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {tab.label}
@@ -674,7 +674,7 @@ export default function FinancialReportingDashboard() {
         </div>
         
         {/* Footer info */}
-        <div className="mt-12 pt-6 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-4 text-zinc-600 text-[10px] uppercase tracking-widest font-bold">
+        <div className="mt-12 pt-6 border-t border-[var(--color-border)] flex flex-col md:flex-row justify-between items-center gap-4 text-[var(--color-text-muted)] text-[10px] uppercase tracking-widest font-bold">
            <div className="flex items-center gap-6">
               <span>Data Updated: 12 minutes ago</span>
               <span>Audit Log: Verified</span>

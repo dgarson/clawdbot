@@ -409,7 +409,7 @@ const DIRECTION_STYLES: Record<WebhookDirection, string> = {
   inbound:
     "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
   outbound:
-    "bg-zinc-700/50 text-zinc-300 border border-zinc-600/40",
+    "bg-[var(--color-surface-3)]/50 text-[var(--color-text-primary)] border border-[var(--color-surface-3)]/40",
 };
 
 function Badge({
@@ -445,13 +445,13 @@ function WebhookCard({ webhook, onToggle, onDelete }: WebhookCardProps) {
 
   return (
     <article
-      className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 flex flex-col gap-3"
+      className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4 flex flex-col gap-3"
       aria-label={`Webhook: ${webhook.name}`}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-1 min-w-0">
-          <h3 className="text-sm font-semibold text-white truncate">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] truncate">
             {webhook.name}
           </h3>
           <div className="flex items-center gap-2 flex-wrap">
@@ -483,7 +483,7 @@ function WebhookCard({ webhook, onToggle, onDelete }: WebhookCardProps) {
             onClick={() => onDelete(webhook.id)}
             aria-label={`Delete webhook ${webhook.name}`}
             className={cn(
-              "rounded-md p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-400/10 transition-colors",
+              "rounded-md p-1.5 text-[var(--color-text-muted)] hover:text-rose-400 hover:bg-rose-400/10 transition-colors",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
             )}
           >
@@ -494,7 +494,7 @@ function WebhookCard({ webhook, onToggle, onDelete }: WebhookCardProps) {
 
       {/* URL */}
       <p
-        className="text-xs text-zinc-400 font-mono truncate"
+        className="text-xs text-[var(--color-text-secondary)] font-mono truncate"
         title={webhook.url}
       >
         {webhook.url}
@@ -505,7 +505,7 @@ function WebhookCard({ webhook, onToggle, onDelete }: WebhookCardProps) {
         {webhook.events.map((e) => (
           <span
             key={e}
-            className="rounded bg-zinc-800 px-1.5 py-0.5 text-[11px] text-zinc-400 font-mono"
+            className="rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[11px] text-[var(--color-text-secondary)] font-mono"
           >
             {e}
           </span>
@@ -513,7 +513,7 @@ function WebhookCard({ webhook, onToggle, onDelete }: WebhookCardProps) {
       </div>
 
       {/* Counts + last triggered */}
-      <div className="flex items-center justify-between border-t border-zinc-800 pt-2 text-xs text-zinc-500">
+      <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-2 text-xs text-[var(--color-text-muted)]">
         <div className="flex items-center gap-3">
           <span className="text-emerald-400">
             ✓ {webhook.successCount.toLocaleString()}
@@ -592,12 +592,12 @@ function AddWebhookModal({ open, onClose, onAdd }: AddModalProps) {
   if (!open) {return null;}
 
   const inputClass = cn(
-    "w-full rounded-md border border-zinc-800 bg-zinc-800 px-3 py-2 text-sm text-white",
-    "placeholder:text-zinc-500",
+    "w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)]",
+    "placeholder:text-[var(--color-text-muted)]",
     "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
   );
 
-  const labelClass = "block text-xs font-medium text-zinc-400 mb-1";
+  const labelClass = "block text-xs font-medium text-[var(--color-text-secondary)] mb-1";
 
   const isValid = name.trim() && url.trim() && eventsRaw.trim();
 
@@ -616,9 +616,9 @@ function AddWebhookModal({ open, onClose, onAdd }: AddModalProps) {
       />
 
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-md rounded-lg border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
+      <div className="relative z-10 w-full max-w-md rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-6 shadow-xl">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-white">
+          <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
             Add Webhook
           </h2>
           <button
@@ -626,7 +626,7 @@ function AddWebhookModal({ open, onClose, onAdd }: AddModalProps) {
             onClick={handleClose}
             aria-label="Close dialog"
             className={cn(
-              "rounded-md p-1 text-zinc-500 hover:text-white transition-colors",
+              "rounded-md p-1 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
             )}
           >
@@ -689,7 +689,7 @@ function AddWebhookModal({ open, onClose, onAdd }: AddModalProps) {
           <div>
             <label htmlFor="wh-secret" className={labelClass}>
               Secret{" "}
-              <span className="text-zinc-600">(optional)</span>
+              <span className="text-[var(--color-text-muted)]">(optional)</span>
             </label>
             <div className="relative">
               <input
@@ -705,7 +705,7 @@ function AddWebhookModal({ open, onClose, onAdd }: AddModalProps) {
                 onClick={() => setShowSecret((v) => !v)}
                 aria-label={showSecret ? "Hide secret" : "Show secret"}
                 className={cn(
-                  "absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors",
+                  "absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded",
                 )}
               >
@@ -718,7 +718,7 @@ function AddWebhookModal({ open, onClose, onAdd }: AddModalProps) {
           <div>
             <label htmlFor="wh-events" className={labelClass}>
               Events{" "}
-              <span className="text-zinc-600">(comma-separated)</span>
+              <span className="text-[var(--color-text-muted)]">(comma-separated)</span>
             </label>
             <input
               id="wh-events"
@@ -737,7 +737,7 @@ function AddWebhookModal({ open, onClose, onAdd }: AddModalProps) {
               type="button"
               onClick={handleClose}
               className={cn(
-                "rounded-md border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-700 transition-colors",
+                "rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] transition-colors",
                 "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
               )}
             >
@@ -747,7 +747,7 @@ function AddWebhookModal({ open, onClose, onAdd }: AddModalProps) {
               type="submit"
               disabled={!isValid}
               className={cn(
-                "rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors",
+                "rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] transition-colors",
                 "hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed",
                 "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
               )}
@@ -790,8 +790,8 @@ function DeliveryLogRow({ log, expanded, onToggle }: LogRowProps) {
     <>
       <tr
         className={cn(
-          "border-b border-zinc-800 cursor-pointer hover:bg-zinc-800/50 transition-colors",
-          expanded && "bg-zinc-800/30",
+          "border-b border-[var(--color-border)] cursor-pointer hover:bg-[var(--color-surface-2)]/50 transition-colors",
+          expanded && "bg-[var(--color-surface-2)]/30",
         )}
         onClick={onToggle}
         role="row"
@@ -804,16 +804,16 @@ function DeliveryLogRow({ log, expanded, onToggle }: LogRowProps) {
           }
         }}
       >
-        <td className="px-3 py-2.5 text-xs text-zinc-400 whitespace-nowrap">
+        <td className="px-3 py-2.5 text-xs text-[var(--color-text-secondary)] whitespace-nowrap">
           <div className="flex items-center gap-1.5">
-            <IconChevron expanded={expanded} className="text-zinc-500" />
+            <IconChevron expanded={expanded} className="text-[var(--color-text-muted)]" />
             {formatTimestamp(log.timestamp)}
           </div>
         </td>
-        <td className="px-3 py-2.5 text-xs text-zinc-300 whitespace-nowrap">
+        <td className="px-3 py-2.5 text-xs text-[var(--color-text-primary)] whitespace-nowrap">
           {log.webhookName}
         </td>
-        <td className="px-3 py-2.5 text-xs text-zinc-400 font-mono whitespace-nowrap">
+        <td className="px-3 py-2.5 text-xs text-[var(--color-text-secondary)] font-mono whitespace-nowrap">
           {log.event}
         </td>
         <td className="px-3 py-2.5">
@@ -821,32 +821,32 @@ function DeliveryLogRow({ log, expanded, onToggle }: LogRowProps) {
             {log.status}
           </Badge>
         </td>
-        <td className="px-3 py-2.5 text-xs text-zinc-400 font-mono whitespace-nowrap">
+        <td className="px-3 py-2.5 text-xs text-[var(--color-text-secondary)] font-mono whitespace-nowrap">
           {log.statusCode ?? "—"}
         </td>
-        <td className="px-3 py-2.5 text-xs text-zinc-400 whitespace-nowrap text-right">
+        <td className="px-3 py-2.5 text-xs text-[var(--color-text-secondary)] whitespace-nowrap text-right">
           {formatDuration(log.duration)}
         </td>
       </tr>
       {expanded && (
-        <tr className="border-b border-zinc-800" role="row">
+        <tr className="border-b border-[var(--color-border)]" role="row">
           <td colSpan={6} className="p-0">
-            <div className="px-4 py-3 bg-zinc-950">
+            <div className="px-4 py-3 bg-[var(--color-surface-0)]">
               <div className="flex flex-col gap-2">
                 <div>
-                  <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                  <span className="text-[11px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                     Payload
                   </span>
-                  <pre className="mt-1 rounded bg-zinc-900 border border-zinc-800 p-3 text-xs text-zinc-300 font-mono overflow-x-auto max-h-48">
+                  <pre className="mt-1 rounded bg-[var(--color-surface-1)] border border-[var(--color-border)] p-3 text-xs text-[var(--color-text-primary)] font-mono overflow-x-auto max-h-48">
                     {prettyPayload}
                   </pre>
                 </div>
                 {prettyResponse && (
                   <div>
-                    <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                    <span className="text-[11px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
                       Response
                     </span>
-                    <pre className="mt-1 rounded bg-zinc-900 border border-zinc-800 p-3 text-xs text-zinc-300 font-mono overflow-x-auto max-h-48">
+                    <pre className="mt-1 rounded bg-[var(--color-surface-1)] border border-[var(--color-border)] p-3 text-xs text-[var(--color-text-primary)] font-mono overflow-x-auto max-h-48">
                       {prettyResponse}
                     </pre>
                   </div>
@@ -939,27 +939,27 @@ export default function WebhookManager() {
       "px-4 py-2 text-sm font-medium rounded-md transition-colors",
       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
       active
-        ? "bg-zinc-800 text-white"
-        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50",
+        ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]"
+        : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50",
     );
 
   const selectClass = cn(
-    "rounded-md border border-zinc-800 bg-zinc-800 px-2.5 py-1.5 text-xs text-zinc-300",
+    "rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1.5 text-xs text-[var(--color-text-primary)]",
     "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
   );
 
   // ── Render ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-bold text-white">
+            <h1 className="text-xl font-bold text-[var(--color-text-primary)]">
               Webhooks
             </h1>
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
               Manage inbound and outbound webhook endpoints
             </p>
           </div>
@@ -968,7 +968,7 @@ export default function WebhookManager() {
             onClick={() => setShowAddModal(true)}
             aria-label="Add webhook"
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-medium text-white",
+              "inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-medium text-[var(--color-text-primary)]",
               "hover:bg-indigo-500 transition-colors",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
             )}
@@ -994,7 +994,7 @@ export default function WebhookManager() {
             className={tabClass(tab === "endpoints")}
           >
             Endpoints
-            <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-zinc-700 px-1.5 text-[11px] text-zinc-300 min-w-[20px]">
+            <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-[var(--color-surface-3)] px-1.5 text-[11px] text-[var(--color-text-primary)] min-w-[20px]">
               {webhooks.length}
             </span>
           </button>
@@ -1008,7 +1008,7 @@ export default function WebhookManager() {
             className={tabClass(tab === "delivery-logs")}
           >
             Delivery Logs
-            <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-zinc-700 px-1.5 text-[11px] text-zinc-300 min-w-[20px]">
+            <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-[var(--color-surface-3)] px-1.5 text-[11px] text-[var(--color-text-primary)] min-w-[20px]">
               {deliveryLogs.length}
             </span>
           </button>
@@ -1022,15 +1022,15 @@ export default function WebhookManager() {
             aria-labelledby="tab-endpoints"
           >
             {webhooks.length === 0 ? (
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-12 text-center">
-                <p className="text-sm text-zinc-500">
+              <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-12 text-center">
+                <p className="text-sm text-[var(--color-text-muted)]">
                   No webhooks configured yet.
                 </p>
                 <button
                   type="button"
                   onClick={() => setShowAddModal(true)}
                   className={cn(
-                    "mt-4 inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white",
+                    "mt-4 inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-[var(--color-text-primary)]",
                     "hover:bg-indigo-500 transition-colors",
                     "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   )}
@@ -1066,7 +1066,7 @@ export default function WebhookManager() {
               <div className="flex items-center gap-2">
                 <label
                   htmlFor="filter-webhook"
-                  className="text-xs text-zinc-500"
+                  className="text-xs text-[var(--color-text-muted)]"
                 >
                   Webhook
                 </label>
@@ -1087,7 +1087,7 @@ export default function WebhookManager() {
               <div className="flex items-center gap-2">
                 <label
                   htmlFor="filter-status"
-                  className="text-xs text-zinc-500"
+                  className="text-xs text-[var(--color-text-muted)]"
                 >
                   Status
                 </label>
@@ -1104,54 +1104,54 @@ export default function WebhookManager() {
                 </select>
               </div>
               {(filterWebhook !== "all" || filterStatus !== "all") && (
-                <span className="text-xs text-zinc-500">
+                <span className="text-xs text-[var(--color-text-muted)]">
                   {filteredLogs.length} of {deliveryLogs.length} entries
                 </span>
               )}
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto rounded-lg border border-zinc-800">
+            <div className="overflow-x-auto rounded-lg border border-[var(--color-border)]">
               <table
                 className="w-full text-left"
                 role="table"
                 aria-label="Delivery logs"
               >
                 <thead>
-                  <tr className="border-b border-zinc-800 bg-zinc-900">
+                  <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-1)]">
                     <th
                       scope="col"
-                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-zinc-500"
+                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]"
                     >
                       Timestamp
                     </th>
                     <th
                       scope="col"
-                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-zinc-500"
+                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]"
                     >
                       Webhook
                     </th>
                     <th
                       scope="col"
-                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-zinc-500"
+                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]"
                     >
                       Event
                     </th>
                     <th
                       scope="col"
-                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-zinc-500"
+                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]"
                     >
                       Status
                     </th>
                     <th
                       scope="col"
-                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-zinc-500"
+                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]"
                     >
                       Code
                     </th>
                     <th
                       scope="col"
-                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-zinc-500 text-right"
+                      className="px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)] text-right"
                     >
                       Duration
                     </th>
@@ -1162,7 +1162,7 @@ export default function WebhookManager() {
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-3 py-8 text-center text-sm text-zinc-500"
+                        className="px-3 py-8 text-center text-sm text-[var(--color-text-muted)]"
                       >
                         No delivery logs match the current filters.
                       </td>

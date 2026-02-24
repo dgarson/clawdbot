@@ -24,7 +24,7 @@ const kindColor = (k: EventKind) => {
   if (k === "sprint")      {return "bg-purple-500/20 border-purple-500 text-purple-300";}
   if (k === "oncall")      {return "bg-rose-500/20 border-rose-500 text-rose-300";}
   if (k === "maintenance") {return "bg-orange-500/20 border-orange-500 text-orange-300";}
-  return "bg-zinc-500/20 border-zinc-500 text-zinc-300";
+  return "bg-[var(--color-surface-3)]/20 border-[var(--color-surface-3)] text-[var(--color-text-primary)]";
 };
 
 const kindDot = (k: EventKind) => {
@@ -34,7 +34,7 @@ const kindDot = (k: EventKind) => {
   if (k === "sprint")      {return "bg-purple-500";}
   if (k === "oncall")      {return "bg-rose-500";}
   if (k === "maintenance") {return "bg-orange-500";}
-  return "bg-zinc-500";
+  return "bg-[var(--color-surface-3)]";
 };
 
 const kindEmoji = (k: EventKind) => {
@@ -151,18 +151,18 @@ export default function EventScheduler() {
     .toSorted((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
 
   return (
-    <div className="flex h-full bg-zinc-950 overflow-hidden">
+    <div className="flex h-full bg-[var(--color-surface-0)] overflow-hidden">
       {/* Left sidebar */}
-      <div className="w-56 flex-shrink-0 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+      <div className="w-56 flex-shrink-0 bg-[var(--color-surface-1)] border-r border-[var(--color-border)] flex flex-col">
         {/* Month mini-nav */}
-        <div className="p-4 border-b border-zinc-800">
+        <div className="p-4 border-b border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-3">
-            <button onClick={prevMonth} className="text-zinc-500 hover:text-white px-1">‹</button>
-            <span className="text-xs font-semibold text-white">{MONTHS[month].slice(0,3)} {year}</span>
-            <button onClick={nextMonth} className="text-zinc-500 hover:text-white px-1">›</button>
+            <button onClick={prevMonth} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] px-1">‹</button>
+            <span className="text-xs font-semibold text-[var(--color-text-primary)]">{MONTHS[month].slice(0,3)} {year}</span>
+            <button onClick={nextMonth} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] px-1">›</button>
           </div>
           <div className="grid grid-cols-7 gap-0.5 text-center">
-            {DAYS.map(d => <div key={d} className="text-[9px] text-zinc-600">{d[0]}</div>)}
+            {DAYS.map(d => <div key={d} className="text-[9px] text-[var(--color-text-muted)]">{d[0]}</div>)}
             {gridDays.map((day, i) => (
               <button
                 key={i}
@@ -171,8 +171,8 @@ export default function EventScheduler() {
                 className={cn(
                   "w-6 h-6 text-[10px] rounded mx-auto flex items-center justify-center",
                   !day && "opacity-0",
-                  day && isToday(day) && "bg-indigo-500 text-white font-bold",
-                  day && !isToday(day) && "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                  day && isToday(day) && "bg-indigo-500 text-[var(--color-text-primary)] font-bold",
+                  day && !isToday(day) && "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {day}
@@ -185,7 +185,7 @@ export default function EventScheduler() {
         <div className="p-3">
           <button
             onClick={() => setShowNewEvent(true)}
-            className="w-full bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-medium py-2 rounded transition-colors"
+            className="w-full bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)] text-xs font-medium py-2 rounded transition-colors"
           >
             + New Event
           </button>
@@ -193,7 +193,7 @@ export default function EventScheduler() {
 
         {/* Kind filters */}
         <div className="px-3 pb-4">
-          <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Filter by type</div>
+          <div className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Filter by type</div>
           <div className="space-y-1">
             {kinds.map(k => (
               <button
@@ -201,7 +201,7 @@ export default function EventScheduler() {
                 onClick={() => toggleKindFilter(k)}
                 className={cn(
                   "w-full flex items-center gap-2 text-xs px-2 py-1 rounded transition-colors",
-                  filterKinds.has(k) ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"
+                  filterKinds.has(k) ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 <span className={cn("w-2 h-2 rounded-full flex-shrink-0", kindDot(k))} />
@@ -211,7 +211,7 @@ export default function EventScheduler() {
             ))}
           </div>
           {filterKinds.size > 0 && (
-            <button onClick={() => setFilterKinds(new Set())} className="w-full text-[10px] text-zinc-600 hover:text-zinc-400 mt-2 text-center">
+            <button onClick={() => setFilterKinds(new Set())} className="w-full text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] mt-2 text-center">
               Clear filters
             </button>
           )}
@@ -221,25 +221,25 @@ export default function EventScheduler() {
       {/* Main calendar */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Toolbar */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800 bg-zinc-900 flex-shrink-0">
-          <button onClick={prevMonth} className="text-zinc-500 hover:text-white px-2 py-1 rounded hover:bg-zinc-800">‹</button>
-          <h2 className="font-semibold text-white text-sm">{MONTHS[month]} {year}</h2>
-          <button onClick={nextMonth} className="text-zinc-500 hover:text-white px-2 py-1 rounded hover:bg-zinc-800">›</button>
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-1)] flex-shrink-0">
+          <button onClick={prevMonth} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] px-2 py-1 rounded hover:bg-[var(--color-surface-2)]">‹</button>
+          <h2 className="font-semibold text-[var(--color-text-primary)] text-sm">{MONTHS[month]} {year}</h2>
+          <button onClick={nextMonth} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] px-2 py-1 rounded hover:bg-[var(--color-surface-2)]">›</button>
           <button
             onClick={() => setCurrentDate(new Date(TODAY))}
-            className="ml-2 text-xs text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-zinc-800"
+            className="ml-2 text-xs text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-[var(--color-surface-2)]"
           >
             Today
           </button>
 
-          <div className="ml-auto flex rounded border border-zinc-700 overflow-hidden">
+          <div className="ml-auto flex rounded border border-[var(--color-border)] overflow-hidden">
             {(["month", "week", "agenda"] as CalendarView[]).map(v => (
               <button
                 key={v}
                 onClick={() => setViewMode(v)}
                 className={cn(
                   "text-xs px-3 py-1.5 capitalize transition-colors",
-                  viewMode === v ? "bg-indigo-500 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                  viewMode === v ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {v}
@@ -252,9 +252,9 @@ export default function EventScheduler() {
           {viewMode === "month" && (
             <div className="p-0">
               {/* Day headers */}
-              <div className="grid grid-cols-7 border-b border-zinc-800">
+              <div className="grid grid-cols-7 border-b border-[var(--color-border)]">
                 {DAYS.map(d => (
-                  <div key={d} className="text-center text-xs text-zinc-500 py-2 font-medium">{d}</div>
+                  <div key={d} className="text-center text-xs text-[var(--color-text-muted)] py-2 font-medium">{d}</div>
                 ))}
               </div>
               {/* Calendar grid */}
@@ -265,8 +265,8 @@ export default function EventScheduler() {
                     <div
                       key={i}
                       className={cn(
-                        "border-r border-b border-zinc-800 p-1 min-h-24",
-                        !day && "bg-zinc-900/30",
+                        "border-r border-b border-[var(--color-border)] p-1 min-h-24",
+                        !day && "bg-[var(--color-surface-1)]/30",
                         day && isToday(day) && "bg-indigo-500/5"
                       )}
                     >
@@ -274,7 +274,7 @@ export default function EventScheduler() {
                         <>
                           <div className={cn(
                             "w-6 h-6 text-xs flex items-center justify-center rounded-full mb-1",
-                            isToday(day) ? "bg-indigo-500 text-white font-bold" : "text-zinc-400"
+                            isToday(day) ? "bg-indigo-500 text-[var(--color-text-primary)] font-bold" : "text-[var(--color-text-secondary)]"
                           )}>
                             {day}
                           </div>
@@ -292,7 +292,7 @@ export default function EventScheduler() {
                               </button>
                             ))}
                             {dayEvents.length > 3 && (
-                              <div className="text-[9px] text-zinc-500 px-1">+{dayEvents.length - 3} more</div>
+                              <div className="text-[9px] text-[var(--color-text-muted)] px-1">+{dayEvents.length - 3} more</div>
                             )}
                           </div>
                         </>
@@ -306,9 +306,9 @@ export default function EventScheduler() {
 
           {viewMode === "agenda" && (
             <div className="p-4 max-w-2xl">
-              <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-4">Next 14 Days</div>
+              <div className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-4">Next 14 Days</div>
               {agendaEvents.length === 0 ? (
-                <p className="text-zinc-600 text-sm text-center py-8">No events in the next 14 days</p>
+                <p className="text-[var(--color-text-muted)] text-sm text-center py-8">No events in the next 14 days</p>
               ) : (
                 <div className="space-y-2">
                   {agendaEvents.map((ev, i) => {
@@ -318,7 +318,7 @@ export default function EventScheduler() {
                     return (
                       <div key={ev.id}>
                         {showDateHeader && (
-                          <div className="text-xs font-semibold text-zinc-500 mt-4 mb-2 uppercase tracking-wider">
+                          <div className="text-xs font-semibold text-[var(--color-text-muted)] mt-4 mb-2 uppercase tracking-wider">
                             {evDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
                           </div>
                         )}
@@ -332,7 +332,7 @@ export default function EventScheduler() {
                         >
                           <span className="text-lg flex-shrink-0">{kindEmoji(ev.kind)}</span>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-white">{ev.title}</div>
+                            <div className="text-sm font-medium text-[var(--color-text-primary)]">{ev.title}</div>
                             <div className="text-[10px] mt-0.5 flex items-center gap-2">
                               {ev.allDay ? <span>All day</span> : <span>{ev.startTime} – {ev.endTime}</span>}
                               {ev.recurring && <span>🔁 Recurring</span>}
@@ -353,14 +353,14 @@ export default function EventScheduler() {
 
           {viewMode === "week" && (
             <div className="p-4">
-              <p className="text-zinc-600 text-sm text-center py-8">Week view — use Month or Agenda for full interaction</p>
+              <p className="text-[var(--color-text-muted)] text-sm text-center py-8">Week view — use Month or Agenda for full interaction</p>
               <div className="space-y-2">
                 {events.filter(e => e.date >= "2026-02-22" && e.date <= "2026-02-28").toSorted((a,b) => (a.date+a.startTime).localeCompare(b.date+b.startTime)).map(ev => (
                   <div key={ev.id} className={cn("flex gap-3 p-3 rounded border", kindColor(ev.kind))}>
                     <span>{kindEmoji(ev.kind)}</span>
                     <div>
-                      <div className="text-sm text-white">{ev.title}</div>
-                      <div className="text-[10px] text-zinc-400">{ev.date} · {ev.startTime}–{ev.endTime}</div>
+                      <div className="text-sm text-[var(--color-text-primary)]">{ev.title}</div>
+                      <div className="text-[10px] text-[var(--color-text-secondary)]">{ev.date} · {ev.startTime}–{ev.endTime}</div>
                     </div>
                   </div>
                 ))}
@@ -372,47 +372,47 @@ export default function EventScheduler() {
 
       {/* Right: event detail or new event form */}
       {(selectedEvent || showNewEvent) && (
-        <div className="w-72 flex-shrink-0 border-l border-zinc-800 flex flex-col bg-zinc-900">
+        <div className="w-72 flex-shrink-0 border-l border-[var(--color-border)] flex flex-col bg-[var(--color-surface-1)]">
           {showNewEvent ? (
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <span className="font-semibold text-sm text-white">New Event</span>
-                <button onClick={() => setShowNewEvent(false)} className="text-zinc-500 hover:text-white text-xs">✕</button>
+                <span className="font-semibold text-sm text-[var(--color-text-primary)]">New Event</span>
+                <button onClick={() => setShowNewEvent(false)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xs">✕</button>
               </div>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-[10px] text-zinc-500 mb-1">Title</label>
+                  <label className="block text-[10px] text-[var(--color-text-muted)] mb-1">Title</label>
                   <input
                     type="text"
                     value={newEventTitle}
                     onChange={e => setNewEventTitle(e.target.value)}
                     placeholder="Event title..."
-                    className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-zinc-500 mb-1">Type</label>
+                  <label className="block text-[10px] text-[var(--color-text-muted)] mb-1">Type</label>
                   <select
                     value={newEventKind}
                     onChange={e => setNewEventKind(e.target.value as EventKind)}
-                    className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-indigo-500"
                   >
                     {kinds.map(k => <option key={k} value={k} className="capitalize">{k}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] text-zinc-500 mb-1">Date</label>
+                  <label className="block text-[10px] text-[var(--color-text-muted)] mb-1">Date</label>
                   <input
                     type="date"
                     value={newEventDate}
                     onChange={e => setNewEventDate(e.target.value)}
-                    className="w-full bg-zinc-800 border border-zinc-700 text-white text-xs px-3 py-2 rounded focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <button
                   onClick={createEvent}
                   disabled={!newEventTitle.trim()}
-                  className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-white text-xs font-medium py-2 rounded"
+                  className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-[var(--color-text-primary)] text-xs font-medium py-2 rounded"
                 >
                   Create Event
                 </button>
@@ -422,17 +422,17 @@ export default function EventScheduler() {
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-lg">{kindEmoji(selectedEvent.kind)}</span>
-                <button onClick={() => setSelectedEventId(null)} className="text-zinc-500 hover:text-white text-xs">✕</button>
+                <button onClick={() => setSelectedEventId(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xs">✕</button>
               </div>
-              <h3 className="font-semibold text-white text-sm mb-1">{selectedEvent.title}</h3>
+              <h3 className="font-semibold text-[var(--color-text-primary)] text-sm mb-1">{selectedEvent.title}</h3>
               <span className={cn("text-[10px] px-2 py-0.5 rounded border font-medium capitalize", kindColor(selectedEvent.kind))}>
                 {selectedEvent.kind}
               </span>
 
               <div className="mt-4 space-y-3">
                 <div>
-                  <div className="text-[10px] text-zinc-500 mb-0.5">Date & Time</div>
-                  <div className="text-xs text-zinc-300">
+                  <div className="text-[10px] text-[var(--color-text-muted)] mb-0.5">Date & Time</div>
+                  <div className="text-xs text-[var(--color-text-primary)]">
                     {selectedEvent.date}
                     {!selectedEvent.allDay && ` · ${selectedEvent.startTime} – ${selectedEvent.endTime}`}
                     {selectedEvent.allDay && " · All day"}
@@ -440,22 +440,22 @@ export default function EventScheduler() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-zinc-500 mb-1">Attendees ({selectedEvent.attendees.length})</div>
+                  <div className="text-[10px] text-[var(--color-text-muted)] mb-1">Attendees ({selectedEvent.attendees.length})</div>
                   <div className="flex flex-wrap gap-1">
                     {selectedEvent.attendees.map(a => (
-                      <span key={a} className="text-[10px] bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">{a}</span>
+                      <span key={a} className="text-[10px] bg-[var(--color-surface-2)] text-[var(--color-text-primary)] px-2 py-0.5 rounded">{a}</span>
                     ))}
                   </div>
                 </div>
                 {selectedEvent.description && (
                   <div>
-                    <div className="text-[10px] text-zinc-500 mb-0.5">Description</div>
-                    <p className="text-xs text-zinc-300">{selectedEvent.description}</p>
+                    <div className="text-[10px] text-[var(--color-text-muted)] mb-0.5">Description</div>
+                    <p className="text-xs text-[var(--color-text-primary)]">{selectedEvent.description}</p>
                   </div>
                 )}
                 <button
                   onClick={() => setSelectedEventId(null)}
-                  className="w-full text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-700 hover:border-zinc-600 py-1.5 rounded transition-colors"
+                  className="w-full text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)] hover:border-[var(--color-surface-3)] py-1.5 rounded transition-colors"
                 >
                   Close
                 </button>

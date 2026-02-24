@@ -202,10 +202,10 @@ function relTime(iso: string): string {
 function UsageBar({ used, limit, threshold }: { used: number; limit: number; threshold: number }) {
   const p = pct(used, limit);
   return (
-    <div className="relative h-2 w-full rounded-full bg-zinc-800 overflow-hidden">
+    <div className="relative h-2 w-full rounded-full bg-[var(--color-surface-2)] overflow-hidden">
       {/* Threshold marker */}
       <div
-        className="absolute top-0 bottom-0 w-px bg-zinc-600 z-10"
+        className="absolute top-0 bottom-0 w-px bg-[var(--color-surface-3)] z-10"
         style={{ left: `${threshold}%` }}
         aria-hidden="true"
       />
@@ -229,49 +229,49 @@ function LimitCard({ limit }: LimitCardProps) {
   return (
     <div
       className={cn(
-        "rounded-xl border bg-zinc-900 p-4",
+        "rounded-xl border bg-[var(--color-surface-1)] p-4",
         limit.status === "throttled" || limit.status === "blocked"
           ? "border-rose-500/30"
           : limit.status === "warning"
           ? "border-amber-400/30"
-          : "border-zinc-800"
+          : "border-[var(--color-border)]"
       )}
       role="article"
       aria-label={`${limit.name} rate limit`}
     >
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-white truncate">{limit.name}</p>
-          <p className="text-xs text-zinc-500 mt-0.5">{limit.description}</p>
+          <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{limit.name}</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{limit.description}</p>
         </div>
         <div className="flex flex-col items-end gap-1.5 shrink-0">
           <span className={cn("inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border", STATUS_COLORS[limit.status])}>
             <span className={cn("w-1.5 h-1.5 rounded-full", STATUS_DOT[limit.status])} aria-hidden="true" />
             {STATUS_LABELS[limit.status]}
           </span>
-          <span className="text-[10px] text-zinc-600 uppercase tracking-wide">{SCOPE_LABELS[limit.scope]}</span>
+          <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wide">{SCOPE_LABELS[limit.scope]}</span>
         </div>
       </div>
 
       <UsageBar used={limit.used} limit={limit.limit} threshold={limit.throttleThreshold} />
 
       <div className="flex items-center justify-between mt-2 text-xs">
-        <span className="text-zinc-400">
-          <span className="font-mono font-semibold text-white">{fmtNum(limit.used)}</span>
+        <span className="text-[var(--color-text-secondary)]">
+          <span className="font-mono font-semibold text-[var(--color-text-primary)]">{fmtNum(limit.used)}</span>
           {" / "}
-          <span className="font-mono text-zinc-500">{fmtNum(limit.limit)}</span>
+          <span className="font-mono text-[var(--color-text-muted)]">{fmtNum(limit.limit)}</span>
           {" "}
-          <span className="text-zinc-600">{limit.unit}</span>
+          <span className="text-[var(--color-text-muted)]">{limit.unit}</span>
         </span>
         <div className="flex items-center gap-3">
-          <span className={cn("font-mono font-bold", p >= 100 ? "text-rose-400" : p >= 80 ? "text-amber-400" : "text-zinc-300")}>
+          <span className={cn("font-mono font-bold", p >= 100 ? "text-rose-400" : p >= 80 ? "text-amber-400" : "text-[var(--color-text-primary)]")}>
             {p}%
           </span>
-          <span className="text-zinc-600">{WINDOW_LABELS[limit.window]}</span>
+          <span className="text-[var(--color-text-muted)]">{WINDOW_LABELS[limit.window]}</span>
         </div>
       </div>
 
-      <div className="mt-2 text-[10px] text-zinc-600">
+      <div className="mt-2 text-[10px] text-[var(--color-text-muted)]">
         Resets at {new Date(limit.resetAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
       </div>
     </div>
@@ -329,13 +329,13 @@ export default function RateLimitDashboard() {
   }, []);
 
   return (
-    <main className="flex flex-col h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Rate Limit Dashboard">
+    <main className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden" role="main" aria-label="Rate Limit Dashboard">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-white">Rate Limits</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">Monitor and manage request quotas across agents, models, and system</p>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Rate Limits</h1>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Monitor and manage request quotas across agents, models, and system</p>
           </div>
           {/* Status summary */}
           <div className="flex items-center gap-4 text-xs">
@@ -346,7 +346,7 @@ export default function RateLimitDashboard() {
             ].map(s => (
               <div key={s.label} className="text-center">
                 <p className={cn("text-xl font-bold font-mono", s.color)}>{s.count}</p>
-                <p className="text-zinc-500">{s.label}</p>
+                <p className="text-[var(--color-text-muted)]">{s.label}</p>
               </div>
             ))}
           </div>
@@ -365,8 +365,8 @@ export default function RateLimitDashboard() {
                 "px-4 py-1.5 rounded-lg text-sm transition-colors",
                 "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                 tab === t.id
-                  ? "bg-zinc-800 text-white"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.emoji} {t.label}
@@ -392,14 +392,14 @@ export default function RateLimitDashboard() {
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       scopeFilter === s.value
                         ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                        : "border-zinc-700 text-zinc-400 hover:text-white"
+                        : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
                     {s.label}
                   </button>
                 ))}
               </div>
-              <div className="w-px h-4 bg-zinc-700" aria-hidden="true" />
+              <div className="w-px h-4 bg-[var(--color-surface-3)]" aria-hidden="true" />
               <div className="flex items-center gap-1.5" role="group" aria-label="Filter by status">
                 {statuses.map(s => (
                   <button
@@ -411,14 +411,14 @@ export default function RateLimitDashboard() {
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       statusFilter === s.value
                         ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                        : "border-zinc-700 text-zinc-400 hover:text-white"
+                        : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
                     {s.label}
                   </button>
                 ))}
               </div>
-              <span className="text-xs text-zinc-600 ml-auto">
+              <span className="text-xs text-[var(--color-text-muted)] ml-auto">
                 Showing {filteredLimits.length} of {LIMITS.length} limits
               </span>
             </div>
@@ -441,17 +441,17 @@ export default function RateLimitDashboard() {
         )}
 
         {tab === "history" && (
-          <div className="rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden">
-            <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+          <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] overflow-hidden">
+            <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-white">Throttle Events</h2>
-                <p className="text-xs text-zinc-500 mt-0.5">Recent rate limit interventions — last 24 hours</p>
+                <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Throttle Events</h2>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Recent rate limit interventions — last 24 hours</p>
               </div>
-              <span className="text-xs text-zinc-600">{THROTTLE_EVENTS.length} events</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{THROTTLE_EVENTS.length} events</span>
             </div>
-            <div className="divide-y divide-zinc-800">
+            <div className="divide-y divide-[var(--color-border)]">
               {THROTTLE_EVENTS.map(ev => (
-                <div key={ev.id} className="p-4 hover:bg-zinc-800/40 transition-colors">
+                <div key={ev.id} className="p-4 hover:bg-[var(--color-surface-2)]/40 transition-colors">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -459,21 +459,21 @@ export default function RateLimitDashboard() {
                           <span className="w-1.5 h-1.5 rounded-full bg-rose-400" aria-hidden="true" />
                           Throttled
                         </span>
-                        <span className="text-xs text-zinc-500 capitalize">{SCOPE_LABELS[ev.scope]} · {ev.scopeId}</span>
+                        <span className="text-xs text-[var(--color-text-muted)] capitalize">{SCOPE_LABELS[ev.scope]} · {ev.scopeId}</span>
                       </div>
-                      <p className="text-sm font-semibold text-white">{ev.limitName}</p>
-                      <p className="text-xs text-zinc-500 mt-1">{ev.reason}</p>
+                      <p className="text-sm font-semibold text-[var(--color-text-primary)]">{ev.limitName}</p>
+                      <p className="text-xs text-[var(--color-text-muted)] mt-1">{ev.reason}</p>
                       <div className="flex items-center gap-4 mt-2 text-xs font-mono">
-                        <span className="text-zinc-400">
+                        <span className="text-[var(--color-text-secondary)]">
                           {fmtNum(ev.used)} / {fmtNum(ev.limit)} {" "}
                           <span className="text-rose-400 font-semibold">({pct(ev.used, ev.limit)}%)</span>
                         </span>
-                        <span className="text-zinc-600">Duration: {fmtMs(ev.duration)}</span>
+                        <span className="text-[var(--color-text-muted)]">Duration: {fmtMs(ev.duration)}</span>
                       </div>
                     </div>
-                    <div className="text-right text-xs text-zinc-500 shrink-0">
+                    <div className="text-right text-xs text-[var(--color-text-muted)] shrink-0">
                       <p>{relTime(ev.timestamp)}</p>
-                      <p className="text-zinc-600 mt-0.5">
+                      <p className="text-[var(--color-text-muted)] mt-0.5">
                         {new Date(ev.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>

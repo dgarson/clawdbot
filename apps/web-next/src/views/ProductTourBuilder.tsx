@@ -85,10 +85,10 @@ const stepTypeIcon: Record<StepType, string> = {
 };
 
 const statusBadge: Record<TourStatus, string> = {
-  draft: "bg-zinc-700/30 border-zinc-600 text-zinc-400",
+  draft: "bg-[var(--color-surface-3)]/30 border-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
   active: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
   paused: "bg-amber-500/10 border-amber-500/30 text-amber-400",
-  archived: "bg-zinc-700/30 border-zinc-600 text-zinc-500",
+  archived: "bg-[var(--color-surface-3)]/30 border-[var(--color-surface-3)] text-[var(--color-text-muted)]",
 };
 
 const audienceLabel: Record<TargetAudience, string> = {
@@ -115,43 +115,43 @@ export default function ProductTourBuilder() {
   const avgCompletion = TOURS.filter(t => t.starts > 0).reduce((s, t) => s + t.completionRate, 0) / TOURS.filter(t => t.starts > 0).length;
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Product Tour Builder</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">Interactive onboarding tours and feature walkthroughs</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Interactive onboarding tours and feature walkthroughs</p>
         </div>
-        <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">
+        <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
           + New Tour
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-0 border-b border-zinc-800">
+      <div className="grid grid-cols-4 gap-0 border-b border-[var(--color-border)]">
         {[
           { label: "Active Tours", value: String(activeTours), sub: `${TOURS.length} total` },
           { label: "Total Starts (30d)", value: totalStarts.toLocaleString(), sub: "unique users" },
           { label: "Avg Completion", value: `${avgCompletion.toFixed(0)}%`, sub: "across active tours" },
           { label: "Best Tour CTR", value: "91%", sub: "Enterprise SSO" },
         ].map((stat, i) => (
-          <div key={i} className="px-6 py-3 border-r border-zinc-800 last:border-r-0">
-            <div className="text-xl font-bold text-white">{stat.value}</div>
-            <div className="text-xs font-medium text-zinc-400 mt-0.5">{stat.label}</div>
-            <div className="text-xs text-zinc-600 mt-0.5">{stat.sub}</div>
+          <div key={i} className="px-6 py-3 border-r border-[var(--color-border)] last:border-r-0">
+            <div className="text-xl font-bold text-[var(--color-text-primary)]">{stat.value}</div>
+            <div className="text-xs font-medium text-[var(--color-text-secondary)] mt-0.5">{stat.label}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{stat.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-[var(--color-border)] px-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id ? "border-indigo-500 text-white" : "border-transparent text-zinc-500 hover:text-zinc-300"
+              tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             <span>{t.emoji}</span>
@@ -165,32 +165,32 @@ export default function ProductTourBuilder() {
         {tab === "tours" && (
           <div className="flex h-full">
             {/* Tour list */}
-            <div className="w-72 border-r border-zinc-800 overflow-y-auto">
+            <div className="w-72 border-r border-[var(--color-border)] overflow-y-auto">
               {TOURS.map(tour => (
                 <button
                   key={tour.id}
                   onClick={() => setSelectedTour(tour)}
                   className={cn(
-                    "w-full text-left px-4 py-4 border-b border-zinc-800/50 hover:bg-zinc-900 transition-colors",
-                    selectedTour?.id === tour.id && "bg-zinc-800"
+                    "w-full text-left px-4 py-4 border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-1)] transition-colors",
+                    selectedTour?.id === tour.id && "bg-[var(--color-surface-2)]"
                   )}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-zinc-200">{tour.name}</span>
+                    <span className="text-sm font-medium text-[var(--color-text-primary)]">{tour.name}</span>
                     <span className={cn("text-xs px-1.5 py-0.5 rounded border shrink-0", statusBadge[tour.status])}>
                       {tour.status}
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-500 line-clamp-1 mb-1">{tour.description}</p>
-                  <div className="text-xs text-zinc-600">
+                  <p className="text-xs text-[var(--color-text-muted)] line-clamp-1 mb-1">{tour.description}</p>
+                  <div className="text-xs text-[var(--color-text-muted)]">
                     {tour.steps.length} steps · {audienceLabel[tour.audience]}
                   </div>
                   {tour.starts > 0 && (
                     <div className="mt-1.5">
-                      <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${tour.completionRate}%` }} />
                       </div>
-                      <div className="text-xs text-zinc-600 mt-0.5">{tour.completionRate}% complete</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{tour.completionRate}% complete</div>
                     </div>
                   )}
                 </button>
@@ -204,22 +204,22 @@ export default function ProductTourBuilder() {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <h2 className="text-base font-semibold text-white">{selectedTour.name}</h2>
+                        <h2 className="text-base font-semibold text-[var(--color-text-primary)]">{selectedTour.name}</h2>
                         <span className={cn("text-xs px-2 py-0.5 rounded border", statusBadge[selectedTour.status])}>
                           {selectedTour.status}
                         </span>
                       </div>
-                      <p className="text-xs text-zinc-400">{selectedTour.description}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">{selectedTour.description}</p>
                     </div>
                     <div className="flex gap-2 shrink-0">
                       {selectedTour.status === "draft" && (
-                        <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">Activate</button>
+                        <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Activate</button>
                       )}
                       {selectedTour.status === "active" && (
                         <button className="px-3 py-1.5 text-xs bg-amber-500/20 border border-amber-500/40 rounded text-amber-400 hover:bg-amber-500/30 transition-colors">Pause</button>
                       )}
                       <button
-                        className="px-3 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-zinc-300 transition-colors"
+                        className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors"
                         onClick={() => setTab("builder")}
                       >Edit Steps</button>
                     </div>
@@ -234,9 +234,9 @@ export default function ProductTourBuilder() {
                         { label: "Completion Rate", value: `${selectedTour.completionRate}%` },
                         { label: "Avg Time", value: selectedTour.avgTime },
                       ].map(({ label, value }) => (
-                        <div key={label} className="bg-zinc-900 rounded p-3 text-center">
-                          <div className="text-xl font-bold text-white">{value}</div>
-                          <div className="text-xs text-zinc-500 mt-0.5">{label}</div>
+                        <div key={label} className="bg-[var(--color-surface-1)] rounded p-3 text-center">
+                          <div className="text-xl font-bold text-[var(--color-text-primary)]">{value}</div>
+                          <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{label}</div>
                         </div>
                       ))}
                     </div>
@@ -244,7 +244,7 @@ export default function ProductTourBuilder() {
 
                   {/* Step timeline */}
                   <div>
-                    <div className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-3 uppercase tracking-wider">
                       Steps ({selectedTour.steps.length})
                     </div>
                     <div className="space-y-2">
@@ -255,24 +255,24 @@ export default function ProductTourBuilder() {
                             key={step.id}
                             className={cn(
                               "flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:brightness-110 transition-all",
-                              isDropoff ? "bg-rose-500/5 border-rose-500/20" : "bg-zinc-900 border-zinc-800"
+                              isDropoff ? "bg-rose-500/5 border-rose-500/20" : "bg-[var(--color-surface-1)] border-[var(--color-border)]"
                             )}
                             onClick={() => { setSelectedStep(step); setTab("builder"); }}
                           >
                             <div className={cn(
                               "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
-                              isDropoff ? "bg-rose-500/20 text-rose-400" : "bg-zinc-800 text-zinc-400"
+                              isDropoff ? "bg-rose-500/20 text-rose-400" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
                             )}>
                               {i + 1}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-sm font-medium text-zinc-200">{step.title}</span>
-                                <span className="text-xs text-zinc-600">{stepTypeIcon[step.type]} {step.type}</span>
+                                <span className="text-sm font-medium text-[var(--color-text-primary)]">{step.title}</span>
+                                <span className="text-xs text-[var(--color-text-muted)]">{stepTypeIcon[step.type]} {step.type}</span>
                                 {isDropoff && <span className="text-xs text-rose-400 ml-auto">⬇ Drop-off point</span>}
                               </div>
-                              <p className="text-xs text-zinc-500 truncate">{step.body}</p>
-                              <div className="text-xs text-zinc-700 mt-0.5 font-mono">{step.target}</div>
+                              <p className="text-xs text-[var(--color-text-muted)] truncate">{step.body}</p>
+                              <div className="text-xs text-[var(--color-text-muted)] mt-0.5 font-mono">{step.target}</div>
                             </div>
                           </div>
                         );
@@ -281,7 +281,7 @@ export default function ProductTourBuilder() {
                   </div>
 
                   <div>
-                    <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Configuration</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">Configuration</div>
                     <div className="grid grid-cols-2 gap-3">
                       {[
                         { label: "Trigger", value: selectedTour.trigger },
@@ -289,16 +289,16 @@ export default function ProductTourBuilder() {
                         { label: "Created", value: selectedTour.createdAt },
                         { label: "Last Updated", value: selectedTour.updatedAt },
                       ].map(({ label, value }) => (
-                        <div key={label} className="bg-zinc-900 rounded p-3">
-                          <div className="text-xs text-zinc-500">{label}</div>
-                          <div className="text-sm text-zinc-200 mt-0.5">{value}</div>
+                        <div key={label} className="bg-[var(--color-surface-1)] rounded p-3">
+                          <div className="text-xs text-[var(--color-text-muted)]">{label}</div>
+                          <div className="text-sm text-[var(--color-text-primary)] mt-0.5">{value}</div>
                         </div>
                       ))}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-zinc-600 text-sm">Select a tour</div>
+                <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">Select a tour</div>
               )}
             </div>
           </div>
@@ -307,8 +307,8 @@ export default function ProductTourBuilder() {
         {/* BUILDER TAB */}
         {tab === "builder" && (
           <div className="flex h-full">
-            <div className="w-64 border-r border-zinc-800 overflow-y-auto">
-              <div className="p-3 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wider">
+            <div className="w-64 border-r border-[var(--color-border)] overflow-y-auto">
+              <div className="p-3 border-b border-[var(--color-border)] text-xs text-[var(--color-text-muted)] uppercase tracking-wider">
                 Steps — {selectedTour?.name || "Select a tour"}
               </div>
               {(selectedTour?.steps || []).map((step, i) => (
@@ -316,70 +316,70 @@ export default function ProductTourBuilder() {
                   key={step.id}
                   onClick={() => setSelectedStep(step)}
                   className={cn(
-                    "w-full text-left px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-900 transition-colors",
-                    selectedStep?.id === step.id && "bg-zinc-800"
+                    "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-1)] transition-colors",
+                    selectedStep?.id === step.id && "bg-[var(--color-surface-2)]"
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-zinc-600 w-4">{i + 1}</span>
+                    <span className="text-xs font-bold text-[var(--color-text-muted)] w-4">{i + 1}</span>
                     <span className="text-xs">{stepTypeIcon[step.type]}</span>
-                    <span className="text-xs text-zinc-300 truncate">{step.title}</span>
+                    <span className="text-xs text-[var(--color-text-primary)] truncate">{step.title}</span>
                   </div>
                 </button>
               ))}
-              <button className="w-full px-4 py-3 text-xs text-indigo-400 hover:text-indigo-300 text-left border-t border-zinc-800">
+              <button className="w-full px-4 py-3 text-xs text-indigo-400 hover:text-indigo-300 text-left border-t border-[var(--color-border)]">
                 + Add step
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
               {selectedStep ? (
                 <div className="p-6 space-y-5">
-                  <h2 className="text-sm font-semibold text-zinc-300">Edit Step {selectedStep.order}</h2>
+                  <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Edit Step {selectedStep.order}</h2>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs text-zinc-500 mb-1.5">Step Type</label>
-                      <select className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300">
+                      <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Step Type</label>
+                      <select className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)]">
                         {(["tooltip", "modal", "spotlight", "banner", "checklist"] as StepType[]).map(t => (
                           <option key={t} value={t} selected={selectedStep.type === t}>{stepTypeIcon[t]} {t}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs text-zinc-500 mb-1.5">Title</label>
-                      <input type="text" defaultValue={selectedStep.title} className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300 outline-none focus:border-indigo-500" />
+                      <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Title</label>
+                      <input type="text" defaultValue={selectedStep.title} className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-indigo-500" />
                     </div>
                     <div>
-                      <label className="block text-xs text-zinc-500 mb-1.5">Body Text</label>
-                      <textarea rows={3} defaultValue={selectedStep.body} className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300 outline-none focus:border-indigo-500 resize-none" />
+                      <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Body Text</label>
+                      <textarea rows={3} defaultValue={selectedStep.body} className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-indigo-500 resize-none" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-zinc-500 mb-1.5">Target Element</label>
-                        <input type="text" defaultValue={selectedStep.target} placeholder="#element-id or .class" className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm font-mono text-zinc-300 outline-none focus:border-indigo-500" />
+                        <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Target Element</label>
+                        <input type="text" defaultValue={selectedStep.target} placeholder="#element-id or .class" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm font-mono text-[var(--color-text-primary)] outline-none focus:border-indigo-500" />
                       </div>
                       <div>
-                        <label className="block text-xs text-zinc-500 mb-1.5">Position</label>
-                        <select defaultValue={selectedStep.position} className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300">
+                        <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Position</label>
+                        <select defaultValue={selectedStep.position} className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)]">
                           <option>top</option><option>bottom</option><option>left</option><option>right</option><option>center</option>
                         </select>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs text-zinc-500 mb-1.5">CTA Button Text (optional)</label>
-                      <input type="text" defaultValue={selectedStep.ctaText || ""} placeholder="Next" className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-300 outline-none focus:border-indigo-500" />
+                      <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">CTA Button Text (optional)</label>
+                      <input type="text" defaultValue={selectedStep.ctaText || ""} placeholder="Next" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-indigo-500" />
                     </div>
-                    <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer">
+                    <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
                       <input type="checkbox" defaultChecked={selectedStep.skippable} className="w-3 h-3" />
                       Allow users to skip this step
                     </label>
                     <div className="flex gap-2">
-                      <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-white transition-colors">Save Step</button>
-                      <button className="px-4 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-zinc-300 transition-colors">Preview</button>
+                      <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Save Step</button>
+                      <button className="px-4 py-2 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">Preview</button>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-zinc-600 text-sm">Select a step to edit</div>
+                <div className="flex items-center justify-center h-full text-[var(--color-text-muted)] text-sm">Select a step to edit</div>
               )}
             </div>
           </div>
@@ -389,13 +389,13 @@ export default function ProductTourBuilder() {
         {tab === "analytics" && (
           <div className="p-6 space-y-6">
             <div>
-              <h2 className="text-sm font-semibold text-zinc-300 mb-3">Tour Performance</h2>
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Tour Performance</h2>
               <div className="space-y-2">
                 {TOURS.filter(t => t.starts > 0).map(tour => (
-                  <div key={tour.id} className="bg-zinc-900 rounded-lg border border-zinc-800 px-5 py-4">
+                  <div key={tour.id} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] px-5 py-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-zinc-200">{tour.name}</span>
-                      <div className="flex items-center gap-3 text-xs text-zinc-500">
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">{tour.name}</span>
+                      <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                         <span>{tour.starts.toLocaleString()} starts</span>
                         <span className={cn(
                           "font-medium",
@@ -404,7 +404,7 @@ export default function ProductTourBuilder() {
                         )}>{tour.completionRate}% complete</span>
                       </div>
                     </div>
-                    <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                       <div
                         className={cn(
                           "h-full rounded-full transition-all",
@@ -414,7 +414,7 @@ export default function ProductTourBuilder() {
                         style={{ width: `${tour.completionRate}%` }}
                       />
                     </div>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-zinc-600">
+                    <div className="flex items-center gap-4 mt-2 text-xs text-[var(--color-text-muted)]">
                       <span>{tour.completions.toLocaleString()} completions</span>
                       <span>avg {tour.avgTime}</span>
                       {tour.dropoffStep && <span className="text-rose-400">drop-off at step {tour.dropoffStep}</span>}
@@ -429,14 +429,14 @@ export default function ProductTourBuilder() {
         {/* SEGMENTS TAB */}
         {tab === "segments" && (
           <div className="p-6 space-y-4">
-            <h2 className="text-sm font-semibold text-zinc-300 mb-4">Audience Segments</h2>
+            <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Audience Segments</h2>
             {(["new_users", "returning", "enterprise", "all"] as TargetAudience[]).map(audience => {
               const tours = TOURS.filter(t => t.audience === audience);
               return (
-                <div key={audience} className="bg-zinc-900 rounded-lg border border-zinc-800 p-5">
+                <div key={audience} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="font-medium text-zinc-200">{audienceLabel[audience]}</span>
-                    <span className="text-xs text-zinc-500">{tours.length} tour{tours.length !== 1 ? "s" : ""}</span>
+                    <span className="font-medium text-[var(--color-text-primary)]">{audienceLabel[audience]}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{tours.length} tour{tours.length !== 1 ? "s" : ""}</span>
                   </div>
                   {tours.length > 0 ? (
                     <div className="flex gap-2 flex-wrap">
@@ -447,7 +447,7 @@ export default function ProductTourBuilder() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-zinc-600">No tours targeting this segment</p>
+                    <p className="text-xs text-[var(--color-text-muted)]">No tours targeting this segment</p>
                   )}
                 </div>
               );

@@ -235,7 +235,7 @@ const MOCK_AGENTS: AgentSkillData[] = [
 // ============================================================================
 
 function getCellColor(successRate: number | null): string {
-  if (successRate === null) return "bg-gray-700";
+  if (successRate === null) return "bg-[var(--color-surface-3)]";
   
   if (successRate >= 90) return "bg-emerald-500";
   if (successRate >= 80) return "bg-emerald-600";
@@ -247,9 +247,9 @@ function getCellColor(successRate: number | null): string {
 }
 
 function getCellTextColor(successRate: number | null): string {
-  if (successRate === null) return "text-gray-500";
-  if (successRate >= 70) return "text-white";
-  return "text-gray-100";
+  if (successRate === null) return "text-[var(--color-text-muted)]";
+  if (successRate >= 70) return "text-[var(--color-text-primary)]";
+  return "text-[var(--color-text-primary)]";
 }
 
 function formatDuration(ms: number): string {
@@ -265,7 +265,7 @@ function getModelBadgeColor(model: string): string {
   if (model.includes("opus")) return "bg-purple-600/30 text-purple-300 border-purple-500/50";
   if (model.includes("sonnet")) return "bg-blue-600/30 text-blue-300 border-blue-500/50";
   if (model.includes("haiku")) return "bg-green-600/30 text-green-300 border-green-500/50";
-  return "bg-gray-600/30 text-gray-300 border-gray-500/50";
+  return "bg-[var(--color-surface-3)]/30 text-[var(--color-text-primary)] border-[var(--color-surface-3)]/50";
 }
 
 function getSeverityColor(severity: string): string {
@@ -274,7 +274,7 @@ function getSeverityColor(severity: string): string {
     case "high": return "text-orange-400";
     case "medium": return "text-yellow-400";
     case "low": return "text-green-400";
-    default: return "text-gray-400";
+    default: return "text-[var(--color-text-secondary)]";
   }
 }
 
@@ -304,23 +304,23 @@ function Tooltip({ data }: TooltipProps) {
 
   return (
     <div
-      className="fixed z-50 bg-gray-800 border border-zinc-600 rounded-lg shadow-xl p-3 pointer-events-none"
+      className="fixed z-50 bg-[var(--color-surface-2)] border border-[var(--color-surface-3)] rounded-lg shadow-xl p-3 pointer-events-none"
       style={{
         left: data.x + 12,
         top: data.y + 12,
       }}
     >
-      <div className="text-sm font-medium text-gray-100 mb-1">{data.agentName}</div>
-      <div className="text-xs text-gray-400 mb-2">{data.category}</div>
+      <div className="text-sm font-medium text-[var(--color-text-primary)] mb-1">{data.agentName}</div>
+      <div className="text-xs text-[var(--color-text-secondary)] mb-2">{data.category}</div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-        <span className="text-gray-500">Success Rate:</span>
+        <span className="text-[var(--color-text-muted)]">Success Rate:</span>
         <span className={`font-medium ${data.successRate >= 70 ? "text-emerald-400" : data.successRate >= 50 ? "text-yellow-400" : "text-red-400"}`}>
           {data.successRate}%
         </span>
-        <span className="text-gray-500">Samples:</span>
-        <span className="text-gray-300">{data.sampleCount}</span>
-        <span className="text-gray-500">Avg Duration:</span>
-        <span className="text-gray-300">{formatDuration(data.avgDuration)}</span>
+        <span className="text-[var(--color-text-muted)]">Samples:</span>
+        <span className="text-[var(--color-text-primary)]">{data.sampleCount}</span>
+        <span className="text-[var(--color-text-muted)]">Avg Duration:</span>
+        <span className="text-[var(--color-text-primary)]">{formatDuration(data.avgDuration)}</span>
       </div>
     </div>
   );
@@ -370,7 +370,7 @@ function HeatmapCell({
   if (isFiltered) {
     return (
       <div
-        className="w-14 h-10 bg-gray-800 border border-gray-700 flex items-center justify-center text-gray-600"
+        className="w-14 h-10 bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)]"
         title={`Filtered (< ${filterThreshold} samples)`}
       >
         <X className="w-3 h-3" />
@@ -380,7 +380,7 @@ function HeatmapCell({
 
   if (successRate === null) {
     return (
-      <div className="w-14 h-10 bg-gray-700 border border-gray-600 flex items-center justify-center text-gray-500">
+      <div className="w-14 h-10 bg-[var(--color-surface-3)] border border-[var(--color-surface-3)] flex items-center justify-center text-[var(--color-text-muted)]">
         —
       </div>
     );
@@ -390,7 +390,7 @@ function HeatmapCell({
     <div
       className={`w-14 h-10 ${getCellColor(successRate)} ${getCellTextColor(
         successRate
-      )} border border-gray-600 flex items-center justify-center text-xs font-medium cursor-pointer
+      )} border border-[var(--color-surface-3)] flex items-center justify-center text-xs font-medium cursor-pointer
         hover:ring-2 hover:ring-white/30 hover:z-10 transition-all`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -409,12 +409,12 @@ interface TopPerformerCardProps {
 
 function TopPerformerCard({ category, agentName, successRate, model }: TopPerformerCardProps) {
   return (
-    <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-zinc-700 rounded-lg p-3 flex items-start gap-2">
+    <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-[var(--color-border)] rounded-lg p-3 flex items-start gap-2">
       <Trophy className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        <div className="text-xs text-gray-400 mb-0.5">Best agent for {category}</div>
+        <div className="text-xs text-[var(--color-text-secondary)] mb-0.5">Best agent for {category}</div>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-gray-100">{agentName}</span>
+          <span className="text-sm font-medium text-[var(--color-text-primary)]">{agentName}</span>
           <ModelBadge model={model} />
           <span className={`text-sm font-bold ${successRate >= 90 ? "text-emerald-400" : "text-yellow-400"}`}>
             {successRate}%
@@ -540,7 +540,7 @@ export default function AgentSkillHeatmap() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-1)] p-6">
       {/* Header */}
       <div className="max-w-[1600px] mx-auto">
         <div className="mb-6">
@@ -548,13 +548,13 @@ export default function AgentSkillHeatmap() {
             <div className="flex items-center gap-3">
               <Grid3X3 className="w-8 h-8 text-blue-400" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-100">Agent Skill Heatmap</h1>
-                <p className="text-sm text-gray-400">Performance matrix by agent and finding category</p>
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Agent Skill Heatmap</h1>
+                <p className="text-sm text-[var(--color-text-secondary)]">Performance matrix by agent and finding category</p>
               </div>
             </div>
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-zinc-600 rounded-lg text-gray-300 text-sm transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] text-sm transition-colors"
             >
               <Download className="w-4 h-4" />
               Export CSV
@@ -563,31 +563,31 @@ export default function AgentSkillHeatmap() {
 
           {/* Stats Bar */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="bg-gray-800 border border-zinc-700 rounded-lg p-4">
+            <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center gap-2 mb-1">
                 <Target className="w-4 h-4 text-blue-400" />
-                <span className="text-xs text-gray-400 uppercase tracking-wide">Agents</span>
+                <span className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Agents</span>
               </div>
-              <div className="text-2xl font-bold text-gray-100">{overallStats.totalAgents}</div>
+              <div className="text-2xl font-bold text-[var(--color-text-primary)]">{overallStats.totalAgents}</div>
             </div>
-            <div className="bg-gray-800 border border-zinc-700 rounded-lg p-4">
+            <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center gap-2 mb-1">
                 <BarChart3 className="w-4 h-4 text-purple-400" />
-                <span className="text-xs text-gray-400 uppercase tracking-wide">Categories</span>
+                <span className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Categories</span>
               </div>
-              <div className="text-2xl font-bold text-gray-100">{overallStats.totalCategories}</div>
+              <div className="text-2xl font-bold text-[var(--color-text-primary)]">{overallStats.totalCategories}</div>
             </div>
-            <div className="bg-gray-800 border border-zinc-700 rounded-lg p-4">
+            <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center gap-2 mb-1">
                 <Zap className="w-4 h-4 text-yellow-400" />
-                <span className="text-xs text-gray-400 uppercase tracking-wide">Total Runs</span>
+                <span className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Total Runs</span>
               </div>
-              <div className="text-2xl font-bold text-gray-100">{overallStats.totalRuns.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-[var(--color-text-primary)]">{overallStats.totalRuns.toLocaleString()}</div>
             </div>
-            <div className="bg-gray-800 border border-zinc-700 rounded-lg p-4">
+            <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
-                <span className="text-xs text-gray-400 uppercase tracking-wide">Avg Success</span>
+                <span className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Avg Success</span>
               </div>
               <div className="text-2xl font-bold text-emerald-400">{overallStats.avgSuccess}%</div>
             </div>
@@ -595,12 +595,12 @@ export default function AgentSkillHeatmap() {
         </div>
 
         {/* Controls */}
-        <div className="bg-gray-800 border border-zinc-700 rounded-lg p-4 mb-6">
+        <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-6">
               {/* Row Sort */}
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 uppercase tracking-wide">Sort Rows:</span>
+                <span className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Sort Rows:</span>
                 <div className="flex gap-1">
                   {[
                     { mode: "average" as RowSortMode, label: "Avg Success", icon: TrendingUp },
@@ -613,7 +613,7 @@ export default function AgentSkillHeatmap() {
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                         rowSortMode === mode
                           ? "bg-blue-600/20 text-blue-300 border border-blue-500/50"
-                          : "bg-gray-700 text-gray-400 border border-gray-600 hover:bg-gray-600"
+                          : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] border border-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)]"
                       }`}
                     >
                       <Icon className="w-3 h-3" />
@@ -625,7 +625,7 @@ export default function AgentSkillHeatmap() {
 
               {/* Column Sort */}
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 uppercase tracking-wide">Sort Columns:</span>
+                <span className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Sort Columns:</span>
                 <div className="flex gap-1">
                   {[
                     { mode: "findings" as ColumnSortMode, label: "Most Findings", icon: Target },
@@ -637,7 +637,7 @@ export default function AgentSkillHeatmap() {
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                         columnSortMode === mode
                           ? "bg-purple-600/20 text-purple-300 border border-purple-500/50"
-                          : "bg-gray-700 text-gray-400 border border-gray-600 hover:bg-gray-600"
+                          : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] border border-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)]"
                       }`}
                     >
                       <Icon className="w-3 h-3" />
@@ -654,24 +654,24 @@ export default function AgentSkillHeatmap() {
               className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                 showFilters
                   ? "bg-orange-600/20 text-orange-300 border border-orange-500/50"
-                  : "bg-gray-700 text-gray-400 border border-gray-600 hover:bg-gray-600"
+                  : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] border border-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)]"
               }`}
             >
               <Filter className="w-3 h-3" />
               Filters
               {filterThreshold > 0 && (
-                <span className="bg-gray-600 px-1.5 py-0.5 rounded text-xs">{filterThreshold}</span>
+                <span className="bg-[var(--color-surface-3)] px-1.5 py-0.5 rounded text-xs">{filterThreshold}</span>
               )}
             </button>
           </div>
 
           {/* Filter Panel */}
           {showFilters && (
-            <div className="mt-4 pt-4 border-t border-gray-700">
+            <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-gray-500" />
-                  <span className="text-xs text-gray-400">Min samples to display:</span>
+                  <Info className="w-4 h-4 text-[var(--color-text-muted)]" />
+                  <span className="text-xs text-[var(--color-text-secondary)]">Min samples to display:</span>
                 </div>
                 <input
                   type="range"
@@ -680,11 +680,11 @@ export default function AgentSkillHeatmap() {
                   step="10"
                   value={filterThreshold}
                   onChange={(e) => setFilterThreshold(parseInt(e.target.value))}
-                  className="w-48 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                  className="w-48 h-2 bg-[var(--color-surface-3)] rounded-lg appearance-none cursor-pointer"
                 />
-                <span className="text-sm font-medium text-gray-300 w-16">{filterThreshold}+</span>
+                <span className="text-sm font-medium text-[var(--color-text-primary)] w-16">{filterThreshold}+</span>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-[var(--color-text-muted)] mt-2">
                 Cells with fewer than {filterThreshold} samples will be filtered out to ensure statistical significance.
               </p>
             </div>
@@ -693,7 +693,7 @@ export default function AgentSkillHeatmap() {
 
         {/* Top Performers */}
         <div className="mb-6">
-          <h2 className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+          <h2 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wide mb-3 flex items-center gap-2">
             <Award className="w-4 h-4" />
             Top Performers by Category
           </h2>
@@ -705,19 +705,19 @@ export default function AgentSkillHeatmap() {
         </div>
 
         {/* Heatmap Grid */}
-        <div className="bg-gray-800 border border-zinc-700 rounded-lg overflow-hidden mb-6">
+        <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg overflow-hidden mb-6">
           <div className="overflow-x-auto">
             <table className="border-collapse">
               <thead>
                 <tr>
-                  <th className="sticky left-0 bg-gray-800 border-r border-gray-700 z-20"></th>
+                  <th className="sticky left-0 bg-[var(--color-surface-2)] border-r border-[var(--color-border)] z-20"></th>
                   {sortedCategories.map((category) => (
                     <th
                       key={category.id}
-                      className="px-1 py-2 border-r border-gray-700 last:border-r-0"
+                      className="px-1 py-2 border-r border-[var(--color-border)] last:border-r-0"
                     >
                       <div className="w-14 flex flex-col items-center">
-                        <span className="text-xs text-gray-300 text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full">
+                        <span className="text-xs text-[var(--color-text-primary)] text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis w-full">
                           {category.name}
                         </span>
                         <span className={`text-xs ${getSeverityColor(category.severity)}`}>
@@ -726,9 +726,9 @@ export default function AgentSkillHeatmap() {
                       </div>
                     </th>
                   ))}
-                  <th className="px-2 py-2 bg-gray-700/50 border-l border-gray-600">
+                  <th className="px-2 py-2 bg-[var(--color-surface-3)]/50 border-l border-[var(--color-surface-3)]">
                     <div className="w-16 text-center">
-                      <span className="text-xs text-gray-400">Avg</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">Avg</span>
                     </div>
                   </th>
                 </tr>
@@ -736,19 +736,19 @@ export default function AgentSkillHeatmap() {
               <tbody>
                 {sortedAgents.map((agent) => (
                   <tr key={agent.agentId}>
-                    <td className="sticky left-0 bg-gray-800 border-r border-gray-700 z-10 px-3 py-1">
+                    <td className="sticky left-0 bg-[var(--color-surface-2)] border-r border-[var(--color-border)] z-10 px-3 py-1">
                       <div className="flex items-center gap-2 min-w-[180px]">
-                        <span className="text-sm font-medium text-gray-100">{agent.agentName}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{agent.agentName}</span>
                         <ModelBadge model={agent.model} />
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
+                      <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
                         {agent.totalRuns.toLocaleString()} runs
                       </div>
                     </td>
                     {sortedCategories.map((category) => {
                       const skill = agent.skills[category.id];
                       return (
-                        <td key={category.id} className="p-0 border-r border-gray-700 last:border-r-0">
+                        <td key={category.id} className="p-0 border-r border-[var(--color-border)] last:border-r-0">
                           <HeatmapCell
                             successRate={skill?.successRate ?? null}
                             sampleCount={skill?.sampleCount ?? 0}
@@ -761,7 +761,7 @@ export default function AgentSkillHeatmap() {
                         </td>
                       );
                     })}
-                    <td className="px-2 py-1 bg-gray-700/30 border-l border-gray-600">
+                    <td className="px-2 py-1 bg-[var(--color-surface-3)]/30 border-l border-[var(--color-surface-3)]">
                       <div className="w-16 flex items-center justify-center">
                         <span
                           className={`text-sm font-bold ${
@@ -779,22 +779,22 @@ export default function AgentSkillHeatmap() {
                   </tr>
                 ))}
                 {/* Summary Row */}
-                <tr className="bg-gray-700/50">
-                  <td className="sticky left-0 bg-gray-700/50 border-r border-gray-600 px-3 py-2 z-10">
+                <tr className="bg-[var(--color-surface-3)]/50">
+                  <td className="sticky left-0 bg-[var(--color-surface-3)]/50 border-r border-[var(--color-surface-3)] px-3 py-2 z-10">
                     <div className="flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm font-medium text-gray-300">Column Average</span>
+                      <BarChart3 className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                      <span className="text-sm font-medium text-[var(--color-text-primary)]">Column Average</span>
                     </div>
                   </td>
                   {sortedCategories.map((category) => (
                     <td
                       key={category.id}
-                      className="p-0 border-r border-gray-600 last:border-r-0"
+                      className="p-0 border-r border-[var(--color-surface-3)] last:border-r-0"
                     >
                       <div
                         className={`w-14 h-10 ${getCellColor(
                           columnAverages[category.id]
-                        )} border border-gray-600 flex items-center justify-center text-xs font-medium ${getCellTextColor(
+                        )} border border-[var(--color-surface-3)] flex items-center justify-center text-xs font-medium ${getCellTextColor(
                           columnAverages[category.id]
                         )}`}
                       >
@@ -802,7 +802,7 @@ export default function AgentSkillHeatmap() {
                       </div>
                     </td>
                   ))}
-                  <td className="px-2 py-1 bg-gray-700/30 border-l border-gray-600">
+                  <td className="px-2 py-1 bg-[var(--color-surface-3)]/30 border-l border-[var(--color-surface-3)]">
                     <div className="w-16 flex items-center justify-center">
                       <span className="text-sm font-bold text-blue-400">
                         {overallStats.avgSuccess}%
@@ -816,75 +816,75 @@ export default function AgentSkillHeatmap() {
         </div>
 
         {/* Legend */}
-        <div className="bg-gray-800 border border-zinc-700 rounded-lg p-4 mb-6">
-          <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">Legend</h3>
+        <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-4 mb-6">
+          <h3 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wide mb-3">Legend</h3>
           <div className="flex items-center gap-6 flex-wrap">
             <div className="flex items-center gap-2">
               <div className="w-6 h-4 bg-emerald-500 rounded"></div>
-              <span className="text-xs text-gray-400">90-100% (Excellent)</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">90-100% (Excellent)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-4 bg-emerald-600 rounded"></div>
-              <span className="text-xs text-gray-400">80-89% (Good)</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">80-89% (Good)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-4 bg-emerald-700 rounded"></div>
-              <span className="text-xs text-gray-400">70-79% (Fair)</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">70-79% (Fair)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-4 bg-yellow-600 rounded"></div>
-              <span className="text-xs text-gray-400">60-69% (Below Avg)</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">60-69% (Below Avg)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-4 bg-orange-600 rounded"></div>
-              <span className="text-xs text-gray-400">50-59% (Poor)</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">50-59% (Poor)</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-4 bg-red-700 rounded"></div>
-              <span className="text-xs text-gray-400">&lt;50% (Critical)</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">&lt;50% (Critical)</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-4 bg-gray-700 border border-gray-600 rounded flex items-center justify-center">
-                <span className="text-gray-500 text-xs">—</span>
+              <div className="w-6 h-4 bg-[var(--color-surface-3)] border border-[var(--color-surface-3)] rounded flex items-center justify-center">
+                <span className="text-[var(--color-text-muted)] text-xs">—</span>
               </div>
-              <span className="text-xs text-gray-400">No Data</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">No Data</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-4 bg-gray-800 border border-gray-700 rounded flex items-center justify-center">
-                <X className="w-3 h-3 text-gray-600" />
+              <div className="w-6 h-4 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded flex items-center justify-center">
+                <X className="w-3 h-3 text-[var(--color-text-muted)]" />
               </div>
-              <span className="text-xs text-gray-400">Filtered</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">Filtered</span>
             </div>
           </div>
         </div>
 
         {/* Model Legend */}
-        <div className="bg-gray-800 border border-zinc-700 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">Model Types</h3>
+        <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-4">
+          <h3 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wide mb-3">Model Types</h3>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <span className="px-2 py-1 text-xs rounded border bg-purple-600/30 text-purple-300 border-purple-500/50">
                 opus-4
               </span>
-              <span className="text-xs text-gray-400">Highest capability, complex tasks</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">Highest capability, complex tasks</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="px-2 py-1 text-xs rounded border bg-blue-600/30 text-blue-300 border-blue-500/50">
                 sonnet-4
               </span>
-              <span className="text-xs text-gray-400">Balanced performance, general tasks</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">Balanced performance, general tasks</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="px-2 py-1 text-xs rounded border bg-green-600/30 text-green-300 border-green-500/50">
                 haiku
               </span>
-              <span className="text-xs text-gray-400">Fast, lightweight operations</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">Fast, lightweight operations</span>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-6 text-center text-xs text-gray-500">
+        <div className="mt-6 text-center text-xs text-[var(--color-text-muted)]">
           <p>Data updated in real-time • Hover over cells for detailed metrics</p>
         </div>
       </div>

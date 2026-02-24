@@ -452,13 +452,13 @@ const statusEmoji: Record<PolicyStatus, string> = {
 const statusColor: Record<PolicyStatus, string> = {
   active: "text-emerald-400",
   draft: "text-amber-400",
-  deprecated: "text-zinc-500",
+  deprecated: "text-[var(--color-text-muted)]",
 };
 
 const statusBadgeBg: Record<PolicyStatus, string> = {
   active: "bg-emerald-400/15 text-emerald-400 border-emerald-400/30",
   draft: "bg-amber-400/15 text-amber-400 border-amber-400/30",
-  deprecated: "bg-zinc-500/15 text-zinc-500 border-zinc-500/30",
+  deprecated: "bg-[var(--color-surface-3)]/15 text-[var(--color-text-muted)] border-[var(--color-surface-3)]/30",
 };
 
 const actionEmoji: Record<RuleAction, string> = {
@@ -490,7 +490,7 @@ const enforcementLabel: Record<EnforcementMode, string> = {
 const severityColor: Record<string, string> = {
   high: "text-rose-400",
   medium: "text-amber-400",
-  low: "text-zinc-400",
+  low: "text-[var(--color-text-secondary)]",
 };
 
 const TAB_CONFIG: { id: TabId; label: string; emoji: string }[] = [
@@ -558,10 +558,10 @@ function PoliciesTab({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-white">
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
           Security Policies
         </h2>
-        <span className="text-sm text-zinc-500">
+        <span className="text-sm text-[var(--color-text-muted)]">
           {policies.filter((p) => p.status === "active").length} active /{" "}
           {policies.length} total
         </span>
@@ -573,24 +573,24 @@ function PoliciesTab({
         return (
           <div
             key={policy.id}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 overflow-hidden"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] overflow-hidden"
           >
             <button
               type="button"
               onClick={() =>
                 setExpandedId(isExpanded ? null : policy.id)
               }
-              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-zinc-800/50 transition-colors"
+              className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-[var(--color-surface-2)]/50 transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span className="text-lg flex-shrink-0">
                   {statusEmoji[policy.status]}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-white truncate">
+                  <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
                     {policy.name}
                   </p>
-                  <p className="text-xs text-zinc-500 truncate">
+                  <p className="text-xs text-[var(--color-text-muted)] truncate">
                     {policy.scope}
                   </p>
                 </div>
@@ -599,22 +599,22 @@ function PoliciesTab({
                 <Badge className={statusBadgeBg[policy.status]}>
                   {policy.status}
                 </Badge>
-                <span className="text-xs text-zinc-600">
+                <span className="text-xs text-[var(--color-text-muted)]">
                   {policy.lastUpdated}
                 </span>
-                <span className="text-zinc-600 text-sm">
+                <span className="text-[var(--color-text-muted)] text-sm">
                   {isExpanded ? "▲" : "▼"}
                 </span>
               </div>
             </button>
 
             {isExpanded && (
-              <div className="border-t border-zinc-800 px-4 py-4 space-y-4">
+              <div className="border-t border-[var(--color-border)] px-4 py-4 space-y-4">
                 {isEditing ? (
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <label className="block">
-                        <span className="text-xs text-zinc-400 mb-1 block">
+                        <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                           Name
                         </span>
                         <input
@@ -626,11 +626,11 @@ function PoliciesTab({
                               name: e.target.value,
                             }))
                           }
-                          className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                       </label>
                       <label className="block">
-                        <span className="text-xs text-zinc-400 mb-1 block">
+                        <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                           Scope
                         </span>
                         <input
@@ -642,11 +642,11 @@ function PoliciesTab({
                               scope: e.target.value,
                             }))
                           }
-                          className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                       </label>
                       <label className="block">
-                        <span className="text-xs text-zinc-400 mb-1 block">
+                        <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                           Owner
                         </span>
                         <input
@@ -658,11 +658,11 @@ function PoliciesTab({
                               owner: e.target.value,
                             }))
                           }
-                          className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                       </label>
                       <label className="block">
-                        <span className="text-xs text-zinc-400 mb-1 block">
+                        <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                           Status
                         </span>
                         <select
@@ -673,7 +673,7 @@ function PoliciesTab({
                               status: e.target.value as PolicyStatus,
                             }))
                           }
-                          className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         >
                           <option value="active">Active</option>
                           <option value="draft">Draft</option>
@@ -682,7 +682,7 @@ function PoliciesTab({
                       </label>
                     </div>
                     <label className="block">
-                      <span className="text-xs text-zinc-400 mb-1 block">
+                      <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                         Description
                       </span>
                       <textarea
@@ -694,7 +694,7 @@ function PoliciesTab({
                             description: e.target.value,
                           }))
                         }
-                        className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                        className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
                       />
                     </label>
                     <div className="flex gap-2 justify-end">
@@ -704,14 +704,14 @@ function PoliciesTab({
                           setEditingId(null);
                           setEditDraft({});
                         }}
-                        className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 transition-colors"
+                        className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-xs text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
                         onClick={() => saveEdit(policy)}
-                        className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-500 transition-colors"
+                        className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs text-[var(--color-text-primary)] hover:bg-indigo-500 transition-colors"
                       >
                         Save Changes
                       </button>
@@ -719,25 +719,25 @@ function PoliciesTab({
                   </div>
                 ) : (
                   <>
-                    <p className="text-sm text-zinc-300 leading-relaxed">
+                    <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">
                       {policy.description}
                     </p>
                     <div className="grid grid-cols-3 gap-4 text-xs">
                       <div>
-                        <span className="text-zinc-500">Owner</span>
-                        <p className="text-zinc-200 mt-0.5">
+                        <span className="text-[var(--color-text-muted)]">Owner</span>
+                        <p className="text-[var(--color-text-primary)] mt-0.5">
                           {policy.owner}
                         </p>
                       </div>
                       <div>
-                        <span className="text-zinc-500">Last Updated</span>
-                        <p className="text-zinc-200 mt-0.5">
+                        <span className="text-[var(--color-text-muted)]">Last Updated</span>
+                        <p className="text-[var(--color-text-primary)] mt-0.5">
                           {policy.lastUpdated}
                         </p>
                       </div>
                       <div>
-                        <span className="text-zinc-500">Enforcement</span>
-                        <p className="text-zinc-200 mt-0.5">
+                        <span className="text-[var(--color-text-muted)]">Enforcement</span>
+                        <p className="text-[var(--color-text-primary)] mt-0.5">
                           {enforcementEmoji[policy.enforcementMode]}{" "}
                           {enforcementLabel[policy.enforcementMode]}
                         </p>
@@ -747,7 +747,7 @@ function PoliciesTab({
                       <button
                         type="button"
                         onClick={() => startEdit(policy)}
-                        className="rounded-md bg-zinc-800 border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
+                        className="rounded-md bg-[var(--color-surface-2)] border border-[var(--color-border)] px-3 py-1.5 text-xs text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] transition-colors"
                       >
                         ✏️ Edit Policy
                       </button>
@@ -837,24 +837,24 @@ function RulesTab({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-semibold text-white">Rule Engine</h2>
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Rule Engine</h2>
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-500 transition-colors"
+          className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs text-[var(--color-text-primary)] hover:bg-indigo-500 transition-colors"
         >
           {showForm ? "Cancel" : "➕ Add Rule"}
         </button>
       </div>
 
       {showForm && (
-        <div className="rounded-lg border border-indigo-500/30 bg-zinc-900 p-4 space-y-3">
+        <div className="rounded-lg border border-indigo-500/30 bg-[var(--color-surface-1)] p-4 space-y-3">
           <p className="text-sm font-medium text-indigo-400 mb-2">
             New Rule
           </p>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="text-xs text-zinc-400 mb-1 block">
+              <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                 Rule Name
               </span>
               <input
@@ -864,11 +864,11 @@ function RulesTab({
                   setFormData((d) => ({ ...d, name: e.target.value }))
                 }
                 placeholder="e.g., Block Unauthorized Access"
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </label>
             <label className="block">
-              <span className="text-xs text-zinc-400 mb-1 block">
+              <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                 Policy
               </span>
               <select
@@ -876,7 +876,7 @@ function RulesTab({
                 onChange={(e) =>
                   setFormData((d) => ({ ...d, policyId: e.target.value }))
                 }
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 {policies.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -886,7 +886,7 @@ function RulesTab({
               </select>
             </label>
             <label className="block">
-              <span className="text-xs text-zinc-400 mb-1 block">
+              <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                 Event Type
               </span>
               <input
@@ -899,11 +899,11 @@ function RulesTab({
                   }))
                 }
                 placeholder="e.g., api.request"
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </label>
             <label className="block">
-              <span className="text-xs text-zinc-400 mb-1 block">
+              <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                 Source IP Range
               </span>
               <input
@@ -915,11 +915,11 @@ function RulesTab({
                     sourceIpRange: e.target.value,
                   }))
                 }
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </label>
             <label className="block">
-              <span className="text-xs text-zinc-400 mb-1 block">
+              <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                 User Role
               </span>
               <input
@@ -931,11 +931,11 @@ function RulesTab({
                     userRole: e.target.value,
                   }))
                 }
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </label>
             <label className="block">
-              <span className="text-xs text-zinc-400 mb-1 block">
+              <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                 Time Window
               </span>
               <select
@@ -946,7 +946,7 @@ function RulesTab({
                     timeWindow: e.target.value,
                   }))
                 }
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 <option value="always">Always</option>
                 <option value="business-hours">Business Hours</option>
@@ -957,7 +957,7 @@ function RulesTab({
               </select>
             </label>
             <label className="block">
-              <span className="text-xs text-zinc-400 mb-1 block">
+              <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                 Priority (lower = higher)
               </span>
               <input
@@ -971,11 +971,11 @@ function RulesTab({
                 }
                 min="0"
                 max="99"
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </label>
             <label className="block">
-              <span className="text-xs text-zinc-400 mb-1 block">
+              <span className="text-xs text-[var(--color-text-secondary)] mb-1 block">
                 Action
               </span>
               <select
@@ -986,7 +986,7 @@ function RulesTab({
                     action: e.target.value as RuleAction,
                   }))
                 }
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-1 focus:ring-indigo-500"
               >
                 <option value="allow">Allow</option>
                 <option value="deny">Deny</option>
@@ -999,7 +999,7 @@ function RulesTab({
             <button
               type="button"
               onClick={handleSubmit}
-              className="rounded-md bg-indigo-600 px-4 py-1.5 text-xs text-white hover:bg-indigo-500 transition-colors"
+              className="rounded-md bg-indigo-600 px-4 py-1.5 text-xs text-[var(--color-text-primary)] hover:bg-indigo-500 transition-colors"
             >
               Create Rule
             </button>
@@ -1012,20 +1012,20 @@ function RulesTab({
           <div
             key={rule.id}
             className={cn(
-              "rounded-lg border bg-zinc-900 p-3",
+              "rounded-lg border bg-[var(--color-surface-1)] p-3",
               rule.enabled
-                ? "border-zinc-800"
-                : "border-zinc-800/50 opacity-50"
+                ? "border-[var(--color-border)]"
+                : "border-[var(--color-border)]/50 opacity-50"
             )}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3 min-w-0">
-                <span className="flex-shrink-0 mt-0.5 w-6 h-6 rounded bg-zinc-800 text-zinc-400 text-xs font-mono flex items-center justify-center">
+                <span className="flex-shrink-0 mt-0.5 w-6 h-6 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] text-xs font-mono flex items-center justify-center">
                   {rule.priority}
                 </span>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-white">
+                    <span className="text-sm font-medium text-[var(--color-text-primary)]">
                       {rule.name}
                     </span>
                     <Badge
@@ -1043,31 +1043,31 @@ function RulesTab({
                       {actionEmoji[rule.action]} {rule.action}
                     </Badge>
                   </div>
-                  <p className="text-xs text-zinc-500 mt-1">
+                  <p className="text-xs text-[var(--color-text-muted)] mt-1">
                     Policy: {policyName(rule.policyId)}
                   </p>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-zinc-400">
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-[var(--color-text-secondary)]">
                     <span>
-                      <span className="text-zinc-600">Event:</span>{" "}
-                      <span className="font-mono text-zinc-300">
+                      <span className="text-[var(--color-text-muted)]">Event:</span>{" "}
+                      <span className="font-mono text-[var(--color-text-primary)]">
                         {rule.condition.eventType}
                       </span>
                     </span>
                     <span>
-                      <span className="text-zinc-600">IP:</span>{" "}
-                      <span className="font-mono text-zinc-300">
+                      <span className="text-[var(--color-text-muted)]">IP:</span>{" "}
+                      <span className="font-mono text-[var(--color-text-primary)]">
                         {rule.condition.sourceIpRange}
                       </span>
                     </span>
                     <span>
-                      <span className="text-zinc-600">Role:</span>{" "}
-                      <span className="text-zinc-300">
+                      <span className="text-[var(--color-text-muted)]">Role:</span>{" "}
+                      <span className="text-[var(--color-text-primary)]">
                         {rule.condition.userRole}
                       </span>
                     </span>
                     <span>
-                      <span className="text-zinc-600">Window:</span>{" "}
-                      <span className="text-zinc-300">
+                      <span className="text-[var(--color-text-muted)]">Window:</span>{" "}
+                      <span className="text-[var(--color-text-primary)]">
                         {rule.condition.timeWindow}
                       </span>
                     </span>
@@ -1082,7 +1082,7 @@ function RulesTab({
                     "rounded px-2 py-1 text-xs transition-colors",
                     rule.enabled
                       ? "bg-emerald-400/15 text-emerald-400 hover:bg-emerald-400/25"
-                      : "bg-zinc-800 text-zinc-500 hover:bg-zinc-700"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
                   {rule.enabled ? "ON" : "OFF"}
@@ -1101,7 +1101,7 @@ function RulesTab({
       </div>
 
       {sorted.length === 0 && (
-        <div className="text-center py-8 text-zinc-600 text-sm">
+        <div className="text-center py-8 text-[var(--color-text-muted)] text-sm">
           No rules configured. Add one to get started.
         </div>
       )}
@@ -1124,10 +1124,10 @@ function EnforcementTab({
   return (
     <div className="space-y-4">
       <div className="mb-2">
-        <h2 className="text-lg font-semibold text-white">
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
           Enforcement Settings
         </h2>
-        <p className="text-xs text-zinc-500 mt-1">
+        <p className="text-xs text-[var(--color-text-muted)] mt-1">
           Configure enforcement mode per policy and preview potential impact
         </p>
       </div>
@@ -1139,14 +1139,14 @@ function EnforcementTab({
         return (
           <div
             key={policy.id}
-            className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 space-y-3"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4 space-y-3"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className={statusColor[policy.status]}>
                   {statusEmoji[policy.status]}
                 </span>
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-medium text-[var(--color-text-primary)]">
                   {policy.name}
                 </span>
               </div>
@@ -1174,8 +1174,8 @@ function EnforcementTab({
                         ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
                         : mode === "warn"
                         ? "border-amber-500 bg-amber-500/20 text-amber-300"
-                        : "border-zinc-600 bg-zinc-700/50 text-zinc-300"
-                      : "border-zinc-700 bg-zinc-800 text-zinc-500 hover:bg-zinc-700 hover:text-zinc-300"
+                        : "border-[var(--color-surface-3)] bg-[var(--color-surface-3)]/50 text-[var(--color-text-primary)]"
+                      : "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {enforcementEmoji[mode]} {enforcementLabel[mode]}
@@ -1184,14 +1184,14 @@ function EnforcementTab({
             </div>
 
             {isPreview && impact.length > 0 && (
-              <div className="border-t border-zinc-800 pt-3 space-y-2">
-                <p className="text-xs font-medium text-zinc-400 mb-2">
+              <div className="border-t border-[var(--color-border)] pt-3 space-y-2">
+                <p className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">
                   ⚡ Impact Preview — What would be affected
                 </p>
                 {impact.map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between rounded-md bg-zinc-800/50 px-3 py-2"
+                    className="flex items-center justify-between rounded-md bg-[var(--color-surface-2)]/50 px-3 py-2"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span
@@ -1202,19 +1202,19 @@ function EnforcementTab({
                       >
                         {item.severity}
                       </span>
-                      <span className="text-xs text-zinc-300 truncate">
+                      <span className="text-xs text-[var(--color-text-primary)] truncate">
                         {item.description}
                       </span>
                     </div>
-                    <span className="text-xs font-mono text-zinc-400 flex-shrink-0 ml-2">
+                    <span className="text-xs font-mono text-[var(--color-text-secondary)] flex-shrink-0 ml-2">
                       {item.count.toLocaleString()}
                     </span>
                   </div>
                 ))}
-                <p className="text-[10px] text-zinc-600 mt-1">
+                <p className="text-[10px] text-[var(--color-text-muted)] mt-1">
                   Counts represent events in the last 30 days that would be
                   affected under{" "}
-                  <span className="text-zinc-500">enforce</span> mode.
+                  <span className="text-[var(--color-text-muted)]">enforce</span> mode.
                 </p>
               </div>
             )}
@@ -1231,30 +1231,30 @@ function AuditTrailTab({ entries }: { entries: AuditEntry[] }) {
   return (
     <div className="space-y-3">
       <div className="mb-2">
-        <h2 className="text-lg font-semibold text-white">Audit Trail</h2>
-        <p className="text-xs text-zinc-500 mt-1">
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Audit Trail</h2>
+        <p className="text-xs text-[var(--color-text-muted)] mt-1">
           Chronological log of all policy changes
         </p>
       </div>
 
-      <div className="rounded-lg border border-zinc-800 overflow-hidden">
-        <div className="grid grid-cols-[120px_120px_1fr_100px_1fr_1fr] gap-px bg-zinc-800">
-          <div className="bg-zinc-900 px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+      <div className="rounded-lg border border-[var(--color-border)] overflow-hidden">
+        <div className="grid grid-cols-[120px_120px_1fr_100px_1fr_1fr] gap-px bg-[var(--color-surface-2)]">
+          <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
             Timestamp
           </div>
-          <div className="bg-zinc-900 px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+          <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
             User
           </div>
-          <div className="bg-zinc-900 px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+          <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
             Policy
           </div>
-          <div className="bg-zinc-900 px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+          <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
             Field
           </div>
-          <div className="bg-zinc-900 px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+          <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
             Old Value
           </div>
-          <div className="bg-zinc-900 px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+          <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
             New Value
           </div>
         </div>
@@ -1262,33 +1262,33 @@ function AuditTrailTab({ entries }: { entries: AuditEntry[] }) {
         {entries.map((entry) => (
           <div
             key={entry.id}
-            className="grid grid-cols-[120px_120px_1fr_100px_1fr_1fr] gap-px bg-zinc-800"
+            className="grid grid-cols-[120px_120px_1fr_100px_1fr_1fr] gap-px bg-[var(--color-surface-2)]"
           >
-            <div className="bg-zinc-900 px-3 py-2.5 text-xs font-mono text-zinc-500">
+            <div className="bg-[var(--color-surface-1)] px-3 py-2.5 text-xs font-mono text-[var(--color-text-muted)]">
               {entry.timestamp}
             </div>
-            <div className="bg-zinc-900 px-3 py-2.5 text-xs text-zinc-300">
+            <div className="bg-[var(--color-surface-1)] px-3 py-2.5 text-xs text-[var(--color-text-primary)]">
               {entry.user}
             </div>
-            <div className="bg-zinc-900 px-3 py-2.5 text-xs text-white font-medium">
+            <div className="bg-[var(--color-surface-1)] px-3 py-2.5 text-xs text-[var(--color-text-primary)] font-medium">
               {entry.policyName}
             </div>
-            <div className="bg-zinc-900 px-3 py-2.5">
-              <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-mono text-zinc-400">
+            <div className="bg-[var(--color-surface-1)] px-3 py-2.5">
+              <span className="rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[10px] font-mono text-[var(--color-text-secondary)]">
                 {entry.field}
               </span>
             </div>
-            <div className="bg-zinc-900 px-3 py-2.5 text-xs text-rose-400/80 line-through truncate">
+            <div className="bg-[var(--color-surface-1)] px-3 py-2.5 text-xs text-rose-400/80 line-through truncate">
               {entry.oldValue}
             </div>
-            <div className="bg-zinc-900 px-3 py-2.5 text-xs text-emerald-400 truncate">
+            <div className="bg-[var(--color-surface-1)] px-3 py-2.5 text-xs text-emerald-400 truncate">
               {entry.newValue}
             </div>
           </div>
         ))}
       </div>
 
-      <p className="text-[10px] text-zinc-600 text-right">
+      <p className="text-[10px] text-[var(--color-text-muted)] text-right">
         Showing {entries.length} entries
       </p>
     </div>
@@ -1337,23 +1337,23 @@ export default function SecurityPolicyEditor() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-1">
             <span className="text-2xl">🔒</span>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] tracking-tight">
               Security Policy Editor
             </h1>
           </div>
-          <p className="text-sm text-zinc-500 ml-10">
+          <p className="text-sm text-[var(--color-text-muted)] ml-10">
             Manage security policies, rules, enforcement, and audit trail
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 rounded-lg bg-zinc-900 p-1 border border-zinc-800">
+        <div className="flex gap-1 mb-6 rounded-lg bg-[var(--color-surface-1)] p-1 border border-[var(--color-border)]">
           {TAB_CONFIG.map((tab) => (
             <button
               key={tab.id}
@@ -1362,8 +1362,8 @@ export default function SecurityPolicyEditor() {
               className={cn(
                 "flex-1 rounded-md px-4 py-2.5 text-sm font-medium transition-colors",
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-sm"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               {tab.emoji} {tab.label}

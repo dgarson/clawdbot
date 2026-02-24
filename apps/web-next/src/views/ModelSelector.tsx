@@ -86,7 +86,7 @@ export default function ModelSelector() {
       {[1, 2, 3].map(i => (
         <div 
           key={i} 
-          className={cn("w-1.5 h-1.5 rounded-full", i <= level ? "bg-violet-500" : "bg-gray-800")} 
+          className={cn("w-1.5 h-1.5 rounded-full", i <= level ? "bg-violet-500" : "bg-[var(--color-surface-2)]")} 
         />
       ))}
     </div>
@@ -95,24 +95,24 @@ export default function ModelSelector() {
   const CostDots = ({ level }: { level: number }) => (
     <div className="flex gap-0.5 text-xs">
       {[1, 2, 3].map(i => (
-        <span key={i} className={cn(i <= level ? "text-amber-500" : "text-gray-800")}>●</span>
+        <span key={i} className={cn(i <= level ? "text-amber-500" : "text-[var(--color-text-primary)]")}>●</span>
       ))}
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-10 font-sans selection:bg-violet-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-10 font-sans selection:bg-violet-500/30">
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Model Library</h1>
-          <p className="text-gray-400 mt-2 flex items-center gap-2">
+          <p className="text-[var(--color-text-secondary)] mt-2 flex items-center gap-2">
             <Activity size={16} className="text-violet-500" />
             {MODELS.length} models available across {PROVIDERS.length - 1} providers
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 rounded-xl bg-gray-900 border border-gray-800 text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2">
+          <button className="px-4 py-2 rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] text-sm font-medium hover:bg-[var(--color-surface-2)] transition-colors flex items-center gap-2">
             <Settings size={18} /> API Keys
           </button>
         </div>
@@ -123,33 +123,33 @@ export default function ModelSelector() {
         {featured.map((model) => (
           <div key={model.id} className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-            <div className="relative bg-gray-900 border border-gray-800 rounded-2xl p-6 h-full flex flex-col">
+            <div className="relative bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-6 h-full flex flex-col">
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-gray-950 rounded-xl border border-gray-800 text-3xl">
+                <div className="p-3 bg-[var(--color-surface-0)] rounded-xl border border-[var(--color-border)] text-3xl">
                   {model.id === 'opus-4' ? '🧠' : model.id === 'sonnet-4' ? '⚡' : '🚀'}
                 </div>
                 <span className={cn(
                   "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                  model.id === 'sonnet-4' ? "bg-violet-600 text-white" : "bg-gray-800 text-gray-400"
+                  model.id === 'sonnet-4' ? "bg-violet-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
                 )}>
                   {model.badge}
                 </span>
               </div>
               
               <h3 className="text-xl font-bold mb-1">{model.name}</h3>
-              <p className="text-gray-400 text-sm mb-6 flex-1">{model.description}</p>
+              <p className="text-[var(--color-text-secondary)] text-sm mb-6 flex-1">{model.description}</p>
               
-              <div className="space-y-3 pt-4 border-t border-gray-800/50">
+              <div className="space-y-3 pt-4 border-t border-[var(--color-border)]/50">
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Context</span>
-                  <span className="font-mono text-gray-200">{model.context}</span>
+                  <span className="text-[var(--color-text-muted)]">Context</span>
+                  <span className="font-mono text-[var(--color-text-primary)]">{model.context}</span>
                 </div>
                 <div className="flex justify-between text-xs items-center">
-                  <span className="text-gray-500">Cost</span>
+                  <span className="text-[var(--color-text-muted)]">Cost</span>
                   <CostDots level={model.id === 'opus-4' ? 3 : model.id === 'sonnet-4' ? 2 : 1} />
                 </div>
                 <div className="flex justify-between text-xs items-center">
-                  <span className="text-gray-500">Speed</span>
+                  <span className="text-[var(--color-text-muted)]">Speed</span>
                   <SpeedDots level={model.speed} />
                 </div>
               </div>
@@ -159,8 +159,8 @@ export default function ModelSelector() {
                 className={cn(
                   "mt-6 w-full py-2.5 rounded-xl font-semibold text-sm transition-all",
                   defaultModelId === model.id 
-                    ? "bg-violet-600 text-white shadow-lg shadow-violet-900/40" 
-                    : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                    ? "bg-violet-600 text-[var(--color-text-primary)] shadow-lg shadow-violet-900/40" 
+                    : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
                 )}
               >
                 {defaultModelId === model.id ? 'Current Default' : 'Select Model'}
@@ -172,7 +172,7 @@ export default function ModelSelector() {
 
       {/* Filter Bar */}
       <div className="flex items-center gap-3 mb-6 overflow-x-auto pb-2 no-scrollbar">
-        <div className="p-2 bg-gray-900 rounded-lg border border-gray-800 text-gray-500">
+        <div className="p-2 bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] text-[var(--color-text-muted)]">
           <Filter size={18} />
         </div>
         {PROVIDERS.map(p => (
@@ -183,7 +183,7 @@ export default function ModelSelector() {
               "px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap",
               filter === p 
                 ? "bg-white text-black" 
-                : "bg-gray-900 text-gray-400 border border-gray-800 hover:border-gray-600"
+                : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
             )}
           >
             {p}
@@ -192,10 +192,10 @@ export default function ModelSelector() {
       </div>
 
       {/* Table Section */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-gray-800/50 text-[10px] uppercase tracking-widest text-gray-500 font-bold border-b border-gray-800">
+            <tr className="bg-[var(--color-surface-2)]/50 text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-bold border-b border-[var(--color-border)]">
               <th className="px-6 py-4">Model</th>
               <th className="px-6 py-4">Provider</th>
               <th className="px-6 py-4">Context</th>
@@ -204,18 +204,18 @@ export default function ModelSelector() {
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800">
+          <tbody className="divide-y divide-[var(--color-border)]">
             {filteredModels.map((model) => (
               <tr 
                 key={model.id}
                 className={cn(
-                  "hover:bg-gray-800/30 transition-colors group",
+                  "hover:bg-[var(--color-surface-2)]/30 transition-colors group",
                   defaultModelId === model.id ? "bg-violet-600/5" : ""
                 )}
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <span className="font-bold text-gray-200">{model.name}</span>
+                    <span className="font-bold text-[var(--color-text-primary)]">{model.name}</span>
                     {defaultModelId === model.id && (
                       <span className="p-1 bg-violet-600/20 text-violet-400 rounded">
                         <Star size={10} fill="currentColor" />
@@ -223,12 +223,12 @@ export default function ModelSelector() {
                     )}
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-400">{model.provider}</td>
-                <td className="px-6 py-4 font-mono text-xs text-gray-400">{model.context}</td>
+                <td className="px-6 py-4 text-sm text-[var(--color-text-secondary)]">{model.provider}</td>
+                <td className="px-6 py-4 font-mono text-xs text-[var(--color-text-secondary)]">{model.context}</td>
                 <td className="px-6 py-4">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-xs text-gray-300">{model.costIn} <span className="text-[10px] text-gray-600">/1K</span></span>
-                    <span className="text-xs text-gray-500">{model.costOut} <span className="text-[10px] text-gray-600">/1K</span></span>
+                    <span className="text-xs text-[var(--color-text-primary)]">{model.costIn} <span className="text-[10px] text-[var(--color-text-muted)]">/1K</span></span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{model.costOut} <span className="text-[10px] text-[var(--color-text-muted)]">/1K</span></span>
                   </div>
                 </td>
                 <td className="px-6 py-4">
@@ -242,8 +242,8 @@ export default function ModelSelector() {
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-xs font-bold transition-all opacity-0 group-hover:opacity-100",
                       defaultModelId === model.id
-                        ? "bg-violet-600 text-white opacity-100"
-                        : "bg-gray-800 hover:bg-gray-700 text-gray-400"
+                        ? "bg-violet-600 text-[var(--color-text-primary)] opacity-100"
+                        : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
                     )}
                   >
                     {defaultModelId === model.id ? 'Default' : 'Set Default'}
@@ -257,12 +257,12 @@ export default function ModelSelector() {
       
       {/* Table Footer */}
       <div className="mt-4 flex items-center justify-between px-2">
-        <div className="text-xs text-gray-500 flex items-center gap-2">
+        <div className="text-xs text-[var(--color-text-muted)] flex items-center gap-2">
           <Info size={14} />
           Cost is estimated per 1K tokens based on provider pricing.
         </div>
         <div className="flex items-center gap-4">
-           <button className="text-gray-500 hover:text-white transition-colors">
+           <button className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
               <ChevronDown size={20} />
            </button>
         </div>

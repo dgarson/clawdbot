@@ -86,7 +86,7 @@ const VOTE_BREAKDOWN: VoteBreakdown[] = [
 ];
 
 const statusBadge: Record<FeatureStatus, string> = {
-  "submitted":    "bg-zinc-700/50 border-zinc-600 text-zinc-400",
+  "submitted":    "bg-[var(--color-surface-3)]/50 border-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
   "under-review": "bg-amber-500/15 border-amber-500/30 text-amber-400",
   "planned":      "bg-indigo-500/15 border-indigo-500/30 text-indigo-400",
   "in-progress":  "bg-sky-500/15 border-sky-500/30 text-sky-400",
@@ -107,7 +107,7 @@ const priorityBadge: Record<Priority, string> = {
   critical: "bg-rose-500/15 text-rose-400",
   high:     "bg-orange-500/15 text-orange-400",
   medium:   "bg-amber-500/15 text-amber-400",
-  low:      "bg-zinc-700 text-zinc-400",
+  low:      "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
 };
 
 const categoryIcon: Record<Category, string> = {
@@ -137,13 +137,13 @@ export default function FeatureRequestBoard() {
   const maxVotes = Math.max(...VOTE_BREAKDOWN.map(v => v.count));
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-white">Feature Request Board</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">{FEATURES.length} requests · {totalVotes.toLocaleString()} total votes</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Feature Request Board</h1>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{FEATURES.length} requests · {totalVotes.toLocaleString()} total votes</p>
           </div>
           <button className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium transition-colors">+ Submit Request</button>
         </div>
@@ -153,11 +153,11 @@ export default function FeatureRequestBoard() {
             { label: "In Progress", value: inProgress.length, color: "text-sky-400" },
             { label: "Planned", value: planned.length, color: "text-indigo-400" },
             { label: "Shipped", value: shipped.length, color: "text-emerald-400" },
-            { label: "Total Votes", value: totalVotes.toLocaleString(), color: "text-white" },
+            { label: "Total Votes", value: totalVotes.toLocaleString(), color: "text-[var(--color-text-primary)]" },
           ].map(s => (
             <div key={s.label}>
               <span className={cn("text-base font-bold", s.color)}>{s.value}</span>
-              <span className="text-zinc-500 text-xs ml-1.5">{s.label}</span>
+              <span className="text-[var(--color-text-muted)] text-xs ml-1.5">{s.label}</span>
             </div>
           ))}
         </div>
@@ -166,7 +166,7 @@ export default function FeatureRequestBoard() {
           {(["requests", "roadmap", "feedback", "trends"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={cn("px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors",
-                tab === t ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800")}>
+                tab === t ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]")}>
               {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
@@ -178,13 +178,13 @@ export default function FeatureRequestBoard() {
         {tab === "requests" && (
           <div className="flex h-full">
             {/* Left */}
-            <div className="w-[46%] flex-none border-r border-zinc-800 flex flex-col">
-              <div className="flex-none px-4 py-2.5 border-b border-zinc-800 overflow-x-auto">
+            <div className="w-[46%] flex-none border-r border-[var(--color-border)] flex flex-col">
+              <div className="flex-none px-4 py-2.5 border-b border-[var(--color-border)] overflow-x-auto">
                 <div className="flex items-center gap-1">
                   {(["all", "in-progress", "planned", "under-review", "submitted", "shipped", "declined"] as const).map(s => (
                     <button key={s} onClick={() => setStatusFilter(s)}
                       className={cn("px-2 py-0.5 rounded text-[11px] whitespace-nowrap capitalize transition-colors flex-none",
-                        statusFilter === s ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                        statusFilter === s ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}>
                       {s === "all" ? "All" : statusLabel[s as FeatureStatus]}
                     </button>
                   ))}
@@ -193,13 +193,13 @@ export default function FeatureRequestBoard() {
               <div className="flex-1 overflow-y-auto">
                 {filtered.map(feat => (
                   <button key={feat.id} onClick={() => setSelected(feat)} className={cn(
-                    "w-full text-left px-4 py-3 border-b border-zinc-800/60 hover:bg-zinc-900 transition-colors",
-                    selected?.id === feat.id && "bg-zinc-900 border-l-2 border-l-indigo-500"
+                    "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface-1)] transition-colors",
+                    selected?.id === feat.id && "bg-[var(--color-surface-1)] border-l-2 border-l-indigo-500"
                   )}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-start gap-2 min-w-0">
                         <span className="text-sm mt-0.5">{categoryIcon[feat.category]}</span>
-                        <span className="text-sm font-medium text-white truncate">{feat.title}</span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{feat.title}</span>
                       </div>
                       <div className="flex items-center gap-1.5 flex-none">
                         <span className="text-sm font-bold text-indigo-400">▲ {feat.votes.toLocaleString()}</span>
@@ -212,7 +212,7 @@ export default function FeatureRequestBoard() {
                       <span className={cn("px-1.5 py-0.5 rounded text-[10px]", priorityBadge[feat.priority])}>{feat.priority}</span>
                       <span className={cn("text-[10px] font-mono font-semibold", effortColor[feat.effort])}>effort:{feat.effort}</span>
                       {feat.customerCount > 0 && (
-                        <span className="text-[10px] text-zinc-600">{feat.customerCount} customers</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{feat.customerCount} customers</span>
                       )}
                     </div>
                   </button>
@@ -226,62 +226,62 @@ export default function FeatureRequestBoard() {
                   <div>
                     <div className="flex items-start gap-2">
                       <span className="text-lg">{categoryIcon[selected.category]}</span>
-                      <h2 className="text-base font-semibold text-white leading-tight">{selected.title}</h2>
+                      <h2 className="text-base font-semibold text-[var(--color-text-primary)] leading-tight">{selected.title}</h2>
                     </div>
-                    <p className="text-xs text-zinc-400 mt-2">{selected.description}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)] mt-2">{selected.description}</p>
                   </div>
                   {/* Badges */}
                   <div className="flex flex-wrap gap-2">
                     <span className={cn("px-2 py-1 rounded border text-xs font-medium", statusBadge[selected.status])}>{statusLabel[selected.status]}</span>
                     <span className={cn("px-2 py-1 rounded text-xs", priorityBadge[selected.priority])}>{selected.priority} priority</span>
-                    <span className="px-2 py-1 rounded border border-zinc-700 text-xs text-zinc-400">Effort: <span className={cn("font-bold", effortColor[selected.effort])}>{selected.effort}</span></span>
+                    <span className="px-2 py-1 rounded border border-[var(--color-border)] text-xs text-[var(--color-text-secondary)]">Effort: <span className={cn("font-bold", effortColor[selected.effort])}>{selected.effort}</span></span>
                     {selected.eta !== "TBD" && selected.eta !== "-" && (
-                      <span className="px-2 py-1 rounded border border-zinc-700 text-xs text-zinc-400">ETA: {selected.eta}</span>
+                      <span className="px-2 py-1 rounded border border-[var(--color-border)] text-xs text-[var(--color-text-secondary)]">ETA: {selected.eta}</span>
                     )}
                   </div>
                   {/* Vote + customer impact */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                      <div className="text-xs text-zinc-500">Upvotes</div>
+                    <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                      <div className="text-xs text-[var(--color-text-muted)]">Upvotes</div>
                       <div className="text-2xl font-bold text-indigo-400 mt-1">▲ {selected.votes.toLocaleString()}</div>
                     </div>
                     {selected.customerCount > 0 && (
-                      <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                        <div className="text-xs text-zinc-500">Affected MRR</div>
+                      <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                        <div className="text-xs text-[var(--color-text-muted)]">Affected MRR</div>
                         <div className="text-2xl font-bold text-emerald-400 mt-1">${(selected.mrr / 1000).toFixed(0)}K</div>
-                        <div className="text-[10px] text-zinc-600">{selected.customerCount} customers</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)]">{selected.customerCount} customers</div>
                       </div>
                     )}
                   </div>
                   {/* Metadata */}
-                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs font-medium text-zinc-400 mb-2">Details</div>
+                  <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Details</div>
                     <div className="grid grid-cols-2 gap-y-1.5 text-xs">
-                      <div><span className="text-zinc-500">Submitted: </span><span className="text-zinc-300">{selected.submittedAt}</span></div>
-                      <div><span className="text-zinc-500">Target: </span><span className="text-zinc-300">{selected.targetRelease}</span></div>
-                      <div><span className="text-zinc-500">Category: </span><span className="text-zinc-300 capitalize">{selected.category}</span></div>
-                      <div><span className="text-zinc-500">Comments: </span><span className="text-zinc-300">{selected.comments}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Submitted: </span><span className="text-[var(--color-text-primary)]">{selected.submittedAt}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Target: </span><span className="text-[var(--color-text-primary)]">{selected.targetRelease}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Category: </span><span className="text-[var(--color-text-primary)] capitalize">{selected.category}</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Comments: </span><span className="text-[var(--color-text-primary)]">{selected.comments}</span></div>
                     </div>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {selected.tags.map(tag => (
-                        <span key={tag} className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-400">{tag}</span>
+                        <span key={tag} className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[10px] text-[var(--color-text-secondary)]">{tag}</span>
                       ))}
                     </div>
                   </div>
                   {/* Comments */}
                   {selectedComments.length > 0 && (
                     <div className="space-y-2">
-                      <div className="text-xs font-medium text-zinc-400">Team Notes</div>
+                      <div className="text-xs font-medium text-[var(--color-text-secondary)]">Team Notes</div>
                       {selectedComments.map(c => (
                         <div key={c.id} className={cn("rounded-xl p-3 border text-xs",
-                          c.isTeam ? "bg-indigo-500/5 border-indigo-500/20" : "bg-zinc-900 border-zinc-800"
+                          c.isTeam ? "bg-indigo-500/5 border-indigo-500/20" : "bg-[var(--color-surface-1)] border-[var(--color-border)]"
                         )}>
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-white">{c.author}</span>
-                            <span className="text-zinc-500">{c.role}</span>
-                            <span className="text-zinc-600 ml-auto">{c.timestamp}</span>
+                            <span className="font-semibold text-[var(--color-text-primary)]">{c.author}</span>
+                            <span className="text-[var(--color-text-muted)]">{c.role}</span>
+                            <span className="text-[var(--color-text-muted)] ml-auto">{c.timestamp}</span>
                           </div>
-                          <p className="text-zinc-400">{c.text}</p>
+                          <p className="text-[var(--color-text-secondary)]">{c.text}</p>
                         </div>
                       ))}
                     </div>
@@ -299,9 +299,9 @@ export default function FeatureRequestBoard() {
               {ROADMAP.map(rm => {
                 const features = rm.featureIds.map(id => FEATURES.find(f => f.id === id)).filter(Boolean) as FeatureRequest[];
                 return (
-                  <div key={rm.id} className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
+                  <div key={rm.id} className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-white">{rm.title}</h3>
+                      <h3 className="font-semibold text-[var(--color-text-primary)]">{rm.title}</h3>
                       <span className={cn("px-2 py-1 rounded border text-xs font-medium",
                         rm.status === "in-progress" ? "bg-sky-500/15 border-sky-500/30 text-sky-400" :
                         rm.status === "shipped" ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400" :
@@ -310,19 +310,19 @@ export default function FeatureRequestBoard() {
                     </div>
                     {/* Progress bar */}
                     <div className="mt-3">
-                      <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                      <div className="flex justify-between text-xs text-[var(--color-text-muted)] mb-1">
                         <span>Progress</span>
                         <span>{rm.percentDone}%</span>
                       </div>
-                      <div className="w-full bg-zinc-800 rounded-full h-2">
+                      <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
                         <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${rm.percentDone}%` }} />
                       </div>
                     </div>
                     <div className="mt-3 space-y-1.5">
                       {features.map(f => (
-                        <div key={f.id} className="flex items-center gap-2 bg-zinc-950 rounded-lg px-3 py-2">
+                        <div key={f.id} className="flex items-center gap-2 bg-[var(--color-surface-0)] rounded-lg px-3 py-2">
                           <span>{categoryIcon[f.category]}</span>
-                          <span className="text-xs text-zinc-300">{f.title}</span>
+                          <span className="text-xs text-[var(--color-text-primary)]">{f.title}</span>
                           <span className={cn("ml-auto px-1.5 py-0.5 rounded border text-[10px]", statusBadge[f.status])}>{statusLabel[f.status]}</span>
                           <span className="text-[10px] text-indigo-400">▲ {f.votes.toLocaleString()}</span>
                         </div>
@@ -341,17 +341,17 @@ export default function FeatureRequestBoard() {
             <div className="space-y-2">
               {COMMENTS.map(c => (
                 <div key={c.id} className={cn("rounded-xl p-4 border text-sm",
-                  c.isTeam ? "bg-indigo-500/5 border-indigo-500/20" : "bg-zinc-900 border-zinc-800"
+                  c.isTeam ? "bg-indigo-500/5 border-indigo-500/20" : "bg-[var(--color-surface-1)] border-[var(--color-border)]"
                 )}>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className="font-semibold text-white">{c.author}</span>
+                    <span className="font-semibold text-[var(--color-text-primary)]">{c.author}</span>
                     <span className={cn("px-1.5 py-0.5 rounded text-[10px]",
-                      c.isTeam ? "bg-indigo-500/20 text-indigo-400" : "bg-zinc-800 text-zinc-500"
+                      c.isTeam ? "bg-indigo-500/20 text-indigo-400" : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                     )}>{c.role}</span>
-                    <span className="text-zinc-600 text-xs ml-auto">{c.timestamp}</span>
+                    <span className="text-[var(--color-text-muted)] text-xs ml-auto">{c.timestamp}</span>
                   </div>
-                  <p className="text-zinc-400 text-xs">{c.text}</p>
-                  <div className="mt-1.5 text-[10px] text-zinc-600">
+                  <p className="text-[var(--color-text-secondary)] text-xs">{c.text}</p>
+                  <div className="mt-1.5 text-[10px] text-[var(--color-text-muted)]">
                     Re: {FEATURES.find(f => f.id === c.featureId)?.title}
                   </div>
                 </div>
@@ -363,35 +363,35 @@ export default function FeatureRequestBoard() {
         {/* Trends Tab */}
         {tab === "trends" && (
           <div className="overflow-y-auto h-full p-5">
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 mb-4">
-              <div className="text-sm font-medium text-zinc-300 mb-4">Votes by Category</div>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)] mb-4">
+              <div className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Votes by Category</div>
               <div className="space-y-3">
                 {VOTE_BREAKDOWN.toSorted((a, b) => b.count - a.count).map(vb => (
                   <div key={vb.category}>
                     <div className="flex items-center justify-between text-xs mb-1">
                       <div className="flex items-center gap-1.5">
                         <span>{categoryIcon[vb.category]}</span>
-                        <span className="text-zinc-300 capitalize">{vb.category}</span>
+                        <span className="text-[var(--color-text-primary)] capitalize">{vb.category}</span>
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="text-indigo-400">▲ {vb.count.toLocaleString()} votes</span>
                         <span className="text-emerald-400">${(vb.mrr / 1000).toFixed(0)}K MRR</span>
                       </div>
                     </div>
-                    <div className="w-full bg-zinc-800 rounded-full h-2">
+                    <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
                       <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${(vb.count / maxVotes) * 100}%` }} />
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
-              <div className="text-sm font-medium text-zinc-300 mb-4">Top by MRR Impact</div>
+            <div className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)]">
+              <div className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Top by MRR Impact</div>
               <div className="space-y-2">
                 {FEATURES.filter(f => f.mrr > 0).toSorted((a, b) => b.mrr - a.mrr).slice(0, 5).map((f, idx) => (
                   <div key={f.id} className="flex items-center gap-3">
-                    <span className="text-xs text-zinc-600 w-4">{idx + 1}.</span>
-                    <span className="text-xs text-zinc-300 flex-1 truncate">{f.title}</span>
+                    <span className="text-xs text-[var(--color-text-muted)] w-4">{idx + 1}.</span>
+                    <span className="text-xs text-[var(--color-text-primary)] flex-1 truncate">{f.title}</span>
                     <span className="text-emerald-400 text-xs font-semibold">${(f.mrr / 1000).toFixed(0)}K</span>
                     <span className="text-indigo-400 text-xs">▲{f.votes.toLocaleString()}</span>
                   </div>

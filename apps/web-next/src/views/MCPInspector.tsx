@@ -189,7 +189,7 @@ const KIND_STYLES: Record<ToolKind, string> = {
   browser: "bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/20",
   message: "bg-indigo-500/10 text-indigo-400 ring-1 ring-indigo-500/20",
   network: "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20",
-  process: "bg-zinc-500/10 text-zinc-400 ring-1 ring-zinc-500/20",
+  process: "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)] ring-1 ring-zinc-500/20",
   spawn: "bg-pink-500/10 text-pink-400 ring-1 ring-pink-500/20",
 };
 
@@ -212,12 +212,12 @@ export default function MCPInspector() {
   const totalCalls = TOOLS.reduce((acc, t) => acc + t.totalCalls, 0);
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="shrink-0 border-b border-zinc-800 px-5 py-3 flex items-center justify-between">
+      <div className="shrink-0 border-b border-[var(--color-border)] px-5 py-3 flex items-center justify-between">
         <div>
-          <h1 className="text-sm font-semibold text-white">MCP Inspector</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">{TOOLS.length} registered tools · {totalCalls.toLocaleString()} total invocations</p>
+          <h1 className="text-sm font-semibold text-[var(--color-text-primary)]">MCP Inspector</h1>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{TOOLS.length} registered tools · {totalCalls.toLocaleString()} total invocations</p>
         </div>
         {/* Kind filter */}
         <div className="flex gap-1.5 flex-wrap">
@@ -225,7 +225,7 @@ export default function MCPInspector() {
             onClick={() => setKindFilter("all")}
             className={cn(
               "px-2.5 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-              kindFilter === "all" ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+              kindFilter === "all" ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             All
@@ -236,7 +236,7 @@ export default function MCPInspector() {
               onClick={() => setKindFilter(k)}
               className={cn(
                 "px-2.5 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                kindFilter === k ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                kindFilter === k ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {k}
@@ -247,7 +247,7 @@ export default function MCPInspector() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Tool list */}
-        <ul className="w-60 shrink-0 border-r border-zinc-800 overflow-y-auto divide-y divide-zinc-800/50" role="listbox" aria-label="MCP tools">
+        <ul className="w-60 shrink-0 border-r border-[var(--color-border)] overflow-y-auto divide-y divide-[var(--color-border)]/50" role="listbox" aria-label="MCP tools">
           {filteredTools.map((tool) => (
             <li key={tool.name}>
               <button
@@ -255,17 +255,17 @@ export default function MCPInspector() {
                 aria-selected={tool.name === selectedName}
                 onClick={() => { setSelectedName(tool.name); setTab("schema"); }}
                 className={cn(
-                  "w-full text-left px-4 py-3 hover:bg-zinc-800/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                  tool.name === selectedName && "bg-zinc-800 border-l-2 border-indigo-500"
+                  "w-full text-left px-4 py-3 hover:bg-[var(--color-surface-2)]/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
+                  tool.name === selectedName && "bg-[var(--color-surface-2)] border-l-2 border-indigo-500"
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <code className="text-xs font-semibold text-zinc-200">{tool.name}</code>
+                  <code className="text-xs font-semibold text-[var(--color-text-primary)]">{tool.name}</code>
                   <span className={cn("text-xs px-1.5 py-0.5 rounded font-medium", KIND_STYLES[tool.kind])}>
                     {tool.kind}
                   </span>
                 </div>
-                <div className="mt-1 flex items-center gap-2 text-xs text-zinc-600">
+                <div className="mt-1 flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
                   <span>{tool.totalCalls.toLocaleString()} calls</span>
                   <span>·</span>
                   <span className={tool.errorRate > 3 ? "text-rose-400" : tool.errorRate > 0 ? "text-amber-400" : "text-emerald-400"}>
@@ -280,39 +280,39 @@ export default function MCPInspector() {
         {/* Tool detail */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Tool header */}
-          <div className="shrink-0 border-b border-zinc-800 px-5 py-4">
+          <div className="shrink-0 border-b border-[var(--color-border)] px-5 py-4">
             <div className="flex items-center gap-3">
-              <code className="text-base font-bold text-white">{selected.name}</code>
+              <code className="text-base font-bold text-[var(--color-text-primary)]">{selected.name}</code>
               <span className={cn("text-xs px-2 py-0.5 rounded font-medium", KIND_STYLES[selected.kind])}>
                 {selected.kind}
               </span>
             </div>
-            <p className="text-xs text-zinc-400 mt-2 leading-relaxed">{selected.description}</p>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-2 leading-relaxed">{selected.description}</p>
             {/* Stats row */}
             <div className="mt-3 flex gap-6">
               <div className="text-center">
-                <div className="text-sm font-bold text-white">{selected.totalCalls.toLocaleString()}</div>
-                <div className="text-xs text-zinc-500">Total calls</div>
+                <div className="text-sm font-bold text-[var(--color-text-primary)]">{selected.totalCalls.toLocaleString()}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">Total calls</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-bold text-white">{selected.avgDurationMs}ms</div>
-                <div className="text-xs text-zinc-500">Avg duration</div>
+                <div className="text-sm font-bold text-[var(--color-text-primary)]">{selected.avgDurationMs}ms</div>
+                <div className="text-xs text-[var(--color-text-muted)]">Avg duration</div>
               </div>
               <div className="text-center">
                 <div className={cn("text-sm font-bold", selected.errorRate > 3 ? "text-rose-400" : selected.errorRate > 0 ? "text-amber-400" : "text-emerald-400")}>
                   {selected.errorRate.toFixed(1)}%
                 </div>
-                <div className="text-xs text-zinc-500">Error rate</div>
+                <div className="text-xs text-[var(--color-text-muted)]">Error rate</div>
               </div>
               <div className="text-center">
-                <div className="text-sm font-bold text-white">{selected.params.length}</div>
-                <div className="text-xs text-zinc-500">Parameters</div>
+                <div className="text-sm font-bold text-[var(--color-text-primary)]">{selected.params.length}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">Parameters</div>
               </div>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="shrink-0 border-b border-zinc-800 px-5 flex" role="tablist">
+          <div className="shrink-0 border-b border-[var(--color-border)] px-5 flex" role="tablist">
             {(["schema", "history"] as const).map((t) => (
               <button
                 key={t}
@@ -321,7 +321,7 @@ export default function MCPInspector() {
                 onClick={() => setTab(t)}
                 className={cn(
                   "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                  tab === t ? "border-indigo-500 text-indigo-400" : "border-transparent text-zinc-500 hover:text-zinc-300"
+                  tab === t ? "border-indigo-500 text-indigo-400" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {t === "schema" ? "Schema" : `History (${selected.invocations.length})`}
@@ -333,15 +333,15 @@ export default function MCPInspector() {
           <div className="flex-1 overflow-y-auto p-5">
             {tab === "schema" && (
               <div className="space-y-4">
-                <div className="bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-zinc-800 text-xs font-medium text-zinc-400 uppercase tracking-wide">
+                <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden">
+                  <div className="px-4 py-3 border-b border-[var(--color-border)] text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wide">
                     Parameters
                   </div>
-                  <div className="divide-y divide-zinc-800/50">
+                  <div className="divide-y divide-[var(--color-border)]/50">
                     {selected.params.map((param) => (
                       <div key={param.name} className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <code className="text-sm font-semibold text-zinc-200">{param.name}</code>
+                          <code className="text-sm font-semibold text-[var(--color-text-primary)]">{param.name}</code>
                           <span className={cn("text-xs font-mono font-medium", PARAM_TYPE_COLORS[param.type])}>
                             {param.type}
                           </span>
@@ -351,11 +351,11 @@ export default function MCPInspector() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-zinc-500 mt-1">{param.description}</p>
+                        <p className="text-xs text-[var(--color-text-muted)] mt-1">{param.description}</p>
                         {param.enum && (
                           <div className="mt-2 flex gap-1 flex-wrap">
                             {param.enum.map((v) => (
-                              <code key={v} className="text-xs px-1.5 py-0.5 bg-zinc-800 text-zinc-300 rounded">
+                              <code key={v} className="text-xs px-1.5 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded">
                                 "{v}"
                               </code>
                             ))}
@@ -374,28 +374,28 @@ export default function MCPInspector() {
                   <div
                     key={inv.id}
                     className={cn(
-                      "bg-zinc-900 rounded-lg border p-4",
-                      inv.success ? "border-zinc-800" : "border-rose-500/30"
+                      "bg-[var(--color-surface-1)] rounded-lg border p-4",
+                      inv.success ? "border-[var(--color-border)]" : "border-rose-500/30"
                     )}
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <span className={cn("text-xs font-semibold px-1.5 py-0.5 rounded", inv.success ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400")}>
                         {inv.success ? "success" : "error"}
                       </span>
-                      <span className="text-xs text-zinc-500">{inv.ts}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{inv.ts}</span>
                       <span className="text-xs text-indigo-400">{inv.agent}</span>
-                      <span className="text-xs text-zinc-600 ml-auto">{inv.durationMs}ms</span>
+                      <span className="text-xs text-[var(--color-text-muted)] ml-auto">{inv.durationMs}ms</span>
                     </div>
                     <div className="space-y-2">
                       <div>
-                        <div className="text-xs font-medium text-zinc-500 mb-1">Input</div>
-                        <pre className="text-xs text-zinc-300 bg-zinc-950 rounded p-2 overflow-x-auto font-mono">
+                        <div className="text-xs font-medium text-[var(--color-text-muted)] mb-1">Input</div>
+                        <pre className="text-xs text-[var(--color-text-primary)] bg-[var(--color-surface-0)] rounded p-2 overflow-x-auto font-mono">
                           {JSON.stringify(inv.input, null, 2)}
                         </pre>
                       </div>
                       <div>
-                        <div className="text-xs font-medium text-zinc-500 mb-1">{inv.success ? "Output" : "Error"}</div>
-                        <pre className={cn("text-xs rounded p-2 overflow-x-auto font-mono", inv.success ? "bg-zinc-950 text-zinc-300" : "bg-rose-950 text-rose-300")}>
+                        <div className="text-xs font-medium text-[var(--color-text-muted)] mb-1">{inv.success ? "Output" : "Error"}</div>
+                        <pre className={cn("text-xs rounded p-2 overflow-x-auto font-mono", inv.success ? "bg-[var(--color-surface-0)] text-[var(--color-text-primary)]" : "bg-rose-950 text-rose-300")}>
                           {inv.error ?? inv.output}
                         </pre>
                       </div>

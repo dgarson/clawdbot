@@ -455,7 +455,7 @@ function Badge({ children, className }: { children: React.ReactNode; className?:
 
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("bg-zinc-900 border border-zinc-800 rounded-lg", className)}>
+    <div className={cn("bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg", className)}>
       {children}
     </div>
   );
@@ -474,7 +474,7 @@ function ProgressBar({
 }) {
   const pct = Math.min((value / max) * 100, 100);
   return (
-    <div className={cn("w-full bg-zinc-800 rounded-full overflow-hidden", height)}>
+    <div className={cn("w-full bg-[var(--color-surface-2)] rounded-full overflow-hidden", height)}>
       <div
         className={cn("h-full rounded-full transition-all duration-500", colorClass)}
         style={{ width: pct + "%" }}
@@ -516,7 +516,7 @@ function OverviewTab() {
         {summaryCards.map((c) => (
           <Card key={c.label} className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-zinc-400">{c.label}</span>
+              <span className="text-sm text-[var(--color-text-secondary)]">{c.label}</span>
               <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded", c.color, c.bg)}>
                 {c.pct.toFixed(1)}%
               </span>
@@ -532,22 +532,22 @@ function OverviewTab() {
       {/* Total cost banner */}
       <Card className="p-4 flex items-center justify-between">
         <div>
-          <div className="text-sm text-zinc-400 mb-1">Total Monthly Spend</div>
-          <div className="text-3xl font-bold text-white">{formatCurrencyFull(grandTotal)}</div>
+          <div className="text-sm text-[var(--color-text-secondary)] mb-1">Total Monthly Spend</div>
+          <div className="text-3xl font-bold text-[var(--color-text-primary)]">{formatCurrencyFull(grandTotal)}</div>
         </div>
         <div className="text-right">
-          <div className="text-sm text-zinc-400 mb-1">vs Budget</div>
+          <div className="text-sm text-[var(--color-text-secondary)] mb-1">vs Budget</div>
           <div className={cn("text-xl font-semibold", spentTotal > budgetTotal ? "text-rose-400" : "text-emerald-400")}>
             {spentTotal > budgetTotal ? "+" : ""}{formatCurrency(spentTotal - budgetTotal)}
           </div>
-          <div className="text-xs text-zinc-500">{((spentTotal / budgetTotal) * 100).toFixed(1)}% of {formatCurrency(budgetTotal)} budget</div>
+          <div className="text-xs text-[var(--color-text-muted)]">{((spentTotal / budgetTotal) * 100).toFixed(1)}% of {formatCurrency(budgetTotal)} budget</div>
         </div>
       </Card>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Budget vs Actual */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-white mb-4">Budget vs Actual — Feb 2026</h3>
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Budget vs Actual — Feb 2026</h3>
           <div className="space-y-4">
             {BUDGETS.map((b) => {
               const status = getBudgetStatus(b.spent, b.allocated, b.alertThreshold);
@@ -555,12 +555,12 @@ function OverviewTab() {
               return (
                 <div key={b.id}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-zinc-300 truncate max-w-[180px]">{b.name}</span>
+                    <span className="text-sm text-[var(--color-text-primary)] truncate max-w-[180px]">{b.name}</span>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className={cn("text-xs font-medium", getBudgetTextColor(status))}>
                         {pct.toFixed(0)}%
                       </span>
-                      <span className="text-xs text-zinc-500">{formatCurrency(b.spent)} / {formatCurrency(b.allocated)}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{formatCurrency(b.spent)} / {formatCurrency(b.allocated)}</span>
                     </div>
                   </div>
                   <ProgressBar value={b.spent} max={b.allocated} colorClass={getBudgetStatusColor(status)} />
@@ -572,7 +572,7 @@ function OverviewTab() {
 
         {/* Provider Breakdown */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-white mb-4">Provider Breakdown</h3>
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Provider Breakdown</h3>
           <div className="space-y-5">
             {[
               { name: "AWS" as Provider, total: awsTotal },
@@ -583,11 +583,11 @@ function OverviewTab() {
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
                     <Badge className={getProviderColor(p.name)}>{p.name}</Badge>
-                    <span className="text-sm text-zinc-400">{((p.total / grandTotal) * 100).toFixed(1)}% of spend</span>
+                    <span className="text-sm text-[var(--color-text-secondary)]">{((p.total / grandTotal) * 100).toFixed(1)}% of spend</span>
                   </div>
-                  <span className="text-sm font-medium text-white">{formatCurrency(p.total)}</span>
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">{formatCurrency(p.total)}</span>
                 </div>
-                <div className="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-[var(--color-surface-2)] rounded-full h-3 overflow-hidden">
                   <div
                     className={cn(
                       "h-full rounded-full",
@@ -599,15 +599,15 @@ function OverviewTab() {
               </div>
             ))}
 
-            <div className="pt-2 border-t border-zinc-800">
-              <div className="text-xs text-zinc-500 mb-2">Resource count by provider</div>
+            <div className="pt-2 border-t border-[var(--color-border)]">
+              <div className="text-xs text-[var(--color-text-muted)] mb-2">Resource count by provider</div>
               <div className="flex gap-3">
                 {(["AWS", "GCP", "Azure"] as Provider[]).map((p) => {
                   const count = RESOURCES.filter((r) => r.provider === p).length;
                   return (
                     <div key={p} className="flex items-center gap-1.5">
                       <Badge className={getProviderColor(p)}>{p}</Badge>
-                      <span className="text-xs text-zinc-400">{count} resources</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">{count} resources</span>
                     </div>
                   );
                 })}
@@ -619,21 +619,21 @@ function OverviewTab() {
 
       {/* Top Spending Resources */}
       <Card className="p-4">
-        <h3 className="text-sm font-semibold text-white mb-4">Top Spending Resources</h3>
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Top Spending Resources</h3>
         <div className="space-y-2">
           {topResources.map((r, i) => (
-            <div key={r.id} className="flex items-center gap-3 py-2 border-b border-zinc-800 last:border-0">
-              <span className="text-zinc-600 text-sm w-5 text-right">{i + 1}</span>
+            <div key={r.id} className="flex items-center gap-3 py-2 border-b border-[var(--color-border)] last:border-0">
+              <span className="text-[var(--color-text-muted)] text-sm w-5 text-right">{i + 1}</span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-sm font-medium text-white truncate">{r.name}</span>
+                  <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{r.name}</span>
                   <Badge className={getTypeColor(r.type)}>{r.type}</Badge>
                   <Badge className={getProviderColor(r.provider)}>{r.provider}</Badge>
                 </div>
-                <div className="text-xs text-zinc-500">{r.region} · {r.instanceType}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">{r.region} · {r.instanceType}</div>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-sm font-semibold text-white">{formatCurrency(r.monthlyCost)}<span className="text-zinc-500 text-xs">/mo</span></div>
+                <div className="text-sm font-semibold text-[var(--color-text-primary)]">{formatCurrency(r.monthlyCost)}<span className="text-[var(--color-text-muted)] text-xs">/mo</span></div>
                 <div className="w-24 mt-1">
                   <ProgressBar value={r.monthlyCost} max={topResources[0].monthlyCost} colorClass="bg-indigo-500" height="h-1" />
                 </div>
@@ -678,13 +678,13 @@ function ResourcesTab() {
             placeholder="Search resources or tags…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
           />
           <div className="flex gap-2">
             <select
               value={filterProvider}
               onChange={(e) => setFilterProvider(e.target.value as Provider | "All")}
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+              className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-2 py-1.5 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
             >
               <option value="All">All Providers</option>
               <option value="AWS">AWS</option>
@@ -694,7 +694,7 @@ function ResourcesTab() {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as ResourceType | "All")}
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+              className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-2 py-1.5 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
             >
               <option value="All">All Types</option>
               <option value="Compute">Compute</option>
@@ -706,7 +706,7 @@ function ResourcesTab() {
               <option value="CDN">CDN</option>
             </select>
           </div>
-          <div className="text-xs text-zinc-500">{filtered.length} of {RESOURCES.length} resources</div>
+          <div className="text-xs text-[var(--color-text-muted)]">{filtered.length} of {RESOURCES.length} resources</div>
         </div>
 
         {/* Resource List */}
@@ -719,22 +719,22 @@ function ResourcesTab() {
                 "w-full text-left p-3 rounded-lg border transition-colors",
                 selectedId === r.id
                   ? "bg-indigo-600/20 border-indigo-500/50"
-                  : "bg-zinc-900 border-zinc-800 hover:bg-zinc-800"
+                  : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-white truncate">{r.name}</span>
-                <span className="text-sm font-semibold text-white shrink-0 ml-2">{formatCurrency(r.monthlyCost)}</span>
+                <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{r.name}</span>
+                <span className="text-sm font-semibold text-[var(--color-text-primary)] shrink-0 ml-2">{formatCurrency(r.monthlyCost)}</span>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <Badge className={getTypeColor(r.type)}>{r.type}</Badge>
                 <Badge className={getProviderColor(r.provider)}>{r.provider}</Badge>
-                <span className="text-xs text-zinc-500">{r.region}</span>
+                <span className="text-xs text-[var(--color-text-muted)]">{r.region}</span>
               </div>
             </button>
           ))}
           {filtered.length === 0 && (
-            <div className="text-center py-8 text-zinc-500 text-sm">No resources match your filters</div>
+            <div className="text-center py-8 text-[var(--color-text-muted)] text-sm">No resources match your filters</div>
           )}
         </div>
       </div>
@@ -744,30 +744,30 @@ function ResourcesTab() {
         <Card className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <h2 className="text-lg font-semibold text-white">{selected.name}</h2>
-              <div className="text-sm text-zinc-400 mt-0.5">{selected.instanceType} · {selected.region}</div>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{selected.name}</h2>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-0.5">{selected.instanceType} · {selected.region}</div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-white">{formatCurrencyFull(selected.monthlyCost)}</div>
-              <div className="text-xs text-zinc-500">per month</div>
+              <div className="text-2xl font-bold text-[var(--color-text-primary)]">{formatCurrencyFull(selected.monthlyCost)}</div>
+              <div className="text-xs text-[var(--color-text-muted)]">per month</div>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Badge className={getTypeColor(selected.type)}>{selected.type}</Badge>
             <Badge className={getProviderColor(selected.provider)}>{selected.provider}</Badge>
-            <span className="text-xs text-zinc-400">Utilization:</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">Utilization:</span>
             <span className={cn("text-xs font-medium", selected.utilization < 40 ? "text-rose-400" : selected.utilization < 70 ? "text-amber-400" : "text-emerald-400")}>
               {selected.utilization}%
             </span>
             {selected.tags.map((tag) => (
-              <Badge key={tag} className="text-zinc-300 bg-zinc-800">{tag}</Badge>
+              <Badge key={tag} className="text-[var(--color-text-primary)] bg-[var(--color-surface-2)]">{tag}</Badge>
             ))}
           </div>
         </Card>
 
         {/* Cost History Chart */}
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-white mb-4">12-Month Cost History</h3>
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">12-Month Cost History</h3>
           <div className="flex items-end gap-1.5" style={{ height: "120px" }}>
             {selected.costHistory.map((cost, i) => {
               const heightPct = (cost / maxCostHistory) * 100;
@@ -776,17 +776,17 @@ function ResourcesTab() {
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
                   <div className="w-full flex items-end" style={{ height: "96px" }}>
                     <div
-                      className={cn("w-full rounded-t transition-all duration-300", isLast ? "bg-indigo-500" : "bg-zinc-700 hover:bg-zinc-600")}
+                      className={cn("w-full rounded-t transition-all duration-300", isLast ? "bg-indigo-500" : "bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)]")}
                       style={{ height: heightPct + "%" }}
                       title={formatCurrency(cost)}
                     />
                   </div>
-                  <span className="text-xs text-zinc-500">{MONTHS[i]}</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{MONTHS[i]}</span>
                 </div>
               );
             })}
           </div>
-          <div className="mt-2 flex items-center justify-between text-xs text-zinc-500">
+          <div className="mt-2 flex items-center justify-between text-xs text-[var(--color-text-muted)]">
             <span>Min: {formatCurrency(Math.min(...selected.costHistory))}</span>
             <span>Max: {formatCurrency(maxCostHistory)}</span>
             <span>Avg: {formatCurrency(Math.round(selected.costHistory.reduce((a, b) => a + b, 0) / selected.costHistory.length))}</span>
@@ -807,7 +807,7 @@ function ResourcesTab() {
                     Save {formatCurrency(selected.rightsizingSavings)}/mo
                   </span>
                 </div>
-                <p className="text-sm text-zinc-400">{selected.rightsizingRec}</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{selected.rightsizingRec}</p>
               </div>
             </div>
           </Card>
@@ -830,7 +830,7 @@ function BudgetsTab() {
     <div className="flex gap-4" style={{ minHeight: "600px" }}>
       {/* Budget List */}
       <div className="w-72 shrink-0 space-y-2">
-        <div className="text-xs text-zinc-500 mb-3">
+        <div className="text-xs text-[var(--color-text-muted)] mb-3">
           {BUDGETS.length} budgets · {formatCurrency(totalSavingsAvailable)}/mo optimization available
         </div>
         {BUDGETS.map((b) => {
@@ -844,11 +844,11 @@ function BudgetsTab() {
                 "w-full text-left p-3 rounded-lg border transition-colors",
                 selectedBudgetId === b.id
                   ? "bg-indigo-600/20 border-indigo-500/50"
-                  : "bg-zinc-900 border-zinc-800 hover:bg-zinc-800"
+                  : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm font-medium text-white truncate">{b.name}</span>
+                <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{b.name}</span>
                 <span className={cn("text-xs font-semibold shrink-0 ml-2", getBudgetTextColor(st))}>
                   {pct.toFixed(0)}%
                 </span>
@@ -856,7 +856,7 @@ function BudgetsTab() {
               <div className="mb-1.5">
                 <ProgressBar value={b.spent} max={b.allocated} colorClass={getBudgetStatusColor(st)} />
               </div>
-              <div className="flex items-center justify-between text-xs text-zinc-500">
+              <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)]">
                 <span>{formatCurrency(b.spent)} spent</span>
                 <span>of {formatCurrency(b.allocated)}</span>
               </div>
@@ -870,11 +870,11 @@ function BudgetsTab() {
         <Card className="p-5">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h2 className="text-lg font-semibold text-white">{selected.name}</h2>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{selected.name}</h2>
               <div className="flex items-center gap-2 mt-1">
-                <Badge className="text-zinc-300 bg-zinc-800">{selected.category}</Badge>
-                <span className="text-sm text-zinc-400">{selected.period}</span>
-                <span className="text-xs text-zinc-500">Owner: {selected.owner}</span>
+                <Badge className="text-[var(--color-text-primary)] bg-[var(--color-surface-2)]">{selected.category}</Badge>
+                <span className="text-sm text-[var(--color-text-secondary)]">{selected.period}</span>
+                <span className="text-xs text-[var(--color-text-muted)]">Owner: {selected.owner}</span>
               </div>
             </div>
             <Badge className={cn(getBudgetTextColor(status), status === "safe" ? "bg-emerald-400/10" : status === "warning" ? "bg-amber-400/10" : "bg-rose-400/10")}>
@@ -885,12 +885,12 @@ function BudgetsTab() {
           {/* Cost breakdown */}
           <div className="grid grid-cols-3 gap-4 mb-4">
             {[
-              { label: "Allocated", value: selected.allocated, color: "text-zinc-300" },
+              { label: "Allocated", value: selected.allocated, color: "text-[var(--color-text-primary)]" },
               { label: "Spent", value: selected.spent, color: getBudgetTextColor(status) },
               { label: "Forecast", value: selected.forecast, color: selected.forecast > selected.allocated ? "text-rose-400" : "text-emerald-400" },
             ].map((item) => (
-              <div key={item.label} className="bg-zinc-800 rounded-lg p-3">
-                <div className="text-xs text-zinc-500 mb-1">{item.label}</div>
+              <div key={item.label} className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">{item.label}</div>
                 <div className={cn("text-xl font-bold", item.color)}>{formatCurrency(item.value)}</div>
               </div>
             ))}
@@ -898,13 +898,13 @@ function BudgetsTab() {
 
           {/* Progress */}
           <div className="space-y-2 mb-4">
-            <div className="flex justify-between text-xs text-zinc-500 mb-1">
+            <div className="flex justify-between text-xs text-[var(--color-text-muted)] mb-1">
               <span>Budget Utilization</span>
               <span>{((selected.spent / selected.allocated) * 100).toFixed(1)}%</span>
             </div>
             <ProgressBar value={selected.spent} max={selected.allocated} colorClass={getBudgetStatusColor(status)} height="h-3" />
 
-            <div className="flex justify-between text-xs text-zinc-500 mb-1 mt-3">
+            <div className="flex justify-between text-xs text-[var(--color-text-muted)] mb-1 mt-3">
               <span>Forecast vs Allocated</span>
               <span className={selected.forecast > selected.allocated ? "text-rose-400" : "text-emerald-400"}>
                 {((selected.forecast / selected.allocated) * 100).toFixed(1)}%
@@ -919,22 +919,22 @@ function BudgetsTab() {
           </div>
 
           {/* Alert Threshold */}
-          <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-lg mb-4">
+          <div className="flex items-center gap-3 p-3 bg-[var(--color-surface-2)] rounded-lg mb-4">
             <div>
-              <div className="text-xs text-zinc-500 mb-0.5">Alert Threshold</div>
+              <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Alert Threshold</div>
               <div className="text-sm font-semibold text-amber-400">{selected.alertThreshold}% ({formatCurrency(selected.allocated * selected.alertThreshold / 100)})</div>
             </div>
-            <div className="h-8 w-px bg-zinc-700" />
+            <div className="h-8 w-px bg-[var(--color-surface-3)]" />
             <div>
-              <div className="text-xs text-zinc-500 mb-0.5">Remaining</div>
+              <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Remaining</div>
               <div className={cn("text-sm font-semibold", selected.allocated - selected.spent >= 0 ? "text-emerald-400" : "text-rose-400")}>
                 {formatCurrency(Math.abs(selected.allocated - selected.spent))}
                 {selected.allocated - selected.spent >= 0 ? " under" : " over"}
               </div>
             </div>
-            <div className="h-8 w-px bg-zinc-700" />
+            <div className="h-8 w-px bg-[var(--color-surface-3)]" />
             <div>
-              <div className="text-xs text-zinc-500 mb-0.5">Forecast Variance</div>
+              <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Forecast Variance</div>
               <div className={cn("text-sm font-semibold", selected.forecast <= selected.allocated ? "text-emerald-400" : "text-rose-400")}>
                 {selected.forecast <= selected.allocated ? "-" : "+"}{formatCurrency(Math.abs(selected.forecast - selected.allocated))}
               </div>
@@ -943,8 +943,8 @@ function BudgetsTab() {
 
           {/* Notes */}
           <div>
-            <div className="text-xs text-zinc-500 mb-1.5">Notes</div>
-            <p className="text-sm text-zinc-300 leading-relaxed">{selected.notes}</p>
+            <div className="text-xs text-[var(--color-text-muted)] mb-1.5">Notes</div>
+            <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{selected.notes}</p>
           </div>
         </Card>
       </div>
@@ -984,13 +984,13 @@ function RecommendationsTab() {
       {/* Stats bar */}
       <div className="grid grid-cols-4 gap-3">
         {[
-          { label: "Active Recommendations", value: activeRecs.length, color: "text-white" },
+          { label: "Active Recommendations", value: activeRecs.length, color: "text-[var(--color-text-primary)]" },
           { label: "Total Potential Savings", value: formatCurrency(activeRecs.reduce((s, r) => s + r.estimatedSavings, 0)) + "/mo", color: "text-emerald-400" },
           { label: "Applied", value: appliedRecs.length, color: "text-indigo-400" },
-          { label: "Dismissed", value: dismissedRecs.length, color: "text-zinc-500" },
+          { label: "Dismissed", value: dismissedRecs.length, color: "text-[var(--color-text-muted)]" },
         ].map((s) => (
           <Card key={s.label} className="p-3">
-            <div className="text-xs text-zinc-500 mb-1">{s.label}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mb-1">{s.label}</div>
             <div className={cn("text-xl font-bold", s.color)}>{s.value}</div>
           </Card>
         ))}
@@ -1001,7 +1001,7 @@ function RecommendationsTab() {
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value as RecommendationType | "All")}
-          className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
         >
           <option value="All">All Types</option>
           <option value="rightsizing">Rightsizing</option>
@@ -1013,7 +1013,7 @@ function RecommendationsTab() {
         <select
           value={filterEffort}
           onChange={(e) => setFilterEffort(e.target.value as EffortLevel | "All")}
-          className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
         >
           <option value="All">All Effort Levels</option>
           <option value="low">Low Effort</option>
@@ -1021,7 +1021,7 @@ function RecommendationsTab() {
           <option value="high">High Effort</option>
         </select>
         {(filterType !== "All" || filterEffort !== "All") && (
-          <span className="text-sm text-zinc-400">
+          <span className="text-sm text-[var(--color-text-secondary)]">
             {filtered.length} shown · {formatCurrency(totalSavings)}/mo potential
           </span>
         )}
@@ -1034,33 +1034,33 @@ function RecommendationsTab() {
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-2">
-                  <span className="text-sm font-semibold text-white">{rec.title}</span>
+                  <span className="text-sm font-semibold text-[var(--color-text-primary)]">{rec.title}</span>
                   <Badge className={getRecTypeColor(rec.type)}>{getRecTypeLabel(rec.type)}</Badge>
                   <Badge className={getProviderColor(rec.provider)}>{rec.provider}</Badge>
                   <Badge className={getEffortColor(rec.effort)}>{rec.effort} effort</Badge>
                 </div>
-                <p className="text-sm text-zinc-400 leading-relaxed mb-3">{rec.description}</p>
-                <div className="flex items-center gap-4 text-xs text-zinc-500">
-                  <span>Resource: <span className="text-zinc-300">{rec.resourceName}</span></span>
-                  <span>Priority: <span className="text-zinc-300">#{rec.priority}</span></span>
+                <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed mb-3">{rec.description}</p>
+                <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
+                  <span>Resource: <span className="text-[var(--color-text-primary)]">{rec.resourceName}</span></span>
+                  <span>Priority: <span className="text-[var(--color-text-primary)]">#{rec.priority}</span></span>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-3 shrink-0">
                 <div className="text-right">
-                  <div className="text-xs text-zinc-500 mb-0.5">Est. Monthly Savings</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Est. Monthly Savings</div>
                   <div className="text-xl font-bold text-emerald-400">{formatCurrency(rec.estimatedSavings)}</div>
-                  <div className="text-xs text-zinc-500">{formatCurrency(rec.estimatedSavings * 12)}/yr</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">{formatCurrency(rec.estimatedSavings * 12)}/yr</div>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => dismissRec(rec.id)}
-                    className="px-3 py-1.5 text-xs text-zinc-400 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-md transition-colors"
+                    className="px-3 py-1.5 text-xs text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded-md transition-colors"
                   >
                     Dismiss
                   </button>
                   <button
                     onClick={() => applyRec(rec.id)}
-                    className="px-3 py-1.5 text-xs text-white bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors font-medium"
+                    className="px-3 py-1.5 text-xs text-[var(--color-text-primary)] bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors font-medium"
                   >
                     Apply
                   </button>
@@ -1071,13 +1071,13 @@ function RecommendationsTab() {
         ))}
 
         {filtered.length === 0 && activeRecs.length > 0 && (
-          <div className="text-center py-10 text-zinc-500">No recommendations match your filters</div>
+          <div className="text-center py-10 text-[var(--color-text-muted)]">No recommendations match your filters</div>
         )}
 
         {activeRecs.length === 0 && (
           <Card className="p-8 text-center">
             <div className="text-emerald-400 text-2xl font-bold mb-2">All caught up!</div>
-            <div className="text-zinc-400 text-sm">All recommendations have been applied or dismissed.</div>
+            <div className="text-[var(--color-text-secondary)] text-sm">All recommendations have been applied or dismissed.</div>
           </Card>
         )}
       </div>
@@ -1085,13 +1085,13 @@ function RecommendationsTab() {
       {/* Applied / Dismissed sections */}
       {appliedRecs.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-zinc-400 mb-2">Applied ({appliedRecs.length})</h3>
+          <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Applied ({appliedRecs.length})</h3>
           <div className="space-y-2">
             {appliedRecs.map((rec) => (
-              <div key={rec.id} className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-lg opacity-60">
+              <div key={rec.id} className="flex items-center justify-between p-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg opacity-60">
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-emerald-400 font-medium">✓ Applied</span>
-                  <span className="text-sm text-zinc-300">{rec.title}</span>
+                  <span className="text-sm text-[var(--color-text-primary)]">{rec.title}</span>
                   <Badge className={getProviderColor(rec.provider)}>{rec.provider}</Badge>
                 </div>
                 <span className="text-sm text-emerald-400 font-medium">{formatCurrency(rec.estimatedSavings)}/mo</span>
@@ -1103,13 +1103,13 @@ function RecommendationsTab() {
 
       {dismissedRecs.length > 0 && (
         <div>
-          <h3 className="text-sm font-semibold text-zinc-400 mb-2">Dismissed ({dismissedRecs.length})</h3>
+          <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-2">Dismissed ({dismissedRecs.length})</h3>
           <div className="space-y-2">
             {dismissedRecs.map((rec) => (
-              <div key={rec.id} className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-lg opacity-40">
+              <div key={rec.id} className="flex items-center justify-between p-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg opacity-40">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-500 font-medium">Dismissed</span>
-                  <span className="text-sm text-zinc-400">{rec.title}</span>
+                  <span className="text-xs text-[var(--color-text-muted)] font-medium">Dismissed</span>
+                  <span className="text-sm text-[var(--color-text-secondary)]">{rec.title}</span>
                 </div>
                 <button
                   onClick={() => setRecs((prev) => prev.map((r) => (r.id === rec.id ? { ...r, dismissed: false } : r)))}
@@ -1142,30 +1142,30 @@ export default function InfrastructureCostManager() {
   const activeRecCount = RECOMMENDATIONS.filter((r) => !r.dismissed && !r.applied).length;
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-6">
       {/* Page Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Infrastructure Cost Manager</h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Infrastructure Cost Manager</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">
             Monitor, analyze, and optimize cloud infrastructure spend across AWS, GCP, and Azure
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <div className="text-xs text-zinc-500">Total Monthly</div>
-            <div className="text-xl font-bold text-white">{formatCurrencyFull(totalMonthly)}</div>
+            <div className="text-xs text-[var(--color-text-muted)]">Total Monthly</div>
+            <div className="text-xl font-bold text-[var(--color-text-primary)]">{formatCurrencyFull(totalMonthly)}</div>
           </div>
-          <div className="h-10 w-px bg-zinc-800" />
+          <div className="h-10 w-px bg-[var(--color-surface-2)]" />
           <div className="text-right">
-            <div className="text-xs text-zinc-500">Optimizations</div>
+            <div className="text-xs text-[var(--color-text-muted)]">Optimizations</div>
             <div className="text-xl font-bold text-emerald-400">{activeRecCount} available</div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 border border-zinc-800 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-1 w-fit">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -1173,8 +1173,8 @@ export default function InfrastructureCostManager() {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-md transition-colors",
               activeTab === tab.id
-                ? "bg-indigo-600 text-white"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {tab.label}

@@ -172,14 +172,14 @@ function SparkBar({
 function TrendArrow({ trend }: { trend: "up" | "down" | "stable" }) {
   if (trend === "up")     {return <span className="text-emerald-400 text-xs font-bold">↑</span>}
   if (trend === "down")   {return <span className="text-rose-400   text-xs font-bold">↓</span>}
-  return                         <span className="text-zinc-400   text-xs font-bold">→</span>
+  return                         <span className="text-[var(--color-text-secondary)]   text-xs font-bold">→</span>
 }
 
 function StatCard({
   label,
   value,
   sub,
-  valueColor = "text-white",
+  valueColor = "text-[var(--color-text-primary)]",
 }: {
   label: string
   value: string
@@ -187,10 +187,10 @@ function StatCard({
   valueColor?: string
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-      <div className="text-zinc-500 text-xs font-medium uppercase tracking-wider mb-1">{label}</div>
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+      <div className="text-[var(--color-text-muted)] text-xs font-medium uppercase tracking-wider mb-1">{label}</div>
       <div className={cn("text-2xl font-bold tabular-nums", valueColor)}>{value}</div>
-      {sub && <div className="text-zinc-500 text-xs mt-1">{sub}</div>}
+      {sub && <div className="text-[var(--color-text-muted)] text-xs mt-1">{sub}</div>}
     </div>
   )
 }
@@ -200,7 +200,7 @@ function BotTypeBadge({ type }: { type: BotEntry["type"] }) {
     crawler:   "bg-indigo-500/20 text-indigo-400  border-indigo-500/30",
     scanner:   "bg-amber-500/20  text-amber-400   border-amber-500/30",
     social:    "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-    monitor:   "bg-zinc-500/20   text-zinc-400    border-zinc-500/30",
+    monitor:   "bg-[var(--color-surface-3)]/20   text-[var(--color-text-secondary)]    border-[var(--color-surface-3)]/30",
     malicious: "bg-rose-500/20   text-rose-400    border-rose-500/30",
   }
   return (
@@ -212,7 +212,7 @@ function BotTypeBadge({ type }: { type: BotEntry["type"] }) {
 
 function HourLabels() {
   return (
-    <div className="flex justify-between text-zinc-600 text-xs mt-1 select-none">
+    <div className="flex justify-between text-[var(--color-text-muted)] text-xs mt-1 select-none">
       <span>00:00</span>
       <span>06:00</span>
       <span>12:00</span>
@@ -243,11 +243,11 @@ function OverviewTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Requests / sec */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <div className="text-white font-semibold text-sm">Requests / Second</div>
-              <div className="text-zinc-500 text-xs">Last 24 hours</div>
+              <div className="text-[var(--color-text-primary)] font-semibold text-sm">Requests / Second</div>
+              <div className="text-[var(--color-text-muted)] text-xs">Last 24 hours</div>
             </div>
             <div className="text-indigo-400 font-bold text-lg tabular-nums">8,924</div>
           </div>
@@ -265,11 +265,11 @@ function OverviewTab() {
         </div>
 
         {/* Bandwidth */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <div className="text-white font-semibold text-sm">Bandwidth</div>
-              <div className="text-zinc-500 text-xs">Last 24 hours (MB/s)</div>
+              <div className="text-[var(--color-text-primary)] font-semibold text-sm">Bandwidth</div>
+              <div className="text-[var(--color-text-muted)] text-xs">Last 24 hours (MB/s)</div>
             </div>
             <div className="text-emerald-400 font-bold text-lg tabular-nums">1.34 GB/s</div>
           </div>
@@ -288,24 +288,24 @@ function OverviewTab() {
       </div>
 
       {/* Error rate trend */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
         <div className="flex items-start justify-between mb-3">
           <div>
-            <div className="text-white font-semibold text-sm">Error Rate Trend</div>
-            <div className="text-zinc-500 text-xs">Last 24 hours (%)</div>
+            <div className="text-[var(--color-text-primary)] font-semibold text-sm">Error Rate Trend</div>
+            <div className="text-[var(--color-text-muted)] text-xs">Last 24 hours (%)</div>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-zinc-400 text-xs">&lt; 1.5%</span>
+              <span className="text-[var(--color-text-secondary)] text-xs">&lt; 1.5%</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-amber-500" />
-              <span className="text-zinc-400 text-xs">1.5 – 2.5%</span>
+              <span className="text-[var(--color-text-secondary)] text-xs">1.5 – 2.5%</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-rose-500" />
-              <span className="text-zinc-400 text-xs">&gt; 2.5%</span>
+              <span className="text-[var(--color-text-secondary)] text-xs">&gt; 2.5%</span>
             </div>
             <span className="text-rose-400 font-bold tabular-nums ml-2">0.9%</span>
           </div>
@@ -327,18 +327,18 @@ function OverviewTab() {
       </div>
 
       {/* Top endpoints */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-zinc-800">
-          <div className="text-white font-semibold text-sm">Top Endpoints</div>
-          <div className="text-zinc-500 text-xs">By request volume — 7-day sparkline</div>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-[var(--color-border)]">
+          <div className="text-[var(--color-text-primary)] font-semibold text-sm">Top Endpoints</div>
+          <div className="text-[var(--color-text-muted)] text-xs">By request volume — 7-day sparkline</div>
         </div>
-        <div className="divide-y divide-zinc-800/50">
+        <div className="divide-y divide-[var(--color-border)]/50">
           {ENDPOINTS.map((ep) => (
-            <div key={ep.path} className="px-4 py-3 flex items-center gap-4 hover:bg-zinc-800/40 transition-colors">
+            <div key={ep.path} className="px-4 py-3 flex items-center gap-4 hover:bg-[var(--color-surface-2)]/40 transition-colors">
               <div className="flex-1 min-w-0">
-                <div className="text-white text-sm font-mono truncate">{ep.path}</div>
+                <div className="text-[var(--color-text-primary)] text-sm font-mono truncate">{ep.path}</div>
                 <div className="flex items-center gap-3 mt-0.5">
-                  <span className="text-zinc-400 text-xs">{formatMs(ep.avgMs)} avg</span>
+                  <span className="text-[var(--color-text-secondary)] text-xs">{formatMs(ep.avgMs)} avg</span>
                   <span
                     className={cn(
                       "text-xs",
@@ -352,7 +352,7 @@ function OverviewTab() {
               <div className="w-20 flex-shrink-0">
                 <SparkBar values={ep.trend} height="h-7" />
               </div>
-              <div className="text-zinc-200 font-semibold text-sm tabular-nums w-14 text-right flex-shrink-0">
+              <div className="text-[var(--color-text-primary)] font-semibold text-sm tabular-nums w-14 text-right flex-shrink-0">
                 {formatNumber(ep.requests)}
               </div>
             </div>
@@ -395,14 +395,14 @@ function TopPagesTab() {
       </div>
 
       {/* Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-[var(--color-border)] flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-white font-semibold text-sm">Page Statistics</div>
-            <div className="text-zinc-500 text-xs">Top pages by traffic</div>
+            <div className="text-[var(--color-text-primary)] font-semibold text-sm">Page Statistics</div>
+            <div className="text-[var(--color-text-muted)] text-xs">Top pages by traffic</div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-zinc-500 text-xs">Sort:</span>
+            <span className="text-[var(--color-text-muted)] text-xs">Sort:</span>
             {sortButtons.map(({ key, label }) => (
               <button
                 key={key}
@@ -410,8 +410,8 @@ function TopPagesTab() {
                 className={cn(
                   "text-xs px-2.5 py-1 rounded-lg border transition-colors",
                   sortBy === key
-                    ? "bg-indigo-600 border-indigo-500 text-white"
-                    : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
+                    ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                    : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {label}
@@ -421,7 +421,7 @@ function TopPagesTab() {
         </div>
 
         {/* Header */}
-        <div className="px-4 py-2 grid grid-cols-12 gap-2 text-zinc-500 text-xs font-medium uppercase tracking-wider border-b border-zinc-800/50 select-none">
+        <div className="px-4 py-2 grid grid-cols-12 gap-2 text-[var(--color-text-muted)] text-xs font-medium uppercase tracking-wider border-b border-[var(--color-border)]/50 select-none">
           <div className="col-span-4">Page</div>
           <div className="col-span-2 text-right">Requests</div>
           <div className="col-span-2 text-right">Avg Time</div>
@@ -429,19 +429,19 @@ function TopPagesTab() {
           <div className="col-span-2">7d Trend</div>
         </div>
 
-        <div className="divide-y divide-zinc-800/40">
+        <div className="divide-y divide-[var(--color-border)]/40">
           {sorted.map((page) => (
             <div
               key={page.url}
-              className="px-4 py-3 grid grid-cols-12 gap-2 items-center hover:bg-zinc-800/30 transition-colors"
+              className="px-4 py-3 grid grid-cols-12 gap-2 items-center hover:bg-[var(--color-surface-2)]/30 transition-colors"
             >
               <div className="col-span-4 min-w-0">
-                <div className="text-white text-sm font-medium truncate">{page.title}</div>
-                <div className="text-zinc-500 text-xs font-mono truncate">{page.url}</div>
+                <div className="text-[var(--color-text-primary)] text-sm font-medium truncate">{page.title}</div>
+                <div className="text-[var(--color-text-muted)] text-xs font-mono truncate">{page.url}</div>
               </div>
               <div className="col-span-2 text-right">
-                <div className="text-zinc-200 text-sm tabular-nums font-medium">{formatNumber(page.requests)}</div>
-                <div className="mt-1.5 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="text-[var(--color-text-primary)] text-sm tabular-nums font-medium">{formatNumber(page.requests)}</div>
+                <div className="mt-1.5 h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div
                     className="h-full bg-indigo-500 rounded-full"
                     style={{ width: `${(page.requests / maxRequests) * 100}%` }}
@@ -454,7 +454,7 @@ function TopPagesTab() {
                     "text-sm tabular-nums font-medium",
                     page.avgTimeMs > 800 ? "text-rose-400"
                     : page.avgTimeMs > 500 ? "text-amber-400"
-                    : "text-zinc-200"
+                    : "text-[var(--color-text-primary)]"
                   )}
                 >
                   {formatMs(page.avgTimeMs)}
@@ -502,31 +502,31 @@ function GeoTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Bar chart */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-          <div className="text-white font-semibold text-sm mb-0.5">Traffic by Country</div>
-          <div className="text-zinc-500 text-xs mb-4">Top 12 — proportional bars</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+          <div className="text-[var(--color-text-primary)] font-semibold text-sm mb-0.5">Traffic by Country</div>
+          <div className="text-[var(--color-text-muted)] text-xs mb-4">Top 12 — proportional bars</div>
           <div className="space-y-2.5">
             {GEO_STATS.map((stat) => (
               <div key={stat.code} className="flex items-center gap-3">
-                <div className="text-zinc-400 text-xs w-7 font-mono font-medium text-center flex-shrink-0">
+                <div className="text-[var(--color-text-secondary)] text-xs w-7 font-mono font-medium text-center flex-shrink-0">
                   {stat.code}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-zinc-300 text-xs truncate">{stat.country}</span>
+                    <span className="text-[var(--color-text-primary)] text-xs truncate">{stat.country}</span>
                     <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
                       <TrendArrow trend={stat.trend} />
-                      <span className="text-zinc-500 text-xs tabular-nums">{stat.percentage}%</span>
+                      <span className="text-[var(--color-text-muted)] text-xs tabular-nums">{stat.percentage}%</span>
                     </div>
                   </div>
-                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-indigo-500 rounded-full"
                       style={{ width: `${(stat.visits / maxVisits) * 100}%` }}
                     />
                   </div>
                 </div>
-                <div className="text-zinc-300 text-xs tabular-nums w-14 text-right font-medium flex-shrink-0">
+                <div className="text-[var(--color-text-primary)] text-xs tabular-nums w-14 text-right font-medium flex-shrink-0">
                   {formatNumber(stat.visits)}
                 </div>
               </div>
@@ -535,34 +535,34 @@ function GeoTab() {
         </div>
 
         {/* Ranked list */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-800">
-            <div className="text-white font-semibold text-sm">Country Rankings</div>
-            <div className="text-zinc-500 text-xs">Sorted by total visits</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-[var(--color-border)]">
+            <div className="text-[var(--color-text-primary)] font-semibold text-sm">Country Rankings</div>
+            <div className="text-[var(--color-text-muted)] text-xs">Sorted by total visits</div>
           </div>
-          <div className="divide-y divide-zinc-800/50">
+          <div className="divide-y divide-[var(--color-border)]/50">
             {GEO_STATS.map((stat, idx) => (
               <div
                 key={stat.code}
-                className="px-4 py-2.5 flex items-center gap-3 hover:bg-zinc-800/30 transition-colors"
+                className="px-4 py-2.5 flex items-center gap-3 hover:bg-[var(--color-surface-2)]/30 transition-colors"
               >
                 <div
                   className={cn(
                     "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0",
                     idx === 0 ? "bg-amber-500/20  text-amber-400"  :
-                    idx === 1 ? "bg-zinc-400/20   text-zinc-300"   :
+                    idx === 1 ? "bg-[var(--color-surface-3)]/20   text-[var(--color-text-primary)]"   :
                     idx === 2 ? "bg-orange-700/20 text-orange-500" :
-                                "bg-zinc-800      text-zinc-500"
+                                "bg-[var(--color-surface-2)]      text-[var(--color-text-muted)]"
                   )}
                 >
                   {idx + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-white text-sm font-medium">{stat.country}</div>
-                  <div className="text-zinc-500 text-xs">{stat.percentage}% of traffic</div>
+                  <div className="text-[var(--color-text-primary)] text-sm font-medium">{stat.country}</div>
+                  <div className="text-[var(--color-text-muted)] text-xs">{stat.percentage}% of traffic</div>
                 </div>
                 <TrendArrow trend={stat.trend} />
-                <div className="text-zinc-300 text-sm tabular-nums font-medium flex-shrink-0">
+                <div className="text-[var(--color-text-primary)] text-sm tabular-nums font-medium flex-shrink-0">
                   {formatNumber(stat.visits)}
                 </div>
               </div>
@@ -624,11 +624,11 @@ function BotsTab() {
       </div>
 
       {/* Known bots */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-[var(--color-border)] flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-white font-semibold text-sm">Known Bots</div>
-            <div className="text-zinc-500 text-xs">Detected user agents with allow/block controls</div>
+            <div className="text-[var(--color-text-primary)] font-semibold text-sm">Known Bots</div>
+            <div className="text-[var(--color-text-muted)] text-xs">Detected user agents with allow/block controls</div>
           </div>
           <div className="flex items-center gap-2">
             {filterOptions.map((f) => (
@@ -638,8 +638,8 @@ function BotsTab() {
                 className={cn(
                   "text-xs px-2.5 py-1 rounded-lg border capitalize transition-colors",
                   botFilter === f
-                    ? "bg-indigo-600 border-indigo-500 text-white"
-                    : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
+                    ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                    : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {f}
@@ -649,7 +649,7 @@ function BotsTab() {
         </div>
 
         {/* Table header */}
-        <div className="px-4 py-2 grid grid-cols-12 gap-2 text-zinc-500 text-xs font-medium uppercase tracking-wider border-b border-zinc-800/50 select-none">
+        <div className="px-4 py-2 grid grid-cols-12 gap-2 text-[var(--color-text-muted)] text-xs font-medium uppercase tracking-wider border-b border-[var(--color-border)]/50 select-none">
           <div className="col-span-3">Bot Name</div>
           <div className="col-span-2">Type</div>
           <div className="col-span-2">IP</div>
@@ -658,13 +658,13 @@ function BotsTab() {
           <div className="col-span-1 text-center">Action</div>
         </div>
 
-        <div className="divide-y divide-zinc-800/40">
+        <div className="divide-y divide-[var(--color-border)]/40">
           {filteredBots.map((bot) => {
             const status = botStatuses[bot.name] ?? bot.status
             return (
               <div
                 key={bot.name}
-                className="px-4 py-3 grid grid-cols-12 gap-2 items-center hover:bg-zinc-800/30 transition-colors"
+                className="px-4 py-3 grid grid-cols-12 gap-2 items-center hover:bg-[var(--color-surface-2)]/30 transition-colors"
               >
                 <div className="col-span-3 flex items-center gap-2 min-w-0">
                   <div
@@ -673,16 +673,16 @@ function BotsTab() {
                       status === "allowed" ? "bg-emerald-400" : "bg-rose-400"
                     )}
                   />
-                  <span className="text-white text-sm truncate">{bot.name}</span>
+                  <span className="text-[var(--color-text-primary)] text-sm truncate">{bot.name}</span>
                 </div>
                 <div className="col-span-2">
                   <BotTypeBadge type={bot.type} />
                 </div>
-                <div className="col-span-2 text-zinc-400 text-xs font-mono truncate">{bot.ip}</div>
-                <div className="col-span-2 text-right text-zinc-300 text-sm tabular-nums font-medium">
+                <div className="col-span-2 text-[var(--color-text-secondary)] text-xs font-mono truncate">{bot.ip}</div>
+                <div className="col-span-2 text-right text-[var(--color-text-primary)] text-sm tabular-nums font-medium">
                   {formatNumber(bot.requests)}
                 </div>
-                <div className="col-span-2 text-center text-zinc-500 text-xs">{bot.lastSeen}</div>
+                <div className="col-span-2 text-center text-[var(--color-text-muted)] text-xs">{bot.lastSeen}</div>
                 <div className="col-span-1 flex justify-center">
                   <button
                     onClick={() => toggleBot(bot.name)}
@@ -703,14 +703,14 @@ function BotsTab() {
       </div>
 
       {/* Suspicious / blocked IPs */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-zinc-800">
-          <div className="text-white font-semibold text-sm">Suspicious IPs</div>
-          <div className="text-zinc-500 text-xs">Flagged for active blocking or monitoring</div>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-[var(--color-border)]">
+          <div className="text-[var(--color-text-primary)] font-semibold text-sm">Suspicious IPs</div>
+          <div className="text-[var(--color-text-muted)] text-xs">Flagged for active blocking or monitoring</div>
         </div>
 
         {/* Table header */}
-        <div className="px-4 py-2 grid grid-cols-12 gap-2 text-zinc-500 text-xs font-medium uppercase tracking-wider border-b border-zinc-800/50 select-none">
+        <div className="px-4 py-2 grid grid-cols-12 gap-2 text-[var(--color-text-muted)] text-xs font-medium uppercase tracking-wider border-b border-[var(--color-border)]/50 select-none">
           <div className="col-span-3">IP Address</div>
           <div className="col-span-3">Reason</div>
           <div className="col-span-2 text-right">Requests</div>
@@ -719,13 +719,13 @@ function BotsTab() {
           <div className="col-span-1 text-center">Action</div>
         </div>
 
-        <div className="divide-y divide-zinc-800/40">
+        <div className="divide-y divide-[var(--color-border)]/40">
           {BLOCKED_IPS.map((entry) => {
             const status = ipStatuses[entry.ip] ?? entry.status
             return (
               <div
                 key={entry.ip}
-                className="px-4 py-3 grid grid-cols-12 gap-2 items-center hover:bg-zinc-800/30 transition-colors"
+                className="px-4 py-3 grid grid-cols-12 gap-2 items-center hover:bg-[var(--color-surface-2)]/30 transition-colors"
               >
                 <div className="col-span-3 flex items-center gap-2">
                   <div
@@ -734,16 +734,16 @@ function BotsTab() {
                       status === "blocked" ? "bg-rose-400" : "bg-amber-400"
                     )}
                   />
-                  <span className="text-white text-sm font-mono">{entry.ip}</span>
+                  <span className="text-[var(--color-text-primary)] text-sm font-mono">{entry.ip}</span>
                 </div>
                 <div className="col-span-3">
-                  <span className="text-zinc-400 text-xs">{entry.reason}</span>
+                  <span className="text-[var(--color-text-secondary)] text-xs">{entry.reason}</span>
                 </div>
-                <div className="col-span-2 text-right text-zinc-300 text-sm tabular-nums font-medium">
+                <div className="col-span-2 text-right text-[var(--color-text-primary)] text-sm tabular-nums font-medium">
                   {formatNumber(entry.requests)}
                 </div>
-                <div className="col-span-2 text-zinc-500 text-xs">{entry.firstSeen}</div>
-                <div className="col-span-1 text-zinc-500 text-xs">{entry.lastSeen}</div>
+                <div className="col-span-2 text-[var(--color-text-muted)] text-xs">{entry.firstSeen}</div>
+                <div className="col-span-1 text-[var(--color-text-muted)] text-xs">{entry.lastSeen}</div>
                 <div className="col-span-1 flex justify-center">
                   <button
                     onClick={() => toggleIP(entry.ip)}
@@ -764,9 +764,9 @@ function BotsTab() {
       </div>
 
       {/* Suspicious patterns */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-white font-semibold text-sm mb-0.5">Suspicious Patterns Detected</div>
-        <div className="text-zinc-500 text-xs mb-3">Automated anomaly detection — live feed</div>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+        <div className="text-[var(--color-text-primary)] font-semibold text-sm mb-0.5">Suspicious Patterns Detected</div>
+        <div className="text-[var(--color-text-muted)] text-xs mb-3">Automated anomaly detection — live feed</div>
         <div className="space-y-2">
           {SUSPICIOUS_PATTERNS.map((pattern, i) => (
             <div
@@ -777,12 +777,12 @@ function BotsTab() {
                   ? "bg-rose-500/5 border-rose-500/20"
                   : pattern.severity === "medium"
                   ? "bg-amber-500/5 border-amber-500/20"
-                  : "bg-zinc-800/40 border-zinc-700"
+                  : "bg-[var(--color-surface-2)]/40 border-[var(--color-border)]"
               )}
             >
               <span className="text-base flex-shrink-0 mt-0.5 select-none">{pattern.icon}</span>
               <div className="flex-1 min-w-0">
-                <div className="text-zinc-200 text-sm leading-snug">{pattern.label}</div>
+                <div className="text-[var(--color-text-primary)] text-sm leading-snug">{pattern.label}</div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                 <span
@@ -792,12 +792,12 @@ function BotsTab() {
                       ? "bg-rose-500/20 text-rose-400 border-rose-500/30"
                       : pattern.severity === "medium"
                       ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
-                      : "bg-zinc-700 text-zinc-400 border-zinc-600"
+                      : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] border-[var(--color-surface-3)]"
                   )}
                 >
                   {pattern.severity}
                 </span>
-                <span className="text-zinc-500 text-xs whitespace-nowrap">{pattern.time}</span>
+                <span className="text-[var(--color-text-muted)] text-xs whitespace-nowrap">{pattern.time}</span>
               </div>
             </div>
           ))}
@@ -820,7 +820,7 @@ export default function TrafficAnalyticsDashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-6">
 
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
@@ -829,22 +829,22 @@ export default function TrafficAnalyticsDashboard() {
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-emerald-400 text-xs font-semibold uppercase tracking-wider">Live</span>
           </div>
-          <h1 className="text-white text-2xl font-bold tracking-tight">Traffic Analytics</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">Real-time web traffic monitoring and analysis</p>
+          <h1 className="text-[var(--color-text-primary)] text-2xl font-bold tracking-tight">Traffic Analytics</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Real-time web traffic monitoring and analysis</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2">
-            <div className="text-zinc-500 text-xs">Last updated</div>
-            <div className="text-white text-sm font-medium tabular-nums">Just now</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl px-3 py-2">
+            <div className="text-[var(--color-text-muted)] text-xs">Last updated</div>
+            <div className="text-[var(--color-text-primary)] text-sm font-medium tabular-nums">Just now</div>
           </div>
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-xl border border-indigo-500 transition-colors font-medium">
+          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-4 py-2 rounded-xl border border-indigo-500 transition-colors font-medium">
             Export
           </button>
         </div>
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 border border-zinc-800 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-1 w-fit">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -852,8 +852,8 @@ export default function TrafficAnalyticsDashboard() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
               activeTab === tab.id
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-sm"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             <span className="select-none">{tab.icon}</span>

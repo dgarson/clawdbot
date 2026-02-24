@@ -119,7 +119,7 @@ const escalationLabel: Record<EscalationPolicy, string> = {
 const shiftStatusBadge: Record<ShiftStatus, string> = {
   active:   "bg-emerald-500/15 border-emerald-500/30 text-emerald-400",
   upcoming: "bg-indigo-500/10 border-indigo-500/20 text-indigo-400",
-  past:     "bg-zinc-700/40 border-zinc-600 text-zinc-500",
+  past:     "bg-[var(--color-surface-3)]/40 border-[var(--color-surface-3)] text-[var(--color-text-muted)]",
 };
 
 const getPerson = (id: string) => PEOPLE.find(p => p.id === id);
@@ -133,13 +133,13 @@ export default function OnCallRotationManager() {
   const totalAlerts = ROTATIONS.reduce((s, r) => s + r.alertCount, 0);
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-white">On-Call Rotation Manager</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">{ROTATIONS.length} rotations · {PEOPLE.length} on-call engineers</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">On-Call Rotation Manager</h1>
+            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{ROTATIONS.length} rotations · {PEOPLE.length} on-call engineers</p>
           </div>
           <button className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium transition-colors">+ New Rotation</button>
         </div>
@@ -147,15 +147,15 @@ export default function OnCallRotationManager() {
         <div className="flex gap-4 mt-3">
           {[
             { label: "Active Incidents", value: activeIncidents.length, color: activeIncidents.length > 0 ? "text-rose-400" : "text-emerald-400", pulse: activeIncidents.length > 0 },
-            { label: "Alerts This Month", value: totalAlerts, color: "text-zinc-300", pulse: false },
-            { label: "Avg MTTR", value: `${Math.round(ROTATIONS.reduce((s, r) => s + r.mttrMin, 0) / ROTATIONS.length)}m`, color: "text-white", pulse: false },
+            { label: "Alerts This Month", value: totalAlerts, color: "text-[var(--color-text-primary)]", pulse: false },
+            { label: "Avg MTTR", value: `${Math.round(ROTATIONS.reduce((s, r) => s + r.mttrMin, 0) / ROTATIONS.length)}m`, color: "text-[var(--color-text-primary)]", pulse: false },
             { label: "On-Call Now", value: ROTATIONS.length, color: "text-indigo-400", pulse: false },
           ].map(s => (
             <div key={s.label} className="flex items-center gap-2">
               {s.pulse && <div className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />}
               <div>
                 <span className={cn("text-base font-bold", s.color)}>{s.value}</span>
-                <span className="text-zinc-500 text-xs ml-1.5">{s.label}</span>
+                <span className="text-[var(--color-text-muted)] text-xs ml-1.5">{s.label}</span>
               </div>
             </div>
           ))}
@@ -165,10 +165,10 @@ export default function OnCallRotationManager() {
           {(["rotations", "schedule", "incidents", "team"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={cn("px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors",
-                tab === t ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800")}>
+                tab === t ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]")}>
               {t.charAt(0).toUpperCase() + t.slice(1)}
               {t === "incidents" && activeIncidents.length > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-rose-500 text-[9px] font-bold text-white">{activeIncidents.length}</span>
+                <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-rose-500 text-[9px] font-bold text-[var(--color-text-primary)]">{activeIncidents.length}</span>
               )}
             </button>
           ))}
@@ -180,37 +180,37 @@ export default function OnCallRotationManager() {
         {tab === "rotations" && (
           <div className="flex h-full">
             {/* Left: rotation list */}
-            <div className="w-[44%] flex-none border-r border-zinc-800 overflow-y-auto">
+            <div className="w-[44%] flex-none border-r border-[var(--color-border)] overflow-y-auto">
               {ROTATIONS.map(rot => {
                 const current = getPerson(rot.currentPersonId);
                 const next = getPerson(rot.nextPersonId);
                 return (
                   <button key={rot.id} onClick={() => setSelectedRotation(rot)} className={cn(
-                    "w-full text-left px-4 py-4 border-b border-zinc-800/60 hover:bg-zinc-900 transition-colors",
-                    selectedRotation?.id === rot.id && "bg-zinc-900 border-l-2 border-l-indigo-500"
+                    "w-full text-left px-4 py-4 border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface-1)] transition-colors",
+                    selectedRotation?.id === rot.id && "bg-[var(--color-surface-1)] border-l-2 border-l-indigo-500"
                   )}>
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-semibold text-white text-sm">{rot.name}</div>
-                        <div className="text-xs text-zinc-500 mt-0.5">{rot.team} · Escalation: {escalationLabel[rot.escalationPolicy]}</div>
+                        <div className="font-semibold text-[var(--color-text-primary)] text-sm">{rot.name}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{rot.team} · Escalation: {escalationLabel[rot.escalationPolicy]}</div>
                       </div>
                       <div className="text-right text-xs">
-                        <div className="text-zinc-400">{rot.alertCount} alerts</div>
-                        <div className="text-zinc-600">MTTR {rot.mttrMin}m</div>
+                        <div className="text-[var(--color-text-secondary)]">{rot.alertCount} alerts</div>
+                        <div className="text-[var(--color-text-muted)]">MTTR {rot.mttrMin}m</div>
                       </div>
                     </div>
                     {current && (
                       <div className="flex items-center gap-2 mt-3">
                         <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-none", current.avatarColor)}>{current.avatarInitials}</div>
                         <div>
-                          <div className="text-xs text-white">{current.name}</div>
+                          <div className="text-xs text-[var(--color-text-primary)]">{current.name}</div>
                           <div className="text-[10px] text-emerald-400">On-call now</div>
                         </div>
                         {next && (
                           <>
-                            <div className="text-zinc-700 mx-1">→</div>
+                            <div className="text-[var(--color-text-muted)] mx-1">→</div>
                             <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold flex-none opacity-50", next.avatarColor)}>{next.avatarInitials}</div>
-                            <div className="text-[10px] text-zinc-500">{next.name} next</div>
+                            <div className="text-[10px] text-[var(--color-text-muted)]">{next.name} next</div>
                           </>
                         )}
                       </div>
@@ -229,8 +229,8 @@ export default function OnCallRotationManager() {
                 return (
                   <div className="space-y-5">
                     <div>
-                      <h2 className="text-base font-semibold text-white">{selectedRotation.name}</h2>
-                      <p className="text-xs text-zinc-500 mt-1">Team: {selectedRotation.team} · Handoff: {selectedRotation.handoffDay} at {selectedRotation.handoffTime}</p>
+                      <h2 className="text-base font-semibold text-[var(--color-text-primary)]">{selectedRotation.name}</h2>
+                      <p className="text-xs text-[var(--color-text-muted)] mt-1">Team: {selectedRotation.team} · Handoff: {selectedRotation.handoffDay} at {selectedRotation.handoffTime}</p>
                     </div>
                     {/* Current on-call */}
                     {current && (
@@ -239,8 +239,8 @@ export default function OnCallRotationManager() {
                         <div className="flex items-center gap-3">
                           <div className={cn("w-10 h-10 rounded-full flex items-center justify-center font-bold", current.avatarColor)}>{current.avatarInitials}</div>
                           <div>
-                            <div className="font-semibold text-white">{current.name}</div>
-                            <div className="text-xs text-zinc-400">{current.timezone}</div>
+                            <div className="font-semibold text-[var(--color-text-primary)]">{current.name}</div>
+                            <div className="text-xs text-[var(--color-text-secondary)]">{current.timezone}</div>
                             <div className="flex items-center gap-1.5 mt-1">
                               {current.alertChannels.map(ch => (
                                 <span key={ch} title={ch}>{channelIcon[ch]}</span>
@@ -248,49 +248,49 @@ export default function OnCallRotationManager() {
                             </div>
                           </div>
                           <div className="ml-auto text-right text-xs">
-                            <div className="text-white font-semibold">{current.avgResponseMin}m</div>
-                            <div className="text-zinc-500">avg response</div>
+                            <div className="text-[var(--color-text-primary)] font-semibold">{current.avgResponseMin}m</div>
+                            <div className="text-[var(--color-text-muted)]">avg response</div>
                           </div>
                         </div>
                       </div>
                     )}
                     {/* Next on-call */}
                     {next && (
-                      <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                        <div className="text-xs text-zinc-500 font-medium mb-2">Next On-Call ({selectedRotation.handoffDay})</div>
+                      <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                        <div className="text-xs text-[var(--color-text-muted)] font-medium mb-2">Next On-Call ({selectedRotation.handoffDay})</div>
                         <div className="flex items-center gap-3">
                           <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", next.avatarColor)}>{next.avatarInitials}</div>
                           <div>
-                            <div className="text-sm font-medium text-white">{next.name}</div>
-                            <div className="text-xs text-zinc-500">{next.timezone}</div>
+                            <div className="text-sm font-medium text-[var(--color-text-primary)]">{next.name}</div>
+                            <div className="text-xs text-[var(--color-text-muted)]">{next.timezone}</div>
                           </div>
                         </div>
                       </div>
                     )}
                     {/* Escalation */}
-                    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                      <div className="text-xs font-medium text-zinc-400 mb-2">Escalation Policy</div>
-                      <div className="text-sm text-white">{escalationLabel[selectedRotation.escalationPolicy]}</div>
-                      <div className="text-xs text-zinc-500 mt-1">After no acknowledgment, page all rotation members</div>
+                    <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
+                      <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Escalation Policy</div>
+                      <div className="text-sm text-[var(--color-text-primary)]">{escalationLabel[selectedRotation.escalationPolicy]}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-1">After no acknowledgment, page all rotation members</div>
                     </div>
                     {/* Shift history */}
                     <div>
-                      <div className="text-xs font-medium text-zinc-400 mb-2">Shift Schedule</div>
+                      <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Shift Schedule</div>
                       <div className="space-y-1.5">
                         {shifts.map(shift => {
                           const person = getPerson(shift.personId);
                           return (
-                            <div key={shift.id} className="flex items-center gap-3 bg-zinc-900 rounded-lg px-3 py-2 border border-zinc-800">
+                            <div key={shift.id} className="flex items-center gap-3 bg-[var(--color-surface-1)] rounded-lg px-3 py-2 border border-[var(--color-border)]">
                               {person && (
                                 <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold flex-none", person.avatarColor)}>{person.avatarInitials}</div>
                               )}
                               <div className="flex-1 min-w-0">
-                                <div className="text-xs text-zinc-300">{person?.name}</div>
-                                <div className="text-[10px] text-zinc-600">{shift.start} – {shift.end}</div>
+                                <div className="text-xs text-[var(--color-text-primary)]">{person?.name}</div>
+                                <div className="text-[10px] text-[var(--color-text-muted)]">{shift.start} – {shift.end}</div>
                               </div>
                               <span className={cn("px-1.5 py-0.5 rounded border text-[10px]", shiftStatusBadge[shift.status])}>{shift.status}</span>
                               {shift.incidentCount > 0 && (
-                                <span className="text-[10px] text-zinc-500">{shift.incidentCount} incidents</span>
+                                <span className="text-[10px] text-[var(--color-text-muted)]">{shift.incidentCount} incidents</span>
                               )}
                             </div>
                           );
@@ -299,12 +299,12 @@ export default function OnCallRotationManager() {
                     </div>
                     {/* Members */}
                     <div>
-                      <div className="text-xs font-medium text-zinc-400 mb-2">Rotation Members</div>
+                      <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Rotation Members</div>
                       <div className="flex gap-2 flex-wrap">
                         {members.map(m => (
-                          <div key={m.id} className="flex items-center gap-2 bg-zinc-900 rounded-lg px-3 py-2 border border-zinc-800">
+                          <div key={m.id} className="flex items-center gap-2 bg-[var(--color-surface-1)] rounded-lg px-3 py-2 border border-[var(--color-border)]">
                             <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold", m.avatarColor)}>{m.avatarInitials}</div>
-                            <span className="text-xs text-zinc-300">{m.name}</span>
+                            <span className="text-xs text-[var(--color-text-primary)]">{m.name}</span>
                           </div>
                         ))}
                       </div>
@@ -324,8 +324,8 @@ export default function OnCallRotationManager() {
                 const person = getPerson(shift.personId);
                 const rotation = getRotation(shift.rotationId);
                 return (
-                  <div key={shift.id} className={cn("bg-zinc-900 rounded-xl p-4 border",
-                    shift.status === "active" ? "border-emerald-500/30" : "border-zinc-800"
+                  <div key={shift.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border",
+                    shift.status === "active" ? "border-emerald-500/30" : "border-[var(--color-border)]"
                   )}>
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
@@ -333,16 +333,16 @@ export default function OnCallRotationManager() {
                           <div className={cn("w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-none", person.avatarColor)}>{person.avatarInitials}</div>
                         )}
                         <div>
-                          <div className="font-medium text-white text-sm">{person?.name}</div>
-                          <div className="text-xs text-zinc-500">{rotation?.name}</div>
-                          <div className="text-[10px] text-zinc-600 mt-0.5">{shift.start} → {shift.end}</div>
+                          <div className="font-medium text-[var(--color-text-primary)] text-sm">{person?.name}</div>
+                          <div className="text-xs text-[var(--color-text-muted)]">{rotation?.name}</div>
+                          <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{shift.start} → {shift.end}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         {shift.incidentCount > 0 && (
                           <div className="text-right">
-                            <div className="text-sm font-semibold text-white">{shift.incidentCount}</div>
-                            <div className="text-[10px] text-zinc-600">incidents</div>
+                            <div className="text-sm font-semibold text-[var(--color-text-primary)]">{shift.incidentCount}</div>
+                            <div className="text-[10px] text-[var(--color-text-muted)]">incidents</div>
                           </div>
                         )}
                         <span className={cn("px-2 py-1 rounded border text-xs font-medium", shiftStatusBadge[shift.status])}>{shift.status}</span>
@@ -363,21 +363,21 @@ export default function OnCallRotationManager() {
                 const person = getPerson(inc.assignedTo);
                 const rotation = getRotation(inc.rotationId);
                 return (
-                  <div key={inc.id} className={cn("bg-zinc-900 rounded-xl p-4 border",
+                  <div key={inc.id} className={cn("bg-[var(--color-surface-1)] rounded-xl p-4 border",
                     inc.status === "open" ? "border-rose-500/40" :
-                    inc.status === "acked" ? "border-sky-500/30" : "border-zinc-800"
+                    inc.status === "acked" ? "border-sky-500/30" : "border-[var(--color-border)]"
                   )}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className={cn("px-1.5 py-0.5 rounded border text-[10px] font-bold", severityBadge[inc.severity])}>{inc.severity.toUpperCase()}</span>
                           <span className={cn("px-1.5 py-0.5 rounded border text-[10px] font-medium", incidentStatusBadge[inc.status])}>{inc.status.toUpperCase()}</span>
-                          <span className="text-[10px] text-zinc-600">{inc.firedAt}</span>
+                          <span className="text-[10px] text-[var(--color-text-muted)]">{inc.firedAt}</span>
                         </div>
-                        <div className="font-medium text-white text-sm">{inc.title}</div>
-                        <div className="flex items-center gap-2 mt-1.5 text-[10px] text-zinc-500">
+                        <div className="font-medium text-[var(--color-text-primary)] text-sm">{inc.title}</div>
+                        <div className="flex items-center gap-2 mt-1.5 text-[10px] text-[var(--color-text-muted)]">
                           {person && (
-                            <span>Assigned: <span className="text-zinc-300">{person.name}</span></span>
+                            <span>Assigned: <span className="text-[var(--color-text-primary)]">{person.name}</span></span>
                           )}
                           <span>·</span>
                           <span>{rotation?.name}</span>
@@ -387,13 +387,13 @@ export default function OnCallRotationManager() {
                         {inc.ackTimeMin !== null && (
                           <div>
                             <div className={cn("font-semibold", inc.ackTimeMin <= 5 ? "text-emerald-400" : "text-amber-400")}>{inc.ackTimeMin}m</div>
-                            <div className="text-zinc-600 text-[10px]">ack time</div>
+                            <div className="text-[var(--color-text-muted)] text-[10px]">ack time</div>
                           </div>
                         )}
                         {inc.resolveTimeMin !== null && (
                           <div>
-                            <div className="font-semibold text-white">{inc.resolveTimeMin}m</div>
-                            <div className="text-zinc-600 text-[10px]">resolve</div>
+                            <div className="font-semibold text-[var(--color-text-primary)]">{inc.resolveTimeMin}m</div>
+                            <div className="text-[var(--color-text-muted)] text-[10px]">resolve</div>
                           </div>
                         )}
                         {inc.status === "open" && (
@@ -413,14 +413,14 @@ export default function OnCallRotationManager() {
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-3">
               {PEOPLE.toSorted((a, b) => a.avgResponseMin - b.avgResponseMin).map(person => (
-                <div key={person.id} className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 hover:border-zinc-700 transition-colors">
+                <div key={person.id} className="bg-[var(--color-surface-1)] rounded-xl p-5 border border-[var(--color-border)] hover:border-[var(--color-border)] transition-colors">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <div className={cn("w-12 h-12 rounded-full flex items-center justify-center font-bold flex-none", person.avatarColor)}>{person.avatarInitials}</div>
                       <div>
-                        <div className="font-semibold text-white">{person.name}</div>
-                        <div className="text-xs text-zinc-400">{person.role} · {person.team}</div>
-                        <div className="text-xs text-zinc-500 mt-0.5">{person.timezone}</div>
+                        <div className="font-semibold text-[var(--color-text-primary)]">{person.name}</div>
+                        <div className="text-xs text-[var(--color-text-secondary)]">{person.role} · {person.team}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{person.timezone}</div>
                         <div className="flex items-center gap-1.5 mt-1.5">
                           {person.alertChannels.map(ch => (
                             <span key={ch} className="text-base" title={ch}>{channelIcon[ch]}</span>
@@ -431,23 +431,23 @@ export default function OnCallRotationManager() {
                     <div className="grid grid-cols-2 gap-4 text-right text-xs">
                       <div>
                         <div className={cn("text-lg font-bold", person.avgResponseMin <= 5 ? "text-emerald-400" : "text-amber-400")}>{person.avgResponseMin}m</div>
-                        <div className="text-zinc-600">avg response</div>
+                        <div className="text-[var(--color-text-muted)]">avg response</div>
                       </div>
                       <div>
-                        <div className="text-lg font-bold text-white">{person.incidentsThisMonth}</div>
-                        <div className="text-zinc-600">incidents/mo</div>
+                        <div className="text-lg font-bold text-[var(--color-text-primary)]">{person.incidentsThisMonth}</div>
+                        <div className="text-[var(--color-text-muted)]">incidents/mo</div>
                       </div>
                     </div>
                   </div>
                   {/* Avg response bar */}
                   <div className="mt-3">
-                    <div className="w-full bg-zinc-800 rounded-full h-1">
+                    <div className="w-full bg-[var(--color-surface-2)] rounded-full h-1">
                       <div
                         className={cn("h-1 rounded-full", person.avgResponseMin <= 5 ? "bg-emerald-500" : "bg-amber-500")}
                         style={{ width: `${Math.min(100, (person.avgResponseMin / 15) * 100)}%` }}
                       />
                     </div>
-                    <div className="text-[10px] text-zinc-600 mt-1">Last acknowledged: {person.lastAck}</div>
+                    <div className="text-[10px] text-[var(--color-text-muted)] mt-1">Last acknowledged: {person.lastAck}</div>
                   </div>
                 </div>
               ))}

@@ -519,7 +519,7 @@ function SearchBar({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Search docs..."
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg py-2 pl-9 pr-3 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
         />
       </div>
     </div>
@@ -563,16 +563,16 @@ function NavTree({
           <div key={section.id} className="mb-1">
             <button
               onClick={() => onToggleSection(section.id)}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)] transition-colors text-left"
             >
               <span className="text-base">{section.emoji}</span>
               <span className="flex-1">{section.label}</span>
-              <span className="text-xs text-zinc-500">
+              <span className="text-xs text-[var(--color-text-muted)]">
                 {isExpanded ? "▾" : "▸"}
               </span>
             </button>
             {isExpanded && (
-              <div className="ml-4 border-l border-zinc-800 pl-2 mt-1 space-y-0.5">
+              <div className="ml-4 border-l border-[var(--color-border)] pl-2 mt-1 space-y-0.5">
                 {section.subsections.map((sub) => (
                   <button
                     key={sub.id}
@@ -581,7 +581,7 @@ function NavTree({
                       "w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors",
                       activeSubId === sub.id
                         ? "bg-indigo-500/15 text-indigo-400 font-medium"
-                        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                        : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50"
                     )}
                   >
                     {sub.label}
@@ -593,7 +593,7 @@ function NavTree({
         );
       })}
       {filtered.length === 0 && (
-        <div className="px-3 py-8 text-center text-sm text-zinc-500">
+        <div className="px-3 py-8 text-center text-sm text-[var(--color-text-muted)]">
           No results for &ldquo;{search}&rdquo;
         </div>
       )}
@@ -639,27 +639,27 @@ function CalloutBox({ callout }: { callout: Callout }) {
         <span>{c.emoji}</span>
         <span>{callout.title}</span>
       </div>
-      <p className="text-sm text-zinc-300 leading-relaxed">{callout.body}</p>
+      <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{callout.body}</p>
     </div>
   );
 }
 
 function ParamTable({ params }: { params: Param[] }) {
   return (
-    <div className="my-4 overflow-x-auto rounded-lg border border-zinc-800">
+    <div className="my-4 overflow-x-auto rounded-lg border border-[var(--color-border)]">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-zinc-800/60">
-            <th className="text-left px-4 py-2.5 text-zinc-300 font-semibold">
+          <tr className="bg-[var(--color-surface-2)]/60">
+            <th className="text-left px-4 py-2.5 text-[var(--color-text-primary)] font-semibold">
               Parameter
             </th>
-            <th className="text-left px-4 py-2.5 text-zinc-300 font-semibold">
+            <th className="text-left px-4 py-2.5 text-[var(--color-text-primary)] font-semibold">
               Type
             </th>
-            <th className="text-left px-4 py-2.5 text-zinc-300 font-semibold">
+            <th className="text-left px-4 py-2.5 text-[var(--color-text-primary)] font-semibold">
               Required
             </th>
-            <th className="text-left px-4 py-2.5 text-zinc-300 font-semibold">
+            <th className="text-left px-4 py-2.5 text-[var(--color-text-primary)] font-semibold">
               Description
             </th>
           </tr>
@@ -669,8 +669,8 @@ function ParamTable({ params }: { params: Param[] }) {
             <tr
               key={p.name}
               className={cn(
-                "border-t border-zinc-800",
-                idx % 2 === 0 ? "bg-zinc-900/50" : "bg-zinc-900/30"
+                "border-t border-[var(--color-border)]",
+                idx % 2 === 0 ? "bg-[var(--color-surface-1)]/50" : "bg-[var(--color-surface-1)]/30"
               )}
             >
               <td className="px-4 py-2.5">
@@ -689,10 +689,10 @@ function ParamTable({ params }: { params: Param[] }) {
                     Required
                   </span>
                 ) : (
-                  <span className="text-zinc-500 text-xs">Optional</span>
+                  <span className="text-[var(--color-text-muted)] text-xs">Optional</span>
                 )}
               </td>
-              <td className="px-4 py-2.5 text-zinc-300">{p.description}</td>
+              <td className="px-4 py-2.5 text-[var(--color-text-primary)]">{p.description}</td>
             </tr>
           ))}
         </tbody>
@@ -703,7 +703,7 @@ function ParamTable({ params }: { params: Param[] }) {
 
 function InlineCodeList({ codes }: { codes: string[] }) {
   return (
-    <p className="text-zinc-300 leading-relaxed my-3">
+    <p className="text-[var(--color-text-primary)] leading-relaxed my-3">
       {"Related: "}
       {codes.map((c, i) => (
         <React.Fragment key={c}>
@@ -732,7 +732,7 @@ function ContentRenderer({
         <div key={section.id} id={section.id}>
           {section.level === 1 && (
             <h1
-              className="text-3xl font-bold text-white mb-4 cursor-pointer hover:text-indigo-400 transition-colors"
+              className="text-3xl font-bold text-[var(--color-text-primary)] mb-4 cursor-pointer hover:text-indigo-400 transition-colors"
               onClick={() => onTocClick(section.id)}
             >
               {section.heading}
@@ -740,7 +740,7 @@ function ContentRenderer({
           )}
           {section.level === 2 && (
             <h2
-              className="text-xl font-semibold text-white mb-3 pt-4 border-t border-zinc-800/50 cursor-pointer hover:text-indigo-400 transition-colors"
+              className="text-xl font-semibold text-[var(--color-text-primary)] mb-3 pt-4 border-t border-[var(--color-border)]/50 cursor-pointer hover:text-indigo-400 transition-colors"
               onClick={() => onTocClick(section.id)}
             >
               {section.heading}
@@ -748,29 +748,29 @@ function ContentRenderer({
           )}
           {section.level === 3 && (
             <h3
-              className="text-lg font-medium text-zinc-200 mb-2 pt-2 cursor-pointer hover:text-indigo-400 transition-colors"
+              className="text-lg font-medium text-[var(--color-text-primary)] mb-2 pt-2 cursor-pointer hover:text-indigo-400 transition-colors"
               onClick={() => onTocClick(section.id)}
             >
               {section.heading}
             </h3>
           )}
           {section.paragraphs?.map((p, i) => (
-            <p key={i} className="text-zinc-300 leading-relaxed my-3 text-[15px]">
+            <p key={i} className="text-[var(--color-text-primary)] leading-relaxed my-3 text-[15px]">
               {p}
             </p>
           ))}
           {section.inlineCode && <InlineCodeList codes={section.inlineCode} />}
           {section.codeBlock && (
-            <div className="my-4 rounded-lg overflow-hidden border border-zinc-800">
-              <div className="bg-zinc-800/80 px-4 py-2 flex items-center justify-between">
-                <span className="text-xs text-zinc-400 font-mono">
+            <div className="my-4 rounded-lg overflow-hidden border border-[var(--color-border)]">
+              <div className="bg-[var(--color-surface-2)]/80 px-4 py-2 flex items-center justify-between">
+                <span className="text-xs text-[var(--color-text-secondary)] font-mono">
                   {section.codeBlock.language}
                 </span>
-                <span className="text-xs text-zinc-500 cursor-pointer hover:text-zinc-300 transition-colors">
+                <span className="text-xs text-[var(--color-text-muted)] cursor-pointer hover:text-[var(--color-text-primary)] transition-colors">
                   📋 Copy
                 </span>
               </div>
-              <pre className="bg-zinc-900/80 p-4 overflow-x-auto">
+              <pre className="bg-[var(--color-surface-1)]/80 p-4 overflow-x-auto">
                 <code className="text-sm font-mono text-emerald-300 leading-relaxed whitespace-pre">
                   {section.codeBlock.code}
                 </code>
@@ -796,7 +796,7 @@ function TableOfContents({
 }) {
   return (
     <div className="sticky top-6">
-      <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3 px-1">
+      <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3 px-1">
         On this page
       </h4>
       <nav className="space-y-0.5">
@@ -811,7 +811,7 @@ function TableOfContents({
               section.level === 3 && "px-2 pl-6",
               activeTocId === section.id
                 ? "text-indigo-400 font-medium bg-indigo-500/5"
-                : "text-zinc-500 hover:text-zinc-300"
+                : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {section.heading}
@@ -824,15 +824,15 @@ function TableOfContents({
 
 function Breadcrumb({ items }: { items: string[] }) {
   return (
-    <div className="flex items-center gap-1.5 text-sm text-zinc-500 mb-6">
+    <div className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] mb-6">
       {items.map((item, i) => (
         <React.Fragment key={i}>
-          {i > 0 && <span className="text-zinc-700">/</span>}
+          {i > 0 && <span className="text-[var(--color-text-muted)]">/</span>}
           <span
             className={cn(
               i === items.length - 1
-                ? "text-zinc-300 font-medium"
-                : "hover:text-zinc-300 cursor-pointer transition-colors"
+                ? "text-[var(--color-text-primary)] font-medium"
+                : "hover:text-[var(--color-text-primary)] cursor-pointer transition-colors"
             )}
           >
             {item}
@@ -891,21 +891,21 @@ export default function DocumentationViewer() {
   const breadcrumbItems = getBreadcrumb(NAV_SECTIONS, activePageId, activeSubId);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] flex flex-col">
       {/* Top Bar */}
-      <header className="bg-zinc-900 border-b border-zinc-800 px-6 py-3 flex items-center justify-between shrink-0">
+      <header className="bg-[var(--color-surface-1)] border-b border-[var(--color-border)] px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <span className="text-xl">📖</span>
-          <h1 className="text-lg font-bold text-white">OpenClaw Docs</h1>
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">OpenClaw Docs</h1>
           <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full font-medium">
             v2.4.0
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-zinc-400 hidden sm:block">
+          <span className="text-sm text-[var(--color-text-secondary)] hidden sm:block">
             📄 {Object.keys(DOC_PAGES).length} pages
           </span>
-          <button className="text-sm text-zinc-400 hover:text-white transition-colors px-3 py-1.5 rounded-md hover:bg-zinc-800">
+          <button className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors px-3 py-1.5 rounded-md hover:bg-[var(--color-surface-2)]">
             ⌨️ Shortcuts
           </button>
         </div>
@@ -914,7 +914,7 @@ export default function DocumentationViewer() {
       {/* Three-column layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left: Nav sidebar */}
-        <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col shrink-0 overflow-hidden">
+        <aside className="w-64 bg-[var(--color-surface-1)] border-r border-[var(--color-border)] flex flex-col shrink-0 overflow-hidden">
           <SearchBar value={search} onChange={setSearch} />
           <NavTree
             sections={NAV_SECTIONS}
@@ -924,8 +924,8 @@ export default function DocumentationViewer() {
             activeSubId={activeSubId}
             onSelectSub={handleSelectSub}
           />
-          <div className="border-t border-zinc-800 px-4 py-3 shrink-0">
-            <p className="text-xs text-zinc-500">
+          <div className="border-t border-[var(--color-border)] px-4 py-3 shrink-0">
+            <p className="text-xs text-[var(--color-text-muted)]">
               🤖 Built with OpenClaw
             </p>
           </div>
@@ -937,7 +937,7 @@ export default function DocumentationViewer() {
             {/* Breadcrumb + edit */}
             <div className="flex items-center justify-between mb-2">
               <Breadcrumb items={breadcrumbItems} />
-              <button className="text-sm text-zinc-500 hover:text-indigo-400 transition-colors flex items-center gap-1.5 shrink-0">
+              <button className="text-sm text-[var(--color-text-muted)] hover:text-indigo-400 transition-colors flex items-center gap-1.5 shrink-0">
                 <span>✏️</span>
                 <span>Edit on GitHub</span>
               </button>
@@ -951,9 +951,9 @@ export default function DocumentationViewer() {
             />
 
             {/* Bottom nav */}
-            <div className="mt-12 pt-6 border-t border-zinc-800 flex items-center justify-between">
+            <div className="mt-12 pt-6 border-t border-[var(--color-border)] flex items-center justify-between">
               <button
-                className="text-sm text-zinc-400 hover:text-indigo-400 transition-colors flex items-center gap-2"
+                className="text-sm text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors flex items-center gap-2"
                 onClick={() => {
                   const pageIds = Object.keys(DOC_PAGES);
                   const idx = pageIds.indexOf(activePageId);
@@ -967,7 +967,7 @@ export default function DocumentationViewer() {
                 <span>Previous</span>
               </button>
               <button
-                className="text-sm text-zinc-400 hover:text-indigo-400 transition-colors flex items-center gap-2"
+                className="text-sm text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors flex items-center gap-2"
                 onClick={() => {
                   const pageIds = Object.keys(DOC_PAGES);
                   const idx = pageIds.indexOf(activePageId);
@@ -983,8 +983,8 @@ export default function DocumentationViewer() {
             </div>
 
             {/* Footer */}
-            <div className="mt-8 pt-6 border-t border-zinc-800/50 text-center">
-              <p className="text-xs text-zinc-600">
+            <div className="mt-8 pt-6 border-t border-[var(--color-border)]/50 text-center">
+              <p className="text-xs text-[var(--color-text-muted)]">
                 Last updated February 2026 · OpenClaw Documentation
               </p>
             </div>
@@ -992,7 +992,7 @@ export default function DocumentationViewer() {
         </main>
 
         {/* Right: TOC sidebar */}
-        <aside className="w-56 bg-zinc-950 border-l border-zinc-800 p-4 shrink-0 overflow-y-auto hidden lg:block">
+        <aside className="w-56 bg-[var(--color-surface-0)] border-l border-[var(--color-border)] p-4 shrink-0 overflow-y-auto hidden lg:block">
           <TableOfContents
             page={currentPage}
             activeTocId={activeTocId}

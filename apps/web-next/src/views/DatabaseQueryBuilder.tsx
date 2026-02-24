@@ -153,19 +153,19 @@ export default function DatabaseQueryBuilder() {
 
   const getTypeColor = (type: string) => {
     const base = type.split("(")[0];
-    return TYPE_COLOR[base] ?? "text-zinc-300";
+    return TYPE_COLOR[base] ?? "text-[var(--color-text-primary)]";
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Database Query Builder</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">Connected: <span className="text-emerald-400">postgres://db.prod.internal:5432/clawdbot</span></p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Database Query Builder</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Connected: <span className="text-emerald-400">postgres://db.prod.internal:5432/clawdbot</span></p>
         </div>
         <div className="flex items-center gap-2">
-          <select className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-1.5 focus:outline-none">
+          <select className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-1.5 focus:outline-none">
             <option>production</option>
             <option>staging</option>
             <option>development</option>
@@ -177,7 +177,7 @@ export default function DatabaseQueryBuilder() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)] w-fit">
         {TABS.map(t => (
           <button
             key={t.id}
@@ -185,8 +185,8 @@ export default function DatabaseQueryBuilder() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-white"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t.emoji} {t.label}
@@ -199,29 +199,29 @@ export default function DatabaseQueryBuilder() {
         <div className="grid grid-cols-4 gap-4">
           {/* Table browser sidebar */}
           <div className="col-span-1">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-              <div className="text-xs font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Tables</div>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+              <div className="text-xs font-semibold text-[var(--color-text-secondary)] mb-3 uppercase tracking-wider">Tables</div>
               <div className="space-y-1">
                 {TABLES.map(tbl => (
                   <div key={tbl.name}>
                     <button
                       onClick={() => setExpandedTable(expandedTable === tbl.name ? null : tbl.name)}
-                      className="w-full flex items-center justify-between text-left px-2 py-1.5 rounded hover:bg-zinc-800 transition-colors"
+                      className="w-full flex items-center justify-between text-left px-2 py-1.5 rounded hover:bg-[var(--color-surface-2)] transition-colors"
                     >
                       <div className="flex items-center gap-1.5">
-                        <span className="text-zinc-500 text-xs">{expandedTable === tbl.name ? "▼" : "▶"}</span>
-                        <span className="text-sm text-white">{tbl.name}</span>
+                        <span className="text-[var(--color-text-muted)] text-xs">{expandedTable === tbl.name ? "▼" : "▶"}</span>
+                        <span className="text-sm text-[var(--color-text-primary)]">{tbl.name}</span>
                       </div>
-                      <span className="text-xs text-zinc-500">{(tbl.rowCount / 1000).toFixed(0)}K</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{(tbl.rowCount / 1000).toFixed(0)}K</span>
                     </button>
                     {expandedTable === tbl.name && (
                       <div className="ml-4 mt-1 space-y-0.5 pb-1">
                         {tbl.columns.map(col => (
                           <div key={col.name} className="flex items-center gap-1.5 px-2 py-0.5">
-                            <span className="text-xs text-zinc-600">
+                            <span className="text-xs text-[var(--color-text-muted)]">
                               {col.isPK ? "🔑" : col.isFK ? "🔗" : "·"}
                             </span>
-                            <span className="text-xs text-zinc-300">{col.name}</span>
+                            <span className="text-xs text-[var(--color-text-primary)]">{col.name}</span>
                             <span className={cn("text-xs ml-auto", getTypeColor(col.type))}>{col.type.split("(")[0]}</span>
                           </div>
                         ))}
@@ -243,25 +243,25 @@ export default function DatabaseQueryBuilder() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-colors",
                   running
-                    ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                    : "bg-indigo-500 text-white hover:bg-indigo-600"
+                    ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-not-allowed"
+                    : "bg-indigo-500 text-[var(--color-text-primary)] hover:bg-indigo-600"
                 )}
               >
                 {running ? "⏳ Running..." : "▶ Run Query"}
               </button>
-              <button className="text-sm px-3 py-2 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-800 transition-colors">💾 Save</button>
-              <button className="text-sm px-3 py-2 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-800 transition-colors">📋 Format</button>
+              <button className="text-sm px-3 py-2 border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-2)] transition-colors">💾 Save</button>
+              <button className="text-sm px-3 py-2 border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-2)] transition-colors">📋 Format</button>
               <button
                 onClick={() => setResult(null)}
-                className="text-sm px-3 py-2 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-800 transition-colors"
+                className="text-sm px-3 py-2 border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-2)] transition-colors"
               >✕ Clear</button>
-              <div className="ml-auto text-xs text-zinc-500">Cmd+Enter to run</div>
+              <div className="ml-auto text-xs text-[var(--color-text-muted)]">Cmd+Enter to run</div>
             </div>
 
             {/* SQL editor */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-2 bg-zinc-800/50 border-b border-zinc-800">
-                <span className="text-xs text-zinc-400">SQL</span>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--color-surface-2)]/50 border-b border-[var(--color-border)]">
+                <span className="text-xs text-[var(--color-text-secondary)]">SQL</span>
                 <div className="ml-auto flex gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-rose-500/60" />
                   <div className="w-2.5 h-2.5 rounded-full bg-amber-500/60" />
@@ -270,7 +270,7 @@ export default function DatabaseQueryBuilder() {
               </div>
               <div className="flex">
                 {/* Line numbers */}
-                <div className="px-3 py-3 text-xs font-mono text-zinc-600 text-right select-none border-r border-zinc-800 bg-zinc-900/50">
+                <div className="px-3 py-3 text-xs font-mono text-[var(--color-text-muted)] text-right select-none border-r border-[var(--color-border)] bg-[var(--color-surface-1)]/50">
                   {sqlValue.split("\n").map((_, i) => (
                     <div key={i} className="leading-6">{i + 1}</div>
                   ))}
@@ -279,7 +279,7 @@ export default function DatabaseQueryBuilder() {
                 <textarea
                   value={sqlValue}
                   onChange={e => setSqlValue(e.target.value)}
-                  className="flex-1 bg-transparent px-4 py-3 text-sm font-mono text-zinc-100 resize-none focus:outline-none leading-6 min-h-[200px]"
+                  className="flex-1 bg-transparent px-4 py-3 text-sm font-mono text-[var(--color-text-primary)] resize-none focus:outline-none leading-6 min-h-[200px]"
                   spellCheck={false}
                   rows={Math.max(8, sqlValue.split("\n").length + 1)}
                 />
@@ -288,29 +288,29 @@ export default function DatabaseQueryBuilder() {
 
             {/* Results */}
             {result && (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                <div className="flex items-center gap-4 px-4 py-2 border-b border-zinc-800 bg-zinc-800/30">
-                  <span className="text-xs text-zinc-400">Results</span>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+                <div className="flex items-center gap-4 px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface-2)]/30">
+                  <span className="text-xs text-[var(--color-text-secondary)]">Results</span>
                   <span className="text-xs text-emerald-400">{result.rowsAffected} rows</span>
-                  <span className="text-xs text-zinc-500">{result.duration}ms</span>
+                  <span className="text-xs text-[var(--color-text-muted)]">{result.duration}ms</span>
                   <button className="ml-auto text-xs text-indigo-400 hover:text-indigo-300">⬇ Export CSV</button>
                 </div>
                 <div className="overflow-x-auto max-h-80">
                   <table className="w-full text-xs font-mono">
-                    <thead className="sticky top-0 bg-zinc-800">
+                    <thead className="sticky top-0 bg-[var(--color-surface-2)]">
                       <tr>
                         {result.columns.map(col => (
-                          <th key={col} className="px-3 py-2 text-left text-zinc-400 font-medium whitespace-nowrap border-b border-zinc-700">{col}</th>
+                          <th key={col} className="px-3 py-2 text-left text-[var(--color-text-secondary)] font-medium whitespace-nowrap border-b border-[var(--color-border)]">{col}</th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-800">
+                    <tbody className="divide-y divide-[var(--color-border)]">
                       {result.rows.map((row, ri) => (
-                        <tr key={ri} className="hover:bg-zinc-800/30 transition-colors">
+                        <tr key={ri} className="hover:bg-[var(--color-surface-2)]/30 transition-colors">
                           {row.map((cell, ci) => (
                             <td key={ci} className={cn(
                               "px-3 py-2 whitespace-nowrap",
-                              cell === null ? "text-zinc-600 italic" : "text-zinc-300"
+                              cell === null ? "text-[var(--color-text-muted)] italic" : "text-[var(--color-text-primary)]"
                             )}>
                               {cell === null ? "NULL" : String(cell)}
                             </td>
@@ -335,14 +335,14 @@ export default function DatabaseQueryBuilder() {
                 key={tbl.name}
                 onClick={() => setSelectedTable(tbl)}
                 className={cn(
-                  "w-full bg-zinc-900 border rounded-lg p-3 text-left hover:border-zinc-600 transition-colors",
-                  selectedTable?.name === tbl.name ? "border-indigo-500/50" : "border-zinc-800"
+                  "w-full bg-[var(--color-surface-1)] border rounded-lg p-3 text-left hover:border-[var(--color-surface-3)] transition-colors",
+                  selectedTable?.name === tbl.name ? "border-indigo-500/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-white">{tbl.schema}.{tbl.name}</span>
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">{tbl.schema}.{tbl.name}</span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-zinc-500">
+                <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                   <span>{tbl.columns.length} cols</span>
                   <span>{tbl.rowCount.toLocaleString()} rows</span>
                 </div>
@@ -352,14 +352,14 @@ export default function DatabaseQueryBuilder() {
 
           <div className="col-span-2">
             {selectedTable ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-white">{selectedTable.schema}.{selectedTable.name}</span>
-                  <span className="text-xs text-zinc-400">{selectedTable.rowCount.toLocaleString()} rows</span>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+                <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+                  <span className="text-sm font-semibold text-[var(--color-text-primary)]">{selectedTable.schema}.{selectedTable.name}</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">{selectedTable.rowCount.toLocaleString()} rows</span>
                 </div>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-800 text-xs text-zinc-400">
+                    <tr className="border-b border-[var(--color-border)] text-xs text-[var(--color-text-secondary)]">
                       <th className="px-4 py-2 text-left font-medium">Column</th>
                       <th className="px-4 py-2 text-left font-medium">Type</th>
                       <th className="px-4 py-2 text-center font-medium">Nullable</th>
@@ -367,21 +367,21 @@ export default function DatabaseQueryBuilder() {
                       <th className="px-4 py-2 text-center font-medium">FK</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800">
+                  <tbody className="divide-y divide-[var(--color-border)]">
                     {selectedTable.columns.map(col => (
-                      <tr key={col.name} className="hover:bg-zinc-800/30">
-                        <td className="px-4 py-2.5 text-white font-medium font-mono text-xs">{col.name}</td>
+                      <tr key={col.name} className="hover:bg-[var(--color-surface-2)]/30">
+                        <td className="px-4 py-2.5 text-[var(--color-text-primary)] font-medium font-mono text-xs">{col.name}</td>
                         <td className={cn("px-4 py-2.5 font-mono text-xs", getTypeColor(col.type))}>{col.type}</td>
-                        <td className="px-4 py-2.5 text-center text-xs">{col.nullable ? <span className="text-amber-400">yes</span> : <span className="text-zinc-500">no</span>}</td>
-                        <td className="px-4 py-2.5 text-center">{col.isPK ? <span className="text-amber-400">🔑</span> : <span className="text-zinc-700">—</span>}</td>
-                        <td className="px-4 py-2.5 text-center">{col.isFK ? <span className="text-indigo-400">🔗</span> : <span className="text-zinc-700">—</span>}</td>
+                        <td className="px-4 py-2.5 text-center text-xs">{col.nullable ? <span className="text-amber-400">yes</span> : <span className="text-[var(--color-text-muted)]">no</span>}</td>
+                        <td className="px-4 py-2.5 text-center">{col.isPK ? <span className="text-amber-400">🔑</span> : <span className="text-[var(--color-text-muted)]">—</span>}</td>
+                        <td className="px-4 py-2.5 text-center">{col.isFK ? <span className="text-indigo-400">🔗</span> : <span className="text-[var(--color-text-muted)]">—</span>}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-10 text-center text-zinc-500 text-sm">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-10 text-center text-[var(--color-text-muted)] text-sm">
                 Select a table to view schema
               </div>
             )}
@@ -398,12 +398,12 @@ export default function DatabaseQueryBuilder() {
                 key={sq.id}
                 onClick={() => setSelectedSaved(sq)}
                 className={cn(
-                  "w-full bg-zinc-900 border rounded-lg p-4 text-left hover:border-zinc-600 transition-colors",
-                  selectedSaved?.id === sq.id ? "border-indigo-500/50" : "border-zinc-800"
+                  "w-full bg-[var(--color-surface-1)] border rounded-lg p-4 text-left hover:border-[var(--color-surface-3)] transition-colors",
+                  selectedSaved?.id === sq.id ? "border-indigo-500/50" : "border-[var(--color-border)]"
                 )}
               >
-                <div className="text-sm font-medium text-white mb-1">{sq.name}</div>
-                <div className="text-xs text-zinc-500 mb-2">Last run {sq.lastRun}</div>
+                <div className="text-sm font-medium text-[var(--color-text-primary)] mb-1">{sq.name}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-2">Last run {sq.lastRun}</div>
                 <div className="flex flex-wrap gap-1">
                   {sq.tags.map(tag => (
                     <span key={tag} className="text-xs bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">{tag}</span>
@@ -415,20 +415,20 @@ export default function DatabaseQueryBuilder() {
 
           <div className="col-span-3">
             {selectedSaved ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
-                  <span className="text-sm font-semibold text-white">{selectedSaved.name}</span>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
+                  <span className="text-sm font-semibold text-[var(--color-text-primary)]">{selectedSaved.name}</span>
                   <button
                     onClick={() => { setSqlValue(selectedSaved.sql); setActiveTab("editor"); }}
-                    className="text-xs px-3 py-1.5 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors"
+                    className="text-xs px-3 py-1.5 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors"
                   >
                     Open in Editor
                   </button>
                 </div>
-                <pre className="p-4 text-xs font-mono text-zinc-200 leading-relaxed overflow-x-auto whitespace-pre-wrap">{selectedSaved.sql}</pre>
+                <pre className="p-4 text-xs font-mono text-[var(--color-text-primary)] leading-relaxed overflow-x-auto whitespace-pre-wrap">{selectedSaved.sql}</pre>
               </div>
             ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-10 text-center text-zinc-500 text-sm">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-10 text-center text-[var(--color-text-muted)] text-sm">
                 Select a saved query to preview
               </div>
             )}
@@ -438,23 +438,23 @@ export default function DatabaseQueryBuilder() {
 
       {/* History */}
       {activeTab === "history" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-800 text-xs text-zinc-400">Recent queries (today)</div>
-          <div className="divide-y divide-zinc-800">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+          <div className="px-4 py-3 border-b border-[var(--color-border)] text-xs text-[var(--color-text-secondary)]">Recent queries (today)</div>
+          <div className="divide-y divide-[var(--color-border)]">
             {QUERY_HISTORY.map((h, i) => (
-              <div key={i} className="px-4 py-3 hover:bg-zinc-800/30 transition-colors">
+              <div key={i} className="px-4 py-3 hover:bg-[var(--color-surface-2)]/30 transition-colors">
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs text-zinc-500 font-mono">{h.ts}</span>
+                  <span className="text-xs text-[var(--color-text-muted)] font-mono">{h.ts}</span>
                   <div className="flex items-center gap-3 text-xs">
-                    <span className={cn(h.duration > 200 ? "text-amber-400" : "text-zinc-400")}>{h.duration}ms</span>
-                    <span className="text-zinc-400">{h.rows} rows</span>
+                    <span className={cn(h.duration > 200 ? "text-amber-400" : "text-[var(--color-text-secondary)]")}>{h.duration}ms</span>
+                    <span className="text-[var(--color-text-secondary)]">{h.rows} rows</span>
                     <button
                       onClick={() => { setSqlValue(h.sql); setActiveTab("editor"); }}
                       className="text-indigo-400 hover:text-indigo-300"
                     >Re-run →</button>
                   </div>
                 </div>
-                <pre className="text-xs font-mono text-zinc-300 truncate">{h.sql}</pre>
+                <pre className="text-xs font-mono text-[var(--color-text-primary)] truncate">{h.sql}</pre>
               </div>
             ))}
           </div>

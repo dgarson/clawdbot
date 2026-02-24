@@ -211,7 +211,7 @@ function LegendItem({ color, label, shape = 'circle' }: LegendItemProps) {
           style={{ width: 10, height: 10, background: color, opacity: 0.85 }}
         />
       )}
-      <span className="text-[10px] font-medium text-zinc-400">{label}</span>
+      <span className="text-[10px] font-medium text-[var(--color-text-secondary)]">{label}</span>
     </div>
   );
 }
@@ -385,11 +385,11 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
     <aside
       role="complementary"
       aria-label={`Details for ${node.name}`}
-      className="w-[280px] flex-shrink-0 bg-zinc-900 border-l border-zinc-800 flex flex-col overflow-hidden"
+      className="w-[280px] flex-shrink-0 bg-[var(--color-surface-1)] border-l border-[var(--color-border)] flex flex-col overflow-hidden"
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between p-4 border-b border-zinc-800"
+        className="flex items-center justify-between p-4 border-b border-[var(--color-border)]"
         style={{ borderLeftColor: stroke, borderLeftWidth: 3 }}
       >
         <div className="flex items-center gap-3 min-w-0">
@@ -405,7 +405,7 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
             {node.name[0].toUpperCase()}
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-bold text-white truncate">{node.name}</div>
+            <div className="text-sm font-bold text-[var(--color-text-primary)] truncate">{node.name}</div>
             <div className="text-[10px] font-bold uppercase" style={{ color: stroke }}>
               {node.type}
             </div>
@@ -415,14 +415,14 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
         <button
           onClick={onClose}
           aria-label="Close details panel"
-          className="ml-2 flex-shrink-0 text-zinc-500 hover:text-zinc-200 transition-colors p-1 rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="ml-2 flex-shrink-0 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors p-1 rounded focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           <X aria-hidden="true" size={14} />
         </button>
       </div>
 
       {/* Status badge */}
-      <div className="px-4 py-2 border-b border-zinc-800/60 flex items-center gap-2">
+      <div className="px-4 py-2 border-b border-[var(--color-border)]/60 flex items-center gap-2">
         {/* WCAG fix: status dot is decorative — status text label carries the meaning */}
         <div
           aria-hidden="true"
@@ -441,18 +441,18 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
       <div className="p-4 flex flex-col gap-2.5">
         {stats.map(({ label, value }) => (
           <div key={label} className="flex items-start justify-between gap-3">
-            <span className="text-[10px] uppercase font-bold text-zinc-500 flex-shrink-0 pt-px">
+            <span className="text-[10px] uppercase font-bold text-[var(--color-text-muted)] flex-shrink-0 pt-px">
               {label}
             </span>
-            <span className="text-xs text-zinc-200 font-mono text-right break-all">{value}</span>
+            <span className="text-xs text-[var(--color-text-primary)] font-mono text-right break-all">{value}</span>
           </div>
         ))}
       </div>
 
       {/* Token load bar */}
       <div className="px-4 pb-3">
-        <div className="text-[10px] uppercase font-bold text-zinc-500 mb-1.5">Token Load</div>
-        <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden" role="progressbar" aria-valuenow={node.tokenCount} aria-valuemin={0} aria-valuemax={130000} aria-label={`Token load: ${node.tokenCount.toLocaleString()} of 130,000`}>
+        <div className="text-[10px] uppercase font-bold text-[var(--color-text-muted)] mb-1.5">Token Load</div>
+        <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden" role="progressbar" aria-valuenow={node.tokenCount} aria-valuemin={0} aria-valuemax={130000} aria-label={`Token load: ${node.tokenCount.toLocaleString()} of 130,000`}>
           <div
             className="h-full rounded-full transition-all duration-300"
             style={{
@@ -462,7 +462,7 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
             }}
           />
         </div>
-        <div className="text-[9px] text-zinc-600 mt-1 font-mono">
+        <div className="text-[9px] text-[var(--color-text-muted)] mt-1 font-mono">
           {node.tokenCount.toLocaleString()} / 130,000
         </div>
       </div>
@@ -471,10 +471,10 @@ function DetailPanel({ node, onClose }: DetailPanelProps) {
       <div className="px-4 pb-4 flex-1">
         <div className="flex items-center gap-1.5 mb-2">
           {/* WCAG fix: decorative icon */}
-          <MessageSquare aria-hidden="true" size={10} className="text-zinc-500" />
-          <span className="text-[10px] uppercase font-bold text-zinc-500">Last Message</span>
+          <MessageSquare aria-hidden="true" size={10} className="text-[var(--color-text-muted)]" />
+          <span className="text-[10px] uppercase font-bold text-[var(--color-text-muted)]">Last Message</span>
         </div>
-        <p className="text-xs text-zinc-400 leading-relaxed border-l-2 border-zinc-700 pl-2.5 italic">
+        <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed border-l-2 border-[var(--color-border)] pl-2.5 italic">
           "{node.lastMessage}"
         </p>
       </div>
@@ -526,22 +526,22 @@ export default function AgentTopologyMap() {
       {/* WCAG fix: skip link — keyboard users can bypass toolbar */}
       <a
         href="#atm-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-700 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-700 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:text-sm focus:font-medium focus:shadow-lg"
       >
         Skip to main content
       </a>
 
       {/* WCAG fix: <main> landmark identifies the primary content region */}
-      <main id="atm-main" className="min-h-screen bg-zinc-950 text-white flex flex-col">
+      <main id="atm-main" className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] flex flex-col">
 
         {/* ── Toolbar ──────────────────────────────────────────────────────── */}
-        <nav aria-label="Topology toolbar" className="flex items-center gap-4 px-5 py-3 border-b border-zinc-800 bg-zinc-900/60 flex-wrap shrink-0">
+        <nav aria-label="Topology toolbar" className="flex items-center gap-4 px-5 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/60 flex-wrap shrink-0">
           {/* Title */}
           <h1 className="text-base font-bold tracking-tight whitespace-nowrap">
             Agent <span className="text-violet-400">Topology</span>
           </h1>
 
-          <div aria-hidden="true" className="w-px h-4 bg-zinc-700 hidden sm:block" />
+          <div aria-hidden="true" className="w-px h-4 bg-[var(--color-surface-3)] hidden sm:block" />
 
           {/* Legend */}
           <div role="list" aria-label="Node type legend" className="flex items-center gap-4 flex-wrap">
@@ -557,12 +557,12 @@ export default function AgentTopologyMap() {
             <div
               role="status"
               aria-label={`${activeSessions} of ${MOCK_NODES.length} sessions active`}
-              className="flex items-center gap-1.5 bg-zinc-800/80 border border-zinc-700 px-2.5 py-1 rounded-full"
+              className="flex items-center gap-1.5 bg-[var(--color-surface-2)]/80 border border-[var(--color-border)] px-2.5 py-1 rounded-full"
             >
               {/* WCAG fix: decorative icon — label on parent div */}
-              <Users aria-hidden="true" size={11} className="text-zinc-400" />
-              <span className="text-xs font-bold text-white">{activeSessions}</span>
-              <span className="text-[10px] text-zinc-500">/ {MOCK_NODES.length} active</span>
+              <Users aria-hidden="true" size={11} className="text-[var(--color-text-secondary)]" />
+              <span className="text-xs font-bold text-[var(--color-text-primary)]">{activeSessions}</span>
+              <span className="text-[10px] text-[var(--color-text-muted)]">/ {MOCK_NODES.length} active</span>
             </div>
 
             {/* WCAG fix: Live / Paused toggle — aria-pressed conveys state; aria-label describes action */}
@@ -574,7 +574,7 @@ export default function AgentTopologyMap() {
                 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                 isLive
                   ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20'
-                  : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700',
+                  : 'bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]',
               )}
             >
               {/* WCAG fix: toggle icons are decorative — label text ("Live"/"Paused") carries the meaning */}
@@ -587,7 +587,7 @@ export default function AgentTopologyMap() {
             {/* WCAG fix: focus-visible ring on Reset View button; RotateCcw icon is decorative */}
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] text-[var(--color-text-primary)] transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             >
               <RotateCcw aria-hidden="true" size={11} />
               Reset View
@@ -684,9 +684,9 @@ export default function AgentTopologyMap() {
             {/* Node type count overlay (bottom-left) — decorative summary, aria-hidden; data conveyed in legend */}
             <div
               aria-hidden="true"
-              className="absolute bottom-4 left-4 bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-xl px-3 py-2.5 flex flex-col gap-1.5"
+              className="absolute bottom-4 left-4 bg-[var(--color-surface-1)]/80 backdrop-blur-sm border border-[var(--color-border)] rounded-xl px-3 py-2.5 flex flex-col gap-1.5"
             >
-              <span className="text-[9px] uppercase font-bold text-zinc-500 mb-0.5">Node Types</span>
+              <span className="text-[9px] uppercase font-bold text-[var(--color-text-muted)] mb-0.5">Node Types</span>
               {([
                 { type: 'principal' as NodeType, label: 'Principals', color: '#8b5cf6' },
                 { type: 'worker' as NodeType, label: 'Workers', color: '#3b82f6' },
@@ -696,8 +696,8 @@ export default function AgentTopologyMap() {
                 return (
                   <div key={type} className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
-                    <span className="text-[10px] text-zinc-400">{label}</span>
-                    <span className="text-[10px] font-bold text-zinc-300 ml-auto pl-3">{count}</span>
+                    <span className="text-[10px] text-[var(--color-text-secondary)]">{label}</span>
+                    <span className="text-[10px] font-bold text-[var(--color-text-primary)] ml-auto pl-3">{count}</span>
                   </div>
                 );
               })}
@@ -705,7 +705,7 @@ export default function AgentTopologyMap() {
 
             {/* Hint when nothing selected */}
             {!selectedId && (
-              <div className="absolute bottom-4 right-4 text-[10px] text-zinc-600 bg-zinc-900/60 border border-zinc-800/60 rounded-lg px-2.5 py-1.5">
+              <div className="absolute bottom-4 right-4 text-[10px] text-[var(--color-text-muted)] bg-[var(--color-surface-1)]/60 border border-[var(--color-border)]/60 rounded-lg px-2.5 py-1.5">
                 Click a node to inspect
               </div>
             )}

@@ -231,22 +231,22 @@ function LatencyBadge({ ms }: { ms: number }) {
 function ChannelCard({ channel }: { channel: Channel }) {
   const Icon = channel.icon;
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-3">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Icon className="w-5 h-5 text-zinc-400" />
-          <span className="font-medium text-white">{channel.name}</span>
+          <Icon className="w-5 h-5 text-[var(--color-text-secondary)]" />
+          <span className="font-medium text-[var(--color-text-primary)]">{channel.name}</span>
         </div>
         <StatusBadge status={channel.status} />
       </div>
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <div className="text-zinc-500">
+        <div className="text-[var(--color-text-muted)]">
           Last Msg
-          <div className="text-white mt-0.5">{formatTimestamp(channel.lastMessage)}</div>
+          <div className="text-[var(--color-text-primary)] mt-0.5">{formatTimestamp(channel.lastMessage)}</div>
         </div>
-        <div className="text-zinc-500">
+        <div className="text-[var(--color-text-muted)]">
           Today
-          <div className="text-white mt-0.5">{channel.countToday} msgs</div>
+          <div className="text-[var(--color-text-primary)] mt-0.5">{channel.countToday} msgs</div>
         </div>
       </div>
       <LatencyBadge ms={channel.latencyMs} />
@@ -287,25 +287,25 @@ function BroadcastComposer({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">New Broadcast</h3>
-        <button onClick={() => setShowPreview(!showPreview)} className="text-zinc-400 hover:text-white">
+        <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">New Broadcast</h3>
+        <button onClick={() => setShowPreview(!showPreview)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
           <Eye className="w-5 h-5" />
         </button>
       </div>
 
       {/* Target Selector */}
       <div className="space-y-2">
-        <label className="text-sm text-zinc-400">Target Channels</label>
+        <label className="text-sm text-[var(--color-text-secondary)]">Target Channels</label>
         <div className="grid grid-cols-3 gap-2">
           {channels.map((ch) => (
-            <label key={ch.id} className="flex items-center gap-2 text-sm text-zinc-300">
+            <label key={ch.id} className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
               <input
                 type="checkbox"
                 checked={selectedChannels.includes(ch.id)}
                 onChange={() => toggleChannel(ch.id)}
-                className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus:ring-violet-500"
+                className="rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] text-violet-500 focus:ring-violet-500"
               />
               {ch.name}
             </label>
@@ -315,25 +315,25 @@ function BroadcastComposer({
 
       {/* Message */}
       <div className="space-y-2">
-        <label className="text-sm text-zinc-400">Message</label>
+        <label className="text-sm text-[var(--color-text-secondary)]">Message</label>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-violet-500"
+          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-2 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500"
           placeholder="Type your broadcast message..."
         />
-        <div className="text-xs text-zinc-500 text-right">{message.length} characters</div>
+        <div className="text-xs text-[var(--color-text-muted)] text-right">{message.length} characters</div>
       </div>
 
       {/* Schedule */}
       <div className="space-y-2">
-        <label className="flex items-center gap-2 text-sm text-zinc-400">
+        <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
           <input
             type="checkbox"
             checked={scheduleMode}
             onChange={(e) => setScheduleMode(e.target.checked)}
-            className="rounded border-zinc-600 bg-zinc-800 text-violet-500 focus:ring-violet-500"
+            className="rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] text-violet-500 focus:ring-violet-500"
           />
           Schedule for later
         </label>
@@ -341,7 +341,7 @@ function BroadcastComposer({
           <input
             type="datetime-local"
             onChange={(e) => setScheduleTime(e.target.value ? new Date(e.target.value) : null)}
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-violet-500"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-2 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500"
           />
         )}
       </div>
@@ -349,14 +349,14 @@ function BroadcastComposer({
       {/* Preview */}
       {showPreview && (
         <div className="space-y-2">
-          <label className="text-sm text-zinc-400">Preview</label>
+          <label className="text-sm text-[var(--color-text-secondary)]">Preview</label>
           <div className="grid grid-cols-2 gap-2">
             {selectedChannels.map((id) => {
               const ch = channels.find((c) => c.id === id);
               return (
-                <div key={id} className="bg-zinc-800 p-2 rounded-lg text-xs">
+                <div key={id} className="bg-[var(--color-surface-2)] p-2 rounded-lg text-xs">
                   <div className="font-medium mb-1">{ch?.name} Preview</div>
-                  <p className="text-zinc-300">{message} {ch?.id === 'twitter' ? '(truncated to 280 chars)' : ''}</p>
+                  <p className="text-[var(--color-text-primary)]">{message} {ch?.id === 'twitter' ? '(truncated to 280 chars)' : ''}</p>
                 </div>
               );
             })}
@@ -369,7 +369,7 @@ function BroadcastComposer({
         <button
           onClick={handleSubmit}
           disabled={!message || selectedChannels.length === 0}
-          className="flex-1 bg-violet-600 text-white py-2 rounded-lg font-medium text-sm hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 bg-violet-600 text-[var(--color-text-primary)] py-2 rounded-lg font-medium text-sm hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {scheduleMode ? 'Schedule' : 'Send Now'}
         </button>
@@ -380,24 +380,24 @@ function BroadcastComposer({
 
 function HistoryTable({ history }: { history: Broadcast[] }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
         <BarChart className="w-4 h-4 text-violet-400" />
-        <span className="text-sm font-semibold text-white">Broadcast History</span>
+        <span className="text-sm font-semibold text-[var(--color-text-primary)]">Broadcast History</span>
       </div>
       <div className="overflow-auto max-h-64">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-zinc-900">
-            <tr className="text-left text-zinc-400">
+          <thead className="sticky top-0 bg-[var(--color-surface-1)]">
+            <tr className="text-left text-[var(--color-text-secondary)]">
               <th className="p-3">Time</th>
               <th className="p-3">Message</th>
               <th className="p-3">Channels</th>
               <th className="p-3">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800">
+          <tbody className="divide-y divide-[var(--color-border)]">
             {history.map((bc) => (
-              <tr key={bc.id} className="hover:bg-zinc-800">
+              <tr key={bc.id} className="hover:bg-[var(--color-surface-2)]">
                 <td className="p-3">{formatTimestamp(bc.timestamp)}</td>
                 <td className="p-3 truncate max-w-xs">{bc.message}</td>
                 <td className="p-3">{bc.channels.length}</td>
@@ -428,30 +428,30 @@ function PendingBroadcasts({ scheduled, onCancel, onEdit }: { scheduled: Schedul
   }, []);
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl flex flex-col">
+      <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
         <Clock className="w-4 h-4 text-amber-400" />
-        <span className="text-sm font-semibold text-white">Pending Scheduled</span>
+        <span className="text-sm font-semibold text-[var(--color-text-primary)]">Pending Scheduled</span>
       </div>
-      <div className="divide-y divide-zinc-800">
+      <div className="divide-y divide-[var(--color-border)]">
         {scheduled.map((sc) => {
           const remaining = sc.scheduledTime.getTime() - now;
           return (
             <div key={sc.id} className="p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-white">Send in {formatDuration(remaining)}</span>
+                <span className="text-sm font-medium text-[var(--color-text-primary)]">Send in {formatDuration(remaining)}</span>
                 <div className="flex gap-2">
-                  <button onClick={() => onEdit(sc.id)} className="text-zinc-400 hover:text-white">
+                  <button onClick={() => onEdit(sc.id)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button onClick={() => onCancel(sc.id)} className="text-zinc-400 hover:text-red-400">
+                  <button onClick={() => onCancel(sc.id)} className="text-[var(--color-text-secondary)] hover:text-red-400">
                     <Trash className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              <p className="text-xs text-zinc-400">{sc.message}</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">{sc.message}</p>
               <div className="flex gap-1">
-                {sc.channels.map((ch) => <span key={ch} className="text-xs text-zinc-500">{ch}</span>)}
+                {sc.channels.map((ch) => <span key={ch} className="text-xs text-[var(--color-text-muted)]">{ch}</span>)}
               </div>
             </div>
           );
@@ -463,22 +463,22 @@ function PendingBroadcasts({ scheduled, onCancel, onEdit }: { scheduled: Schedul
 
 function FailedLog({ failed, onRetry }: { failed: FailedDelivery[]; onRetry: (id: string) => void }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col">
-      <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl flex flex-col">
+      <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
         <AlertTriangle className="w-4 h-4 text-red-400" />
-        <span className="text-sm font-semibold text-white">Failed Deliveries</span>
+        <span className="text-sm font-semibold text-[var(--color-text-primary)]">Failed Deliveries</span>
       </div>
-      <div className="divide-y divide-zinc-800">
+      <div className="divide-y divide-[var(--color-border)]">
         {failed.map((fd) => (
           <div key={fd.id} className="p-4 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-white">{fd.channelId} (Broadcast {fd.broadcastId})</span>
-              <button onClick={() => onRetry(fd.id)} className="text-zinc-400 hover:text-green-400">
+              <span className="text-sm text-[var(--color-text-primary)]">{fd.channelId} (Broadcast {fd.broadcastId})</span>
+              <button onClick={() => onRetry(fd.id)} className="text-[var(--color-text-secondary)] hover:text-green-400">
                 <RefreshCcw className="w-4 h-4" />
               </button>
             </div>
             <p className="text-xs text-red-400">{fd.error}</p>
-            <div className="text-xs text-zinc-500">Attempts: {fd.attempts} · Last: {formatTimestamp(fd.lastAttempt)}</div>
+            <div className="text-xs text-[var(--color-text-muted)]">Attempts: {fd.attempts} · Last: {formatTimestamp(fd.lastAttempt)}</div>
           </div>
         ))}
       </div>
@@ -499,21 +499,21 @@ function StatsRow({
 }) {
   return (
     <div className="grid grid-cols-4 gap-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Messages Today</div>
-        <div className="text-xl font-bold text-white mt-1">{messagesToday}</div>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+        <div className="text-xs text-[var(--color-text-secondary)] uppercase">Messages Today</div>
+        <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{messagesToday}</div>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Active Channels</div>
-        <div className="text-xl font-bold text-white mt-1">{activeChannels}/6</div>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+        <div className="text-xs text-[var(--color-text-secondary)] uppercase">Active Channels</div>
+        <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{activeChannels}/6</div>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Scheduled</div>
-        <div className="text-xl font-bold text-white mt-1">{scheduled}</div>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+        <div className="text-xs text-[var(--color-text-secondary)] uppercase">Scheduled</div>
+        <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{scheduled}</div>
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="text-xs text-zinc-400 uppercase">Delivery Rate</div>
-        <div className="text-xl font-bold text-white mt-1">{deliveryRate}%</div>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+        <div className="text-xs text-[var(--color-text-secondary)] uppercase">Delivery Rate</div>
+        <div className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{deliveryRate}%</div>
       </div>
     </div>
   );
@@ -559,17 +559,17 @@ export default function ChannelBroadcastCenter() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
             <MessageSquare className="w-6 h-6 text-violet-400" />
             Broadcast Center
           </h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Unified channel management & messaging</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Unified channel management & messaging</p>
         </div>
-        <button className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-500">
+        <button className="flex items-center gap-2 bg-violet-600 text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-violet-500">
           <Plus className="w-4 h-4" />
           New Broadcast
         </button>

@@ -202,25 +202,25 @@ export default function PromptOptimizer() {
   const tokenCount = Math.ceil(prompt.length / 4);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-8 font-sans">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         <header>
           <h1 className="text-2xl font-bold">Prompt Optimizer</h1>
-          <p className="text-zinc-400">Analyze and refine your LLM instructions for better results.</p>
+          <p className="text-[var(--color-text-secondary)]">Analyze and refine your LLM instructions for better results.</p>
         </header>
 
         <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Panel: Editor */}
           <section className="space-y-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4 flex flex-col h-[600px]">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6 space-y-4 flex flex-col h-[600px]">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider">Input Prompt</label>
-                <span className="text-xs text-zinc-500 font-mono">{tokenCount} tokens</span>
+                <label className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Input Prompt</label>
+                <span className="text-xs text-[var(--color-text-muted)] font-mono">{tokenCount} tokens</span>
               </div>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                className="flex-1 w-full bg-zinc-800 border border-zinc-700 rounded-lg p-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none font-mono text-sm leading-relaxed"
+                className="flex-1 w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-4 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none font-mono text-sm leading-relaxed"
                 placeholder="Paste your prompt here..."
               />
               <button
@@ -229,13 +229,13 @@ export default function PromptOptimizer() {
                 className={cn(
                   "w-full py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2",
                   isAnalyzing 
-                    ? "bg-zinc-800 text-zinc-500 cursor-not-allowed" 
-                    : "bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+                    ? "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] cursor-not-allowed" 
+                    : "bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20"
                 )}
               >
                 {isAnalyzing ? (
                   <>
-                    <svg className="animate-spin h-5 w-5 text-zinc-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-5 w-5 text-[var(--color-text-muted)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -249,28 +249,28 @@ export default function PromptOptimizer() {
           {/* Right Panel: Analysis */}
           <section className="space-y-4">
             {!result && !isAnalyzing && (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 flex flex-col items-center justify-center text-center h-[600px] space-y-4">
-                <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-12 flex flex-col items-center justify-center text-center h-[600px] space-y-4">
+                <div className="w-16 h-16 rounded-full bg-[var(--color-surface-2)] flex items-center justify-center">
+                  <svg className="w-8 h-8 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div>
                   <h3 className="text-lg font-medium">Ready for analysis</h3>
-                  <p className="text-zinc-500 max-w-xs mx-auto">Enter a prompt in the editor to see improvement suggestions and optimized versions.</p>
+                  <p className="text-[var(--color-text-muted)] max-w-xs mx-auto">Enter a prompt in the editor to see improvement suggestions and optimized versions.</p>
                 </div>
               </div>
             )}
 
             {isAnalyzing && (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 flex flex-col items-center justify-center text-center h-[600px] space-y-6">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-12 flex flex-col items-center justify-center text-center h-[600px] space-y-6">
                 <div className="relative">
-                  <div className="w-20 h-20 border-4 border-zinc-800 rounded-full"></div>
+                  <div className="w-20 h-20 border-4 border-[var(--color-border)] rounded-full"></div>
                   <div className="w-20 h-20 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin absolute inset-0"></div>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-zinc-300 font-medium animate-pulse">Running analysis engines...</p>
-                  <p className="text-zinc-500 text-sm">Evaluating clarity, safety, and efficiency</p>
+                  <p className="text-[var(--color-text-primary)] font-medium animate-pulse">Running analysis engines...</p>
+                  <p className="text-[var(--color-text-muted)] text-sm">Evaluating clarity, safety, and efficiency</p>
                 </div>
               </div>
             )}
@@ -278,10 +278,10 @@ export default function PromptOptimizer() {
             {result && !isAnalyzing && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                 {/* Score and Stats */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex items-center gap-8">
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6 flex items-center gap-8">
                   <div className="relative flex items-center justify-center">
                     <svg className="w-24 h-24 transform -rotate-90">
-                      <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-zinc-800" />
+                      <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-[var(--color-text-muted)]" />
                       <circle 
                         cx="48" 
                         cy="48" 
@@ -298,22 +298,22 @@ export default function PromptOptimizer() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold">Optimization Score</h3>
-                    <p className="text-zinc-500 text-sm">Based on {result.issues.length} identified areas for improvement.</p>
+                    <p className="text-[var(--color-text-muted)] text-sm">Based on {result.issues.length} identified areas for improvement.</p>
                   </div>
                 </div>
 
                 {/* Issues List */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                  <div className="p-4 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-center">
-                    <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider">Analysis Results</h3>
-                    <span className="text-xs text-zinc-500">{result.issues.length} Issues found</span>
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+                  <div className="p-4 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/50 flex justify-between items-center">
+                    <h3 className="text-sm font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Analysis Results</h3>
+                    <span className="text-xs text-[var(--color-text-muted)]">{result.issues.length} Issues found</span>
                   </div>
-                  <div className="divide-y divide-zinc-800 max-h-[300px] overflow-y-auto">
+                  <div className="divide-y divide-[var(--color-border)] max-h-[300px] overflow-y-auto">
                     {result.issues.toSorted((a, b) => {
                       const priority = { high: 0, medium: 1, low: 2 };
                       return priority[a.severity] - priority[b.severity];
                     }).map((issue) => (
-                      <div key={issue.id} className="p-4 hover:bg-zinc-800/50 transition-colors space-y-2">
+                      <div key={issue.id} className="p-4 hover:bg-[var(--color-surface-2)]/50 transition-colors space-y-2">
                         <div className="flex items-start justify-between gap-4">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
@@ -325,15 +325,15 @@ export default function PromptOptimizer() {
                               </span>
                               <h4 className="font-semibold text-sm">{issue.title}</h4>
                             </div>
-                            <p className="text-xs text-zinc-400 leading-relaxed">{issue.description}</p>
+                            <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{issue.description}</p>
                           </div>
                           <div className={cn("text-xs font-mono font-bold whitespace-nowrap", issue.tokenImpact < 0 ? "text-emerald-400" : "text-amber-400")}>
                             {issue.tokenImpact > 0 ? `+${issue.tokenImpact}` : issue.tokenImpact} tokens
                           </div>
                         </div>
-                        <div className="bg-zinc-950/50 p-2 rounded border border-zinc-800/50 flex gap-2">
+                        <div className="bg-[var(--color-surface-0)]/50 p-2 rounded border border-[var(--color-border)]/50 flex gap-2">
                           <span className="text-emerald-400 text-xs font-bold uppercase">Fix:</span>
-                          <p className="text-xs text-zinc-300 italic">"{issue.suggestion}"</p>
+                          <p className="text-xs text-[var(--color-text-primary)] italic">"{issue.suggestion}"</p>
                         </div>
                       </div>
                     ))}
@@ -341,8 +341,8 @@ export default function PromptOptimizer() {
                 </div>
 
                 {/* Optimized Versions */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                  <div className="flex border-b border-zinc-800">
+                <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+                  <div className="flex border-b border-[var(--color-border)]">
                     {result.optimizedVersions.map((v, i) => (
                       <button
                         key={v.label}
@@ -350,8 +350,8 @@ export default function PromptOptimizer() {
                         className={cn(
                           "px-6 py-3 text-sm font-medium transition-colors border-b-2",
                           activeTab === i 
-                            ? "bg-zinc-800 text-white border-indigo-500" 
-                            : "text-zinc-500 border-transparent hover:text-zinc-300"
+                            ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border-indigo-500" 
+                            : "text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-primary)]"
                         )}
                       >
                         {v.label}
@@ -361,7 +361,7 @@ export default function PromptOptimizer() {
                   <div className="p-6 space-y-4">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-zinc-500 uppercase font-medium">Estimated Tokens:</span>
+                        <span className="text-xs text-[var(--color-text-muted)] uppercase font-medium">Estimated Tokens:</span>
                         <span className="text-sm font-mono text-indigo-400">{result.optimizedVersions[activeTab].estimatedTokens}</span>
                         <span className={cn(
                           "text-xs font-mono px-1.5 py-0.5 rounded",
@@ -375,13 +375,13 @@ export default function PromptOptimizer() {
                       </div>
                     </div>
                     
-                    <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 relative group">
-                      <pre className="text-sm text-zinc-300 whitespace-pre-wrap font-mono leading-relaxed">
+                    <div className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg p-4 relative group">
+                      <pre className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap font-mono leading-relaxed">
                         {result.optimizedVersions[activeTab].prompt}
                       </pre>
                       <button 
                         onClick={() => navigator.clipboard.writeText(result.optimizedVersions[activeTab].prompt)}
-                        className="absolute top-2 right-2 p-2 bg-zinc-800 hover:bg-zinc-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 p-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Copy to clipboard"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -391,7 +391,7 @@ export default function PromptOptimizer() {
                     </div>
 
                     <div className="space-y-2">
-                      <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-widest">Key Improvements</h4>
+                      <h4 className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-widest">Key Improvements</h4>
                       <div className="flex flex-wrap gap-2">
                         {result.optimizedVersions[activeTab].improvements.map((imp) => (
                           <span key={imp} className="px-2 py-1 bg-emerald-400/10 text-emerald-400 text-[10px] rounded-full border border-emerald-400/20">

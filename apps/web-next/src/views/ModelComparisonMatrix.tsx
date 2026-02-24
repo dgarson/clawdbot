@@ -102,7 +102,7 @@ type SortKey = keyof Omit<ModelData, 'id' | 'name' | 'provider' | 'rateLimit' | 
 const Sparkline = ({ value, max, colorClass }: { value: number; max: number; colorClass: string }) => {
   const percentage = Math.min(100, (value / max) * 100);
   return (
-    <div className="w-full bg-gray-800 h-1.5 rounded-full mt-1 overflow-hidden">
+    <div className="w-full bg-[var(--color-surface-2)] h-1.5 rounded-full mt-1 overflow-hidden">
       <div 
         className={cn("h-full rounded-full transition-all duration-500", colorClass)}
         style={{ width: `${percentage}%` }}
@@ -113,7 +113,7 @@ const Sparkline = ({ value, max, colorClass }: { value: number; max: number; col
 
 const Badge = ({ children, variant = 'default' }: { children: React.ReactNode, variant?: 'default' | 'success' | 'warning' }) => {
   const variants = {
-    default: 'bg-gray-800 text-gray-300 border-gray-700',
+    default: 'bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border-[var(--color-border)]',
     success: 'bg-emerald-950/50 text-emerald-400 border-emerald-800/50',
     warning: 'bg-amber-950/50 text-amber-400 border-amber-800/50',
   };
@@ -165,33 +165,33 @@ export default function ModelComparisonMatrix() {
 
   const getCellColor = (key: SortKey, value: number) => {
     const { min, max } = bounds[key];
-    if (min === max) {return 'text-gray-200';}
+    if (min === max) {return 'text-[var(--color-text-primary)]';}
     
     // Lower is better for latency and cost
     const lowerIsBetter = key === 'latency' || key === 'costInput' || key === 'costOutput';
     
     if (value === (lowerIsBetter ? min : max)) {return 'text-emerald-400 font-medium';}
     if (value === (lowerIsBetter ? max : min)) {return 'text-rose-400';}
-    return 'text-gray-300';
+    return 'text-[var(--color-text-primary)]';
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200 p-8 font-sans selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-emerald-500/30">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight text-white">Model Comparison Matrix</h1>
-            <p className="text-gray-400">Benchmarking performance, reliability, and cost across top-tier providers.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-[var(--color-text-primary)]">Model Comparison Matrix</h1>
+            <p className="text-[var(--color-text-secondary)]">Benchmarking performance, reliability, and cost across top-tier providers.</p>
           </div>
           
-          <div className="flex bg-gray-900 p-1 rounded-xl border border-gray-800 w-fit">
+          <div className="flex bg-[var(--color-surface-1)] p-1 rounded-xl border border-[var(--color-border)] w-fit">
             <button 
               onClick={() => setViewMode('discovery')}
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                viewMode === 'discovery' ? "bg-gray-800 text-white shadow-sm" : "text-gray-400 hover:text-gray-200"
+                viewMode === 'discovery' ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)] shadow-sm" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               Discovery Run
@@ -200,7 +200,7 @@ export default function ModelComparisonMatrix() {
               onClick={() => setViewMode('all')}
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                viewMode === 'all' ? "bg-gray-800 text-white shadow-sm" : "text-gray-400 hover:text-gray-200"
+                viewMode === 'all' ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)] shadow-sm" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               All Models
@@ -209,29 +209,29 @@ export default function ModelComparisonMatrix() {
         </div>
 
         {/* Table Section */}
-        <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/50 backdrop-blur-sm">
+        <div className="relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-1)]/50 backdrop-blur-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-900/80 border-b border-gray-800">
-                  <th className="p-4 sticky left-0 bg-gray-900 z-10 min-w-[200px] text-xs font-semibold uppercase tracking-wider text-gray-500">Model</th>
+                <tr className="bg-[var(--color-surface-1)]/80 border-b border-[var(--color-border)]">
+                  <th className="p-4 sticky left-0 bg-[var(--color-surface-1)] z-10 min-w-[200px] text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Model</th>
                   <SortableHeader label="Latency" active={sortKey === 'latency'} order={sortOrder} onClick={() => toggleSort('latency')} />
                   <SortableHeader label="Cost / 1M (In)" active={sortKey === 'costInput'} order={sortOrder} onClick={() => toggleSort('costInput')} />
                   <SortableHeader label="Cost / 1M (Out)" active={sortKey === 'costOutput'} order={sortOrder} onClick={() => toggleSort('costOutput')} />
                   <SortableHeader label="Reliability" active={sortKey === 'reliability'} order={sortOrder} onClick={() => toggleSort('reliability')} />
                   <SortableHeader label="Context" active={sortKey === 'contextWindow'} order={sortOrder} onClick={() => toggleSort('contextWindow')} />
                   <SortableHeader label="Tool Accuracy" active={sortKey === 'toolAccuracy'} order={sortOrder} onClick={() => toggleSort('toolAccuracy')} />
-                  <th className="p-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Rate Limit</th>
+                  <th className="p-4 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Rate Limit</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {filteredModels.map((model) => (
-                  <tr key={model.id} className="hover:bg-gray-800/30 transition-colors group">
-                    <td className="p-4 sticky left-0 bg-gray-900/90 group-hover:bg-gray-800/90 backdrop-blur-md z-10 border-r border-gray-800/50">
+                  <tr key={model.id} className="hover:bg-[var(--color-surface-2)]/30 transition-colors group">
+                    <td className="p-4 sticky left-0 bg-[var(--color-surface-1)]/90 group-hover:bg-[var(--color-surface-2)]/90 backdrop-blur-md z-10 border-r border-[var(--color-border)]/50">
                       <div className="flex flex-col gap-1.5">
-                        <span className="font-semibold text-white">{model.name}</span>
+                        <span className="font-semibold text-[var(--color-text-primary)]">{model.name}</span>
                         <div className="flex gap-2 items-center">
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">{model.provider}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)]">{model.provider}</span>
                           {model.recommendation && <Badge variant={model.id.includes('flash') || model.id.includes('minimax') ? 'success' : 'default'}>{model.recommendation}</Badge>}
                         </div>
                       </div>
@@ -257,7 +257,7 @@ export default function ModelComparisonMatrix() {
                       <Sparkline value={model.reliability} max={100} colorClass="bg-emerald-500" />
                     </td>
 
-                    <td className="p-4 text-sm tabular-nums text-gray-300">
+                    <td className="p-4 text-sm tabular-nums text-[var(--color-text-primary)]">
                       {model.contextWindow.toLocaleString()}
                     </td>
 
@@ -266,7 +266,7 @@ export default function ModelComparisonMatrix() {
                       <Sparkline value={model.toolAccuracy} max={100} colorClass="bg-violet-500" />
                     </td>
 
-                    <td className="p-4 text-xs text-gray-400 italic">
+                    <td className="p-4 text-xs text-[var(--color-text-secondary)] italic">
                       {model.rateLimit}
                     </td>
                   </tr>
@@ -280,31 +280,31 @@ export default function ModelComparisonMatrix() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Cost Calculator */}
-          <div className="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-6">
+          <div className="lg:col-span-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Projected Cost Calculator</h2>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 rounded-lg border border-gray-700">
+              <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Projected Cost Calculator</h2>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)]">
                 <input 
                   type="number" 
                   value={calcInput}
                   onChange={(e) => setCalcInput(Number(e.target.value))}
                   className="bg-transparent border-none outline-none text-right text-sm font-mono w-24 text-emerald-400"
                 />
-                <span className="text-xs text-gray-500 uppercase">Tokens</span>
+                <span className="text-xs text-[var(--color-text-muted)] uppercase">Tokens</span>
               </div>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {MODELS.slice().sort((a: ModelData, b: ModelData) => a.costInput - b.costInput).map((model: ModelData) => (
-                <div key={model.id} className="p-4 bg-gray-950/50 rounded-xl border border-gray-800 flex flex-col justify-between group hover:border-emerald-500/30 transition-colors">
-                  <div className="text-xs text-gray-500 mb-2">{model.name}</div>
+                <div key={model.id} className="p-4 bg-[var(--color-surface-0)]/50 rounded-xl border border-[var(--color-border)] flex flex-col justify-between group hover:border-emerald-500/30 transition-colors">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-2">{model.name}</div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-mono font-bold text-white">
+                    <span className="text-2xl font-mono font-bold text-[var(--color-text-primary)]">
                       ${((calcInput / 1000000) * model.costInput).toFixed(4)}
                     </span>
-                    <span className="text-[10px] text-gray-600 uppercase">Total</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)] uppercase">Total</span>
                   </div>
-                  <div className="mt-3 w-full bg-gray-800 h-1 rounded-full overflow-hidden">
+                  <div className="mt-3 w-full bg-[var(--color-surface-2)] h-1 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-emerald-500 transition-all duration-700"
                       style={{ width: `${(Math.min(MODELS[0].costInput, model.costInput) / model.costInput) * 100}%` }}
@@ -316,8 +316,8 @@ export default function ModelComparisonMatrix() {
           </div>
 
           {/* Quick Insights */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-white">Discovery Recommendations</h2>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-6 space-y-4">
+            <h2 className="text-xl font-bold text-[var(--color-text-primary)]">Discovery Recommendations</h2>
             <div className="space-y-4">
               <RecommendationCard 
                 title="Efficient Routing" 
@@ -359,15 +359,15 @@ function SortableHeader({ label, active, order, onClick }: { label: string, acti
     <th 
       className={cn(
         "p-4 text-xs font-semibold uppercase tracking-wider cursor-pointer select-none transition-colors",
-        active ? "text-emerald-400" : "text-gray-500 hover:text-gray-300"
+        active ? "text-emerald-400" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
       )}
       onClick={onClick}
     >
       <div className="flex items-center gap-1.5">
         {label}
         <span className="flex flex-col text-[8px] leading-[4px]">
-          <span className={cn(active && order === 'asc' ? "text-emerald-400" : "text-gray-700")}>▲</span>
-          <span className={cn(active && order === 'desc' ? "text-emerald-400" : "text-gray-700")}>▼</span>
+          <span className={cn(active && order === 'asc' ? "text-emerald-400" : "text-[var(--color-text-muted)]")}>▲</span>
+          <span className={cn(active && order === 'desc' ? "text-emerald-400" : "text-[var(--color-text-muted)]")}>▼</span>
         </span>
       </div>
     </th>
@@ -376,12 +376,12 @@ function SortableHeader({ label, active, order, onClick }: { label: string, acti
 
 function RecommendationCard({ title, desc, icon }: { title: string, desc: string, icon: string }) {
   return (
-    <div className="p-4 rounded-xl bg-gray-950 border border-gray-800 hover:bg-gray-800/20 transition-all cursor-default group">
+    <div className="p-4 rounded-xl bg-[var(--color-surface-0)] border border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/20 transition-all cursor-default group">
       <div className="flex items-center gap-3 mb-2">
         <span className="text-lg group-hover:scale-110 transition-transform">{icon}</span>
-        <h3 className="text-sm font-semibold text-gray-200">{title}</h3>
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{title}</h3>
       </div>
-      <p className="text-xs text-gray-500 leading-relaxed">
+      <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
         {desc}
       </p>
     </div>

@@ -91,7 +91,7 @@ function usageColor(ratio: number): string {
 function deltaColor(delta: number): string {
   if (delta > 0) {return "text-rose-400";}
   if (delta < 0) {return "text-emerald-400";}
-  return "text-zinc-500";
+  return "text-[var(--color-text-muted)]";
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -111,7 +111,7 @@ export default function TokenBudgetPlanner() {
   const trendMax = Math.max(...MONTHLY_TRENDS.map((m) => m.usage));
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-6">
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Token Budget Planner</h1>
@@ -119,13 +119,13 @@ export default function TokenBudgetPlanner() {
           <select
             value={scenario}
             onChange={(e) => setScenario(e.target.value as ScenarioKey)}
-            className="bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm"
           >
             {SCENARIOS.map((s) => (
               <option key={s.key} value={s.key}>{s.label}</option>
             ))}
           </select>
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded text-sm transition-colors">
+          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm transition-colors">
             Export
           </button>
         </div>
@@ -139,20 +139,20 @@ export default function TokenBudgetPlanner() {
           { label: "Total Projected", value: fmtTokens(totalProjected), sub: totalProjected > totalBudget ? "Over budget" : "Under budget" },
           { label: "Est. Monthly Cost", value: fmtDollars(totalCost),   sub: "projected" },
         ].map((card) => (
-          <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <div className="text-zinc-400 text-xs uppercase tracking-wider mb-1">{card.label}</div>
+          <div key={card.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <div className="text-[var(--color-text-secondary)] text-xs uppercase tracking-wider mb-1">{card.label}</div>
             <div className="text-xl font-semibold">{card.value}</div>
             <div className={cn(
               "text-xs mt-1",
-              card.sub === "Over budget" ? "text-rose-400" : "text-zinc-500",
+              card.sub === "Over budget" ? "text-rose-400" : "text-[var(--color-text-muted)]",
             )}>{card.sub}</div>
           </div>
         ))}
       </div>
 
       {/* ── Agent Budget Table ─────────────────────────────────────────── */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-        <div className="grid grid-cols-[1fr_1fr_0.8fr_0.8fr_0.8fr_0.8fr_0.8fr_2fr] gap-2 px-4 py-3 bg-zinc-900 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wider">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+        <div className="grid grid-cols-[1fr_1fr_0.8fr_0.8fr_0.8fr_0.8fr_0.8fr_2fr] gap-2 px-4 py-3 bg-[var(--color-surface-1)] border-b border-[var(--color-border)] text-xs text-[var(--color-text-muted)] uppercase tracking-wider">
           <div>Agent</div>
           <div>Model</div>
           <div className="text-right">Budget</div>
@@ -177,8 +177,8 @@ export default function TokenBudgetPlanner() {
                 onClick={() => setExpandedAgent(isExpanded ? null : agent.name)}
                 className={cn(
                   "grid grid-cols-[1fr_1fr_0.8fr_0.8fr_0.8fr_0.8fr_0.8fr_2fr] gap-2 px-4 py-3 items-center cursor-pointer transition-colors",
-                  isExpanded ? "bg-zinc-800/50" : "hover:bg-zinc-800/30",
-                  "border-b border-zinc-800/50",
+                  isExpanded ? "bg-[var(--color-surface-2)]/50" : "hover:bg-[var(--color-surface-2)]/30",
+                  "border-b border-[var(--color-border)]/50",
                 )}
               >
                 <div className="font-medium flex items-center gap-2">
@@ -188,16 +188,16 @@ export default function TokenBudgetPlanner() {
                   )} />
                   {agent.name}
                 </div>
-                <div className="text-zinc-400 text-sm truncate">{agent.model}</div>
+                <div className="text-[var(--color-text-secondary)] text-sm truncate">{agent.model}</div>
                 <div className="text-right text-sm">{fmtTokens(agent.monthlyBudget)}</div>
                 <div className="text-right text-sm">{fmtTokens(agent.used)}</div>
                 <div className="text-right text-sm">{fmtTokens(agent.projected)}</div>
-                <div className="text-right text-sm text-zinc-400">{fmtDollars(cost)}</div>
+                <div className="text-right text-sm text-[var(--color-text-secondary)]">{fmtDollars(cost)}</div>
                 <div className={cn("text-right text-sm font-mono", deltaColor(delta))}>
                   {delta > 0 ? "+" : ""}{fmtTokens(delta)}
                 </div>
                 <div className="pl-4">
-                  <div className="relative h-5 bg-zinc-800 rounded overflow-hidden">
+                  <div className="relative h-5 bg-[var(--color-surface-2)] rounded overflow-hidden">
                     <div
                       className={cn("h-full rounded-l transition-all", usageColor(ratio))}
                       style={{ width: `${Math.min(ratio * 100, 100)}%` }}
@@ -208,7 +208,7 @@ export default function TokenBudgetPlanner() {
                       style={{ left: `${Math.min(projRatio * 100, 100)}%` }}
                     />
                     <div className="absolute inset-0 flex items-center px-2">
-                      <span className="text-[10px] text-white/80 font-mono">
+                      <span className="text-[10px] text-[var(--color-text-primary)]/80 font-mono">
                         {(ratio * 100).toFixed(0)}%
                       </span>
                     </div>
@@ -218,8 +218,8 @@ export default function TokenBudgetPlanner() {
 
               {/* Expanded daily breakdown */}
               {isExpanded && (
-                <div className="col-span-full bg-zinc-800/30 border-b border-zinc-800/50 px-4 py-4">
-                  <div className="text-xs text-zinc-500 uppercase tracking-wider mb-3">
+                <div className="col-span-full bg-[var(--color-surface-2)]/30 border-b border-[var(--color-border)]/50 px-4 py-4">
+                  <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-3">
                     Last 7 Days — Daily Token Usage
                   </div>
                   <div className="flex items-end gap-2 h-20">
@@ -228,14 +228,14 @@ export default function TokenBudgetPlanner() {
                       const pct = (day / dailyMax) * 100;
                       return (
                         <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                          <div className="text-[10px] text-zinc-400 font-mono">{fmtTokens(day)}</div>
+                          <div className="text-[10px] text-[var(--color-text-secondary)] font-mono">{fmtTokens(day)}</div>
                           <div className="w-full flex items-end justify-center" style={{ height: 48 }}>
                             <div
                               className={cn("w-full max-w-[28px] rounded-t transition-all", usageColor(ratio))}
                               style={{ height: `${pct}%` }}
                             />
                           </div>
-                          <div className="text-[10px] text-zinc-500">{dayLabels[i]}</div>
+                          <div className="text-[10px] text-[var(--color-text-muted)]">{dayLabels[i]}</div>
                         </div>
                       );
                     })}
@@ -249,23 +249,23 @@ export default function TokenBudgetPlanner() {
 
       {/* ── Scenario Impact Panel ──────────────────────────────────────── */}
       {scenario !== "current" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
           <h2 className="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-4">
             Scenario Impact: {SCENARIOS.find((s) => s.key === scenario)?.label}
           </h2>
           <div className="grid grid-cols-4 gap-3 text-sm">
-            <div className="text-zinc-500 font-medium">Agent</div>
-            <div className="text-zinc-500 font-medium text-right">Current Budget</div>
-            <div className="text-zinc-500 font-medium text-right">New Budget</div>
-            <div className="text-zinc-500 font-medium text-right">Delta</div>
+            <div className="text-[var(--color-text-muted)] font-medium">Agent</div>
+            <div className="text-[var(--color-text-muted)] font-medium text-right">Current Budget</div>
+            <div className="text-[var(--color-text-muted)] font-medium text-right">New Budget</div>
+            <div className="text-[var(--color-text-muted)] font-medium text-right">Delta</div>
 
             {agents.map((agent, i) => {
               const baseline = baselineAgents[i];
               const budgetDelta = agent.monthlyBudget - baseline.monthlyBudget;
               return (
                 <React.Fragment key={agent.name}>
-                  <div className="text-zinc-300">{agent.name}</div>
-                  <div className="text-right text-zinc-400">{fmtTokens(baseline.monthlyBudget)}</div>
+                  <div className="text-[var(--color-text-primary)]">{agent.name}</div>
+                  <div className="text-right text-[var(--color-text-secondary)]">{fmtTokens(baseline.monthlyBudget)}</div>
                   <div className="text-right">{fmtTokens(agent.monthlyBudget)}</div>
                   <div className={cn("text-right font-mono", deltaColor(budgetDelta))}>
                     {budgetDelta > 0 ? "+" : ""}{fmtTokens(budgetDelta)}
@@ -276,8 +276,8 @@ export default function TokenBudgetPlanner() {
           </div>
 
           {/* Summary line */}
-          <div className="mt-4 pt-3 border-t border-zinc-800 flex justify-between text-sm">
-            <span className="text-zinc-400">
+          <div className="mt-4 pt-3 border-t border-[var(--color-border)] flex justify-between text-sm">
+            <span className="text-[var(--color-text-secondary)]">
               Total budget change:
             </span>
             {(() => {
@@ -302,8 +302,8 @@ export default function TokenBudgetPlanner() {
       )}
 
       {/* ── Monthly Trend ──────────────────────────────────────────────── */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-        <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+        <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-4">
           Organization Token Usage — 6 Month Trend
         </h2>
         <div className="flex items-end gap-4 h-44">
@@ -311,7 +311,7 @@ export default function TokenBudgetPlanner() {
             const pct = (month.usage / trendMax) * 100;
             return (
               <div key={month.label} className="flex-1 flex flex-col items-center gap-2">
-                <div className="text-xs text-zinc-400 font-mono">{fmtTokens(month.usage)}</div>
+                <div className="text-xs text-[var(--color-text-secondary)] font-mono">{fmtTokens(month.usage)}</div>
                 <div className="w-full flex items-end justify-center" style={{ height: 120 }}>
                   <div
                     className={cn(
@@ -323,7 +323,7 @@ export default function TokenBudgetPlanner() {
                     style={{ height: `${pct}%` }}
                   />
                 </div>
-                <div className="text-xs text-zinc-500">
+                <div className="text-xs text-[var(--color-text-muted)]">
                   {month.label}
                   {month.isProjected && (
                     <span className="block text-[10px] text-indigo-400">proj.</span>
@@ -336,7 +336,7 @@ export default function TokenBudgetPlanner() {
       </div>
 
       {/* ── Footer Legend ──────────────────────────────────────────────── */}
-      <div className="flex items-center gap-6 text-xs text-zinc-500 pt-2">
+      <div className="flex items-center gap-6 text-xs text-[var(--color-text-muted)] pt-2">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-emerald-500" />
           <span>Under 80%</span>

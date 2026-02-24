@@ -161,7 +161,7 @@ const STATUS_STYLES: Record<ValidatorStatus, string> = {
   pass: "text-emerald-400",
   fail: "text-rose-400",
   warning: "text-amber-400",
-  skipped: "text-zinc-500",
+  skipped: "text-[var(--color-text-muted)]",
 };
 
 const STATUS_ICON: Record<ValidatorStatus, string> = {
@@ -184,7 +184,7 @@ const CATEGORY_COLORS: Record<IssueCategory, string> = {
   security: "text-rose-400",
   performance: "text-amber-400",
   compatibility: "text-sky-400",
-  deprecation: "text-zinc-400",
+  deprecation: "text-[var(--color-text-secondary)]",
 };
 
 function fileStatus(file: ConfigFile): ValidatorStatus {
@@ -216,12 +216,12 @@ export default function ConfigValidatorView() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="shrink-0 border-b border-zinc-800 px-5 py-3 flex items-center gap-4">
+      <div className="shrink-0 border-b border-[var(--color-border)] px-5 py-3 flex items-center gap-4">
         <div>
-          <h1 className="text-sm font-semibold text-white">Config Validator</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">{CONFIG_FILES.length} files · {totalErrors} errors · {totalWarnings} warnings</p>
+          <h1 className="text-sm font-semibold text-[var(--color-text-primary)]">Config Validator</h1>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{CONFIG_FILES.length} files · {totalErrors} errors · {totalWarnings} warnings</p>
         </div>
         <div className="ml-auto flex gap-2">
           <span className="text-xs px-2 py-1 bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20 rounded font-medium">
@@ -235,7 +235,7 @@ export default function ConfigValidatorView() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* File list */}
-        <ul className="w-64 shrink-0 border-r border-zinc-800 overflow-y-auto divide-y divide-zinc-800/50" role="listbox" aria-label="Config files">
+        <ul className="w-64 shrink-0 border-r border-[var(--color-border)] overflow-y-auto divide-y divide-[var(--color-border)]/50" role="listbox" aria-label="Config files">
           {CONFIG_FILES.map((file) => {
             const status = fileStatus(file);
             const issueCount = file.results.flatMap((r) => r.issues).length;
@@ -246,12 +246,12 @@ export default function ConfigValidatorView() {
                   aria-selected={file.id === selectedFileId}
                   onClick={() => setSelectedFileId(file.id)}
                   className={cn(
-                    "w-full text-left px-4 py-3 hover:bg-zinc-800/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                    file.id === selectedFileId && "bg-zinc-800 border-l-2 border-indigo-500"
+                    "w-full text-left px-4 py-3 hover:bg-[var(--color-surface-2)]/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
+                    file.id === selectedFileId && "bg-[var(--color-surface-2)] border-l-2 border-indigo-500"
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-medium text-zinc-200 leading-tight break-all">{file.path.split("/").pop()}</span>
+                    <span className="text-xs font-medium text-[var(--color-text-primary)] leading-tight break-all">{file.path.split("/").pop()}</span>
                     <span className={cn("shrink-0 font-bold", STATUS_STYLES[status])}>
                       {STATUS_ICON[status]}
                     </span>
@@ -261,10 +261,10 @@ export default function ConfigValidatorView() {
                       {file.kind}
                     </span>
                     {issueCount > 0 && (
-                      <span className="text-xs text-zinc-500">{issueCount} issue{issueCount !== 1 ? "s" : ""}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{issueCount} issue{issueCount !== 1 ? "s" : ""}</span>
                     )}
                   </div>
-                  <div className="mt-1 text-xs text-zinc-600">{file.validatedAt}</div>
+                  <div className="mt-1 text-xs text-[var(--color-text-muted)]">{file.validatedAt}</div>
                 </button>
               </li>
             );
@@ -274,10 +274,10 @@ export default function ConfigValidatorView() {
         {/* Validation results */}
         <div className="flex-1 overflow-y-auto">
           {/* File header */}
-          <div className="sticky top-0 bg-zinc-950 border-b border-zinc-800 px-5 py-3 flex items-center justify-between z-10">
+          <div className="sticky top-0 bg-[var(--color-surface-0)] border-b border-[var(--color-border)] px-5 py-3 flex items-center justify-between z-10">
             <div>
-              <div className="text-sm font-semibold text-white">{selectedFile.path}</div>
-              <div className="text-xs text-zinc-500 mt-0.5">
+              <div className="text-sm font-semibold text-[var(--color-text-primary)]">{selectedFile.path}</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
                 {selectedFile.results.length} validators · {allIssues.length} issues · {selectedFile.validatedAt}
               </div>
             </div>
@@ -289,7 +289,7 @@ export default function ConfigValidatorView() {
                   onClick={() => setSeverityFilter(s)}
                   className={cn(
                     "px-2 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                    severityFilter === s ? "bg-indigo-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                    severityFilter === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -308,38 +308,38 @@ export default function ConfigValidatorView() {
               if (!show) {return null;}
 
               return (
-                <div key={result.id} className="bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden">
+                <div key={result.id} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden">
                   {/* Result header */}
                   <button
                     onClick={() => toggleResult(result.id)}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-800/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--color-surface-2)]/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
                     aria-expanded={expanded}
                   >
                     <span className={cn("text-sm font-bold w-4", STATUS_STYLES[result.status])}>
                       {STATUS_ICON[result.status]}
                     </span>
                     <div className="flex-1 text-left">
-                      <div className="text-xs font-semibold text-zinc-200">{result.name}</div>
-                      <div className="text-xs text-zinc-500">{result.description}</div>
+                      <div className="text-xs font-semibold text-[var(--color-text-primary)]">{result.name}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">{result.description}</div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {result.issues.length > 0 && (
-                        <span className="text-xs text-zinc-500">{result.issues.length} issue{result.issues.length !== 1 ? "s" : ""}</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">{result.issues.length} issue{result.issues.length !== 1 ? "s" : ""}</span>
                       )}
-                      <span className="text-xs text-zinc-600">{result.duration}ms</span>
-                      <span className="text-zinc-500 text-xs">{expanded ? "▲" : "▼"}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{result.duration}ms</span>
+                      <span className="text-[var(--color-text-muted)] text-xs">{expanded ? "▲" : "▼"}</span>
                     </div>
                   </button>
 
                   {/* Issues */}
                   {expanded && (
-                    <div className="border-t border-zinc-800">
+                    <div className="border-t border-[var(--color-border)]">
                       {visibleIssues.length === 0 ? (
                         <div className="px-4 py-3 text-xs text-emerald-400 flex items-center gap-2">
                           <span>✓</span> All checks passed
                         </div>
                       ) : (
-                        <div className="divide-y divide-zinc-800/50">
+                        <div className="divide-y divide-[var(--color-border)]/50">
                           {visibleIssues.map((issue) => (
                             <div key={issue.id} className="px-4 py-3">
                               <div className="flex items-start gap-2">
@@ -349,15 +349,15 @@ export default function ConfigValidatorView() {
                                     <span className={cn("text-xs px-1.5 py-0.5 rounded font-medium", SEVERITY_STYLES[issue.severity])}>
                                       {issue.severity}
                                     </span>
-                                    <code className="text-xs text-zinc-400 font-mono">{issue.path}</code>
+                                    <code className="text-xs text-[var(--color-text-secondary)] font-mono">{issue.path}</code>
                                     <span className={cn("text-xs font-mono", CATEGORY_COLORS[issue.category])}>
                                       [{issue.ruleId}]
                                     </span>
                                   </div>
-                                  <p className="text-xs text-zinc-200 mt-1.5 leading-relaxed">{issue.message}</p>
+                                  <p className="text-xs text-[var(--color-text-primary)] mt-1.5 leading-relaxed">{issue.message}</p>
                                   <div className="mt-1.5 flex items-start gap-1.5">
                                     <span className="text-xs text-indigo-400 shrink-0">→</span>
-                                    <p className="text-xs text-zinc-400 leading-relaxed">{issue.suggestion}</p>
+                                    <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{issue.suggestion}</p>
                                   </div>
                                 </div>
                               </div>

@@ -111,12 +111,12 @@ export default function EventStreamViewer() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Event Stream Viewer</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">Real-time event bus monitoring and inspection</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Event Stream Viewer</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Real-time event bus monitoring and inspection</p>
         </div>
         <div className="flex items-center gap-3">
           <div className={cn("flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border",
@@ -129,7 +129,7 @@ export default function EventStreamViewer() {
             className={cn("text-xs px-4 py-1.5 rounded border transition-colors",
               paused
                 ? "border-emerald-500/50 text-emerald-400 hover:bg-emerald-400/10"
-                : "border-zinc-700 text-zinc-400 hover:bg-zinc-800")}
+                : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)]")}
           >
             {paused ? "▶ Resume" : "⏸ Pause"}
           </button>
@@ -142,18 +142,18 @@ export default function EventStreamViewer() {
           { label: "Total EPS",       value: totalEPS.toLocaleString(), sub: "events/sec",    color: "text-indigo-400" },
           { label: "Active Streams",  value: `${healthyStreams}/${STREAMS.length}`, sub: "healthy", color: "text-emerald-400" },
           { label: "Total Lag",       value: totalLag.toLocaleString(), sub: "messages behind", color: totalLag > 500 ? "text-amber-400" : "text-emerald-400" },
-          { label: "Failed (DLQ)",    value: dlqEvents.length.toString(), sub: "dead letters",  color: dlqEvents.length > 0 ? "text-rose-400" : "text-zinc-400" },
+          { label: "Failed (DLQ)",    value: dlqEvents.length.toString(), sub: "dead letters",  color: dlqEvents.length > 0 ? "text-rose-400" : "text-[var(--color-text-secondary)]" },
         ].map(card => (
-          <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <div className="text-xs text-zinc-400 mb-1">{card.label}</div>
+          <div key={card.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <div className="text-xs text-[var(--color-text-secondary)] mb-1">{card.label}</div>
             <div className={cn("text-2xl font-bold", card.color)}>{card.value}</div>
-            <div className="text-xs text-zinc-500 mt-0.5">{card.sub}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{card.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)] w-fit">
         {TABS.map(t => (
           <button
             key={t.id}
@@ -161,8 +161,8 @@ export default function EventStreamViewer() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-white"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t.emoji} {t.label}
@@ -182,12 +182,12 @@ export default function EventStreamViewer() {
                 placeholder="Search events..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="flex-1 bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
               />
               <select
                 value={filterStatus}
                 onChange={e => setFilterStatus(e.target.value)}
-                className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 focus:outline-none"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none"
               >
                 <option value="all">All Status</option>
                 <option value="delivered">Delivered</option>
@@ -198,7 +198,7 @@ export default function EventStreamViewer() {
               <select
                 value={filterSource}
                 onChange={e => setFilterSource(e.target.value)}
-                className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 focus:outline-none"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none"
               >
                 <option value="all">All Sources</option>
                 {sources.map(s => <option key={s} value={s}>{s}</option>)}
@@ -206,37 +206,37 @@ export default function EventStreamViewer() {
             </div>
 
             {/* Event list */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="grid grid-cols-12 text-xs text-zinc-500 px-4 py-2 border-b border-zinc-800 bg-zinc-900">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="grid grid-cols-12 text-xs text-[var(--color-text-muted)] px-4 py-2 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]">
                 <div className="col-span-2">Time</div>
                 <div className="col-span-3">Source</div>
                 <div className="col-span-3">Type</div>
                 <div className="col-span-2">Status</div>
                 <div className="col-span-2">Size / Lat</div>
               </div>
-              <div className="divide-y divide-zinc-800 max-h-[460px] overflow-y-auto">
+              <div className="divide-y divide-[var(--color-border)] max-h-[460px] overflow-y-auto">
                 {filteredEvents.map(ev => (
                   <button
                     key={ev.id}
                     onClick={() => setSelectedEvent(ev)}
                     className={cn(
-                      "w-full grid grid-cols-12 px-4 py-2.5 text-xs hover:bg-zinc-800/50 transition-colors text-left",
-                      selectedEvent?.id === ev.id ? "bg-zinc-800/80" : ""
+                      "w-full grid grid-cols-12 px-4 py-2.5 text-xs hover:bg-[var(--color-surface-2)]/50 transition-colors text-left",
+                      selectedEvent?.id === ev.id ? "bg-[var(--color-surface-2)]/80" : ""
                     )}
                   >
-                    <div className="col-span-2 font-mono text-zinc-400">{formatTime(ev.timestamp)}</div>
-                    <div className="col-span-3 text-zinc-300 truncate">{ev.source}</div>
+                    <div className="col-span-2 font-mono text-[var(--color-text-secondary)]">{formatTime(ev.timestamp)}</div>
+                    <div className="col-span-3 text-[var(--color-text-primary)] truncate">{ev.source}</div>
                     <div className="col-span-3 text-indigo-300 truncate font-mono">{ev.type}</div>
                     <div className="col-span-2">
                       <span className={cn("px-1.5 py-0.5 rounded border text-xs", STATUS_STYLES[ev.status])}>
                         {ev.status}
                       </span>
                     </div>
-                    <div className="col-span-2 text-zinc-500">{ev.size}B / {ev.latency}ms</div>
+                    <div className="col-span-2 text-[var(--color-text-muted)]">{ev.size}B / {ev.latency}ms</div>
                   </button>
                 ))}
                 {filteredEvents.length === 0 && (
-                  <div className="px-4 py-8 text-center text-zinc-500 text-sm">No events match filter</div>
+                  <div className="px-4 py-8 text-center text-[var(--color-text-muted)] text-sm">No events match filter</div>
                 )}
               </div>
             </div>
@@ -245,10 +245,10 @@ export default function EventStreamViewer() {
           {/* Event Detail */}
           <div className="col-span-2">
             {selectedEvent ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-4">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-white">Event Detail</h3>
-                  <button onClick={() => setSelectedEvent(null)} className="text-zinc-500 hover:text-white text-lg leading-none">×</button>
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Event Detail</h3>
+                  <button onClick={() => setSelectedEvent(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-lg leading-none">×</button>
                 </div>
 
                 <div className="space-y-2">
@@ -265,32 +265,32 @@ export default function EventStreamViewer() {
                     ["Latency",   `${selectedEvent.latency}ms`],
                   ].map(([k, v]) => (
                     <div key={k} className="flex justify-between text-xs">
-                      <span className="text-zinc-500">{k}</span>
-                      <span className="text-zinc-300 font-mono max-w-[60%] truncate text-right">{v}</span>
+                      <span className="text-[var(--color-text-muted)]">{k}</span>
+                      <span className="text-[var(--color-text-primary)] font-mono max-w-[60%] truncate text-right">{v}</span>
                     </div>
                   ))}
                 </div>
 
                 <div>
-                  <div className="text-xs text-zinc-500 mb-2">Payload</div>
-                  <pre className="bg-zinc-800 rounded p-3 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
+                  <div className="text-xs text-[var(--color-text-muted)] mb-2">Payload</div>
+                  <pre className="bg-[var(--color-surface-2)] rounded p-3 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">
                     {(() => { try { return JSON.stringify(JSON.parse(selectedEvent.payload), null, 2); } catch { return selectedEvent.payload; } })()}
                   </pre>
                 </div>
 
-                <div className="text-xs text-zinc-500">{new Date(selectedEvent.timestamp).toLocaleString()}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">{new Date(selectedEvent.timestamp).toLocaleString()}</div>
 
                 <div className="flex gap-2">
                   <button className="flex-1 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs py-1.5 rounded hover:bg-indigo-500/30 transition-colors">
                     🔁 Replay
                   </button>
-                  <button className="flex-1 bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs py-1.5 rounded hover:bg-zinc-700 transition-colors">
+                  <button className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs py-1.5 rounded hover:bg-[var(--color-surface-3)] transition-colors">
                     📋 Copy
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center text-zinc-500 text-sm">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-8 text-center text-[var(--color-text-muted)] text-sm">
                 Click an event to inspect payload and metadata
               </div>
             )}
@@ -307,20 +307,20 @@ export default function EventStreamViewer() {
                 key={s.id}
                 onClick={() => setSelectedStream(s)}
                 className={cn(
-                  "w-full bg-zinc-900 border rounded-lg p-4 text-left hover:border-zinc-600 transition-colors",
-                  selectedStream?.id === s.id ? "border-indigo-500/50" : "border-zinc-800"
+                  "w-full bg-[var(--color-surface-1)] border rounded-lg p-4 text-left hover:border-[var(--color-surface-3)] transition-colors",
+                  selectedStream?.id === s.id ? "border-indigo-500/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-white">{s.name}</span>
+                  <span className="text-sm font-medium text-[var(--color-text-primary)]">{s.name}</span>
                   <span className={cn("text-xs font-medium", STREAM_STATUS[s.status])}>
                     {s.status === "healthy" ? "●" : s.status === "degraded" ? "◑" : "○"} {s.status}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={cn("text-xs px-2 py-0.5 rounded border", BROKER_COLORS[s.broker])}>{s.broker}</span>
-                  <span className="text-xs text-zinc-400">{s.eventsPerSec.toLocaleString()} eps</span>
-                  <span className="text-xs text-zinc-400">{s.consumers} consumers</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">{s.eventsPerSec.toLocaleString()} eps</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">{s.consumers} consumers</span>
                 </div>
                 {s.lag > 0 && (
                   <div className="mt-2 text-xs text-amber-400">⚠ {s.lag.toLocaleString()} msg lag</div>
@@ -331,38 +331,38 @@ export default function EventStreamViewer() {
 
           <div className="col-span-3">
             {selectedStream ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-5">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 space-y-5">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-white">{selectedStream.name}</h3>
+                  <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{selectedStream.name}</h3>
                   <span className={cn("text-xs px-2 py-0.5 rounded border", BROKER_COLORS[selectedStream.broker])}>{selectedStream.broker}</span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { label: "Events/sec",  value: selectedStream.eventsPerSec.toLocaleString(), color: "text-indigo-400" },
-                    { label: "Consumers",   value: selectedStream.consumers,                      color: "text-white" },
+                    { label: "Consumers",   value: selectedStream.consumers,                      color: "text-[var(--color-text-primary)]" },
                     { label: "Message Lag", value: selectedStream.lag.toLocaleString(),           color: selectedStream.lag > 0 ? "text-amber-400" : "text-emerald-400" },
                   ].map(m => (
-                    <div key={m.label} className="bg-zinc-800 rounded-lg p-3">
-                      <div className="text-xs text-zinc-400">{m.label}</div>
+                    <div key={m.label} className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                      <div className="text-xs text-[var(--color-text-secondary)]">{m.label}</div>
                       <div className={cn("text-xl font-bold mt-1", m.color)}>{m.value}</div>
                     </div>
                   ))}
                 </div>
 
                 <div>
-                  <div className="text-xs text-zinc-400 mb-2 font-medium">Topics</div>
+                  <div className="text-xs text-[var(--color-text-secondary)] mb-2 font-medium">Topics</div>
                   <div className="flex flex-wrap gap-2">
                     {selectedStream.topics.map(t => (
-                      <span key={t} className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-2.5 py-1 rounded font-mono">{t}</span>
+                      <span key={t} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-2.5 py-1 rounded font-mono">{t}</span>
                     ))}
                   </div>
                 </div>
 
                 {/* Throughput sparkline */}
                 <div>
-                  <div className="text-xs text-zinc-400 mb-2 font-medium">Throughput (last 12 intervals)</div>
-                  <div className="bg-zinc-800 rounded p-3 flex items-end gap-1 h-20">
+                  <div className="text-xs text-[var(--color-text-secondary)] mb-2 font-medium">Throughput (last 12 intervals)</div>
+                  <div className="bg-[var(--color-surface-2)] rounded p-3 flex items-end gap-1 h-20">
                     {Array.from({ length: 12 }, (_, i) => {
                       const base = selectedStream.eventsPerSec;
                       const h = Math.max(10, Math.round(base * (0.6 + Math.random() * 0.8)));
@@ -374,8 +374,8 @@ export default function EventStreamViewer() {
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-zinc-800">
-                  <div className="text-xs text-zinc-400">Status</div>
+                <div className="pt-2 border-t border-[var(--color-border)]">
+                  <div className="text-xs text-[var(--color-text-secondary)]">Status</div>
                   <div className={cn("text-sm font-medium mt-0.5", STREAM_STATUS[selectedStream.status])}>
                     {selectedStream.status === "healthy" ? "✓ All consumers healthy" :
                      selectedStream.status === "degraded" ? "⚠ High consumer lag detected" :
@@ -384,7 +384,7 @@ export default function EventStreamViewer() {
                 </div>
               </div>
             ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-10 text-center text-zinc-500 text-sm">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-10 text-center text-[var(--color-text-muted)] text-sm">
                 Select a stream to view details
               </div>
             )}
@@ -395,12 +395,12 @@ export default function EventStreamViewer() {
       {/* Inspector */}
       {activeTab === "inspect" && (
         <div className="space-y-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-white mb-4">Event Inspector — Schema & Routing</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Event Inspector — Schema & Routing</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-zinc-400 border-b border-zinc-800">
+                  <tr className="text-xs text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
                     <th className="pb-2 text-left font-medium">Event Type</th>
                     <th className="pb-2 text-left font-medium">Source</th>
                     <th className="pb-2 text-left font-medium">Topic</th>
@@ -410,15 +410,15 @@ export default function EventStreamViewer() {
                     <th className="pb-2 text-right font-medium">Latency</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-[var(--color-border)]">
                   {EVENTS.filter(e => e.partition != null).map(ev => (
-                    <tr key={ev.id} className="hover:bg-zinc-800/30 transition-colors">
+                    <tr key={ev.id} className="hover:bg-[var(--color-surface-2)]/30 transition-colors">
                       <td className="py-2.5 font-mono text-xs text-indigo-300">{ev.type}</td>
-                      <td className="py-2.5 text-zinc-300 text-xs">{ev.source}</td>
-                      <td className="py-2.5 font-mono text-xs text-zinc-400">{ev.topic}</td>
-                      <td className="py-2.5 text-zinc-400 text-xs">{ev.consumer}</td>
-                      <td className="py-2.5 text-right text-zinc-400 font-mono text-xs">{ev.partition}</td>
-                      <td className="py-2.5 text-right text-zinc-400 font-mono text-xs">{ev.offset?.toLocaleString()}</td>
+                      <td className="py-2.5 text-[var(--color-text-primary)] text-xs">{ev.source}</td>
+                      <td className="py-2.5 font-mono text-xs text-[var(--color-text-secondary)]">{ev.topic}</td>
+                      <td className="py-2.5 text-[var(--color-text-secondary)] text-xs">{ev.consumer}</td>
+                      <td className="py-2.5 text-right text-[var(--color-text-secondary)] font-mono text-xs">{ev.partition}</td>
+                      <td className="py-2.5 text-right text-[var(--color-text-secondary)] font-mono text-xs">{ev.offset?.toLocaleString()}</td>
                       <td className={cn("py-2.5 text-right font-mono text-xs", ev.latency > 8 ? "text-amber-400" : "text-emerald-400")}>{ev.latency}ms</td>
                     </tr>
                   ))}
@@ -428,8 +428,8 @@ export default function EventStreamViewer() {
           </div>
 
           {/* Latency distribution */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-white mb-4">Latency Distribution</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Latency Distribution</h3>
             <div className="space-y-2">
               {[
                 { label: "< 2ms",    count: EVENTS.filter(e => e.latency < 2).length,   color: "bg-emerald-500" },
@@ -438,14 +438,14 @@ export default function EventStreamViewer() {
                 { label: "> 10ms",   count: EVENTS.filter(e => e.latency >= 10).length, color: "bg-rose-500" },
               ].map(bucket => (
                 <div key={bucket.label} className="flex items-center gap-3">
-                  <div className="w-16 text-xs text-zinc-400 text-right">{bucket.label}</div>
-                  <div className="flex-1 bg-zinc-800 rounded-full h-3">
+                  <div className="w-16 text-xs text-[var(--color-text-secondary)] text-right">{bucket.label}</div>
+                  <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-3">
                     <div
                       className={cn("h-full rounded-full", bucket.color)}
                       style={{ width: `${(bucket.count / EVENTS.length) * 100}%` }}
                     />
                   </div>
-                  <div className="w-8 text-xs text-zinc-400">{bucket.count}</div>
+                  <div className="w-8 text-xs text-[var(--color-text-secondary)]">{bucket.count}</div>
                 </div>
               ))}
             </div>
@@ -457,7 +457,7 @@ export default function EventStreamViewer() {
       {activeTab === "dlq" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">Dead Letter Queue</h3>
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Dead Letter Queue</h3>
             <div className="flex gap-2">
               <button className="text-xs px-3 py-1.5 bg-amber-400/10 border border-amber-500/30 text-amber-300 rounded hover:bg-amber-400/20 transition-colors">
                 🔁 Replay All
@@ -469,32 +469,32 @@ export default function EventStreamViewer() {
           </div>
 
           {dlqEvents.length === 0 ? (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-12 text-center">
               <div className="text-3xl mb-3">✅</div>
-              <div className="text-white font-medium">Dead letter queue is empty</div>
-              <div className="text-zinc-400 text-sm mt-1">All events delivered successfully</div>
+              <div className="text-[var(--color-text-primary)] font-medium">Dead letter queue is empty</div>
+              <div className="text-[var(--color-text-secondary)] text-sm mt-1">All events delivered successfully</div>
             </div>
           ) : (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
               {dlqEvents.map(ev => (
-                <div key={ev.id} className="p-4 border-b border-zinc-800 last:border-b-0">
+                <div key={ev.id} className="p-4 border-b border-[var(--color-border)] last:border-b-0">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-3">
                       <span className="font-mono text-xs text-rose-400 bg-rose-400/10 border border-rose-500/30 px-2 py-0.5 rounded">FAILED</span>
-                      <span className="text-sm text-white font-medium">{ev.type}</span>
-                      <span className="text-xs text-zinc-400">{ev.source}</span>
+                      <span className="text-sm text-[var(--color-text-primary)] font-medium">{ev.type}</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">{ev.source}</span>
                     </div>
                     <div className="flex gap-2">
                       <button className="text-xs px-3 py-1 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded hover:bg-indigo-500/30">Replay</button>
-                      <button className="text-xs px-3 py-1 bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700">Discard</button>
+                      <button className="text-xs px-3 py-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-3)]">Discard</button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 text-xs text-zinc-400 mb-2">
-                    <span>Consumer: <span className="text-zinc-300">{ev.consumer}</span></span>
-                    <span>Size: <span className="text-zinc-300">{ev.size}B</span></span>
-                    <span>Time: <span className="text-zinc-300">{formatTime(ev.timestamp)}</span></span>
+                  <div className="grid grid-cols-3 gap-4 text-xs text-[var(--color-text-secondary)] mb-2">
+                    <span>Consumer: <span className="text-[var(--color-text-primary)]">{ev.consumer}</span></span>
+                    <span>Size: <span className="text-[var(--color-text-primary)]">{ev.size}B</span></span>
+                    <span>Time: <span className="text-[var(--color-text-primary)]">{formatTime(ev.timestamp)}</span></span>
                   </div>
-                  <pre className="bg-zinc-800 rounded p-2 text-xs font-mono text-zinc-300 overflow-x-auto">{ev.payload}</pre>
+                  <pre className="bg-[var(--color-surface-2)] rounded p-2 text-xs font-mono text-[var(--color-text-primary)] overflow-x-auto">{ev.payload}</pre>
                 </div>
               ))}
             </div>
@@ -505,10 +505,10 @@ export default function EventStreamViewer() {
             {[
               { label: "Total Failed",      value: dlqEvents.length,   color: "text-rose-400" },
               { label: "Oldest Entry",      value: "2m 16s ago",        color: "text-amber-400" },
-              { label: "Avg Retry Count",   value: "3.2×",              color: "text-zinc-300" },
+              { label: "Avg Retry Count",   value: "3.2×",              color: "text-[var(--color-text-primary)]" },
             ].map(m => (
-              <div key={m.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                <div className="text-xs text-zinc-400">{m.label}</div>
+              <div key={m.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                <div className="text-xs text-[var(--color-text-secondary)]">{m.label}</div>
                 <div className={cn("text-xl font-bold mt-1", m.color)}>{m.value}</div>
               </div>
             ))}

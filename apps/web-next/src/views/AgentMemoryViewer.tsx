@@ -73,7 +73,7 @@ Wes: DataExportManager, CrashReporter, WebhookManager, AnalyticsOverview`,
 
 ### Component Patterns
 - All interactive elements: focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none
-- Cards: rounded-xl bg-zinc-900 border border-zinc-800
+- Cards: rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)]
 - Buttons: rounded-lg, variants (primary indigo, secondary zinc-800, danger rose)
 - Master/detail: 280-320px sidebar + flex-1 content
 
@@ -212,15 +212,15 @@ function relTime(iso: string): string {
 function renderMarkdown(content: string): React.ReactNode {
   const lines = content.split("\n");
   return lines.map((line, i) => {
-    if (line.startsWith("## ")) {return <h2 key={i} className="text-base font-bold text-white mt-4 mb-2 first:mt-0">{line.slice(3)}</h2>;}
-    if (line.startsWith("### ")) {return <h3 key={i} className="text-sm font-semibold text-zinc-200 mt-3 mb-1">{line.slice(4)}</h3>;}
+    if (line.startsWith("## ")) {return <h2 key={i} className="text-base font-bold text-[var(--color-text-primary)] mt-4 mb-2 first:mt-0">{line.slice(3)}</h2>;}
+    if (line.startsWith("### ")) {return <h3 key={i} className="text-sm font-semibold text-[var(--color-text-primary)] mt-3 mb-1">{line.slice(4)}</h3>;}
     if (line.startsWith("**") && line.endsWith("**")) {
-      return <p key={i} className="text-sm font-semibold text-white">{line.slice(2, -2)}</p>;
+      return <p key={i} className="text-sm font-semibold text-[var(--color-text-primary)]">{line.slice(2, -2)}</p>;
     }
-    if (line.match(/^\d+\.\s/)) {return <li key={i} className="text-sm text-zinc-300 ml-4 list-decimal">{line.replace(/^\d+\.\s/, "")}</li>;}
-    if (line.startsWith("- ")) {return <li key={i} className="text-sm text-zinc-300 ml-4 list-disc">{line.slice(2)}</li>;}
+    if (line.match(/^\d+\.\s/)) {return <li key={i} className="text-sm text-[var(--color-text-primary)] ml-4 list-decimal">{line.replace(/^\d+\.\s/, "")}</li>;}
+    if (line.startsWith("- ")) {return <li key={i} className="text-sm text-[var(--color-text-primary)] ml-4 list-disc">{line.slice(2)}</li>;}
     if (line.trim() === "") {return <div key={i} className="h-1" />;}
-    return <p key={i} className="text-sm text-zinc-400 leading-relaxed">{line}</p>;
+    return <p key={i} className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{line}</p>;
   });
 }
 
@@ -276,17 +276,17 @@ export default function AgentMemoryViewer() {
   ];
 
   return (
-    <main className="flex h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Agent Memory Viewer">
+    <main className="flex h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden" role="main" aria-label="Agent Memory Viewer">
       {/* Left sidebar */}
-      <div className="w-80 shrink-0 flex flex-col border-r border-zinc-800 overflow-hidden">
+      <div className="w-80 shrink-0 flex flex-col border-r border-[var(--color-border)] overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-zinc-800">
-          <h1 className="text-lg font-bold text-white">Agent Memory</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">{MEMORIES.length} memory entries across {agents.length} agents</p>
+        <div className="p-4 border-b border-[var(--color-border)]">
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Agent Memory</h1>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{MEMORIES.length} memory entries across {agents.length} agents</p>
         </div>
 
         {/* Search */}
-        <div className="p-3 border-b border-zinc-800">
+        <div className="p-3 border-b border-[var(--color-border)]">
           <input
             type="search"
             value={search}
@@ -294,20 +294,20 @@ export default function AgentMemoryViewer() {
             placeholder="Search memories…"
             aria-label="Search agent memory"
             className={cn(
-              "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-zinc-500",
+              "w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
             )}
           />
         </div>
 
         {/* Agent filter */}
-        <div className="px-3 py-2 border-b border-zinc-800">
+        <div className="px-3 py-2 border-b border-[var(--color-border)]">
           <select
             value={agentFilter}
             onChange={e => setAgentFilter(e.target.value as AgentFilter)}
             aria-label="Filter by agent"
             className={cn(
-              "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 text-sm text-white",
+              "w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-2 py-1.5 text-sm text-[var(--color-text-primary)]",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
             )}
           >
@@ -319,7 +319,7 @@ export default function AgentMemoryViewer() {
         </div>
 
         {/* Kind filter */}
-        <div className="px-3 py-2 border-b border-zinc-800">
+        <div className="px-3 py-2 border-b border-[var(--color-border)]">
           <div className="flex flex-wrap gap-1" role="group" aria-label="Filter by memory type">
             {kinds.map(k => (
               <button
@@ -331,7 +331,7 @@ export default function AgentMemoryViewer() {
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   kindFilter === k.value
                     ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                    : "border-zinc-700 text-zinc-400 hover:text-white"
+                    : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {k.label}
@@ -346,7 +346,7 @@ export default function AgentMemoryViewer() {
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
               significantOnly
                 ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                : "border-zinc-700 text-zinc-400 hover:text-white"
+                : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             ⭐ Significant only
@@ -358,7 +358,7 @@ export default function AgentMemoryViewer() {
           {filtered.length === 0 ? (
             <div className="text-center py-10">
               <p className="text-3xl mb-2">🧠</p>
-              <p className="text-sm text-zinc-500">No memories match filters</p>
+              <p className="text-sm text-[var(--color-text-muted)]">No memories match filters</p>
             </div>
           ) : (
             filtered.map(mem => (
@@ -367,25 +367,25 @@ export default function AgentMemoryViewer() {
                   onClick={() => setSelectedId(mem.id)}
                   aria-pressed={selectedId === mem.id}
                   className={cn(
-                    "w-full text-left px-4 py-3 border-b border-zinc-800 last:border-b-0 transition-colors",
+                    "w-full text-left px-4 py-3 border-b border-[var(--color-border)] last:border-b-0 transition-colors",
                     "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 focus-visible:outline-none",
                     selectedId === mem.id
                       ? "bg-indigo-950/30"
-                      : "hover:bg-zinc-800/30"
+                      : "hover:bg-[var(--color-surface-2)]/30"
                   )}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <div className="flex items-center gap-1.5">
                       <span>{mem.agentEmoji}</span>
-                      <span className="text-xs text-zinc-400">{mem.agentName}</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">{mem.agentName}</span>
                       {mem.significant && <span className="text-yellow-400 text-xs">⭐</span>}
                     </div>
                     <span className={cn("text-[10px] px-1.5 py-0.5 rounded border shrink-0", KIND_COLORS[mem.kind])}>
                       {KIND_LABELS[mem.kind]}
                     </span>
                   </div>
-                  <p className="text-sm font-medium text-white truncate">{mem.title}</p>
-                  <div className="flex items-center gap-2 mt-1 text-[10px] text-zinc-600">
+                  <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{mem.title}</p>
+                  <div className="flex items-center gap-2 mt-1 text-[10px] text-[var(--color-text-muted)]">
                     <span>{mem.wordCount} words</span>
                     <span>·</span>
                     <span>{relTime(mem.lastModified)}</span>
@@ -406,7 +406,7 @@ export default function AgentMemoryViewer() {
               <div>
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <span className="text-2xl">{selected.agentEmoji}</span>
-                  <span className="font-semibold text-white">{selected.agentName}</span>
+                  <span className="font-semibold text-[var(--color-text-primary)]">{selected.agentName}</span>
                   <span className={cn("text-xs px-2 py-0.5 rounded border", KIND_COLORS[selected.kind])}>
                     {KIND_LABELS[selected.kind]}
                   </span>
@@ -416,8 +416,8 @@ export default function AgentMemoryViewer() {
                     </span>
                   )}
                 </div>
-                <h2 className="text-xl font-bold text-white">{selected.title}</h2>
-                <p className="text-xs text-zinc-500 mt-1">
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selected.title}</h2>
+                <p className="text-xs text-[var(--color-text-muted)] mt-1">
                   {selected.wordCount} words · {relTime(selected.lastModified)} · {selected.date}
                 </p>
               </div>
@@ -425,7 +425,7 @@ export default function AgentMemoryViewer() {
                 onClick={handleCopy}
                 aria-label="Copy memory content"
                 className={cn(
-                  "shrink-0 text-xs px-3 py-1.5 rounded-lg border border-zinc-700 text-zinc-400 hover:text-white transition-colors",
+                  "shrink-0 text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
                 )}
               >
@@ -437,7 +437,7 @@ export default function AgentMemoryViewer() {
             {selected.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-4">
                 {selected.tags.map(tag => (
-                  <span key={tag} className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                  <span key={tag} className="text-xs px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]">
                     #{tag}
                   </span>
                 ))}
@@ -445,7 +445,7 @@ export default function AgentMemoryViewer() {
             )}
 
             {/* Content */}
-            <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-5">
+            <div className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-5">
               <div className="prose-sm space-y-1">
                 {renderMarkdown(selected.content)}
               </div>
@@ -454,8 +454,8 @@ export default function AgentMemoryViewer() {
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <p className="text-5xl mb-4">🧠</p>
-            <p className="text-lg font-semibold text-white">Select a memory</p>
-            <p className="text-sm text-zinc-500 mt-1">Choose a memory entry to view its content</p>
+            <p className="text-lg font-semibold text-[var(--color-text-primary)]">Select a memory</p>
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">Choose a memory entry to view its content</p>
           </div>
         )}
       </div>

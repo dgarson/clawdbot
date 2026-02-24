@@ -629,7 +629,7 @@ function getMaskKey(key: string): string {
 
 function TierBadge({ tier }: { tier: Tier }) {
   const styles: Record<Tier, string> = {
-    free: "bg-zinc-700 text-zinc-300",
+    free: "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]",
     basic: "bg-sky-900 text-sky-300",
     pro: "bg-indigo-900 text-indigo-300",
     enterprise: "bg-violet-900 text-violet-300",
@@ -673,12 +673,12 @@ function ScopeBadge({ scope }: { scope: Scope }) {
 function StatusBadge({ status }: { status: RuleStatus }) {
   const styles: Record<RuleStatus, string> = {
     active: "bg-emerald-900 text-emerald-400",
-    disabled: "bg-zinc-800 text-zinc-500",
+    disabled: "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]",
     draft: "bg-amber-900 text-amber-400",
   };
   const dots: Record<RuleStatus, string> = {
     active: "bg-emerald-400",
-    disabled: "bg-zinc-500",
+    disabled: "bg-[var(--color-surface-3)]",
     draft: "bg-amber-400",
   };
   return (
@@ -698,7 +698,7 @@ function StatusBadge({ status }: { status: RuleStatus }) {
 
 function SeverityBadge({ severity }: { severity: ViolationSeverity }) {
   const styles: Record<ViolationSeverity, string> = {
-    low: "bg-zinc-800 text-zinc-400",
+    low: "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]",
     medium: "bg-amber-900 text-amber-400",
     high: "bg-orange-900 text-orange-400",
     critical: "bg-rose-900 text-rose-400",
@@ -741,15 +741,15 @@ function UtilizationBar({
     <div className="w-full">
       {showLabel && (
         <div className="flex justify-between text-xs mb-1">
-          <span className={cn("font-mono", isOver ? "text-rose-400" : "text-zinc-300")}>
+          <span className={cn("font-mono", isOver ? "text-rose-400" : "text-[var(--color-text-primary)]")}>
             {formatNumber(current)} / {formatNumber(limit)}
           </span>
-          <span className={cn("font-semibold", pct >= 100 ? "text-rose-400" : pct >= 85 ? "text-amber-400" : "text-zinc-400")}>
+          <span className={cn("font-semibold", pct >= 100 ? "text-rose-400" : pct >= 85 ? "text-amber-400" : "text-[var(--color-text-secondary)]")}>
             {pct}%
           </span>
         </div>
       )}
-      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
         <div
           className={cn("h-full rounded-full transition-all duration-500", barColor)}
           style={{ width: `${Math.min(pct, 100)}%` }}
@@ -774,7 +774,7 @@ function Sparkline({
 }) {
   const max = Math.max(...points, 1);
   const barColor: Record<ViolationSeverity, string> = {
-    low: "bg-zinc-500",
+    low: "bg-[var(--color-surface-3)]",
     medium: "bg-amber-400",
     high: "bg-orange-400",
     critical: "bg-rose-400",
@@ -824,14 +824,14 @@ function TopConsumersChart({
             : "bg-emerald-500";
         return (
           <div key={c.id} className="flex items-center gap-3">
-            <div className="w-28 shrink-0 truncate text-xs text-zinc-300">{c.name}</div>
-            <div className="flex-1 bg-zinc-800 rounded-full h-4 overflow-hidden">
+            <div className="w-28 shrink-0 truncate text-xs text-[var(--color-text-primary)]">{c.name}</div>
+            <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-4 overflow-hidden">
               <div
                 className={cn("h-full rounded-full transition-all duration-700", barColor)}
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <div className="w-16 shrink-0 text-right text-xs font-mono text-zinc-400">
+            <div className="w-16 shrink-0 text-right text-xs font-mono text-[var(--color-text-secondary)]">
               {formatNumber(c.currentRequests)}
             </div>
             <TierBadge tier={c.tier} />
@@ -859,7 +859,7 @@ function Toggle({
       onClick={onToggle}
       className={cn(
         "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-        enabled ? "bg-indigo-500" : "bg-zinc-700"
+        enabled ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
       )}
     >
       <span
@@ -887,18 +887,18 @@ function RuleDetailPanel({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative z-10 w-full max-w-xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl"
+        className="relative z-10 w-full max-w-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-zinc-800">
+        <div className="flex items-start justify-between p-6 border-b border-[var(--color-border)]">
           <div>
-            <h3 className="text-lg font-semibold text-white">{rule.name}</h3>
-            <p className="text-sm text-zinc-400 mt-1">{rule.description}</p>
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{rule.name}</h3>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">{rule.description}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-zinc-500 hover:text-white transition-colors ml-4 mt-0.5"
+            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors ml-4 mt-0.5"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
               <path
@@ -937,30 +937,30 @@ function RuleDetailPanel({
                 sub: "max burst",
               },
             ].map((item) => (
-              <div key={item.label} className="bg-zinc-800 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-white">{item.value}</div>
+              <div key={item.label} className="bg-[var(--color-surface-2)] rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold text-[var(--color-text-primary)]">{item.value}</div>
                 <div className="text-xs text-indigo-400 font-medium mt-0.5">{item.label}</div>
-                <div className="text-xs text-zinc-500 mt-1">{item.sub}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-1">{item.sub}</div>
               </div>
             ))}
           </div>
 
           {/* Endpoint */}
-          <div className="bg-zinc-800 rounded-xl p-4">
-            <div className="text-xs text-zinc-500 mb-1 uppercase tracking-wider">Endpoint Pattern</div>
+          <div className="bg-[var(--color-surface-2)] rounded-xl p-4">
+            <div className="text-xs text-[var(--color-text-muted)] mb-1 uppercase tracking-wider">Endpoint Pattern</div>
             <code className="text-sm text-indigo-300 font-mono">{rule.endpoint}</code>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-zinc-800 rounded-xl p-4">
-              <div className="text-xs text-zinc-500 mb-1 uppercase tracking-wider">Violations (24h)</div>
+            <div className="bg-[var(--color-surface-2)] rounded-xl p-4">
+              <div className="text-xs text-[var(--color-text-muted)] mb-1 uppercase tracking-wider">Violations (24h)</div>
               <div className={cn("text-xl font-bold", rule.violationsLast24h > 50 ? "text-rose-400" : rule.violationsLast24h > 10 ? "text-amber-400" : "text-emerald-400")}>
                 {rule.violationsLast24h}
               </div>
             </div>
-            <div className="bg-zinc-800 rounded-xl p-4">
-              <div className="text-xs text-zinc-500 mb-1 uppercase tracking-wider">Throttled Now</div>
+            <div className="bg-[var(--color-surface-2)] rounded-xl p-4">
+              <div className="text-xs text-[var(--color-text-muted)] mb-1 uppercase tracking-wider">Throttled Now</div>
               <div className={cn("text-xl font-bold", rule.throttledCount > 0 ? "text-rose-400" : "text-emerald-400")}>
                 {rule.throttledCount}
               </div>
@@ -968,16 +968,16 @@ function RuleDetailPanel({
           </div>
 
           {/* Dates */}
-          <div className="text-xs text-zinc-600 space-y-1">
+          <div className="text-xs text-[var(--color-text-muted)] space-y-1">
             <div>Created: {formatTimestamp(rule.createdAt)}</div>
             <div>Updated: {formatTimestamp(rule.updatedAt)}</div>
           </div>
 
           {/* Toggle */}
-          <div className="flex items-center justify-between bg-zinc-800 rounded-xl px-4 py-3">
+          <div className="flex items-center justify-between bg-[var(--color-surface-2)] rounded-xl px-4 py-3">
             <div>
-              <div className="text-sm font-medium text-white">Rule Active</div>
-              <div className="text-xs text-zinc-500">Toggle to enable or disable enforcement</div>
+              <div className="text-sm font-medium text-[var(--color-text-primary)]">Rule Active</div>
+              <div className="text-xs text-[var(--color-text-muted)]">Toggle to enable or disable enforcement</div>
             </div>
             <Toggle
               enabled={rule.status === "active"}
@@ -1053,10 +1053,10 @@ function OverviewTab({ rules, violations, consumers }: { rules: RateLimitRule[];
         {stats.map((s) => (
           <div
             key={s.label}
-            className={cn("bg-zinc-900 border rounded-xl p-5", accentBorder[s.accent])}
+            className={cn("bg-[var(--color-surface-1)] border rounded-xl p-5", accentBorder[s.accent])}
           >
-            <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">{s.label}</div>
-            <div className="text-3xl font-bold text-white">{s.value}</div>
+            <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">{s.label}</div>
+            <div className="text-3xl font-bold text-[var(--color-text-primary)]">{s.value}</div>
             <div className={cn("text-xs mt-2", s.positive ? "text-emerald-400" : "text-rose-400")}>
               {s.delta}
             </div>
@@ -1065,13 +1065,13 @@ function OverviewTab({ rules, violations, consumers }: { rules: RateLimitRule[];
       </div>
 
       {/* Top Consumers Chart */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h3 className="text-base font-semibold text-white">Top Consumers by Usage</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">Current window requests vs. limit</p>
+            <h3 className="text-base font-semibold text-[var(--color-text-primary)]">Top Consumers by Usage</h3>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Current window requests vs. limit</p>
           </div>
-          <div className="flex items-center gap-4 text-xs text-zinc-500">
+          <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-emerald-500 rounded-full inline-block" />Normal</span>
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-amber-400 rounded-full inline-block" />High</span>
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-rose-500 rounded-full inline-block" />Over Limit</span>
@@ -1083,8 +1083,8 @@ function OverviewTab({ rules, violations, consumers }: { rules: RateLimitRule[];
       {/* Two-column: violations + throttled */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Recent critical violations */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-          <h3 className="text-sm font-semibold text-white mb-4">Recent Critical Violations</h3>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Recent Critical Violations</h3>
           <div className="space-y-3">
             {violations
               .filter((v) => v.severity === "critical" || v.severity === "high")
@@ -1092,8 +1092,8 @@ function OverviewTab({ rules, violations, consumers }: { rules: RateLimitRule[];
               .map((v) => (
                 <div key={v.id} className="flex items-center justify-between">
                   <div className="min-w-0">
-                    <div className="text-sm text-white truncate">{v.consumerName}</div>
-                    <div className="text-xs text-zinc-500 font-mono truncate">{v.endpoint}</div>
+                    <div className="text-sm text-[var(--color-text-primary)] truncate">{v.consumerName}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] font-mono truncate">{v.endpoint}</div>
                   </div>
                   <div className="flex items-center gap-3 ml-3 shrink-0">
                     <span className="text-sm font-mono font-semibold text-rose-400">
@@ -1107,13 +1107,13 @@ function OverviewTab({ rules, violations, consumers }: { rules: RateLimitRule[];
         </div>
 
         {/* Throttled consumers */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-          <h3 className="text-sm font-semibold text-white mb-4">Currently Throttled Consumers</h3>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Currently Throttled Consumers</h3>
           <div className="space-y-4">
             {consumers.filter((c) => c.isThrottled).map((c) => (
               <div key={c.id}>
                 <div className="flex items-center justify-between mb-1.5">
-                  <div className="text-sm text-white">{c.name}</div>
+                  <div className="text-sm text-[var(--color-text-primary)]">{c.name}</div>
                   <TierBadge tier={c.tier} />
                 </div>
                 <UtilizationBar current={c.currentRequests} limit={c.requestLimit} />
@@ -1124,8 +1124,8 @@ function OverviewTab({ rules, violations, consumers }: { rules: RateLimitRule[];
       </div>
 
       {/* Rule health breakdown */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-        <h3 className="text-sm font-semibold text-white mb-4">Rule Violation Heat Map (Last 24h)</h3>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+        <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Rule Violation Heat Map (Last 24h)</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {rules.filter((r) => r.violationsLast24h > 0).map((r) => {
             const intensity = r.violationsLast24h;
@@ -1136,7 +1136,7 @@ function OverviewTab({ rules, violations, consumers }: { rules: RateLimitRule[];
                 ? "bg-amber-900/60 border-amber-700"
                 : intensity > 10
                 ? "bg-yellow-900/60 border-yellow-800"
-                : "bg-zinc-800 border-zinc-700";
+                : "bg-[var(--color-surface-2)] border-[var(--color-border)]";
             const textColor =
               intensity > 100
                 ? "text-rose-300"
@@ -1144,14 +1144,14 @@ function OverviewTab({ rules, violations, consumers }: { rules: RateLimitRule[];
                 ? "text-amber-300"
                 : intensity > 10
                 ? "text-yellow-300"
-                : "text-zinc-400";
+                : "text-[var(--color-text-secondary)]";
             return (
               <div key={r.id} className={cn("border rounded-lg p-3", bg)}>
-                <div className="text-xs font-medium text-white truncate">{r.name}</div>
+                <div className="text-xs font-medium text-[var(--color-text-primary)] truncate">{r.name}</div>
                 <div className={cn("text-lg font-bold mt-1", textColor)}>
                   {r.violationsLast24h}
                 </div>
-                <div className="text-xs text-zinc-500">violations</div>
+                <div className="text-xs text-[var(--color-text-muted)]">violations</div>
               </div>
             );
           })}
@@ -1197,10 +1197,10 @@ function RulesTab({
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
         <div className="flex flex-wrap gap-4">
           <div>
-            <label className="text-xs text-zinc-500 uppercase tracking-wider block mb-1.5">Tier</label>
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider block mb-1.5">Tier</label>
             <div className="flex gap-1 flex-wrap">
               {tiers.map((t) => (
                 <button
@@ -1209,8 +1209,8 @@ function RulesTab({
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filterTier === t
-                      ? "bg-indigo-600 text-white"
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
                   {t}
@@ -1219,7 +1219,7 @@ function RulesTab({
             </div>
           </div>
           <div>
-            <label className="text-xs text-zinc-500 uppercase tracking-wider block mb-1.5">Status</label>
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider block mb-1.5">Status</label>
             <div className="flex gap-1">
               {statuses.map((s) => (
                 <button
@@ -1228,8 +1228,8 @@ function RulesTab({
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filterStatus === s
-                      ? "bg-indigo-600 text-white"
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
                   {s}
@@ -1238,7 +1238,7 @@ function RulesTab({
             </div>
           </div>
           <div>
-            <label className="text-xs text-zinc-500 uppercase tracking-wider block mb-1.5">Scope</label>
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider block mb-1.5">Scope</label>
             <div className="flex gap-1 flex-wrap">
               {scopes.map((s) => (
                 <button
@@ -1247,8 +1247,8 @@ function RulesTab({
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filterScope === s
-                      ? "bg-indigo-600 text-white"
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
                   {s}
@@ -1257,25 +1257,25 @@ function RulesTab({
             </div>
           </div>
         </div>
-        <div className="text-xs text-zinc-500 mt-3">
+        <div className="text-xs text-[var(--color-text-muted)] mt-3">
           Showing {filtered.length} of {rules.length} rules
         </div>
       </div>
 
       {/* Rules Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Rule</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Tier</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Scope</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Limit</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Burst</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Violations 24h</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">Toggle</th>
+              <tr className="border-b border-[var(--color-border)]">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Rule</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Tier</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Scope</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Limit</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Burst</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Violations 24h</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider">Toggle</th>
               </tr>
             </thead>
             <tbody>
@@ -1286,13 +1286,13 @@ function RulesTab({
                     key={r.id}
                     onClick={() => setSelectedRule(eff)}
                     className={cn(
-                      "border-b border-zinc-800/50 hover:bg-zinc-800/50 cursor-pointer transition-colors",
-                      i % 2 === 0 ? "bg-transparent" : "bg-zinc-900/50"
+                      "border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/50 cursor-pointer transition-colors",
+                      i % 2 === 0 ? "bg-transparent" : "bg-[var(--color-surface-1)]/50"
                     )}
                   >
                     <td className="px-4 py-3">
-                      <div className="font-medium text-white">{r.name}</div>
-                      <div className="text-xs text-zinc-500 font-mono mt-0.5 truncate max-w-xs">{r.endpoint}</div>
+                      <div className="font-medium text-[var(--color-text-primary)]">{r.name}</div>
+                      <div className="text-xs text-[var(--color-text-muted)] font-mono mt-0.5 truncate max-w-xs">{r.endpoint}</div>
                     </td>
                     <td className="px-4 py-3">
                       <TierBadge tier={r.tier} />
@@ -1301,10 +1301,10 @@ function RulesTab({
                       <ScopeBadge scope={r.scope} />
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-white font-mono font-medium">
+                      <span className="text-[var(--color-text-primary)] font-mono font-medium">
                         {formatNumber(r.requestsPerWindow)}
                       </span>
-                      <span className="text-zinc-500 text-xs ml-1">
+                      <span className="text-[var(--color-text-muted)] text-xs ml-1">
                         / {formatWindowSeconds(r.windowSeconds)}
                       </span>
                     </td>
@@ -1343,7 +1343,7 @@ function RulesTab({
           </table>
         </div>
         {filtered.length === 0 && (
-          <div className="py-12 text-center text-zinc-500">
+          <div className="py-12 text-center text-[var(--color-text-muted)]">
             No rules match the current filters.
           </div>
         )}
@@ -1412,19 +1412,19 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
             critical: "border-rose-700 bg-rose-950/30",
             high: "border-orange-700 bg-orange-950/30",
             medium: "border-amber-700 bg-amber-950/30",
-            low: "border-zinc-700 bg-zinc-800/30",
+            low: "border-[var(--color-border)] bg-[var(--color-surface-2)]/30",
           };
           const textColors: Record<ViolationSeverity, string> = {
             critical: "text-rose-400",
             high: "text-orange-400",
             medium: "text-amber-400",
-            low: "text-zinc-400",
+            low: "text-[var(--color-text-secondary)]",
           };
           return (
             <div key={sev} className={cn("border rounded-xl p-4 cursor-pointer transition-all", colors[sev], filterSeverity === sev ? "ring-1 ring-white/20" : "")} onClick={() => setFilterSeverity(filterSeverity === sev ? "all" : sev)}>
-              <div className="text-xs text-zinc-500 capitalize">{sev}</div>
+              <div className="text-xs text-[var(--color-text-muted)] capitalize">{sev}</div>
               <div className={cn("text-2xl font-bold mt-1", textColors[sev])}>{count}</div>
-              <div className="text-xs text-zinc-600 mt-0.5">{formatNumber(total)} hits</div>
+              <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{formatNumber(total)} hits</div>
             </div>
           );
         })}
@@ -1440,8 +1440,8 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
               className={cn(
                 "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                 filterSeverity === s
-                  ? "bg-indigo-600 text-white"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
               )}
             >
               {s}
@@ -1449,7 +1449,7 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
           ))}
         </div>
         <div className="flex gap-2 items-center">
-          <span className="text-xs text-zinc-500">Sort:</span>
+          <span className="text-xs text-[var(--color-text-muted)]">Sort:</span>
           {(["timestamp", "count", "severity"] as const).map((s) => (
             <button
               key={s}
@@ -1457,8 +1457,8 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
               className={cn(
                 "px-2.5 py-1 rounded text-xs font-medium transition-colors capitalize",
                 sortBy === s
-                  ? "bg-zinc-700 text-white"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                  ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
               )}
             >
               {s}
@@ -1467,7 +1467,7 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
         </div>
       </div>
 
-      <div className="text-xs text-zinc-500">
+      <div className="text-xs text-[var(--color-text-muted)]">
         {filtered.length} violation events · {formatNumber(totalViolations)} total hits
       </div>
 
@@ -1476,20 +1476,20 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
         {filtered.map((v) => (
           <div
             key={v.id}
-            className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden"
           >
             <div
-              className="flex items-center gap-4 p-4 cursor-pointer hover:bg-zinc-800/40 transition-colors"
+              className="flex items-center gap-4 p-4 cursor-pointer hover:bg-[var(--color-surface-2)]/40 transition-colors"
               onClick={() => setExpanded(expanded === v.id ? null : v.id)}
             >
               {/* Left: consumer + endpoint */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-semibold text-white">{v.consumerName}</span>
+                  <span className="text-sm font-semibold text-[var(--color-text-primary)]">{v.consumerName}</span>
                   <SeverityBadge severity={v.severity} />
                 </div>
-                <div className="text-xs text-zinc-400 font-mono mt-1 truncate">{v.endpoint}</div>
-                <div className="text-xs text-zinc-600 mt-0.5">{v.ruleName}</div>
+                <div className="text-xs text-[var(--color-text-secondary)] font-mono mt-1 truncate">{v.endpoint}</div>
+                <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{v.ruleName}</div>
               </div>
 
               {/* Sparkline */}
@@ -1499,19 +1499,19 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
 
               {/* Count */}
               <div className="shrink-0 text-right">
-                <div className={cn("text-xl font-bold font-mono", v.severity === "critical" ? "text-rose-400" : v.severity === "high" ? "text-orange-400" : v.severity === "medium" ? "text-amber-400" : "text-zinc-400")}>
+                <div className={cn("text-xl font-bold font-mono", v.severity === "critical" ? "text-rose-400" : v.severity === "high" ? "text-orange-400" : v.severity === "medium" ? "text-amber-400" : "text-[var(--color-text-secondary)]")}>
                   {formatNumber(v.count)}
                 </div>
-                <div className="text-xs text-zinc-500">hits</div>
+                <div className="text-xs text-[var(--color-text-muted)]">hits</div>
               </div>
 
               {/* Timestamp */}
               <div className="shrink-0 hidden md:block text-right">
-                <div className="text-xs text-zinc-400">{formatTimestamp(v.timestamp)}</div>
+                <div className="text-xs text-[var(--color-text-secondary)]">{formatTimestamp(v.timestamp)}</div>
               </div>
 
               {/* Expand icon */}
-              <div className="shrink-0 text-zinc-600">
+              <div className="shrink-0 text-[var(--color-text-muted)]">
                 <svg
                   width="16"
                   height="16"
@@ -1526,28 +1526,28 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
 
             {/* Expanded detail */}
             {expanded === v.id && (
-              <div className="border-t border-zinc-800 px-4 py-4 bg-zinc-950/40">
+              <div className="border-t border-[var(--color-border)] px-4 py-4 bg-[var(--color-surface-0)]/40">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Consumer ID</div>
-                    <div className="font-mono text-zinc-300 text-xs">{v.consumerId}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Consumer ID</div>
+                    <div className="font-mono text-[var(--color-text-primary)] text-xs">{v.consumerId}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">IP Address</div>
-                    <div className="font-mono text-zinc-300 text-xs">{v.ipAddress}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">IP Address</div>
+                    <div className="font-mono text-[var(--color-text-primary)] text-xs">{v.ipAddress}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Rule ID</div>
-                    <div className="font-mono text-zinc-300 text-xs">{v.ruleId}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Rule ID</div>
+                    <div className="font-mono text-[var(--color-text-primary)] text-xs">{v.ruleId}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Timestamp</div>
-                    <div className="text-zinc-300 text-xs">{formatTimestamp(v.timestamp)}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Timestamp</div>
+                    <div className="text-[var(--color-text-primary)] text-xs">{formatTimestamp(v.timestamp)}</div>
                   </div>
                 </div>
                 {/* Larger sparkline in expanded */}
                 <div className="mt-4">
-                  <div className="text-xs text-zinc-500 mb-2">Activity Timeline (last 12 intervals)</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-2">Activity Timeline (last 12 intervals)</div>
                   <div className="flex items-end gap-1" style={{ height: 60 }}>
                     {v.timelinePoints.map((pt, idx) => {
                       const max = Math.max(...v.timelinePoints, 1);
@@ -1559,7 +1559,7 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
                           ? "bg-orange-400"
                           : v.severity === "medium"
                           ? "bg-amber-400"
-                          : "bg-zinc-500";
+                          : "bg-[var(--color-surface-3)]";
                       return (
                         <div
                           key={idx}
@@ -1570,7 +1570,7 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
                       );
                     })}
                   </div>
-                  <div className="flex justify-between text-xs text-zinc-600 mt-1">
+                  <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
                     <span>-12 intervals</span>
                     <span>now</span>
                   </div>
@@ -1614,23 +1614,23 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
       {/* Summary stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: "Total Consumers", value: consumers.length, color: "text-white" },
+          { label: "Total Consumers", value: consumers.length, color: "text-[var(--color-text-primary)]" },
           { label: "Throttled", value: consumers.filter((c) => c.isThrottled).length, color: "text-rose-400" },
           { label: "Near Limit (>85%)", value: consumers.filter((c) => getUtilizationPct(c.currentRequests, c.requestLimit) >= 85).length, color: "text-amber-400" },
           { label: "Healthy (<60%)", value: consumers.filter((c) => getUtilizationPct(c.currentRequests, c.requestLimit) < 60).length, color: "text-emerald-400" },
         ].map((stat) => (
-          <div key={stat.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <div className="text-xs text-zinc-500 uppercase tracking-wider">{stat.label}</div>
+          <div key={stat.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+            <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{stat.label}</div>
             <div className={cn("text-2xl font-bold mt-1", stat.color)}>{stat.value}</div>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
         <div className="flex flex-wrap gap-4 items-end">
           <div>
-            <label className="text-xs text-zinc-500 uppercase tracking-wider block mb-1.5">Tier</label>
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider block mb-1.5">Tier</label>
             <div className="flex gap-1 flex-wrap">
               {tiers.map((t) => (
                 <button
@@ -1639,8 +1639,8 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filterTier === t
-                      ? "bg-indigo-600 text-white"
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
                   {t}
@@ -1649,7 +1649,7 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
             </div>
           </div>
           <div>
-            <label className="text-xs text-zinc-500 uppercase tracking-wider block mb-1.5">Status</label>
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider block mb-1.5">Status</label>
             <div className="flex gap-1">
               {(["all", "throttled", "healthy"] as const).map((s) => (
                 <button
@@ -1658,8 +1658,8 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors capitalize",
                     filterStatus === s
-                      ? "bg-indigo-600 text-white"
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
                   {s}
@@ -1668,7 +1668,7 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
             </div>
           </div>
           <div>
-            <label className="text-xs text-zinc-500 uppercase tracking-wider block mb-1.5">Sort</label>
+            <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider block mb-1.5">Sort</label>
             <div className="flex gap-1">
               {(["usage", "requests", "name"] as const).map((s) => (
                 <button
@@ -1677,8 +1677,8 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors capitalize",
                     sortBy === s
-                      ? "bg-zinc-700 text-white"
-                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                      ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+                      : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
                   {s}
@@ -1687,7 +1687,7 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
             </div>
           </div>
         </div>
-        <div className="text-xs text-zinc-500 mt-3">
+        <div className="text-xs text-[var(--color-text-muted)] mt-3">
           Showing {filtered.length} of {consumers.length} consumers
         </div>
       </div>
@@ -1701,8 +1701,8 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
             <div
               key={c.id}
               className={cn(
-                "bg-zinc-900 border rounded-xl p-5 cursor-pointer hover:bg-zinc-800/40 transition-all",
-                c.isThrottled ? "border-rose-800" : utilPct >= 85 ? "border-amber-800" : "border-zinc-800"
+                "bg-[var(--color-surface-1)] border rounded-xl p-5 cursor-pointer hover:bg-[var(--color-surface-2)]/40 transition-all",
+                c.isThrottled ? "border-rose-800" : utilPct >= 85 ? "border-amber-800" : "border-[var(--color-border)]"
               )}
               onClick={() => setSelectedConsumer(c)}
             >
@@ -1710,7 +1710,7 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-white">{c.name}</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{c.name}</span>
                     {c.isThrottled && (
                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-rose-900 text-rose-400 font-semibold">
                         <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse inline-block" />
@@ -1718,30 +1718,30 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-zinc-500 font-mono mt-0.5">{getMaskKey(c.apiKey)}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] font-mono mt-0.5">{getMaskKey(c.apiKey)}</div>
                 </div>
                 <TierBadge tier={c.tier} />
               </div>
 
               {/* Request usage */}
               <div className="mb-3">
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Request Usage</div>
+                <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">Request Usage</div>
                 <UtilizationBar current={c.currentRequests} limit={c.requestLimit} />
               </div>
 
               {/* Burst usage */}
               <div className="mb-4">
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1.5">Burst Usage</div>
+                <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">Burst Usage</div>
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="font-mono text-zinc-400">
+                    <span className="font-mono text-[var(--color-text-secondary)]">
                       {formatNumber(c.burstUsed)} / {formatNumber(c.burstLimit)}
                     </span>
-                    <span className={cn("font-semibold", burstPct >= 100 ? "text-rose-400" : burstPct >= 85 ? "text-amber-400" : "text-zinc-400")}>
+                    <span className={cn("font-semibold", burstPct >= 100 ? "text-rose-400" : burstPct >= 85 ? "text-amber-400" : "text-[var(--color-text-secondary)]")}>
                       {burstPct}%
                     </span>
                   </div>
-                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
                       className={cn(
                         "h-full rounded-full",
@@ -1754,9 +1754,9 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
               </div>
 
               {/* Stats row */}
-              <div className="flex items-center justify-between text-xs text-zinc-500">
-                <span>Today: <span className="text-white font-mono">{formatNumber(c.totalRequestsToday)}</span></span>
-                <span>Last active: <span className="text-zinc-400">{formatTimestamp(c.lastActive)}</span></span>
+              <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)]">
+                <span>Today: <span className="text-[var(--color-text-primary)] font-mono">{formatNumber(c.totalRequestsToday)}</span></span>
+                <span>Last active: <span className="text-[var(--color-text-secondary)]">{formatTimestamp(c.lastActive)}</span></span>
               </div>
             </div>
           );
@@ -1771,26 +1771,26 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div
-            className="relative z-10 w-full max-w-2xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="relative z-10 w-full max-w-2xl bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-start justify-between p-6 border-b border-zinc-800 sticky top-0 bg-zinc-900 z-10">
+            <div className="flex items-start justify-between p-6 border-b border-[var(--color-border)] sticky top-0 bg-[var(--color-surface-1)] z-10">
               <div>
                 <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold text-white">{selectedConsumer.name}</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{selectedConsumer.name}</h3>
                   {selectedConsumer.isThrottled && (
                     <span className="px-2 py-0.5 rounded text-xs bg-rose-900 text-rose-400 font-semibold">THROTTLED</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 mt-1.5">
                   <TierBadge tier={selectedConsumer.tier} />
-                  <span className="text-xs text-zinc-500 font-mono">{getMaskKey(selectedConsumer.apiKey)}</span>
+                  <span className="text-xs text-[var(--color-text-muted)] font-mono">{getMaskKey(selectedConsumer.apiKey)}</span>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedConsumer(null)}
-                className="text-zinc-500 hover:text-white transition-colors"
+                className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -1801,12 +1801,12 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
             <div className="p-6 space-y-6">
               {/* Quota overview */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-zinc-800 rounded-xl p-4">
-                  <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Request Quota</div>
+                <div className="bg-[var(--color-surface-2)] rounded-xl p-4">
+                  <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Request Quota</div>
                   <UtilizationBar current={selectedConsumer.currentRequests} limit={selectedConsumer.requestLimit} />
                 </div>
-                <div className="bg-zinc-800 rounded-xl p-4">
-                  <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Burst Quota</div>
+                <div className="bg-[var(--color-surface-2)] rounded-xl p-4">
+                  <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Burst Quota</div>
                   <UtilizationBar current={selectedConsumer.burstUsed} limit={selectedConsumer.burstLimit} />
                 </div>
               </div>
@@ -1814,12 +1814,12 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
               {/* Key stats */}
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: "Requests Today", value: formatNumber(selectedConsumer.totalRequestsToday), color: "text-white" },
+                  { label: "Requests Today", value: formatNumber(selectedConsumer.totalRequestsToday), color: "text-[var(--color-text-primary)]" },
                   { label: "Window Resets", value: formatTimestamp(selectedConsumer.windowResetAt), color: "text-indigo-300" },
-                  { label: "Last Active", value: formatTimestamp(selectedConsumer.lastActive), color: "text-zinc-300" },
+                  { label: "Last Active", value: formatTimestamp(selectedConsumer.lastActive), color: "text-[var(--color-text-primary)]" },
                 ].map((item) => (
-                  <div key={item.label} className="bg-zinc-800 rounded-xl p-4">
-                    <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">{item.label}</div>
+                  <div key={item.label} className="bg-[var(--color-surface-2)] rounded-xl p-4">
+                    <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">{item.label}</div>
                     <div className={cn("text-sm font-semibold", item.color)}>{item.value}</div>
                   </div>
                 ))}
@@ -1827,7 +1827,7 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
 
               {/* Endpoint breakdown */}
               <div>
-                <h4 className="text-sm font-semibold text-white mb-3">Endpoint Breakdown</h4>
+                <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Endpoint Breakdown</h4>
                 <div className="space-y-4">
                   {selectedConsumer.endpointBreakdown.map((ep) => {
                     const pct = getUtilizationPct(ep.requests, ep.limit);
@@ -1835,10 +1835,10 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
                     return (
                       <div key={ep.endpoint}>
                         <div className="flex items-center justify-between mb-1.5">
-                          <code className={cn("text-xs font-mono", isOver ? "text-rose-400" : "text-zinc-300")}>
+                          <code className={cn("text-xs font-mono", isOver ? "text-rose-400" : "text-[var(--color-text-primary)]")}>
                             {ep.endpoint}
                           </code>
-                          <span className={cn("text-xs font-semibold", isOver ? "text-rose-400" : pct >= 85 ? "text-amber-400" : "text-zinc-500")}>
+                          <span className={cn("text-xs font-semibold", isOver ? "text-rose-400" : pct >= 85 ? "text-amber-400" : "text-[var(--color-text-muted)]")}>
                             {pct}%
                           </span>
                         </div>
@@ -1851,7 +1851,7 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
 
               {/* Visual usage by endpoint (horizontal bar chart) */}
               <div>
-                <h4 className="text-sm font-semibold text-white mb-3">Relative Usage by Endpoint</h4>
+                <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Relative Usage by Endpoint</h4>
                 <div className="space-y-2">
                   {selectedConsumer.endpointBreakdown.map((ep) => {
                     const maxReq = Math.max(...selectedConsumer.endpointBreakdown.map((e) => e.requests), 1);
@@ -1859,14 +1859,14 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
                     const isOver = ep.requests > ep.limit;
                     return (
                       <div key={ep.endpoint + "-bar"} className="flex items-center gap-3">
-                        <code className="text-xs font-mono text-zinc-400 w-40 shrink-0 truncate">{ep.endpoint}</code>
-                        <div className="flex-1 h-5 bg-zinc-800 rounded overflow-hidden">
+                        <code className="text-xs font-mono text-[var(--color-text-secondary)] w-40 shrink-0 truncate">{ep.endpoint}</code>
+                        <div className="flex-1 h-5 bg-[var(--color-surface-2)] rounded overflow-hidden">
                           <div
                             className={cn("h-full rounded transition-all", isOver ? "bg-rose-500" : "bg-indigo-500")}
                             style={{ width: `${barPct}%` }}
                           />
                         </div>
-                        <span className="text-xs font-mono text-zinc-300 w-12 text-right shrink-0">
+                        <span className="text-xs font-mono text-[var(--color-text-primary)] w-12 text-right shrink-0">
                           {formatNumber(ep.requests)}
                         </span>
                       </div>
@@ -1918,9 +1918,9 @@ export default function APIRateLimitManager() {
   const criticalViolations = VIOLATIONS.filter((v) => v.severity === "critical").length;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Top Bar */}
-      <div className="bg-zinc-900 border-b border-zinc-800 px-6 py-4">
+      <div className="bg-[var(--color-surface-1)] border-b border-[var(--color-border)] px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
@@ -1930,8 +1930,8 @@ export default function APIRateLimitManager() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white">API Rate Limit Manager</h1>
-                <p className="text-xs text-zinc-500">Manage rate limiting rules, violations, and consumer quotas</p>
+                <h1 className="text-lg font-bold text-[var(--color-text-primary)]">API Rate Limit Manager</h1>
+                <p className="text-xs text-[var(--color-text-muted)]">Manage rate limiting rules, violations, and consumer quotas</p>
               </div>
             </div>
           </div>
@@ -1952,7 +1952,7 @@ export default function APIRateLimitManager() {
                 </span>
               </div>
             )}
-            <div className="text-xs text-zinc-500">
+            <div className="text-xs text-[var(--color-text-muted)]">
               <span className="text-emerald-400 font-semibold">{activeRulesCount}</span>
               <span> active rules</span>
             </div>
@@ -1961,7 +1961,7 @@ export default function APIRateLimitManager() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-zinc-900 border-b border-zinc-800 px-6">
+      <div className="bg-[var(--color-surface-1)] border-b border-[var(--color-border)] px-6">
         <div className="max-w-7xl mx-auto">
           <nav className="flex gap-1" role="tablist">
             {tabs.map((tab) => (
@@ -1974,7 +1974,7 @@ export default function APIRateLimitManager() {
                   "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
                   activeTab === tab.id
                     ? "border-indigo-500 text-indigo-400"
-                    : "border-transparent text-zinc-400 hover:text-zinc-200 hover:border-zinc-600"
+                    : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
                 )}
               >
                 {tab.label}
@@ -1982,7 +1982,7 @@ export default function APIRateLimitManager() {
                   <span
                     className={cn(
                       "px-1.5 py-0.5 rounded text-xs font-semibold",
-                      activeTab === tab.id ? "bg-indigo-900 text-indigo-300" : "bg-zinc-800 text-zinc-400"
+                      activeTab === tab.id ? "bg-indigo-900 text-indigo-300" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
                     )}
                   >
                     {tab.count}
@@ -2011,8 +2011,8 @@ export default function APIRateLimitManager() {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-zinc-800 mt-8 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-xs text-zinc-600">
+      <div className="border-t border-[var(--color-border)] mt-8 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between text-xs text-[var(--color-text-muted)]">
           <span>API Rate Limit Manager · Product &amp; UI Squad</span>
           <span>Data refreshes every 30s in production · All times UTC</span>
         </div>

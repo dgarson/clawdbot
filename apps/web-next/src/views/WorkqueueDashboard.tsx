@@ -358,7 +358,7 @@ function StatCard({
   value,
   sub,
   icon: Icon,
-  color = 'text-zinc-400',
+  color = 'text-[var(--color-text-secondary)]',
 }: {
   label: string;
   value: string | number;
@@ -367,14 +367,14 @@ function StatCard({
   color?: string;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
-      <div className="mt-0.5 p-2 bg-zinc-800 rounded-lg">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-start gap-3">
+      <div className="mt-0.5 p-2 bg-[var(--color-surface-2)] rounded-lg">
         <Icon className={cn('w-4 h-4', color)} />
       </div>
       <div>
-        <p className="text-xs text-zinc-400 font-medium uppercase tracking-wide mb-1">{label}</p>
-        <p className="text-xl font-bold text-white">{value}</p>
-        {sub && <p className="text-xs text-zinc-500 mt-0.5">{sub}</p>}
+        <p className="text-xs text-[var(--color-text-secondary)] font-medium uppercase tracking-wide mb-1">{label}</p>
+        <p className="text-xl font-bold text-[var(--color-text-primary)]">{value}</p>
+        {sub && <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{sub}</p>}
       </div>
     </div>
   );
@@ -420,7 +420,7 @@ function PriorityBadge({ priority }: { priority: JobPriority }) {
 
 function TypeBadge({ type }: { type: string }) {
   return (
-    <span className="px-1.5 py-0.5 rounded text-xs font-mono bg-zinc-800 text-zinc-300">
+    <span className="px-1.5 py-0.5 rounded text-xs font-mono bg-[var(--color-surface-2)] text-[var(--color-text-primary)]">
       {type}
     </span>
   );
@@ -438,33 +438,33 @@ function RetryBadge({ count }: { count: number }) {
 
 function JobCard({ job, onViewDetails }: { job: Job; onViewDetails: (job: Job) => void }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-mono text-zinc-400">{job.id}</span>
+          <span className="text-sm font-mono text-[var(--color-text-secondary)]">{job.id}</span>
           <TypeBadge type={job.type} />
           <PriorityBadge priority={job.priority} />
         </div>
         <StatusBadge status={job.status} />
       </div>
-      <div className="flex items-center gap-2 text-sm text-zinc-400">
+      <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
         <Clock className="w-4 h-4" />
         Enqueued {formatTimestamp(job.enqueuedAt)}
-        <span className="text-zinc-600 mx-1">·</span>
+        <span className="text-[var(--color-text-muted)] mx-1">·</span>
         Est. {formatEstimated(job.estimatedCompletion)}
       </div>
       <div className="flex items-center gap-2">
         <span className="text-lg">{job.agentEmoji}</span>
-        <span className="text-sm font-medium text-white">{job.assignedAgent}</span>
+        <span className="text-sm font-medium text-[var(--color-text-primary)]">{job.assignedAgent}</span>
         <RetryBadge count={job.retryCount} />
       </div>
       {job.status === 'running' && (
         <div className="space-y-1">
-          <div className="flex justify-between text-xs text-zinc-500">
+          <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
             <span>Progress</span>
             <span>{job.progress}% · {formatDuration(job.elapsedSeconds)}</span>
           </div>
-          <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+          <div className="h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
             <div className="h-full bg-green-500" style={{ width: `${job.progress}%` }} />
           </div>
         </div>
@@ -491,51 +491,51 @@ function JobDetailDrawer({ job, onClose }: { job: Job | null; onClose: () => voi
   if (!job) return null;
   return (
     <div className="fixed inset-0 bg-black/80 flex justify-end z-50">
-      <div className="w-96 bg-zinc-900 border-l border-zinc-800 p-6 overflow-y-auto">
+      <div className="w-96 bg-[var(--color-surface-1)] border-l border-[var(--color-border)] p-6 overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold text-white">Job Details</h3>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white">
+          <h3 className="text-lg font-bold text-[var(--color-text-primary)]">Job Details</h3>
+          <button onClick={onClose} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="space-y-6">
           <section>
-            <h4 className="text-sm font-medium text-zinc-400 mb-2">Spec</h4>
-            <div className="space-y-2 text-sm text-zinc-300">
-              <p><span className="text-zinc-500">ID:</span> {job.id}</p>
-              <p><span className="text-zinc-500">Type:</span> {job.type}</p>
-              <p><span className="text-zinc-500">Priority:</span> {job.priority}</p>
-              <p><span className="text-zinc-500">Enqueued:</span> {job.enqueuedAt.toISOString()}</p>
-              <p><span className="text-zinc-500">Agent:</span> {job.agentEmoji} {job.assignedAgent}</p>
-              <p><span className="text-zinc-500">Status:</span> {job.status}</p>
-              <p><span className="text-zinc-500">Retries:</span> {job.retryCount}</p>
+            <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Spec</h4>
+            <div className="space-y-2 text-sm text-[var(--color-text-primary)]">
+              <p><span className="text-[var(--color-text-muted)]">ID:</span> {job.id}</p>
+              <p><span className="text-[var(--color-text-muted)]">Type:</span> {job.type}</p>
+              <p><span className="text-[var(--color-text-muted)]">Priority:</span> {job.priority}</p>
+              <p><span className="text-[var(--color-text-muted)]">Enqueued:</span> {job.enqueuedAt.toISOString()}</p>
+              <p><span className="text-[var(--color-text-muted)]">Agent:</span> {job.agentEmoji} {job.assignedAgent}</p>
+              <p><span className="text-[var(--color-text-muted)]">Status:</span> {job.status}</p>
+              <p><span className="text-[var(--color-text-muted)]">Retries:</span> {job.retryCount}</p>
             </div>
           </section>
           <section>
-            <h4 className="text-sm font-medium text-zinc-400 mb-2">Input Params</h4>
-            <pre className="bg-zinc-800 p-3 rounded-md text-xs overflow-x-auto">
+            <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Input Params</h4>
+            <pre className="bg-[var(--color-surface-2)] p-3 rounded-md text-xs overflow-x-auto">
               {JSON.stringify(job.inputParams || {}, null, 2)}
             </pre>
           </section>
           <section>
-            <h4 className="text-sm font-medium text-zinc-400 mb-2">Output Preview</h4>
-            <pre className="bg-zinc-800 p-3 rounded-md text-xs overflow-x-auto">
+            <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Output Preview</h4>
+            <pre className="bg-[var(--color-surface-2)] p-3 rounded-md text-xs overflow-x-auto">
               {job.outputPreview || 'N/A'}
             </pre>
           </section>
           <section>
-            <h4 className="text-sm font-medium text-zinc-400 mb-2">Timing Breakdown</h4>
+            <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Timing Breakdown</h4>
             {job.timingBreakdown ? (
               <div className="space-y-1">
                 {job.timingBreakdown.map((t, i) => (
-                  <div key={i} className="flex justify-between text-sm text-zinc-300">
+                  <div key={i} className="flex justify-between text-sm text-[var(--color-text-primary)]">
                     <span>{t.phase}</span>
                     <span>{t.durationMs}ms</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-zinc-500">N/A</p>
+              <p className="text-sm text-[var(--color-text-muted)]">N/A</p>
             )}
           </section>
         </div>
@@ -588,7 +588,7 @@ export default function WorkqueueDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -634,27 +634,27 @@ export default function WorkqueueDashboard() {
       {/* Main Layout: Active Workers | Job List | Failed Jobs */}
       <div className="grid grid-cols-4 gap-6">
         {/* Active Workers Panel */}
-        <div className="col-span-1 bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+        <div className="col-span-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 space-y-4">
           <h2 className="text-sm font-semibold flex items-center gap-2">
             <Users className="w-4 h-4 text-violet-400" />
             Active Workers
-            <span className="ml-auto text-xs text-zinc-500">{workers.filter(w => w.currentJobId).length} / 5</span>
+            <span className="ml-auto text-xs text-[var(--color-text-muted)]">{workers.filter(w => w.currentJobId).length} / 5</span>
           </h2>
           <div className="space-y-3">
             {workers.map(worker => (
-              <div key={worker.id} className="bg-zinc-800 rounded-md p-3 space-y-2">
+              <div key={worker.id} className="bg-[var(--color-surface-2)] rounded-md p-3 space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{worker.agentEmoji}</span>
                   <span className="text-sm font-medium">{worker.assignedAgent}</span>
-                  <span className="ml-auto text-xs text-zinc-400">{worker.currentJobId || 'Idle'}</span>
+                  <span className="ml-auto text-xs text-[var(--color-text-secondary)]">{worker.currentJobId || 'Idle'}</span>
                 </div>
                 {worker.currentJobId && (
                   <>
-                    <div className="flex justify-between text-xs text-zinc-500">
+                    <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
                       <span>Progress</span>
                       <span>{worker.progress}% · {formatDuration(worker.elapsedSeconds)}</span>
                     </div>
-                    <div className="h-1 bg-zinc-700 rounded-full overflow-hidden">
+                    <div className="h-1 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                       <div className="h-full bg-violet-500" style={{ width: `${worker.progress}%` }} />
                     </div>
                   </>
@@ -665,7 +665,7 @@ export default function WorkqueueDashboard() {
         </div>
 
         {/* Job List with Priority Lanes */}
-        <div className="col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+        <div className="col-span-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 space-y-4">
           <h2 className="text-sm font-semibold flex items-center gap-2">
             <Layers className="w-4 h-4 text-green-400" />
             Job List
@@ -675,7 +675,7 @@ export default function WorkqueueDashboard() {
               <div key={priority}>
                 <div className="flex items-center gap-2 mb-2">
                   <PriorityBadge priority={priority} />
-                  <span className="text-sm text-zinc-400">({groupedJobs[priority].length})</span>
+                  <span className="text-sm text-[var(--color-text-secondary)]">({groupedJobs[priority].length})</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   {groupedJobs[priority].map(job => (
@@ -690,15 +690,15 @@ export default function WorkqueueDashboard() {
         {/* Failed Jobs Panel + Throughput Sparkline */}
         <div className="col-span-1 space-y-6">
           {/* Failed Jobs */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 space-y-4">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-red-400" />
               Failed Jobs
-              <span className="ml-auto text-xs text-zinc-500">{failedJobs.length}</span>
+              <span className="ml-auto text-xs text-[var(--color-text-muted)]">{failedJobs.length}</span>
             </h2>
             <div className="space-y-3">
               {failedJobs.map(job => (
-                <div key={job.id} className="bg-zinc-800 rounded-md p-3 space-y-2">
+                <div key={job.id} className="bg-[var(--color-surface-2)] rounded-md p-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-mono">{job.id}</span>
                     <TypeBadge type={job.type} />
@@ -718,13 +718,13 @@ export default function WorkqueueDashboard() {
           </div>
 
           {/* Throughput Sparkline */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 space-y-4">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-orange-400" />
               Throughput (last 30 min)
             </h2>
             <Sparkline data={MOCK_THROUGHPUT} />
-            <p className="text-xs text-zinc-500 text-center">Jobs completed per minute</p>
+            <p className="text-xs text-[var(--color-text-muted)] text-center">Jobs completed per minute</p>
           </div>
         </div>
       </div>

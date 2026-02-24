@@ -54,7 +54,7 @@ interface RunLog {
 }
 
 const statusBadge: Record<MigrationStatus, string> = {
-  pending:      "bg-zinc-600/30 text-zinc-300 border border-zinc-600/40",
+  pending:      "bg-[var(--color-surface-3)]/30 text-[var(--color-text-primary)] border border-[var(--color-surface-3)]/40",
   running:      "bg-blue-500/20 text-blue-300 border border-blue-500/30",
   completed:    "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
   failed:       "bg-rose-500/20 text-rose-300 border border-rose-500/30",
@@ -62,7 +62,7 @@ const statusBadge: Record<MigrationStatus, string> = {
 };
 
 const statusDot: Record<MigrationStatus, string> = {
-  pending:      "bg-zinc-500",
+  pending:      "bg-[var(--color-surface-3)]",
   running:      "bg-blue-400 animate-pulse",
   completed:    "bg-emerald-400",
   failed:       "bg-rose-400",
@@ -244,26 +244,26 @@ export default function DatabaseMigrationManager() {
   const filteredMigrations = envFilter === "all" ? MIGRATIONS : MIGRATIONS.filter(m => m.env === envFilter);
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 text-white">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)]">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Database Migration Manager</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Schema versioning · Rollback · Audit</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Schema versioning · Rollback · Audit</p>
         </div>
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span className="text-zinc-400">{MIGRATIONS.filter(m => m.status === "completed").length} applied</span>
+              <span className="text-[var(--color-text-secondary)]">{MIGRATIONS.filter(m => m.status === "completed").length} applied</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-zinc-500" />
-              <span className="text-zinc-400">{MIGRATIONS.filter(m => m.status === "pending").length} pending</span>
+              <span className="w-2 h-2 rounded-full bg-[var(--color-surface-3)]" />
+              <span className="text-[var(--color-text-secondary)]">{MIGRATIONS.filter(m => m.status === "pending").length} pending</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-rose-400" />
-              <span className="text-zinc-400">{MIGRATIONS.filter(m => m.status === "failed").length} failed</span>
+              <span className="text-[var(--color-text-secondary)]">{MIGRATIONS.filter(m => m.status === "failed").length} failed</span>
             </span>
           </div>
           <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
@@ -273,14 +273,14 @@ export default function DatabaseMigrationManager() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-zinc-800 px-6">
+      <div className="flex border-b border-[var(--color-border)] px-6">
         {(["migrations", "schema", "history", "run"] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize",
-              tab === t ? "border-indigo-500 text-white" : "border-transparent text-zinc-400 hover:text-zinc-200"
+              tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t === "run" ? "Run Console" : t}
@@ -291,8 +291,8 @@ export default function DatabaseMigrationManager() {
       {/* Migrations Tab */}
       {tab === "migrations" && (
         <div className="flex flex-1 overflow-hidden">
-          <div className="w-80 border-r border-zinc-800 flex flex-col">
-            <div className="p-3 border-b border-zinc-800 flex gap-1.5">
+          <div className="w-80 border-r border-[var(--color-border)] flex flex-col">
+            <div className="p-3 border-b border-[var(--color-border)] flex gap-1.5">
               {(["all", "development", "staging", "production"] as const).map(e => (
                 <button
                   key={e}
@@ -300,8 +300,8 @@ export default function DatabaseMigrationManager() {
                   className={cn(
                     "text-xs px-2 py-0.5 rounded border transition-colors capitalize",
                     envFilter === e
-                      ? e === "all" ? "bg-zinc-600 border-zinc-500 text-white" : envBadge[e as MigrationEnv]
-                      : "border-zinc-700 text-zinc-400 hover:border-zinc-500"
+                      ? e === "all" ? "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-primary)]" : envBadge[e as MigrationEnv]
+                      : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
                   {e}
@@ -314,17 +314,17 @@ export default function DatabaseMigrationManager() {
                   key={m.id}
                   onClick={() => setSelectedMig(m)}
                   className={cn(
-                    "w-full text-left px-4 py-3 border-b border-zinc-800/60 hover:bg-zinc-800/40 transition-colors",
-                    selectedMig.id === m.id && "bg-zinc-800/60"
+                    "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/60 hover:bg-[var(--color-surface-2)]/40 transition-colors",
+                    selectedMig.id === m.id && "bg-[var(--color-surface-2)]/60"
                   )}
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <span className={cn("w-2 h-2 rounded-full flex-shrink-0", statusDot[m.status])} />
-                    <span className="text-xs font-mono text-zinc-400">{m.version}</span>
+                    <span className="text-xs font-mono text-[var(--color-text-secondary)]">{m.version}</span>
                     <span className={cn("ml-auto text-xs px-1.5 py-0.5 rounded-full", envBadge[m.env])}>{m.env.slice(0, 4)}</span>
                   </div>
-                  <div className="text-xs font-mono text-white mb-1 truncate">{m.name}</div>
-                  <div className="flex items-center gap-2 text-xs text-zinc-500">
+                  <div className="text-xs font-mono text-[var(--color-text-primary)] mb-1 truncate">{m.name}</div>
+                  <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
                     <span className={cn("px-1.5 py-0.5 rounded-full", statusBadge[m.status])}>{m.status.replace("_", " ")}</span>
                     {m.duration !== null && <span>{m.duration}ms</span>}
                     {m.rowsAffected !== null && <span>{m.rowsAffected.toLocaleString()} rows</span>}
@@ -340,7 +340,7 @@ export default function DatabaseMigrationManager() {
               <div>
                 <div className="font-mono text-lg font-semibold mb-1">{selectedMig.name}</div>
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="font-mono text-zinc-400">{selectedMig.version}</span>
+                  <span className="font-mono text-[var(--color-text-secondary)]">{selectedMig.version}</span>
                   <span className={cn("px-2 py-0.5 rounded-full text-xs", statusBadge[selectedMig.status])}>{selectedMig.status.replace("_", " ")}</span>
                   <span className={cn("px-2 py-0.5 rounded text-xs", envBadge[selectedMig.env])}>{selectedMig.env}</span>
                 </div>
@@ -357,38 +357,38 @@ export default function DatabaseMigrationManager() {
               )}
             </div>
 
-            <p className="text-sm text-zinc-400 mb-4">{selectedMig.description}</p>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-4">{selectedMig.description}</p>
 
             {/* Meta */}
             <div className="grid grid-cols-4 gap-3 mb-4">
-              <div className="bg-zinc-900 rounded p-3">
-                <div className="text-xs text-zinc-500 mb-1">Author</div>
-                <div className="text-xs font-mono text-white truncate">{selectedMig.author}</div>
+              <div className="bg-[var(--color-surface-1)] rounded p-3">
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Author</div>
+                <div className="text-xs font-mono text-[var(--color-text-primary)] truncate">{selectedMig.author}</div>
               </div>
-              <div className="bg-zinc-900 rounded p-3">
-                <div className="text-xs text-zinc-500 mb-1">Created</div>
-                <div className="text-xs text-white">{selectedMig.createdAt}</div>
+              <div className="bg-[var(--color-surface-1)] rounded p-3">
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Created</div>
+                <div className="text-xs text-[var(--color-text-primary)]">{selectedMig.createdAt}</div>
               </div>
-              <div className="bg-zinc-900 rounded p-3">
-                <div className="text-xs text-zinc-500 mb-1">Duration</div>
-                <div className="text-xs font-mono text-white">{selectedMig.duration !== null ? `${selectedMig.duration}ms` : "—"}</div>
+              <div className="bg-[var(--color-surface-1)] rounded p-3">
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Duration</div>
+                <div className="text-xs font-mono text-[var(--color-text-primary)]">{selectedMig.duration !== null ? `${selectedMig.duration}ms` : "—"}</div>
               </div>
-              <div className="bg-zinc-900 rounded p-3">
-                <div className="text-xs text-zinc-500 mb-1">Rows Affected</div>
-                <div className="text-xs font-mono text-white">{selectedMig.rowsAffected !== null ? selectedMig.rowsAffected.toLocaleString() : "—"}</div>
+              <div className="bg-[var(--color-surface-1)] rounded p-3">
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">Rows Affected</div>
+                <div className="text-xs font-mono text-[var(--color-text-primary)]">{selectedMig.rowsAffected !== null ? selectedMig.rowsAffected.toLocaleString() : "—"}</div>
               </div>
             </div>
 
             {/* Changes */}
             <div className="mb-4">
-              <div className="text-sm font-medium text-zinc-300 mb-2">Changes ({selectedMig.changes.length})</div>
+              <div className="text-sm font-medium text-[var(--color-text-primary)] mb-2">Changes ({selectedMig.changes.length})</div>
               <div className="space-y-1.5">
                 {selectedMig.changes.map((c, i) => (
-                  <div key={i} className="bg-zinc-900 rounded p-3 flex items-center gap-3">
+                  <div key={i} className="bg-[var(--color-surface-1)] rounded p-3 flex items-center gap-3">
                     <span className="text-sm">{changeTypeIcon[c.type]}</span>
                     <div className="flex-1">
-                      <span className="text-xs text-white">{c.description}</span>
-                      <span className="text-xs text-zinc-500 ml-2">on <span className="font-mono text-zinc-400">{c.table}</span></span>
+                      <span className="text-xs text-[var(--color-text-primary)]">{c.description}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] ml-2">on <span className="font-mono text-[var(--color-text-secondary)]">{c.table}</span></span>
                     </div>
                     <span className={cn("text-xs px-1.5 py-0.5 rounded", c.reversible ? "text-emerald-400 bg-emerald-500/10" : "text-amber-400 bg-amber-500/10")}>
                       {c.reversible ? "reversible" : "irreversible"}
@@ -401,13 +401,13 @@ export default function DatabaseMigrationManager() {
             {/* SQL */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <div className="text-sm font-medium text-zinc-300">SQL</div>
-                <div className="flex rounded overflow-hidden border border-zinc-700">
-                  <button onClick={() => setSqlView("up")} className={cn("px-2 py-0.5 text-xs transition-colors", sqlView === "up" ? "bg-indigo-600 text-white" : "text-zinc-400 hover:text-zinc-200")}>UP</button>
-                  <button onClick={() => setSqlView("down")} className={cn("px-2 py-0.5 text-xs transition-colors", sqlView === "down" ? "bg-amber-600 text-white" : "text-zinc-400 hover:text-zinc-200")}>DOWN</button>
+                <div className="text-sm font-medium text-[var(--color-text-primary)]">SQL</div>
+                <div className="flex rounded overflow-hidden border border-[var(--color-border)]">
+                  <button onClick={() => setSqlView("up")} className={cn("px-2 py-0.5 text-xs transition-colors", sqlView === "up" ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}>UP</button>
+                  <button onClick={() => setSqlView("down")} className={cn("px-2 py-0.5 text-xs transition-colors", sqlView === "down" ? "bg-amber-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}>DOWN</button>
                 </div>
               </div>
-              <pre className="bg-zinc-900 rounded p-4 text-xs font-mono text-zinc-300 overflow-x-auto whitespace-pre-wrap">
+              <pre className="bg-[var(--color-surface-1)] rounded p-4 text-xs font-mono text-[var(--color-text-primary)] overflow-x-auto whitespace-pre-wrap">
                 {sqlView === "up" ? selectedMig.upSql : selectedMig.downSql}
               </pre>
             </div>
@@ -419,23 +419,23 @@ export default function DatabaseMigrationManager() {
       {tab === "schema" && (
         <div className="flex-1 overflow-y-auto p-6">
           <h2 className="text-base font-semibold mb-1">Schema Overview</h2>
-          <p className="text-sm text-zinc-400 mb-4">Tables tracked by migration system (production)</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-4">Tables tracked by migration system (production)</p>
           <div className="space-y-2">
             {SCHEMA_TABLES.map(t => (
-              <div key={t.name} className="bg-zinc-900 rounded-lg p-4">
+              <div key={t.name} className="bg-[var(--color-surface-1)] rounded-lg p-4">
                 <div className="flex items-center gap-4 mb-2">
-                  <span className="font-mono text-sm font-medium text-white">{t.name}</span>
-                  <div className="flex items-center gap-3 text-xs text-zinc-400 ml-auto">
+                  <span className="font-mono text-sm font-medium text-[var(--color-text-primary)]">{t.name}</span>
+                  <div className="flex items-center gap-3 text-xs text-[var(--color-text-secondary)] ml-auto">
                     <span>{t.columns} cols</span>
                     <span>{t.indexes} idx</span>
                     <span className="font-mono">{t.rowCount.toLocaleString()} rows</span>
                     <span className="font-mono text-amber-400">{formatBytes(t.sizeBytes)}</span>
                   </div>
                 </div>
-                <div className="w-full bg-zinc-800 rounded-full h-1.5 mb-1">
+                <div className="w-full bg-[var(--color-surface-2)] rounded-full h-1.5 mb-1">
                   <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${(t.sizeBytes / maxTableSize) * 100}%` }} />
                 </div>
-                <div className="text-xs text-zinc-600">Last migration: {t.lastMigration}</div>
+                <div className="text-xs text-[var(--color-text-muted)]">Last migration: {t.lastMigration}</div>
               </div>
             ))}
           </div>
@@ -448,16 +448,16 @@ export default function DatabaseMigrationManager() {
           <h2 className="text-base font-semibold mb-4">Run History</h2>
           <div className="space-y-3">
             {RUN_LOGS.map(log => (
-              <div key={log.id} className="bg-zinc-900 rounded-lg p-4">
+              <div key={log.id} className="bg-[var(--color-surface-1)] rounded-lg p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className={cn("px-1.5 py-0.5 rounded text-xs font-bold", log.action === "up" ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300")}>
                         {log.action.toUpperCase()}
                       </span>
-                      <span className="font-mono text-sm text-white">{log.migrationName}</span>
+                      <span className="font-mono text-sm text-[var(--color-text-primary)]">{log.migrationName}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-zinc-500">
+                    <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                       <span className="font-mono">{log.migrationVersion}</span>
                       <span className={cn("px-1.5 py-0.5 rounded-full", envBadge[log.env])}>{log.env}</span>
                       <span>by {log.triggeredBy}</span>
@@ -465,14 +465,14 @@ export default function DatabaseMigrationManager() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={cn("text-xs px-2 py-0.5 rounded-full", statusBadge[log.status])}>{log.status}</span>
-                    <span className="text-xs text-zinc-500">{log.startedAt}</span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{log.startedAt}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-zinc-400 mb-2">
-                  <span>Duration: <span className="font-mono text-white">{log.duration}ms</span></span>
-                  {log.rowsAffected > 0 && <span>Rows: <span className="font-mono text-white">{log.rowsAffected.toLocaleString()}</span></span>}
+                <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)] mb-2">
+                  <span>Duration: <span className="font-mono text-[var(--color-text-primary)]">{log.duration}ms</span></span>
+                  {log.rowsAffected > 0 && <span>Rows: <span className="font-mono text-[var(--color-text-primary)]">{log.rowsAffected.toLocaleString()}</span></span>}
                 </div>
-                <pre className={cn("text-xs font-mono rounded p-2 whitespace-pre-wrap", log.status === "failed" ? "bg-rose-500/10 text-rose-300" : "bg-zinc-800 text-zinc-400")}>
+                <pre className={cn("text-xs font-mono rounded p-2 whitespace-pre-wrap", log.status === "failed" ? "bg-rose-500/10 text-rose-300" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]")}>
                   {log.output}
                 </pre>
               </div>
@@ -485,20 +485,20 @@ export default function DatabaseMigrationManager() {
       {tab === "run" && (
         <div className="flex-1 overflow-y-auto p-6">
           <h2 className="text-base font-semibold mb-1">Run Console</h2>
-          <p className="text-sm text-zinc-400 mb-6">Execute migrations manually with environment selection</p>
-          <div className="bg-zinc-900 rounded-lg p-6">
+          <p className="text-sm text-[var(--color-text-secondary)] mb-6">Execute migrations manually with environment selection</p>
+          <div className="bg-[var(--color-surface-1)] rounded-lg p-6">
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs text-zinc-400 mb-1.5">Target Environment</label>
-                <select className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                <label className="block text-xs text-[var(--color-text-secondary)] mb-1.5">Target Environment</label>
+                <select className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500">
                   <option value="development">Development</option>
                   <option value="staging">Staging</option>
                   <option value="production">Production</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-zinc-400 mb-1.5">Migration</label>
-                <select className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                <label className="block text-xs text-[var(--color-text-secondary)] mb-1.5">Migration</label>
+                <select className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500">
                   {MIGRATIONS.filter(m => m.status === "pending" || m.status === "failed").map(m => (
                     <option key={m.id} value={m.id}>{m.version} — {m.name}</option>
                   ))}
@@ -513,26 +513,26 @@ export default function DatabaseMigrationManager() {
                 ↩ Run Down (Rollback)
               </button>
             </div>
-            <div className="bg-zinc-950 rounded p-4 min-h-32">
-              <div className="text-xs text-zinc-600 font-mono">Awaiting execution...</div>
+            <div className="bg-[var(--color-surface-0)] rounded p-4 min-h-32">
+              <div className="text-xs text-[var(--color-text-muted)] font-mono">Awaiting execution...</div>
               <div className="text-xs text-emerald-400 font-mono mt-1">$ ./migrate --env=staging --version=20260222_003 up</div>
-              <div className="text-xs text-zinc-300 font-mono mt-1">Connecting to staging database...</div>
-              <div className="text-xs text-zinc-300 font-mono">Running migration 20260222_003...</div>
+              <div className="text-xs text-[var(--color-text-primary)] font-mono mt-1">Connecting to staging database...</div>
+              <div className="text-xs text-[var(--color-text-primary)] font-mono">Running migration 20260222_003...</div>
               <div className="animate-pulse text-xs text-blue-400 font-mono">Processing...</div>
             </div>
           </div>
 
           <div className="mt-6">
-            <h3 className="text-sm font-medium text-zinc-300 mb-3">Pending Migrations</h3>
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Pending Migrations</h3>
             {MIGRATIONS.filter(m => m.status === "pending").map(m => (
-              <div key={m.id} className="flex items-center gap-3 bg-zinc-900 rounded p-3 mb-2">
-                <span className="font-mono text-xs text-zinc-400">{m.version}</span>
-                <span className="font-mono text-xs text-white">{m.name}</span>
+              <div key={m.id} className="flex items-center gap-3 bg-[var(--color-surface-1)] rounded p-3 mb-2">
+                <span className="font-mono text-xs text-[var(--color-text-secondary)]">{m.version}</span>
+                <span className="font-mono text-xs text-[var(--color-text-primary)]">{m.name}</span>
                 <span className={cn("ml-auto text-xs px-1.5 py-0.5 rounded", envBadge[m.env])}>{m.env}</span>
               </div>
             ))}
             {MIGRATIONS.filter(m => m.status === "pending").length === 0 && (
-              <div className="text-sm text-zinc-500">All migrations applied</div>
+              <div className="text-sm text-[var(--color-text-muted)]">All migrations applied</div>
             )}
           </div>
         </div>

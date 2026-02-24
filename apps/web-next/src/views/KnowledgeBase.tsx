@@ -384,7 +384,7 @@ Xavier approves all new principal agents.`,
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TYPE_CONFIG: Record<DocType, { label: string; emoji: string; color: string }> = {
-  note:      { label: "Note",      emoji: "📝", color: "text-zinc-400" },
+  note:      { label: "Note",      emoji: "📝", color: "text-[var(--color-text-secondary)]" },
   guide:     { label: "Guide",     emoji: "📖", color: "text-emerald-400" },
   reference: { label: "Reference", emoji: "📋", color: "text-indigo-400" },
   runbook:   { label: "Runbook",   emoji: "⚙️", color: "text-amber-400" },
@@ -393,9 +393,9 @@ const TYPE_CONFIG: Record<DocType, { label: string; emoji: string; color: string
 };
 
 const STATUS_CONFIG: Record<DocStatus, { label: string; badge: string }> = {
-  draft:     { label: "Draft",     badge: "bg-zinc-700/50 text-zinc-400 ring-1 ring-zinc-600/30" },
+  draft:     { label: "Draft",     badge: "bg-[var(--color-surface-3)]/50 text-[var(--color-text-secondary)] ring-1 ring-zinc-600/30" },
   published: { label: "Published", badge: "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/25" },
-  archived:  { label: "Archived",  badge: "bg-zinc-800 text-zinc-600 ring-1 ring-zinc-700/30" },
+  archived:  { label: "Archived",  badge: "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] ring-1 ring-[var(--color-border)]/30" },
 };
 
 function relTime(d: Date): string {
@@ -422,21 +422,21 @@ function DocCard({ doc, selected, onSelect }: DocCardProps) {
       aria-selected={selected}
       onClick={onSelect}
       className={cn(
-        "w-full text-left p-4 border-b border-zinc-800/50 transition-colors",
-        "hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-        selected && "bg-zinc-900 border-l-2 border-l-indigo-500"
+        "w-full text-left p-4 border-b border-[var(--color-border)]/50 transition-colors",
+        "hover:bg-[var(--color-surface-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
+        selected && "bg-[var(--color-surface-1)] border-l-2 border-l-indigo-500"
       )}
     >
       <div className="flex items-start gap-2">
         <span className="text-base flex-none mt-0.5">{typeCfg.emoji}</span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white leading-tight">{doc.title}</p>
+          <p className="text-sm font-semibold text-[var(--color-text-primary)] leading-tight">{doc.title}</p>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className={cn("text-xs", typeCfg.color)}>{typeCfg.label}</span>
             <span className={cn("px-1.5 py-0.5 text-xs rounded-full", statusCfg.badge)}>{statusCfg.label}</span>
           </div>
-          <p className="text-xs text-zinc-600 mt-1 line-clamp-2 leading-relaxed">{doc.excerpt}</p>
-          <div className="flex items-center gap-3 mt-2 text-xs text-zinc-700">
+          <p className="text-xs text-[var(--color-text-muted)] mt-1 line-clamp-2 leading-relaxed">{doc.excerpt}</p>
+          <div className="flex items-center gap-3 mt-2 text-xs text-[var(--color-text-muted)]">
             <span>{doc.author.emoji} {doc.author.name}</span>
             <span>{relTime(doc.updatedAt)}</span>
             <span>{doc.views} views</span>
@@ -456,13 +456,13 @@ function DocDetail({ doc }: { doc: KBDoc }) {
   // Very simple markdown-to-HTML renderer for the seed content
   const renderContent = (md: string): React.ReactNode => {
     return md.split("\n").map((line, i) => {
-      if (line.startsWith("# ")) {return <h1 key={i} className="text-xl font-bold text-white mt-0 mb-3">{line.slice(2)}</h1>;}
-      if (line.startsWith("## ")) {return <h2 key={i} className="text-base font-semibold text-zinc-200 mt-5 mb-2">{line.slice(3)}</h2>;}
-      if (line.startsWith("### ")) {return <h3 key={i} className="text-sm font-semibold text-zinc-300 mt-4 mb-1">{line.slice(4)}</h3>;}
-      if (line.startsWith("- ")) {return <li key={i} className="text-sm text-zinc-400 ml-4 list-disc leading-relaxed">{line.slice(2)}</li>;}
-      if (line.startsWith("```")) {return <div key={i} className={line === "```" ? "mb-3" : "mt-2 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg font-mono text-xs text-zinc-300"} />;}
+      if (line.startsWith("# ")) {return <h1 key={i} className="text-xl font-bold text-[var(--color-text-primary)] mt-0 mb-3">{line.slice(2)}</h1>;}
+      if (line.startsWith("## ")) {return <h2 key={i} className="text-base font-semibold text-[var(--color-text-primary)] mt-5 mb-2">{line.slice(3)}</h2>;}
+      if (line.startsWith("### ")) {return <h3 key={i} className="text-sm font-semibold text-[var(--color-text-primary)] mt-4 mb-1">{line.slice(4)}</h3>;}
+      if (line.startsWith("- ")) {return <li key={i} className="text-sm text-[var(--color-text-secondary)] ml-4 list-disc leading-relaxed">{line.slice(2)}</li>;}
+      if (line.startsWith("```")) {return <div key={i} className={line === "```" ? "mb-3" : "mt-2 px-3 py-2 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg font-mono text-xs text-[var(--color-text-primary)]"} />;}
       if (line.startsWith("**") && line.endsWith("**")) {
-        return <p key={i} className="text-sm font-semibold text-zinc-200 mt-2">{line.slice(2, -2)}</p>;
+        return <p key={i} className="text-sm font-semibold text-[var(--color-text-primary)] mt-2">{line.slice(2, -2)}</p>;
       }
       if (line === "") {return <div key={i} className="h-2" />;}
       if (line.startsWith("❌") || line.startsWith("✅")) {
@@ -471,10 +471,10 @@ function DocDetail({ doc }: { doc: KBDoc }) {
       // Inline code
       const parts = line.split(/(`[^`]+`)/g);
       return (
-        <p key={i} className="text-sm text-zinc-400 leading-relaxed">
+        <p key={i} className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
           {parts.map((part, j) =>
             part.startsWith("`") && part.endsWith("`")
-              ? <code key={j} className="px-1 py-0.5 text-xs font-mono bg-zinc-800 text-emerald-300 rounded">{part.slice(1, -1)}</code>
+              ? <code key={j} className="px-1 py-0.5 text-xs font-mono bg-[var(--color-surface-2)] text-emerald-300 rounded">{part.slice(1, -1)}</code>
               : part
           )}
         </p>
@@ -485,17 +485,17 @@ function DocDetail({ doc }: { doc: KBDoc }) {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Header */}
-      <div className="flex-none px-6 py-5 border-b border-zinc-800">
+      <div className="flex-none px-6 py-5 border-b border-[var(--color-border)]">
         <div className="flex items-start gap-3">
           <span className="text-3xl flex-none">{typeCfg.emoji}</span>
           <div className="flex-1">
-            <h2 className="text-lg font-semibold text-white">{doc.title}</h2>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{doc.title}</h2>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className={cn("text-xs", typeCfg.color)}>{typeCfg.label}</span>
               <span className={cn("px-1.5 py-0.5 text-xs rounded-full", statusCfg.badge)}>{statusCfg.label}</span>
-              <span className="text-xs text-zinc-600">{doc.wordCount} words · {doc.views} views</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{doc.wordCount} words · {doc.views} views</span>
             </div>
-            <div className="flex items-center gap-3 mt-2 text-xs text-zinc-600">
+            <div className="flex items-center gap-3 mt-2 text-xs text-[var(--color-text-muted)]">
               <span>{doc.author.emoji} {doc.author.name}</span>
               <span>·</span>
               <span>Updated {relTime(doc.updatedAt)}</span>
@@ -504,16 +504,16 @@ function DocDetail({ doc }: { doc: KBDoc }) {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-none">
-            <button aria-label="Edit document" className="py-1.5 px-3 text-xs font-medium rounded-lg bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">Edit</button>
+            <button aria-label="Edit document" className="py-1.5 px-3 text-xs font-medium rounded-lg bg-[var(--color-surface-2)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">Edit</button>
           </div>
         </div>
 
         {/* Agent access */}
         {doc.agentContext.length > 0 && (
           <div className="mt-3 flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-zinc-600">Access:</span>
+            <span className="text-xs text-[var(--color-text-muted)]">Access:</span>
             {doc.agentContext.map((a) => (
-              <span key={a} className="text-xs px-1.5 py-0.5 rounded-md bg-zinc-800 text-zinc-400 border border-zinc-700 capitalize">{a}</span>
+              <span key={a} className="text-xs px-1.5 py-0.5 rounded-md bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)] capitalize">{a}</span>
             ))}
           </div>
         )}
@@ -521,7 +521,7 @@ function DocDetail({ doc }: { doc: KBDoc }) {
         {/* Tags */}
         <div className="mt-2 flex flex-wrap gap-1">
           {doc.tags.map((t) => (
-            <span key={t} className="px-1.5 py-0.5 text-xs rounded bg-zinc-800 text-zinc-500 border border-zinc-700/50">{t}</span>
+            <span key={t} className="px-1.5 py-0.5 text-xs rounded bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border border-[var(--color-border)]/50">{t}</span>
           ))}
         </div>
       </div>
@@ -586,20 +586,20 @@ export default function KnowledgeBase() {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-[var(--color-surface-0)]">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
+      <div className="flex-none px-6 py-4 border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-lg font-semibold text-white">Knowledge Base</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Agent documentation, runbooks, decisions, and references</p>
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Knowledge Base</h1>
+            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">Agent documentation, runbooks, decisions, and references</p>
           </div>
-          <div className="flex items-center gap-3 text-xs text-zinc-600">
-            <span><span className="text-zinc-300 font-semibold">{stats.total}</span> docs</span>
+          <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
+            <span><span className="text-[var(--color-text-primary)] font-semibold">{stats.total}</span> docs</span>
             <span><span className="text-emerald-400 font-semibold">{stats.published}</span> published</span>
             <span><span className="text-indigo-400 font-semibold">{stats.totalViews}</span> total views</span>
-            <span><span className="text-zinc-400 font-semibold">{(stats.totalWords / 1000).toFixed(1)}K</span> words</span>
-            <button aria-label="Create new document" className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors font-medium">
+            <span><span className="text-[var(--color-text-secondary)] font-semibold">{(stats.totalWords / 1000).toFixed(1)}K</span> words</span>
+            <button aria-label="Create new document" className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors font-medium">
               <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" d="M7 2v10M2 7h10" /></svg>
               New Doc
             </button>
@@ -609,20 +609,20 @@ export default function KnowledgeBase() {
 
       <div className="flex flex-1 min-h-0">
         {/* Left sidebar: doc list */}
-        <div className="w-72 flex-none flex flex-col border-r border-zinc-800">
+        <div className="w-72 flex-none flex flex-col border-r border-[var(--color-border)]">
           {/* Filters */}
-          <div className="flex-none px-3 py-2 border-b border-zinc-800 space-y-2">
+          <div className="flex-none px-3 py-2 border-b border-[var(--color-border)] space-y-2">
             <div className="relative">
-              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500 pointer-events-none" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--color-text-muted)] pointer-events-none" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
                 <circle cx="7" cy="7" r="4.5" /><path strokeLinecap="round" d="M10.5 10.5l3 3" />
               </svg>
-              <input ref={searchRef} type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search docs… (⌘F)" aria-label="Search knowledge base" className="w-full pl-8 pr-3 py-1.5 text-xs bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input ref={searchRef} type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search docs… (⌘F)" aria-label="Search knowledge base" className="w-full pl-8 pr-3 py-1.5 text-xs bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
             <div className="flex gap-2">
-              <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as DocTypeFilter)} aria-label="Filter by type" className="flex-1 py-1 pl-2 pr-6 text-xs bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
+              <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as DocTypeFilter)} aria-label="Filter by type" className="flex-1 py-1 pl-2 pr-6 text-xs bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
                 {ALL_TYPES.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
               </select>
-              <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as SortOrder)} aria-label="Sort order" className="flex-1 py-1 pl-2 pr-6 text-xs bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
+              <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as SortOrder)} aria-label="Sort order" className="flex-1 py-1 pl-2 pr-6 text-xs bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
                 <option value="updated">Updated</option>
                 <option value="views">Most viewed</option>
                 <option value="title">A–Z</option>
@@ -633,7 +633,7 @@ export default function KnowledgeBase() {
           {/* Doc list */}
           <div role="listbox" aria-label="Documents" className="flex-1 overflow-y-auto">
             {filtered.length === 0 ? (
-              <p className="px-4 py-8 text-xs text-zinc-600 text-center">No docs match</p>
+              <p className="px-4 py-8 text-xs text-[var(--color-text-muted)] text-center">No docs match</p>
             ) : (
               filtered.map((doc) => (
                 <DocCard key={doc.id} doc={doc} selected={selectedId === doc.id} onSelect={() => setSelectedId(doc.id)} />

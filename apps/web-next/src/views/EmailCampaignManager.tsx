@@ -138,7 +138,7 @@ const TEMPLATES: Template[] = [
   { id: "tm-3", name: "Minimal Welcome", category: "welcome", color: "bg-emerald-500" },
   { id: "tm-4", name: "Account Alert", category: "transactional", color: "bg-amber-500" },
   { id: "tm-5", name: "Modern Product Update", category: "newsletter", color: "bg-sky-500" },
-  { id: "tm-6", name: "Simple Receipt", category: "transactional", color: "bg-zinc-500" }
+  { id: "tm-6", name: "Simple Receipt", category: "transactional", color: "bg-[var(--color-surface-3)]" }
 ];
 
 const AUDIENCE_LISTS = [
@@ -152,7 +152,7 @@ const AUDIENCE_LISTS = [
 
 const StatusBadge = ({ status }: { status: CampaignStatus }) => {
   const styles: Record<CampaignStatus, string> = {
-    draft: "bg-zinc-800 text-zinc-400",
+    draft: "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]",
     scheduled: "bg-indigo-900/40 text-indigo-400 border border-indigo-500/30",
     sending: "bg-emerald-900/40 text-emerald-400 border border-emerald-500/30",
     sent: "bg-emerald-500/10 text-emerald-400",
@@ -221,24 +221,24 @@ export default function EmailCampaignManager() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 font-sans">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 font-sans">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Email Campaigns</h1>
-          <p className="text-zinc-400 mt-1">Design, manage, and analyze your customer communication.</p>
+          <p className="text-[var(--color-text-secondary)] mt-1">Design, manage, and analyze your customer communication.</p>
         </div>
         
         <button 
           onClick={() => setActiveTab("compose")}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/10"
+          className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-5 py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/10"
         >
           <span>➕</span> Create New Campaign
         </button>
       </div>
 
       {/* Tabs Navigation */}
-      <div className="max-w-7xl mx-auto mb-8 border-b border-zinc-800">
+      <div className="max-w-7xl mx-auto mb-8 border-b border-[var(--color-border)]">
         <div className="flex gap-8">
           {(["campaigns", "compose", "templates", "analytics"] as TabType[]).map((tab) => (
             <button
@@ -246,7 +246,7 @@ export default function EmailCampaignManager() {
               onClick={() => setActiveTab(tab)}
               className={cn(
                 "pb-4 text-sm font-medium transition-all relative capitalize",
-                activeTab === tab ? "text-indigo-400" : "text-zinc-500 hover:text-zinc-300"
+                activeTab === tab ? "text-indigo-400" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {tab}
@@ -264,7 +264,7 @@ export default function EmailCampaignManager() {
         {/* TAB: CAMPAIGNS */}
         {activeTab === "campaigns" && (
           <div className="space-y-4">
-            <div className="grid grid-cols-12 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-500 border-b border-zinc-800/50">
+            <div className="grid grid-cols-12 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)] border-b border-[var(--color-border)]/50">
               <div className="col-span-4">Campaign & Subject</div>
               <div className="col-span-2">Status</div>
               <div className="col-span-2 text-right">Recipients</div>
@@ -276,8 +276,8 @@ export default function EmailCampaignManager() {
               <div 
                 key={cp.id}
                 className={cn(
-                  "bg-zinc-900 border border-zinc-800 rounded-xl transition-all overflow-hidden",
-                  expandedCampaignId === cp.id ? "ring-1 ring-indigo-500/50" : "hover:border-zinc-700"
+                  "bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl transition-all overflow-hidden",
+                  expandedCampaignId === cp.id ? "ring-1 ring-indigo-500/50" : "hover:border-[var(--color-border)]"
                 )}
               >
                 <div 
@@ -285,38 +285,38 @@ export default function EmailCampaignManager() {
                   onClick={() => toggleCampaignExpand(cp.id)}
                 >
                   <div className="col-span-4 flex flex-col gap-1">
-                    <span className="font-bold text-zinc-100">{cp.name}</span>
-                    <span className="text-sm text-zinc-500 truncate pr-4">{cp.subject}</span>
+                    <span className="font-bold text-[var(--color-text-primary)]">{cp.name}</span>
+                    <span className="text-sm text-[var(--color-text-muted)] truncate pr-4">{cp.subject}</span>
                   </div>
                   <div className="col-span-2">
                     <StatusBadge status={cp.status} />
                   </div>
                   <div className="col-span-2 text-right">
-                    <div className="text-zinc-100 font-medium">{cp.recipientsCount.toLocaleString()}</div>
-                    <div className="text-xs text-zinc-500">{cp.sentDate || "Not sent yet"}</div>
+                    <div className="text-[var(--color-text-primary)] font-medium">{cp.recipientsCount.toLocaleString()}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">{cp.sentDate || "Not sent yet"}</div>
                   </div>
                   <div className="col-span-2 text-right space-y-1">
                     <div className="flex justify-end gap-3 text-sm">
-                      <span className="text-emerald-400">{cp.openRate}% <span className="text-[10px] uppercase text-zinc-600">Open</span></span>
+                      <span className="text-emerald-400">{cp.openRate}% <span className="text-[10px] uppercase text-[var(--color-text-muted)]">Open</span></span>
                     </div>
                     <div className="flex justify-end gap-3 text-sm">
-                      <span className="text-indigo-400">{cp.clickRate}% <span className="text-[10px] uppercase text-zinc-600">Click</span></span>
+                      <span className="text-indigo-400">{cp.clickRate}% <span className="text-[10px] uppercase text-[var(--color-text-muted)]">Click</span></span>
                     </div>
                   </div>
                   <div className="col-span-2 flex justify-end gap-2">
                     <button 
                       onClick={(e) => duplicateCampaign(cp.id, e)}
-                      className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors title='Duplicate'"
+                      className="p-2 hover:bg-[var(--color-surface-2)] rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors title='Duplicate'"
                     >
                       📑
                     </button>
                     <button 
                       onClick={(e) => deleteCampaign(cp.id, e)}
-                      className="p-2 hover:bg-rose-900/20 rounded-lg text-zinc-400 hover:text-rose-400 transition-colors title='Delete'"
+                      className="p-2 hover:bg-rose-900/20 rounded-lg text-[var(--color-text-secondary)] hover:text-rose-400 transition-colors title='Delete'"
                     >
                       🗑️
                     </button>
-                    <button className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 transition-colors">
+                    <button className="p-2 hover:bg-[var(--color-surface-2)] rounded-lg text-[var(--color-text-secondary)] transition-colors">
                       {expandedCampaignId === cp.id ? "▲" : "▼"}
                     </button>
                   </div>
@@ -324,34 +324,34 @@ export default function EmailCampaignManager() {
 
                 {/* Expanded Details */}
                 {expandedCampaignId === cp.id && (
-                  <div className="px-6 pb-6 pt-2 border-t border-zinc-800/50 bg-zinc-900/50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="px-6 pb-6 pt-2 border-t border-[var(--color-border)]/50 bg-[var(--color-surface-1)]/50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="grid grid-cols-4 gap-4 mt-4">
-                      <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800">
-                        <div className="text-xs text-zinc-500 uppercase font-bold mb-1">Delivered</div>
-                        <div className="text-xl font-bold text-white">{cp.stats.delivered.toLocaleString()}</div>
-                        <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                      <div className="bg-[var(--color-surface-0)] p-4 rounded-lg border border-[var(--color-border)]">
+                        <div className="text-xs text-[var(--color-text-muted)] uppercase font-bold mb-1">Delivered</div>
+                        <div className="text-xl font-bold text-[var(--color-text-primary)]">{cp.stats.delivered.toLocaleString()}</div>
+                        <div className="w-full bg-[var(--color-surface-2)] h-1.5 rounded-full mt-3 overflow-hidden">
                           <div className="bg-emerald-500 h-full" style={{ width: cp.recipientsCount > 0 ? `${(cp.stats.delivered / cp.recipientsCount) * 100}%` : '0%' }} />
                         </div>
                       </div>
-                      <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800">
-                        <div className="text-xs text-zinc-500 uppercase font-bold mb-1">Bounced</div>
-                        <div className="text-xl font-bold text-white">{cp.stats.bounced.toLocaleString()}</div>
-                        <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                      <div className="bg-[var(--color-surface-0)] p-4 rounded-lg border border-[var(--color-border)]">
+                        <div className="text-xs text-[var(--color-text-muted)] uppercase font-bold mb-1">Bounced</div>
+                        <div className="text-xl font-bold text-[var(--color-text-primary)]">{cp.stats.bounced.toLocaleString()}</div>
+                        <div className="w-full bg-[var(--color-surface-2)] h-1.5 rounded-full mt-3 overflow-hidden">
                           <div className="bg-rose-500 h-full" style={{ width: cp.recipientsCount > 0 ? `${(cp.stats.bounced / cp.recipientsCount) * 100}%` : '0%' }} />
                         </div>
                       </div>
-                      <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800">
-                        <div className="text-xs text-zinc-500 uppercase font-bold mb-1">Unsubscribed</div>
-                        <div className="text-xl font-bold text-white">{cp.stats.unsubscribed.toLocaleString()}</div>
-                        <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                      <div className="bg-[var(--color-surface-0)] p-4 rounded-lg border border-[var(--color-border)]">
+                        <div className="text-xs text-[var(--color-text-muted)] uppercase font-bold mb-1">Unsubscribed</div>
+                        <div className="text-xl font-bold text-[var(--color-text-primary)]">{cp.stats.unsubscribed.toLocaleString()}</div>
+                        <div className="w-full bg-[var(--color-surface-2)] h-1.5 rounded-full mt-3 overflow-hidden">
                           <div className="bg-amber-500 h-full" style={{ width: cp.recipientsCount > 0 ? `${(cp.stats.unsubscribed / cp.recipientsCount) * 100}%` : '0%' }} />
                         </div>
                       </div>
-                      <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800">
-                        <div className="text-xs text-zinc-500 uppercase font-bold mb-1">Spam Reports</div>
-                        <div className="text-xl font-bold text-white">{cp.stats.spamReports.toLocaleString()}</div>
-                        <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-3 overflow-hidden">
-                          <div className="bg-zinc-700 h-full" style={{ width: cp.recipientsCount > 0 ? `${(cp.stats.spamReports / cp.recipientsCount) * 100}%` : '0%' }} />
+                      <div className="bg-[var(--color-surface-0)] p-4 rounded-lg border border-[var(--color-border)]">
+                        <div className="text-xs text-[var(--color-text-muted)] uppercase font-bold mb-1">Spam Reports</div>
+                        <div className="text-xl font-bold text-[var(--color-text-primary)]">{cp.stats.spamReports.toLocaleString()}</div>
+                        <div className="w-full bg-[var(--color-surface-2)] h-1.5 rounded-full mt-3 overflow-hidden">
+                          <div className="bg-[var(--color-surface-3)] h-full" style={{ width: cp.recipientsCount > 0 ? `${(cp.stats.spamReports / cp.recipientsCount) * 100}%` : '0%' }} />
                         </div>
                       </div>
                     </div>
@@ -360,7 +360,7 @@ export default function EmailCampaignManager() {
                       {cp.status === 'paused' && <button className="px-4 py-2 text-sm font-semibold bg-emerald-600 rounded-lg">Resume Campaign</button>}
                       {cp.status === 'sending' && <button className="px-4 py-2 text-sm font-semibold bg-amber-600 rounded-lg">Pause Campaign</button>}
                       {cp.status === 'draft' && <button className="px-4 py-2 text-sm font-semibold bg-indigo-600 rounded-lg">Edit Details</button>}
-                      <button className="px-4 py-2 text-sm font-semibold border border-zinc-700 rounded-lg hover:bg-zinc-800 transition-colors">Download Full CSV Report</button>
+                      <button className="px-4 py-2 text-sm font-semibold border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-2)] transition-colors">Download Full CSV Report</button>
                     </div>
                   </div>
                 )}
@@ -373,18 +373,18 @@ export default function EmailCampaignManager() {
         {activeTab === "compose" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             {/* Editor Side */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 space-y-6">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-8 space-y-6">
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <span>✍️</span> Campaign Builder
               </h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase text-zinc-500 mb-1.5">To Audience</label>
+                  <label className="block text-xs font-bold uppercase text-[var(--color-text-muted)] mb-1.5">To Audience</label>
                   <select 
                     value={composeTo}
                     onChange={(e) => setComposeTo(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                    className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                   >
                     {AUDIENCE_LISTS.map(list => (
                       <option key={list.id} value={list.id}>{list.name} ({list.count.toLocaleString()} subscribers)</option>
@@ -394,11 +394,11 @@ export default function EmailCampaignManager() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase text-zinc-500 mb-1.5">From Address</label>
+                    <label className="block text-xs font-bold uppercase text-[var(--color-text-muted)] mb-1.5">From Address</label>
                     <select 
                       value={composeFrom}
                       onChange={(e) => setComposeFrom(e.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                      className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                     >
                       <option value="marketing@horizonui.com">marketing@horizonui.com</option>
                       <option value="newsletter@horizonui.com">newsletter@horizonui.com</option>
@@ -406,11 +406,11 @@ export default function EmailCampaignManager() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-zinc-500 mb-1.5">Schedule</label>
+                    <label className="block text-xs font-bold uppercase text-[var(--color-text-muted)] mb-1.5">Schedule</label>
                     <select 
                       value={composeSchedule}
                       onChange={(e) => setComposeSchedule(e.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                      className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                     >
                       <option value="now">Send Immediately</option>
                       <option value="schedule">Schedule for Later</option>
@@ -419,42 +419,42 @@ export default function EmailCampaignManager() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase text-zinc-500 mb-1.5">Subject Line</label>
+                  <label className="block text-xs font-bold uppercase text-[var(--color-text-muted)] mb-1.5">Subject Line</label>
                   <input 
                     type="text"
                     value={composeSubject}
                     onChange={(e) => setComposeSubject(e.target.value)}
                     placeholder="E.g. Your Weekly Digest is Here!"
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                    className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase text-zinc-500 mb-1.5">Message Body</label>
-                  <div className="bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden">
-                    <div className="flex gap-2 p-2 bg-zinc-900 border-b border-zinc-800">
-                      <button className="p-1 hover:bg-zinc-800 rounded text-xs px-2 font-bold">B</button>
-                      <button className="p-1 hover:bg-zinc-800 rounded text-xs px-2 italic font-serif text-zinc-400">I</button>
-                      <button className="p-1 hover:bg-zinc-800 rounded text-xs px-2 underline text-zinc-400">U</button>
-                      <div className="w-px bg-zinc-800 mx-1" />
-                      <button className="p-1 hover:bg-zinc-800 rounded text-xs px-2 text-zinc-400">🔗 Link</button>
-                      <button className="p-1 hover:bg-zinc-800 rounded text-xs px-2 text-zinc-400">🖼️ Image</button>
+                  <label className="block text-xs font-bold uppercase text-[var(--color-text-muted)] mb-1.5">Message Body</label>
+                  <div className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+                    <div className="flex gap-2 p-2 bg-[var(--color-surface-1)] border-b border-[var(--color-border)]">
+                      <button className="p-1 hover:bg-[var(--color-surface-2)] rounded text-xs px-2 font-bold">B</button>
+                      <button className="p-1 hover:bg-[var(--color-surface-2)] rounded text-xs px-2 italic font-serif text-[var(--color-text-secondary)]">I</button>
+                      <button className="p-1 hover:bg-[var(--color-surface-2)] rounded text-xs px-2 underline text-[var(--color-text-secondary)]">U</button>
+                      <div className="w-px bg-[var(--color-surface-2)] mx-1" />
+                      <button className="p-1 hover:bg-[var(--color-surface-2)] rounded text-xs px-2 text-[var(--color-text-secondary)]">🔗 Link</button>
+                      <button className="p-1 hover:bg-[var(--color-surface-2)] rounded text-xs px-2 text-[var(--color-text-secondary)]">🖼️ Image</button>
                     </div>
                     <textarea 
                       value={composeBody}
                       onChange={(e) => setComposeBody(e.target.value)}
                       rows={10}
-                      className="w-full bg-transparent p-4 text-sm text-zinc-300 focus:outline-none resize-none"
+                      className="w-full bg-transparent p-4 text-sm text-[var(--color-text-primary)] focus:outline-none resize-none"
                     />
                   </div>
                 </div>
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
+                <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
                   🚀 {composeSchedule === 'now' ? 'Send Campaign Now' : 'Schedule Campaign'}
                 </button>
-                <button className="px-6 py-3 border border-zinc-700 hover:bg-zinc-800 rounded-xl font-bold transition-all">
+                <button className="px-6 py-3 border border-[var(--color-border)] hover:bg-[var(--color-surface-2)] rounded-xl font-bold transition-all">
                   💾 Save Draft
                 </button>
               </div>
@@ -462,18 +462,18 @@ export default function EmailCampaignManager() {
 
             {/* Preview Side */}
             <div className="sticky top-6">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden flex flex-col h-[700px]">
-                <div className="p-4 bg-zinc-800/50 border-b border-zinc-800 flex items-center justify-between">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl overflow-hidden flex flex-col h-[700px]">
+                <div className="p-4 bg-[var(--color-surface-2)]/50 border-b border-[var(--color-border)] flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1.5">
                       <div className="w-3 h-3 rounded-full bg-rose-500/40" />
                       <div className="w-3 h-3 rounded-full bg-amber-500/40" />
                       <div className="w-3 h-3 rounded-full bg-emerald-500/40" />
                     </div>
-                    <span className="ml-3 text-xs font-semibold text-zinc-400 uppercase tracking-widest">Live Preview</span>
+                    <span className="ml-3 text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-widest">Live Preview</span>
                   </div>
                   <div className="flex gap-2">
-                    <button className="p-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs">📱</button>
+                    <button className="p-1.5 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded text-xs">📱</button>
                     <button className="p-1.5 bg-indigo-500/20 border border-indigo-500/40 rounded text-xs">💻</button>
                   </div>
                 </div>
@@ -481,36 +481,36 @@ export default function EmailCampaignManager() {
                 <div className="flex-1 bg-white overflow-y-auto p-12">
                    <div className="max-w-xl mx-auto space-y-8">
                       {/* Email Header */}
-                      <div className="flex justify-between items-center border-b pb-6 border-zinc-100">
-                        <div className="text-2xl font-black text-zinc-900 tracking-tighter italic">HORIZON</div>
-                        <div className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">Edition #42</div>
+                      <div className="flex justify-between items-center border-b pb-6 border-[var(--color-border)]">
+                        <div className="text-2xl font-black text-[var(--color-text-primary)] tracking-tighter italic">HORIZON</div>
+                        <div className="text-[10px] text-[var(--color-text-secondary)] uppercase tracking-widest font-bold">Edition #42</div>
                       </div>
 
                       {/* Email Content */}
                       <div className="space-y-6">
-                        <h1 className="text-3xl font-extrabold text-zinc-900 leading-tight">
+                        <h1 className="text-3xl font-extrabold text-[var(--color-text-primary)] leading-tight">
                           {composeSubject || "Add a subject line..."}
                         </h1>
                         
-                        <div className="text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                        <div className="text-[var(--color-text-muted)] leading-relaxed whitespace-pre-wrap">
                           {composeBody}
                         </div>
 
-                        <div className="bg-zinc-900 text-white p-6 rounded-xl text-center space-y-4">
+                        <div className="bg-[var(--color-surface-1)] text-[var(--color-text-primary)] p-6 rounded-xl text-center space-y-4">
                           <p className="font-bold">Ready to take your UI to the next level?</p>
-                          <button className="bg-indigo-500 text-white px-8 py-3 rounded-full font-bold text-sm">
+                          <button className="bg-indigo-500 text-[var(--color-text-primary)] px-8 py-3 rounded-full font-bold text-sm">
                             Go to Dashboard
                           </button>
                         </div>
 
-                        <p className="text-zinc-500 text-sm italic">
+                        <p className="text-[var(--color-text-muted)] text-sm italic">
                           This is a dynamic preview. Your content is rendered in a secure sandbox to ensure perfect display across all mail clients.
                         </p>
                       </div>
 
                       {/* Email Footer */}
-                      <div className="pt-12 border-t border-zinc-100 text-center space-y-4">
-                        <div className="text-[10px] text-zinc-400 uppercase font-bold tracking-widest">Horizon UI Dashboard • San Francisco, CA</div>
+                      <div className="pt-12 border-t border-[var(--color-border)] text-center space-y-4">
+                        <div className="text-[10px] text-[var(--color-text-secondary)] uppercase font-bold tracking-widest">Horizon UI Dashboard • San Francisco, CA</div>
                         <div className="text-[10px] text-indigo-500 font-bold hover:underline cursor-pointer">Unsubscribe from this list</div>
                       </div>
                    </div>
@@ -525,7 +525,7 @@ export default function EmailCampaignManager() {
           <div className="space-y-8">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">Saved Email Templates</h2>
-              <button className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+              <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
                 🎨 Create From Scratch
               </button>
             </div>
@@ -534,7 +534,7 @@ export default function EmailCampaignManager() {
               {TEMPLATES.map((tmpl) => (
                 <div 
                   key={tmpl.id}
-                  className="group bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden hover:border-indigo-500/50 transition-all cursor-pointer"
+                  className="group bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition-all cursor-pointer"
                   onClick={() => setActiveTab("compose")}
                 >
                   <div className={cn("aspect-video relative overflow-hidden flex items-center justify-center", tmpl.color)}>
@@ -547,22 +547,22 @@ export default function EmailCampaignManager() {
                   </div>
                   <div className="p-5 flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-zinc-100 group-hover:text-indigo-400 transition-colors">{tmpl.name}</h3>
-                      <p className="text-xs text-zinc-500 uppercase font-bold tracking-wider mt-1">{tmpl.category}</p>
+                      <h3 className="font-bold text-[var(--color-text-primary)] group-hover:text-indigo-400 transition-colors">{tmpl.name}</h3>
+                      <p className="text-xs text-[var(--color-text-muted)] uppercase font-bold tracking-wider mt-1">{tmpl.category}</p>
                     </div>
-                    <button className="p-2 bg-zinc-800 rounded-lg text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="p-2 bg-[var(--color-surface-2)] rounded-lg text-xs opacity-0 group-hover:opacity-100 transition-opacity">
                       Use →
                     </button>
                   </div>
                 </div>
               ))}
 
-              <div className="border-2 border-dashed border-zinc-800 rounded-2xl flex flex-col items-center justify-center p-8 hover:bg-zinc-900/40 transition-colors cursor-pointer group">
-                <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+              <div className="border-2 border-dashed border-[var(--color-border)] rounded-2xl flex flex-col items-center justify-center p-8 hover:bg-[var(--color-surface-1)]/40 transition-colors cursor-pointer group">
+                <div className="w-12 h-12 rounded-full bg-[var(--color-surface-1)] flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
                   📥
                 </div>
-                <h3 className="font-bold text-zinc-400 mt-4">Import Template</h3>
-                <p className="text-xs text-zinc-600 mt-1">JSON or HTML files</p>
+                <h3 className="font-bold text-[var(--color-text-secondary)] mt-4">Import Template</h3>
+                <p className="text-xs text-[var(--color-text-muted)] mt-1">JSON or HTML files</p>
               </div>
             </div>
           </div>
@@ -573,42 +573,42 @@ export default function EmailCampaignManager() {
           <div className="space-y-8">
             {/* Top Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-6 rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl text-xl">📈</div>
                   <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">+12.5%</span>
                 </div>
-                <div className="text-zinc-500 text-sm font-medium">Avg. Open Rate</div>
-                <div className="text-3xl font-bold mt-1 text-white">31.42%</div>
+                <div className="text-[var(--color-text-muted)] text-sm font-medium">Avg. Open Rate</div>
+                <div className="text-3xl font-bold mt-1 text-[var(--color-text-primary)]">31.42%</div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-6 rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-xl text-xl">🖱️</div>
                   <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">+4.2%</span>
                 </div>
-                <div className="text-zinc-500 text-sm font-medium">Avg. Click-Through</div>
-                <div className="text-3xl font-bold mt-1 text-white">6.18%</div>
+                <div className="text-[var(--color-text-muted)] text-sm font-medium">Avg. Click-Through</div>
+                <div className="text-3xl font-bold mt-1 text-[var(--color-text-primary)]">6.18%</div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-6 rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-rose-500/10 text-rose-500 rounded-xl text-xl">📉</div>
                   <span className="text-xs font-bold text-rose-500 bg-rose-500/10 px-2 py-1 rounded">-0.8%</span>
                 </div>
-                <div className="text-zinc-500 text-sm font-medium">Unsubscribe Rate</div>
-                <div className="text-3xl font-bold mt-1 text-white">0.45%</div>
+                <div className="text-[var(--color-text-muted)] text-sm font-medium">Unsubscribe Rate</div>
+                <div className="text-3xl font-bold mt-1 text-[var(--color-text-primary)]">0.45%</div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Bar Chart: Open Rates */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-8">
                 <h3 className="text-lg font-bold mb-8">Open Rates (Last 7 Campaigns)</h3>
                 <div className="flex items-end justify-between h-64 gap-2">
                   {[42, 18, 38, 24, 15, 29, 31].map((val, i) => (
                     <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
                       <div className="w-full relative">
                         {/* Data Tooltip (Simple Div) */}
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-zinc-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold pointer-events-none">
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold pointer-events-none">
                           {val}%
                         </div>
                         <div 
@@ -616,19 +616,19 @@ export default function EmailCampaignManager() {
                           style={{ height: `${val * 2}px` }}
                         />
                       </div>
-                      <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-tighter">C-0{7-i}</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)] font-bold uppercase tracking-tighter">C-0{7-i}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Trend Line: Unsubscribes */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl p-8">
                 <h3 className="text-lg font-bold mb-8">Unsubscribe Trend</h3>
                 <div className="relative h-64 w-full flex items-end">
                    {/* Grid Lines */}
                    <div className="absolute inset-0 flex flex-col justify-between py-1">
-                      {[1,2,3,4].map(l => <div key={l} className="w-full h-px bg-zinc-800/50" />)}
+                      {[1,2,3,4].map(l => <div key={l} className="w-full h-px bg-[var(--color-surface-2)]/50" />)}
                    </div>
                    
                    {/* Fake "Line" chart using CSS clip-path and absolute positioning */}
@@ -641,9 +641,9 @@ export default function EmailCampaignManager() {
                       </div>
                    </div>
                    
-                   <div className="w-full flex justify-between mt-auto pt-4 border-t border-zinc-800">
+                   <div className="w-full flex justify-between mt-auto pt-4 border-t border-[var(--color-border)]">
                       {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
-                        <span key={d} className="text-[10px] text-zinc-600 font-bold uppercase">{d}</span>
+                        <span key={d} className="text-[10px] text-[var(--color-text-muted)] font-bold uppercase">{d}</span>
                       ))}
                    </div>
                 </div>
@@ -651,12 +651,12 @@ export default function EmailCampaignManager() {
             </div>
 
             {/* Performance Table */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-               <div className="p-6 border-b border-zinc-800">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl overflow-hidden">
+               <div className="p-6 border-b border-[var(--color-border)]">
                   <h3 className="text-lg font-bold">Top Performing Campaigns</h3>
                </div>
                <table className="w-full text-left">
-                  <thead className="bg-zinc-950/50 text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                  <thead className="bg-[var(--color-surface-0)]/50 text-[10px] uppercase font-bold text-[var(--color-text-muted)] tracking-wider">
                     <tr>
                       <th className="px-6 py-4">Campaign</th>
                       <th className="px-6 py-4">Delivery</th>
@@ -665,18 +665,18 @@ export default function EmailCampaignManager() {
                       <th className="px-6 py-4 text-right">Score</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/50">
+                  <tbody className="divide-y divide-[var(--color-border)]/50">
                     {campaigns.filter(c => c.status === 'sent').toSorted((a,b) => b.openRate - a.openRate).slice(0, 4).map((cp) => (
-                      <tr key={cp.id} className="hover:bg-zinc-800/30 transition-colors">
+                      <tr key={cp.id} className="hover:bg-[var(--color-surface-2)]/30 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-bold text-sm">{cp.name}</div>
-                          <div className="text-xs text-zinc-500">{cp.sentDate}</div>
+                          <div className="text-xs text-[var(--color-text-muted)]">{cp.sentDate}</div>
                         </td>
                         <td className="px-6 py-4 text-sm font-medium">99.2%</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-emerald-400">{cp.openRate}%</span>
-                            <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="w-16 h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                                <div className="bg-emerald-500 h-full" style={{ width: `${cp.openRate}%` }} />
                             </div>
                           </div>
@@ -695,12 +695,12 @@ export default function EmailCampaignManager() {
       </div>
 
       {/* Footer Branding */}
-      <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-zinc-900 flex justify-between items-center text-zinc-600 text-[10px] font-bold uppercase tracking-[0.2em]">
+      <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-[var(--color-border)] flex justify-between items-center text-[var(--color-text-muted)] text-[10px] font-bold uppercase tracking-[0.2em]">
         <div>Horizon UI © 2026 • Product & UI Squad</div>
         <div className="flex gap-6">
-          <span className="hover:text-zinc-400 cursor-pointer transition-colors">Documentation</span>
-          <span className="hover:text-zinc-400 cursor-pointer transition-colors">API Keys</span>
-          <span className="hover:text-zinc-400 cursor-pointer transition-colors">Support</span>
+          <span className="hover:text-[var(--color-text-secondary)] cursor-pointer transition-colors">Documentation</span>
+          <span className="hover:text-[var(--color-text-secondary)] cursor-pointer transition-colors">API Keys</span>
+          <span className="hover:text-[var(--color-text-secondary)] cursor-pointer transition-colors">Support</span>
         </div>
       </div>
     </div>

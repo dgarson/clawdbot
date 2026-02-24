@@ -360,12 +360,12 @@ export default function EventCatalogBrowser() {
   const maxMsgs = domainStats[0]?.messagesPerDay ?? 1
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Event Catalog</h1>
-          <p className="text-zinc-400 text-sm mt-1">Browse and explore event-driven architecture schemas</p>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">Browse and explore event-driven architecture schemas</p>
         </div>
         <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm font-medium transition-colors">
           + Register Event
@@ -374,30 +374,30 @@ export default function EventCatalogBrowser() {
 
       {/* Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Total Events</div>
-          <div className="text-2xl font-bold text-white">{TOPICS.length}</div>
-          <div className="text-xs text-zinc-500">{TOPICS.filter(t => t.status === "active").length} active</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Total Events</div>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">{TOPICS.length}</div>
+          <div className="text-xs text-[var(--color-text-muted)]">{TOPICS.filter(t => t.status === "active").length} active</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Messages / Day</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Messages / Day</div>
           <div className="text-2xl font-bold text-indigo-400">{fmtNum(totalMessages)}</div>
-          <div className="text-xs text-zinc-500">across active events</div>
+          <div className="text-xs text-[var(--color-text-muted)]">across active events</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Consumers</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Consumers</div>
           <div className="text-2xl font-bold text-emerald-400">{totalConsumers}</div>
-          <div className="text-xs text-zinc-500">unique services</div>
+          <div className="text-xs text-[var(--color-text-muted)]">unique services</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <div className="text-xs text-zinc-400 mb-1">Domains</div>
-          <div className="text-2xl font-bold text-zinc-300">{DOMAINS.length}</div>
-          <div className="text-xs text-zinc-500">{TOPICS.filter(t => t.status === "deprecated").length} deprecated events</div>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+          <div className="text-xs text-[var(--color-text-secondary)] mb-1">Domains</div>
+          <div className="text-2xl font-bold text-[var(--color-text-primary)]">{DOMAINS.length}</div>
+          <div className="text-xs text-[var(--color-text-muted)]">{TOPICS.filter(t => t.status === "deprecated").length} deprecated events</div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
+      <div className="flex gap-1 mb-6 border-b border-[var(--color-border)]">
         {tabs.map(t => (
           <button
             key={t.id}
@@ -405,8 +405,8 @@ export default function EventCatalogBrowser() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-white bg-zinc-900"
-                : "border-transparent text-zinc-400 hover:text-zinc-300"
+                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t.emoji} {t.label}
@@ -423,28 +423,28 @@ export default function EventCatalogBrowser() {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search events..."
-              className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white placeholder-zinc-500 w-48"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] w-48"
             />
-            <select value={domainFilter} onChange={e => setDomainFilter(e.target.value)} className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white">
+            <select value={domainFilter} onChange={e => setDomainFilter(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Domains</option>
               {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-white">
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
               <option value="all">All Statuses</option>
               <option value="active">Active</option>
               <option value="deprecated">Deprecated</option>
               <option value="draft">Draft</option>
             </select>
-            <span className="text-sm text-zinc-400 self-center">{filtered.length} events</span>
+            <span className="text-sm text-[var(--color-text-secondary)] self-center">{filtered.length} events</span>
           </div>
 
           {/* Event list */}
           <div className="space-y-2">
             {filtered.map(t => (
-              <div key={t.id} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+              <div key={t.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
                 <button
                   onClick={() => setSelectedTopic(selectedTopic === t.id ? null : t.id)}
-                  className="w-full text-left p-4 hover:bg-zinc-800/50 transition-colors"
+                  className="w-full text-left p-4 hover:bg-[var(--color-surface-2)]/50 transition-colors"
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-1 min-w-0">
@@ -453,34 +453,34 @@ export default function EventCatalogBrowser() {
                         <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusColor[t.status])}>
                           {t.status}
                         </span>
-                        <span className="text-xs px-2 py-0.5 bg-zinc-800 text-zinc-400 rounded">{t.domain}</span>
+                        <span className="text-xs px-2 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded">{t.domain}</span>
                       </div>
-                      <p className="text-sm text-zinc-400 line-clamp-1">{t.description}</p>
+                      <p className="text-sm text-[var(--color-text-secondary)] line-clamp-1">{t.description}</p>
                     </div>
                     <div className="flex items-center gap-6 shrink-0 text-sm">
                       <div className="text-center">
-                        <div className="text-xs text-zinc-500 mb-0.5">Msgs/day</div>
-                        <div className="text-zinc-300 font-mono">{fmtNum(t.messagesPerDay)}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Msgs/day</div>
+                        <div className="text-[var(--color-text-primary)] font-mono">{fmtNum(t.messagesPerDay)}</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xs text-zinc-500 mb-0.5">Producers</div>
-                        <div className="text-zinc-300">{t.producers.length}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Producers</div>
+                        <div className="text-[var(--color-text-primary)]">{t.producers.length}</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xs text-zinc-500 mb-0.5">Consumers</div>
-                        <div className="text-zinc-300">{t.consumers.length}</div>
+                        <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Consumers</div>
+                        <div className="text-[var(--color-text-primary)]">{t.consumers.length}</div>
                       </div>
-                      <span className="text-zinc-600">{selectedTopic === t.id ? "▲" : "▼"}</span>
+                      <span className="text-[var(--color-text-muted)]">{selectedTopic === t.id ? "▲" : "▼"}</span>
                     </div>
                   </div>
                 </button>
 
                 {selectedTopic === t.id && (
-                  <div className="border-t border-zinc-800 p-4 bg-zinc-950 space-y-4">
+                  <div className="border-t border-[var(--color-border)] p-4 bg-[var(--color-surface-0)] space-y-4">
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {/* Producers */}
                       <div>
-                        <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Producers</div>
+                        <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Producers</div>
                         <div className="space-y-1">
                           {t.producers.map(p => (
                             <div key={p} className="text-sm text-emerald-400 font-mono bg-emerald-400/5 px-2 py-1 rounded">
@@ -491,7 +491,7 @@ export default function EventCatalogBrowser() {
                       </div>
                       {/* Consumers */}
                       <div>
-                        <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Consumers</div>
+                        <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Consumers</div>
                         <div className="space-y-1">
                           {t.consumers.map(c => (
                             <div key={c} className="text-sm text-indigo-400 font-mono bg-indigo-400/5 px-2 py-1 rounded">
@@ -502,23 +502,23 @@ export default function EventCatalogBrowser() {
                       </div>
                       {/* Config */}
                       <div>
-                        <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Configuration</div>
+                        <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Configuration</div>
                         <div className="space-y-1.5 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-zinc-500">Partitions</span>
-                            <span className="text-zinc-300">{t.partition}</span>
+                            <span className="text-[var(--color-text-muted)]">Partitions</span>
+                            <span className="text-[var(--color-text-primary)]">{t.partition}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-zinc-500">Retention</span>
-                            <span className="text-zinc-300">{t.retentionDays}d</span>
+                            <span className="text-[var(--color-text-muted)]">Retention</span>
+                            <span className="text-[var(--color-text-primary)]">{t.retentionDays}d</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-zinc-500">Avg Size</span>
-                            <span className="text-zinc-300">{t.avgMessageSizeKb} KB</span>
+                            <span className="text-[var(--color-text-muted)]">Avg Size</span>
+                            <span className="text-[var(--color-text-primary)]">{t.avgMessageSizeKb} KB</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-zinc-500">Last Published</span>
-                            <span className="text-zinc-300">{fmtTime(t.lastPublished)}</span>
+                            <span className="text-[var(--color-text-muted)]">Last Published</span>
+                            <span className="text-[var(--color-text-primary)]">{fmtTime(t.lastPublished)}</span>
                           </div>
                         </div>
                       </div>
@@ -527,30 +527,30 @@ export default function EventCatalogBrowser() {
                     {/* Schema preview */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                        <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                           Schema ({t.schemas[0].format}) — {t.schemas[0].version}
                         </div>
                         <span className={cn("text-xs font-mono", formatColor[t.schemas[0].format])}>
                           {t.schemas[0].format}
                         </span>
                       </div>
-                      <div className="bg-zinc-900 border border-zinc-800 rounded-md overflow-hidden">
+                      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-md overflow-hidden">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="border-b border-zinc-800">
-                              <th className="text-left p-2 text-zinc-500">Field</th>
-                              <th className="text-left p-2 text-zinc-500">Type</th>
-                              <th className="text-left p-2 text-zinc-500">Required</th>
-                              <th className="text-left p-2 text-zinc-500">Description</th>
+                            <tr className="border-b border-[var(--color-border)]">
+                              <th className="text-left p-2 text-[var(--color-text-muted)]">Field</th>
+                              <th className="text-left p-2 text-[var(--color-text-muted)]">Type</th>
+                              <th className="text-left p-2 text-[var(--color-text-muted)]">Required</th>
+                              <th className="text-left p-2 text-[var(--color-text-muted)]">Description</th>
                             </tr>
                           </thead>
                           <tbody>
                             {t.schemas[0].fields.map(f => (
-                              <tr key={f.name} className="border-b border-zinc-800/50">
+                              <tr key={f.name} className="border-b border-[var(--color-border)]/50">
                                 <td className="p-2 font-mono text-indigo-300">{f.name}</td>
                                 <td className="p-2 font-mono text-amber-400">{f.type}</td>
-                                <td className="p-2">{f.required ? <span className="text-rose-400">✓</span> : <span className="text-zinc-600">○</span>}</td>
-                                <td className="p-2 text-zinc-400">{f.description}</td>
+                                <td className="p-2">{f.required ? <span className="text-rose-400">✓</span> : <span className="text-[var(--color-text-muted)]">○</span>}</td>
+                                <td className="p-2 text-[var(--color-text-secondary)]">{f.description}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -560,7 +560,7 @@ export default function EventCatalogBrowser() {
                     {/* Tags */}
                     <div className="flex gap-1.5">
                       {t.tags.map(tag => (
-                        <span key={tag} className="text-xs px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400">
+                        <span key={tag} className="text-xs px-2 py-0.5 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded text-[var(--color-text-secondary)]">
                           {tag}
                         </span>
                       ))}
@@ -578,7 +578,7 @@ export default function EventCatalogBrowser() {
         <div className="flex gap-4">
           {/* Event selector */}
           <div className="w-56 space-y-1 shrink-0">
-            <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider px-2 mb-2">Select Event</div>
+            <div className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider px-2 mb-2">Select Event</div>
             {TOPICS.map(t => (
               <button
                 key={t.id}
@@ -590,7 +590,7 @@ export default function EventCatalogBrowser() {
                   "w-full text-left px-2 py-1.5 rounded-md text-xs transition-colors",
                   selectedTopic === t.id
                     ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
-                    : "text-zinc-400 hover:bg-zinc-800"
+                    : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
                 <span className="font-mono">{t.name}</span>
@@ -604,7 +604,7 @@ export default function EventCatalogBrowser() {
               <div className="space-y-4">
                 {/* Version selector */}
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-zinc-400">Version:</span>
+                  <span className="text-sm text-[var(--color-text-secondary)]">Version:</span>
                   <div className="flex gap-1">
                     {topic.schemas.map(s => (
                       <button
@@ -613,8 +613,8 @@ export default function EventCatalogBrowser() {
                         className={cn(
                           "px-3 py-1 text-sm rounded-md transition-colors font-mono",
                           selectedSchemaVersion === s.version
-                            ? "bg-indigo-500 text-white"
-                            : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                            ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                            : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                         )}
                       >
                         {s.version}
@@ -625,40 +625,40 @@ export default function EventCatalogBrowser() {
 
                 {topic.schemas.filter(s => s.version === selectedSchemaVersion).map(schema => (
                   <div key={schema.version}>
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                      <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-800">
+                    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--color-border)]">
                         <div className="flex items-center gap-2">
                           <code className="text-indigo-300 font-mono text-sm">{topic.name}</code>
                           <span className={cn("text-xs font-mono font-medium", formatColor[schema.format])}>{schema.format}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-zinc-500">Added {schema.addedAt}</span>
-                          <button className="px-2 py-0.5 text-xs bg-zinc-800 hover:bg-zinc-700 rounded text-zinc-400 transition-colors">
+                          <span className="text-xs text-[var(--color-text-muted)]">Added {schema.addedAt}</span>
+                          <button className="px-2 py-0.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded text-[var(--color-text-secondary)] transition-colors">
                             Copy Schema
                           </button>
                         </div>
                       </div>
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="border-b border-zinc-800 bg-zinc-950">
-                            <th className="text-left p-3 text-zinc-400 font-medium">Field Name</th>
-                            <th className="text-left p-3 text-zinc-400 font-medium">Type</th>
-                            <th className="text-left p-3 text-zinc-400 font-medium">Required</th>
-                            <th className="text-left p-3 text-zinc-400 font-medium">Description</th>
+                          <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-0)]">
+                            <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Field Name</th>
+                            <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Type</th>
+                            <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Required</th>
+                            <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Description</th>
                           </tr>
                         </thead>
                         <tbody>
                           {schema.fields.map(f => (
-                            <tr key={f.name} className="border-b border-zinc-800/50 hover:bg-zinc-800/20">
+                            <tr key={f.name} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/20">
                               <td className="p-3 font-mono text-indigo-300">{f.name}</td>
                               <td className="p-3 font-mono text-amber-400">{f.type}</td>
                               <td className="p-3">
                                 {f.required
                                   ? <span className="text-xs px-1.5 py-0.5 bg-rose-400/10 text-rose-400 rounded">required</span>
-                                  : <span className="text-xs px-1.5 py-0.5 bg-zinc-800 text-zinc-500 rounded">optional</span>
+                                  : <span className="text-xs px-1.5 py-0.5 bg-[var(--color-surface-2)] text-[var(--color-text-muted)] rounded">optional</span>
                                 }
                               </td>
-                              <td className="p-3 text-zinc-400">{f.description}</td>
+                              <td className="p-3 text-[var(--color-text-secondary)]">{f.description}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -668,7 +668,7 @@ export default function EventCatalogBrowser() {
                 ))}
               </div>
             ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center text-zinc-500">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-12 text-center text-[var(--color-text-muted)]">
                 Select an event to browse its schema
               </div>
             )}
@@ -679,18 +679,18 @@ export default function EventCatalogBrowser() {
       {/* Dependency Graph Tab */}
       {tab === "graph" && (
         <div className="space-y-4">
-          <p className="text-sm text-zinc-400">Services as producers and consumers across event topics.</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">Services as producers and consumers across event topics.</p>
           <div className="grid grid-cols-3 gap-4">
             {/* Producers column */}
             <div>
-              <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3 px-1">Producers</div>
+              <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-3 px-1">Producers</div>
               <div className="space-y-2">
                 {[...new Set(TOPICS.flatMap(t => t.producers))].map(svc => {
                   const eventsProduced = TOPICS.filter(t => t.producers.includes(svc))
                   return (
                     <div key={svc} className="bg-emerald-400/5 border border-emerald-400/20 rounded-md px-3 py-2">
                       <div className="font-mono text-sm text-emerald-300">{svc}</div>
-                      <div className="text-xs text-zinc-500 mt-0.5">{eventsProduced.length} events</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{eventsProduced.length} events</div>
                     </div>
                   )
                 })}
@@ -698,26 +698,26 @@ export default function EventCatalogBrowser() {
             </div>
             {/* Events column */}
             <div>
-              <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3 px-1">Events</div>
+              <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-3 px-1">Events</div>
               <div className="space-y-2">
                 {TOPICS.map(t => (
                   <div key={t.id} className="bg-indigo-400/5 border border-indigo-400/20 rounded-md px-3 py-2">
                     <div className="font-mono text-xs text-indigo-300">{t.name}</div>
-                    <div className="text-xs text-zinc-500 mt-0.5">{fmtNum(t.messagesPerDay)}/day</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{fmtNum(t.messagesPerDay)}/day</div>
                   </div>
                 ))}
               </div>
             </div>
             {/* Consumers column */}
             <div>
-              <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-3 px-1">Consumers</div>
+              <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-3 px-1">Consumers</div>
               <div className="space-y-2">
                 {[...new Set(TOPICS.flatMap(t => t.consumers))].map(svc => {
                   const eventsConsumed = TOPICS.filter(t => t.consumers.includes(svc))
                   return (
                     <div key={svc} className="bg-amber-400/5 border border-amber-400/20 rounded-md px-3 py-2">
                       <div className="font-mono text-sm text-amber-300">{svc}</div>
-                      <div className="text-xs text-zinc-500 mt-0.5">{eventsConsumed.length} events</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{eventsConsumed.length} events</div>
                     </div>
                   )
                 })}
@@ -731,19 +731,19 @@ export default function EventCatalogBrowser() {
       {tab === "stats" && (
         <div className="space-y-6">
           {/* Domain volume */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-zinc-300 mb-4">Message Volume by Domain</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+            <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Message Volume by Domain</h3>
             <div className="space-y-2.5">
               {domainStats.map(d => (
                 <div key={d.domain} className="space-y-1">
                   <div className="flex justify-between text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-zinc-300 font-medium">{d.domain}</span>
-                      <span className="text-xs text-zinc-500">{d.topics} events</span>
+                      <span className="text-[var(--color-text-primary)] font-medium">{d.domain}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{d.topics} events</span>
                     </div>
                     <span className="text-indigo-400 font-mono">{fmtNum(d.messagesPerDay)}/day</span>
                   </div>
-                  <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(d.messagesPerDay / maxMsgs) * 100}%` }} />
                   </div>
                 </div>
@@ -753,43 +753,43 @@ export default function EventCatalogBrowser() {
 
           {/* Health summary */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
               <div className="text-3xl font-bold text-emerald-400">{TOPICS.filter(t => t.status === "active").length}</div>
-              <div className="text-sm text-zinc-400 mt-1">Active Events</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Active Events</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
               <div className="text-3xl font-bold text-amber-400">{TOPICS.filter(t => t.status === "deprecated").length}</div>
-              <div className="text-sm text-zinc-400 mt-1">Deprecated</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Deprecated</div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
               <div className="text-3xl font-bold text-indigo-400">{TOPICS.flatMap(t => t.schemas).length}</div>
-              <div className="text-sm text-zinc-400 mt-1">Schema Versions</div>
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">Schema Versions</div>
             </div>
           </div>
 
           {/* Event table with full stats */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-            <div className="p-3 border-b border-zinc-800">
-              <h3 className="text-sm font-medium text-zinc-300">Event Volume Ranking</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+            <div className="p-3 border-b border-[var(--color-border)]">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Event Volume Ranking</h3>
             </div>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left p-3 text-zinc-400 font-medium">Event</th>
-                  <th className="text-left p-3 text-zinc-400 font-medium">Domain</th>
-                  <th className="text-right p-3 text-zinc-400 font-medium">Msgs/day</th>
-                  <th className="text-right p-3 text-zinc-400 font-medium">Avg KB</th>
-                  <th className="text-right p-3 text-zinc-400 font-medium">Consumers</th>
+                <tr className="border-b border-[var(--color-border)]">
+                  <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Event</th>
+                  <th className="text-left p-3 text-[var(--color-text-secondary)] font-medium">Domain</th>
+                  <th className="text-right p-3 text-[var(--color-text-secondary)] font-medium">Msgs/day</th>
+                  <th className="text-right p-3 text-[var(--color-text-secondary)] font-medium">Avg KB</th>
+                  <th className="text-right p-3 text-[var(--color-text-secondary)] font-medium">Consumers</th>
                 </tr>
               </thead>
               <tbody>
                 {[...TOPICS].toSorted((a, b) => b.messagesPerDay - a.messagesPerDay).map(t => (
-                  <tr key={t.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20">
+                  <tr key={t.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/20">
                     <td className="p-3 font-mono text-indigo-300 text-xs">{t.name}</td>
-                    <td className="p-3 text-zinc-400 text-xs">{t.domain}</td>
-                    <td className="p-3 text-right font-mono text-zinc-300">{fmtNum(t.messagesPerDay)}</td>
-                    <td className="p-3 text-right text-zinc-400">{t.avgMessageSizeKb}</td>
-                    <td className="p-3 text-right text-zinc-300">{t.consumers.length}</td>
+                    <td className="p-3 text-[var(--color-text-secondary)] text-xs">{t.domain}</td>
+                    <td className="p-3 text-right font-mono text-[var(--color-text-primary)]">{fmtNum(t.messagesPerDay)}</td>
+                    <td className="p-3 text-right text-[var(--color-text-secondary)]">{t.avgMessageSizeKb}</td>
+                    <td className="p-3 text-right text-[var(--color-text-primary)]">{t.consumers.length}</td>
                   </tr>
                 ))}
               </tbody>

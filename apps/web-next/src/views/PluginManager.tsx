@@ -163,12 +163,12 @@ export default function PluginManager() {
   });
 
   return (
-    <div className="flex h-full w-full bg-zinc-950 text-zinc-100 font-sans overflow-hidden">
+    <div className="flex h-full w-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans overflow-hidden">
       {/* Sidebar - Installed Plugins */}
-      <aside className="w-80 border-r border-zinc-800 bg-zinc-950 flex flex-col">
-        <div className="p-6 border-b border-zinc-800">
+      <aside className="w-80 border-r border-[var(--color-border)] bg-[var(--color-surface-0)] flex flex-col">
+        <div className="p-6 border-b border-[var(--color-border)]">
           <h1 className="text-xl font-bold tracking-tight">Plugins</h1>
-          <p className="text-sm text-zinc-400 mt-1">Manage your extensions</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">Manage your extensions</p>
         </div>
         
         <div className="flex-1 overflow-y-auto p-3">
@@ -184,8 +184,8 @@ export default function PluginManager() {
                 className={cn(
                   "w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                   selectedPluginId === plugin.id && activeTab === 'installed'
-                    ? "bg-zinc-900 border border-zinc-700 shadow-sm"
-                    : "hover:bg-zinc-900/50 border border-transparent text-zinc-400 hover:text-zinc-200"
+                    ? "bg-[var(--color-surface-1)] border border-[var(--color-border)] shadow-sm"
+                    : "hover:bg-[var(--color-surface-1)]/50 border border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 <div className="flex items-center justify-between">
@@ -193,23 +193,23 @@ export default function PluginManager() {
                   <StatusIndicator status={plugin.status} size="sm" />
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold">{plugin.category}</span>
-                  <span className="text-[10px] text-zinc-600">•</span>
-                  <span className="text-[10px] text-zinc-500">{plugin.version}</span>
+                  <span className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-bold">{plugin.category}</span>
+                  <span className="text-[10px] text-[var(--color-text-muted)]">•</span>
+                  <span className="text-[10px] text-[var(--color-text-muted)]">{plugin.version}</span>
                 </div>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="p-4 border-t border-zinc-800">
+        <div className="p-4 border-t border-[var(--color-border)]">
           <button 
             onClick={() => setActiveTab('marketplace')}
             className={cn(
               "w-full py-2 px-4 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
               activeTab === 'marketplace' 
-                ? "bg-indigo-600 text-white" 
-                : "bg-zinc-900 text-zinc-300 hover:bg-zinc-800 border border-zinc-800"
+                ? "bg-indigo-600 text-[var(--color-text-primary)]" 
+                : "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] border border-[var(--color-border)]"
             )}
           >
             Browse Marketplace
@@ -218,15 +218,15 @@ export default function PluginManager() {
       </aside>
 
       {/* Main Panel */}
-      <main className="flex-1 flex flex-col bg-zinc-950 overflow-hidden">
+      <main className="flex-1 flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
         {/* Top Header / Tabs */}
-        <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-8 bg-zinc-950/50 backdrop-blur-sm sticky top-0 z-10">
+        <header className="h-16 border-b border-[var(--color-border)] flex items-center justify-between px-8 bg-[var(--color-surface-0)]/50 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex gap-8 h-full">
             <button 
               onClick={() => setActiveTab('installed')}
               className={cn(
                 "h-full px-1 border-b-2 transition-colors text-sm font-medium flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ring-offset-zinc-950",
-                activeTab === 'installed' ? "border-indigo-500 text-white" : "border-transparent text-zinc-500 hover:text-zinc-300"
+                activeTab === 'installed' ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               Installed
@@ -235,7 +235,7 @@ export default function PluginManager() {
               onClick={() => setActiveTab('marketplace')}
               className={cn(
                 "h-full px-1 border-b-2 transition-colors text-sm font-medium flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ring-offset-zinc-950",
-                activeTab === 'marketplace' ? "border-indigo-500 text-white" : "border-transparent text-zinc-500 hover:text-zinc-300"
+                activeTab === 'marketplace' ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               Marketplace
@@ -276,8 +276,8 @@ function InstalledTabView({ plugin }: { plugin: Plugin }) {
       <div className="flex items-start justify-between mb-8">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-3xl font-bold tracking-tight text-white">{plugin.name}</h2>
-            <span className="text-zinc-500 text-lg">v{plugin.version}</span>
+            <h2 className="text-3xl font-bold tracking-tight text-[var(--color-text-primary)]">{plugin.name}</h2>
+            <span className="text-[var(--color-text-muted)] text-lg">v{plugin.version}</span>
           </div>
           <div className="flex items-center gap-3">
             <CategoryBadge category={plugin.category} />
@@ -286,16 +286,16 @@ function InstalledTabView({ plugin }: { plugin: Plugin }) {
         </div>
         <div className="flex items-center gap-3">
           {plugin.status === 'disabled' ? (
-            <button className="px-4 py-2 bg-zinc-100 text-zinc-950 rounded-md text-sm font-bold hover:bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+            <button className="px-4 py-2 bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded-md text-sm font-bold hover:bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
               Enable Plugin
             </button>
           ) : (
-            <button className="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-md text-sm font-bold hover:bg-zinc-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+            <button className="px-4 py-2 bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded-md text-sm font-bold hover:bg-[var(--color-surface-3)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
               Disable
             </button>
           )}
           {plugin.id === 'prometheus-metrics' && (
-            <button className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-bold hover:bg-indigo-500 transition-colors animate-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+            <button className="px-4 py-2 bg-indigo-600 text-[var(--color-text-primary)] rounded-md text-sm font-bold hover:bg-indigo-500 transition-colors animate-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
               Update Available
             </button>
           )}
@@ -317,22 +317,22 @@ function InstalledTabView({ plugin }: { plugin: Plugin }) {
               <p className="text-sm opacity-80">The plugin failed to initialize. Check logs for details.</p>
             </div>
           </div>
-          <button className="px-3 py-1.5 bg-rose-500 text-white text-xs font-bold rounded-md hover:bg-rose-400 transition-colors">
+          <button className="px-3 py-1.5 bg-rose-500 text-[var(--color-text-primary)] text-xs font-bold rounded-md hover:bg-rose-400 transition-colors">
             Retry Initialization
           </button>
         </div>
       )}
 
       {plugin.status === 'updating' && (
-        <div className="mb-8 p-6 bg-zinc-900 border border-zinc-800 rounded-xl">
+        <div className="mb-8 p-6 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-              <span className="font-bold text-zinc-200">Updating to v2.3.1...</span>
+              <span className="font-bold text-[var(--color-text-primary)]">Updating to v2.3.1...</span>
             </div>
-            <span className="text-zinc-500 text-sm">65% complete</span>
+            <span className="text-[var(--color-text-muted)] text-sm">65% complete</span>
           </div>
-          <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2 overflow-hidden">
             <div className="bg-indigo-500 h-full w-[65%] rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(99,102,241,0.5)]" />
           </div>
         </div>
@@ -341,15 +341,15 @@ function InstalledTabView({ plugin }: { plugin: Plugin }) {
       <div className="grid grid-cols-3 gap-8">
         <div className="col-span-2 space-y-8">
           <section>
-            <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-4">Description</h3>
-            <p className="text-zinc-300 leading-relaxed text-lg">{plugin.description}</p>
+            <h3 className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] font-bold mb-4">Description</h3>
+            <p className="text-[var(--color-text-primary)] leading-relaxed text-lg">{plugin.description}</p>
           </section>
 
           <section>
-            <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-4">Permissions</h3>
+            <h3 className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] font-bold mb-4">Permissions</h3>
             <div className="flex flex-wrap gap-2">
               {plugin.permissions.map(p => (
-                <span key={p} className="px-3 py-1 bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs font-mono rounded-full">
+                <span key={p} className="px-3 py-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs font-mono rounded-full">
                   {p}
                 </span>
               ))}
@@ -358,20 +358,20 @@ function InstalledTabView({ plugin }: { plugin: Plugin }) {
         </div>
 
         <div className="space-y-6">
-          <div className="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl">
-            <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-4">Metadata</h3>
+          <div className="p-5 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl">
+            <h3 className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] font-bold mb-4">Metadata</h3>
             <div className="space-y-4">
               <div>
-                <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Author</p>
-                <p className="text-zinc-200 font-medium">{plugin.author}</p>
+                <p className="text-[10px] text-[var(--color-text-muted)] uppercase font-bold mb-1">Author</p>
+                <p className="text-[var(--color-text-primary)] font-medium">{plugin.author}</p>
               </div>
               <div>
-                <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Installed At</p>
-                <p className="text-zinc-200 font-medium">{plugin.installedAt}</p>
+                <p className="text-[10px] text-[var(--color-text-muted)] uppercase font-bold mb-1">Installed At</p>
+                <p className="text-[var(--color-text-primary)] font-medium">{plugin.installedAt}</p>
               </div>
               <div>
-                <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Storage Size</p>
-                <p className="text-zinc-200 font-medium">{plugin.size}</p>
+                <p className="text-[10px] text-[var(--color-text-muted)] uppercase font-bold mb-1">Storage Size</p>
+                <p className="text-[var(--color-text-primary)] font-medium">{plugin.size}</p>
               </div>
             </div>
           </div>
@@ -395,7 +395,7 @@ function MarketplaceTabView({
     <div className="p-8 animate-in fade-in duration-300">
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="relative flex-1">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input 
@@ -403,7 +403,7 @@ function MarketplaceTabView({
             placeholder="Search plugins..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
           />
         </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
@@ -428,7 +428,7 @@ function MarketplaceTabView({
           <div 
             key={plugin.id} 
             onClick={() => onViewPlugin(plugin)}
-            className="group p-5 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-zinc-700 transition-all cursor-pointer flex flex-col h-full hover:shadow-xl hover:shadow-black/20"
+            className="group p-5 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl hover:border-[var(--color-border)] transition-all cursor-pointer flex flex-col h-full hover:shadow-xl hover:shadow-black/20"
           >
             <div className="flex justify-between items-start mb-3">
               <CategoryBadge category={plugin.category} />
@@ -437,12 +437,12 @@ function MarketplaceTabView({
                 <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
               </div>
             </div>
-            <h4 className="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors">{plugin.name}</h4>
-            <p className="text-xs text-zinc-500 mb-3 font-medium">by {plugin.author}</p>
-            <p className="text-sm text-zinc-400 line-clamp-2 mb-6 flex-1 leading-relaxed">{plugin.description}</p>
+            <h4 className="text-lg font-bold text-[var(--color-text-primary)] group-hover:text-indigo-400 transition-colors">{plugin.name}</h4>
+            <p className="text-xs text-[var(--color-text-muted)] mb-3 font-medium">by {plugin.author}</p>
+            <p className="text-sm text-[var(--color-text-secondary)] line-clamp-2 mb-6 flex-1 leading-relaxed">{plugin.description}</p>
             
-            <div className="flex items-center justify-between pt-4 border-t border-zinc-800/50 mt-auto">
-              <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{plugin.downloads.toLocaleString()} DLs</span>
+            <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border)]/50 mt-auto">
+              <span className="text-[10px] text-[var(--color-text-muted)] font-bold uppercase tracking-wider">{plugin.downloads.toLocaleString()} DLs</span>
               {plugin.installed ? (
                 <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold bg-emerald-400/10 px-2 py-1 rounded">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
@@ -450,7 +450,7 @@ function MarketplaceTabView({
                 </div>
               ) : (
                 <button 
-                  className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-xs font-bold rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   onClick={(e) => {
                     e.stopPropagation();
                     // Install logic
@@ -471,14 +471,14 @@ function MarketplaceModal({ plugin, onClose }: { plugin: MarketplacePlugin, onCl
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div 
-        className="bg-zinc-950 border border-zinc-800 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+        className="bg-[var(--color-surface-0)] border border-[var(--color-border)] w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
         role="dialog"
         aria-modal="true"
       >
-        <div className="relative h-32 bg-gradient-to-br from-indigo-900/40 to-zinc-950 border-b border-zinc-800">
+        <div className="relative h-32 bg-gradient-to-br from-indigo-900/40 to-zinc-950 border-b border-[var(--color-border)]">
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 text-zinc-400 hover:text-white rounded-full transition-all"
+            className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] rounded-full transition-all"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
@@ -488,12 +488,12 @@ function MarketplaceModal({ plugin, onClose }: { plugin: MarketplacePlugin, onCl
           <div className="flex justify-between items-end mb-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-16 h-16 bg-zinc-900 border-4 border-zinc-950 rounded-2xl flex items-center justify-center shadow-lg">
+                <div className="w-16 h-16 bg-[var(--color-surface-1)] border-4 border-[var(--color-border)] rounded-2xl flex items-center justify-center shadow-lg">
                   <span className="text-2xl font-bold text-indigo-500">{plugin.name.charAt(0)}</span>
                 </div>
                 <div className="pt-8">
-                  <h2 className="text-2xl font-bold text-white">{plugin.name}</h2>
-                  <p className="text-zinc-500 text-sm">v{plugin.version} by <span className="text-zinc-300">{plugin.author}</span></p>
+                  <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">{plugin.name}</h2>
+                  <p className="text-[var(--color-text-muted)] text-sm">v{plugin.version} by <span className="text-[var(--color-text-primary)]">{plugin.author}</span></p>
                 </div>
               </div>
             </div>
@@ -502,23 +502,23 @@ function MarketplaceModal({ plugin, onClose }: { plugin: MarketplacePlugin, onCl
                 <RatingStars rating={plugin.rating} />
                 <span className="text-sm font-bold ml-1">{plugin.rating}</span>
               </div>
-              <span className="text-xs text-zinc-500 font-bold uppercase">{plugin.downloads.toLocaleString()} downloads</span>
+              <span className="text-xs text-[var(--color-text-muted)] font-bold uppercase">{plugin.downloads.toLocaleString()} downloads</span>
             </div>
           </div>
 
           <div className="space-y-6">
             <div className="flex gap-2">
               <CategoryBadge category={plugin.category} />
-              <span className="px-2.5 py-1 bg-zinc-900 border border-zinc-800 text-zinc-400 text-[10px] font-bold uppercase tracking-wider rounded">verified</span>
+              <span className="px-2.5 py-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-[10px] font-bold uppercase tracking-wider rounded">verified</span>
             </div>
 
-            <p className="text-zinc-300 leading-relaxed">{plugin.description}</p>
+            <p className="text-[var(--color-text-primary)] leading-relaxed">{plugin.description}</p>
 
             <section>
-              <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-3">Required Permissions</h3>
-              <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl space-y-2">
+              <h3 className="text-xs uppercase tracking-widest text-[var(--color-text-muted)] font-bold mb-3">Required Permissions</h3>
+              <div className="p-4 bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] rounded-xl space-y-2">
                 {["identity:read", "workspace:write", "network:access"].map(perm => (
-                  <div key={perm} className="flex items-center gap-2 text-sm text-zinc-400">
+                  <div key={perm} className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                     <svg className="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     {perm}
                   </div>
@@ -528,18 +528,18 @@ function MarketplaceModal({ plugin, onClose }: { plugin: MarketplacePlugin, onCl
 
             <div className="pt-4 flex gap-3">
               {plugin.installed ? (
-                <button className="flex-1 py-3 bg-zinc-800 text-zinc-500 font-bold rounded-xl cursor-default flex items-center justify-center gap-2">
+                <button className="flex-1 py-3 bg-[var(--color-surface-2)] text-[var(--color-text-muted)] font-bold rounded-xl cursor-default flex items-center justify-center gap-2">
                   <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                   Plugin Installed
                 </button>
               ) : (
-                <button className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-indigo-500 ring-offset-2 ring-offset-zinc-950">
+                <button className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-indigo-500 ring-offset-2 ring-offset-zinc-950">
                   Install {plugin.name}
                 </button>
               )}
               <button 
                 onClick={onClose}
-                className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-bold rounded-xl border border-zinc-800 transition-all"
+                className="px-6 py-3 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] text-[var(--color-text-primary)] font-bold rounded-xl border border-[var(--color-border)] transition-all"
               >
                 Cancel
               </button>
@@ -556,7 +556,7 @@ function MarketplaceModal({ plugin, onClose }: { plugin: MarketplacePlugin, onCl
 function StatusIndicator({ status, size = "md" }: { status: PluginStatus, size?: "sm" | "md" }) {
   const colors = {
     enabled: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.4)]",
-    disabled: "bg-zinc-600",
+    disabled: "bg-[var(--color-surface-3)]",
     error: "bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.4)]",
     updating: "bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.4)]"
   };
@@ -566,7 +566,7 @@ function StatusIndicator({ status, size = "md" }: { status: PluginStatus, size?:
 
 function CategoryBadge({ category }: { category: PluginCategory }) {
   return (
-    <span className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 text-zinc-400 text-[10px] font-bold uppercase tracking-widest rounded">
+    <span className="px-2 py-0.5 bg-[var(--color-surface-1)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-[10px] font-bold uppercase tracking-widest rounded">
       {category}
     </span>
   );
@@ -575,7 +575,7 @@ function CategoryBadge({ category }: { category: PluginCategory }) {
 function StatusBadge({ status }: { status: PluginStatus }) {
   const styles = {
     enabled: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
-    disabled: "bg-zinc-800 text-zinc-500 border-zinc-700",
+    disabled: "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border-[var(--color-border)]",
     error: "bg-rose-400/10 text-rose-400 border-rose-400/20",
     updating: "bg-indigo-400/10 text-indigo-400 border-indigo-400/20"
   };
@@ -593,8 +593,8 @@ function FilterChip({ label, active, onClick }: { label: string, active: boolean
       className={cn(
         "px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border focus:outline-none focus:ring-2 focus:ring-indigo-500/50",
         active 
-          ? "bg-indigo-600 border-indigo-500 text-white" 
-          : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+          ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" 
+          : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
       )}
     >
       {label.charAt(0).toUpperCase() + label.slice(1)}
@@ -608,7 +608,7 @@ function RatingStars({ rating }: { rating: number }) {
       {[1, 2, 3, 4, 5].map((star) => (
         <svg 
           key={star}
-          className={cn("w-3.5 h-3.5", star <= Math.floor(rating) ? "text-amber-400 fill-current" : "text-zinc-700 fill-current")}
+          className={cn("w-3.5 h-3.5", star <= Math.floor(rating) ? "text-amber-400 fill-current" : "text-[var(--color-text-muted)] fill-current")}
           viewBox="0 0 20 20"
         >
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />

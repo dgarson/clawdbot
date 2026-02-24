@@ -163,7 +163,7 @@ function getPriorityColor(priority: Priority): string {
   switch (priority) {
     case "P0": return "text-rose-400 bg-rose-500/10 border-rose-500/30";
     case "P1": return "text-amber-400 bg-amber-500/10 border-amber-500/30";
-    case "P2": return "text-fg-secondary bg-zinc-500/10 border-zinc-500/30";
+    case "P2": return "text-fg-secondary bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30";
   }
 }
 

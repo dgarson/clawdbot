@@ -170,12 +170,12 @@ export default function MemoryProfiler() {
   })
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Memory Profiler</h1>
-          <p className="text-sm text-zinc-400 mt-1">Agent runtime memory analysis</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-1">Agent runtime memory analysis</p>
         </div>
         <button
           onClick={takeSnapshot}
@@ -186,8 +186,8 @@ export default function MemoryProfiler() {
       </div>
 
       {/* Memory Timeline + GC markers */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <h2 className="text-sm font-medium text-zinc-300 mb-3">Memory Timeline</h2>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+        <h2 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Memory Timeline</h2>
         <div className="relative">
           <div className="flex items-end gap-[3px] h-36">
             {timeline.map((val, i) => (
@@ -205,7 +205,7 @@ export default function MemoryProfiler() {
                   style={{ height: `${(val / maxTimeline) * 100}%` }}
                 />
                 {hoveredBar === i && (
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-800 text-xs px-2 py-1 rounded whitespace-nowrap z-10 border border-zinc-700">
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--color-surface-2)] text-xs px-2 py-1 rounded whitespace-nowrap z-10 border border-[var(--color-border)]">
                     {fmtMB(val)}
                   </div>
                 )}
@@ -223,7 +223,7 @@ export default function MemoryProfiler() {
               />
             ))}
           </div>
-          <div className="flex justify-between text-[10px] text-zinc-500 mt-1">
+          <div className="flex justify-between text-[10px] text-[var(--color-text-muted)] mt-1">
             <span>-3 min</span>
             <span>GC events (rose markers)</span>
             <span>now</span>
@@ -232,18 +232,18 @@ export default function MemoryProfiler() {
       </div>
 
       {/* GC Event Details */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <h2 className="text-sm font-medium text-zinc-300 mb-3">Recent GC Events</h2>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+        <h2 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Recent GC Events</h2>
         <div className="flex gap-3">
           {gcEvents.map((ev, i) => (
             <div
               key={i}
-              className="flex-1 bg-zinc-800 rounded-lg p-3 text-xs space-y-1 border border-zinc-700/50"
+              className="flex-1 bg-[var(--color-surface-2)] rounded-lg p-3 text-xs space-y-1 border border-[var(--color-border)]/50"
             >
-              <div className="text-zinc-400">{fmtTime(ev.timestamp)}</div>
-              <div className="text-white font-medium">{ev.durationMs}ms</div>
+              <div className="text-[var(--color-text-secondary)]">{fmtTime(ev.timestamp)}</div>
+              <div className="text-[var(--color-text-primary)] font-medium">{ev.durationMs}ms</div>
               <div className="text-emerald-400">-{ev.reclaimed} MB</div>
-              <div className="h-1 bg-zinc-700 rounded-full mt-1">
+              <div className="h-1 bg-[var(--color-surface-3)] rounded-full mt-1">
                 <div
                   className="h-1 bg-rose-500 rounded-full"
                   style={{ width: `${Math.min(100, (ev.durationMs / 32) * 100)}%` }}
@@ -256,8 +256,8 @@ export default function MemoryProfiler() {
 
       {/* Alerts */}
       {alerts.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h2 className="text-sm font-medium text-zinc-300 mb-3">Heap Alerts</h2>
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h2 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Heap Alerts</h2>
           <div className="space-y-2">
             {alerts
               .toSorted((a, b) => heapPct(b) - heapPct(a))
@@ -295,7 +295,7 @@ export default function MemoryProfiler() {
 
       {/* Sort Controls */}
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-zinc-400">Sort by:</span>
+        <span className="text-[var(--color-text-secondary)]">Sort by:</span>
         {(["rss", "heapUsed", "name"] as const).map((key) => (
           <button
             key={key}
@@ -304,7 +304,7 @@ export default function MemoryProfiler() {
               "px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors",
               sortKey === key
                 ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300"
-                : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {key === "heapUsed" ? "Heap Used" : key === "rss" ? "RSS" : "Name"}
@@ -313,8 +313,8 @@ export default function MemoryProfiler() {
       </div>
 
       {/* Process Table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="grid grid-cols-7 gap-2 px-5 py-3 text-xs text-zinc-500 font-medium border-b border-zinc-800">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+        <div className="grid grid-cols-7 gap-2 px-5 py-3 text-xs text-[var(--color-text-muted)] font-medium border-b border-[var(--color-border)]">
           <span>PID</span>
           <span>Process</span>
           <span>RSS</span>
@@ -331,22 +331,22 @@ export default function MemoryProfiler() {
               <button
                 onClick={() => setExpandedPid(expanded ? null : proc.pid)}
                 className={cn(
-                  "w-full grid grid-cols-7 gap-2 px-5 py-3 text-sm text-left transition-colors hover:bg-zinc-800/60",
-                  expanded && "bg-zinc-800/40"
+                  "w-full grid grid-cols-7 gap-2 px-5 py-3 text-sm text-left transition-colors hover:bg-[var(--color-surface-2)]/60",
+                  expanded && "bg-[var(--color-surface-2)]/40"
                 )}
               >
-                <span className="text-zinc-400 font-mono">{proc.pid}</span>
-                <span className="text-white font-medium">{proc.name}</span>
+                <span className="text-[var(--color-text-secondary)] font-mono">{proc.pid}</span>
+                <span className="text-[var(--color-text-primary)] font-medium">{proc.name}</span>
                 <span>{fmtMB(proc.rss)}</span>
                 <span
                   className={cn(
-                    pct >= 95 ? "text-rose-400" : pct >= 80 ? "text-amber-400" : "text-zinc-200"
+                    pct >= 95 ? "text-rose-400" : pct >= 80 ? "text-amber-400" : "text-[var(--color-text-primary)]"
                   )}
                 >
                   {fmtMB(proc.heapUsed)}
                 </span>
-                <span className="text-zinc-300">{fmtMB(proc.heapTotal)}</span>
-                <span className="text-zinc-400">{fmtMB(proc.external)}</span>
+                <span className="text-[var(--color-text-primary)]">{fmtMB(proc.heapTotal)}</span>
+                <span className="text-[var(--color-text-secondary)]">{fmtMB(proc.external)}</span>
                 <span
                   className={cn(
                     "text-xs px-2 py-0.5 rounded-full w-fit font-medium",
@@ -354,7 +354,7 @@ export default function MemoryProfiler() {
                       ? "bg-emerald-500/15 text-emerald-400"
                       : proc.status === "gc"
                         ? "bg-rose-500/15 text-rose-400"
-                        : "bg-zinc-700/40 text-zinc-400"
+                        : "bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)]"
                   )}
                 >
                   {proc.status}
@@ -362,8 +362,8 @@ export default function MemoryProfiler() {
               </button>
               {/* Expanded Heap Breakdown */}
               {expanded && (
-                <div className="px-5 pb-4 pt-1 space-y-3 border-b border-zinc-800/60">
-                  <h3 className="text-xs font-medium text-zinc-400">Heap Breakdown</h3>
+                <div className="px-5 pb-4 pt-1 space-y-3 border-b border-[var(--color-border)]/60">
+                  <h3 className="text-xs font-medium text-[var(--color-text-secondary)]">Heap Breakdown</h3>
                   {(["newSpace", "oldSpace", "codeSpace", "mapSpace"] as const).map((seg) => {
                     const segVal = proc.heap[seg]
                     const segPct = proc.heapUsed > 0 ? (segVal / proc.heapUsed) * 100 : 0
@@ -376,14 +376,14 @@ export default function MemoryProfiler() {
                     return (
                       <div key={seg} className="space-y-1">
                         <div className="flex justify-between text-xs">
-                          <span className="text-zinc-300">
+                          <span className="text-[var(--color-text-primary)]">
                             {seg.replace(/([A-Z])/g, " $1").trim()}
                           </span>
-                          <span className="text-zinc-500">
+                          <span className="text-[var(--color-text-muted)]">
                             {fmtMB(segVal)} ({Math.round(segPct)}%)
                           </span>
                         </div>
-                        <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                           <div
                             className={cn("h-2 rounded-full transition-all", colors[seg])}
                             style={{ width: `${segPct}%` }}
@@ -394,8 +394,8 @@ export default function MemoryProfiler() {
                   })}
                   {/* Stacked bar summary */}
                   <div className="mt-2">
-                    <div className="text-xs text-zinc-500 mb-1">Combined</div>
-                    <div className="h-4 bg-zinc-800 rounded-full overflow-hidden flex">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-1">Combined</div>
+                    <div className="h-4 bg-[var(--color-surface-2)] rounded-full overflow-hidden flex">
                       {(["newSpace", "oldSpace", "codeSpace", "mapSpace"] as const).map((seg) => {
                         const segPct =
                           proc.heapUsed > 0 ? (proc.heap[seg] / proc.heapUsed) * 100 : 0
@@ -423,9 +423,9 @@ export default function MemoryProfiler() {
       </div>
 
       {/* Flamegraph */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-        <h2 className="text-sm font-medium text-zinc-300 mb-1">Memory Flamegraph</h2>
-        <p className="text-xs text-zinc-500 mb-4">Top allocation paths by retained size</p>
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+        <h2 className="text-sm font-medium text-[var(--color-text-primary)] mb-1">Memory Flamegraph</h2>
+        <p className="text-xs text-[var(--color-text-muted)] mb-4">Top allocation paths by retained size</p>
         <div className="space-y-1">
           {FLAME_DATA.map((row, ri) => (
             <div key={ri} className="flex gap-0.5 h-9">
@@ -441,9 +441,9 @@ export default function MemoryProfiler() {
                   )}
                   style={{ width: `${block.width}%` }}
                 >
-                  <span className="truncate px-1 text-white/90">{block.name}</span>
+                  <span className="truncate px-1 text-[var(--color-text-primary)]/90">{block.name}</span>
                   {hoveredFlame === block.name && (
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-800 text-xs px-2 py-1 rounded whitespace-nowrap z-10 border border-zinc-700">
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--color-surface-2)] text-xs px-2 py-1 rounded whitespace-nowrap z-10 border border-[var(--color-border)]">
                       {block.name} — {block.memClass}
                     </div>
                   )}
@@ -454,7 +454,7 @@ export default function MemoryProfiler() {
         </div>
         <div className="flex gap-4 mt-4">
           {(Object.entries(FLAME_COLORS) as [FlameBlock["memClass"], string][]).map(([cls, bg]) => (
-            <div key={cls} className="flex items-center gap-1.5 text-xs text-zinc-400">
+            <div key={cls} className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
               <div className={cn("w-2.5 h-2.5 rounded-sm", bg)} />
               {cls}
             </div>
@@ -464,23 +464,23 @@ export default function MemoryProfiler() {
 
       {/* Snapshot History */}
       {snapshots.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <h2 className="text-sm font-medium text-zinc-300 mb-3">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <h2 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">
             Snapshot History ({snapshots.length})
           </h2>
           <div className="space-y-2">
             {snapshots.map((snap) => (
               <div
                 key={snap.id}
-                className="flex items-center justify-between bg-zinc-800/50 rounded-lg px-4 py-2.5 text-sm border border-zinc-700/40"
+                className="flex items-center justify-between bg-[var(--color-surface-2)]/50 rounded-lg px-4 py-2.5 text-sm border border-[var(--color-border)]/40"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-indigo-400 font-mono text-xs">#{snap.id}</span>
-                  <span className="text-zinc-300">{fmtTime(snap.timestamp)}</span>
+                  <span className="text-[var(--color-text-primary)]">{fmtTime(snap.timestamp)}</span>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-zinc-400">
+                <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
                   <span>{snap.processCount} processes</span>
-                  <span className="text-white font-medium">{fmtMB(snap.totalRss)} total RSS</span>
+                  <span className="text-[var(--color-text-primary)] font-medium">{fmtMB(snap.totalRss)} total RSS</span>
                 </div>
               </div>
             ))}

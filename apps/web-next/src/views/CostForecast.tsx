@@ -161,19 +161,19 @@ export default function CostForecast() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Cost Forecast</h1>
-          <p className="text-zinc-400 text-sm mt-1">AI infrastructure spend analysis and projections</p>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-1">AI infrastructure spend analysis and projections</p>
         </div>
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-sm text-zinc-400 cursor-pointer select-none">
+          <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] cursor-pointer select-none">
             <button
               onClick={() => setShowProjections((p) => !p)}
               className={cn(
                 "w-9 h-5 rounded-full relative transition-colors",
-                showProjections ? "bg-indigo-500" : "bg-zinc-700"
+                showProjections ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
               )}
             >
               <span
@@ -203,18 +203,18 @@ export default function CostForecast() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="md:col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <p className="text-zinc-400 text-xs uppercase tracking-wider mb-1">Current Month Spend</p>
+        <div className="md:col-span-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <p className="text-[var(--color-text-secondary)] text-xs uppercase tracking-wider mb-1">Current Month Spend</p>
           <p className="text-4xl font-bold tracking-tight">{formatCurrency(currentTotal)}</p>
-          <p className="text-zinc-500 text-xs mt-1">February 2026</p>
+          <p className="text-[var(--color-text-muted)] text-xs mt-1">February 2026</p>
           <div className="mt-4 space-y-2">
             {CATEGORIES.map((c) => (
               <div key={c.key} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <span className={cn("w-2.5 h-2.5 rounded-full", c.color)} />
-                  <span className="text-zinc-300">{c.label}</span>
+                  <span className="text-[var(--color-text-primary)]">{c.label}</span>
                 </div>
-                <span className="text-zinc-100 font-medium tabular-nums">
+                <span className="text-[var(--color-text-primary)] font-medium tabular-nums">
                   {formatCurrency(currentMonth.costs[c.key])}
                 </span>
               </div>
@@ -222,9 +222,9 @@ export default function CostForecast() {
           </div>
         </div>
 
-        <div className="md:col-span-3 bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div className="md:col-span-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-zinc-400 text-xs uppercase tracking-wider">Budget vs Actual</p>
+            <p className="text-[var(--color-text-secondary)] text-xs uppercase tracking-wider">Budget vs Actual</p>
             <span className={cn(
               "text-xs font-medium px-2 py-0.5 rounded-full",
               overBudget ? "bg-red-500/20 text-red-400" : budgetPercent >= 80 ? "bg-amber-500/20 text-amber-400" : "bg-emerald-500/20 text-emerald-400"
@@ -232,10 +232,10 @@ export default function CostForecast() {
               {Math.round(budgetPercent)}%
             </span>
           </div>
-          <p className="text-sm text-zinc-300 mb-3">
+          <p className="text-sm text-[var(--color-text-primary)] mb-3">
             {formatCurrency(currentTotal)} of {formatCurrency(MONTHLY_BUDGET)} budget
           </p>
-          <div className="relative h-4 bg-zinc-800 rounded-full overflow-hidden">
+          <div className="relative h-4 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
             <div
               className={cn(
                 "h-full rounded-full transition-all",
@@ -246,14 +246,14 @@ export default function CostForecast() {
             <div className="absolute top-0 left-[80%] w-px h-full bg-amber-500/50" />
             <div className="absolute top-0 left-full w-px h-full bg-red-500/50" />
           </div>
-          <div className="flex justify-between text-xs text-zinc-500 mt-1">
+          <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
             <span>$0</span>
             <span className="text-amber-500/70">80%</span>
             <span>{formatCurrency(MONTHLY_BUDGET)}</span>
           </div>
 
           <div className="mt-5">
-            <p className="text-zinc-400 text-xs uppercase tracking-wider mb-2">Category Filters</p>
+            <p className="text-[var(--color-text-secondary)] text-xs uppercase tracking-wider mb-2">Category Filters</p>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((c) => {
                 const active = visibleCategories.has(c.key)
@@ -265,7 +265,7 @@ export default function CostForecast() {
                       "text-xs px-3 py-1.5 rounded-full border transition-colors",
                       active
                         ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
-                        : "border-zinc-700 bg-zinc-800 text-zinc-500"
+                        : "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                     )}
                   >
                     {c.label}
@@ -277,16 +277,16 @@ export default function CostForecast() {
         </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-sm font-medium text-zinc-200">12-Month Forecast</p>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="text-sm font-medium text-[var(--color-text-primary)]">12-Month Forecast</p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
               {showProjections ? "6 months actual + 6 months projected" : "6 months actual"}
             </p>
           </div>
           {showProjections && (
-            <div className="flex bg-zinc-800 rounded-lg p-0.5">
+            <div className="flex bg-[var(--color-surface-2)] rounded-lg p-0.5">
               {(Object.keys(SCENARIO_LABELS) as Scenario[]).map((s) => (
                 <button
                   key={s}
@@ -294,8 +294,8 @@ export default function CostForecast() {
                   className={cn(
                     "text-xs px-3 py-1.5 rounded-md transition-colors",
                     scenario === s
-                      ? "bg-indigo-500 text-white"
-                      : "text-zinc-400 hover:text-zinc-200"
+                      ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                      : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {SCENARIO_LABELS[s]}
@@ -312,7 +312,7 @@ export default function CostForecast() {
             const tierColor = getTierColor(total)
             return (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <span className="text-[10px] text-zinc-500 tabular-nums">{formatCurrency(total)}</span>
+                <span className="text-[10px] text-[var(--color-text-muted)] tabular-nums">{formatCurrency(total)}</span>
                 <div className="w-full flex-1 flex items-end">
                   <div
                     className={cn(
@@ -325,7 +325,7 @@ export default function CostForecast() {
                 </div>
                 <span className={cn(
                   "text-[10px]",
-                  m.actual ? "text-zinc-300" : "text-zinc-600"
+                  m.actual ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)]"
                 )}>
                   {m.label}
                 </span>
@@ -334,16 +334,16 @@ export default function CostForecast() {
           })}
         </div>
 
-        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-800">
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-            <span className="w-3 h-3 rounded-sm bg-zinc-400" />
+        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[var(--color-border)]">
+          <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+            <span className="w-3 h-3 rounded-sm bg-[var(--color-surface-3)]" />
             Actual
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-            <span className="w-3 h-3 rounded-sm bg-zinc-400 opacity-40" />
+          <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+            <span className="w-3 h-3 rounded-sm bg-[var(--color-surface-3)] opacity-40" />
             Projected
           </div>
-          <div className="ml-auto flex items-center gap-3 text-[10px] text-zinc-500">
+          <div className="ml-auto flex items-center gap-3 text-[10px] text-[var(--color-text-muted)]">
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" />{"<$4k"}</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-500" />{"<$5.5k"}</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500" />{"<$7k"}</span>
@@ -353,10 +353,10 @@ export default function CostForecast() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <p className="text-sm font-medium text-zinc-200 mb-3">Top Cost Drivers</p>
+        <div className="lg:col-span-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <p className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Top Cost Drivers</p>
           <div className="overflow-hidden">
-            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 gap-y-0 text-xs text-zinc-500 uppercase tracking-wider pb-2 border-b border-zinc-800 mb-1">
+            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 gap-y-0 text-xs text-[var(--color-text-muted)] uppercase tracking-wider pb-2 border-b border-[var(--color-border)] mb-1">
               <span>Item</span>
               <span className="text-right">Category</span>
               <span className="text-right">Monthly</span>
@@ -368,17 +368,17 @@ export default function CostForecast() {
               return (
                 <div
                   key={i}
-                  className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 items-center py-2 border-b border-zinc-800/50 text-sm"
+                  className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 items-center py-2 border-b border-[var(--color-border)]/50 text-sm"
                 >
-                  <span className="text-zinc-200 truncate">{item.name}</span>
-                  <span className="flex items-center gap-1.5 text-xs text-zinc-400">
-                    <span className={cn("w-1.5 h-1.5 rounded-full", catMeta?.color ?? "bg-zinc-600")} />
+                  <span className="text-[var(--color-text-primary)] truncate">{item.name}</span>
+                  <span className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+                    <span className={cn("w-1.5 h-1.5 rounded-full", catMeta?.color ?? "bg-[var(--color-surface-3)]")} />
                     {catMeta?.label ?? item.category}
                   </span>
-                  <span className="text-right text-zinc-100 tabular-nums font-medium">
+                  <span className="text-right text-[var(--color-text-primary)] tabular-nums font-medium">
                     {formatCurrency(item.monthlyCost)}
                   </span>
-                  <span className="text-right text-zinc-400 tabular-nums">{item.percentOfTotal}%</span>
+                  <span className="text-right text-[var(--color-text-secondary)] tabular-nums">{item.percentOfTotal}%</span>
                   <span
                     className={cn(
                       "text-right tabular-nums text-xs font-medium",
@@ -386,7 +386,7 @@ export default function CostForecast() {
                         ? "text-red-400"
                         : item.momChange < 0
                         ? "text-emerald-400"
-                        : "text-zinc-500"
+                        : "text-[var(--color-text-muted)]"
                     )}
                   >
                     {item.momChange > 0 ? "↑" : item.momChange < 0 ? "↓" : "—"}
@@ -398,28 +398,28 @@ export default function CostForecast() {
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <p className="text-sm font-medium text-zinc-200 mb-1">Optimization Opportunities</p>
-          <p className="text-xs text-zinc-500 mb-3">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
+          <p className="text-sm font-medium text-[var(--color-text-primary)] mb-1">Optimization Opportunities</p>
+          <p className="text-xs text-[var(--color-text-muted)] mb-3">
             Potential savings: {formatCurrency(OPTIMIZATIONS.reduce((s, o) => s + o.savings, 0))}/mo
           </p>
           <div className="space-y-3">
             {OPTIMIZATIONS.map((opt, i) => (
-              <div key={i} className="border border-zinc-800 rounded-lg p-3 hover:border-zinc-700 transition-colors">
+              <div key={i} className="border border-[var(--color-border)] rounded-lg p-3 hover:border-[var(--color-border)] transition-colors">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm text-zinc-200 font-medium leading-snug">{opt.title}</p>
+                  <p className="text-sm text-[var(--color-text-primary)] font-medium leading-snug">{opt.title}</p>
                   <span className="shrink-0 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
                     -{formatCurrency(opt.savings)}
                   </span>
                 </div>
-                <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">{opt.description}</p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-1.5 leading-relaxed">{opt.description}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="text-center text-xs text-zinc-600 py-2">
+      <div className="text-center text-xs text-[var(--color-text-muted)] py-2">
         Last updated: Feb 22, 2026 · Data refreshes daily
       </div>
     </div>

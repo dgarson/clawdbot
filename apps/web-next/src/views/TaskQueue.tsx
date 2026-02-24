@@ -146,19 +146,19 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
 };
 
 const STATUS_COLORS: Record<TaskStatus, string> = {
-  pending:   "text-zinc-400 bg-zinc-400/10 border-zinc-400/20",
+  pending:   "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20",
   running:   "text-indigo-400 bg-indigo-400/10 border-indigo-400/20",
   completed: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
   failed:    "text-rose-400 bg-rose-400/10 border-rose-400/20",
-  cancelled: "text-zinc-500 bg-zinc-500/10 border-zinc-500/20",
+  cancelled: "text-[var(--color-text-muted)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20",
   retrying:  "text-amber-400 bg-amber-400/10 border-amber-400/20",
 };
 
 const PRIORITY_COLORS: Record<TaskPriority, string> = {
   critical: "text-red-400",
   high:     "text-orange-400",
-  normal:   "text-zinc-400",
-  low:      "text-zinc-600",
+  normal:   "text-[var(--color-text-secondary)]",
+  low:      "text-[var(--color-text-muted)]",
 };
 
 const PRIORITY_LABELS: Record<TaskPriority, string> = {
@@ -203,7 +203,7 @@ function duration(start?: string, end?: string): string {
 
 function ProgressBar({ value }: { value: number }) {
   return (
-    <div className="relative h-1 w-full rounded-full bg-zinc-800 overflow-hidden mt-2">
+    <div className="relative h-1 w-full rounded-full bg-[var(--color-surface-2)] overflow-hidden mt-2">
       <div
         className="h-full rounded-full bg-indigo-500 transition-all"
         style={{ width: `${value}%` }}
@@ -225,7 +225,7 @@ interface TaskRowProps {
 
 function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
   return (
-    <div className="border-b border-zinc-800 last:border-b-0">
+    <div className="border-b border-[var(--color-border)] last:border-b-0">
       <button
         onClick={onToggle}
         aria-expanded={expanded}
@@ -233,7 +233,7 @@ function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
         className={cn(
           "w-full text-left px-4 py-3 transition-colors",
           "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 focus-visible:outline-none",
-          expanded ? "bg-zinc-800/40" : "hover:bg-zinc-800/20"
+          expanded ? "bg-[var(--color-surface-2)]/40" : "hover:bg-[var(--color-surface-2)]/20"
         )}
       >
         <div className="flex items-center gap-3">
@@ -245,9 +245,9 @@ function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
           {/* Name + tags */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-medium text-white truncate">{task.name}</p>
+              <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{task.name}</p>
               {task.agentName && (
-                <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] text-[var(--color-text-muted)] bg-[var(--color-surface-2)] px-1.5 py-0.5 rounded">
                   {task.agentName}
                 </span>
               )}
@@ -263,7 +263,7 @@ function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
           </span>
 
           {/* Attempts */}
-          <span className="text-xs text-zinc-600 shrink-0 w-12 text-center">
+          <span className="text-xs text-[var(--color-text-muted)] shrink-0 w-12 text-center">
             {task.attempts}/{task.maxAttempts}
           </span>
 
@@ -276,12 +276,12 @@ function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
           </span>
 
           {/* Time */}
-          <span className="text-xs text-zinc-500 shrink-0 w-16 text-right">
+          <span className="text-xs text-[var(--color-text-muted)] shrink-0 w-16 text-right">
             {relTime(task.createdAt)}
           </span>
 
           {/* Expand icon */}
-          <span className={cn("text-zinc-600 transition-transform shrink-0", expanded && "rotate-180")} aria-hidden="true">
+          <span className={cn("text-[var(--color-text-muted)] transition-transform shrink-0", expanded && "rotate-180")} aria-hidden="true">
             ▾
           </span>
         </div>
@@ -291,33 +291,33 @@ function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
       {expanded && (
         <div
           id={`task-detail-${task.id}`}
-          className="px-4 pb-4 pt-1 bg-zinc-800/20 space-y-3"
+          className="px-4 pb-4 pt-1 bg-[var(--color-surface-2)]/20 space-y-3"
           role="region"
           aria-label={`Details for ${task.name}`}
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div>
-              <p className="text-zinc-500 mb-0.5">Task ID</p>
-              <p className="text-zinc-300 font-mono">{task.id}</p>
+              <p className="text-[var(--color-text-muted)] mb-0.5">Task ID</p>
+              <p className="text-[var(--color-text-primary)] font-mono">{task.id}</p>
             </div>
             <div>
-              <p className="text-zinc-500 mb-0.5">Kind</p>
-              <p className="text-zinc-300 capitalize">{task.kind.replace("-", " ")}</p>
+              <p className="text-[var(--color-text-muted)] mb-0.5">Kind</p>
+              <p className="text-[var(--color-text-primary)] capitalize">{task.kind.replace("-", " ")}</p>
             </div>
             <div>
-              <p className="text-zinc-500 mb-0.5">Duration</p>
-              <p className="text-zinc-300 font-mono">{duration(task.startedAt, task.completedAt)}</p>
+              <p className="text-[var(--color-text-muted)] mb-0.5">Duration</p>
+              <p className="text-[var(--color-text-primary)] font-mono">{duration(task.startedAt, task.completedAt)}</p>
             </div>
             {task.workerId && (
               <div>
-                <p className="text-zinc-500 mb-0.5">Worker</p>
-                <p className="text-zinc-300 font-mono">{task.workerId}</p>
+                <p className="text-[var(--color-text-muted)] mb-0.5">Worker</p>
+                <p className="text-[var(--color-text-primary)] font-mono">{task.workerId}</p>
               </div>
             )}
             {task.eta && (
               <div>
-                <p className="text-zinc-500 mb-0.5">ETA</p>
-                <p className="text-zinc-300">{new Date(task.eta).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+                <p className="text-[var(--color-text-muted)] mb-0.5">ETA</p>
+                <p className="text-[var(--color-text-primary)]">{new Date(task.eta).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
               </div>
             )}
           </div>
@@ -325,7 +325,7 @@ function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
           {task.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {task.tags.map(tag => (
-                <span key={tag} className="text-[10px] px-2 py-0.5 rounded bg-zinc-700 text-zinc-400">
+                <span key={tag} className="text-[10px] px-2 py-0.5 rounded bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]">
                   #{tag}
                 </span>
               ))}
@@ -343,7 +343,7 @@ function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
             {(task.status === "failed" || task.status === "cancelled") && (
               <button
                 className={cn(
-                  "text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors",
+                  "text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
                 )}
               >
@@ -353,7 +353,7 @@ function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
             {task.status === "running" && (
               <button
                 className={cn(
-                  "text-xs px-3 py-1.5 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white transition-colors",
+                  "text-xs px-3 py-1.5 rounded-lg bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:outline-none"
                 )}
               >
@@ -362,7 +362,7 @@ function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
             )}
             <button
               className={cn(
-                "text-xs px-3 py-1.5 rounded-lg border border-zinc-700 text-zinc-400 hover:text-white transition-colors",
+                "text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors",
                 "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
               )}
             >
@@ -441,25 +441,25 @@ export default function TaskQueue() {
   ];
 
   return (
-    <main className="flex flex-col h-full bg-zinc-950 text-white overflow-hidden" role="main" aria-label="Task Queue">
+    <main className="flex flex-col h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden" role="main" aria-label="Task Queue">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-lg font-bold text-white">Task Queue</h1>
-            <p className="text-xs text-zinc-500 mt-0.5">Background jobs, agent runs, webhooks, and scheduled tasks</p>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Task Queue</h1>
+            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Background jobs, agent runs, webhooks, and scheduled tasks</p>
           </div>
           {/* Live stats */}
           <div className="flex items-center gap-5 text-xs">
             {[
               { label: "Running", count: stats.running, color: "text-indigo-400" },
-              { label: "Pending", count: stats.pending, color: "text-zinc-400" },
+              { label: "Pending", count: stats.pending, color: "text-[var(--color-text-secondary)]" },
               { label: "Failed",  count: stats.failed,  color: "text-rose-400" },
               { label: "Done",    count: stats.completed, color: "text-emerald-400" },
             ].map(s => (
               <div key={s.label} className="text-center">
                 <p className={cn("text-xl font-bold font-mono", s.color)}>{s.count}</p>
-                <p className="text-zinc-500">{s.label}</p>
+                <p className="text-[var(--color-text-muted)]">{s.label}</p>
               </div>
             ))}
           </div>
@@ -475,7 +475,7 @@ export default function TaskQueue() {
             placeholder="Search tasks…"
             aria-label="Search tasks"
             className={cn(
-              "bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white placeholder:text-zinc-500",
+              "bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none w-48"
             )}
           />
@@ -492,7 +492,7 @@ export default function TaskQueue() {
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   statusFilter === s.value
                     ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
-                    : "border-zinc-700 text-zinc-400 hover:text-white"
+                    : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {s.label}
@@ -506,7 +506,7 @@ export default function TaskQueue() {
             onChange={e => setKindFilter(e.target.value as KindFilter)}
             aria-label="Filter by task kind"
             className={cn(
-              "bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-white",
+              "bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--color-text-primary)]",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
             )}
           >
@@ -515,12 +515,12 @@ export default function TaskQueue() {
             ))}
           </select>
 
-          <span className="text-xs text-zinc-600 ml-auto">{filtered.length} tasks</span>
+          <span className="text-xs text-[var(--color-text-muted)] ml-auto">{filtered.length} tasks</span>
         </div>
       </div>
 
       {/* Table header */}
-      <div className="px-4 py-2 border-b border-zinc-800 flex items-center gap-3 text-xs text-zinc-500 bg-zinc-900/50 shrink-0">
+      <div className="px-4 py-2 border-b border-[var(--color-border)] flex items-center gap-3 text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-1)]/50 shrink-0">
         <span className="w-7" aria-hidden="true" />
         <span className="flex-1">Task</span>
         <span className="w-5 text-center">Pri</span>
@@ -539,7 +539,7 @@ export default function TaskQueue() {
             description="No tasks match your filters. Try clearing filters or check back later."
           />
         ) : (
-          <div className="rounded-none bg-zinc-900 border-zinc-800">
+          <div className="rounded-none bg-[var(--color-surface-1)] border-[var(--color-border)]">
             {filtered.map(task => (
               <div key={task.id} role="listitem">
                 <TaskRow

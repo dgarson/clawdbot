@@ -71,7 +71,7 @@ const presenceColor = (p: PresenceStatus) => {
   if (p === "online")  {return "bg-emerald-400";}
   if (p === "away")    {return "bg-amber-400";}
   if (p === "dnd")     {return "bg-rose-400";}
-  return "bg-zinc-600";
+  return "bg-[var(--color-surface-3)]";
 };
 
 const CHANNELS: Channel[] = [
@@ -203,12 +203,12 @@ export default function ChatRoomView() {
   }
 
   return (
-    <div className="flex h-full bg-zinc-950 overflow-hidden">
+    <div className="flex h-full bg-[var(--color-surface-0)] overflow-hidden">
       {/* Sidebar */}
-      <div className="w-56 flex-shrink-0 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+      <div className="w-56 flex-shrink-0 bg-[var(--color-surface-1)] border-r border-[var(--color-border)] flex flex-col">
         {/* Workspace header */}
-        <div className="px-3 py-3 border-b border-zinc-800">
-          <div className="font-semibold text-white text-sm">OpenClaw HQ</div>
+        <div className="px-3 py-3 border-b border-[var(--color-border)]">
+          <div className="font-semibold text-[var(--color-text-primary)] text-sm">OpenClaw HQ</div>
           <div className="text-xs text-emerald-400 flex items-center gap-1 mt-0.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
             12 members online
@@ -217,57 +217,57 @@ export default function ChatRoomView() {
 
         {/* Channels */}
         <div className="flex-1 overflow-y-auto py-2">
-          <div className="px-3 py-1 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Channels</div>
+          <div className="px-3 py-1 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Channels</div>
           {CHANNELS.filter(c => !c.isPrivate).map(ch => (
             <button
               key={ch.id}
               onClick={() => { setActiveChannelId(ch.id); setOpenThreadId(null); }}
               className={cn(
                 "w-full text-left px-3 py-1 flex items-center gap-2 rounded mx-1 my-0.5 text-sm transition-colors",
-                activeChannelId === ch.id ? "bg-indigo-500/20 text-white" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                activeChannelId === ch.id ? "bg-indigo-500/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
               )}
             >
-              <span className="text-zinc-500">#</span>
+              <span className="text-[var(--color-text-muted)]">#</span>
               <span className="flex-1 truncate">{ch.name}</span>
               {ch.mentions > 0 && (
-                <span className="bg-rose-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                <span className="bg-rose-500 text-[var(--color-text-primary)] text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
                   {ch.mentions}
                 </span>
               )}
               {ch.unread > 0 && ch.mentions === 0 && (
-                <span className="text-[10px] font-semibold text-zinc-300">{ch.unread}</span>
+                <span className="text-[10px] font-semibold text-[var(--color-text-primary)]">{ch.unread}</span>
               )}
             </button>
           ))}
 
-          <div className="px-3 py-1 mt-2 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Private</div>
+          <div className="px-3 py-1 mt-2 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Private</div>
           {CHANNELS.filter(c => c.isPrivate).map(ch => (
             <button
               key={ch.id}
               onClick={() => { setActiveChannelId(ch.id); setOpenThreadId(null); }}
               className={cn(
                 "w-full text-left px-3 py-1 flex items-center gap-2 rounded mx-1 my-0.5 text-sm transition-colors",
-                activeChannelId === ch.id ? "bg-indigo-500/20 text-white" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                activeChannelId === ch.id ? "bg-indigo-500/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
               )}
             >
-              <span className="text-zinc-500">🔒</span>
+              <span className="text-[var(--color-text-muted)]">🔒</span>
               <span className="flex-1 truncate">{ch.name}</span>
               {ch.unread > 0 && (
-                <span className="text-[10px] font-semibold text-zinc-300">{ch.unread}</span>
+                <span className="text-[10px] font-semibold text-[var(--color-text-primary)]">{ch.unread}</span>
               )}
             </button>
           ))}
         </div>
 
         {/* My presence */}
-        <div className="p-3 border-t border-zinc-800 flex items-center gap-2">
+        <div className="p-3 border-t border-[var(--color-border)] flex items-center gap-2">
           <div className="relative">
             <span className="text-lg">🎨</span>
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-zinc-900" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-[var(--color-border)]" />
           </div>
           <div>
-            <div className="text-xs font-medium text-white">Luis</div>
-            <div className="text-[10px] text-zinc-500">Principal UX Eng</div>
+            <div className="text-xs font-medium text-[var(--color-text-primary)]">Luis</div>
+            <div className="text-[10px] text-[var(--color-text-muted)]">Principal UX Eng</div>
           </div>
         </div>
       </div>
@@ -275,14 +275,14 @@ export default function ChatRoomView() {
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Channel header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800 bg-zinc-900">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-zinc-500 font-medium">#</span>
-              <span className="font-semibold text-white">{channel.name}</span>
-              {channel.isPrivate && <span className="text-[10px] bg-zinc-700 text-zinc-300 px-1.5 py-0.5 rounded">private</span>}
+              <span className="text-[var(--color-text-muted)] font-medium">#</span>
+              <span className="font-semibold text-[var(--color-text-primary)]">{channel.name}</span>
+              {channel.isPrivate && <span className="text-[10px] bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-1.5 py-0.5 rounded">private</span>}
             </div>
-            <div className="text-xs text-zinc-500 mt-0.5">{channel.description}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{channel.description}</div>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <input
@@ -290,11 +290,11 @@ export default function ChatRoomView() {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search messages..."
-              className="bg-zinc-800 border border-zinc-700 text-white text-xs px-3 py-1.5 rounded placeholder-zinc-500 focus:outline-none focus:border-indigo-500 w-40"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-1.5 rounded placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 w-40"
             />
             <button
               onClick={() => setShowMembers(v => !v)}
-              className={cn("text-xs px-3 py-1.5 rounded border transition-colors", showMembers ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-white")}
+              className={cn("text-xs px-3 py-1.5 rounded border transition-colors", showMembers ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
             >
               👥 {channel.memberCount}
             </button>
@@ -307,7 +307,7 @@ export default function ChatRoomView() {
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
               {filteredMessages.length === 0 && (
-                <div className="text-center py-12 text-zinc-600">
+                <div className="text-center py-12 text-[var(--color-text-muted)]">
                   {searchQuery ? `No messages matching "${searchQuery}"` : "No messages yet"}
                 </div>
               )}
@@ -315,13 +315,13 @@ export default function ChatRoomView() {
                 <div
                   key={msg.id}
                   className={cn(
-                    "group relative flex gap-3 px-2 py-1.5 rounded hover:bg-zinc-900 transition-colors",
+                    "group relative flex gap-3 px-2 py-1.5 rounded hover:bg-[var(--color-surface-1)] transition-colors",
                     msg.isPinned && "border-l-2 border-amber-400"
                   )}
                   onClick={() => setShowReactionPickerFor(null)}
                 >
                   {/* Avatar */}
-                  <div className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center bg-zinc-800 text-base mt-0.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center bg-[var(--color-surface-2)] text-base mt-0.5">
                     {msg.authorEmoji}
                   </div>
 
@@ -329,12 +329,12 @@ export default function ChatRoomView() {
                   <div className="flex-1 min-w-0">
                     {!msg.isSystem && (
                       <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="font-semibold text-sm text-white">{msg.authorName}</span>
-                        <span className="text-[10px] text-zinc-600">{msg.timestamp}</span>
+                        <span className="font-semibold text-sm text-[var(--color-text-primary)]">{msg.authorName}</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{msg.timestamp}</span>
                         {msg.isPinned && <span className="text-[10px] text-amber-400">📌 pinned</span>}
                       </div>
                     )}
-                    <p className={cn("text-sm leading-relaxed", msg.isSystem ? "text-zinc-500 italic" : "text-zinc-200")}>
+                    <p className={cn("text-sm leading-relaxed", msg.isSystem ? "text-[var(--color-text-muted)] italic" : "text-[var(--color-text-primary)]")}>
                       {msg.content}
                     </p>
 
@@ -349,7 +349,7 @@ export default function ChatRoomView() {
                               "flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border transition-colors",
                               r.reactedByMe
                                 ? "bg-indigo-500/20 border-indigo-500 text-indigo-300"
-                                : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600"
+                                : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                             )}
                           >
                             {r.emoji} {r.count}
@@ -373,19 +373,19 @@ export default function ChatRoomView() {
                   <div className="absolute right-2 top-1.5 hidden group-hover:flex items-center gap-1">
                     <button
                       onClick={e => { e.stopPropagation(); setShowReactionPickerFor(showReactionPickerFor === msg.id ? null : msg.id); }}
-                      className="text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white px-2 py-1 rounded"
+                      className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] px-2 py-1 rounded"
                     >
                       😊
                     </button>
                     <button
                       onClick={e => { e.stopPropagation(); setOpenThreadId(openThreadId === msg.id ? null : msg.id); }}
-                      className="text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white px-2 py-1 rounded"
+                      className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] px-2 py-1 rounded"
                     >
                       💬
                     </button>
                     <button
                       onClick={e => { e.stopPropagation(); togglePin(msg.id); }}
-                      className="text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white px-2 py-1 rounded"
+                      className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] px-2 py-1 rounded"
                     >
                       📌
                     </button>
@@ -394,7 +394,7 @@ export default function ChatRoomView() {
                   {/* Reaction picker */}
                   {showReactionPickerFor === msg.id && (
                     <div
-                      className="absolute right-2 top-10 z-10 bg-zinc-800 border border-zinc-700 rounded p-2 flex gap-1 shadow-lg"
+                      className="absolute right-2 top-10 z-10 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded p-2 flex gap-1 shadow-lg"
                       onClick={e => e.stopPropagation()}
                     >
                       {EMOJI_REACTIONS.map(e => (
@@ -409,27 +409,27 @@ export default function ChatRoomView() {
             </div>
 
             {/* Message input */}
-            <div className="p-4 border-t border-zinc-800">
+            <div className="p-4 border-t border-[var(--color-border)]">
               <div className="flex gap-2 items-end">
-                <div className="flex-1 bg-zinc-800 border border-zinc-700 rounded overflow-hidden focus-within:border-indigo-500 transition-colors">
+                <div className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded overflow-hidden focus-within:border-indigo-500 transition-colors">
                   <textarea
                     value={inputText}
                     onChange={e => setInputText(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                     placeholder={`Message #${channel.name}`}
-                    className="w-full bg-transparent text-white text-sm px-3 py-2 placeholder-zinc-500 focus:outline-none resize-none"
+                    className="w-full bg-transparent text-[var(--color-text-primary)] text-sm px-3 py-2 placeholder-[var(--color-text-muted)] focus:outline-none resize-none"
                     rows={1}
                   />
-                  <div className="flex items-center gap-2 px-3 py-1.5 border-t border-zinc-700">
-                    <button className="text-zinc-500 hover:text-zinc-300 text-sm">😊</button>
-                    <button className="text-zinc-500 hover:text-zinc-300 text-sm">📎</button>
-                    <span className="text-[10px] text-zinc-600 ml-auto">↵ to send · ⇧↵ newline</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 border-t border-[var(--color-border)]">
+                    <button className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-sm">😊</button>
+                    <button className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-sm">📎</button>
+                    <span className="text-[10px] text-[var(--color-text-muted)] ml-auto">↵ to send · ⇧↵ newline</span>
                   </div>
                 </div>
                 <button
                   onClick={sendMessage}
                   disabled={!inputText.trim()}
-                  className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2 rounded text-sm transition-colors"
+                  className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-text-primary)] px-4 py-2 rounded text-sm transition-colors"
                 >
                   Send
                 </button>
@@ -439,22 +439,22 @@ export default function ChatRoomView() {
 
           {/* Thread panel */}
           {openThread && (
-            <div className="w-72 flex-shrink-0 border-l border-zinc-800 flex flex-col bg-zinc-900">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
-                <span className="font-semibold text-sm text-white">Thread</span>
-                <button onClick={() => setOpenThreadId(null)} className="text-zinc-500 hover:text-white text-xs">✕ Close</button>
+            <div className="w-72 flex-shrink-0 border-l border-[var(--color-border)] flex flex-col bg-[var(--color-surface-1)]">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
+                <span className="font-semibold text-sm text-[var(--color-text-primary)]">Thread</span>
+                <button onClick={() => setOpenThreadId(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xs">✕ Close</button>
               </div>
 
               {/* Original message */}
-              <div className="p-4 border-b border-zinc-800">
+              <div className="p-4 border-b border-[var(--color-border)]">
                 <div className="flex gap-2">
                   <span className="text-base">{openThread.authorEmoji}</span>
                   <div>
                     <div className="flex items-baseline gap-2 mb-0.5">
-                      <span className="font-semibold text-sm text-white">{openThread.authorName}</span>
-                      <span className="text-[10px] text-zinc-600">{openThread.timestamp}</span>
+                      <span className="font-semibold text-sm text-[var(--color-text-primary)]">{openThread.authorName}</span>
+                      <span className="text-[10px] text-[var(--color-text-muted)]">{openThread.timestamp}</span>
                     </div>
-                    <p className="text-sm text-zinc-200">{openThread.content}</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{openThread.content}</p>
                   </div>
                 </div>
               </div>
@@ -462,24 +462,24 @@ export default function ChatRoomView() {
               {/* Thread replies */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {openThread.thread.length === 0 && (
-                  <p className="text-xs text-zinc-600 text-center">No replies yet</p>
+                  <p className="text-xs text-[var(--color-text-muted)] text-center">No replies yet</p>
                 )}
                 {openThread.thread.map(reply => (
                   <div key={reply.id} className="flex gap-2">
                     <span className="text-base">{reply.authorEmoji}</span>
                     <div>
                       <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="font-semibold text-xs text-white">{reply.authorName}</span>
-                        <span className="text-[10px] text-zinc-600">{reply.timestamp}</span>
+                        <span className="font-semibold text-xs text-[var(--color-text-primary)]">{reply.authorName}</span>
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{reply.timestamp}</span>
                       </div>
-                      <p className="text-sm text-zinc-200">{reply.content}</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{reply.content}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Thread input */}
-              <div className="p-3 border-t border-zinc-800">
+              <div className="p-3 border-t border-[var(--color-border)]">
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -487,12 +487,12 @@ export default function ChatRoomView() {
                     onChange={e => setThreadInput(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter") {sendThreadReply();} }}
                     placeholder="Reply in thread..."
-                    className="flex-1 bg-zinc-800 border border-zinc-700 text-white text-xs px-3 py-2 rounded placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                    className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
                   />
                   <button
                     onClick={sendThreadReply}
                     disabled={!threadInput.trim()}
-                    className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-white px-3 py-1.5 rounded text-xs"
+                    className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-xs"
                   >
                     ↵
                   </button>
@@ -503,47 +503,47 @@ export default function ChatRoomView() {
 
           {/* Members panel */}
           {showMembers && !openThread && (
-            <div className="w-56 flex-shrink-0 border-l border-zinc-800 flex flex-col bg-zinc-900">
-              <div className="px-4 py-3 border-b border-zinc-800">
-                <span className="font-semibold text-sm text-white">Members — {channel.memberCount}</span>
+            <div className="w-56 flex-shrink-0 border-l border-[var(--color-border)] flex flex-col bg-[var(--color-surface-1)]">
+              <div className="px-4 py-3 border-b border-[var(--color-border)]">
+                <span className="font-semibold text-sm text-[var(--color-text-primary)]">Members — {channel.memberCount}</span>
               </div>
               <div className="flex-1 overflow-y-auto p-3 space-y-1">
-                <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Online — {MEMBERS.filter(m => m.presence === "online").length}</div>
+                <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Online — {MEMBERS.filter(m => m.presence === "online").length}</div>
                 {MEMBERS.filter(m => m.presence === "online").map(m => (
-                  <div key={m.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-zinc-800">
+                  <div key={m.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-[var(--color-surface-2)]">
                     <div className="relative">
                       <span className="text-base">{m.emoji}</span>
-                      <span className={cn("absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-zinc-900", presenceColor(m.presence))} />
+                      <span className={cn("absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-[var(--color-border)]", presenceColor(m.presence))} />
                     </div>
                     <div>
-                      <div className="text-xs font-medium text-white">{m.name}</div>
-                      <div className="text-[10px] text-zinc-500">{m.role}</div>
+                      <div className="text-xs font-medium text-[var(--color-text-primary)]">{m.name}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">{m.role}</div>
                     </div>
                   </div>
                 ))}
-                <div className="text-[10px] text-zinc-500 uppercase tracking-wider mt-3 mb-2">Away / DND</div>
+                <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mt-3 mb-2">Away / DND</div>
                 {MEMBERS.filter(m => m.presence === "away" || m.presence === "dnd").map(m => (
-                  <div key={m.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-zinc-800">
+                  <div key={m.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-[var(--color-surface-2)]">
                     <div className="relative">
                       <span className="text-base opacity-60">{m.emoji}</span>
-                      <span className={cn("absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-zinc-900", presenceColor(m.presence))} />
+                      <span className={cn("absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-[var(--color-border)]", presenceColor(m.presence))} />
                     </div>
                     <div>
-                      <div className="text-xs font-medium text-zinc-400">{m.name}</div>
-                      <div className="text-[10px] text-zinc-600">{m.presence === "dnd" ? "Do not disturb" : "Away"}</div>
+                      <div className="text-xs font-medium text-[var(--color-text-secondary)]">{m.name}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">{m.presence === "dnd" ? "Do not disturb" : "Away"}</div>
                     </div>
                   </div>
                 ))}
-                <div className="text-[10px] text-zinc-500 uppercase tracking-wider mt-3 mb-2">Offline</div>
+                <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider mt-3 mb-2">Offline</div>
                 {MEMBERS.filter(m => m.presence === "offline").map(m => (
-                  <div key={m.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-zinc-800">
+                  <div key={m.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-[var(--color-surface-2)]">
                     <div className="relative">
                       <span className="text-base opacity-40">{m.emoji}</span>
-                      <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-zinc-900 bg-zinc-600" />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-3)]" />
                     </div>
                     <div>
-                      <div className="text-xs font-medium text-zinc-600">{m.name}</div>
-                      <div className="text-[10px] text-zinc-700">{m.role}</div>
+                      <div className="text-xs font-medium text-[var(--color-text-muted)]">{m.name}</div>
+                      <div className="text-[10px] text-[var(--color-text-muted)]">{m.role}</div>
                     </div>
                   </div>
                 ))}

@@ -243,7 +243,7 @@ const SEVERITY_COLORS: Record<AlertSeverity, string> = {
   high:     "text-orange-400 bg-orange-400/10 border-orange-400/20",
   medium:   "text-amber-400 bg-amber-400/10 border-amber-400/20",
   low:      "text-blue-400 bg-blue-400/10 border-blue-400/20",
-  info:     "text-fg-secondary bg-zinc-400/10 border-zinc-400/20",
+  info:     "text-fg-secondary bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20",
 };
 
 const SEVERITY_LABELS: Record<AlertSeverity, string> = {
@@ -258,7 +258,7 @@ const STATUS_COLORS: Record<AlertStatus, string> = {
   firing:       "text-rose-400 bg-rose-400/10 border-rose-400/20",
   acknowledged: "text-amber-400 bg-amber-400/10 border-amber-400/20",
   resolved:     "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
-  suppressed:   "text-fg-muted bg-zinc-500/10 border-zinc-500/20",
+  suppressed:   "text-fg-muted bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20",
 };
 
 const CATEGORY_EMOJIS: Record<AlertCategory, string> = {

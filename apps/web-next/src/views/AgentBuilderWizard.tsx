@@ -113,11 +113,11 @@ function buildSoulContent(formData: FormData): string {
 
 function AgentBuilderWizardSkeleton() {
   return (
-    <div className="flex h-full bg-gray-950 text-fg-primary">
-      <div className="w-64 border-r border-gray-800 p-8 flex flex-col">
+    <div className="flex h-full bg-[var(--color-surface-0)] text-fg-primary">
+      <div className="w-64 border-r border-[var(--color-border)] p-8 flex flex-col">
         <Skeleton className="h-7 w-32 mb-8" />
         <div className="space-y-8 relative">
-          <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-gray-800" />
+          <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-[var(--color-surface-2)]" />
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center gap-4 relative z-10">
               <Skeleton className="w-8 h-8 rounded-full shrink-0" />
@@ -136,7 +136,7 @@ function AgentBuilderWizardSkeleton() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="p-6 rounded-2xl border border-gray-800 bg-gray-900 space-y-3">
+                <div key={i} className="p-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-1)] space-y-3">
                   <Skeleton className="w-12 h-12 rounded-xl" />
                   <Skeleton className="h-5 w-36" />
                   <Skeleton className="h-3 w-full" />
@@ -146,7 +146,7 @@ function AgentBuilderWizardSkeleton() {
             </div>
           </div>
         </div>
-        <div className="p-6 border-t border-gray-800 bg-gray-900 flex justify-between items-center">
+        <div className="p-6 border-t border-[var(--color-border)] bg-[var(--color-surface-1)] flex justify-between items-center">
           <Skeleton className="h-10 w-24 rounded-xl opacity-0" />
           <Skeleton className="h-10 w-32 rounded-xl" />
         </div>
@@ -755,7 +755,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                 'flex items-center gap-2 px-8 py-3 rounded-xl font-bold transition-all shadow-lg',
                 currentStep === 'review'
                   ? 'bg-violet-600 hover:bg-violet-500 text-fg-primary shadow-violet-600/20'
-                  : 'bg-white text-gray-900 hover:bg-gray-200',
+                  : 'bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]',
               )}
             >
               {currentStep === 'review' ? (

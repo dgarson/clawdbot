@@ -209,13 +209,13 @@ function getBestForTask(models: ModelName[], task: keyof ModelData['taskScores']
 
 function ModelHeader({ model, onRemove }: { model: ModelName; onRemove?: () => void }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <Sparkles className="w-5 h-5 text-violet-400" />
-        <span className="text-lg font-semibold text-white">{model}</span>
+        <span className="text-lg font-semibold text-[var(--color-text-primary)]">{model}</span>
       </div>
       {onRemove && (
-        <button onClick={onRemove} className="text-zinc-500 hover:text-red-400 transition-colors">
+        <button onClick={onRemove} className="text-[var(--color-text-muted)] hover:text-red-400 transition-colors">
           <XCircle className="w-5 h-5" />
         </button>
       )}
@@ -233,8 +233,8 @@ function MetricRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid items-center gap-4 py-3 border-b border-zinc-800 last:border-0" style={{ gridTemplateColumns: '200px auto' }}>
-      <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium">
+    <div className="grid items-center gap-4 py-3 border-b border-[var(--color-border)] last:border-0" style={{ gridTemplateColumns: '200px auto' }}>
+      <div className="flex items-center gap-2 text-[var(--color-text-secondary)] text-sm font-medium">
         <Icon className="w-4 h-4" />
         {label}
       </div>
@@ -359,51 +359,51 @@ export default function ModelComparisonPanel() {
   }));
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
             <BarChartIcon className="w-6 h-6 text-violet-400" />
             Model Comparison
           </h1>
-          <p className="text-sm text-zinc-400 mt-0.5">Side-by-side AI model performance evaluation</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Side-by-side AI model performance evaluation</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative">
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-              className="appearance-none bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-white flex items-center gap-2 pr-8"
+              className="appearance-none bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-2 text-sm text-[var(--color-text-primary)] flex items-center gap-2 pr-8"
             >
               <option>Last 24h</option>
               <option>Last week</option>
               <option>Last month</option>
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)] pointer-events-none" />
           </div>
           {selectedModels.length < 4 && (
             <div className="relative">
               <button
                 onClick={() => setShowAddDropdown(!showAddDropdown)}
-                className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium text-white transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium text-[var(--color-text-primary)] transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Add Model
               </button>
               {showAddDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg z-10">
+                <div className="absolute right-0 mt-2 w-48 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg shadow-lg z-10">
                   {availableToAdd.map((model) => (
                     <button
                       key={model}
                       onClick={() => addModel(model)}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-zinc-800 transition-colors"
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-[var(--color-surface-2)] transition-colors"
                     >
                       {model}
                     </button>
                   ))}
                   {availableToAdd.length === 0 && (
-                    <p className="px-4 py-2 text-sm text-zinc-500">No more models to add</p>
+                    <p className="px-4 py-2 text-sm text-[var(--color-text-muted)]">No more models to add</p>
                   )}
                 </div>
               )}
@@ -413,7 +413,7 @@ export default function ModelComparisonPanel() {
       </div>
 
       {/* Comparison Grid */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-6">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6 space-y-6">
         <div className="grid gap-4" style={{ gridTemplateColumns: `200px repeat(${selectedModels.length}, minmax(0, 1fr))` }}>
           <div /> {/* Empty for label column */}
           {selectedModels.map((model) => (
@@ -421,11 +421,11 @@ export default function ModelComparisonPanel() {
           ))}
         </div>
 
-        <div className="divide-y divide-zinc-800">
+        <div className="divide-y divide-[var(--color-border)]">
           <MetricRow label="Avg Response Time (ms)" icon={Clock}>
             {selectedModels.map((m) => (
               <div key={m} className="flex items-center gap-2">
-                <span className="text-lg font-bold text-white">{formatNumber(MOCK_DATA[m].avgResponseTime)}</span>
+                <span className="text-lg font-bold text-[var(--color-text-primary)]">{formatNumber(MOCK_DATA[m].avgResponseTime)}</span>
                 <Sparkline data={MOCK_DATA[m].responseTimes} />
               </div>
             ))}
@@ -433,7 +433,7 @@ export default function ModelComparisonPanel() {
 
           <MetricRow label="Tokens/second" icon={ArrowUpRight}>
             {selectedModels.map((m) => (
-              <span key={m} className="text-lg font-bold text-white">
+              <span key={m} className="text-lg font-bold text-[var(--color-text-primary)]">
                 {formatNumber(MOCK_DATA[m].tokensPerSecond)}
               </span>
             ))}
@@ -441,7 +441,7 @@ export default function ModelComparisonPanel() {
 
           <MetricRow label="Cost per 1k tokens (in/out)" icon={DollarSign}>
             {selectedModels.map((m) => (
-              <span key={m} className="text-lg font-bold text-white">
+              <span key={m} className="text-lg font-bold text-[var(--color-text-primary)]">
                 {formatCost(MOCK_DATA[m].costInput, MOCK_DATA[m].costOutput)}
               </span>
             ))}
@@ -449,7 +449,7 @@ export default function ModelComparisonPanel() {
 
           <MetricRow label="Success Rate %" icon={CheckCircle}>
             {selectedModels.map((m) => (
-              <span key={m} className="text-lg font-bold text-white">
+              <span key={m} className="text-lg font-bold text-[var(--color-text-primary)]">
                 {MOCK_DATA[m].successRate.toFixed(1)}%
               </span>
             ))}
@@ -457,7 +457,7 @@ export default function ModelComparisonPanel() {
 
           <MetricRow label="Rate Limit Incidents (24h)" icon={AlertCircle}>
             {selectedModels.map((m) => (
-              <span key={m} className="text-lg font-bold text-white">
+              <span key={m} className="text-lg font-bold text-[var(--color-text-primary)]">
                 {MOCK_DATA[m].rateLimitIncidents}
               </span>
             ))}
@@ -465,7 +465,7 @@ export default function ModelComparisonPanel() {
 
           <MetricRow label="Context Window" icon={Layers}>
             {selectedModels.map((m) => (
-              <span key={m} className="text-lg font-bold text-white">
+              <span key={m} className="text-lg font-bold text-[var(--color-text-primary)]">
                 {formatTokens(MOCK_DATA[m].contextWindow)}
               </span>
             ))}
@@ -473,7 +473,7 @@ export default function ModelComparisonPanel() {
 
           <MetricRow label="Max Output Tokens" icon={Activity}>
             {selectedModels.map((m) => (
-              <span key={m} className="text-lg font-bold text-white">
+              <span key={m} className="text-lg font-bold text-[var(--color-text-primary)]">
                 {formatTokens(MOCK_DATA[m].maxOutput)}
               </span>
             ))}
@@ -488,15 +488,15 @@ export default function ModelComparisonPanel() {
       </div>
 
       {/* Task Performance Breakdown */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
           <Radar className="w-5 h-5 text-violet-400" />
           Task Performance Breakdown
         </h2>
         <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${selectedModels.length}, minmax(0, 1fr))` }}>
           {selectedModels.map((m) => (
             <div key={m} className="flex flex-col items-center">
-              <span className="text-sm font-medium text-zinc-400 mb-2">{m}</span>
+              <span className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">{m}</span>
               <TaskRadarChart data={MOCK_DATA[m].taskScores} />
             </div>
           ))}
@@ -504,33 +504,33 @@ export default function ModelComparisonPanel() {
       </div>
 
       {/* Head-to-Head Win Rates */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
           <Trophy className="w-5 h-5 text-yellow-400" />
           Head-to-Head Wins
         </h2>
         <div className="grid grid-cols-3 gap-4">
-          <div className="flex flex-col items-center p-4 bg-zinc-800 rounded-lg">
-            <span className="text-sm text-zinc-400 mb-2">Speed</span>
-            <span className="text-lg font-bold text-white">{speedWinner}</span>
+          <div className="flex flex-col items-center p-4 bg-[var(--color-surface-2)] rounded-lg">
+            <span className="text-sm text-[var(--color-text-secondary)] mb-2">Speed</span>
+            <span className="text-lg font-bold text-[var(--color-text-primary)]">{speedWinner}</span>
             <TrophyBadge winner={true} />
           </div>
-          <div className="flex flex-col items-center p-4 bg-zinc-800 rounded-lg">
-            <span className="text-sm text-zinc-400 mb-2">Cost</span>
-            <span className="text-lg font-bold text-white">{costWinner}</span>
+          <div className="flex flex-col items-center p-4 bg-[var(--color-surface-2)] rounded-lg">
+            <span className="text-sm text-[var(--color-text-secondary)] mb-2">Cost</span>
+            <span className="text-lg font-bold text-[var(--color-text-primary)]">{costWinner}</span>
             <TrophyBadge winner={true} />
           </div>
-          <div className="flex flex-col items-center p-4 bg-zinc-800 rounded-lg">
-            <span className="text-sm text-zinc-400 mb-2">Quality</span>
-            <span className="text-lg font-bold text-white">{qualityWinner}</span>
+          <div className="flex flex-col items-center p-4 bg-[var(--color-surface-2)] rounded-lg">
+            <span className="text-sm text-[var(--color-text-secondary)] mb-2">Quality</span>
+            <span className="text-lg font-bold text-[var(--color-text-primary)]">{qualityWinner}</span>
             <TrophyBadge winner={true} />
           </div>
         </div>
       </div>
 
       {/* Usage Share */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
           <PieChartIcon className="w-5 h-5 text-violet-400" />
           Usage Share This Month (% of total tokens)
         </h2>
@@ -540,12 +540,12 @@ export default function ModelComparisonPanel() {
       </div>
 
       {/* Recommendations */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+      <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
           <CheckCircle className="w-5 h-5 text-green-400" />
           Recommendations
         </h2>
-        <p className="text-sm text-zinc-300">
+        <p className="text-sm text-[var(--color-text-primary)]">
           Best for code tasks → {bestForCode} | Cheapest → {cheapest} | Most reliable → {mostReliable}
         </p>
       </div>

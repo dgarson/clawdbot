@@ -95,26 +95,26 @@ export default function PricingCalculator() {
   const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 0 })}`;
 
   const PLANS: { id: Plan; name: string; tagline: string; color: string }[] = [
-    { id: "starter",    name: "Starter",    tagline: "For individuals & small projects",   color: "border-zinc-700" },
+    { id: "starter",    name: "Starter",    tagline: "For individuals & small projects",   color: "border-[var(--color-border)]" },
     { id: "pro",        name: "Pro",        tagline: "For growing teams and startups",     color: "border-indigo-500" },
     { id: "enterprise", name: "Enterprise", tagline: "For large teams with advanced needs",color: "border-amber-500" },
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Pricing Calculator</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">Configure your plan and estimate monthly cost</p>
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Pricing Calculator</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Configure your plan and estimate monthly cost</p>
         </div>
-        <div className="flex gap-1 bg-zinc-900 border border-zinc-800 p-1 rounded-lg">
+        <div className="flex gap-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] p-1 rounded-lg">
           {(["monthly", "annual"] as Billing[]).map(b => (
             <button
               key={b}
               onClick={() => setBilling(b)}
               className={cn(
                 "px-4 py-1.5 text-sm rounded-md capitalize transition-colors",
-                billing === b ? "bg-indigo-500 text-white" : "text-zinc-400 hover:text-white"
+                billing === b ? "bg-indigo-500 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {b} {b === "annual" && <span className="text-xs text-emerald-400 ml-1">-20%</span>}
@@ -124,14 +124,14 @@ export default function PricingCalculator() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)] w-fit">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
-              activeTab === t.id ? "bg-indigo-500 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              activeTab === t.id ? "bg-indigo-500 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t.label}
@@ -145,7 +145,7 @@ export default function PricingCalculator() {
           <div className="col-span-2 space-y-5">
             {/* Plan picker */}
             <div>
-              <div className="text-sm font-semibold text-white mb-3">Choose Plan</div>
+              <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Choose Plan</div>
               <div className="grid grid-cols-3 gap-3">
                 {PLANS.map(plan => {
                   const price = billing === "annual"
@@ -156,15 +156,15 @@ export default function PricingCalculator() {
                       key={plan.id}
                       onClick={() => setSelectedPlan(plan.id)}
                       className={cn(
-                        "bg-zinc-900 border-2 rounded-lg p-4 text-left transition-all",
-                        selectedPlan === plan.id ? plan.color : "border-zinc-800 hover:border-zinc-600"
+                        "bg-[var(--color-surface-1)] border-2 rounded-lg p-4 text-left transition-all",
+                        selectedPlan === plan.id ? plan.color : "border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
-                      <div className="text-sm font-semibold text-white">{plan.name}</div>
-                      <div className="text-xs text-zinc-400 mt-0.5 mb-3">{plan.tagline}</div>
-                      <div className="text-2xl font-bold text-white">
+                      <div className="text-sm font-semibold text-[var(--color-text-primary)]">{plan.name}</div>
+                      <div className="text-xs text-[var(--color-text-secondary)] mt-0.5 mb-3">{plan.tagline}</div>
+                      <div className="text-2xl font-bold text-[var(--color-text-primary)]">
                         {plan.id === "enterprise" && price === 0 ? "Custom" : fmt(price)}
-                        {price > 0 && <span className="text-sm font-normal text-zinc-400">/mo</span>}
+                        {price > 0 && <span className="text-sm font-normal text-[var(--color-text-secondary)]">/mo</span>}
                       </div>
                     </button>
                   );
@@ -174,9 +174,9 @@ export default function PricingCalculator() {
 
             {/* Seat slider */}
             {selectedPlan !== "starter" && (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="text-sm font-semibold text-white">Team Seats</div>
+                  <div className="text-sm font-semibold text-[var(--color-text-primary)]">Team Seats</div>
                   <div className="text-sm text-indigo-300 font-medium">{seats} seats</div>
                 </div>
                 <input
@@ -187,7 +187,7 @@ export default function PricingCalculator() {
                   onChange={e => setSeats(Number(e.target.value))}
                   className="w-full accent-indigo-500"
                 />
-                <div className="flex justify-between text-xs text-zinc-500 mt-1">
+                <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
                   <span>1</span>
                   <span>25</span>
                   <span>50</span>
@@ -202,7 +202,7 @@ export default function PricingCalculator() {
 
             {/* Add-ons */}
             <div>
-              <div className="text-sm font-semibold text-white mb-3">Add-ons</div>
+              <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Add-ons</div>
               <div className="space-y-2">
                 {ADDONS.map(addon => {
                   const checked = selectedAddons.has(addon.id);
@@ -210,8 +210,8 @@ export default function PricingCalculator() {
                     <label
                       key={addon.id}
                       className={cn(
-                        "flex items-center gap-3 bg-zinc-900 border rounded-lg p-3.5 cursor-pointer transition-colors",
-                        checked ? "border-indigo-500/50 bg-indigo-500/5" : "border-zinc-800 hover:border-zinc-600"
+                        "flex items-center gap-3 bg-[var(--color-surface-1)] border rounded-lg p-3.5 cursor-pointer transition-colors",
+                        checked ? "border-indigo-500/50 bg-indigo-500/5" : "border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       <input
@@ -221,8 +221,8 @@ export default function PricingCalculator() {
                         className="accent-indigo-500"
                       />
                       <div className="flex-1">
-                        <div className="text-sm text-white font-medium">{addon.name}</div>
-                        <div className="text-xs text-zinc-400">{addon.description}</div>
+                        <div className="text-sm text-[var(--color-text-primary)] font-medium">{addon.name}</div>
+                        <div className="text-xs text-[var(--color-text-secondary)]">{addon.description}</div>
                       </div>
                       {(addon.id === "a1" || addon.id === "a2") && checked && (
                         <input
@@ -231,12 +231,12 @@ export default function PricingCalculator() {
                           max="99"
                           value={addonQtys[addon.id] ?? 1}
                           onChange={e => setAddonQtys(prev => ({ ...prev, [addon.id]: Number(e.target.value) }))}
-                          className="w-16 bg-zinc-800 border border-zinc-700 text-white text-xs rounded px-2 py-1 focus:outline-none text-center"
+                          className="w-16 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1 focus:outline-none text-center"
                           onClick={e => e.preventDefault()}
                         />
                       )}
                       <div className="text-sm text-indigo-300 font-medium whitespace-nowrap">
-                        {fmt(addon.price)}<span className="text-xs text-zinc-400">/{addon.unit.includes("mo") ? "mo" : addon.unit}</span>
+                        {fmt(addon.price)}<span className="text-xs text-[var(--color-text-secondary)]">/{addon.unit.includes("mo") ? "mo" : addon.unit}</span>
                       </div>
                     </label>
                   );
@@ -247,18 +247,18 @@ export default function PricingCalculator() {
 
           {/* Right: Price summary */}
           <div className="col-span-1">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 sticky top-6">
-              <h3 className="text-sm font-semibold text-white mb-4">Price Summary</h3>
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 sticky top-6">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Price Summary</h3>
 
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-zinc-400">Base plan ({selectedPlan})</span>
-                  <span className="text-zinc-300">{fmt(basePrice)}/mo</span>
+                  <span className="text-[var(--color-text-secondary)]">Base plan ({selectedPlan})</span>
+                  <span className="text-[var(--color-text-primary)]">{fmt(basePrice)}/mo</span>
                 </div>
                 {seatPrice > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">Extra seats</span>
-                    <span className="text-zinc-300">{fmt(seatPrice)}/mo</span>
+                    <span className="text-[var(--color-text-secondary)]">Extra seats</span>
+                    <span className="text-[var(--color-text-primary)]">{fmt(seatPrice)}/mo</span>
                   </div>
                 )}
                 {Array.from(selectedAddons).map(id => {
@@ -268,15 +268,15 @@ export default function PricingCalculator() {
                   const price = addon.price * qty;
                   return (
                     <div key={id} className="flex justify-between">
-                      <span className="text-zinc-400 truncate max-w-[60%]">{addon.name}{qty > 1 ? ` ×${qty}` : ""}</span>
-                      <span className="text-zinc-300">{fmt(price)}/mo</span>
+                      <span className="text-[var(--color-text-secondary)] truncate max-w-[60%]">{addon.name}{qty > 1 ? ` ×${qty}` : ""}</span>
+                      <span className="text-[var(--color-text-primary)]">{fmt(price)}/mo</span>
                     </div>
                   );
                 })}
 
-                <div className="border-t border-zinc-800 pt-2 mt-2 flex justify-between">
-                  <span className="text-zinc-400">Subtotal</span>
-                  <span className="text-zinc-300">{fmt(subtotal)}/mo</span>
+                <div className="border-t border-[var(--color-border)] pt-2 mt-2 flex justify-between">
+                  <span className="text-[var(--color-text-secondary)]">Subtotal</span>
+                  <span className="text-[var(--color-text-primary)]">{fmt(subtotal)}/mo</span>
                 </div>
 
                 {discount > 0 && (
@@ -286,27 +286,27 @@ export default function PricingCalculator() {
                   </div>
                 )}
 
-                <div className="border-t border-zinc-800 pt-3 mt-1">
+                <div className="border-t border-[var(--color-border)] pt-3 mt-1">
                   <div className="flex items-end justify-between">
-                    <span className="text-white font-semibold">Total</span>
+                    <span className="text-[var(--color-text-primary)] font-semibold">Total</span>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-indigo-400">{fmt(total)}<span className="text-sm text-zinc-400">/mo</span></div>
+                      <div className="text-2xl font-bold text-indigo-400">{fmt(total)}<span className="text-sm text-[var(--color-text-secondary)]">/mo</span></div>
                       {billing === "annual" && (
-                        <div className="text-xs text-zinc-400">{fmt(annualTotal)} billed annually</div>
+                        <div className="text-xs text-[var(--color-text-secondary)]">{fmt(annualTotal)} billed annually</div>
                       )}
                     </div>
                   </div>
                 </div>
               </div>
 
-              <button className="w-full mt-5 py-2.5 bg-indigo-500 text-white text-sm font-medium rounded hover:bg-indigo-600 transition-colors">
+              <button className="w-full mt-5 py-2.5 bg-indigo-500 text-[var(--color-text-primary)] text-sm font-medium rounded hover:bg-indigo-600 transition-colors">
                 Start Free Trial →
               </button>
-              <button className="w-full mt-2 py-2.5 border border-zinc-700 text-zinc-400 text-sm rounded hover:bg-zinc-800 transition-colors">
+              <button className="w-full mt-2 py-2.5 border border-[var(--color-border)] text-[var(--color-text-secondary)] text-sm rounded hover:bg-[var(--color-surface-2)] transition-colors">
                 Talk to Sales
               </button>
 
-              <div className="mt-4 text-xs text-zinc-500 text-center">
+              <div className="mt-4 text-xs text-[var(--color-text-muted)] text-center">
                 No credit card required · Cancel anytime
               </div>
             </div>
@@ -315,33 +315,33 @@ export default function PricingCalculator() {
       )}
 
       {activeTab === "compare" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800">
-                <th className="px-5 py-4 text-left text-zinc-400 font-medium w-56">Feature</th>
+              <tr className="border-b border-[var(--color-border)]">
+                <th className="px-5 py-4 text-left text-[var(--color-text-secondary)] font-medium w-56">Feature</th>
                 {PLANS.map(plan => (
                   <th key={plan.id} className="px-5 py-4 text-center">
-                    <div className="text-white font-semibold">{plan.name}</div>
+                    <div className="text-[var(--color-text-primary)] font-semibold">{plan.name}</div>
                     <div className="text-lg font-bold text-indigo-400 mt-0.5">
                       {PLAN_BASE[plan.id] === 0 ? "Free" : fmt(PLAN_BASE[plan.id])}
-                      {PLAN_BASE[plan.id] > 0 && <span className="text-xs font-normal text-zinc-400">/mo</span>}
+                      {PLAN_BASE[plan.id] > 0 && <span className="text-xs font-normal text-[var(--color-text-secondary)]">/mo</span>}
                     </div>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {FEATURES.map(f => (
-                <tr key={f.name} className="hover:bg-zinc-800/20 transition-colors">
-                  <td className="px-5 py-3 text-zinc-300 text-xs">{f.name}</td>
+                <tr key={f.name} className="hover:bg-[var(--color-surface-2)]/20 transition-colors">
+                  <td className="px-5 py-3 text-[var(--color-text-primary)] text-xs">{f.name}</td>
                   {(["starter","pro","enterprise"] as Plan[]).map(plan => {
                     const val = f[plan];
                     return (
                       <td key={plan} className="px-5 py-3 text-center text-xs">
                         {val === true  ? <span className="text-emerald-400 text-base">✓</span> :
-                         val === false ? <span className="text-zinc-700">—</span> :
-                                         <span className="text-zinc-300">{val}</span>}
+                         val === false ? <span className="text-[var(--color-text-muted)]">—</span> :
+                                         <span className="text-[var(--color-text-primary)]">{val}</span>}
                       </td>
                     );
                   })}
@@ -355,8 +355,8 @@ export default function PricingCalculator() {
       {activeTab === "enterprise" && (
         <div className="max-w-2xl space-y-5">
           <div className="bg-gradient-to-br from-indigo-500/10 to-zinc-900 border border-indigo-500/20 rounded-lg p-6">
-            <h2 className="text-xl font-bold text-white mb-2">Enterprise Plan</h2>
-            <p className="text-zinc-400 text-sm">Custom pricing for large organizations with advanced security, compliance, and support requirements.</p>
+            <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">Enterprise Plan</h2>
+            <p className="text-[var(--color-text-secondary)] text-sm">Custom pricing for large organizations with advanced security, compliance, and support requirements.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -370,29 +370,29 @@ export default function PricingCalculator() {
               { emoji: "🌍", title: "Multi-Region",             desc: "Data residency in EU, US, APAC" },
               { emoji: "🎓", title: "Training & Onboarding",    desc: "Dedicated onboarding + CSM support" },
             ].map(f => (
-              <div key={f.title} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div key={f.title} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                 <div className="text-lg mb-1">{f.emoji}</div>
-                <div className="text-sm font-semibold text-white">{f.title}</div>
-                <div className="text-xs text-zinc-400 mt-0.5">{f.desc}</div>
+                <div className="text-sm font-semibold text-[var(--color-text-primary)]">{f.title}</div>
+                <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{f.desc}</div>
               </div>
             ))}
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-white mb-4">Contact Sales</h3>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">Contact Sales</h3>
             <div className="grid grid-cols-2 gap-3">
               {["First Name","Last Name","Company","Work Email","Team Size","Use Case"].map(label => (
                 <div key={label} className={label === "Use Case" ? "col-span-2" : ""}>
-                  <label className="block text-xs text-zinc-400 mb-1">{label}</label>
+                  <label className="block text-xs text-[var(--color-text-secondary)] mb-1">{label}</label>
                   <input
                     type="text"
                     placeholder={label}
-                    className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               ))}
             </div>
-            <button className="mt-4 w-full py-2.5 bg-indigo-500 text-white text-sm font-medium rounded hover:bg-indigo-600 transition-colors">
+            <button className="mt-4 w-full py-2.5 bg-indigo-500 text-[var(--color-text-primary)] text-sm font-medium rounded hover:bg-indigo-600 transition-colors">
               Request Enterprise Demo
             </button>
           </div>

@@ -317,17 +317,17 @@ export default function AgentErrorInspector() {
   }, [selectedAgent]);
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-zinc-100 p-6 font-sans">
+    <div className="min-h-screen bg-[var(--color-surface-1)] text-[var(--color-text-primary)] p-6 font-sans">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Agent Error Inspector</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">Drill-down error diagnostics for agent runs</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">Agent Error Inspector</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Drill-down error diagnostics for agent runs</p>
         </div>
         <select
           value={selectedAgent}
           onChange={(e) => setSelectedAgent(e.target.value)}
-          className="bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           {AGENTS.map((a) => (
             <option key={a.id} value={a.id}>{a.name}</option>
@@ -343,26 +343,26 @@ export default function AgentErrorInspector() {
           { label: "Avg Retries", value: stats.avgRetry, accent: "text-yellow-400" },
           { label: "% Resolved", value: `${stats.pctResolved}%`, accent: "text-emerald-400" },
         ].map((s) => (
-          <div key={s.label} className="bg-zinc-800 rounded-xl p-4 border border-zinc-700">
-            <p className="text-xs text-zinc-400 uppercase tracking-wider mb-1">{s.label}</p>
+          <div key={s.label} className="bg-[var(--color-surface-2)] rounded-xl p-4 border border-[var(--color-border)]">
+            <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wider mb-1">{s.label}</p>
             <p className={cn("text-2xl font-bold font-mono", s.accent)}>{s.value}</p>
           </div>
         ))}
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap gap-3 mb-5 bg-zinc-800 p-3 rounded-xl border border-zinc-700">
+      <div className="flex flex-wrap gap-3 mb-5 bg-[var(--color-surface-2)] p-3 rounded-xl border border-[var(--color-border)]">
         <input
           type="text"
           placeholder="Search by message…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-[200px] bg-zinc-900 border border-zinc-600 text-zinc-100 rounded-lg px-3 py-1.5 text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="flex-1 min-w-[200px] bg-[var(--color-surface-1)] border border-[var(--color-surface-3)] text-[var(--color-text-primary)] rounded-lg px-3 py-1.5 text-sm placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-red-500"
         />
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value as ErrorType | "all")}
-          className="bg-zinc-900 border border-zinc-600 text-zinc-100 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-surface-3)] text-[var(--color-text-primary)] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           <option value="all">All Types</option>
           <option value="timeout">Timeout</option>
@@ -373,20 +373,20 @@ export default function AgentErrorInspector() {
         <select
           value={filterSeverity}
           onChange={(e) => setFilterSeverity(e.target.value as Severity | "all")}
-          className="bg-zinc-900 border border-zinc-600 text-zinc-100 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-surface-3)] text-[var(--color-text-primary)] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           <option value="all">All Severities</option>
           <option value="fatal">Fatal</option>
           <option value="error">Error</option>
           <option value="warn">Warn</option>
         </select>
-        <span className="text-zinc-400 text-sm self-center">{filtered.length} result{filtered.length !== 1 ? "s" : ""}</span>
+        <span className="text-[var(--color-text-secondary)] text-sm self-center">{filtered.length} result{filtered.length !== 1 ? "s" : ""}</span>
       </div>
 
       {/* Error List */}
       <div className="space-y-2">
         {filtered.length === 0 && (
-          <div className="text-center py-16 text-zinc-500">
+          <div className="text-center py-16 text-[var(--color-text-muted)]">
             <p className="text-4xl mb-3">✓</p>
             <p className="text-lg font-medium">No errors match your filters</p>
           </div>
@@ -398,24 +398,24 @@ export default function AgentErrorInspector() {
             <div
               key={err.id}
               className={cn(
-                "bg-zinc-800 rounded-xl border border-zinc-700 overflow-hidden transition-all",
+                "bg-[var(--color-surface-2)] rounded-xl border border-[var(--color-border)] overflow-hidden transition-all",
                 SEVERITY_ROW_COLORS[err.severity]
               )}
             >
               {/* Row */}
               <button
                 onClick={() => setExpandedId(isExpanded ? null : err.id)}
-                className="w-full text-left px-4 py-3 flex flex-wrap items-center gap-3 hover:bg-zinc-750 focus:outline-none group"
+                className="w-full text-left px-4 py-3 flex flex-wrap items-center gap-3 hover:bg-[var(--color-surface-3)] focus:outline-none group"
               >
                 <SeverityIcon severity={err.severity} />
-                <span className="text-zinc-400 text-xs font-mono w-20 shrink-0">{formatTs(err.timestamp)}</span>
+                <span className="text-[var(--color-text-secondary)] text-xs font-mono w-20 shrink-0">{formatTs(err.timestamp)}</span>
                 <Badge type={err.errorType} />
-                <span className="flex-1 text-sm text-zinc-200 min-w-[180px] truncate">{err.message}</span>
-                <span className="text-xs text-zinc-500 shrink-0">
-                  Agent: <span className="text-zinc-300">{agentName}</span>
+                <span className="flex-1 text-sm text-[var(--color-text-primary)] min-w-[180px] truncate">{err.message}</span>
+                <span className="text-xs text-[var(--color-text-muted)] shrink-0">
+                  Agent: <span className="text-[var(--color-text-primary)]">{agentName}</span>
                 </span>
-                <span className="text-xs text-zinc-500 shrink-0">
-                  Retries: <span className={cn("font-mono", err.retryCount >= 3 ? "text-red-400" : "text-zinc-300")}>{err.retryCount}</span>
+                <span className="text-xs text-[var(--color-text-muted)] shrink-0">
+                  Retries: <span className={cn("font-mono", err.retryCount >= 3 ? "text-red-400" : "text-[var(--color-text-primary)]")}>{err.retryCount}</span>
                 </span>
                 {err.fallbackModel && (
                   <span className="text-xs bg-blue-900/50 border border-blue-700 text-blue-300 px-2 py-0.5 rounded font-mono shrink-0">
@@ -427,13 +427,13 @@ export default function AgentErrorInspector() {
                 ) : (
                   <span className="text-xs text-red-400 font-semibold shrink-0">● active</span>
                 )}
-                <span className={cn("text-zinc-500 text-xs shrink-0 transition-transform", isExpanded && "rotate-180")}>▼</span>
+                <span className={cn("text-[var(--color-text-muted)] text-xs shrink-0 transition-transform", isExpanded && "rotate-180")}>▼</span>
               </button>
 
               {/* Expanded stack trace */}
               {isExpanded && (
-                <div className="border-t border-zinc-700 bg-zinc-950 px-4 py-3">
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2 font-semibold">Stack Trace</p>
+                <div className="border-t border-[var(--color-border)] bg-[var(--color-surface-0)] px-4 py-3">
+                  <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2 font-semibold">Stack Trace</p>
                   <pre className="text-xs font-mono text-green-300 leading-relaxed whitespace-pre-wrap break-all">
                     {err.stackTrace}
                   </pre>

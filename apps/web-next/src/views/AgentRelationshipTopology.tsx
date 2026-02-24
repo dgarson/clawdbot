@@ -311,16 +311,16 @@ function statusDotClass(status: AgentStatus): string {
   if (status === "active") {return "bg-emerald-400";}
   if (status === "busy")   {return "bg-amber-400";}
   if (status === "error")  {return "bg-rose-400";}
-  if (status === "done")   {return "bg-zinc-500";}
-  return "bg-zinc-600";
+  if (status === "done")   {return "bg-[var(--color-surface-3)]";}
+  return "bg-[var(--color-surface-3)]";
 }
 
 function statusPillClass(status: AgentStatus): string {
   if (status === "active") {return "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";}
   if (status === "busy")   {return "text-amber-400 border-amber-500/30 bg-amber-500/10";}
   if (status === "error")  {return "text-rose-400 border-rose-500/30 bg-rose-500/10";}
-  if (status === "done")   {return "text-zinc-400 border-zinc-600 bg-zinc-700";}
-  return "text-zinc-400 border-zinc-700 bg-zinc-800";
+  if (status === "done")   {return "text-[var(--color-text-secondary)] border-[var(--color-surface-3)] bg-[var(--color-surface-3)]";}
+  return "text-[var(--color-text-secondary)] border-[var(--color-border)] bg-[var(--color-surface-2)]";
 }
 
 function statusText(status: AgentStatus): string {
@@ -340,7 +340,7 @@ function edgeLineColor(kind: EdgeKind): string {
 function edgePillClass(kind: EdgeKind): string {
   if (kind === "spawn")    {return "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";}
   if (kind === "delegate") {return "bg-amber-500/20 text-amber-400 border border-amber-500/30";}
-  return "bg-zinc-700 text-zinc-400 border border-zinc-600";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] border border-[var(--color-surface-3)]";
 }
 
 function edgeText(kind: EdgeKind): string {
@@ -354,7 +354,7 @@ function eventDotClass(kind: EventKind): string {
   if (kind === "delegate") {return "bg-amber-400";}
   if (kind === "complete") {return "bg-emerald-400";}
   if (kind === "error")    {return "bg-rose-400";}
-  return "bg-zinc-500";
+  return "bg-[var(--color-surface-3)]";
 }
 
 function eventPillClass(kind: EventKind): string {
@@ -362,7 +362,7 @@ function eventPillClass(kind: EventKind): string {
   if (kind === "delegate") {return "bg-amber-500/20 text-amber-400";}
   if (kind === "complete") {return "bg-emerald-500/20 text-emerald-400";}
   if (kind === "error")    {return "bg-rose-500/20 text-rose-400";}
-  return "bg-zinc-700 text-zinc-400";
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 
 function eventText(kind: EventKind): string {
@@ -443,12 +443,12 @@ function MapNode({ agent, x, y, selected, connected, onClick }: MapNodeProps) {
         selected
           ? "border-indigo-500 bg-indigo-900/60 shadow-lg shadow-indigo-500/30"
           : connected
-          ? "border-zinc-600 bg-zinc-800"
-          : "border-zinc-800 bg-zinc-900 hover:border-zinc-600 hover:bg-zinc-800"
+          ? "border-[var(--color-surface-3)] bg-[var(--color-surface-2)]"
+          : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)] hover:bg-[var(--color-surface-2)]"
       )}
     >
       <span className="text-lg leading-none">{agent.emoji}</span>
-      <span className={cn("text-xs font-semibold leading-none", selected ? "text-white" : "text-zinc-300")}>
+      <span className={cn("text-xs font-semibold leading-none", selected ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)]")}>
         {agent.name}
       </span>
       <div className={cn("w-1.5 h-1.5 rounded-full mt-0.5", statusDotClass(agent.status))} />
@@ -474,20 +474,20 @@ function SelectedAgentPanel({ agentId, onClose }: SelectedPanelProps) {
     .slice(0, 3);
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 space-y-4">
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="text-2xl">{agent.emoji}</span>
         <div className="flex-1 min-w-0">
-          <div className="text-white font-semibold">{agent.name}</div>
-          <div className="text-zinc-400 text-xs">{agent.role}</div>
+          <div className="text-[var(--color-text-primary)] font-semibold">{agent.name}</div>
+          <div className="text-[var(--color-text-secondary)] text-xs">{agent.role}</div>
         </div>
         <span className={cn("text-xs px-2 py-0.5 rounded-full border", statusPillClass(agent.status))}>
           {statusText(agent.status)}
         </span>
         <button
           onClick={onClose}
-          className="text-zinc-600 hover:text-zinc-300 transition-colors ml-1 text-lg leading-none"
+          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors ml-1 text-lg leading-none"
         >
           ×
         </button>
@@ -495,21 +495,21 @@ function SelectedAgentPanel({ agentId, onClose }: SelectedPanelProps) {
 
       {/* Model + tier */}
       <div className="flex gap-3">
-        <div className="rounded-lg bg-zinc-800 px-3 py-2 flex-1 text-center">
-          <div className="text-zinc-300 text-xs font-medium">{agent.model}</div>
-          <div className="text-zinc-600 text-xs">model</div>
+        <div className="rounded-lg bg-[var(--color-surface-2)] px-3 py-2 flex-1 text-center">
+          <div className="text-[var(--color-text-primary)] text-xs font-medium">{agent.model}</div>
+          <div className="text-[var(--color-text-muted)] text-xs">model</div>
         </div>
-        <div className="rounded-lg bg-zinc-800 px-3 py-2 flex-1 text-center">
-          <div className="text-zinc-300 text-xs font-medium">
+        <div className="rounded-lg bg-[var(--color-surface-2)] px-3 py-2 flex-1 text-center">
+          <div className="text-[var(--color-text-primary)] text-xs font-medium">
             {agent.tier === 0 ? "Executive" : agent.tier === 1 ? "Lead" : "Worker"}
           </div>
-          <div className="text-zinc-600 text-xs">tier</div>
+          <div className="text-[var(--color-text-muted)] text-xs">tier</div>
         </div>
-        <div className="rounded-lg bg-zinc-800 px-3 py-2 flex-1 text-center">
+        <div className="rounded-lg bg-[var(--color-surface-2)] px-3 py-2 flex-1 text-center">
           <div className="text-indigo-400 text-xs font-bold">
             {outbound.filter(e => e.kind === "spawn").length}
           </div>
-          <div className="text-zinc-600 text-xs">spawns</div>
+          <div className="text-[var(--color-text-muted)] text-xs">spawns</div>
         </div>
       </div>
 
@@ -517,14 +517,14 @@ function SelectedAgentPanel({ agentId, onClose }: SelectedPanelProps) {
       <div className="grid grid-cols-2 gap-3">
         {inbound.length > 0 && (
           <div>
-            <div className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-2">Reports To</div>
+            <div className="text-[var(--color-text-muted)] text-xs font-semibold uppercase tracking-wider mb-2">Reports To</div>
             <div className="space-y-1.5">
               {inbound.map(e => {
                 const from = getTopoAgent(e.fromId);
                 return (
                   <div key={e.fromId + e.kind} className="flex items-center gap-2 text-xs">
                     <span className="text-base">{from.emoji}</span>
-                    <span className="text-zinc-300">{from.name}</span>
+                    <span className="text-[var(--color-text-primary)]">{from.name}</span>
                     <span className={cn("px-1.5 py-0.5 rounded text-xs ml-auto", edgePillClass(e.kind))}>
                       {edgeText(e.kind)}
                     </span>
@@ -536,14 +536,14 @@ function SelectedAgentPanel({ agentId, onClose }: SelectedPanelProps) {
         )}
         {outbound.length > 0 && (
           <div>
-            <div className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-2">Delegates To</div>
+            <div className="text-[var(--color-text-muted)] text-xs font-semibold uppercase tracking-wider mb-2">Delegates To</div>
             <div className="space-y-1.5">
               {outbound.map(e => {
                 const to = getTopoAgent(e.toId);
                 return (
                   <div key={e.toId + e.kind} className="flex items-center gap-2 text-xs">
                     <span className="text-base">{to.emoji}</span>
-                    <span className="text-zinc-300">{to.name}</span>
+                    <span className="text-[var(--color-text-primary)]">{to.name}</span>
                     <span className={cn("px-1.5 py-0.5 rounded text-xs ml-auto", edgePillClass(e.kind))}>
                       {edgeText(e.kind)}
                     </span>
@@ -558,10 +558,10 @@ function SelectedAgentPanel({ agentId, onClose }: SelectedPanelProps) {
       {/* Recent spawns */}
       {activeSessions.length > 0 && (
         <div>
-          <div className="text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-2">Recent Spawns</div>
+          <div className="text-[var(--color-text-muted)] text-xs font-semibold uppercase tracking-wider mb-2">Recent Spawns</div>
           <div className="space-y-1">
             {activeSessions.map(ev => (
-              <div key={ev.id} className="text-xs text-zinc-400 flex items-start gap-1.5">
+              <div key={ev.id} className="text-xs text-[var(--color-text-secondary)] flex items-start gap-1.5">
                 <span className="text-indigo-500 mt-0.5 flex-shrink-0">↳</span>
                 <span className="leading-relaxed">{ev.description}</span>
               </div>
@@ -588,7 +588,7 @@ function SpawnTreeNode({ node, depth }: SpawnNodeProps) {
   const cardBorder =
     node.edgeKind === "spawn"    ? "border-indigo-800/50 bg-indigo-950/30" :
     node.edgeKind === "delegate" ? "border-amber-800/50  bg-amber-950/20"  :
-    "border-zinc-800 bg-zinc-900";
+    "border-[var(--color-border)] bg-[var(--color-surface-1)]";
 
   return (
     <div>
@@ -601,8 +601,8 @@ function SpawnTreeNode({ node, depth }: SpawnNodeProps) {
           className={cn(
             "mt-3.5 w-5 h-5 rounded flex items-center justify-center text-sm flex-shrink-0 transition-colors",
             hasChildren
-              ? "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
-              : "text-zinc-700 cursor-default"
+              ? "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
+              : "text-[var(--color-text-muted)] cursor-default"
           )}
         >
           {hasChildren ? (expanded ? "▾" : "▸") : "·"}
@@ -614,46 +614,46 @@ function SpawnTreeNode({ node, depth }: SpawnNodeProps) {
             <span className="text-xl flex-shrink-0">{agent.emoji}</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-white font-semibold text-sm">{agent.name}</span>
+                <span className="text-[var(--color-text-primary)] font-semibold text-sm">{agent.name}</span>
                 {node.edgeKind && (
                   <span className={cn("px-1.5 py-0.5 rounded text-xs", edgePillClass(node.edgeKind))}>
                     {edgeText(node.edgeKind)}
                   </span>
                 )}
                 {depth === 0 && (
-                  <span className="px-1.5 py-0.5 rounded text-xs bg-zinc-700 text-zinc-300 border border-zinc-600">
+                  <span className="px-1.5 py-0.5 rounded text-xs bg-[var(--color-surface-3)] text-[var(--color-text-primary)] border border-[var(--color-surface-3)]">
                     Root
                   </span>
                 )}
                 <div className={cn("w-2 h-2 rounded-full ml-auto flex-shrink-0", statusDotClass(agent.status))} />
               </div>
-              <div className="text-zinc-400 text-xs mt-0.5 leading-relaxed">{node.task}</div>
+              <div className="text-[var(--color-text-secondary)] text-xs mt-0.5 leading-relaxed">{node.task}</div>
             </div>
           </div>
 
           {/* Metrics row */}
-          <div className="flex items-center gap-4 mt-2.5 pt-2.5 border-t border-zinc-800/60 flex-wrap">
-            <span className="text-zinc-500 text-xs flex items-center gap-1">
-              <span className="text-zinc-600">📨</span> {node.messages} msg
+          <div className="flex items-center gap-4 mt-2.5 pt-2.5 border-t border-[var(--color-border)]/60 flex-wrap">
+            <span className="text-[var(--color-text-muted)] text-xs flex items-center gap-1">
+              <span className="text-[var(--color-text-muted)]">📨</span> {node.messages} msg
             </span>
-            <span className="text-zinc-500 text-xs flex items-center gap-1">
-              <span className="text-zinc-600">🔧</span> {node.toolCalls} tools
+            <span className="text-[var(--color-text-muted)] text-xs flex items-center gap-1">
+              <span className="text-[var(--color-text-muted)]">🔧</span> {node.toolCalls} tools
             </span>
-            <span className="text-zinc-500 text-xs">⏱ {node.startedAt}</span>
+            <span className="text-[var(--color-text-muted)] text-xs">⏱ {node.startedAt}</span>
             {node.duration && (
-              <span className="text-zinc-500 text-xs">⌛ {node.duration}</span>
+              <span className="text-[var(--color-text-muted)] text-xs">⌛ {node.duration}</span>
             )}
             {!node.duration && node.edgeKind && (
               <span className="text-emerald-500 text-xs font-medium">● live</span>
             )}
-            <span className="text-zinc-700 text-xs font-mono ml-auto">{node.sessionId}</span>
+            <span className="text-[var(--color-text-muted)] text-xs font-mono ml-auto">{node.sessionId}</span>
           </div>
         </div>
       </div>
 
       {/* Children */}
       {expanded && hasChildren && (
-        <div className="ml-3 mt-2 pl-4 border-l border-dashed border-zinc-700/40 space-y-2">
+        <div className="ml-3 mt-2 pl-4 border-l border-dashed border-[var(--color-border)]/40 space-y-2">
           {node.children.map(child => (
             <SpawnTreeNode key={child.id} node={child} depth={depth + 1} />
           ))}
@@ -674,8 +674,8 @@ function SpawnTree() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-white font-semibold">Agent Spawn Tree</h3>
-          <p className="text-zinc-500 text-xs mt-0.5">
+          <h3 className="text-[var(--color-text-primary)] font-semibold">Agent Spawn Tree</h3>
+          <p className="text-[var(--color-text-muted)] text-xs mt-0.5">
             Hierarchical view of agent spawning and delegation — root orchestrator down to leaf workers
           </p>
         </div>
@@ -699,16 +699,16 @@ function SpawnTree() {
       </div>
 
       {/* Footer stats */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 grid grid-cols-4 gap-4 text-center">
+      <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)]/50 p-4 grid grid-cols-4 gap-4 text-center">
         {[
-          { label: "Total Agents",   value: TOPO_AGENTS.length.toString(), color: "text-white" },
+          { label: "Total Agents",   value: TOPO_AGENTS.length.toString(), color: "text-[var(--color-text-primary)]" },
           { label: "Active / Busy",  value: `${activeNodes}`,              color: "text-emerald-400" },
-          { label: "Completed",      value: `${completedNodes}`,           color: "text-zinc-400" },
+          { label: "Completed",      value: `${completedNodes}`,           color: "text-[var(--color-text-secondary)]" },
           { label: "Messages",       value: `${totalMessages}`,            color: "text-indigo-400" },
         ].map(s => (
           <div key={s.label}>
             <div className={cn("text-2xl font-bold", s.color)}>{s.value}</div>
-            <div className="text-zinc-500 text-xs">{s.label}</div>
+            <div className="text-[var(--color-text-muted)] text-xs">{s.label}</div>
           </div>
         ))}
       </div>
@@ -737,8 +737,8 @@ function TopologyMap() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-white font-semibold">Topology Map</h3>
-          <p className="text-zinc-500 text-xs mt-0.5">
+          <h3 className="text-[var(--color-text-primary)] font-semibold">Topology Map</h3>
+          <p className="text-[var(--color-text-muted)] text-xs mt-0.5">
             Structural relationship map — command chain, delegations, spawn graph
           </p>
         </div>
@@ -750,7 +750,7 @@ function TopologyMap() {
           ] as [EdgeKind, string][]).map(([kind, label]) => (
             <div key={kind} className="flex items-center gap-1.5">
               <div className="w-5 h-0.5" style={{ backgroundColor: edgeLineColor(kind) }} />
-              <span className="text-zinc-500">{label}</span>
+              <span className="text-[var(--color-text-muted)]">{label}</span>
             </div>
           ))}
         </div>
@@ -758,7 +758,7 @@ function TopologyMap() {
 
       {/* Canvas */}
       <div
-        className="relative rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden"
+        className="relative rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-0)] overflow-hidden"
         style={{ width: containerW, height: containerH }}
       >
         {/* Tier label bands */}
@@ -770,9 +770,9 @@ function TopologyMap() {
           <div
             key={band.label}
             style={{ position: "absolute", left: 0, top: band.top, width: "100%", height: band.h }}
-            className="border-b border-zinc-800/40 flex items-end pb-1 pl-2"
+            className="border-b border-[var(--color-border)]/40 flex items-end pb-1 pl-2"
           >
-            <span className="text-zinc-800 text-xs select-none">{band.label}</span>
+            <span className="text-[var(--color-text-muted)] text-xs select-none">{band.label}</span>
           </div>
         ))}
 
@@ -809,7 +809,7 @@ function TopologyMap() {
               <div
                 key={`lbl-${i}`}
                 style={{ position: "absolute", left: mx, top: my, transform: "translate(-50%,-50%)", zIndex: 3, pointerEvents: "none" }}
-                className="bg-zinc-950 px-1.5 py-0.5 rounded text-xs border border-zinc-800 text-zinc-500 whitespace-nowrap"
+                className="bg-[var(--color-surface-0)] px-1.5 py-0.5 rounded text-xs border border-[var(--color-border)] text-[var(--color-text-muted)] whitespace-nowrap"
               >
                 {edge.label}
               </div>
@@ -837,7 +837,7 @@ function TopologyMap() {
         {!selected && (
           <div
             style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", pointerEvents: "none" }}
-            className="text-zinc-800 text-xs text-center select-none"
+            className="text-[var(--color-text-muted)] text-xs text-center select-none"
           >
             Click a node to<br />explore relationships
           </div>
@@ -860,8 +860,8 @@ function SessionChains() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-white font-semibold">Session Chains</h3>
-        <p className="text-zinc-500 text-xs mt-0.5">
+        <h3 className="text-[var(--color-text-primary)] font-semibold">Session Chains</h3>
+        <p className="text-[var(--color-text-muted)] text-xs mt-0.5">
           Multi-agent session chains — root orchestration task through to leaf execution
         </p>
       </div>
@@ -874,7 +874,7 @@ function SessionChains() {
               key={chain.id}
               className={cn(
                 "rounded-xl border transition-all",
-                isOpen ? "border-indigo-500/40 bg-zinc-900" : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700"
+                isOpen ? "border-indigo-500/40 bg-[var(--color-surface-1)]" : "border-[var(--color-border)] bg-[var(--color-surface-1)]/50 hover:border-[var(--color-border)]"
               )}
             >
               {/* Header row */}
@@ -886,21 +886,21 @@ function SessionChains() {
                   "w-2.5 h-2.5 rounded-full flex-shrink-0",
                   chain.status === "active" ? "bg-emerald-400"   :
                   chain.status === "error"  ? "bg-rose-400"      :
-                  "bg-zinc-500"
+                  "bg-[var(--color-surface-3)]"
                 )} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-white font-medium text-sm">{chain.title}</div>
-                  <div className="text-zinc-500 text-xs">
+                  <div className="text-[var(--color-text-primary)] font-medium text-sm">{chain.title}</div>
+                  <div className="text-[var(--color-text-muted)] text-xs">
                     {chain.startedAt} · {chain.steps.length} agent{chain.steps.length !== 1 ? "s" : ""}
                     {chain.status === "active" ? " · running" : " · complete"}
                   </div>
                 </div>
-                <span className="text-zinc-600 text-sm">{isOpen ? "▾" : "▸"}</span>
+                <span className="text-[var(--color-text-muted)] text-sm">{isOpen ? "▾" : "▸"}</span>
               </div>
 
               {/* Step chain */}
               {isOpen && (
-                <div className="px-4 pb-5 border-t border-zinc-800">
+                <div className="px-4 pb-5 border-t border-[var(--color-border)]">
                   <div className="pt-4 overflow-x-auto">
                     <div className="flex items-center gap-0 min-w-max">
                       {chain.steps.map((step, i) => {
@@ -909,7 +909,7 @@ function SessionChains() {
                         const cardBorder =
                           step.kind === "spawn"    ? "border-indigo-800/50 bg-indigo-950/30" :
                           step.kind === "delegate" ? "border-amber-800/50  bg-amber-950/20"  :
-                          "border-zinc-700 bg-zinc-800/60";
+                          "border-[var(--color-border)] bg-[var(--color-surface-2)]/60";
 
                         return (
                           <div key={step.sessionId + i} className="flex items-center">
@@ -922,22 +922,22 @@ function SessionChains() {
                                 </div>
                               )}
                               {step.kind === "root" && (
-                                <div className="text-xs rounded px-1.5 py-0.5 mb-2 inline-block bg-zinc-700 text-zinc-300 border border-zinc-600">
+                                <div className="text-xs rounded px-1.5 py-0.5 mb-2 inline-block bg-[var(--color-surface-3)] text-[var(--color-text-primary)] border border-[var(--color-surface-3)]">
                                   Root
                                 </div>
                               )}
                               <div className="text-2xl mb-1">{agent.emoji}</div>
-                              <div className="text-white text-xs font-semibold">{agent.name}</div>
-                              <div className="text-zinc-400 text-xs mt-1 leading-snug">{step.task}</div>
-                              <div className="text-zinc-600 text-xs mt-2">📨 {step.messages}</div>
-                              <div className="text-zinc-700 text-xs font-mono mt-0.5 truncate">{step.sessionId}</div>
+                              <div className="text-[var(--color-text-primary)] text-xs font-semibold">{agent.name}</div>
+                              <div className="text-[var(--color-text-secondary)] text-xs mt-1 leading-snug">{step.task}</div>
+                              <div className="text-[var(--color-text-muted)] text-xs mt-2">📨 {step.messages}</div>
+                              <div className="text-[var(--color-text-muted)] text-xs font-mono mt-0.5 truncate">{step.sessionId}</div>
                             </div>
 
                             {/* Arrow */}
                             {!isLast && (
                               <div className="flex items-center flex-shrink-0 px-1">
-                                <div className="w-5 h-px bg-zinc-700" />
-                                <span className="text-zinc-600 text-xs">▶</span>
+                                <div className="w-5 h-px bg-[var(--color-surface-3)]" />
+                                <span className="text-[var(--color-text-muted)] text-xs">▶</span>
                               </div>
                             )}
                           </div>
@@ -983,8 +983,8 @@ function EventStream() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-white font-semibold">Topology Event Stream</h3>
-          <p className="text-zinc-500 text-xs mt-0.5">
+          <h3 className="text-[var(--color-text-primary)] font-semibold">Topology Event Stream</h3>
+          <p className="text-[var(--color-text-muted)] text-xs mt-0.5">
             Chronological log of agent spawn, delegation, and lifecycle events
           </p>
         </div>
@@ -996,8 +996,8 @@ function EventStream() {
               className={cn(
                 "px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap",
                 filter === f.value
-                  ? "bg-indigo-600 text-white"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {f.label}
@@ -1030,7 +1030,7 @@ function EventStream() {
       {/* Timeline */}
       <div className="relative">
         {/* Vertical line */}
-        <div className="absolute left-5 top-0 bottom-0 w-px bg-zinc-800" />
+        <div className="absolute left-5 top-0 bottom-0 w-px bg-[var(--color-surface-2)]" />
 
         <div className="space-y-3">
           {filtered.map(event => {
@@ -1041,27 +1041,27 @@ function EventStream() {
               <div key={event.id} className="flex gap-3 items-start">
                 {/* Timeline dot */}
                 <div className="w-10 flex-shrink-0 flex justify-center pt-3.5">
-                  <div className={cn("w-3 h-3 rounded-full border-2 border-zinc-950 z-10", eventDotClass(event.kind))} />
+                  <div className={cn("w-3 h-3 rounded-full border-2 border-[var(--color-border)] z-10", eventDotClass(event.kind))} />
                 </div>
 
                 {/* Card */}
-                <div className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900 p-3.5 hover:border-zinc-700 transition-colors">
+                <div className="flex-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-3.5 hover:border-[var(--color-border)] transition-colors">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <span className="text-base leading-none">{from.emoji}</span>
-                    <span className="text-white text-sm font-semibold">{from.name}</span>
+                    <span className="text-[var(--color-text-primary)] text-sm font-semibold">{from.name}</span>
                     <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", eventPillClass(event.kind))}>
                       {eventText(event.kind)}
                     </span>
                     {to && to.id !== from.id && (
                       <>
-                        <span className="text-zinc-600 text-xs">→</span>
+                        <span className="text-[var(--color-text-muted)] text-xs">→</span>
                         <span className="text-base leading-none">{to.emoji}</span>
-                        <span className="text-white text-sm font-semibold">{to.name}</span>
+                        <span className="text-[var(--color-text-primary)] text-sm font-semibold">{to.name}</span>
                       </>
                     )}
-                    <span className="text-zinc-600 text-xs ml-auto">{event.timestamp}</span>
+                    <span className="text-[var(--color-text-muted)] text-xs ml-auto">{event.timestamp}</span>
                   </div>
-                  <p className="text-zinc-400 text-xs leading-relaxed">{event.description}</p>
+                  <p className="text-[var(--color-text-secondary)] text-xs leading-relaxed">{event.description}</p>
                   <span className="text-indigo-500/70 text-xs font-mono mt-1.5 block hover:text-indigo-400 cursor-pointer transition-colors">
                     {event.sessionId}
                   </span>
@@ -1071,9 +1071,9 @@ function EventStream() {
           })}
 
           {filtered.length === 0 && (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center ml-10">
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-8 text-center ml-10">
               <div className="text-2xl mb-2">📭</div>
-              <div className="text-zinc-500 text-sm">No events match this filter</div>
+              <div className="text-[var(--color-text-muted)] text-sm">No events match this filter</div>
             </div>
           )}
         </div>
@@ -1105,14 +1105,14 @@ export default function AgentRelationshipTopology() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] p-6">
       <div className="max-w-5xl mx-auto space-y-6">
 
         {/* Header */}
         <div className="flex items-start justify-between gap-6">
           <div>
-            <h1 className="text-2xl font-bold text-white">Agent Relationship Topology</h1>
-            <p className="text-zinc-400 text-sm mt-1">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Agent Relationship Topology</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">
               Visualize how agents spawn, delegate, and coordinate — the living structure of your multi-agent system
             </p>
           </div>
@@ -1120,10 +1120,10 @@ export default function AgentRelationshipTopology() {
             {headerStats.map(s => (
               <div
                 key={s.label}
-                className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-center"
+                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] px-4 py-3 text-center"
               >
                 <div className={cn("text-xl font-bold", s.color)}>{s.value}</div>
-                <div className="text-zinc-500 text-xs">{s.label}</div>
+                <div className="text-[var(--color-text-muted)] text-xs">{s.label}</div>
               </div>
             ))}
           </div>
@@ -1133,11 +1133,11 @@ export default function AgentRelationshipTopology() {
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-emerald-400 text-xs font-medium">Live</span>
-          <span className="text-zinc-600 text-xs">— topology reflects current sprint session state</span>
+          <span className="text-[var(--color-text-muted)] text-xs">— topology reflects current sprint session state</span>
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 p-1 bg-zinc-900 rounded-xl border border-zinc-800">
+        <div className="flex gap-1 p-1 bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)]">
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -1145,8 +1145,8 @@ export default function AgentRelationshipTopology() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/50"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-lg shadow-indigo-900/50"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               <span className="text-base leading-none">{tab.icon}</span>
@@ -1156,7 +1156,7 @@ export default function AgentRelationshipTopology() {
         </div>
 
         {/* Tab content */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-6">
           {activeTab === "tree"   && <SpawnTree />}
           {activeTab === "map"    && <TopologyMap />}
           {activeTab === "chains" && <SessionChains />}

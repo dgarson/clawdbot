@@ -52,16 +52,16 @@ export default function SkillsMarketplace() {
   }, [activeTab, searchQuery, activeCategory]);
 
   return (
-    <div className="bg-gray-950 min-h-screen p-6 text-white">
+    <div className="bg-[var(--color-surface-0)] min-h-screen p-6 text-[var(--color-text-primary)]">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold">Skills</h1>
           <div className="flex items-center gap-2">
-            <span className="bg-violet-600 text-white text-xs px-2 py-0.5 rounded-full">
+            <span className="bg-violet-600 text-[var(--color-text-primary)] text-xs px-2 py-0.5 rounded-full">
               {installedCount} installed
             </span>
-            <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded-full">
+            <span className="bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs px-2 py-0.5 rounded-full">
               {availableCount} available
             </span>
           </div>
@@ -70,14 +70,14 @@ export default function SkillsMarketplace() {
 
       {/* Search Bar */}
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" aria-hidden="true" />
         <input
           type="text"
           aria-label="Search skills by name or category"
           placeholder="Search skills by name or category..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-600"
+          className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl pl-10 pr-4 py-2.5 text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-violet-600"
         />
       </div>
 
@@ -90,8 +90,8 @@ export default function SkillsMarketplace() {
             className={cn(
               'px-3 py-1.5 text-sm rounded-lg transition-colors',
               activeCategory === cat
-                ? 'bg-violet-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                ? 'bg-violet-600 text-[var(--color-text-primary)]'
+                : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]'
             )}
           >
             {cat}
@@ -100,7 +100,7 @@ export default function SkillsMarketplace() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-900 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-6 bg-[var(--color-surface-1)] p-1 rounded-xl w-fit">
         {(['installed', 'available', 'featured'] as Tab[]).map(tab => (
           <button
             key={tab}
@@ -108,8 +108,8 @@ export default function SkillsMarketplace() {
             className={cn(
               'px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize',
               activeTab === tab
-                ? 'bg-gray-800 text-white'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-[var(--color-surface-2)] text-[var(--color-text-primary)]'
+                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
             )}
           >
             {tab}
@@ -125,7 +125,7 @@ export default function SkillsMarketplace() {
       </div>
 
       {filteredSkills.length === 0 && (
-        <div className="text-center text-gray-500 py-12">
+        <div className="text-center text-[var(--color-text-muted)] py-12">
           No skills found matching your criteria.
         </div>
       )}
@@ -140,33 +140,33 @@ interface SkillCardProps {
 
 function SkillCard({ skill, isInstalled }: SkillCardProps) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-colors">
+    <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 hover:border-[var(--color-border)] transition-colors">
       <div className="flex items-start gap-3 mb-3">
         {/* Icon */}
-        <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center text-xl flex-shrink-0">
+        <div className="w-10 h-10 bg-[var(--color-surface-2)] rounded-lg flex items-center justify-center text-xl flex-shrink-0">
           {skill.icon}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-medium text-white truncate">{skill.name}</h3>
+            <h3 className="font-medium text-[var(--color-text-primary)] truncate">{skill.name}</h3>
             {skill.featured && (
               <Sparkles className="w-4 h-4 text-yellow-500 flex-shrink-0" />
             )}
           </div>
           {skill.version && (
-            <span className="text-xs text-gray-500 bg-gray-800 px-1.5 py-0.5 rounded">
+            <span className="text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-2)] px-1.5 py-0.5 rounded">
               v{skill.version}
             </span>
           )}
         </div>
       </div>
 
-      <p className="text-sm text-gray-400 mb-3 line-clamp-2">{skill.description}</p>
+      <p className="text-sm text-[var(--color-text-secondary)] mb-3 line-clamp-2">{skill.description}</p>
 
       {/* Category & Popular */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">
+        <span className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] px-2 py-0.5 rounded-full">
           {skill.category}
         </span>
         {skill.popular && (
@@ -183,7 +183,7 @@ function SkillCard({ skill, isInstalled }: SkillCardProps) {
           {skill.tools.map(tool => (
             <span
               key={tool}
-              className="text-xs bg-gray-800/50 text-gray-500 px-1.5 py-0.5 rounded font-mono"
+              className="text-xs bg-[var(--color-surface-2)]/50 text-[var(--color-text-muted)] px-1.5 py-0.5 rounded font-mono"
             >
               {tool}
             </span>
@@ -194,16 +194,16 @@ function SkillCard({ skill, isInstalled }: SkillCardProps) {
       {/* Action Button */}
       {isInstalled ? (
         <div className="flex gap-2">
-          <button className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors">
+          <button className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm rounded-lg transition-colors">
             <RefreshCw className="w-3.5 h-3.5" />
             Update
           </button>
-          <button className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors">
+          <button className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm rounded-lg transition-colors">
             <Settings className="w-3.5 h-3.5" />
           </button>
         </div>
       ) : (
-        <button className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-sm rounded-lg transition-colors">
+        <button className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-sm rounded-lg transition-colors">
           <Download className="w-3.5 h-3.5" />
           Install
         </button>

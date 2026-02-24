@@ -270,21 +270,21 @@ function statusTextColor(s: ServiceStatus): string {
   if (s === "healthy") {return "text-emerald-400";}
   if (s === "degraded") {return "text-amber-400";}
   if (s === "down") {return "text-rose-400";}
-  return "text-zinc-500";
+  return "text-[var(--color-text-muted)]";
 }
 
 function statusDotColor(s: ServiceStatus): string {
   if (s === "healthy") {return "bg-emerald-400";}
   if (s === "degraded") {return "bg-amber-400";}
   if (s === "down") {return "bg-rose-400";}
-  return "bg-zinc-500";
+  return "bg-[var(--color-surface-3)]";
 }
 
 function statusBadgeClass(s: ServiceStatus): string {
   if (s === "healthy") {return "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20";}
   if (s === "degraded") {return "bg-amber-400/10 text-amber-400 border border-amber-400/20";}
   if (s === "down") {return "bg-rose-400/10 text-rose-400 border border-rose-400/20";}
-  return "bg-zinc-800 text-zinc-500 border border-zinc-700";
+  return "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border border-[var(--color-border)]";
 }
 
 function severityBadgeClass(s: IncidentSeverity): string {
@@ -376,12 +376,12 @@ export default function ServiceHealthDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       {/* ── Header ── */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold tracking-tight">Service Health</h1>
-          <span className="text-xs text-zinc-500 font-mono">
+          <span className="text-xs text-[var(--color-text-muted)] font-mono">
             http://127.0.0.1:3000 · Last updated: Feb 22, 2026 06:34 MST
           </span>
         </div>
@@ -400,8 +400,8 @@ export default function ServiceHealthDashboard() {
           </span>
           {unknownCount > 0 && (
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-zinc-500" />
-              <span className="text-zinc-500">{unknownCount} unknown</span>
+              <span className="w-2 h-2 rounded-full bg-[var(--color-surface-3)]" />
+              <span className="text-[var(--color-text-muted)]">{unknownCount} unknown</span>
             </span>
           )}
           {activeIncidents.length > 0 && (
@@ -413,7 +413,7 @@ export default function ServiceHealthDashboard() {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="flex gap-1 border-b border-zinc-800 mb-6">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-6">
         {tabs.map((t) => (
           <button
             key={t.key}
@@ -424,8 +424,8 @@ export default function ServiceHealthDashboard() {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border border-b-0 -mb-px",
               tab === t.key
-                ? "bg-zinc-900 border-zinc-800 text-white"
-                : "bg-transparent border-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+                ? "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-primary)]"
+                : "bg-transparent border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]/50"
             )}
           >
             {t.label}
@@ -440,10 +440,10 @@ export default function ServiceHealthDashboard() {
             <button
               key={svc.id}
               onClick={() => setSelectedServiceId(svc.id)}
-              className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-left hover:border-zinc-600 transition-all hover:shadow-lg hover:shadow-black/20 group"
+              className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-left hover:border-[var(--color-surface-3)] transition-all hover:shadow-lg hover:shadow-black/20 group"
             >
               <div className="flex items-start justify-between mb-3">
-                <span className="font-semibold text-sm group-hover:text-white">{svc.name}</span>
+                <span className="font-semibold text-sm group-hover:text-[var(--color-text-primary)]">{svc.name}</span>
                 <span
                   className={cn(
                     "text-xs px-2 py-0.5 rounded-full capitalize font-medium",
@@ -455,13 +455,13 @@ export default function ServiceHealthDashboard() {
               </div>
               <div className="grid grid-cols-3 gap-2 text-xs mb-4">
                 <div>
-                  <div className="text-zinc-500 mb-0.5">Uptime</div>
+                  <div className="text-[var(--color-text-muted)] mb-0.5">Uptime</div>
                   <div className={cn("font-mono font-semibold", statusTextColor(svc.status))}>
                     {svc.uptime.toFixed(2)}%
                   </div>
                 </div>
                 <div>
-                  <div className="text-zinc-500 mb-0.5">Error Rate</div>
+                  <div className="text-[var(--color-text-muted)] mb-0.5">Error Rate</div>
                   <div
                     className={cn(
                       "font-mono font-semibold",
@@ -469,22 +469,22 @@ export default function ServiceHealthDashboard() {
                         ? "text-rose-400"
                         : svc.errorRate > 0.3
                         ? "text-amber-400"
-                        : "text-zinc-300"
+                        : "text-[var(--color-text-primary)]"
                     )}
                   >
                     {svc.errorRate.toFixed(2)}%
                   </div>
                 </div>
                 <div>
-                  <div className="text-zinc-500 mb-0.5">p99 Latency</div>
+                  <div className="text-[var(--color-text-muted)] mb-0.5">p99 Latency</div>
                   <div
                     className={cn(
                       "font-mono font-semibold",
                       svc.p99Latency === 0
-                        ? "text-zinc-600"
+                        ? "text-[var(--color-text-muted)]"
                         : svc.p99Latency > 350
                         ? "text-amber-400"
-                        : "text-zinc-300"
+                        : "text-[var(--color-text-primary)]"
                     )}
                   >
                     {svc.p99Latency === 0 ? "—" : `${svc.p99Latency}ms`}
@@ -493,7 +493,7 @@ export default function ServiceHealthDashboard() {
               </div>
               {/* Sparkline */}
               <div>
-                <div className="text-xs text-zinc-600 mb-1.5">7-day history</div>
+                <div className="text-xs text-[var(--color-text-muted)] mb-1.5">7-day history</div>
                 <div className="flex gap-0.5 items-end h-7">
                   {svc.history.map((h, idx) => (
                     <div
@@ -521,7 +521,7 @@ export default function ServiceHealthDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Left: main stats + history + deps */}
             <div className="lg:col-span-2 space-y-5">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-xl font-bold">{selectedSvc.name}</h2>
                   <span
@@ -534,8 +534,8 @@ export default function ServiceHealthDashboard() {
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-3 mb-6">
-                  <div className="bg-zinc-800 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500 mb-1">Uptime (30d)</div>
+                  <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-1">Uptime (30d)</div>
                     <div
                       className={cn(
                         "text-2xl font-mono font-bold",
@@ -545,8 +545,8 @@ export default function ServiceHealthDashboard() {
                       {selectedSvc.uptime.toFixed(2)}%
                     </div>
                   </div>
-                  <div className="bg-zinc-800 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500 mb-1">Error Rate</div>
+                  <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-1">Error Rate</div>
                     <div
                       className={cn(
                         "text-2xl font-mono font-bold",
@@ -554,15 +554,15 @@ export default function ServiceHealthDashboard() {
                           ? "text-rose-400"
                           : selectedSvc.errorRate > 0.3
                           ? "text-amber-400"
-                          : "text-zinc-300"
+                          : "text-[var(--color-text-primary)]"
                       )}
                     >
                       {selectedSvc.errorRate.toFixed(2)}%
                     </div>
                   </div>
-                  <div className="bg-zinc-800 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500 mb-1">p99 Latency</div>
-                    <div className="text-2xl font-mono font-bold text-zinc-300">
+                  <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)] mb-1">p99 Latency</div>
+                    <div className="text-2xl font-mono font-bold text-[var(--color-text-primary)]">
                       {selectedSvc.p99Latency === 0 ? "—" : `${selectedSvc.p99Latency}ms`}
                     </div>
                   </div>
@@ -570,7 +570,7 @@ export default function ServiceHealthDashboard() {
 
                 {/* History sparkline (larger) */}
                 <div>
-                  <div className="text-xs text-zinc-500 mb-2 font-medium">7-Day Status History</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mb-2 font-medium">7-Day Status History</div>
                   <div className="flex gap-1 items-end h-12 mb-1">
                     {selectedSvc.history.map((h, idx) => (
                       <div key={idx} className="flex-1 flex flex-col justify-end">
@@ -581,7 +581,7 @@ export default function ServiceHealthDashboard() {
                       </div>
                     ))}
                   </div>
-                  <div className="flex justify-between text-xs text-zinc-600">
+                  <div className="flex justify-between text-xs text-[var(--color-text-muted)]">
                     <span>7 days ago</span>
                     <span>Today</span>
                   </div>
@@ -589,10 +589,10 @@ export default function ServiceHealthDashboard() {
               </div>
 
               {/* Dependencies */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-                <div className="text-sm font-semibold mb-3 text-zinc-300">Dependencies</div>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+                <div className="text-sm font-semibold mb-3 text-[var(--color-text-primary)]">Dependencies</div>
                 {selectedSvc.dependencies.length === 0 ? (
-                  <div className="text-sm text-zinc-600 italic">No upstream dependencies</div>
+                  <div className="text-sm text-[var(--color-text-muted)] italic">No upstream dependencies</div>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {selectedSvc.dependencies.map((dep) => {
@@ -603,7 +603,7 @@ export default function ServiceHealthDashboard() {
                           onClick={() => depSvc && setSelectedServiceId(dep)}
                           className={cn(
                             "text-xs px-3 py-1.5 rounded-full border transition-opacity hover:opacity-80",
-                            depSvc ? statusBadgeClass(depSvc.status) : "bg-zinc-800 text-zinc-400 border-zinc-700"
+                            depSvc ? statusBadgeClass(depSvc.status) : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]"
                           )}
                         >
                           {depSvc ? depSvc.name : dep}
@@ -621,10 +621,10 @@ export default function ServiceHealthDashboard() {
             {/* Right: SLO gauges + recent incidents */}
             <div className="space-y-5">
               {/* SLO Compliance */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-                <div className="text-sm font-semibold mb-4 text-zinc-300">SLO Compliance</div>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+                <div className="text-sm font-semibold mb-4 text-[var(--color-text-primary)]">SLO Compliance</div>
                 {SLOS.filter((s) => s.service === selectedSvc.name).length === 0 ? (
-                  <div className="text-sm text-zinc-600 italic">No SLOs defined</div>
+                  <div className="text-sm text-[var(--color-text-muted)] italic">No SLOs defined</div>
                 ) : (
                   <div className="space-y-4">
                     {SLOS.filter((s) => s.service === selectedSvc.name).map((slo) => {
@@ -634,18 +634,18 @@ export default function ServiceHealthDashboard() {
                       return (
                         <div key={slo.id}>
                           <div className="flex justify-between items-baseline text-xs mb-1">
-                            <span className="text-zinc-400 truncate mr-2 max-w-[160px]">{slo.name}</span>
+                            <span className="text-[var(--color-text-secondary)] truncate mr-2 max-w-[160px]">{slo.name}</span>
                             <span className={cn("font-mono font-semibold shrink-0", color)}>
                               {slo.current.toFixed(2)}%
                             </span>
                           </div>
-                          <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                             <div
                               className={cn("h-full rounded-full", bar)}
                               style={{ width: `${budgetPct}%` }}
                             />
                           </div>
-                          <div className="flex justify-between text-xs text-zinc-600 mt-0.5">
+                          <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-0.5">
                             <span>Target {slo.target}%</span>
                             <span>{slo.errorBudgetDays}d budget · {slo.burnRate.toFixed(1)}x burn</span>
                           </div>
@@ -657,17 +657,17 @@ export default function ServiceHealthDashboard() {
               </div>
 
               {/* Recent Incidents */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-                <div className="text-sm font-semibold mb-3 text-zinc-300">Recent Incidents</div>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
+                <div className="text-sm font-semibold mb-3 text-[var(--color-text-primary)]">Recent Incidents</div>
                 {selectedSvc.incidents.length === 0 ? (
-                  <div className="text-sm text-zinc-600 italic">No recent incidents 🎉</div>
+                  <div className="text-sm text-[var(--color-text-muted)] italic">No recent incidents 🎉</div>
                 ) : (
                   <div className="space-y-2">
                     {selectedSvc.incidents.map((incId) => {
                       const inc = INCIDENTS.find((i) => i.id === incId);
                       if (!inc) {return null;}
                       return (
-                        <div key={incId} className="bg-zinc-800 rounded-lg p-3">
+                        <div key={incId} className="bg-[var(--color-surface-2)] rounded-lg p-3">
                           <div className="flex items-center gap-2 mb-1.5">
                             <span
                               className={cn(
@@ -677,9 +677,9 @@ export default function ServiceHealthDashboard() {
                             >
                               {inc.severity}
                             </span>
-                            <span className="text-xs text-zinc-500 font-mono">{inc.id}</span>
+                            <span className="text-xs text-[var(--color-text-muted)] font-mono">{inc.id}</span>
                           </div>
-                          <div className="text-xs text-zinc-300 mb-1">{inc.title}</div>
+                          <div className="text-xs text-[var(--color-text-primary)] mb-1">{inc.title}</div>
                           <div
                             className={cn(
                               "text-xs capitalize font-medium",
@@ -710,13 +710,13 @@ export default function ServiceHealthDashboard() {
                 className={cn(
                   "text-sm px-4 py-1.5 rounded-lg capitalize font-medium transition-colors",
                   incidentFilter === f
-                    ? "bg-indigo-600 text-white"
-                    : "bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700"
+                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
                 )}
               >
                 {f}
                 {f === "active" && activeIncidents.length > 0 && (
-                  <span className="ml-1.5 text-xs bg-rose-500 text-white px-1.5 py-0.5 rounded-full">
+                  <span className="ml-1.5 text-xs bg-rose-500 text-[var(--color-text-primary)] px-1.5 py-0.5 rounded-full">
                     {activeIncidents.length}
                   </span>
                 )}
@@ -727,12 +727,12 @@ export default function ServiceHealthDashboard() {
             {filteredIncidents.map((inc) => (
               <div
                 key={inc.id}
-                className="bg-zinc-900 border border-zinc-800 rounded-xl p-5"
+                className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                      <span className="text-xs text-zinc-500 font-mono font-semibold">{inc.id}</span>
+                      <span className="text-xs text-[var(--color-text-muted)] font-mono font-semibold">{inc.id}</span>
                       <span
                         className={cn(
                           "text-xs px-2 py-0.5 rounded-full capitalize font-medium",
@@ -754,7 +754,7 @@ export default function ServiceHealthDashboard() {
                   </div>
                   {inc.mttr !== null && (
                     <div className="text-right ml-4 shrink-0">
-                      <div className="text-xs text-zinc-500 mb-0.5">MTTR</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-0.5">MTTR</div>
                       <div className="text-lg font-mono font-bold text-emerald-400">{inc.mttr}m</div>
                     </div>
                   )}
@@ -765,7 +765,7 @@ export default function ServiceHealthDashboard() {
                   {inc.affectedServices.map((s) => (
                     <span
                       key={s}
-                      className="text-xs bg-zinc-800 text-zinc-300 px-2.5 py-0.5 rounded-full border border-zinc-700"
+                      className="text-xs bg-[var(--color-surface-2)] text-[var(--color-text-primary)] px-2.5 py-0.5 rounded-full border border-[var(--color-border)]"
                     >
                       {s}
                     </span>
@@ -773,10 +773,10 @@ export default function ServiceHealthDashboard() {
                 </div>
 
                 {/* Timeline */}
-                <div className="border-l-2 border-zinc-800 pl-4 space-y-3 mb-3">
+                <div className="border-l-2 border-[var(--color-border)] pl-4 space-y-3 mb-3">
                   {inc.updates.map((upd, idx) => (
                     <div key={idx} className="relative">
-                      <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-zinc-700 border-2 border-zinc-900" />
+                      <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-[var(--color-surface-3)] border-2 border-[var(--color-border)]" />
                       <div className="flex items-center gap-2 mb-0.5">
                         <span
                           className={cn(
@@ -786,21 +786,21 @@ export default function ServiceHealthDashboard() {
                         >
                           {upd.status}
                         </span>
-                        <span className="text-xs text-zinc-600">{formatTimestamp(upd.timestamp)}</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">{formatTimestamp(upd.timestamp)}</span>
                       </div>
-                      <p className="text-xs text-zinc-400 leading-relaxed">{upd.message}</p>
+                      <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{upd.message}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-3 border-t border-zinc-800 text-xs text-zinc-600">
+                <div className="pt-3 border-t border-[var(--color-border)] text-xs text-[var(--color-text-muted)]">
                   Started: {formatTimestamp(inc.startedAt)}
                   {inc.resolvedAt && ` · Resolved: ${formatTimestamp(inc.resolvedAt)}`}
                 </div>
               </div>
             ))}
             {filteredIncidents.length === 0 && (
-              <div className="text-center py-16 text-zinc-600">No {incidentFilter} incidents found.</div>
+              <div className="text-center py-16 text-[var(--color-text-muted)]">No {incidentFilter} incidents found.</div>
             )}
           </div>
         </div>
@@ -809,7 +809,7 @@ export default function ServiceHealthDashboard() {
       {/* ═════════════════════════════════════════════════════════════ SLOS TAB */}
       {tab === "slos" && (
         <div>
-          <div className="hidden md:grid grid-cols-12 gap-4 text-xs text-zinc-500 font-medium uppercase tracking-wider px-4 pb-2 border-b border-zinc-800 mb-3">
+          <div className="hidden md:grid grid-cols-12 gap-4 text-xs text-[var(--color-text-muted)] font-medium uppercase tracking-wider px-4 pb-2 border-b border-[var(--color-border)] mb-3">
             <div className="col-span-3">SLO Name</div>
             <div className="col-span-2">Service</div>
             <div className="col-span-1 text-center">Window</div>
@@ -826,19 +826,19 @@ export default function ServiceHealthDashboard() {
               return (
                 <div
                   key={slo.id}
-                  className="bg-zinc-900 border border-zinc-800 rounded-xl p-4"
+                  className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4"
                 >
                   <div className="md:grid md:grid-cols-12 md:gap-4 md:items-center">
                     <div className="md:col-span-3 mb-1 md:mb-0">
                       <div className="text-sm font-semibold">{slo.name}</div>
                     </div>
-                    <div className="md:col-span-2 text-xs text-zinc-400 mb-1 md:mb-0">
+                    <div className="md:col-span-2 text-xs text-[var(--color-text-secondary)] mb-1 md:mb-0">
                       {slo.service}
                     </div>
-                    <div className="md:col-span-1 text-xs text-zinc-500 text-center mb-1 md:mb-0 font-mono">
+                    <div className="md:col-span-1 text-xs text-[var(--color-text-muted)] text-center mb-1 md:mb-0 font-mono">
                       {slo.window}
                     </div>
-                    <div className="md:col-span-1 text-right text-xs text-zinc-400 font-mono mb-1 md:mb-0">
+                    <div className="md:col-span-1 text-right text-xs text-[var(--color-text-secondary)] font-mono mb-1 md:mb-0">
                       {slo.target.toFixed(2)}%
                     </div>
                     <div className={cn("md:col-span-1 text-right text-sm font-mono font-bold mb-1 md:mb-0", color)}>
@@ -848,7 +848,7 @@ export default function ServiceHealthDashboard() {
                       <div className={cn("text-xs font-mono text-center mb-1", color)}>
                         {slo.errorBudgetDays}d remaining
                       </div>
-                      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div
                           className={cn("h-full rounded-full", bar)}
                           style={{ width: `${budgetPct}%` }}
@@ -865,7 +865,7 @@ export default function ServiceHealthDashboard() {
             })}
           </div>
           {/* Legend */}
-          <div className="mt-5 flex gap-4 text-xs text-zinc-500">
+          <div className="mt-5 flex gap-4 text-xs text-[var(--color-text-muted)]">
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-400" /> Compliant (burn &lt; 1.5×)</span>
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400" /> Warning (1.5–5×)</span>
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-rose-400" /> Critical (&gt;5× or budget exhausted)</span>
@@ -885,7 +885,7 @@ export default function ServiceHealthDashboard() {
                 : overallStatus === "degraded"
                 ? "bg-amber-400/10 border-amber-400/20"
                 : overallStatus === "unknown"
-                ? "bg-zinc-800 border-zinc-700"
+                ? "bg-[var(--color-surface-2)] border-[var(--color-border)]"
                 : "bg-rose-400/10 border-rose-400/20"
             )}
           >
@@ -901,22 +901,22 @@ export default function ServiceHealthDashboard() {
                   : "Major Service Outage"}
               </h2>
             </div>
-            <p className="text-sm text-zinc-400 ml-6">
+            <p className="text-sm text-[var(--color-text-secondary)] ml-6">
               Last updated: Feb 22, 2026 at 06:34 MST
             </p>
           </div>
 
           {/* Component list */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl mb-6 overflow-hidden">
-            <div className="px-4 py-3 border-b border-zinc-800">
-              <span className="text-sm font-semibold text-zinc-300">Components</span>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl mb-6 overflow-hidden">
+            <div className="px-4 py-3 border-b border-[var(--color-border)]">
+              <span className="text-sm font-semibold text-[var(--color-text-primary)]">Components</span>
             </div>
-            <div className="divide-y divide-zinc-800">
+            <div className="divide-y divide-[var(--color-border)]">
               {SERVICES.map((svc) => (
                 <div key={svc.id} className="flex items-center justify-between px-4 py-3">
                   <div>
-                    <span className="text-sm text-zinc-200">{svc.name}</span>
-                    <span className="ml-3 text-xs text-zinc-600 font-mono">{svc.uptime.toFixed(2)}% uptime</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">{svc.name}</span>
+                    <span className="ml-3 text-xs text-[var(--color-text-muted)] font-mono">{svc.uptime.toFixed(2)}% uptime</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {svc.status === "healthy" ? (
@@ -926,7 +926,7 @@ export default function ServiceHealthDashboard() {
                     ) : svc.status === "degraded" ? (
                       <span className="text-amber-400 text-base">⚠</span>
                     ) : (
-                      <span className="text-zinc-500 text-base">?</span>
+                      <span className="text-[var(--color-text-muted)] text-base">?</span>
                     )}
                     <span className={cn("text-xs capitalize font-medium", statusTextColor(svc.status))}>
                       {svc.status}
@@ -938,10 +938,10 @@ export default function ServiceHealthDashboard() {
           </div>
 
           {/* 90-Day Uptime Calendar */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-zinc-300">Overall Uptime — Past 90 Days</span>
-              <div className="flex items-center gap-3 text-xs text-zinc-500">
+              <span className="text-sm font-semibold text-[var(--color-text-primary)]">Overall Uptime — Past 90 Days</span>
+              <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
                 <span className="flex items-center gap-1">
                   <span className="w-2.5 h-2.5 rounded-sm bg-emerald-400 inline-block" />
                   Up
@@ -968,13 +968,13 @@ export default function ServiceHealthDashboard() {
                 />
               ))}
             </div>
-            <div className="flex justify-between text-xs text-zinc-600 mt-2">
+            <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-2">
               <span>90 days ago</span>
               <span>Today</span>
             </div>
-            <div className="mt-3 pt-3 border-t border-zinc-800 flex gap-6 text-xs text-zinc-500">
+            <div className="mt-3 pt-3 border-t border-[var(--color-border)] flex gap-6 text-xs text-[var(--color-text-muted)]">
               <span>
-                <span className="text-zinc-300 font-semibold">
+                <span className="text-[var(--color-text-primary)] font-semibold">
                   {calendarDays.filter((d) => d === "healthy").length}
                 </span>{" "}
                 operational days

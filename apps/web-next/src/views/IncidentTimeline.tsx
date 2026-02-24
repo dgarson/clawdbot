@@ -513,14 +513,14 @@ function severityColor(severity: Severity): string {
   if (severity === "P1") {return "text-rose-400"}
   if (severity === "P2") {return "text-amber-400"}
   if (severity === "P3") {return "text-indigo-400"}
-  return "text-zinc-400"
+  return "text-[var(--color-text-secondary)]"
 }
 
 function severityBadgeCn(severity: Severity): string {
   if (severity === "P1") {return "bg-rose-400/10 border border-rose-400/30 text-rose-400"}
   if (severity === "P2") {return "bg-amber-400/10 border border-amber-400/30 text-amber-400"}
   if (severity === "P3") {return "bg-indigo-400/10 border border-indigo-400/30 text-indigo-400"}
-  return "bg-zinc-700/30 border border-zinc-600 text-zinc-400"
+  return "bg-[var(--color-surface-3)]/30 border border-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
 }
 
 function statusColor(status: IncidentStatus): string {
@@ -543,13 +543,13 @@ function eventBadgeCn(type: EventType): string {
   if (type === "escalation") {return "bg-amber-400/10 text-amber-400"}
   if (type === "mitigation") {return "bg-indigo-400/10 text-indigo-400"}
   if (type === "resolution") {return "bg-emerald-400/10 text-emerald-400"}
-  return "bg-zinc-700 text-zinc-300"
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
 }
 
 function postmortemBadgeCn(s: PostmortemStatus): string {
   if (s === "postmortem-pending") {return "bg-amber-400/10 text-amber-400"}
   if (s === "postmortem-done") {return "bg-emerald-400/10 text-emerald-400"}
-  return "bg-zinc-700 text-zinc-400"
+  return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
 }
 
 const rootCauseLabels: Record<RootCause, string> = {
@@ -600,7 +600,7 @@ function ActiveTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-zinc-400 text-sm">Filter:</span>
+        <span className="text-[var(--color-text-secondary)] text-sm">Filter:</span>
         {severityOptions.map((sv) => (
           <button
             key={sv}
@@ -608,18 +608,18 @@ function ActiveTab() {
             className={cn(
               "px-3 py-1 rounded-md text-sm font-medium transition-colors",
               severityFilter === sv
-                ? "bg-indigo-500 text-white"
-                : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"
+                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)]"
             )}
           >
             {sv === "all" ? "All" : sv}
           </button>
         ))}
-        <span className="ml-auto text-zinc-400 text-sm">{filtered.length} incident{filtered.length !== 1 ? "s" : ""}</span>
+        <span className="ml-auto text-[var(--color-text-secondary)] text-sm">{filtered.length} incident{filtered.length !== 1 ? "s" : ""}</span>
       </div>
 
       {filtered.map((incident) => (
-        <div key={incident.id} className="bg-zinc-900 rounded-lg border border-zinc-700">
+        <div key={incident.id} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)]">
           <button
             className="w-full text-left p-4"
             onClick={() => setExpandedId(expandedId === incident.id ? null : incident.id)}
@@ -628,12 +628,12 @@ function ActiveTab() {
               <span className={cn("px-2 py-0.5 rounded text-xs font-bold shrink-0", severityBadgeCn(incident.severity))}>
                 {incident.severity}
               </span>
-              <span className="text-white font-medium flex-1">{incident.title}</span>
+              <span className="text-[var(--color-text-primary)] font-medium flex-1">{incident.title}</span>
               <span className={cn("text-xs font-medium capitalize shrink-0", statusColor(incident.status))}>
                 ● {incident.status}
               </span>
             </div>
-            <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-xs text-zinc-400">
+            <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-xs text-[var(--color-text-secondary)]">
               <span>🕒 {fmtDate(incident.detectedAt)} {fmtTime(incident.detectedAt)}</span>
               <span>⏱ Open {timeOpen(incident.detectedAt)}</span>
               <span>👥 {incident.squad}</span>
@@ -642,32 +642,32 @@ function ActiveTab() {
           </button>
 
           {expandedId === incident.id && (
-            <div className="px-4 pb-4 border-t border-zinc-800 pt-3 space-y-4">
-              <p className="text-zinc-300 text-sm leading-relaxed">{incident.description}</p>
+            <div className="px-4 pb-4 border-t border-[var(--color-border)] pt-3 space-y-4">
+              <p className="text-[var(--color-text-primary)] text-sm leading-relaxed">{incident.description}</p>
 
               <div>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2 font-semibold">Action Items</div>
+                <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2 font-semibold">Action Items</div>
                 <div className="space-y-1.5">
                   {incident.actionItems.map((item) => (
                     <div key={item.id} className="flex items-start gap-2 text-sm">
-                      <span className={cn("mt-0.5 shrink-0", item.done ? "text-emerald-400" : "text-zinc-600")}>
+                      <span className={cn("mt-0.5 shrink-0", item.done ? "text-emerald-400" : "text-[var(--color-text-muted)]")}>
                         {item.done ? "✓" : "○"}
                       </span>
-                      <span className={item.done ? "line-through text-zinc-500" : "text-zinc-300"}>{item.text}</span>
+                      <span className={item.done ? "line-through text-[var(--color-text-muted)]" : "text-[var(--color-text-primary)]"}>{item.text}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2 font-semibold">Status Flow</div>
+                <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2 font-semibold">Status Flow</div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {(["investigating", "identified", "monitoring", "resolving"] as IncidentStatus[]).map((s, i) => (
                     <React.Fragment key={s}>
-                      <span className={cn("text-xs capitalize px-2 py-0.5 rounded-md bg-zinc-800", statusColor(s))}>
+                      <span className={cn("text-xs capitalize px-2 py-0.5 rounded-md bg-[var(--color-surface-2)]", statusColor(s))}>
                         {s}
                       </span>
-                      {i < 3 && <span className="text-zinc-700 text-xs">→</span>}
+                      {i < 3 && <span className="text-[var(--color-text-muted)] text-xs">→</span>}
                     </React.Fragment>
                   ))}
                 </div>
@@ -678,7 +678,7 @@ function ActiveTab() {
       ))}
 
       {filtered.length === 0 && (
-        <div className="text-center py-16 text-zinc-500 text-sm">
+        <div className="text-center py-16 text-[var(--color-text-muted)] text-sm">
           No active {severityFilter !== "all" ? severityFilter : ""} incidents
         </div>
       )}
@@ -715,7 +715,7 @@ function TimelineTab() {
     <div className="flex gap-5">
       {/* Incident selector */}
       <div className="w-52 shrink-0 space-y-2">
-        <div className="text-xs text-zinc-500 uppercase tracking-wider font-semibold mb-3">Incidents</div>
+        <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider font-semibold mb-3">Incidents</div>
         {activeIncidents.map((inc) => (
           <button
             key={inc.id}
@@ -723,13 +723,13 @@ function TimelineTab() {
             className={cn(
               "w-full text-left p-3 rounded-lg border transition-colors",
               selectedId === inc.id
-                ? "bg-indigo-500/10 border-indigo-500/40 text-white"
-                : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-600"
+                ? "bg-indigo-500/10 border-indigo-500/40 text-[var(--color-text-primary)]"
+                : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
             )}
           >
             <div className="flex items-center gap-2 mb-1">
               <span className={cn("text-xs font-bold", severityColor(inc.severity))}>{inc.severity}</span>
-              <span className="text-xs text-zinc-600">{inc.id.slice(-3)}</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{inc.id.slice(-3)}</span>
             </div>
             <div className="text-xs leading-tight">{inc.title}</div>
           </button>
@@ -739,10 +739,10 @@ function TimelineTab() {
       {/* Timeline */}
       <div className="flex-1 min-w-0 flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-white text-sm font-medium">
+          <span className="text-[var(--color-text-primary)] text-sm font-medium">
             {activeIncidents.find((i) => i.id === selectedId)?.title}
           </span>
-          <span className="text-zinc-600 text-xs">— {visibleEvents.length} events</span>
+          <span className="text-[var(--color-text-muted)] text-xs">— {visibleEvents.length} events</span>
         </div>
 
         <div className="space-y-3">
@@ -750,7 +750,7 @@ function TimelineTab() {
             <div
               key={ev.id}
               className={cn(
-                "bg-zinc-900 rounded-lg border border-zinc-700 border-l-4 p-3",
+                "bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] border-l-4 p-3",
                 eventBorderCn(ev.type)
               )}
             >
@@ -758,28 +758,28 @@ function TimelineTab() {
                 <span className={cn("text-xs px-2 py-0.5 rounded font-medium capitalize", eventBadgeCn(ev.type))}>
                   {ev.type}
                 </span>
-                <span className="text-xs text-zinc-400">
+                <span className="text-xs text-[var(--color-text-secondary)]">
                   {fmtDate(ev.timestamp)} {fmtTime(ev.timestamp)}
                 </span>
-                <span className="text-xs text-zinc-600">by {ev.author}</span>
+                <span className="text-xs text-[var(--color-text-muted)]">by {ev.author}</span>
               </div>
-              <p className="text-sm text-zinc-300 leading-relaxed">{ev.description}</p>
+              <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{ev.description}</p>
             </div>
           ))}
 
           {visibleEvents.length === 0 && (
-            <div className="text-center py-10 text-zinc-600 text-sm">No events for this incident yet</div>
+            <div className="text-center py-10 text-[var(--color-text-muted)] text-sm">No events for this incident yet</div>
           )}
         </div>
 
         {/* Add event */}
-        <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-4 space-y-3">
-          <div className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">Add Event</div>
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 space-y-3">
+          <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider font-semibold">Add Event</div>
           <div className="flex gap-2 flex-wrap">
             <select
               value={newType}
               onChange={(e) => setNewType(e.target.value as EventType)}
-              className="bg-zinc-800 border border-zinc-700 rounded-md text-sm text-zinc-300 px-2 py-1.5 shrink-0"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md text-sm text-[var(--color-text-primary)] px-2 py-1.5 shrink-0"
             >
               {eventTypes.map((t) => (
                 <option key={t} value={t}>{t}</option>
@@ -791,11 +791,11 @@ function TimelineTab() {
               onChange={(e) => setNewDesc(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") {handleAdd()} }}
               placeholder="Describe what happened…"
-              className="flex-1 min-w-0 bg-zinc-800 border border-zinc-700 rounded-md text-sm text-white px-3 py-1.5 placeholder:text-zinc-600"
+              className="flex-1 min-w-0 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md text-sm text-[var(--color-text-primary)] px-3 py-1.5 placeholder:text-[var(--color-text-muted)]"
             />
             <button
               onClick={handleAdd}
-              className="px-4 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white text-sm rounded-md transition-colors shrink-0"
+              className="px-4 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-[var(--color-text-primary)] text-sm rounded-md transition-colors shrink-0"
             >
               Add
             </button>
@@ -815,30 +815,30 @@ function HistoryTab() {
   return (
     <div className="space-y-6">
       {/* Bar chart */}
-      <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-4">
-        <div className="text-sm text-white font-medium mb-4">Incidents per Week (last 8 weeks)</div>
+      <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4">
+        <div className="text-sm text-[var(--color-text-primary)] font-medium mb-4">Incidents per Week (last 8 weeks)</div>
         <div className="flex items-end gap-2" style={{ height: "120px" }}>
           {weeklyData.map((d) => (
             <div key={d.week} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-              <span className="text-xs text-zinc-400">{d.count}</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">{d.count}</span>
               <div
                 className="w-full bg-indigo-500/70 hover:bg-indigo-400/70 transition-colors rounded-t-sm"
                 style={{ height: `${(d.count / maxWeekly) * 80}px` }}
               />
-              <span className="text-xs text-zinc-600 whitespace-nowrap" style={{ fontSize: "10px" }}>{d.week}</span>
+              <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap" style={{ fontSize: "10px" }}>{d.week}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-zinc-900 rounded-lg border border-zinc-700 overflow-hidden">
+      <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-max">
             <thead>
-              <tr className="border-b border-zinc-700">
+              <tr className="border-b border-[var(--color-border)]">
                 {["ID", "Title", "Sev", "Start", "End", "MTTR", "Root Cause", "Status"].map((h) => (
-                  <th key={h} className="text-left px-4 py-3 text-xs text-zinc-500 uppercase tracking-wide font-semibold whitespace-nowrap">
+                  <th key={h} className="text-left px-4 py-3 text-xs text-[var(--color-text-muted)] uppercase tracking-wide font-semibold whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -848,18 +848,18 @@ function HistoryTab() {
               {historicalIncidents.map((inc) => (
                 <React.Fragment key={inc.id}>
                   <tr
-                    className="border-b border-zinc-800 hover:bg-zinc-800/50 cursor-pointer transition-colors"
+                    className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/50 cursor-pointer transition-colors"
                     onClick={() => setExpandedId(expandedId === inc.id ? null : inc.id)}
                   >
-                    <td className="px-4 py-3 text-zinc-500 font-mono text-xs whitespace-nowrap">{inc.id}</td>
-                    <td className="px-4 py-3 text-white whitespace-nowrap max-w-xs truncate">{inc.title}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono text-xs whitespace-nowrap">{inc.id}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-primary)] whitespace-nowrap max-w-xs truncate">{inc.title}</td>
                     <td className="px-4 py-3">
                       <span className={cn("font-bold text-xs", severityColor(inc.severity))}>{inc.severity}</span>
                     </td>
-                    <td className="px-4 py-3 text-zinc-400 text-xs whitespace-nowrap">{fmtDate(inc.start)}</td>
-                    <td className="px-4 py-3 text-zinc-400 text-xs whitespace-nowrap">{fmtDate(inc.end)}</td>
-                    <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">{inc.mttr}m</td>
-                    <td className="px-4 py-3 text-zinc-400 text-xs whitespace-nowrap">{rootCauseLabels[inc.rootCause]}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">{fmtDate(inc.start)}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">{fmtDate(inc.end)}</td>
+                    <td className="px-4 py-3 text-[var(--color-text-primary)] whitespace-nowrap">{inc.mttr}m</td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs whitespace-nowrap">{rootCauseLabels[inc.rootCause]}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={cn("text-xs px-2 py-0.5 rounded", postmortemBadgeCn(inc.postmortemStatus))}>
                         {postmortemLabel(inc.postmortemStatus)}
@@ -867,11 +867,11 @@ function HistoryTab() {
                     </td>
                   </tr>
                   {expandedId === inc.id && (
-                    <tr className="bg-zinc-800/20">
+                    <tr className="bg-[var(--color-surface-2)]/20">
                       <td colSpan={8} className="px-4 py-4">
-                        <div className="text-xs text-zinc-500 uppercase tracking-wide mb-1.5">Root Cause Summary</div>
-                        <p className="text-sm text-zinc-300 leading-relaxed mb-2">{inc.rootCauseSummary}</p>
-                        <div className="text-xs text-zinc-600">
+                        <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide mb-1.5">Root Cause Summary</div>
+                        <p className="text-sm text-[var(--color-text-primary)] leading-relaxed mb-2">{inc.rootCauseSummary}</p>
+                        <div className="text-xs text-[var(--color-text-muted)]">
                           Services affected: {inc.services.join(", ")}
                         </div>
                       </td>
@@ -904,25 +904,25 @@ function MetricsTab() {
           { label: "P1s This Month", value: "2", sub: "February 2026", accent: "text-rose-400" },
           { label: "Avg / Week", value: "3.6", sub: "incidents per week (12w avg)", accent: "text-amber-400" },
         ].map((card) => (
-          <div key={card.label} className="bg-zinc-900 rounded-lg border border-zinc-700 p-5">
-            <div className="text-xs text-zinc-500 uppercase tracking-wide mb-2 font-semibold">{card.label}</div>
+          <div key={card.label} className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
+            <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide mb-2 font-semibold">{card.label}</div>
             <div className={cn("text-3xl font-bold", card.accent)}>{card.value}</div>
-            <div className="text-xs text-zinc-600 mt-1">{card.sub}</div>
+            <div className="text-xs text-[var(--color-text-muted)] mt-1">{card.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Severity stacked bar chart */}
-      <div className="bg-zinc-900 rounded-lg border border-zinc-700 p-4">
-        <div className="text-sm text-white font-medium mb-1">Incidents by Severity (last 6 months)</div>
+      <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4">
+        <div className="text-sm text-[var(--color-text-primary)] font-medium mb-1">Incidents by Severity (last 6 months)</div>
         <div className="flex gap-4 mb-4 flex-wrap">
           {[
             { label: "P1", cn: "bg-rose-400/70" },
             { label: "P2", cn: "bg-amber-400/70" },
             { label: "P3", cn: "bg-indigo-400/70" },
-            { label: "P4", cn: "bg-zinc-500" },
+            { label: "P4", cn: "bg-[var(--color-surface-3)]" },
           ].map((leg) => (
-            <span key={leg.label} className="flex items-center gap-1.5 text-xs text-zinc-400">
+            <span key={leg.label} className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
               <span className={cn("w-3 h-3 rounded-sm inline-block", leg.cn)} />
               {leg.label}
             </span>
@@ -934,17 +934,17 @@ function MetricsTab() {
             const scale = (n: number) => Math.round((n / maxMonthly) * chartHeight)
             return (
               <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
-                <span className="text-xs text-zinc-400">{total}</span>
+                <span className="text-xs text-[var(--color-text-secondary)]">{total}</span>
                 <div
                   className="w-full flex flex-col-reverse rounded-t-sm overflow-hidden"
                   style={{ height: `${chartHeight}px` }}
                 >
-                  {m.p4 > 0 && <div className="w-full bg-zinc-500 shrink-0" style={{ height: `${scale(m.p4)}px` }} />}
+                  {m.p4 > 0 && <div className="w-full bg-[var(--color-surface-3)] shrink-0" style={{ height: `${scale(m.p4)}px` }} />}
                   {m.p3 > 0 && <div className="w-full bg-indigo-400/70 shrink-0" style={{ height: `${scale(m.p3)}px` }} />}
                   {m.p2 > 0 && <div className="w-full bg-amber-400/70 shrink-0" style={{ height: `${scale(m.p2)}px` }} />}
                   {m.p1 > 0 && <div className="w-full bg-rose-400/70 shrink-0" style={{ height: `${scale(m.p1)}px` }} />}
                 </div>
-                <span className="text-xs text-zinc-500">{m.month}</span>
+                <span className="text-xs text-[var(--color-text-muted)]">{m.month}</span>
               </div>
             )
           })}
@@ -952,15 +952,15 @@ function MetricsTab() {
       </div>
 
       {/* Root cause table */}
-      <div className="bg-zinc-900 rounded-lg border border-zinc-700 overflow-hidden">
-        <div className="px-4 py-3 border-b border-zinc-700 text-sm text-white font-medium">
+      <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] overflow-hidden">
+        <div className="px-4 py-3 border-b border-[var(--color-border)] text-sm text-[var(--color-text-primary)] font-medium">
           Root Cause Categories
         </div>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-700">
+            <tr className="border-b border-[var(--color-border)]">
               {["Category", "Count", "Share", "Trend (6mo)"].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs text-zinc-500 uppercase tracking-wide font-semibold">
+                <th key={h} className="text-left px-4 py-3 text-xs text-[var(--color-text-muted)] uppercase tracking-wide font-semibold">
                   {h}
                 </th>
               ))}
@@ -970,24 +970,24 @@ function MetricsTab() {
             {rootCauseMetrics.map((rc) => {
               const pct = Math.round((rc.count / rootTotal) * 100)
               return (
-                <tr key={rc.category} className="border-b border-zinc-800">
-                  <td className="px-4 py-3 text-white">{rc.category}</td>
-                  <td className="px-4 py-3 text-zinc-300 font-medium">{rc.count}</td>
+                <tr key={rc.category} className="border-b border-[var(--color-border)]">
+                  <td className="px-4 py-3 text-[var(--color-text-primary)]">{rc.category}</td>
+                  <td className="px-4 py-3 text-[var(--color-text-primary)] font-medium">{rc.count}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden" style={{ width: "72px" }}>
+                      <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden" style={{ width: "72px" }}>
                         <div
                           className="h-full bg-indigo-500 rounded-full"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <span className="text-xs text-zinc-500">{pct}%</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{pct}%</span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     {rc.trend === "up" && <span className="text-rose-400 font-bold">↑ rising</span>}
                     {rc.trend === "down" && <span className="text-emerald-400 font-bold">↓ falling</span>}
-                    {rc.trend === "neutral" && <span className="text-zinc-500">→ stable</span>}
+                    {rc.trend === "neutral" && <span className="text-[var(--color-text-muted)]">→ stable</span>}
                   </td>
                 </tr>
               )
@@ -1012,24 +1012,24 @@ export default function IncidentTimeline() {
   ]
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Incident Timeline</h1>
-            <p className="text-zinc-400 text-sm mt-1">Incident management &amp; postmortem tracker — Horizon Admin</p>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">Incident management &amp; postmortem tracker — Horizon Admin</p>
           </div>
-          <div className="flex items-center gap-2 text-sm bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 shrink-0">
+          <div className="flex items-center gap-2 text-sm bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 shrink-0">
             <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
-            <span className="text-zinc-400">
+            <span className="text-[var(--color-text-secondary)]">
               {activeIncidents.length} active
             </span>
           </div>
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 bg-zinc-900 p-1 rounded-lg border border-zinc-700 w-fit">
+        <div className="flex gap-1 bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)] w-fit">
           {tabs.map((t) => (
             <button
               key={t.id}
@@ -1037,8 +1037,8 @@ export default function IncidentTimeline() {
               className={cn(
                 "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
                 tab === t.id
-                  ? "bg-indigo-500 text-white"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.label}
@@ -1046,7 +1046,7 @@ export default function IncidentTimeline() {
                 <span
                   className={cn(
                     "text-xs px-1.5 py-0.5 rounded-full",
-                    tab === t.id ? "bg-indigo-400/40" : "bg-zinc-800 text-zinc-500"
+                    tab === t.id ? "bg-indigo-400/40" : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                   )}
                 >
                   {t.badge}

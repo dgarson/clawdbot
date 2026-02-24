@@ -505,8 +505,8 @@ function DecisionCard({ decision, expanded, onToggle }: {
 
   return (
     <div className={cn(
-      "border border-zinc-800 rounded-lg transition-colors",
-      expanded ? "bg-zinc-900/80" : "bg-zinc-950 hover:bg-zinc-900/40"
+      "border border-[var(--color-border)] rounded-lg transition-colors",
+      expanded ? "bg-[var(--color-surface-1)]/80" : "bg-[var(--color-surface-0)] hover:bg-[var(--color-surface-1)]/40"
     )}>
       <button
         onClick={onToggle}
@@ -514,26 +514,26 @@ function DecisionCard({ decision, expanded, onToggle }: {
       >
         <div className="flex items-start gap-3">
           {/* Agent avatar */}
-          <div className="flex-none h-9 w-9 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-lg">
+          <div className="flex-none h-9 w-9 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center text-lg">
             {decision.agentEmoji}
           </div>
 
           <div className="flex-1 min-w-0">
             {/* Top row: agent, type, time */}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-semibold text-white">{decision.agent}</span>
+              <span className="text-sm font-semibold text-[var(--color-text-primary)]">{decision.agent}</span>
               <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ring-1", meta.bg, meta.color)}>
                 {meta.icon}
                 {meta.label}
               </span>
-              <span className="text-xs text-zinc-500 ml-auto flex items-center gap-1">
+              <span className="text-xs text-[var(--color-text-muted)] ml-auto flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {fmtTime(decision.timestamp)} ({relTime(decision.timestamp)})
               </span>
             </div>
 
             {/* Summary */}
-            <p className="text-sm text-zinc-300 mt-1.5 leading-relaxed">{decision.summary}</p>
+            <p className="text-sm text-[var(--color-text-primary)] mt-1.5 leading-relaxed">{decision.summary}</p>
 
             {/* Bottom chips */}
             <div className="flex items-center gap-2 mt-2">
@@ -548,7 +548,7 @@ function DecisionCard({ decision, expanded, onToggle }: {
           </div>
 
           {/* Expand chevron */}
-          <div className="flex-none pt-1 text-zinc-500">
+          <div className="flex-none pt-1 text-[var(--color-text-muted)]">
             {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </div>
         </div>
@@ -556,18 +556,18 @@ function DecisionCard({ decision, expanded, onToggle }: {
 
       {/* Expanded detail */}
       {expanded && (
-        <div className="px-4 pb-4 border-t border-zinc-800 mt-0">
+        <div className="px-4 pb-4 border-t border-[var(--color-border)] mt-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-4">
             {/* Reasoning chain */}
             <div>
-              <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
                 Reasoning Chain
               </h4>
               <ol className="space-y-1.5">
                 {decision.reasoning.map((step, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
-                    <span className="flex-none w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs text-zinc-500 mt-0.5">
+                  <li key={i} className="flex items-start gap-2 text-xs text-[var(--color-text-primary)]">
+                    <span className="flex-none w-5 h-5 rounded-full bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center text-xs text-[var(--color-text-muted)] mt-0.5">
                       {i + 1}
                     </span>
                     <span className="leading-relaxed">{step}</span>
@@ -578,32 +578,32 @@ function DecisionCard({ decision, expanded, onToggle }: {
 
             {/* Alternatives considered */}
             <div>
-              <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <ArrowRightLeft className="w-3.5 h-3.5 text-sky-400" />
                 Alternatives Considered
               </h4>
               <div className="space-y-2">
                 {decision.alternatives.map((alt, i) => (
-                  <div key={i} className="px-3 py-2 rounded-lg bg-zinc-800/60 border border-zinc-700/50">
+                  <div key={i} className="px-3 py-2 rounded-lg bg-[var(--color-surface-2)]/60 border border-[var(--color-border)]/50">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-mono font-medium text-zinc-200">{alt.name}</span>
+                      <span className="text-xs font-mono font-medium text-[var(--color-text-primary)]">{alt.name}</span>
                       <span className={cn(
                         "text-xs font-mono font-semibold",
-                        alt.score >= 80 ? "text-emerald-400" : alt.score >= 50 ? "text-amber-400" : "text-zinc-500"
+                        alt.score >= 80 ? "text-emerald-400" : alt.score >= 50 ? "text-amber-400" : "text-[var(--color-text-muted)]"
                       )}>
                         {alt.score}/100
                       </span>
                     </div>
-                    <div className="h-1 w-full bg-zinc-700 rounded-full mb-1.5">
+                    <div className="h-1 w-full bg-[var(--color-surface-3)] rounded-full mb-1.5">
                       <div
                         className={cn(
                           "h-1 rounded-full",
-                          alt.score >= 80 ? "bg-emerald-500" : alt.score >= 50 ? "bg-amber-500" : "bg-zinc-500"
+                          alt.score >= 80 ? "bg-emerald-500" : alt.score >= 50 ? "bg-amber-500" : "bg-[var(--color-surface-3)]"
                         )}
                         style={{ width: `${alt.score}%` }}
                       />
                     </div>
-                    <p className="text-xs text-zinc-500">{alt.reason}</p>
+                    <p className="text-xs text-[var(--color-text-muted)]">{alt.reason}</p>
                   </div>
                 ))}
               </div>
@@ -611,12 +611,12 @@ function DecisionCard({ decision, expanded, onToggle }: {
           </div>
 
           {/* Outcome detail */}
-          <div className="mt-4 px-3 py-2.5 rounded-lg bg-zinc-800/40 border border-zinc-700/50">
-            <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <div className="mt-4 px-3 py-2.5 rounded-lg bg-[var(--color-surface-2)]/40 border border-[var(--color-border)]/50">
+            <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1 flex items-center gap-1.5">
               <Target className="w-3.5 h-3.5 text-indigo-400" />
               Outcome
             </h4>
-            <p className="text-sm text-zinc-300">{decision.outcomeDetail}</p>
+            <p className="text-sm text-[var(--color-text-primary)]">{decision.outcomeDetail}</p>
           </div>
         </div>
       )}
@@ -665,71 +665,71 @@ function SelfEvalCard({ report }: { report: SelfEvalReport }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="border border-zinc-800 rounded-lg bg-zinc-950">
+    <div className="border border-[var(--color-border)] rounded-lg bg-[var(--color-surface-0)]">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 rounded-lg"
       >
         <div className="flex items-center gap-3">
-          <div className="flex-none h-9 w-9 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-lg">
+          <div className="flex-none h-9 w-9 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center text-lg">
             {report.agentEmoji}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-white">{report.agent}</span>
-              <span className="text-xs text-zinc-500">{relTime(report.timestamp)}</span>
+              <span className="text-sm font-semibold text-[var(--color-text-primary)]">{report.agent}</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{relTime(report.timestamp)}</span>
             </div>
             <div className="flex items-center gap-3 mt-1">
-              <span className="text-xs text-zinc-500">Completion: <span className="text-zinc-200 font-medium">{report.taskCompletionRate}%</span></span>
-              <span className="text-xs text-zinc-500">Cost Eff: <span className={cn(
+              <span className="text-xs text-[var(--color-text-muted)]">Completion: <span className="text-[var(--color-text-primary)] font-medium">{report.taskCompletionRate}%</span></span>
+              <span className="text-xs text-[var(--color-text-muted)]">Cost Eff: <span className={cn(
                 "font-medium",
                 report.costEfficiencyScore >= 85 ? "text-emerald-400" : report.costEfficiencyScore >= 65 ? "text-amber-400" : "text-rose-400"
               )}>{report.costEfficiencyScore}/100</span></span>
             </div>
           </div>
           <PerformanceGauge score={report.performanceScore} size={48} />
-          <div className="flex-none text-zinc-500">
+          <div className="flex-none text-[var(--color-text-muted)]">
             {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </div>
         </div>
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 border-t border-zinc-800 pt-4 space-y-4">
+        <div className="px-4 pb-4 border-t border-[var(--color-border)] pt-4 space-y-4">
           {/* Scores row */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-center">
-              <p className="text-xs text-zinc-500">Performance</p>
+            <div className="px-3 py-2 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] text-center">
+              <p className="text-xs text-[var(--color-text-muted)]">Performance</p>
               <p className={cn(
                 "text-lg font-bold font-mono mt-0.5",
                 report.performanceScore >= 90 ? "text-emerald-400" : report.performanceScore >= 70 ? "text-amber-400" : "text-rose-400"
               )}>{report.performanceScore}</p>
             </div>
-            <div className="px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-center">
-              <p className="text-xs text-zinc-500">Completion</p>
-              <p className="text-lg font-bold font-mono text-zinc-200 mt-0.5">{report.taskCompletionRate}%</p>
+            <div className="px-3 py-2 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] text-center">
+              <p className="text-xs text-[var(--color-text-muted)]">Completion</p>
+              <p className="text-lg font-bold font-mono text-[var(--color-text-primary)] mt-0.5">{report.taskCompletionRate}%</p>
             </div>
-            <div className="px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-center">
-              <p className="text-xs text-zinc-500">Cost Efficiency</p>
+            <div className="px-3 py-2 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] text-center">
+              <p className="text-xs text-[var(--color-text-muted)]">Cost Efficiency</p>
               <p className={cn(
                 "text-lg font-bold font-mono mt-0.5",
                 report.costEfficiencyScore >= report.costBaseline ? "text-emerald-400" : "text-rose-400"
               )}>
                 {report.costEfficiencyScore}
-                <span className="text-xs text-zinc-600 ml-1">/ {report.costBaseline} baseline</span>
+                <span className="text-xs text-[var(--color-text-muted)] ml-1">/ {report.costBaseline} baseline</span>
               </p>
             </div>
           </div>
 
           {/* Strengths */}
           <div>
-            <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
               Areas of Strength
             </h4>
             <ul className="space-y-1">
               {report.strengths.map((s, i) => (
-                <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                <li key={i} className="flex items-start gap-2 text-xs text-[var(--color-text-primary)]">
                   <span className="text-emerald-500 mt-0.5 flex-none">+</span>
                   <span>{s}</span>
                 </li>
@@ -739,13 +739,13 @@ function SelfEvalCard({ report }: { report: SelfEvalReport }) {
 
           {/* Improvements */}
           <div>
-            <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
               Areas for Improvement
             </h4>
             <ul className="space-y-1">
               {report.improvements.map((s, i) => (
-                <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                <li key={i} className="flex items-start gap-2 text-xs text-[var(--color-text-primary)]">
                   <span className="text-amber-500 mt-0.5 flex-none">-</span>
                   <span>{s}</span>
                 </li>
@@ -755,13 +755,13 @@ function SelfEvalCard({ report }: { report: SelfEvalReport }) {
 
           {/* Routing Recommendations */}
           <div>
-            <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
               Routing Recommendations
             </h4>
             <ul className="space-y-1">
               {report.routingRecommendations.map((s, i) => (
-                <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                <li key={i} className="flex items-start gap-2 text-xs text-[var(--color-text-primary)]">
                   <span className="text-indigo-400 mt-0.5 flex-none">&rarr;</span>
                   <span>{s}</span>
                 </li>
@@ -783,7 +783,7 @@ function DistributionBar({
 }) {
   return (
     <div>
-      <div className="flex h-3 rounded-full overflow-hidden bg-zinc-800">
+      <div className="flex h-3 rounded-full overflow-hidden bg-[var(--color-surface-2)]">
         {items.map((item) => (
           <div
             key={item.name}
@@ -797,8 +797,8 @@ function DistributionBar({
         {items.map((item) => (
           <div key={item.name} className="flex items-center gap-1.5">
             <span className={cn("w-2 h-2 rounded-full", item.color)} />
-            <span className="text-xs text-zinc-400">{item.name}</span>
-            <span className="text-xs text-zinc-600 font-mono">{item.count}</span>
+            <span className="text-xs text-[var(--color-text-secondary)]">{item.name}</span>
+            <span className="text-xs text-[var(--color-text-muted)] font-mono">{item.count}</span>
           </div>
         ))}
       </div>
@@ -815,7 +815,7 @@ const MODEL_COLORS: Record<string, string> = {
   "gpt-4o": "bg-sky-500",
   "minimax-m2.5": "bg-amber-500",
   cascade: "bg-rose-400",
-  other: "bg-zinc-500",
+  other: "bg-[var(--color-surface-3)]",
 };
 
 // ─── Main View ──────────────────────────────────────────────────────────────
@@ -883,21 +883,21 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
   ];
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] overflow-hidden">
       {/* Header */}
-      <div className="shrink-0 border-b border-zinc-800 px-6 py-4">
+      <div className="shrink-0 border-b border-[var(--color-border)] px-6 py-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-lg font-semibold text-white flex items-center gap-2">
+            <h1 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
               <Brain className="w-5 h-5 text-indigo-400" />
               Decision Provenance & Self-Eval
             </h1>
-            <p className="text-sm text-zinc-500 mt-0.5">
+            <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
               Understand why agents made the decisions they did — model selection, routing, tool choice, and self-evaluation
             </p>
           </div>
-          <div className="flex items-center gap-4 text-xs text-zinc-500">
-            <span><span className="text-white font-semibold">{DECISIONS.length}</span> decisions</span>
+          <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
+            <span><span className="text-[var(--color-text-primary)] font-semibold">{DECISIONS.length}</span> decisions</span>
             <span><span className="text-emerald-400 font-semibold">{avgConfidence}%</span> avg confidence</span>
             <span><span className="text-amber-400 font-semibold">{selfCorrectionRate}%</span> self-correction rate</span>
           </div>
@@ -912,8 +912,8 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               {tab.icon}
@@ -929,8 +929,8 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
         {activeTab === "timeline" && (
           <div className="h-full flex flex-col">
             {/* Filters bar */}
-            <div className="shrink-0 px-6 py-3 border-b border-zinc-800 flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+            <div className="shrink-0 px-6 py-3 border-b border-[var(--color-border)] flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
                 <Filter className="w-3.5 h-3.5" />
                 Filters:
               </div>
@@ -939,7 +939,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                 value={agentFilter}
                 onChange={(e) => setAgentFilter(e.target.value)}
                 aria-label="Filter by agent"
-                className="bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="all">All Agents</option>
                 {agents.map((a) => (
@@ -951,7 +951,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
                 aria-label="Filter by decision type"
-                className="bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="all">All Types</option>
                 {Object.entries(DECISION_TYPE_META).map(([key, meta]) => (
@@ -967,8 +967,8 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                     className={cn(
                       "px-2 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                       timeRange === range
-                        ? "bg-indigo-600 text-white"
-                        : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                        ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                        : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
                     {range}
@@ -977,14 +977,14 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
               </div>
 
               <div className="relative ml-auto">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--color-text-muted)]" />
                 <input
                   type="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search reasoning..."
                   aria-label="Search decision reasoning"
-                  className="pl-8 pr-3 py-1.5 text-xs bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-52"
+                  className="pl-8 pr-3 py-1.5 text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500 w-52"
                 />
               </div>
 
@@ -992,7 +992,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value as SortKey)}
                 aria-label="Sort decisions by"
-                className="bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="time">Sort: Time</option>
                 <option value="confidence">Sort: Confidence</option>
@@ -1013,9 +1013,9 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                 ))}
                 {filteredDecisions.length === 0 && (
                   <div className="text-center py-12">
-                    <Search className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
-                    <p className="text-sm text-zinc-500">No decisions match the current filters.</p>
-                    <p className="text-xs text-zinc-600 mt-1">Try adjusting the time range or clearing filters.</p>
+                    <Search className="w-8 h-8 text-[var(--color-text-muted)] mx-auto mb-3" />
+                    <p className="text-sm text-[var(--color-text-muted)]">No decisions match the current filters.</p>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-1">Try adjusting the time range or clearing filters.</p>
                   </div>
                 )}
               </div>
@@ -1028,8 +1028,8 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
           <div className="h-full overflow-y-auto px-6 py-4">
             <div className="max-w-3xl space-y-3">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-semibold text-zinc-300">Agent Self-Evaluation Reports</h2>
-                <span className="text-xs text-zinc-500">{SELF_EVAL_REPORTS.length} reports</span>
+                <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Agent Self-Evaluation Reports</h2>
+                <span className="text-xs text-[var(--color-text-muted)]">{SELF_EVAL_REPORTS.length} reports</span>
               </div>
               {SELF_EVAL_REPORTS.map((report) => (
                 <SelfEvalCard key={report.id} report={report} />
@@ -1045,7 +1045,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
               {/* Summary stats */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { label: "Total Decisions", value: DECISIONS.length.toString(), sub: "tracked", color: "text-white" },
+                  { label: "Total Decisions", value: DECISIONS.length.toString(), sub: "tracked", color: "text-[var(--color-text-primary)]" },
                   { label: "Avg Confidence", value: `${avgConfidence}%`, sub: "across all decisions", color: "text-emerald-400" },
                   { label: "Self-Correction Rate", value: `${selfCorrectionRate}%`, sub: "decisions revised", color: "text-amber-400" },
                   {
@@ -1055,17 +1055,17 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                     color: "text-emerald-400",
                   },
                 ].map(({ label, value, sub, color }) => (
-                  <div key={label} className="px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800">
-                    <p className="text-xs text-zinc-500">{label}</p>
+                  <div key={label} className="px-4 py-3 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)]">
+                    <p className="text-xs text-[var(--color-text-muted)]">{label}</p>
                     <p className={cn("text-xl font-bold font-mono mt-1", color)}>{value}</p>
-                    <p className="text-xs text-zinc-600 mt-0.5">{sub}</p>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{sub}</p>
                   </div>
                 ))}
               </div>
 
               {/* Model distribution */}
-              <div className="px-5 py-4 rounded-lg bg-zinc-900 border border-zinc-800">
-                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <div className="px-5 py-4 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)]">
+                <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
                   <BarChart3 className="w-3.5 h-3.5 text-violet-400" />
                   Model Selection Distribution
                 </h3>
@@ -1080,8 +1080,8 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
               </div>
 
               {/* Decision type distribution */}
-              <div className="px-5 py-4 rounded-lg bg-zinc-900 border border-zinc-800">
-                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <div className="px-5 py-4 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)]">
+                <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
                   <Shield className="w-3.5 h-3.5 text-sky-400" />
                   Decision Type Distribution
                 </h3>
@@ -1089,12 +1089,12 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                   {(Object.entries(typeDist) as [DecisionType, number][]).map(([type, count]) => {
                     const meta = DECISION_TYPE_META[type];
                     return (
-                      <div key={type} className="text-center px-3 py-2 rounded-lg bg-zinc-800/60 border border-zinc-700/50">
+                      <div key={type} className="text-center px-3 py-2 rounded-lg bg-[var(--color-surface-2)]/60 border border-[var(--color-border)]/50">
                         <div className={cn("flex items-center justify-center gap-1 mb-1", meta.color)}>
                           {meta.icon}
                         </div>
-                        <p className="text-lg font-bold font-mono text-white">{count}</p>
-                        <p className="text-xs text-zinc-500 mt-0.5">{meta.label}</p>
+                        <p className="text-lg font-bold font-mono text-[var(--color-text-primary)]">{count}</p>
+                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{meta.label}</p>
                       </div>
                     );
                   })}
@@ -1102,9 +1102,9 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
               </div>
 
               {/* Routing rules table */}
-              <div className="rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden">
-                <div className="px-5 py-3 border-b border-zinc-800">
-                  <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+              <div className="rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] overflow-hidden">
+                <div className="px-5 py-3 border-b border-[var(--color-border)]">
+                  <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider flex items-center gap-1.5">
                     <GitBranch className="w-3.5 h-3.5 text-amber-400" />
                     Active Routing Rules
                   </h3>
@@ -1112,24 +1112,24 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-zinc-800">
-                        <th className="text-left px-4 py-2.5 font-medium text-zinc-400 uppercase tracking-wider">Task Type</th>
-                        <th className="text-left px-4 py-2.5 font-medium text-zinc-400 uppercase tracking-wider">Preferred Model</th>
-                        <th className="text-left px-4 py-2.5 font-medium text-zinc-400 uppercase tracking-wider">Fallback</th>
-                        <th className="text-left px-4 py-2.5 font-medium text-zinc-400 uppercase tracking-wider">Reason</th>
+                      <tr className="border-b border-[var(--color-border)]">
+                        <th className="text-left px-4 py-2.5 font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Task Type</th>
+                        <th className="text-left px-4 py-2.5 font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Preferred Model</th>
+                        <th className="text-left px-4 py-2.5 font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Fallback</th>
+                        <th className="text-left px-4 py-2.5 font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Reason</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-800/50">
+                    <tbody className="divide-y divide-[var(--color-border)]/50">
                       {ROUTING_RULES.map((rule, i) => (
-                        <tr key={i} className="hover:bg-zinc-800/40 transition-colors">
-                          <td className="px-4 py-2.5 font-medium text-zinc-200">{rule.taskType}</td>
+                        <tr key={i} className="hover:bg-[var(--color-surface-2)]/40 transition-colors">
+                          <td className="px-4 py-2.5 font-medium text-[var(--color-text-primary)]">{rule.taskType}</td>
                           <td className="px-4 py-2.5">
                             <span className="font-mono text-indigo-400">{rule.preferredModel}</span>
                           </td>
                           <td className="px-4 py-2.5">
-                            <span className="font-mono text-zinc-400">{rule.fallback}</span>
+                            <span className="font-mono text-[var(--color-text-secondary)]">{rule.fallback}</span>
                           </td>
-                          <td className="px-4 py-2.5 text-zinc-500 max-w-xs">{rule.reason}</td>
+                          <td className="px-4 py-2.5 text-[var(--color-text-muted)] max-w-xs">{rule.reason}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1138,8 +1138,8 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
               </div>
 
               {/* Confidence distribution by agent */}
-              <div className="px-5 py-4 rounded-lg bg-zinc-900 border border-zinc-800">
-                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <div className="px-5 py-4 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)]">
+                <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
                   <Gauge className="w-3.5 h-3.5 text-emerald-400" />
                   Confidence by Agent
                 </h3>
@@ -1153,10 +1153,10 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                     return (
                       <div key={agent}>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-zinc-300 flex items-center gap-1.5">
+                          <span className="text-xs text-[var(--color-text-primary)] flex items-center gap-1.5">
                             <span>{emoji}</span>
                             {agent}
-                            <span className="text-zinc-600">({agentDecisions.length} decisions)</span>
+                            <span className="text-[var(--color-text-muted)]">({agentDecisions.length} decisions)</span>
                           </span>
                           <span className={cn(
                             "text-xs font-mono font-semibold",
@@ -1165,7 +1165,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                             {avg}%
                           </span>
                         </div>
-                        <div className="h-1.5 w-full bg-zinc-800 rounded-full">
+                        <div className="h-1.5 w-full bg-[var(--color-surface-2)] rounded-full">
                           <div
                             className={cn(
                               "h-1.5 rounded-full transition-all",

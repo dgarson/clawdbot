@@ -176,24 +176,24 @@ export default function LocalizationManager() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Localization Manager</h1>
-            <p className="text-zinc-400 text-sm mt-1">
+            <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Localization Manager</h1>
+            <p className="text-[var(--color-text-secondary)] text-sm mt-1">
               {LOCALES.length} locales · {TRANSLATION_KEYS.length} keys shown · {totalCoverage}% avg coverage
             </p>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-indigo-400">{totalCoverage}%</div>
-            <div className="text-xs text-zinc-500">avg coverage</div>
+            <div className="text-xs text-[var(--color-text-muted)]">avg coverage</div>
           </div>
         </div>
 
         {/* Coverage bar */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-          <div className="flex items-center justify-between text-xs text-zinc-500 mb-2">
+        <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+          <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] mb-2">
             <span>Overall Translation Coverage</span>
             <span>{totalCoverage}% across {LOCALES.length} languages</span>
           </div>
@@ -212,14 +212,14 @@ export default function LocalizationManager() {
         </div>
       </div>
 
-      <div className="flex gap-1 border-b border-zinc-800 mb-5">
+      <div className="flex gap-1 border-b border-[var(--color-border)] mb-5">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
-              tab === t.id ? "text-white bg-zinc-800 border border-b-0 border-zinc-700" : "text-zinc-400 hover:text-white"
+              tab === t.id ? "text-[var(--color-text-primary)] bg-[var(--color-surface-2)] border border-b-0 border-[var(--color-border)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t.label}
@@ -236,16 +236,16 @@ export default function LocalizationManager() {
                 key={locale.code}
                 onClick={() => setSelectedLocale(selectedLocale?.code === locale.code ? null : locale)}
                 className={cn(
-                  "bg-zinc-900 border rounded-lg p-4 cursor-pointer transition-colors",
-                  selectedLocale?.code === locale.code ? "border-indigo-600" : "border-zinc-800 hover:border-zinc-700"
+                  "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
+                  selectedLocale?.code === locale.code ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <span className="text-3xl">{locale.flag}</span>
                     <div>
-                      <div className="font-semibold text-white">{locale.name}</div>
-                      <div className="text-xs text-zinc-500">{locale.nativeName} · {locale.code} · {locale.direction.toUpperCase()}</div>
+                      <div className="font-semibold text-[var(--color-text-primary)]">{locale.name}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">{locale.nativeName} · {locale.code} · {locale.direction.toUpperCase()}</div>
                     </div>
                   </div>
                   <div className="text-right">
@@ -255,7 +255,7 @@ export default function LocalizationManager() {
                   </div>
                 </div>
 
-                <div className="bg-zinc-800 rounded-full h-2 mb-3">
+                <div className="bg-[var(--color-surface-2)] rounded-full h-2 mb-3">
                   <div
                     className={cn("h-full rounded-full", locale.coverage === 100 ? "bg-emerald-500" : locale.coverage >= 80 ? "bg-indigo-500" : locale.coverage >= 60 ? "bg-amber-500" : "bg-rose-500")}
                     style={{ width: `${locale.coverage}%` }}
@@ -263,22 +263,22 @@ export default function LocalizationManager() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-xs text-center">
-                  <div className="bg-zinc-800 rounded p-1.5">
+                  <div className="bg-[var(--color-surface-2)] rounded p-1.5">
                     <div className="text-emerald-400 font-bold">{locale.approvedCount}</div>
-                    <div className="text-zinc-500">Approved</div>
+                    <div className="text-[var(--color-text-muted)]">Approved</div>
                   </div>
-                  <div className="bg-zinc-800 rounded p-1.5">
+                  <div className="bg-[var(--color-surface-2)] rounded p-1.5">
                     <div className="text-amber-400 font-bold">{locale.pendingCount}</div>
-                    <div className="text-zinc-500">Pending</div>
+                    <div className="text-[var(--color-text-muted)]">Pending</div>
                   </div>
-                  <div className="bg-zinc-800 rounded p-1.5">
+                  <div className="bg-[var(--color-surface-2)] rounded p-1.5">
                     <div className="text-rose-400 font-bold">{locale.missingCount}</div>
-                    <div className="text-zinc-500">Missing</div>
+                    <div className="text-[var(--color-text-muted)]">Missing</div>
                   </div>
                 </div>
 
                 {locale.translators.length > 0 && (
-                  <div className="mt-2 text-xs text-zinc-500">
+                  <div className="mt-2 text-xs text-[var(--color-text-muted)]">
                     Translators: {locale.translators.join(", ")}
                   </div>
                 )}
@@ -296,24 +296,24 @@ export default function LocalizationManager() {
         <div>
           <div className="flex items-center gap-3 mb-4 flex-wrap">
             <div className="flex gap-1">
-              <span className="text-xs text-zinc-500 self-center mr-1">Namespace:</span>
+              <span className="text-xs text-[var(--color-text-muted)] self-center mr-1">Namespace:</span>
               {["all", ...namespaces].map(ns => (
                 <button
                   key={ns}
                   onClick={() => setNsFilter(ns)}
-                  className={cn("px-2 py-1 text-xs rounded transition-colors", nsFilter === ns ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-white")}
+                  className={cn("px-2 py-1 text-xs rounded transition-colors", nsFilter === ns ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}
                 >
                   {ns === "all" ? "All" : ns}
                 </button>
               ))}
             </div>
             <div className="flex gap-1">
-              <span className="text-xs text-zinc-500 self-center mr-1">Show locale:</span>
+              <span className="text-xs text-[var(--color-text-muted)] self-center mr-1">Show locale:</span>
               {LOCALES.map(l => (
                 <button
                   key={l.code}
                   onClick={() => setSelectedLocale(selectedLocale?.code === l.code ? null : l)}
-                  className={cn("px-2 py-1 text-xs rounded transition-colors", selectedLocale?.code === l.code ? "bg-zinc-700 text-white" : "text-zinc-500 hover:text-white")}
+                  className={cn("px-2 py-1 text-xs rounded transition-colors", selectedLocale?.code === l.code ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]")}
                 >
                   {l.flag} {l.code}
                 </button>
@@ -327,23 +327,23 @@ export default function LocalizationManager() {
                 key={key.id}
                 onClick={() => setSelectedKey(selectedKey?.id === key.id ? null : key)}
                 className={cn(
-                  "bg-zinc-900 border rounded-lg p-4 cursor-pointer transition-colors",
-                  selectedKey?.id === key.id ? "border-indigo-600" : "border-zinc-800 hover:border-zinc-700"
+                  "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
+                  selectedKey?.id === key.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start gap-3 mb-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono text-sm text-indigo-400">{key.key}</span>
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">{key.namespace}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]">{key.namespace}</span>
                       {key.interpolations.length > 0 && (
                         <span className="text-xs text-sky-400">variables: {key.interpolations.map(v => `{{${v}}}`).join(", ")}</span>
                       )}
                     </div>
-                    <div className="text-xs text-zinc-500 mt-0.5">
-                      Default: <span className="text-zinc-300">"{key.defaultValue}"</span>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                      Default: <span className="text-[var(--color-text-primary)]">"{key.defaultValue}"</span>
                     </div>
-                    <div className="text-xs text-zinc-600 mt-0.5">{key.description}</div>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{key.description}</div>
                   </div>
 
                   {/* Status indicators for each locale */}
@@ -365,21 +365,21 @@ export default function LocalizationManager() {
                 </div>
 
                 {selectedKey?.id === key.id && (
-                  <div className="mt-4 border-t border-zinc-800 pt-4" onClick={e => e.stopPropagation()}>
+                  <div className="mt-4 border-t border-[var(--color-border)] pt-4" onClick={e => e.stopPropagation()}>
                     <div className="space-y-2">
                       {LOCALES.map(locale => {
                         const t = key.translations[locale.code];
                         const isEditing = editingLocale === locale.code;
                         return (
-                          <div key={locale.code} className="flex items-start gap-3 bg-zinc-950 rounded-lg p-3">
+                          <div key={locale.code} className="flex items-start gap-3 bg-[var(--color-surface-0)] rounded-lg p-3">
                             <span className="text-xl shrink-0">{locale.flag}</span>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-semibold text-zinc-300">{locale.name}</span>
+                                <span className="text-xs font-semibold text-[var(--color-text-primary)]">{locale.name}</span>
                                 <span className={cn("text-xs px-1.5 py-0.5 rounded border", STATUS_CONFIG[t?.status ?? "missing"].color, STATUS_CONFIG[t?.status ?? "missing"].bg)}>
                                   {STATUS_CONFIG[t?.status ?? "missing"].label}
                                 </span>
-                                {t?.translatedBy && <span className="text-xs text-zinc-500">by {t.translatedBy}</span>}
+                                {t?.translatedBy && <span className="text-xs text-[var(--color-text-muted)]">by {t.translatedBy}</span>}
                               </div>
                               {isEditing ? (
                                 <div className="flex gap-2">
@@ -387,20 +387,20 @@ export default function LocalizationManager() {
                                     type="text"
                                     value={editValue}
                                     onChange={e => setEditValue(e.target.value)}
-                                    className="flex-1 bg-zinc-900 border border-indigo-600 rounded px-2 py-1 text-sm text-white font-mono focus:outline-none"
+                                    className="flex-1 bg-[var(--color-surface-1)] border border-indigo-600 rounded px-2 py-1 text-sm text-[var(--color-text-primary)] font-mono focus:outline-none"
                                     autoFocus
                                   />
-                                  <button onClick={() => setEditingLocale(null)} className="px-2 py-1 text-xs rounded bg-indigo-600 hover:bg-indigo-500 text-white">Save</button>
-                                  <button onClick={() => setEditingLocale(null)} className="px-2 py-1 text-xs rounded bg-zinc-700 text-zinc-300">Cancel</button>
+                                  <button onClick={() => setEditingLocale(null)} className="px-2 py-1 text-xs rounded bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]">Save</button>
+                                  <button onClick={() => setEditingLocale(null)} className="px-2 py-1 text-xs rounded bg-[var(--color-surface-3)] text-[var(--color-text-primary)]">Cancel</button>
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-2">
-                                  <span className={cn("text-sm font-mono flex-1", t?.value ? "text-zinc-200" : "text-zinc-600 italic")}>
+                                  <span className={cn("text-sm font-mono flex-1", t?.value ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] italic")}>
                                     {t?.value || "(not translated)"}
                                   </span>
                                   <button
                                     onClick={() => { setEditingLocale(locale.code); setEditValue(t?.value ?? ""); }}
-                                    className="text-xs text-zinc-500 hover:text-indigo-400 px-2 py-0.5 rounded hover:bg-zinc-800 transition-colors"
+                                    className="text-xs text-[var(--color-text-muted)] hover:text-indigo-400 px-2 py-0.5 rounded hover:bg-[var(--color-surface-2)] transition-colors"
                                   >
                                     ✏️ Edit
                                   </button>
@@ -422,16 +422,16 @@ export default function LocalizationManager() {
       {/* Export Tab */}
       {tab === "export" && (
         <div className="space-y-4">
-          <div className="text-sm text-zinc-400 mb-4">Export translation files for integration with i18next, react-intl, or custom frameworks</div>
+          <div className="text-sm text-[var(--color-text-secondary)] mb-4">Export translation files for integration with i18next, react-intl, or custom frameworks</div>
           <div className="grid grid-cols-2 gap-4">
             {LOCALES.map(locale => (
-              <div key={locale.code} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div key={locale.code} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">{locale.flag}</span>
                     <div>
-                      <div className="font-medium text-white">{locale.name}</div>
-                      <div className="text-xs text-zinc-500">{locale.code}.json</div>
+                      <div className="font-medium text-[var(--color-text-primary)]">{locale.name}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">{locale.code}.json</div>
                     </div>
                   </div>
                   <div className={cn("text-sm font-bold", locale.coverage === 100 ? "text-emerald-400" : locale.coverage >= 80 ? "text-indigo-400" : "text-amber-400")}>
@@ -439,10 +439,10 @@ export default function LocalizationManager() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="flex-1 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 rounded text-zinc-300 transition-colors">
+                  <button className="flex-1 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded text-[var(--color-text-primary)] transition-colors">
                     📥 Download
                   </button>
-                  <button className="flex-1 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 rounded text-zinc-300 transition-colors">
+                  <button className="flex-1 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded text-[var(--color-text-primary)] transition-colors">
                     📋 Copy JSON
                   </button>
                 </div>
@@ -451,11 +451,11 @@ export default function LocalizationManager() {
           </div>
 
           {/* Export all */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-            <div className="text-sm font-semibold text-zinc-300 mb-3">Export All Locales</div>
+          <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
+            <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Export All Locales</div>
             <div className="flex gap-3">
               {["i18next (JSON)", "react-intl (AST)", "XLIFF 2.0", "PO Format"].map(fmt => (
-                <button key={fmt} className="px-4 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors">
+                <button key={fmt} className="px-4 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">
                   📦 {fmt}
                 </button>
               ))}

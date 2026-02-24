@@ -32,6 +32,13 @@
   --color-error:   #ef4444; /* red-500    */
   --color-info:    #3b82f6; /* blue-500   */
 
+  /* Pill / chip tokens */
+  --color-pill-bg:          #27272a; /* zinc-800 */
+  --color-pill-text:        #d4d4d8; /* zinc-300 */
+  --color-pill-active-bg:   #7c3aed; /* violet-600 */
+  --color-pill-active-text: #ffffff; /* white */
+  --color-pill-border:      #3f3f46; /* zinc-700 */
+
   /* ---- Backward-compat shadcn-style variables ----
      These power existing Tailwind utilities:
      bg-background, text-foreground, bg-card, border-border,
@@ -78,6 +85,13 @@
   --color-warning: #ca8a04; /* yellow-600 */
   --color-error:   #dc2626; /* red-600    */
   --color-info:    #2563eb; /* blue-600   */
+
+  /* Pill / chip tokens */
+  --color-pill-bg:          #f1f5f9; /* slate-100 */
+  --color-pill-text:        #475569; /* slate-600 */
+  --color-pill-active-bg:   #7c3aed; /* violet-600 */
+  --color-pill-active-text: #ffffff; /* white */
+  --color-pill-border:      #cbd5e1; /* slate-300 */
 
   /* ---- Backward-compat shadcn-style variables ---- */
   --color-background:  #f8fafc; /* slate-50  */

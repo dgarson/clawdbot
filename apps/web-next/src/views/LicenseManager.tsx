@@ -181,7 +181,7 @@ const statusColor: Record<LicenseStatus, string> = {
   active:    "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
   expiring:  "text-amber-400 bg-amber-400/10 border-amber-400/30",
   expired:   "text-rose-400 bg-rose-400/10 border-rose-400/30",
-  suspended: "text-zinc-400 bg-zinc-400/10 border-zinc-400/30",
+  suspended: "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30",
   trial:     "text-blue-400 bg-blue-400/10 border-blue-400/30",
 };
 
@@ -211,12 +211,12 @@ export default function LicenseManager(): React.ReactElement {
     .toSorted((a, b) => new Date(a.expiresAt!).getTime() - new Date(b.expiresAt!).getTime());
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
         <div>
           <h1 className="text-lg font-semibold">License Manager</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">Software license inventory, seat allocation, and compliance tracking</p>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">Software license inventory, seat allocation, and compliance tracking</p>
         </div>
         <div className="flex items-center gap-3">
           {expiringCount > 0 && (
@@ -224,7 +224,7 @@ export default function LicenseManager(): React.ReactElement {
               ⚠ {expiringCount} expiring soon
             </div>
           )}
-          <div className="text-xs text-zinc-400">Annual spend: <span className="text-white font-semibold">{totalAnnualCost.toLocaleString()} USD</span></div>
+          <div className="text-xs text-[var(--color-text-secondary)]">Annual spend: <span className="text-[var(--color-text-primary)] font-semibold">{totalAnnualCost.toLocaleString()} USD</span></div>
           <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
             + Add License
           </button>
@@ -232,7 +232,7 @@ export default function LicenseManager(): React.ReactElement {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 px-6 pt-3 border-b border-zinc-800 shrink-0">
+      <div className="flex gap-1 px-6 pt-3 border-b border-[var(--color-border)] shrink-0">
         {TABS.map((t) => (
           <button
             key={t}
@@ -241,7 +241,7 @@ export default function LicenseManager(): React.ReactElement {
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
                 ? "text-indigo-400 border-indigo-500"
-                : "text-zinc-400 border-transparent hover:text-white"
+                : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}
@@ -253,7 +253,7 @@ export default function LicenseManager(): React.ReactElement {
         {/* ── LICENSES ── */}
         {tab === "Licenses" && (
           <div className="h-full flex">
-            <div className="w-72 border-r border-zinc-800 overflow-y-auto">
+            <div className="w-72 border-r border-[var(--color-border)] overflow-y-auto">
               {LICENSES.map((lic) => {
                 const days = daysUntil(lic.expiresAt);
                 return (
@@ -261,23 +261,23 @@ export default function LicenseManager(): React.ReactElement {
                     key={lic.id}
                     onClick={() => setSelectedLicense(lic)}
                     className={cn(
-                      "w-full text-left px-4 py-4 border-b border-zinc-800/50 transition-colors",
-                      selectedLicense.id === lic.id ? "bg-indigo-600/10" : "hover:bg-zinc-800/40"
+                      "w-full text-left px-4 py-4 border-b border-[var(--color-border)]/50 transition-colors",
+                      selectedLicense.id === lic.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/40"
                     )}
                   >
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium text-white truncate max-w-[140px]">{lic.productName}</span>
+                      <span className="text-sm font-medium text-[var(--color-text-primary)] truncate max-w-[140px]">{lic.productName}</span>
                       <span className={cn("text-[10px] px-1 py-0.5 rounded border shrink-0", statusColor[lic.status])}>{lic.status}</span>
                     </div>
-                    <div className="text-[10px] text-zinc-500">{lic.vendor} · {lic.tier}</div>
+                    <div className="text-[10px] text-[var(--color-text-muted)]">{lic.vendor} · {lic.tier}</div>
                     <div className="flex items-center gap-2 mt-2">
-                      <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="flex-1 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div
                           className={cn("h-full rounded-full", lic.usedSeats / lic.seats > 0.9 ? "bg-amber-500" : "bg-indigo-500")}
                           style={{ width: `${Math.min(100, (lic.usedSeats / lic.seats) * 100)}%` }}
                         />
                       </div>
-                      <span className="text-[10px] text-zinc-400 shrink-0">{lic.usedSeats}/{lic.seats}</span>
+                      <span className="text-[10px] text-[var(--color-text-secondary)] shrink-0">{lic.usedSeats}/{lic.seats}</span>
                     </div>
                     {days !== null && days <= 30 && days >= 0 && (
                       <div className="text-[10px] text-amber-400 mt-1">Expires in {days}d</div>
@@ -291,11 +291,11 @@ export default function LicenseManager(): React.ReactElement {
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-xl font-bold">{selectedLicense.productName}</h2>
-                  <div className="text-sm text-zinc-400">{selectedLicense.vendor} · {selectedLicense.tier}</div>
+                  <div className="text-sm text-[var(--color-text-secondary)]">{selectedLicense.vendor} · {selectedLicense.tier}</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={cn("text-xs px-2 py-0.5 rounded border", statusColor[selectedLicense.status])}>{selectedLicense.status}</span>
-                  <button className="px-3 py-1.5 text-xs border border-zinc-700 text-zinc-400 hover:border-zinc-600 rounded-md transition-colors">Manage</button>
+                  <button className="px-3 py-1.5 text-xs border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] rounded-md transition-colors">Manage</button>
                 </div>
               </div>
 
@@ -306,45 +306,45 @@ export default function LicenseManager(): React.ReactElement {
                   { label: "Annual Cost", value: `${selectedLicense.cost.toLocaleString()} USD` },
                   { label: "Expires", value: selectedLicense.expiresAt ?? "Perpetual" },
                 ].map((m) => (
-                  <div key={m.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-                    <div className="text-xs text-zinc-500">{m.label}</div>
+                  <div key={m.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-3">
+                    <div className="text-xs text-[var(--color-text-muted)]">{m.label}</div>
                     <div className="text-sm font-semibold mt-1">{m.value}</div>
                   </div>
                 ))}
               </div>
 
               {/* Seat utilization */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
                 <div className="flex justify-between text-sm mb-3">
                   <span className="font-medium">Seat Utilization</span>
-                  <span className={cn("font-mono", (selectedLicense.usedSeats / selectedLicense.seats) > 0.9 ? "text-amber-400" : "text-zinc-400")}>
+                  <span className={cn("font-mono", (selectedLicense.usedSeats / selectedLicense.seats) > 0.9 ? "text-amber-400" : "text-[var(--color-text-secondary)]")}>
                     {Math.round((selectedLicense.usedSeats / selectedLicense.seats) * 100)}%
                   </span>
                 </div>
-                <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-3 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div
                     className={cn("h-full rounded-full", (selectedLicense.usedSeats / selectedLicense.seats) > 0.9 ? "bg-amber-500" : "bg-indigo-500")}
                     style={{ width: `${Math.min(100, (selectedLicense.usedSeats / selectedLicense.seats) * 100)}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-xs text-zinc-500 mt-1.5">
+                <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1.5">
                   <span>{selectedLicense.usedSeats} used</span>
                   <span>{selectedLicense.seats - selectedLicense.usedSeats} available</span>
                 </div>
               </div>
 
               {/* License key */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                <div className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mb-2">License Key</div>
-                <div className="font-mono text-sm text-zinc-300 tracking-wider">{selectedLicense.licenseKey}</div>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                <div className="text-xs text-[var(--color-text-secondary)] font-semibold uppercase tracking-wider mb-2">License Key</div>
+                <div className="font-mono text-sm text-[var(--color-text-primary)] tracking-wider">{selectedLicense.licenseKey}</div>
               </div>
 
               {/* Features */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                <div className="text-xs text-zinc-400 font-semibold uppercase tracking-wider mb-3">Included Features</div>
+              <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
+                <div className="text-xs text-[var(--color-text-secondary)] font-semibold uppercase tracking-wider mb-3">Included Features</div>
                 <div className="grid grid-cols-2 gap-1">
                   {selectedLicense.features.map(f => (
-                    <div key={f} className="flex items-center gap-1.5 text-xs text-zinc-300">
+                    <div key={f} className="flex items-center gap-1.5 text-xs text-[var(--color-text-primary)]">
                       <span className="text-emerald-400">✓</span> {f}
                     </div>
                   ))}
@@ -357,35 +357,35 @@ export default function LicenseManager(): React.ReactElement {
         {/* ── ALLOCATIONS ── */}
         {tab === "Allocations" && (
           <div className="h-full overflow-y-auto p-6">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-              <div className="px-5 py-3 border-b border-zinc-800 flex items-center justify-between">
+            <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
+              <div className="px-5 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
                 <h3 className="text-sm font-medium">Seat Allocations</h3>
                 <button className="text-xs text-indigo-400 hover:text-indigo-300">+ Allocate Seat</button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-800">
+                    <tr className="border-b border-[var(--color-border)]">
                       {["User", "Product", "Status", "Allocated", "Last Activity"].map(h => (
-                        <th key={h} className="px-4 py-2.5 text-left text-xs text-zinc-500 font-medium">{h}</th>
+                        <th key={h} className="px-4 py-2.5 text-left text-xs text-[var(--color-text-muted)] font-medium">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/50">
+                  <tbody className="divide-y divide-[var(--color-border)]/50">
                     {ALLOCATIONS.map((a) => (
-                      <tr key={a.userId + a.licenseId} className="hover:bg-zinc-800/30">
+                      <tr key={a.userId + a.licenseId} className="hover:bg-[var(--color-surface-2)]/30">
                         <td className="px-4 py-3">
                           <div className="text-sm">{a.userName}</div>
-                          <div className="text-[10px] text-zinc-500">{a.email}</div>
+                          <div className="text-[10px] text-[var(--color-text-muted)]">{a.email}</div>
                         </td>
                         <td className="px-4 py-3 text-sm">{a.productName}</td>
                         <td className="px-4 py-3">
-                          <span className={cn("text-xs", a.status === "allocated" ? "text-emerald-400" : a.status === "reserved" ? "text-amber-400" : "text-zinc-400")}>
+                          <span className={cn("text-xs", a.status === "allocated" ? "text-emerald-400" : a.status === "reserved" ? "text-amber-400" : "text-[var(--color-text-secondary)]")}>
                             {a.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-xs text-zinc-400">{a.allocatedAt}</td>
-                        <td className="px-4 py-3 text-xs text-zinc-400">{a.lastActivity.slice(0, 10)}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{a.allocatedAt}</td>
+                        <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{a.lastActivity.slice(0, 10)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -399,7 +399,7 @@ export default function LicenseManager(): React.ReactElement {
         {tab === "Compliance" && (
           <div className="h-full overflow-y-auto p-6 space-y-4">
             {COMPLIANCE.map((c) => (
-              <div key={c.productName} className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+              <div key={c.productName} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-semibold">{c.productName}</h3>
                   <span className={cn("text-xs px-2 py-0.5 rounded border", complianceColor[c.status])}>
@@ -409,20 +409,20 @@ export default function LicenseManager(): React.ReactElement {
                 <div className="grid grid-cols-3 gap-4 mb-3">
                   <div className="text-center">
                     <div className="text-xl font-bold">{c.required}</div>
-                    <div className="text-xs text-zinc-500">Required</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Required</div>
                   </div>
                   <div className="text-center">
                     <div className="text-xl font-bold">{c.actual}</div>
-                    <div className="text-xs text-zinc-500">Licensed</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Licensed</div>
                   </div>
                   <div className="text-center">
                     <div className={cn("text-xl font-bold", c.status === "under_licensed" ? "text-rose-400" : c.status === "over_licensed" ? "text-amber-400" : "text-emerald-400")}>
                       {c.delta > 0 ? "+" : ""}{c.delta}
                     </div>
-                    <div className="text-xs text-zinc-500">Delta</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">Delta</div>
                   </div>
                 </div>
-                <p className="text-xs text-zinc-400 border-t border-zinc-800 pt-3">{c.recommendation}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] border-t border-[var(--color-border)] pt-3">{c.recommendation}</p>
               </div>
             ))}
           </div>
@@ -431,22 +431,22 @@ export default function LicenseManager(): React.ReactElement {
         {/* ── RENEWALS ── */}
         {tab === "Renewals" && (
           <div className="h-full overflow-y-auto p-6 space-y-3">
-            <div className="text-xs text-zinc-400 mb-4">Upcoming renewals sorted by expiration date</div>
+            <div className="text-xs text-[var(--color-text-secondary)] mb-4">Upcoming renewals sorted by expiration date</div>
             {renewalsSorted.map((lic) => {
               const days = daysUntil(lic.expiresAt);
-              const urgency = days !== null && days <= 21 ? "border-rose-500/40" : days !== null && days <= 60 ? "border-amber-500/40" : "border-zinc-800";
+              const urgency = days !== null && days <= 21 ? "border-rose-500/40" : days !== null && days <= 60 ? "border-amber-500/40" : "border-[var(--color-border)]";
               return (
-                <div key={lic.id} className={cn("bg-zinc-900 border rounded-lg p-4 flex items-center gap-4", urgency)}>
+                <div key={lic.id} className={cn("bg-[var(--color-surface-1)] border rounded-lg p-4 flex items-center gap-4", urgency)}>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold">{lic.productName}</span>
-                      <span className="text-xs text-zinc-500">{lic.vendor}</span>
+                      <span className="text-xs text-[var(--color-text-muted)]">{lic.vendor}</span>
                     </div>
-                    <div className="text-xs text-zinc-400 mt-0.5">{lic.seats} seats · {lic.tier} · {lic.cost.toLocaleString()} USD/yr</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{lic.seats} seats · {lic.tier} · {lic.cost.toLocaleString()} USD/yr</div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-mono">{lic.expiresAt}</div>
-                    <div className={cn("text-xs mt-0.5", days !== null && days <= 21 ? "text-rose-400" : days !== null && days <= 60 ? "text-amber-400" : "text-zinc-500")}>
+                    <div className={cn("text-xs mt-0.5", days !== null && days <= 21 ? "text-rose-400" : days !== null && days <= 60 ? "text-amber-400" : "text-[var(--color-text-muted)]")}>
                       {days !== null ? (days > 0 ? `${days} days` : "Expired") : "—"}
                     </div>
                   </div>
