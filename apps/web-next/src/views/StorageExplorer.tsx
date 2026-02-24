@@ -235,19 +235,19 @@ const ROOT: FSNode = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtSize(bytes?: number): string {
-  if (bytes === undefined) return "—";
-  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes === undefined) {return "—";}
+  if (bytes >= 1024 * 1024) {return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;}
+  if (bytes >= 1024) {return `${(bytes / 1024).toFixed(0)} KB`;}
   return `${bytes} B`;
 }
 
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {return "just now";}
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {return `${hrs}h ago`;}
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
@@ -263,18 +263,18 @@ const CATEGORY_EMOJIS: Record<FileCategory, string> = {
 };
 
 function fileEmoji(node: FSNode): string {
-  if (node.kind === "directory") return "📁";
-  if (node.kind === "symlink") return "🔗";
+  if (node.kind === "directory") {return "📁";}
+  if (node.kind === "symlink") {return "🔗";}
   return CATEGORY_EMOJIS[node.category ?? "other"];
 }
 
 function totalSize(node: FSNode): number {
-  if (node.kind === "file") return node.size ?? 0;
+  if (node.kind === "file") {return node.size ?? 0;}
   return (node.children ?? []).reduce((acc, child) => acc + totalSize(child), 0);
 }
 
 function flatFiles(node: FSNode): FSNode[] {
-  if (node.kind === "file") return [node];
+  if (node.kind === "file") {return [node];}
   return (node.children ?? []).flatMap(flatFiles);
 }
 
@@ -297,7 +297,7 @@ function TreeNode({ node, depth, selectedId, onSelect, openIds, onToggle }: Tree
     <div>
       <button
         onClick={() => {
-          if (isDir) onToggle(node.id);
+          if (isDir) {onToggle(node.id);}
           onSelect(node);
         }}
         aria-expanded={isDir ? isOpen : undefined}
@@ -355,7 +355,7 @@ export default function StorageExplorer() {
   const toggleDir = useCallback((id: string) => {
     setOpenIds(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) {next.delete(id);} else {next.add(id);}
       return next;
     });
   }, []);
@@ -363,7 +363,7 @@ export default function StorageExplorer() {
   const allFiles = useMemo(() => flatFiles(ROOT), []);
 
   const searchResults = useMemo(() => {
-    if (!search.trim()) return [];
+    if (!search.trim()) {return [];}
     const q = search.toLowerCase();
     return allFiles.filter(f => f.name.toLowerCase().includes(q) || f.path.toLowerCase().includes(q));
   }, [search, allFiles]);
@@ -476,7 +476,7 @@ export default function StorageExplorer() {
                       key={child.id}
                       onClick={() => {
                         setSelectedNode(child);
-                        if (child.kind === "directory") toggleDir(child.id);
+                        if (child.kind === "directory") {toggleDir(child.id);}
                       }}
                       className={cn(
                         "w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-zinc-800/40 transition-colors",

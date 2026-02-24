@@ -206,8 +206,8 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
   const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | "all">("all");
 
   const filteredTemplates = TEMPLATES.filter((t) => {
-    if (categoryFilter !== "all" && t.category !== categoryFilter) return false;
-    if (searchQuery && !t.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (categoryFilter !== "all" && t.category !== categoryFilter) {return false;}
+    if (searchQuery && !t.name.toLowerCase().includes(searchQuery.toLowerCase())) {return false;}
     return true;
   });
 

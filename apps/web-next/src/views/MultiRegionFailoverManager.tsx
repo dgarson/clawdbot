@@ -98,8 +98,8 @@ const STATUS_CONFIG: Record<RegionStatus, { label: string; color: string; dot: s
 
 function formatRelativeTime(iso: string): string {
   const diffSec = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (diffSec < 60) return `${diffSec}s ago`;
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+  if (diffSec < 60) {return `${diffSec}s ago`;}
+  if (diffSec < 3600) {return `${Math.floor(diffSec / 60)}m ago`;}
   return `${Math.floor(diffSec / 3600)}h ago`;
 }
 

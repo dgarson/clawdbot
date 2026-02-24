@@ -294,7 +294,7 @@ export default function AccessControlManager() {
                         
                         {(["Users", "Agents", "Sessions", "Billing", "Settings"] as ResourceGroup[]).map(group => {
                           const groupPerms = PERMISSIONS.filter(p => p.group === group && role.permissions.includes(p.id));
-                          if (groupPerms.length === 0) return null;
+                          if (groupPerms.length === 0) {return null;}
                           
                           return (
                             <div key={group} className="mb-6 last:mb-0">
@@ -355,7 +355,7 @@ export default function AccessControlManager() {
                         <td className="px-6 py-4">
                           <div className="flex flex-wrap gap-1.5">
                             {getRolesWithPermission(perm.id).map(roleName => (
-                              <RoleBadge key={roleName} role={roleName as RoleName} className="text-[10px] py-0 px-1.5" />
+                              <RoleBadge key={roleName} role={roleName} className="text-[10px] py-0 px-1.5" />
                             ))}
                           </div>
                         </td>

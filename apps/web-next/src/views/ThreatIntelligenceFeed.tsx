@@ -248,10 +248,10 @@ export default function ThreatIntelligenceFeed() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredThreats = THREATS.filter(t => {
-    if (severityFilter !== "all" && t.severity !== severityFilter) return false;
-    if (categoryFilter !== "all" && t.category !== categoryFilter) return false;
+    if (severityFilter !== "all" && t.severity !== severityFilter) {return false;}
+    if (categoryFilter !== "all" && t.category !== categoryFilter) {return false;}
     if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !t.id.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        !t.id.toLowerCase().includes(searchQuery.toLowerCase())) {return false;}
     return true;
   });
 

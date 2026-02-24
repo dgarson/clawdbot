@@ -416,13 +416,13 @@ export default function MigrationManager() {
           <div className="text-sm text-zinc-400 mb-4">Tables touched by tracked migrations</div>
           {Array.from(new Set(MIGRATIONS.flatMap(m => m.affectedTables))).map(table => {
             const tableMigrations = MIGRATIONS.filter(m => m.affectedTables.includes(table));
-            const lastApplied = tableMigrations.filter(m => m.status === "applied").sort((a, b) => (b.version > a.version ? 1 : -1))[0];
+            const lastApplied = tableMigrations.filter(m => m.status === "applied").toSorted((a, b) => (b.version > a.version ? 1 : -1))[0];
             return (
               <div key={table} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <div className="font-mono text-white text-sm">{table}</div>
-                    <div className="text-xs text-zinc-500 mt-0.5">{tableMigrations.length} migrations · last modified {lastApplied ? new Date(lastApplied.appliedAt!).toLocaleDateString() : "never"}</div>
+                    <div className="text-xs text-zinc-500 mt-0.5">{tableMigrations.length} migrations · last modified {lastApplied ? new Date(lastApplied.appliedAt).toLocaleDateString() : "never"}</div>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">

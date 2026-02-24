@@ -1,7 +1,4 @@
-import {
-  formatExecCommand,
-  validateSystemRunCommandConsistency,
-} from "../infra/system-run-command.js";
+import { resolveSystemRunCommand } from "../infra/system-run-command.js";
 import type { ExecApprovalManager, ExecApprovalRecord } from "./exec-approval-manager.js";
 import type { GatewayClient } from "./server-methods/types.js";
 
@@ -44,26 +41,15 @@ function clientHasApprovals(client: GatewayClient | null): boolean {
   return scopes.includes("operator.admin") || scopes.includes("operator.approvals");
 }
 
-function getCmdText(params: SystemRunParamsLike): string {
-  const raw = normalizeString(params.rawCommand);
-  if (raw) {
-    return raw;
-  }
-  if (Array.isArray(params.command)) {
-    const parts = params.command.map((v) => String(v));
-    if (parts.length > 0) {
-      return formatExecCommand(parts);
-    }
-  }
-  return "";
-}
-
-function approvalMatchesRequest(params: SystemRunParamsLike, record: ExecApprovalRecord): boolean {
+function approvalMatchesRequest(
+  cmdText: string,
+  params: SystemRunParamsLike,
+  record: ExecApprovalRecord,
+): boolean {
   if (record.request.host !== "node") {
     return false;
   }
 
-  const cmdText = getCmdText(params);
   if (!cmdText || record.request.command !== cmdText) {
     return false;
   }
@@ -130,25 +116,18 @@ export function sanitizeSystemRunParamsForForwarding(opts: {
   }
 
   const p = obj as SystemRunParamsLike;
-  const argv = Array.isArray(p.command) ? p.command.map((v) => String(v)) : [];
-  const raw = normalizeString(p.rawCommand);
-  if (raw) {
-    if (!Array.isArray(p.command) || argv.length === 0) {
-      return {
-        ok: false,
-        message: "rawCommand requires params.command",
-        details: { code: "MISSING_COMMAND" },
-      };
-    }
-    const validation = validateSystemRunCommandConsistency({ argv, rawCommand: raw });
-    if (!validation.ok) {
-      return {
-        ok: false,
-        message: validation.message,
-        details: validation.details ?? { code: "RAW_COMMAND_MISMATCH" },
-      };
-    }
+  const cmdTextResolution = resolveSystemRunCommand({
+    command: p.command,
+    rawCommand: p.rawCommand,
+  });
+  if (!cmdTextResolution.ok) {
+    return {
+      ok: false,
+      message: cmdTextResolution.message,
+      details: cmdTextResolution.details,
+    };
   }
+  const cmdText = cmdTextResolution.cmdText;
 
   const approved = p.approved === true;
   const requestedDecision = normalizeApprovalDecision(p.approvalDecision);
@@ -221,7 +200,7 @@ export function sanitizeSystemRunParamsForForwarding(opts: {
     };
   }
 
-  if (!approvalMatchesRequest(p, snapshot)) {
+  if (!approvalMatchesRequest(cmdText, p, snapshot)) {
     return {
       ok: false,
       message: "approval id does not match request",

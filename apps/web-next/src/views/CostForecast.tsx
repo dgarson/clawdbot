@@ -105,9 +105,9 @@ const OPTIMIZATIONS: Optimization[] = [
 const MONTHLY_BUDGET = 6200
 
 function getTierColor(total: number): string {
-  if (total < 4000) return "bg-emerald-500"
-  if (total < 5500) return "bg-yellow-500"
-  if (total < 7000) return "bg-orange-500"
+  if (total < 4000) {return "bg-emerald-500"}
+  if (total < 5500) {return "bg-yellow-500"}
+  if (total < 7000) {return "bg-orange-500"}
   return "bg-red-500"
 }
 
@@ -152,7 +152,7 @@ export default function CostForecast() {
     setVisibleCategories((prev) => {
       const next = new Set(prev)
       if (next.has(cat)) {
-        if (next.size > 1) next.delete(cat)
+        if (next.size > 1) {next.delete(cat)}
       } else {
         next.add(cat)
       }

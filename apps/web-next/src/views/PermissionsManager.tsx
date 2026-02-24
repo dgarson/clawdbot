@@ -143,12 +143,12 @@ export default function PermissionsManager() {
   }, [selectedAgentId, editBuffer]);
 
   const togglePermission = useCallback((resourceType: ResourceType, action: PermAction) => {
-    if (!isEditing) return;
+    if (!isEditing) {return;}
     
     setEditBuffer(prev => {
       const existingIdx = prev.findIndex(p => p.resourceType === resourceType);
       if (existingIdx > -1) {
-        if (prev[existingIdx].inherited) return prev; // Cannot edit inherited
+        if (prev[existingIdx].inherited) {return prev;} // Cannot edit inherited
         
         const newActions = prev[existingIdx].actions.includes(action)
           ? prev[existingIdx].actions.filter(a => a !== action)

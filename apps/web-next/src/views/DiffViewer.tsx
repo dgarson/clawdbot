@@ -37,10 +37,10 @@ interface DiffSet {
 }
 
 const langColor = (lang: string) => {
-  if (lang === "tsx" || lang === "ts")  return "text-blue-400";
-  if (lang === "json")                  return "text-amber-400";
-  if (lang === "sh" || lang === "bash") return "text-emerald-400";
-  if (lang === "md")                    return "text-purple-400";
+  if (lang === "tsx" || lang === "ts")  {return "text-blue-400";}
+  if (lang === "json")                  {return "text-amber-400";}
+  if (lang === "sh" || lang === "bash") {return "text-emerald-400";}
+  if (lang === "md")                    {return "text-purple-400";}
   return "text-zinc-400";
 };
 
@@ -181,20 +181,20 @@ export default function DiffViewer() {
   function toggleHunk(key: string) {
     setCollapsedHunks(prev => {
       const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+      if (next.has(key)) {next.delete(key);} else {next.add(key);}
       return next;
     });
   }
 
   const lineClass = (type: ChangeType) => {
-    if (type === "added")   return "bg-emerald-500/10 border-l-2 border-emerald-500";
-    if (type === "removed") return "bg-rose-500/10 border-l-2 border-rose-500";
+    if (type === "added")   {return "bg-emerald-500/10 border-l-2 border-emerald-500";}
+    if (type === "removed") {return "bg-rose-500/10 border-l-2 border-rose-500";}
     return "";
   };
 
   const linePrefix = (type: ChangeType) => {
-    if (type === "added")   return <span className="text-emerald-400 select-none mr-2">+</span>;
-    if (type === "removed") return <span className="text-rose-400 select-none mr-2">-</span>;
+    if (type === "added")   {return <span className="text-emerald-400 select-none mr-2">+</span>;}
+    if (type === "removed") {return <span className="text-rose-400 select-none mr-2">-</span>;}
     return <span className="text-zinc-600 select-none mr-2"> </span>;
   };
 

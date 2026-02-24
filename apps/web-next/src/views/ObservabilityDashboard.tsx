@@ -44,7 +44,7 @@ interface LogEntry {
   level: "ERROR" | "WARN" | "INFO" | "DEBUG";
   service: string;
   message: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
 }
 
 interface Span {

@@ -331,77 +331,77 @@ const DEFAULT_THRESHOLDS: AlertThresholdConfig[] = MOCK_INTERFACES.map((iface) =
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtBytes(bytes: number): string {
-  if (bytes >= 1073741824) return `${(bytes / 1073741824).toFixed(1)} GB/s`
-  if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} MB/s`
-  if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB/s`
+  if (bytes >= 1073741824) {return `${(bytes / 1073741824).toFixed(1)} GB/s`}
+  if (bytes >= 1048576) {return `${(bytes / 1048576).toFixed(1)} MB/s`}
+  if (bytes >= 1024) {return `${(bytes / 1024).toFixed(1)} KB/s`}
   return `${bytes} B/s`
 }
 
 function fmtMbps(mbps: number): string {
-  if (mbps >= 1000) return `${(mbps / 1000).toFixed(2)} Gbps`
+  if (mbps >= 1000) {return `${(mbps / 1000).toFixed(2)} Gbps`}
   return `${mbps.toFixed(1)} Mbps`
 }
 
 function fmtPps(pps: number): string {
-  if (pps >= 1000000) return `${(pps / 1000000).toFixed(2)} Mpps`
-  if (pps >= 1000) return `${(pps / 1000).toFixed(1)} Kpps`
+  if (pps >= 1000000) {return `${(pps / 1000000).toFixed(2)} Mpps`}
+  if (pps >= 1000) {return `${(pps / 1000).toFixed(1)} Kpps`}
   return `${pps} pps`
 }
 
 function utilizationPct(current: number, speed: number): number {
-  if (speed === 0) return 0
+  if (speed === 0) {return 0}
   return Math.min(100, Math.round((current / speed) * 100))
 }
 
 function statusColor(status: InterfaceStatus): string {
-  if (status === "up") return "bg-emerald-500"
-  if (status === "degraded") return "bg-amber-500"
+  if (status === "up") {return "bg-emerald-500"}
+  if (status === "degraded") {return "bg-amber-500"}
   return "bg-red-500"
 }
 
 function statusLabel(status: InterfaceStatus): string {
-  if (status === "up") return "UP"
-  if (status === "degraded") return "DEGRADED"
+  if (status === "up") {return "UP"}
+  if (status === "degraded") {return "DEGRADED"}
   return "DOWN"
 }
 
 function severityColor(severity: AlertSeverity): string {
-  if (severity === "critical") return "text-red-400"
-  if (severity === "warning") return "text-amber-400"
+  if (severity === "critical") {return "text-red-400"}
+  if (severity === "warning") {return "text-amber-400"}
   return "text-blue-400"
 }
 
 function severityBg(severity: AlertSeverity): string {
-  if (severity === "critical") return "bg-red-500/15 border-red-500/30"
-  if (severity === "warning") return "bg-amber-500/15 border-amber-500/30"
+  if (severity === "critical") {return "bg-red-500/15 border-red-500/30"}
+  if (severity === "warning") {return "bg-amber-500/15 border-amber-500/30"}
   return "bg-blue-500/15 border-blue-500/30"
 }
 
 function stateColor(state: AlertState): string {
-  if (state === "active") return "text-red-400"
-  if (state === "acknowledged") return "text-amber-400"
-  if (state === "silenced") return "text-zinc-400"
+  if (state === "active") {return "text-red-400"}
+  if (state === "acknowledged") {return "text-amber-400"}
+  if (state === "silenced") {return "text-zinc-400"}
   return "text-emerald-400"
 }
 
 function protocolColor(protocol: Protocol): string {
-  if (protocol === "HTTP") return "bg-blue-500"
-  if (protocol === "HTTPS") return "bg-indigo-500"
-  if (protocol === "DB") return "bg-violet-500"
-  if (protocol === "SSH") return "bg-amber-500"
+  if (protocol === "HTTP") {return "bg-blue-500"}
+  if (protocol === "HTTPS") {return "bg-indigo-500"}
+  if (protocol === "DB") {return "bg-violet-500"}
+  if (protocol === "SSH") {return "bg-amber-500"}
   return "bg-zinc-500"
 }
 
 function directionLabel(direction: Direction): string {
-  if (direction === "inbound") return "← In"
-  if (direction === "outbound") return "→ Out"
+  if (direction === "inbound") {return "← In"}
+  if (direction === "outbound") {return "→ Out"}
   return "↔ Bi"
 }
 
 function utilizationBarColor(pct: number): string {
-  if (pct >= 90) return "bg-red-500"
-  if (pct >= 75) return "bg-amber-500"
-  if (pct >= 50) return "bg-indigo-400"
+  if (pct >= 90) {return "bg-red-500"}
+  if (pct >= 75) {return "bg-amber-500"}
+  if (pct >= 50) {return "bg-indigo-400"}
   return "bg-indigo-500"
 }
 
@@ -637,7 +637,7 @@ interface TrafficFlowTabProps {
 }
 
 function TrafficFlowTab({ flows }: TrafficFlowTabProps) {
-  const sorted = [...flows].sort((a, b) => b.bytesSec - a.bytesSec)
+  const sorted = [...flows].toSorted((a, b) => b.bytesSec - a.bytesSec)
   const maxBytes = sorted[0]?.bytesSec ?? 1
 
   // Protocol totals for stacked bar
@@ -653,7 +653,7 @@ function TrafficFlowTab({ flows }: TrafficFlowTabProps) {
         <div className="flex h-8 rounded-lg overflow-hidden gap-px mb-3">
           {PROTOCOLS.map((p) => {
             const pct = (protocolTotals[p] / grandTotal) * 100
-            if (pct < 0.5) return null
+            if (pct < 0.5) {return null}
             return (
               <div
                 key={p}
@@ -753,13 +753,13 @@ function AlertsTab({ alerts: initialAlerts, thresholds: initialThresholds, inter
   function handleAction(id: string, action: "acknowledge" | "silence" | "resolve") {
     setAlerts((prev) =>
       prev.map((a) => {
-        if (a.id !== id) return a
+        if (a.id !== id) {return a}
         const stateMap: Record<string, AlertState> = {
           acknowledge: "acknowledged",
           silence: "silenced",
           resolve: "resolved",
         }
-        return { ...a, state: stateMap[action] as AlertState }
+        return { ...a, state: stateMap[action] }
       })
     )
   }
@@ -882,7 +882,7 @@ function AlertsTab({ alerts: initialAlerts, thresholds: initialThresholds, inter
         <div className="divide-y divide-zinc-800/50">
           {interfaces.map((iface) => {
             const cfg = thresholds.find((t) => t.interfaceId === iface.id)
-            if (!cfg) return null
+            if (!cfg) {return null}
             const isOpen = editingIfaceId === iface.id
             return (
               <div key={iface.id}>
@@ -951,8 +951,8 @@ interface CapacityTabProps {
 function CapacityTab({ interfaces }: CapacityTabProps) {
   const [sortKey, setSortKey] = useState<"name" | "utilization" | "saturation">("utilization")
 
-  const sorted = [...interfaces].sort((a, b) => {
-    if (sortKey === "name") return a.name.localeCompare(b.name)
+  const sorted = [...interfaces].toSorted((a, b) => {
+    if (sortKey === "name") {return a.name.localeCompare(b.name)}
     if (sortKey === "utilization") {
       const au = utilizationPct(a.inboundMbps + a.outboundMbps, a.speedMbps * 2 || 1)
       const bu = utilizationPct(b.inboundMbps + b.outboundMbps, b.speedMbps * 2 || 1)

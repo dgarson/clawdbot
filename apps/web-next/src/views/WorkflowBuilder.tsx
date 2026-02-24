@@ -299,7 +299,7 @@ export default function WorkflowBuilder() {
                   {wf.nodes.map((node) =>
                     node.nextIds.map((nextId) => {
                       const target = wf.nodes.find((n) => n.id === nextId);
-                      if (!target) return null;
+                      if (!target) {return null;}
                       const x1 = node.x;
                       const y1 = node.y;
                       const x2 = target.x;

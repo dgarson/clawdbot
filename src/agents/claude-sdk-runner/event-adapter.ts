@@ -70,6 +70,7 @@ type SdkResultErrorMessage = {
   subtype: string;
   is_error?: boolean;
   errors?: unknown[];
+  result?: unknown;
 };
 
 // ---------------------------------------------------------------------------
@@ -213,10 +214,7 @@ export function translateSdkMessageToEvents(
     const resultMsg = message as SdkResultErrorMessage;
     // Detect error results: SDK sets subtype to "error_*" or is_error: true.
     if (resultMsg.subtype?.startsWith("error_") || resultMsg.is_error) {
-      const firstErrorMsg =
-        Array.isArray(resultMsg.errors) && resultMsg.errors.length > 0
-          ? String(resultMsg.errors[0])
-          : (resultMsg.subtype ?? "SDK execution error");
+      const firstErrorMsg = extractSdkResultErrorMessage(resultMsg);
       // Store error message so prompt() throws after the for-await loop.
       // This prevents SDK failures from resolving successfully.
       state.sdkResultError = firstErrorMsg;
@@ -233,6 +231,37 @@ export function translateSdkMessageToEvents(
   }
 
   // Unknown message types are ignored
+}
+
+function extractSdkResultErrorMessage(resultMsg: SdkResultErrorMessage): string {
+  if (Array.isArray(resultMsg.errors) && resultMsg.errors.length > 0) {
+    const first = resultMsg.errors[0];
+    if (typeof first === "string" && first.trim().length > 0) {
+      return first.trim();
+    }
+    if (first && typeof first === "object") {
+      const nestedMessage = (first as { message?: unknown }).message;
+      if (typeof nestedMessage === "string" && nestedMessage.trim().length > 0) {
+        return nestedMessage.trim();
+      }
+    }
+    return String(first);
+  }
+
+  if (typeof resultMsg.result === "string" && resultMsg.result.trim().length > 0) {
+    return resultMsg.result.trim();
+  }
+  if (resultMsg.result && typeof resultMsg.result === "object") {
+    const nestedMessage = (resultMsg.result as { message?: unknown }).message;
+    if (typeof nestedMessage === "string" && nestedMessage.trim().length > 0) {
+      return nestedMessage.trim();
+    }
+  }
+
+  if (typeof resultMsg.subtype === "string" && resultMsg.subtype.startsWith("error_")) {
+    return resultMsg.subtype;
+  }
+  return "SDK execution error";
 }
 
 // ---------------------------------------------------------------------------

@@ -50,7 +50,7 @@ export default function AgentSoulEditor({ agentName = 'Horizon', agentEmoji = 'ğ
       return next;
     });
 
-    if (timerRef.current) clearTimeout(timerRef.current);
+    if (timerRef.current) {clearTimeout(timerRef.current);}
     
     timerRef.current = setTimeout(() => {
       handleSave();

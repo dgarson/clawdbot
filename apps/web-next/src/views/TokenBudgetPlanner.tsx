@@ -52,7 +52,7 @@ const SCENARIOS: { key: ScenarioKey; label: string }[] = [
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function applyScenario(agents: AgentData[], scenario: ScenarioKey): AgentData[] {
-  if (scenario === "current") return agents;
+  if (scenario === "current") {return agents;}
 
   if (scenario === "conservative") {
     return agents.map((a) => ({
@@ -62,7 +62,7 @@ function applyScenario(agents: AgentData[], scenario: ScenarioKey): AgentData[] 
   }
 
   // Growth: top 3 by usage get 50% budget increase
-  const sorted = [...agents].sort((a, b) => b.used - a.used);
+  const sorted = [...agents].toSorted((a, b) => b.used - a.used);
   const topThreeNames = new Set(sorted.slice(0, 3).map((a) => a.name));
   return agents.map((a) => ({
     ...a,
@@ -73,8 +73,8 @@ function applyScenario(agents: AgentData[], scenario: ScenarioKey): AgentData[] 
 }
 
 function fmtTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`;}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(0)}K`;}
   return n.toString();
 }
 
@@ -83,14 +83,14 @@ function fmtDollars(n: number): string {
 }
 
 function usageColor(ratio: number): string {
-  if (ratio >= 1) return "bg-rose-500";
-  if (ratio >= 0.8) return "bg-amber-500";
+  if (ratio >= 1) {return "bg-rose-500";}
+  if (ratio >= 0.8) {return "bg-amber-500";}
   return "bg-emerald-500";
 }
 
 function deltaColor(delta: number): string {
-  if (delta > 0) return "text-rose-400";
-  if (delta < 0) return "text-emerald-400";
+  if (delta > 0) {return "text-rose-400";}
+  if (delta < 0) {return "text-emerald-400";}
   return "text-zinc-500";
 }
 

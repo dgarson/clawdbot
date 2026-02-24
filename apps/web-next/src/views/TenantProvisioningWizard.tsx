@@ -129,21 +129,21 @@ const STEP_ORDER: WizardStep[] = ["plan", "identity", "resources", "integrations
 function stepIndex(s: WizardStep) { return STEP_ORDER.indexOf(s); }
 
 function planBadge(p: PlanTier) {
-  if (p === "enterprise") return "border-indigo-500 ring-2 ring-indigo-500/30";
-  if (p === "growth") return "border-amber-500 ring-2 ring-amber-500/20";
+  if (p === "enterprise") {return "border-indigo-500 ring-2 ring-indigo-500/30";}
+  if (p === "growth") {return "border-amber-500 ring-2 ring-amber-500/20";}
   return "border-zinc-700";
 }
 
 function provisionStatusIcon(s: ProvisionStatus) {
-  if (s === "complete") return "✓";
-  if (s === "provisioning") return "⟳";
-  if (s === "failed") return "✗";
+  if (s === "complete") {return "✓";}
+  if (s === "provisioning") {return "⟳";}
+  if (s === "failed") {return "✗";}
   return "○";
 }
 function provisionStatusColor(s: ProvisionStatus) {
-  if (s === "complete") return "text-emerald-400";
-  if (s === "provisioning") return "text-indigo-400 animate-pulse";
-  if (s === "failed") return "text-rose-400";
+  if (s === "complete") {return "text-emerald-400";}
+  if (s === "provisioning") {return "text-indigo-400 animate-pulse";}
+  if (s === "failed") {return "text-rose-400";}
   return "text-zinc-600";
 }
 
@@ -167,19 +167,19 @@ export default function TenantProvisioningWizard() {
 
   const currentIdx = stepIndex(currentStep);
   const canProceed = (step: WizardStep) => {
-    if (step === "plan") return selectedPlan !== null;
-    if (step === "identity") return identity.adminEmail.length > 0 && identity.orgName.length > 0 && identity.slug.length > 0;
+    if (step === "plan") {return selectedPlan !== null;}
+    if (step === "identity") {return identity.adminEmail.length > 0 && identity.orgName.length > 0 && identity.slug.length > 0;}
     return true;
   };
 
   function goNext() {
     const next = STEP_ORDER[currentIdx + 1];
-    if (next) setCurrentStep(next);
-    if (next === "complete") setIsProvisioning(true);
+    if (next) {setCurrentStep(next);}
+    if (next === "complete") {setIsProvisioning(true);}
   }
   function goBack() {
     const prev = STEP_ORDER[currentIdx - 1];
-    if (prev) setCurrentStep(prev);
+    if (prev) {setCurrentStep(prev);}
   }
 
   function toggleIntegration(key: IntegrationKey) {

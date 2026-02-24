@@ -110,8 +110,8 @@ const directionBadge: Record<Direction, string> = {
 };
 
 function formatHits(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  if (n >= 1_000_000) {return `${(n / 1_000_000).toFixed(1)}M`;}
+  if (n >= 1_000) {return `${(n / 1_000).toFixed(1)}K`;}
   return String(n);
 }
 
@@ -124,7 +124,7 @@ export default function NetworkFirewallRuleManager() {
   const filteredRules = RULES.filter(r =>
     (dirFilter === "all" || r.direction === dirFilter) &&
     (actionFilter === "all" || r.action === actionFilter)
-  ).sort((a, b) => a.priority - b.priority);
+  ).toSorted((a, b) => a.priority - b.priority);
 
   const inboundRules = RULES.filter(r => r.direction === "inbound");
   const outboundRules = RULES.filter(r => r.direction === "outbound");

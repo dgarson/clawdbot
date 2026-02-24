@@ -729,41 +729,41 @@ function timeAgo(iso: string): string {
   const then = new Date(iso);
   const diffMs = now.getTime() - then.getTime();
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 1) {return "just now";}
+  if (diffMin < 60) {return `${diffMin}m ago`;}
   const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `${diffH}h ago`;
+  if (diffH < 24) {return `${diffH}h ago`;}
   const diffD = Math.floor(diffH / 24);
   return `${diffD}d ago`;
 }
 
 function severityTextColor(severity: Severity): string {
-  if (severity === "critical") return "text-rose-400";
-  if (severity === "warning") return "text-amber-400";
+  if (severity === "critical") {return "text-rose-400";}
+  if (severity === "warning") {return "text-amber-400";}
   return "text-indigo-400";
 }
 
 function severityBgBorder(severity: Severity): string {
-  if (severity === "critical") return "bg-rose-400/10 border-rose-400/30";
-  if (severity === "warning") return "bg-amber-400/10 border-amber-400/30";
+  if (severity === "critical") {return "bg-rose-400/10 border-rose-400/30";}
+  if (severity === "warning") {return "bg-amber-400/10 border-amber-400/30";}
   return "bg-indigo-400/10 border-indigo-400/30";
 }
 
 function severityDotColor(severity: Severity): string {
-  if (severity === "critical") return "bg-rose-400";
-  if (severity === "warning") return "bg-amber-400";
+  if (severity === "critical") {return "bg-rose-400";}
+  if (severity === "warning") {return "bg-amber-400";}
   return "bg-indigo-400";
 }
 
 function envBadgeStyle(env: Environment): string {
-  if (env === "dev") return "bg-sky-500/20 text-sky-300 border-sky-500/30";
-  if (env === "staging") return "bg-amber-500/20 text-amber-300 border-amber-500/30";
+  if (env === "dev") {return "bg-sky-500/20 text-sky-300 border-sky-500/30";}
+  if (env === "staging") {return "bg-amber-500/20 text-amber-300 border-amber-500/30";}
   return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
 }
 
 function envLabel(env: Environment): string {
-  if (env === "dev") return "Dev";
-  if (env === "staging") return "Staging";
+  if (env === "dev") {return "Dev";}
+  if (env === "staging") {return "Staging";}
   return "Prod";
 }
 
@@ -783,10 +783,10 @@ function categoryLabel(cat: Category | "all"): string {
 }
 
 function actionTextColor(action: HistoryAction): string {
-  if (action === "changed") return "text-amber-400";
-  if (action === "resolved") return "text-emerald-400";
-  if (action === "added") return "text-indigo-400";
-  if (action === "removed") return "text-rose-400";
+  if (action === "changed") {return "text-amber-400";}
+  if (action === "resolved") {return "text-emerald-400";}
+  if (action === "added") {return "text-indigo-400";}
+  if (action === "removed") {return "text-rose-400";}
   return "text-zinc-400";
 }
 
@@ -1007,7 +1007,7 @@ function CategoryBarChart({ entries }: CategoryBarChartProps) {
       total: entries.filter((e) => e.category === cat).length,
     }))
     .filter((r) => r.total > 0)
-    .sort((a, b) => b.drifted - a.drifted);
+    .toSorted((a, b) => b.drifted - a.drifted);
 
   const maxDrifted = Math.max(...rows.map((r) => r.drifted), 1);
 
@@ -1278,7 +1278,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
     .filter((e) => filterStatus === "all" || e.status === filterStatus)
     .filter((e) => filterCategory === "all" || e.category === filterCategory)
     .filter((e) => {
-      if (!searchQuery.trim()) return true;
+      if (!searchQuery.trim()) {return true;}
       const q = searchQuery.toLowerCase();
       return (
         e.key.toLowerCase().includes(q) ||
@@ -1286,7 +1286,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
         e.lastChangedBy.toLowerCase().includes(q)
       );
     })
-    .sort((a, b) => {
+    .toSorted((a, b) => {
       if (sortBy === "severity") {
         const order: Record<Severity, number> = { critical: 0, warning: 1, info: 2 };
         return order[a.severity] - order[b.severity];
@@ -1353,7 +1353,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                     filterSeverity === s
                       ? s === "all"
                         ? "bg-zinc-700 border-zinc-600 text-white"
-                        : cn(severityBgBorder(s as Severity), severityTextColor(s as Severity))
+                        : cn(severityBgBorder(s), severityTextColor(s))
                       : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-zinc-300"
                   )}
                 >
@@ -1669,7 +1669,7 @@ function HistoryTab({ events }: HistoryTabProps) {
     .filter((e) => filterSeverity === "all" || e.severity === filterSeverity)
     .filter((e) => filterAction === "all" || e.action === filterAction)
     .filter((e) => {
-      if (!searchActor.trim()) return true;
+      if (!searchActor.trim()) {return true;}
       const q = searchActor.toLowerCase();
       return (
         e.actor.toLowerCase().includes(q) ||
@@ -1731,11 +1731,11 @@ function HistoryTab({ events }: HistoryTabProps) {
                     filterEnv === env
                       ? env === "all"
                         ? "bg-zinc-700 border-zinc-600 text-white"
-                        : envBadgeStyle(env as Environment)
+                        : envBadgeStyle(env)
                       : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-zinc-300"
                   )}
                 >
-                  {env === "all" ? "All" : envLabel(env as Environment)}
+                  {env === "all" ? "All" : envLabel(env)}
                 </button>
               ))}
             </div>
@@ -2197,7 +2197,7 @@ export default function EnvironmentDriftDetector() {
   };
 
   const handleRefresh = () => {
-    if (isRefreshing) return;
+    if (isRefreshing) {return;}
     setIsRefreshing(true);
     setTimeout(() => {
       setLastRefreshed(new Date().toISOString());

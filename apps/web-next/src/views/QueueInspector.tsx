@@ -459,19 +459,19 @@ const METRICS: MetricPoint[] = [
 // ─── Utility Helpers ──────────────────────────────────────────────────────────
 
 function formatDepth(n: number): string {
-  if (n >= 1000) return (n / 1000).toFixed(1) + "k";
+  if (n >= 1000) {return (n / 1000).toFixed(1) + "k";}
   return String(n);
 }
 
 function formatSeconds(s: number): string {
-  if (s >= 86400) return Math.floor(s / 86400) + "d";
-  if (s >= 3600)  return Math.floor(s / 3600)  + "h";
-  if (s >= 60)    return Math.floor(s / 60)    + "m";
+  if (s >= 86400) {return Math.floor(s / 86400) + "d";}
+  if (s >= 3600)  {return Math.floor(s / 3600)  + "h";}
+  if (s >= 60)    {return Math.floor(s / 60)    + "m";}
   return s + "s";
 }
 
 function truncate(str: string, max: number): string {
-  if (str.length <= max) return str;
+  if (str.length <= max) {return str;}
   return str.slice(0, max) + "…";
 }
 
@@ -1152,9 +1152,9 @@ function MetricsTab() {
             const parts = q.oldestMessageAge.split(" ");
             let minutes = 0;
             parts.forEach((p) => {
-              if (p.endsWith("m")) minutes += parseInt(p, 10);
-              else if (p.endsWith("s")) minutes += parseInt(p, 10) / 60;
-              else if (p.endsWith("h")) minutes += parseInt(p, 10) * 60;
+              if (p.endsWith("m")) {minutes += parseInt(p, 10);}
+              else if (p.endsWith("s")) {minutes += parseInt(p, 10) / 60;}
+              else if (p.endsWith("h")) {minutes += parseInt(p, 10) * 60;}
             });
             return (
               <AgeGauge key={q.id} label={q.name} value={Math.round(minutes)} max={maxOldestMin} />

@@ -22,7 +22,7 @@ type SlackTargetParseOptions = MessagingTargetParseOptions;
  * (e.g. "general", "dev-team") do not match this pattern and are left untouched.
  */
 function normalizeSlackId(id: string): string {
-  return /^[CUWGD][A-Z0-9]{8,}$/i.test(id) ? id.toUpperCase() : id;
+  return /^[CUWGD][A-Z0-9]*[0-9][A-Z0-9]*$/i.test(id) ? id.toUpperCase() : id;
 }
 
 export function parseSlackTarget(
@@ -65,7 +65,7 @@ export function parseSlackTarget(
     const candidate = trimmed.slice(1).trim();
     const id = ensureTargetId({
       candidate,
-      pattern: /^[A-Z0-9]+$/i,
+      pattern: /^[A-Z0-9_-]+$/i,
       errorMessage: "Slack channels require a channel id (use channel:<id>)",
     });
     return buildMessagingTarget("channel", normalizeSlackId(id), trimmed);
@@ -78,5 +78,7 @@ export function parseSlackTarget(
 
 export function resolveSlackChannelId(raw: string): string {
   const target = parseSlackTarget(raw, { defaultKind: "channel" });
-  return requireTargetKind({ platform: "Slack", target, kind: "channel" });
+  const id = requireTargetKind({ platform: "Slack", target, kind: "channel" });
+  // Uppercase if it looks like a Slack channel ID (e.g. c123 → C123).
+  return normalizeSlackId(id);
 }

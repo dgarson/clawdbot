@@ -115,7 +115,7 @@ export function useGateway(): UseGatewayReturn {
       const ws = new WebSocket(GATEWAY_URL);
       wsRef.current = ws;
 
-      ws.onopen = () => {
+      ws.addEventListener('open', () => {
         console.log('[Gateway] WebSocket connected, waiting for hello...');
         // Wait for hello handshake
         setTimeout(() => {
@@ -124,17 +124,17 @@ export function useGateway(): UseGatewayReturn {
             setConnectionState('connected');
           }
         }, HELLO_TIMEOUT);
-      };
+      });
 
-      ws.onmessage = handleMessage;
+      ws.addEventListener('message', handleMessage);
 
-      ws.onerror = () => {
+      ws.addEventListener('error', () => {
         console.error('[Gateway] WebSocket error');
         setLastError('Connection error');
         setConnectionState('error');
-      };
+      });
 
-      ws.onclose = () => {
+      ws.addEventListener('close', () => {
         console.log('[Gateway] WebSocket closed');
         wsRef.current = null;
 
@@ -151,7 +151,7 @@ export function useGateway(): UseGatewayReturn {
           console.log(`[Gateway] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`);
           reconnectTimeoutRef.current = setTimeout(connect, delay);
         }
-      };
+      });
     } catch (err) {
       console.error('[Gateway] Failed to create WebSocket:', err);
       setLastError(err instanceof Error ? err.message : 'Connection failed');

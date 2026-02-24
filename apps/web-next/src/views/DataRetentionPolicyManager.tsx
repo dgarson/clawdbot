@@ -237,9 +237,9 @@ const STORAGE_TREND: StorageTrend[] = [
 ];
 
 function scopeBg(s: PolicyScope) {
-  if (s === "global") return "bg-purple-500/10 text-purple-400";
-  if (s === "region") return "bg-cyan-500/10 text-cyan-400";
-  if (s === "tenant") return "bg-indigo-500/10 text-indigo-400";
+  if (s === "global") {return "bg-purple-500/10 text-purple-400";}
+  if (s === "region") {return "bg-cyan-500/10 text-cyan-400";}
+  if (s === "tenant") {return "bg-indigo-500/10 text-indigo-400";}
   return "bg-zinc-700 text-zinc-300";
 }
 function categoryBg(c: DataCategory) {
@@ -255,32 +255,32 @@ function categoryBg(c: DataCategory) {
   return m[c];
 }
 function statusBg(s: PolicyStatus) {
-  if (s === "active") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "draft") return "bg-amber-400/10 text-amber-400";
+  if (s === "active") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "draft") {return "bg-amber-400/10 text-amber-400";}
   return "bg-zinc-700 text-zinc-400";
 }
 function jobStatusBg(s: JobStatus) {
-  if (s === "running") return "bg-indigo-400/10 text-indigo-400 animate-pulse";
-  if (s === "completed") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "failed") return "bg-rose-400/10 text-rose-400";
-  if (s === "scheduled") return "bg-cyan-400/10 text-cyan-400";
+  if (s === "running") {return "bg-indigo-400/10 text-indigo-400 animate-pulse";}
+  if (s === "completed") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "failed") {return "bg-rose-400/10 text-rose-400";}
+  if (s === "scheduled") {return "bg-cyan-400/10 text-cyan-400";}
   return "bg-zinc-700 text-zinc-400";
 }
 function methodBg(m: DeletionMethod) {
-  if (m === "hard-delete") return "bg-rose-500/10 text-rose-400";
-  if (m === "soft-delete") return "bg-amber-500/10 text-amber-400";
-  if (m === "anonymize") return "bg-indigo-500/10 text-indigo-400";
+  if (m === "hard-delete") {return "bg-rose-500/10 text-rose-400";}
+  if (m === "soft-delete") {return "bg-amber-500/10 text-amber-400";}
+  if (m === "anonymize") {return "bg-indigo-500/10 text-indigo-400";}
   return "bg-zinc-700 text-zinc-300";
 }
 function fmtBytes(kb: number) {
-  if (kb >= 1_000_000) return (kb / 1_000_000).toFixed(1) + " TB";
-  if (kb >= 1_000) return (kb / 1_000).toFixed(1) + " GB";
+  if (kb >= 1_000_000) {return (kb / 1_000_000).toFixed(1) + " TB";}
+  if (kb >= 1_000) {return (kb / 1_000).toFixed(1) + " GB";}
   return kb.toFixed(0) + " MB";
 }
 function fmtCount(n: number) {
-  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + "B";
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+  if (n >= 1_000_000_000) {return (n / 1_000_000_000).toFixed(1) + "B";}
+  if (n >= 1_000_000) {return (n / 1_000_000).toFixed(1) + "M";}
+  if (n >= 1_000) {return (n / 1_000).toFixed(1) + "K";}
   return String(n);
 }
 
@@ -292,9 +292,9 @@ export default function DataRetentionPolicyManager() {
   const [selected, setSelected] = useState<RetentionPolicy | null>(null);
 
   const filtered = POLICIES.filter(p => {
-    if (categoryFilter !== "all" && p.dataCategory !== categoryFilter) return false;
-    if (statusFilter !== "all" && p.status !== statusFilter) return false;
-    if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (categoryFilter !== "all" && p.dataCategory !== categoryFilter) {return false;}
+    if (statusFilter !== "all" && p.status !== statusFilter) {return false;}
+    if (search && !p.name.toLowerCase().includes(search.toLowerCase())) {return false;}
     return true;
   });
 
@@ -618,7 +618,7 @@ export default function DataRetentionPolicyManager() {
             <div className="bg-zinc-900 rounded-xl p-5">
               <h3 className="text-sm font-medium text-zinc-300 mb-4">Storage by Policy</h3>
               <div className="space-y-3">
-                {POLICIES.sort((a, b) => b.dataSize - a.dataSize).map(p => {
+                {POLICIES.toSorted((a, b) => b.dataSize - a.dataSize).map(p => {
                   const maxSize = Math.max(...POLICIES.map(x => x.dataSize));
                   return (
                     <div key={p.id} className="flex items-center gap-3">

@@ -169,8 +169,8 @@ function computeDiff(left: string, right: string): DiffLine[] {
       let foundInRight = -1;
       let foundInLeft = -1;
       for (let k = 1; k <= lookahead && foundInRight === -1 && foundInLeft === -1; k++) {
-        if (r + k < rightLines.length && leftLines[l] === rightLines[r + k]) foundInRight = k;
-        if (l + k < leftLines.length && leftLines[l + k] === rightLines[r]) foundInLeft = k;
+        if (r + k < rightLines.length && leftLines[l] === rightLines[r + k]) {foundInRight = k;}
+        if (l + k < leftLines.length && leftLines[l + k] === rightLines[r]) {foundInLeft = k;}
       }
       if (foundInRight !== -1 && (foundInLeft === -1 || foundInRight <= foundInLeft)) {
         for (let k = 0; k < foundInRight; k++) {

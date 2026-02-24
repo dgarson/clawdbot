@@ -353,34 +353,34 @@ function formatTimestamp(seconds: number): string {
 }
 
 function getIntensityColor(intensity: number): string {
-  if (intensity >= 0.8) return "bg-rose-500";
-  if (intensity >= 0.6) return "bg-orange-500";
-  if (intensity >= 0.4) return "bg-amber-400";
-  if (intensity >= 0.2) return "bg-yellow-300";
+  if (intensity >= 0.8) {return "bg-rose-500";}
+  if (intensity >= 0.6) {return "bg-orange-500";}
+  if (intensity >= 0.4) {return "bg-amber-400";}
+  if (intensity >= 0.2) {return "bg-yellow-300";}
   return "bg-blue-300";
 }
 
 function getEventBadgeClass(type: EventType): string {
-  if (type === "click") return "bg-indigo-500/20 text-indigo-400";
-  if (type === "navigation") return "bg-emerald-500/20 text-emerald-400";
-  if (type === "error") return "bg-rose-500/20 text-rose-400";
-  if (type === "rage_click") return "bg-amber-400/20 text-amber-400";
+  if (type === "click") {return "bg-indigo-500/20 text-indigo-400";}
+  if (type === "navigation") {return "bg-emerald-500/20 text-emerald-400";}
+  if (type === "error") {return "bg-rose-500/20 text-rose-400";}
+  if (type === "rage_click") {return "bg-amber-400/20 text-amber-400";}
   return "bg-zinc-700 text-zinc-400";
 }
 
 function getEventDotClass(type: EventType): string {
-  if (type === "click") return "bg-indigo-500";
-  if (type === "navigation") return "bg-emerald-500";
-  if (type === "error") return "bg-rose-500";
-  if (type === "rage_click") return "bg-amber-400";
+  if (type === "click") {return "bg-indigo-500";}
+  if (type === "navigation") {return "bg-emerald-500";}
+  if (type === "error") {return "bg-rose-500";}
+  if (type === "rage_click") {return "bg-amber-400";}
   return "bg-zinc-500";
 }
 
 function getEventLabel(type: EventType): string {
-  if (type === "click") return "Click";
-  if (type === "navigation") return "Nav";
-  if (type === "error") return "Error";
-  if (type === "rage_click") return "Rage";
+  if (type === "click") {return "Click";}
+  if (type === "navigation") {return "Nav";}
+  if (type === "error") {return "Error";}
+  if (type === "rage_click") {return "Rage";}
   return "Event";
 }
 
@@ -393,7 +393,7 @@ function SessionsTab(): React.ReactElement {
   const [speed, setSpeed] = useState<number>(1);
 
   const selected: Session =
-    SESSIONS.find((s) => s.id === selectedId) ?? (SESSIONS[0] as Session);
+    SESSIONS.find((s) => s.id === selectedId) ?? (SESSIONS[0]);
 
   const scrubPercent = (playbackTime / selected.duration) * 100;
 

@@ -253,16 +253,16 @@ const triggerIcon: Record<TriggerType, string> = {
 }
 
 function fmtDuration(mins?: number): string {
-  if (mins == null) return "—"
-  if (mins < 1) return "<1m"
-  if (mins < 60) return `${mins}m`
+  if (mins == null) {return "—"}
+  if (mins < 1) {return "<1m"}
+  if (mins < 60) {return `${mins}m`}
   const h = Math.floor(mins / 60)
   const m = mins % 60
   return m > 0 ? `${h}h ${m}m` : `${h}h`
 }
 
 function fmtTime(iso?: string): string {
-  if (!iso) return "—"
+  if (!iso) {return "—"}
   const d = new Date(iso)
   return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
 }
@@ -300,8 +300,8 @@ export default function WorkflowOrchestrator() {
   ]
 
   const filteredWorkflows = WORKFLOWS.filter(w => {
-    if (statusFilter !== "all" && w.status !== statusFilter) return false
-    if (triggerFilter !== "all" && w.trigger !== triggerFilter) return false
+    if (statusFilter !== "all" && w.status !== statusFilter) {return false}
+    if (triggerFilter !== "all" && w.trigger !== triggerFilter) {return false}
     return true
   })
 

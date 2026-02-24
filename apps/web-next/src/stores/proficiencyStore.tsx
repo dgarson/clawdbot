@@ -111,7 +111,7 @@ const DEFAULT_STATE: ProficiencyState = {
 function loadState(): ProficiencyState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_STATE;
+    if (!raw) {return DEFAULT_STATE;}
     return { ...DEFAULT_STATE, ...JSON.parse(raw) };
   } catch {
     return DEFAULT_STATE;
@@ -162,7 +162,7 @@ function reducer(state: ProficiencyState, action: ProficiencyAction): Proficienc
     }
 
     case "VISIT_VIEW": {
-      if (state.viewsVisited.includes(action.viewId)) return state;
+      if (state.viewsVisited.includes(action.viewId)) {return state;}
       const viewsVisited = [...state.viewsVisited, action.viewId];
       // Visiting views counts as interactions
       const newCount = state.interactionCount + 2; // views worth 2 each

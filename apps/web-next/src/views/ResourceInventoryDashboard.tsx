@@ -343,7 +343,7 @@ export default function ResourceInventoryDashboard() {
             <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 mb-4">
               <div className="text-sm font-medium text-zinc-300 mb-4">Cost by Resource Type</div>
               <div className="space-y-3">
-                {COST_BREAKDOWN.sort((a, b) => b.cost - a.cost).map(cb => (
+                {COST_BREAKDOWN.toSorted((a, b) => b.cost - a.cost).map(cb => (
                   <div key={cb.category}>
                     <div className="flex items-center justify-between text-xs mb-1">
                       <div className="flex items-center gap-2">
@@ -373,7 +373,7 @@ export default function ResourceInventoryDashboard() {
             <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
               <div className="text-sm font-medium text-zinc-300 mb-3">Top Cost Resources</div>
               <div className="space-y-2">
-                {RESOURCES.filter(r => r.costPerMonth > 0).sort((a, b) => b.costPerMonth - a.costPerMonth).slice(0, 6).map((r, i) => (
+                {RESOURCES.filter(r => r.costPerMonth > 0).toSorted((a, b) => b.costPerMonth - a.costPerMonth).slice(0, 6).map((r, i) => (
                   <div key={r.id} className="flex items-center gap-3 text-xs">
                     <span className="text-zinc-600 w-4">{i + 1}.</span>
                     <span>{typeIcon[r.type]}</span>

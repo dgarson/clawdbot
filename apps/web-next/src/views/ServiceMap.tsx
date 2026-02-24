@@ -96,7 +96,7 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
 ];
 
 function fmtMs(ms: number): string {
-  if (ms >= 1000) return `${(ms / 1000).toFixed(1)}s`;
+  if (ms >= 1000) {return `${(ms / 1000).toFixed(1)}s`;}
   return `${ms}ms`;
 }
 
@@ -105,13 +105,13 @@ function fmtRate(rate: number): string {
 }
 
 function fmtRps(rps: number): string {
-  if (rps >= 1000) return `${(rps / 1000).toFixed(1)}k`;
+  if (rps >= 1000) {return `${(rps / 1000).toFixed(1)}k`;}
   return String(rps);
 }
 
 function fmtHostPort(host: string, port: number): string {
-  if (port === 0) return `${host} (embedded)`;
-  if (host.includes(".")) return host;
+  if (port === 0) {return `${host} (embedded)`;}
+  if (host.includes(".")) {return host;}
   return `${host}:${port}`;
 }
 
@@ -119,7 +119,7 @@ function fmtHostPort(host: string, port: number): string {
 function globalMaxLatency(services: readonly Service[]): number {
   let max = 1;
   for (const s of services) {
-    if (s.metrics.p99 > max) max = s.metrics.p99;
+    if (s.metrics.p99 > max) {max = s.metrics.p99;}
   }
   return max;
 }
@@ -642,8 +642,8 @@ export default function ServiceMap() {
   const maxMs = globalMaxLatency(SERVICES);
 
   const filtered = SERVICES.filter((s) => {
-    if (statusFilter !== "all" && s.status !== statusFilter) return false;
-    if (kindFilter !== "all" && s.kind !== kindFilter) return false;
+    if (statusFilter !== "all" && s.status !== statusFilter) {return false;}
+    if (kindFilter !== "all" && s.kind !== kindFilter) {return false;}
     return true;
   });
 
@@ -659,7 +659,7 @@ export default function ServiceMap() {
   };
 
   // Unique kinds actually present in data
-  const presentKinds = Array.from(new Set(SERVICES.map((s) => s.kind))).sort(
+  const presentKinds = Array.from(new Set(SERVICES.map((s) => s.kind))).toSorted(
     (a, b) => ALL_KINDS.indexOf(a) - ALL_KINDS.indexOf(b)
   );
 

@@ -231,6 +231,21 @@ export const VoiceCallStreamingConfigSchema = z
   });
 export type VoiceCallStreamingConfig = z.infer<typeof VoiceCallStreamingConfigSchema>;
 
+export const VoiceCallSubagentConfigSchema = z
+  .object({
+    /** Enable async sub-agent delegation for inbound responses */
+    enabled: z.boolean().default(false),
+    /** Maximum concurrent sub-agent jobs per process */
+    maxConcurrency: z.number().int().positive().max(8).default(2),
+    /** Maximum concurrent sub-agent jobs per individual call */
+    maxPerCall: z.number().int().positive().max(8).default(2),
+    /** Default sub-agent deadline in milliseconds */
+    defaultDeadlineMs: z.number().int().positive().default(15000),
+  })
+  .strict()
+  .default({ enabled: false, maxConcurrency: 2, maxPerCall: 2, defaultDeadlineMs: 15000 });
+export type VoiceCallSubagentConfig = z.infer<typeof VoiceCallSubagentConfigSchema>;
+
 // -----------------------------------------------------------------------------
 // Main Voice Call Configuration
 // -----------------------------------------------------------------------------
@@ -311,6 +326,9 @@ export const VoiceCallConfigSchema = z
     /** Public webhook URL override (if set, bypasses tunnel auto-detection) */
     publicUrl: z.string().url().optional(),
 
+    /** Async sub-agent delegation configuration */
+    subagents: VoiceCallSubagentConfigSchema.optional(),
+
     /** Skip webhook signature verification (development only, NOT for production) */
     skipSignatureVerification: z.boolean().default(false),
 
@@ -322,6 +340,12 @@ export const VoiceCallConfigSchema = z
 
     /** Store path for call logs */
     store: z.string().optional(),
+
+    /** Agent id used for foreground voice responses (runtime, workspace, identity). */
+    responseAgentId: z.string().min(1).default("main"),
+
+    /** Optional agent id override for async sub-agent work (defaults to responseAgentId). */
+    asyncAgentId: z.string().min(1).optional(),
 
     /** Model for generating voice responses (e.g., "anthropic/claude-sonnet-4", "openai/gpt-4o") */
     responseModel: z.string().default("openai/gpt-4o-mini"),

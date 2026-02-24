@@ -183,27 +183,27 @@ const EXCEPTIONS: ExceptionRequest[] = [
 ];
 
 function statusBadge(s: PolicyStatus) {
-  if (s === "active") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "draft") return "bg-amber-400/10 text-amber-400";
-  if (s === "archived") return "bg-zinc-600 text-zinc-400";
+  if (s === "active") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "draft") {return "bg-amber-400/10 text-amber-400";}
+  if (s === "archived") {return "bg-zinc-600 text-zinc-400";}
   return "bg-indigo-400/10 text-indigo-400";
 }
 function riskBadge(r: RiskLevel) {
-  if (r === "critical") return "bg-rose-500/10 text-rose-400";
-  if (r === "high") return "bg-orange-500/10 text-orange-400";
-  if (r === "medium") return "bg-amber-500/10 text-amber-400";
+  if (r === "critical") {return "bg-rose-500/10 text-rose-400";}
+  if (r === "high") {return "bg-orange-500/10 text-orange-400";}
+  if (r === "medium") {return "bg-amber-500/10 text-amber-400";}
   return "bg-emerald-500/10 text-emerald-400";
 }
 function controlStatusDot(s: ControlStatus) {
-  if (s === "passing") return "bg-emerald-400";
-  if (s === "failing") return "bg-rose-400";
-  if (s === "warning") return "bg-amber-400";
+  if (s === "passing") {return "bg-emerald-400";}
+  if (s === "failing") {return "bg-rose-400";}
+  if (s === "warning") {return "bg-amber-400";}
   return "bg-zinc-500";
 }
 function controlStatusText(s: ControlStatus) {
-  if (s === "passing") return "text-emerald-400";
-  if (s === "failing") return "text-rose-400";
-  if (s === "warning") return "text-amber-400";
+  if (s === "passing") {return "text-emerald-400";}
+  if (s === "failing") {return "text-rose-400";}
+  if (s === "warning") {return "text-amber-400";}
   return "text-zinc-500";
 }
 function categoryLabel(c: PolicyCategory) {
@@ -217,8 +217,8 @@ function categoryLabel(c: PolicyCategory) {
   return map[c];
 }
 function exceptionStatusBadge(s: ExceptionRequest["status"]) {
-  if (s === "approved") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "denied") return "bg-rose-400/10 text-rose-400";
+  if (s === "approved") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "denied") {return "bg-rose-400/10 text-rose-400";}
   return "bg-amber-400/10 text-amber-400";
 }
 
@@ -244,9 +244,9 @@ export default function CompliancePolicyEditor() {
   const [editMode, setEditMode] = useState(false);
 
   const filtered = POLICIES.filter(p => {
-    if (filterStatus !== "all" && p.status !== filterStatus) return false;
-    if (filterCategory !== "all" && p.category !== filterCategory) return false;
-    if (filterRisk !== "all" && p.riskLevel !== filterRisk) return false;
+    if (filterStatus !== "all" && p.status !== filterStatus) {return false;}
+    if (filterCategory !== "all" && p.category !== filterCategory) {return false;}
+    if (filterRisk !== "all" && p.riskLevel !== filterRisk) {return false;}
     return true;
   });
 
@@ -460,7 +460,7 @@ export default function CompliancePolicyEditor() {
         <div>
           <div className="mb-4 text-xs text-zinc-500">{totalControls} total controls across {POLICIES.length} policies</div>
           <div className="space-y-2">
-            {POLICIES.flatMap(p => p.controls.map(c => ({ ...c, policyName: p.name, policyRisk: p.riskLevel }))).sort((a, b) => {
+            {POLICIES.flatMap(p => p.controls.map(c => ({ ...c, policyName: p.name, policyRisk: p.riskLevel }))).toSorted((a, b) => {
               const order = { failing: 0, warning: 1, "not-tested": 2, passing: 3 };
               return order[a.status] - order[b.status];
             }).map(ctrl => (

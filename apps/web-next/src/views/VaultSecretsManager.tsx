@@ -139,9 +139,9 @@ export default function VaultSecretsManager() {
   const [auditFilter, setAuditFilter] = useState<string>("all");
 
   const filteredSecrets = SECRETS.filter(s => {
-    if (engineFilter !== "all" && s.engineType !== engineFilter) return false;
-    if (statusFilter !== "all" && s.status !== statusFilter) return false;
-    if (searchQuery && !s.path.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (engineFilter !== "all" && s.engineType !== engineFilter) {return false;}
+    if (statusFilter !== "all" && s.status !== statusFilter) {return false;}
+    if (searchQuery && !s.path.toLowerCase().includes(searchQuery.toLowerCase())) {return false;}
     return true;
   });
 

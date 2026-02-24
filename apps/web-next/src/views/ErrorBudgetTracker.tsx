@@ -116,20 +116,20 @@ const ALERTS: Alert[] = [
 ];
 
 const statusColor = (s: SLOStatus) => {
-  if (s === "healthy")  return "text-emerald-400 bg-emerald-400/10 border-emerald-400/30";
-  if (s === "at-risk")  return "text-amber-400 bg-amber-400/10 border-amber-400/30";
+  if (s === "healthy")  {return "text-emerald-400 bg-emerald-400/10 border-emerald-400/30";}
+  if (s === "at-risk")  {return "text-amber-400 bg-amber-400/10 border-amber-400/30";}
   return "text-rose-400 bg-rose-400/10 border-rose-400/30";
 };
 
 const statusDot = (s: SLOStatus) => {
-  if (s === "healthy")  return "bg-emerald-400";
-  if (s === "at-risk")  return "bg-amber-400 animate-pulse";
+  if (s === "healthy")  {return "bg-emerald-400";}
+  if (s === "at-risk")  {return "bg-amber-400 animate-pulse";}
   return "bg-rose-500 animate-pulse";
 };
 
 const burnRateColor = (rate: number) => {
-  if (rate < 1)  return "text-emerald-400";
-  if (rate < 5)  return "text-amber-400";
+  if (rate < 1)  {return "text-emerald-400";}
+  if (rate < 5)  {return "text-amber-400";}
   return "text-rose-400";
 };
 
@@ -177,8 +177,8 @@ export default function ErrorBudgetTracker() {
   const triggeredAlerts = ALERTS.filter(a => a.triggered);
 
   const getBurnRate = (slo: SLO) => {
-    if (burnWindow === "1h") return slo.burnRate1h;
-    if (burnWindow === "6h") return slo.burnRate6h;
+    if (burnWindow === "1h") {return slo.burnRate1h;}
+    if (burnWindow === "6h") {return slo.burnRate6h;}
     return slo.burnRate24h;
   };
 

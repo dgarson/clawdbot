@@ -9,7 +9,9 @@ import {
   type ModelRef,
 } from "../agents/model-selection.js";
 import { resolveModel } from "../agents/pi-embedded-runner/model.js";
+import { normalizeUsage } from "../agents/usage.js";
 import type { OpenClawConfig } from "../config/config.js";
+import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import type {
   ResolvedTtsConfig,
   ResolvedTtsModelOverrides,
@@ -430,6 +432,7 @@ export async function summarizeText(params: {
   }
 
   const startTime = Date.now();
+  const diagnosticsEnabled = isDiagnosticsEnabled(cfg);
   const { ref } = resolveSummaryModelRef(cfg, config);
   const resolved = resolveModel(ref.provider, ref.model, undefined, cfg);
   if (!resolved.model) {
@@ -467,6 +470,22 @@ export async function summarizeText(params: {
           signal: controller.signal,
         },
       );
+      const latencyMs = Date.now() - startTime;
+      if (diagnosticsEnabled) {
+        const usage = normalizeUsage(res.usage);
+        emitDiagnosticEvent({
+          type: "api.usage",
+          source: "tts.summarize",
+          apiKind: "tts.summary",
+          provider: ref.provider,
+          model: ref.model,
+          requestCount: 1,
+          inputChars: text.length,
+          success: true,
+          latencyMs,
+          usage,
+        });
+      }
 
       const summary = res.content
         .filter(isTextContentBlock)
@@ -481,7 +500,7 @@ export async function summarizeText(params: {
 
       return {
         summary,
-        latencyMs: Date.now() - startTime,
+        latencyMs,
         inputLength: text.length,
         outputLength: summary.length,
       };
@@ -490,6 +509,20 @@ export async function summarizeText(params: {
     }
   } catch (err) {
     const error = err as Error;
+    if (diagnosticsEnabled) {
+      emitDiagnosticEvent({
+        type: "api.usage",
+        source: "tts.summarize",
+        apiKind: "tts.summary",
+        provider: ref.provider,
+        model: ref.model,
+        requestCount: 1,
+        inputChars: text.length,
+        success: false,
+        latencyMs: Date.now() - startTime,
+        error: error.message,
+      });
+    }
     if (error.name === "AbortError") {
       throw new Error("Summarization timed out", { cause: err });
     }

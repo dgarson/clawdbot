@@ -102,7 +102,7 @@ export default function DependencyGraph() {
   }, [selectedNodeId]);
 
   const selectedNodeEdges = useMemo(() => {
-    if (!selectedNodeId) return { incoming: [], outgoing: [] };
+    if (!selectedNodeId) {return { incoming: [], outgoing: [] };}
     const incoming = filteredEdges
       .filter((e) => e.to === selectedNodeId)
       .map((e) => {

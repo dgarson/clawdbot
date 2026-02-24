@@ -208,20 +208,20 @@ const EVENT_ICONS: Record<ActivityEvent["type"], React.ReactNode> = {
 function formatUptime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
+  if (h > 0) {return `${h}h ${m}m`;}
   return `${m}m`;
 }
 
 function formatTokens(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
+  if (n >= 1000000) {return `${(n / 1000000).toFixed(1)}M`;}
+  if (n >= 1000) {return `${(n / 1000).toFixed(0)}K`;}
   return String(n);
 }
 
 function formatTimestamp(d: Date): string {
   const diff = (Date.now() - d.getTime()) / 1000;
-  if (diff < 60) return `${Math.floor(diff)}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 60) {return `${Math.floor(diff)}s ago`;}
+  if (diff < 3600) {return `${Math.floor(diff / 60)}m ago`;}
   return `${Math.floor(diff / 3600)}h ago`;
 }
 
@@ -437,7 +437,7 @@ export default function AgentPulseMonitor() {
 
   // Simulate live event stream
   useEffect(() => {
-    if (!liveMode) return;
+    if (!liveMode) {return;}
 
     const descriptions: Record<string, string[]> = {
       luis:  ["Committing a11y fixes", "Building new view", "Spawning sub-agent", "Running tsc --noEmit", "Reviewing PR diff"],
@@ -451,7 +451,7 @@ export default function AgentPulseMonitor() {
       const agentIds = Object.keys(descriptions);
       const agentId = agentIds[Math.floor(Math.random() * agentIds.length)];
       const agent = agents.find(a => a.id === agentId);
-      if (!agent) return;
+      if (!agent) {return;}
       const descs = descriptions[agentId];
       const desc = descs[Math.floor(Math.random() * descs.length)];
       const types: ActivityEvent["type"][] = ["message", "tool_call", "completion"];
@@ -508,7 +508,7 @@ export default function AgentPulseMonitor() {
           <div className="flex items-center gap-3 flex-wrap">
             {(["active", "busy", "idle", "sleeping", "error"] as AgentStatus[]).map(s => {
               const count = statusCounts[s] ?? 0;
-              if (count === 0) return null;
+              if (count === 0) {return null;}
               const cfg = STATUS_CONFIG[s];
               return (
                 <button
@@ -587,7 +587,7 @@ export default function AgentPulseMonitor() {
                 type="button"
                 onClick={() => {
                   const agent = agents.find(a => a.id === ev.agentId);
-                  if (agent) handleSelectAgent(agent);
+                  if (agent) {handleSelectAgent(agent);}
                 }}
                 className="w-full flex items-start gap-2.5 p-2 rounded-lg hover:bg-gray-800/50 transition-colors group text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-violet-500/50"
                 aria-label={`${ev.agentName}: ${ev.description}`}

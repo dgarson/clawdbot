@@ -214,7 +214,7 @@ export default function AgentConfigReview() {
     : items.filter(i => i.severity === filterSeverity);
 
   const counts = items.reduce((acc, item) => {
-    if (!item.fixed) acc[item.severity] = (acc[item.severity] ?? 0) + 1;
+    if (!item.fixed) {acc[item.severity] = (acc[item.severity] ?? 0) + 1;}
     return acc;
   }, {} as Record<ReviewSeverity, number>);
 

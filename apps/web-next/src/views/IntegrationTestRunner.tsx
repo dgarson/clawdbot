@@ -268,52 +268,52 @@ const ALERT_HISTORY: AlertHistoryRow[] = [
 ];
 
 function statusColor(status: TestStatus | RunStatus): string {
-  if (status === "passed") return "#10b981";
-  if (status === "failed") return "#ef4444";
-  if (status === "skipped") return "#6b7280";
-  if (status === "running") return "#3b82f6";
-  if (status === "pending") return "#f59e0b";
-  if (status === "cancelled") return "#6b7280";
+  if (status === "passed") {return "#10b981";}
+  if (status === "failed") {return "#ef4444";}
+  if (status === "skipped") {return "#6b7280";}
+  if (status === "running") {return "#3b82f6";}
+  if (status === "pending") {return "#f59e0b";}
+  if (status === "cancelled") {return "#6b7280";}
   return "#6b7280";
 }
 
 function statusBg(status: TestStatus | RunStatus): string {
-  if (status === "passed") return "#d1fae5";
-  if (status === "failed") return "#fee2e2";
-  if (status === "skipped") return "#f3f4f6";
-  if (status === "running") return "#dbeafe";
-  if (status === "pending") return "#fef3c7";
-  if (status === "cancelled") return "#f3f4f6";
+  if (status === "passed") {return "#d1fae5";}
+  if (status === "failed") {return "#fee2e2";}
+  if (status === "skipped") {return "#f3f4f6";}
+  if (status === "running") {return "#dbeafe";}
+  if (status === "pending") {return "#fef3c7";}
+  if (status === "cancelled") {return "#f3f4f6";}
   return "#f3f4f6";
 }
 
 function severityColor(s: AlertSeverity): string {
-  if (s === "critical") return "#ef4444";
-  if (s === "warning") return "#f59e0b";
+  if (s === "critical") {return "#ef4444";}
+  if (s === "warning") {return "#f59e0b";}
   return "#3b82f6";
 }
 
 function severityBg(s: AlertSeverity): string {
-  if (s === "critical") return "#fee2e2";
-  if (s === "warning") return "#fef3c7";
+  if (s === "critical") {return "#fee2e2";}
+  if (s === "warning") {return "#fef3c7";}
   return "#dbeafe";
 }
 
 function coverageColor(level: CoverageLevel): string {
-  if (level === "covered") return "#d1fae5";
-  if (level === "partial") return "#fef3c7";
+  if (level === "covered") {return "#d1fae5";}
+  if (level === "partial") {return "#fef3c7";}
   return "#f3f4f6";
 }
 
 function coverageTextColor(level: CoverageLevel): string {
-  if (level === "covered") return "#065f46";
-  if (level === "partial") return "#92400e";
+  if (level === "covered") {return "#065f46";}
+  if (level === "partial") {return "#92400e";}
   return "#6b7280";
 }
 
 function healthColor(score: number): string {
-  if (score >= 90) return "#10b981";
-  if (score >= 70) return "#f59e0b";
+  if (score >= 90) {return "#10b981";}
+  if (score >= 70) {return "#f59e0b";}
   return "#ef4444";
 }
 
@@ -592,9 +592,9 @@ function CoverageTab() {
   let uncoveredCount = 0;
   for (const row of COVERAGE_MATRIX) {
     for (const cell of row) {
-      if (cell === "covered") coveredCount++;
-      else if (cell === "partial") partialCount++;
-      else uncoveredCount++;
+      if (cell === "covered") {coveredCount++;}
+      else if (cell === "partial") {partialCount++;}
+      else {uncoveredCount++;}
     }
   }
   const coveredPct = Math.round((coveredCount / totalCells) * 100);

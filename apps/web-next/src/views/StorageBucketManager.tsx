@@ -113,16 +113,16 @@ const lifecycleRules: LifecycleRule[] = [
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function fmtBytes(b: number): string {
-  if (b >= 1e12) return (b / 1e12).toFixed(1) + " TB";
-  if (b >= 1e9) return (b / 1e9).toFixed(1) + " GB";
-  if (b >= 1e6) return (b / 1e6).toFixed(1) + " MB";
-  if (b >= 1e3) return (b / 1e3).toFixed(1) + " KB";
+  if (b >= 1e12) {return (b / 1e12).toFixed(1) + " TB";}
+  if (b >= 1e9) {return (b / 1e9).toFixed(1) + " GB";}
+  if (b >= 1e6) {return (b / 1e6).toFixed(1) + " MB";}
+  if (b >= 1e3) {return (b / 1e3).toFixed(1) + " KB";}
   return b + " B";
 }
 
 function fmtNum(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000) return (n / 1_000).toFixed(0) + "K";
+  if (n >= 1_000_000) {return (n / 1_000_000).toFixed(1) + "M";}
+  if (n >= 1_000) {return (n / 1_000).toFixed(0) + "K";}
   return String(n);
 }
 
@@ -271,9 +271,9 @@ function ObjectsTab() {
 
   const filtered = sampleObjects
     .filter((o) => !prefix || o.key.toLowerCase().includes(prefix.toLowerCase()))
-    .sort((a, b) => {
-      if (sortBy === "size") return b.size - a.size;
-      if (sortBy === "modified") return b.lastModified.localeCompare(a.lastModified);
+    .toSorted((a, b) => {
+      if (sortBy === "size") {return b.size - a.size;}
+      if (sortBy === "modified") {return b.lastModified.localeCompare(a.lastModified);}
       return a.key.localeCompare(b.key);
     });
 
@@ -378,7 +378,7 @@ function LifecycleTab() {
 }
 
 function CostTab() {
-  const sorted = [...buckets].sort((a, b) => b.monthlyCost - a.monthlyCost);
+  const sorted = [...buckets].toSorted((a, b) => b.monthlyCost - a.monthlyCost);
   const total = buckets.reduce((a, b) => a + b.monthlyCost, 0);
 
   const byProvider: Record<string, number> = {};

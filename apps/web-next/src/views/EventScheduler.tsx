@@ -18,32 +18,32 @@ interface CalendarEvent {
 }
 
 const kindColor = (k: EventKind) => {
-  if (k === "meeting")     return "bg-indigo-500/20 border-indigo-500 text-indigo-300";
-  if (k === "deploy")      return "bg-emerald-500/20 border-emerald-500 text-emerald-300";
-  if (k === "review")      return "bg-amber-500/20 border-amber-500 text-amber-300";
-  if (k === "sprint")      return "bg-purple-500/20 border-purple-500 text-purple-300";
-  if (k === "oncall")      return "bg-rose-500/20 border-rose-500 text-rose-300";
-  if (k === "maintenance") return "bg-orange-500/20 border-orange-500 text-orange-300";
+  if (k === "meeting")     {return "bg-indigo-500/20 border-indigo-500 text-indigo-300";}
+  if (k === "deploy")      {return "bg-emerald-500/20 border-emerald-500 text-emerald-300";}
+  if (k === "review")      {return "bg-amber-500/20 border-amber-500 text-amber-300";}
+  if (k === "sprint")      {return "bg-purple-500/20 border-purple-500 text-purple-300";}
+  if (k === "oncall")      {return "bg-rose-500/20 border-rose-500 text-rose-300";}
+  if (k === "maintenance") {return "bg-orange-500/20 border-orange-500 text-orange-300";}
   return "bg-zinc-500/20 border-zinc-500 text-zinc-300";
 };
 
 const kindDot = (k: EventKind) => {
-  if (k === "meeting")     return "bg-indigo-500";
-  if (k === "deploy")      return "bg-emerald-500";
-  if (k === "review")      return "bg-amber-500";
-  if (k === "sprint")      return "bg-purple-500";
-  if (k === "oncall")      return "bg-rose-500";
-  if (k === "maintenance") return "bg-orange-500";
+  if (k === "meeting")     {return "bg-indigo-500";}
+  if (k === "deploy")      {return "bg-emerald-500";}
+  if (k === "review")      {return "bg-amber-500";}
+  if (k === "sprint")      {return "bg-purple-500";}
+  if (k === "oncall")      {return "bg-rose-500";}
+  if (k === "maintenance") {return "bg-orange-500";}
   return "bg-zinc-500";
 };
 
 const kindEmoji = (k: EventKind) => {
-  if (k === "meeting")     return "📅";
-  if (k === "deploy")      return "🚀";
-  if (k === "review")      return "🔍";
-  if (k === "sprint")      return "⚡";
-  if (k === "oncall")      return "📟";
-  if (k === "maintenance") return "🔧";
+  if (k === "meeting")     {return "📅";}
+  if (k === "deploy")      {return "🚀";}
+  if (k === "review")      {return "🔍";}
+  if (k === "sprint")      {return "⚡";}
+  if (k === "oncall")      {return "📟";}
+  if (k === "maintenance") {return "🔧";}
   return "🎉";
 };
 
@@ -92,7 +92,7 @@ export default function EventScheduler() {
     ...Array(firstDay).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ];
-  while (gridDays.length % 7 !== 0) gridDays.push(null);
+  while (gridDays.length % 7 !== 0) {gridDays.push(null);}
 
   function prevMonth() {
     setCurrentDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1));
@@ -111,7 +111,7 @@ export default function EventScheduler() {
   }
 
   function createEvent() {
-    if (!newEventTitle.trim()) return;
+    if (!newEventTitle.trim()) {return;}
     const newEv: CalendarEvent = {
       id: `e${Date.now()}`,
       title: newEventTitle.trim(),
@@ -132,7 +132,7 @@ export default function EventScheduler() {
   function toggleKindFilter(k: EventKind) {
     setFilterKinds(prev => {
       const next = new Set(prev);
-      next.has(k) ? next.delete(k) : next.add(k);
+      if (next.has(k)) {next.delete(k);} else {next.add(k);}
       return next;
     });
   }
@@ -148,7 +148,7 @@ export default function EventScheduler() {
       plus14.setDate(plus14.getDate() + 14);
       return evDate >= today && evDate <= plus14 && (filterKinds.size === 0 || filterKinds.has(e.kind));
     })
-    .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+    .toSorted((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
 
   return (
     <div className="flex h-full bg-zinc-950 overflow-hidden">
@@ -355,7 +355,7 @@ export default function EventScheduler() {
             <div className="p-4">
               <p className="text-zinc-600 text-sm text-center py-8">Week view — use Month or Agenda for full interaction</p>
               <div className="space-y-2">
-                {events.filter(e => e.date >= "2026-02-22" && e.date <= "2026-02-28").sort((a,b) => (a.date+a.startTime).localeCompare(b.date+b.startTime)).map(ev => (
+                {events.filter(e => e.date >= "2026-02-22" && e.date <= "2026-02-28").toSorted((a,b) => (a.date+a.startTime).localeCompare(b.date+b.startTime)).map(ev => (
                   <div key={ev.id} className={cn("flex gap-3 p-3 rounded border", kindColor(ev.kind))}>
                     <span>{kindEmoji(ev.kind)}</span>
                     <div>

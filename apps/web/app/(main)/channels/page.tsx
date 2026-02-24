@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import { useGatewayStore } from "@/lib/stores/gateway";
-import { useProficiency } from "@/lib/stores/proficiency";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -16,8 +15,6 @@ import {
   XCircle,
   AlertCircle,
   Loader2,
-  MessageCircle,
-  Plug,
   RefreshCw,
   Unplug,
   Clock,
@@ -78,9 +75,8 @@ function relativeTime(ms: number | undefined): string {
 export default function ChannelsPage() {
   const connected = useGatewayStore((s) => s.connected);
   const request = useGatewayStore((s) => s.request);
-  const { isAtLeast } = useProficiency();
 
-  const [channelData, setChannelData] = React.useState<ChannelsStatusResult | null>(null);
+  const [channelData, setChannelData] = React.useState<ChannelsStatusResult>();
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -98,12 +94,12 @@ export default function ChannelsPage() {
   }, [connected, request]);
 
   React.useEffect(() => {
-    loadChannels();
+    void loadChannels();
   }, [loadChannels]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    loadChannels();
+    void loadChannels();
   };
 
   // Derive ordered channel list

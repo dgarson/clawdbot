@@ -151,8 +151,8 @@ export default function PermissionsMatrix() {
   const toggleDraftPerm = (permId: string) => {
     setDraftPerms(prev => {
       const next = new Set(prev);
-      if (next.has(permId)) next.delete(permId);
-      else next.add(permId);
+      if (next.has(permId)) {next.delete(permId);}
+      else {next.add(permId);}
       return next;
     });
   };
@@ -335,7 +335,7 @@ export default function PermissionsMatrix() {
                   {CATEGORIES.map(cat => {
                     const catPerms = PERMISSIONS.filter(p => p.category === cat);
                     const grantedPerms = catPerms.filter(p => selectedRole.permissions.has(p.id));
-                    if (grantedPerms.length === 0) return null;
+                    if (grantedPerms.length === 0) {return null;}
                     return (
                       <div key={cat}>
                         <div className="text-xs font-medium text-zinc-400 mb-1.5">{cat}</div>
@@ -557,7 +557,7 @@ export default function PermissionsMatrix() {
                   const both  = catPerms.filter(p => roleA.permissions.has(p.id) &&  roleB.permissions.has(p.id));
                   const bOnly = catPerms.filter(p => !roleA.permissions.has(p.id) && roleB.permissions.has(p.id));
                   const anyDiff = aOnly.length > 0 || both.length > 0 || bOnly.length > 0;
-                  if (!anyDiff) return null;
+                  if (!anyDiff) {return null;}
                   return (
                     <div key={cat} className="border-b border-zinc-800 last:border-b-0">
                       <div className="bg-zinc-800/40 px-4 py-1.5 text-xs text-zinc-400 font-medium">{cat}</div>

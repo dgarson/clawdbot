@@ -224,7 +224,7 @@ export default function KnowledgeGraphViewer() {
   const selectedConnections = selectedEntityId ? getConnections(selectedEntityId) : [];
 
   const filteredEntities = INITIAL_ENTITIES.filter(e => {
-    if (entityFilter === "all") return true;
+    if (entityFilter === "all") {return true;}
     return e.type === entityFilter;
   });
 

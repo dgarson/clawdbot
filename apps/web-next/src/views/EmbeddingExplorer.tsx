@@ -76,12 +76,12 @@ export default function EmbeddingExplorer() {
   const similarToSelected = selected
     ? [...filtered]
         .filter((e) => e.id !== selected.id)
-        .sort((a, b) => b.similarity - a.similarity)
+        .toSorted((a, b) => b.similarity - a.similarity)
         .slice(0, 5)
     : [];
 
   function handleEmbedQuery() {
-    if (!query.trim() || isEmbedding) return;
+    if (!query.trim() || isEmbedding) {return;}
     setIsEmbedding(true);
     setTimeout(() => {
       const newEmb: Embedding = {

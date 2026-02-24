@@ -169,31 +169,31 @@ function pct(used: number, limit: number): number {
 }
 
 function fmtNum(n: number): string {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
+  if (n >= 1000000) {return `${(n / 1000000).toFixed(1)}M`;}
+  if (n >= 1000) {return `${(n / 1000).toFixed(0)}K`;}
   return String(n);
 }
 
 function fmtMs(ms: number): string {
-  if (ms >= 3600000) return `${(ms / 3600000).toFixed(0)}h`;
-  if (ms >= 60000) return `${(ms / 60000).toFixed(0)}m`;
-  if (ms >= 1000) return `${(ms / 1000).toFixed(0)}s`;
+  if (ms >= 3600000) {return `${(ms / 3600000).toFixed(0)}h`;}
+  if (ms >= 60000) {return `${(ms / 60000).toFixed(0)}m`;}
+  if (ms >= 1000) {return `${(ms / 1000).toFixed(0)}s`;}
   return `${ms}ms`;
 }
 
 function barColor(p: number): string {
-  if (p >= 100) return "bg-rose-500";
-  if (p >= 80)  return "bg-amber-400";
+  if (p >= 100) {return "bg-rose-500";}
+  if (p >= 80)  {return "bg-amber-400";}
   return "bg-emerald-400";
 }
 
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {return "just now";}
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {return `${hrs}h ago`;}
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
@@ -290,8 +290,8 @@ export default function RateLimitDashboard() {
 
   const filteredLimits = useMemo(() => {
     return LIMITS.filter(l => {
-      if (scopeFilter !== "all" && l.scope !== scopeFilter) return false;
-      if (statusFilter !== "all" && l.status !== statusFilter) return false;
+      if (scopeFilter !== "all" && l.scope !== scopeFilter) {return false;}
+      if (statusFilter !== "all" && l.status !== statusFilter) {return false;}
       return true;
     });
   }, [scopeFilter, statusFilter]);

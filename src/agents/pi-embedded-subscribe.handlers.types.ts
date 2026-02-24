@@ -76,6 +76,8 @@ export type EmbeddedPiSubscribeState = {
   pendingMessagingTargets: Map<string, MessagingToolSend>;
   successfulCronAdds: number;
   pendingMessagingMediaUrls: Map<string, string[]>;
+  toolDiagnosticExtraInfos: string[];
+  toolDiagnosticDebugInfos: string[];
   lastAssistant?: AgentMessage;
 };
 
@@ -115,6 +117,7 @@ export type EmbeddedPiSubscribeContext = {
     chunkerHasBuffered: boolean;
   }) => void;
   trimMessagingToolSent: () => void;
+  trimToolDiagnosticInfos: () => void;
   ensureCompactionPromise: () => void;
   noteCompactionRetry: () => void;
   resolveCompactionRetry: () => void;
@@ -132,7 +135,7 @@ export type EmbeddedPiSubscribeContext = {
  */
 export type ToolHandlerParams = Pick<
   SubscribeEmbeddedPiSessionParams,
-  "runId" | "onBlockReplyFlush" | "onAgentEvent" | "onToolResult"
+  "runId" | "sessionKey" | "onBlockReplyFlush" | "onAgentEvent" | "onToolResult" | "model"
 >;
 
 export type ToolHandlerState = Pick<
@@ -149,6 +152,8 @@ export type ToolHandlerState = Pick<
   | "messagingToolSentMediaUrls"
   | "messagingToolSentTargets"
   | "successfulCronAdds"
+  | "toolDiagnosticExtraInfos"
+  | "toolDiagnosticDebugInfos"
 >;
 
 export type ToolHandlerContext = {
@@ -162,6 +167,7 @@ export type ToolHandlerContext = {
   emitToolSummary: (toolName?: string, meta?: string) => void;
   emitToolOutput: (toolName?: string, meta?: string, output?: string) => void;
   trimMessagingToolSent: () => void;
+  trimToolDiagnosticInfos: () => void;
 };
 
 export type EmbeddedPiSubscribeEvent =

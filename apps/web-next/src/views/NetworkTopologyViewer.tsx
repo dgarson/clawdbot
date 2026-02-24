@@ -106,27 +106,27 @@ function nodeTypeColor(t: NodeType) {
   }
 }
 function nodeStatusDot(s: NodeStatus) {
-  if (s === "healthy") return "bg-emerald-400";
-  if (s === "degraded") return "bg-amber-400";
-  if (s === "down") return "bg-rose-400";
+  if (s === "healthy") {return "bg-emerald-400";}
+  if (s === "degraded") {return "bg-amber-400";}
+  if (s === "down") {return "bg-rose-400";}
   return "bg-zinc-400";
 }
 function nodeStatusText(s: NodeStatus) {
-  if (s === "healthy") return "text-emerald-400";
-  if (s === "degraded") return "text-amber-400";
-  if (s === "down") return "text-rose-400";
+  if (s === "healthy") {return "text-emerald-400";}
+  if (s === "degraded") {return "text-amber-400";}
+  if (s === "down") {return "text-rose-400";}
   return "text-zinc-400";
 }
 function linkStatusColor(s: NetworkLink["status"]) {
-  if (s === "active") return "bg-emerald-500/10 text-emerald-400";
-  if (s === "degraded") return "bg-amber-500/10 text-amber-400";
+  if (s === "active") {return "bg-emerald-500/10 text-emerald-400";}
+  if (s === "degraded") {return "bg-amber-500/10 text-amber-400";}
   return "bg-rose-500/10 text-rose-400";
 }
 function linkTypeEmoji(t: LinkType) {
-  if (t === "http") return "🌐";
-  if (t === "grpc") return "⚡";
-  if (t === "tcp") return "🔌";
-  if (t === "amqp") return "📨";
+  if (t === "http") {return "🌐";}
+  if (t === "grpc") {return "⚡";}
+  if (t === "tcp") {return "🔌";}
+  if (t === "amqp") {return "📨";}
   return "🔴";
 }
 
@@ -175,9 +175,9 @@ export default function NetworkTopologyViewer() {
   });
 
   const filteredNodes = NODES.filter(n => {
-    if (filterType !== "all" && n.type !== filterType) return false;
-    if (filterStatus !== "all" && n.status !== filterStatus) return false;
-    if (filterRegion !== "all" && n.region !== filterRegion) return false;
+    if (filterType !== "all" && n.type !== filterType) {return false;}
+    if (filterStatus !== "all" && n.status !== filterStatus) {return false;}
+    if (filterRegion !== "all" && n.region !== filterRegion) {return false;}
     return true;
   });
 
@@ -280,7 +280,7 @@ export default function NetworkTopologyViewer() {
           {/* Topology diagram — text-based layers */}
           {(["gateway", "loadbalancer", "service", "database", "cache", "queue", "external"] as NodeType[]).map(type => {
             const nodes = nodesByType[type];
-            if (nodes.length === 0) return null;
+            if (nodes.length === 0) {return null;}
             return (
               <div key={type}>
                 <div className="flex items-center gap-2 mb-3">
@@ -435,7 +435,7 @@ export default function NetworkTopologyViewer() {
               {LINKS.filter(l => l.source === selectedNode.id || l.target === selectedNode.id).map(l => {
                 const other = l.source === selectedNode.id ? nodeMap[l.target] : nodeMap[l.source];
                 const dir = l.source === selectedNode.id ? "→" : "←";
-                if (!other) return null;
+                if (!other) {return null;}
                 return (
                   <div key={l.id} className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
                     <div className="flex items-center gap-2">

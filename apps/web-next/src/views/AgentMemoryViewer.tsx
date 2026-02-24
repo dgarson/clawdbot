@@ -201,10 +201,10 @@ const KIND_COLORS: Record<MemoryKind, string> = {
 function relTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) {return "just now";}
+  if (mins < 60) {return `${mins}m ago`;}
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) {return `${hrs}h ago`;}
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
@@ -212,14 +212,14 @@ function relTime(iso: string): string {
 function renderMarkdown(content: string): React.ReactNode {
   const lines = content.split("\n");
   return lines.map((line, i) => {
-    if (line.startsWith("## ")) return <h2 key={i} className="text-base font-bold text-white mt-4 mb-2 first:mt-0">{line.slice(3)}</h2>;
-    if (line.startsWith("### ")) return <h3 key={i} className="text-sm font-semibold text-zinc-200 mt-3 mb-1">{line.slice(4)}</h3>;
+    if (line.startsWith("## ")) {return <h2 key={i} className="text-base font-bold text-white mt-4 mb-2 first:mt-0">{line.slice(3)}</h2>;}
+    if (line.startsWith("### ")) {return <h3 key={i} className="text-sm font-semibold text-zinc-200 mt-3 mb-1">{line.slice(4)}</h3>;}
     if (line.startsWith("**") && line.endsWith("**")) {
       return <p key={i} className="text-sm font-semibold text-white">{line.slice(2, -2)}</p>;
     }
-    if (line.match(/^\d+\.\s/)) return <li key={i} className="text-sm text-zinc-300 ml-4 list-decimal">{line.replace(/^\d+\.\s/, "")}</li>;
-    if (line.startsWith("- ")) return <li key={i} className="text-sm text-zinc-300 ml-4 list-disc">{line.slice(2)}</li>;
-    if (line.trim() === "") return <div key={i} className="h-1" />;
+    if (line.match(/^\d+\.\s/)) {return <li key={i} className="text-sm text-zinc-300 ml-4 list-decimal">{line.replace(/^\d+\.\s/, "")}</li>;}
+    if (line.startsWith("- ")) {return <li key={i} className="text-sm text-zinc-300 ml-4 list-disc">{line.slice(2)}</li>;}
+    if (line.trim() === "") {return <div key={i} className="h-1" />;}
     return <p key={i} className="text-sm text-zinc-400 leading-relaxed">{line}</p>;
   });
 }
@@ -250,20 +250,20 @@ export default function AgentMemoryViewer() {
 
   const filtered = useMemo(() => {
     return MEMORIES.filter(m => {
-      if (agentFilter !== "all" && m.agentId !== agentFilter) return false;
-      if (kindFilter !== "all" && m.kind !== kindFilter) return false;
-      if (significantOnly && !m.significant) return false;
+      if (agentFilter !== "all" && m.agentId !== agentFilter) {return false;}
+      if (kindFilter !== "all" && m.kind !== kindFilter) {return false;}
+      if (significantOnly && !m.significant) {return false;}
       if (search && !m.title.toLowerCase().includes(search.toLowerCase()) &&
-          !m.content.toLowerCase().includes(search.toLowerCase())) return false;
+          !m.content.toLowerCase().includes(search.toLowerCase())) {return false;}
       return true;
-    }).sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
+    }).toSorted((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
   }, [agentFilter, kindFilter, search, significantOnly]);
 
   const selected = useMemo(() => MEMORIES.find(m => m.id === selectedId) ?? null, [selectedId]);
 
   const handleCopy = useCallback(() => {
     if (selected) {
-      navigator.clipboard.writeText(selected.content);
+      void navigator.clipboard.writeText(selected.content);
     }
   }, [selected]);
 

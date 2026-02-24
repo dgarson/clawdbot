@@ -258,9 +258,9 @@ const CATEGORY_CONFIG: Record<MetricCategory, { color: string; bg: string; borde
 };
 
 function formatValue(value: number, unit: string): string {
-  if (unit === "ms") return `${Math.round(value).toLocaleString()}ms`;
-  if (unit === "%") return `${value.toFixed(1)}%`;
-  if (unit === "K/h") return value >= 1000 ? `${(value / 1000).toFixed(1)}K` : `${Math.round(value)}`;
+  if (unit === "ms") {return `${Math.round(value).toLocaleString()}ms`;}
+  if (unit === "%") {return `${value.toFixed(1)}%`;}
+  if (unit === "K/h") {return value >= 1000 ? `${(value / 1000).toFixed(1)}K` : `${Math.round(value)}`;}
   return `${Math.round(value).toLocaleString()} ${unit}`;
 }
 

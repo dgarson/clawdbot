@@ -85,32 +85,32 @@ function getAgent(id: string): Agent {
 }
 
 function statusDotClass(status: AgentStatus): string {
-  if (status === "active") return "bg-emerald-400";
-  if (status === "busy")   return "bg-amber-400";
+  if (status === "active") {return "bg-emerald-400";}
+  if (status === "busy")   {return "bg-amber-400";}
   return "bg-zinc-500";
 }
 
 function actionBadgeClass(action: ActionType): string {
-  if (action === "spawned")       return "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";
-  if (action === "shared_context")return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-  if (action === "delegated")     return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
+  if (action === "spawned")       {return "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";}
+  if (action === "shared_context"){return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";}
+  if (action === "delegated")     {return "bg-amber-500/20 text-amber-400 border border-amber-500/30";}
   return "bg-zinc-700 text-zinc-300 border border-zinc-600";
 }
 
 function actionLabel(action: ActionType): string {
-  if (action === "spawned")        return "Spawned";
-  if (action === "shared_context") return "Shared Context";
-  if (action === "delegated")      return "Delegated";
+  if (action === "spawned")        {return "Spawned";}
+  if (action === "shared_context") {return "Shared Context";}
+  if (action === "delegated")      {return "Delegated";}
   return "Collaborated";
 }
 
 function intensityClass(value: number, max: number): string {
-  if (value === 0) return "bg-zinc-900";
+  if (value === 0) {return "bg-zinc-900";}
   const ratio = value / max;
-  if (ratio < 0.2) return "bg-indigo-950";
-  if (ratio < 0.4) return "bg-indigo-900";
-  if (ratio < 0.6) return "bg-indigo-800";
-  if (ratio < 0.8) return "bg-indigo-700";
+  if (ratio < 0.2) {return "bg-indigo-950";}
+  if (ratio < 0.4) {return "bg-indigo-900";}
+  if (ratio < 0.6) {return "bg-indigo-800";}
+  if (ratio < 0.8) {return "bg-indigo-700";}
   return "bg-indigo-600";
 }
 
@@ -128,7 +128,7 @@ function getCirclePositions(count: number, radius: number, cx: number, cy: numbe
 
 function getCollabStats(agentId: string): CollaborationStat[] {
   const idx = AGENTS.findIndex(a => a.id === agentId);
-  if (idx < 0) return [];
+  if (idx < 0) {return [];}
   return AGENTS
     .map((a, i) => ({
       agentId: a.id,
@@ -137,7 +137,7 @@ function getCollabStats(agentId: string): CollaborationStat[] {
       tasks: Math.floor(MATRIX_DATA[idx][i] / 5),
     }))
     .filter(s => s.agentId !== agentId && s.sessions > 0)
-    .sort((a, b) => b.sessions - a.sessions);
+    .toSorted((a, b) => b.sessions - a.sessions);
 }
 
 // ─── Connection Line ───────────────────────────────────────────────────────────
@@ -625,7 +625,7 @@ function Analytics() {
     agent,
     total: MATRIX_DATA[i].reduce((a, b) => a + b, 0),
     connections: MATRIX_DATA[i].filter(v => v > 0).length,
-  })).sort((a, b) => b.total - a.total);
+  })).toSorted((a, b) => b.total - a.total);
 
   const maxTotal = agentTotals[0]?.total ?? 1;
 
@@ -770,7 +770,7 @@ function Analytics() {
               const clusterAgents = cluster.agents.map(id => getAgent(id));
               const intraCollab = cluster.agents.reduce((sum, id1) =>
                 cluster.agents.reduce((s2, id2) => {
-                  if (id1 === id2) return s2;
+                  if (id1 === id2) {return s2;}
                   const i = AGENTS.findIndex(a => a.id === id1);
                   const j = AGENTS.findIndex(a => a.id === id2);
                   return s2 + (MATRIX_DATA[i]?.[j] ?? 0);

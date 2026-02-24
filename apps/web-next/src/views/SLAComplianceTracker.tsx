@@ -164,33 +164,33 @@ const UPTIME_TREND: TrendPoint[] = [
 ];
 
 function statusColor(s: SLAStatus) {
-  if (s === "compliant") return "text-emerald-400";
-  if (s === "at-risk") return "text-amber-400";
-  if (s === "breached") return "text-rose-400";
+  if (s === "compliant") {return "text-emerald-400";}
+  if (s === "at-risk") {return "text-amber-400";}
+  if (s === "breached") {return "text-rose-400";}
   return "text-zinc-400";
 }
 function statusBg(s: SLAStatus) {
-  if (s === "compliant") return "bg-emerald-400/10 text-emerald-400";
-  if (s === "at-risk") return "bg-amber-400/10 text-amber-400";
-  if (s === "breached") return "bg-rose-400/10 text-rose-400";
+  if (s === "compliant") {return "bg-emerald-400/10 text-emerald-400";}
+  if (s === "at-risk") {return "bg-amber-400/10 text-amber-400";}
+  if (s === "breached") {return "bg-rose-400/10 text-rose-400";}
   return "bg-zinc-700 text-zinc-400";
 }
 function tierBadge(t: SLATier) {
-  if (t === "platinum") return "bg-indigo-500/20 text-indigo-300";
-  if (t === "gold") return "bg-amber-400/20 text-amber-300";
-  if (t === "silver") return "bg-zinc-400/20 text-zinc-300";
+  if (t === "platinum") {return "bg-indigo-500/20 text-indigo-300";}
+  if (t === "gold") {return "bg-amber-400/20 text-amber-300";}
+  if (t === "silver") {return "bg-zinc-400/20 text-zinc-300";}
   return "bg-orange-700/20 text-orange-300";
 }
 function severityColor(s: IncidentSeverity) {
-  if (s === "critical") return "text-rose-400";
-  if (s === "high") return "text-orange-400";
-  if (s === "medium") return "text-amber-400";
+  if (s === "critical") {return "text-rose-400";}
+  if (s === "high") {return "text-orange-400";}
+  if (s === "medium") {return "text-amber-400";}
   return "text-emerald-400";
 }
 function severityBg(s: IncidentSeverity) {
-  if (s === "critical") return "bg-rose-400/10 text-rose-400";
-  if (s === "high") return "bg-orange-400/10 text-orange-400";
-  if (s === "medium") return "bg-amber-400/10 text-amber-400";
+  if (s === "critical") {return "bg-rose-400/10 text-rose-400";}
+  if (s === "high") {return "bg-orange-400/10 text-orange-400";}
+  if (s === "medium") {return "bg-amber-400/10 text-amber-400";}
   return "bg-emerald-400/10 text-emerald-400";
 }
 
@@ -251,8 +251,8 @@ export default function SLAComplianceTracker() {
   void activeView;
 
   const filtered = CONTRACTS.filter(c => {
-    if (filterStatus !== "all" && c.status !== filterStatus) return false;
-    if (filterTier !== "all" && c.tier !== filterTier) return false;
+    if (filterStatus !== "all" && c.status !== filterStatus) {return false;}
+    if (filterTier !== "all" && c.tier !== filterTier) {return false;}
     return true;
   });
 
@@ -369,7 +369,7 @@ export default function SLAComplianceTracker() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(["platinum", "gold", "silver", "bronze"] as SLATier[]).map(tier => {
                 const tierContracts = CONTRACTS.filter(c => c.tier === tier);
-                if (tierContracts.length === 0) return null;
+                if (tierContracts.length === 0) {return null;}
                 const avgH = tierContracts.length > 0 ? Math.round(tierContracts.reduce((s, c) => s + c.healthScore, 0) / tierContracts.length) : 0;
                 const allGood = tierContracts.every(c => c.status === "compliant");
                 return (
@@ -389,7 +389,7 @@ export default function SLAComplianceTracker() {
           <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800">
             <h3 className="text-sm font-medium text-zinc-300 mb-4">Recent Violations</h3>
             <div className="space-y-3">
-              {CONTRACTS.flatMap(c => c.violations.map(v => ({ ...v, customer: c.customer, tier: c.tier }))).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map(v => (
+              {CONTRACTS.flatMap(c => c.violations.map(v => ({ ...v, customer: c.customer, tier: c.tier }))).toSorted((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map(v => (
                 <div key={v.id} className="flex items-start justify-between p-3 bg-zinc-800 rounded-lg">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -634,7 +634,7 @@ export default function SLAComplianceTracker() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
-                  {CONTRACTS.flatMap(c => c.violations.map(v => ({ ...v, customer: c.customer }))).sort((a, b) => b.date.localeCompare(a.date)).map(v => (
+                  {CONTRACTS.flatMap(c => c.violations.map(v => ({ ...v, customer: c.customer }))).toSorted((a, b) => b.date.localeCompare(a.date)).map(v => (
                     <tr key={v.id}>
                       <td className="py-2 text-zinc-200">{v.customer}</td>
                       <td className="py-2 text-zinc-400">{v.date}</td>

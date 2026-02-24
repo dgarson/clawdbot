@@ -118,8 +118,8 @@ export default function OnboardingFlow() {
   const totalScore = answers.reduce((sum, a) => sum + a.value, 0);
 
   function scoreToLevel(score: number): ProficiencyLevel {
-    if (score <= 2) return 'beginner';
-    if (score <= 5) return 'standard';
+    if (score <= 2) {return 'beginner';}
+    if (score <= 5) {return 'standard';}
     return 'expert';
   }
 
@@ -136,12 +136,12 @@ export default function OnboardingFlow() {
   }
 
   function handleNext() {
-    if (currentStep < 4) setCurrentStep(currentStep + 1);
-    else setComplete(true);
+    if (currentStep < 4) {setCurrentStep(currentStep + 1);}
+    else {setComplete(true);}
   }
 
   function handleBack() {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
+    if (currentStep > 1) {setCurrentStep(currentStep - 1);}
   }
 
   if (complete) {

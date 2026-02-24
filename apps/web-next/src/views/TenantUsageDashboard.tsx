@@ -129,8 +129,8 @@ function usagePct(used: number, limit: number): number {
 }
 
 function usageColor(pct: number): string {
-  if (pct >= 95) return "bg-rose-500";
-  if (pct >= 80) return "bg-amber-500";
+  if (pct >= 95) {return "bg-rose-500";}
+  if (pct >= 80) {return "bg-amber-500";}
   return "bg-indigo-500";
 }
 
@@ -141,8 +141,8 @@ export default function TenantUsageDashboard(): React.ReactElement {
   const [tierFilter, setTierFilter] = useState<TierType | "all">("all");
 
   const filteredTenants = TENANTS.filter((t) => {
-    if (healthFilter !== "all" && t.health !== healthFilter) return false;
-    if (tierFilter !== "all" && t.tier !== tierFilter) return false;
+    if (healthFilter !== "all" && t.health !== healthFilter) {return false;}
+    if (tierFilter !== "all" && t.tier !== tierFilter) {return false;}
     return true;
   });
 
@@ -391,11 +391,11 @@ export default function TenantUsageDashboard(): React.ReactElement {
               const mauPct = usagePct(t.mau, t.mauLimit);
               const storagePct = usagePct(t.storageGB, t.storageLimit);
               const alerts: string[] = [];
-              if (apiPct >= 90) alerts.push(`API calls at ${apiPct}% of limit`);
-              if (mauPct >= 90) alerts.push(`MAU at ${mauPct}% of limit`);
-              if (storagePct >= 90) alerts.push(`Storage at ${storagePct}% of limit`);
-              if (t.health === "churning") alerts.push("Usage declining — possible churn risk");
-              if (t.overageCharges > 0) alerts.push(`Overage charges: $${t.overageCharges}`);
+              if (apiPct >= 90) {alerts.push(`API calls at ${apiPct}% of limit`);}
+              if (mauPct >= 90) {alerts.push(`MAU at ${mauPct}% of limit`);}
+              if (storagePct >= 90) {alerts.push(`Storage at ${storagePct}% of limit`);}
+              if (t.health === "churning") {alerts.push("Usage declining — possible churn risk");}
+              if (t.overageCharges > 0) {alerts.push(`Overage charges: $${t.overageCharges}`);}
               return (
                 <div key={t.id} className={cn("bg-zinc-900 rounded-lg p-4 border",
                   t.health === "critical" ? "border-rose-500/40" :

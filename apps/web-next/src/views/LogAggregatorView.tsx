@@ -294,7 +294,7 @@ export default function LogAggregatorView() {
         {tab === "sources" && (
           <div className="overflow-y-auto h-full p-5">
             <div className="space-y-3">
-              {SOURCE_STATS.sort((a, b) => b.total - a.total).map(ss => (
+              {SOURCE_STATS.toSorted((a, b) => b.total - a.total).map(ss => (
                 <div key={ss.source} className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
                   <div className="flex items-center justify-between mb-2">
                     <div className="font-mono text-sm font-medium text-white">{ss.source}</div>

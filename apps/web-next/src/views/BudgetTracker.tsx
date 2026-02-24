@@ -186,14 +186,14 @@ function pct(spent: number, budget: number): number {
 }
 
 function statusColor(ratio: number): string {
-  if (ratio >= 90) return "text-rose-400";
-  if (ratio >= 70) return "text-amber-400";
+  if (ratio >= 90) {return "text-rose-400";}
+  if (ratio >= 70) {return "text-amber-400";}
   return "text-emerald-400";
 }
 
 function barColor(ratio: number): string {
-  if (ratio >= 90) return "bg-rose-500";
-  if (ratio >= 70) return "bg-amber-500";
+  if (ratio >= 90) {return "bg-rose-500";}
+  if (ratio >= 70) {return "bg-amber-500";}
   return "bg-emerald-500";
 }
 

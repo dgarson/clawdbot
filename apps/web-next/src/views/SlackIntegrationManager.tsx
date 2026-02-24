@@ -78,15 +78,15 @@ const BOT_SCOPES: BotConfig[] = [
 ];
 
 const webhookStatusColor = (s: WebhookStatus) => {
-  if (s === "active")   return "text-emerald-400 bg-emerald-400/10";
-  if (s === "inactive") return "text-zinc-400 bg-zinc-400/10";
+  if (s === "active")   {return "text-emerald-400 bg-emerald-400/10";}
+  if (s === "inactive") {return "text-zinc-400 bg-zinc-400/10";}
   return "text-rose-400 bg-rose-400/10";
 };
 
 const permColor = (p: BotPermission) => {
-  if (p === "admin")  return "text-rose-400";
-  if (p === "write")  return "text-amber-400";
-  if (p === "read")   return "text-emerald-400";
+  if (p === "admin")  {return "text-rose-400";}
+  if (p === "write")  {return "text-amber-400";}
+  if (p === "read")   {return "text-emerald-400";}
   return "text-zinc-600";
 };
 
@@ -117,7 +117,7 @@ export default function SlackIntegrationManager() {
 
   function toggleEventNotification(channelId: string, event: string) {
     setChannels(prev => prev.map(c => {
-      if (c.id !== channelId) return c;
+      if (c.id !== channelId) {return c;}
       const has = c.notifyOnEvents.includes(event);
       return { ...c, notifyOnEvents: has ? c.notifyOnEvents.filter(e => e !== event) : [...c.notifyOnEvents, event] };
     }));

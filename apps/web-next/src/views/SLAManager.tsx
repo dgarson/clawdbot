@@ -320,22 +320,22 @@ function compliancePercent(sla: SLADefinition): number {
 
 function complianceColor(value: number, target: number): string {
   const ratio = value / target;
-  if (ratio >= 1) return "text-emerald-400";
-  if (ratio >= 0.98) return "text-amber-400";
+  if (ratio >= 1) {return "text-emerald-400";}
+  if (ratio >= 0.98) {return "text-amber-400";}
   return "text-rose-400";
 }
 
 function complianceCellBg(value: number, target: number): string {
   const ratio = value / target;
-  if (ratio >= 1) return "bg-emerald-400/10";
-  if (ratio >= 0.98) return "bg-amber-400/10";
+  if (ratio >= 1) {return "bg-emerald-400/10";}
+  if (ratio >= 0.98) {return "bg-amber-400/10";}
   return "bg-rose-400/10";
 }
 
 function complianceCellText(value: number, target: number): string {
   const ratio = value / target;
-  if (ratio >= 1) return "text-emerald-400";
-  if (ratio >= 0.98) return "text-amber-400";
+  if (ratio >= 1) {return "text-emerald-400";}
+  if (ratio >= 0.98) {return "text-amber-400";}
   return "text-rose-400";
 }
 
@@ -494,8 +494,8 @@ function DefinitionsTab({
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={() => commitEdit(sla.id, field)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") commitEdit(sla.id, field);
-            if (e.key === "Escape") setEditingCell(null);
+            if (e.key === "Enter") {commitEdit(sla.id, field);}
+            if (e.key === "Escape") {setEditingCell(null);}
           }}
           autoFocus
         />
@@ -595,8 +595,8 @@ function ComplianceTab({
 
   function getTarget(slaId: string): number {
     const sla = slas.find((s) => s.id === slaId);
-    if (!sla) return 99;
-    if (sla.metricType === "uptime") return sla.targetValue;
+    if (!sla) {return 99;}
+    if (sla.metricType === "uptime") {return sla.targetValue;}
     return 99;
   }
 
@@ -795,7 +795,7 @@ export default function SLAManager() {
   function handleUpdateSLA(id: string, field: keyof SLADefinition, value: string | number) {
     setSlas((prev) =>
       prev.map((sla) => {
-        if (sla.id !== id) return sla;
+        if (sla.id !== id) {return sla;}
         return { ...sla, [field]: value };
       })
     );

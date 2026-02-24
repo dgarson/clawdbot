@@ -228,8 +228,8 @@ const RUN_LOGS: RunLog[] = [
 ];
 
 function formatBytes(bytes: number): string {
-  if (bytes >= 1_000_000_000) return `${(bytes / 1_000_000_000).toFixed(1)}GB`;
-  if (bytes >= 1_000_000) return `${(bytes / 1_000_000).toFixed(0)}MB`;
+  if (bytes >= 1_000_000_000) {return `${(bytes / 1_000_000_000).toFixed(1)}GB`;}
+  if (bytes >= 1_000_000) {return `${(bytes / 1_000_000).toFixed(0)}MB`;}
   return `${(bytes / 1_000).toFixed(0)}KB`;
 }
 

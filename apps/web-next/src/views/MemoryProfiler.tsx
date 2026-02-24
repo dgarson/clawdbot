@@ -143,8 +143,8 @@ export default function MemoryProfiler() {
 
   const maxTimeline = Math.max(...timeline, 1)
 
-  const sorted = [...processes].sort((a, b) => {
-    if (sortKey === "name") return a.name.localeCompare(b.name)
+  const sorted = [...processes].toSorted((a, b) => {
+    if (sortKey === "name") {return a.name.localeCompare(b.name)}
     return b[sortKey] - a[sortKey]
   })
 
@@ -260,7 +260,7 @@ export default function MemoryProfiler() {
           <h2 className="text-sm font-medium text-zinc-300 mb-3">Heap Alerts</h2>
           <div className="space-y-2">
             {alerts
-              .sort((a, b) => heapPct(b) - heapPct(a))
+              .toSorted((a, b) => heapPct(b) - heapPct(a))
               .map((proc) => {
                 const pct = heapPct(proc)
                 const critical = pct >= 95

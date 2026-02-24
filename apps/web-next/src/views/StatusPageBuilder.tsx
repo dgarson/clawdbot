@@ -33,40 +33,40 @@ interface UptimeBar {
 }
 
 const statusLabel = (s: ComponentStatus) => {
-  if (s === "operational")   return "Operational";
-  if (s === "degraded")      return "Degraded Performance";
-  if (s === "partial-outage")return "Partial Outage";
-  if (s === "major-outage")  return "Major Outage";
+  if (s === "operational")   {return "Operational";}
+  if (s === "degraded")      {return "Degraded Performance";}
+  if (s === "partial-outage"){return "Partial Outage";}
+  if (s === "major-outage")  {return "Major Outage";}
   return "Maintenance";
 };
 
 const statusColor = (s: ComponentStatus) => {
-  if (s === "operational")    return "bg-emerald-400";
-  if (s === "degraded")       return "bg-amber-400";
-  if (s === "partial-outage") return "bg-orange-400";
-  if (s === "major-outage")   return "bg-rose-500";
+  if (s === "operational")    {return "bg-emerald-400";}
+  if (s === "degraded")       {return "bg-amber-400";}
+  if (s === "partial-outage") {return "bg-orange-400";}
+  if (s === "major-outage")   {return "bg-rose-500";}
   return "bg-blue-400";
 };
 
 const statusText = (s: ComponentStatus) => {
-  if (s === "operational")    return "text-emerald-400";
-  if (s === "degraded")       return "text-amber-400";
-  if (s === "partial-outage") return "text-orange-400";
-  if (s === "major-outage")   return "text-rose-400";
+  if (s === "operational")    {return "text-emerald-400";}
+  if (s === "degraded")       {return "text-amber-400";}
+  if (s === "partial-outage") {return "text-orange-400";}
+  if (s === "major-outage")   {return "text-rose-400";}
   return "text-blue-400";
 };
 
 const phaseColor = (p: IncidentPhase) => {
-  if (p === "investigating") return "text-amber-400 bg-amber-400/10";
-  if (p === "identified")    return "text-orange-400 bg-orange-400/10";
-  if (p === "monitoring")    return "text-blue-400 bg-blue-400/10";
+  if (p === "investigating") {return "text-amber-400 bg-amber-400/10";}
+  if (p === "identified")    {return "text-orange-400 bg-orange-400/10";}
+  if (p === "monitoring")    {return "text-blue-400 bg-blue-400/10";}
   return "text-emerald-400 bg-emerald-400/10";
 };
 
 const severityColor = (s: IncidentSeverity) => {
-  if (s === "critical")      return "text-rose-400 bg-rose-400/10 border-rose-400/30";
-  if (s === "major")         return "text-orange-400 bg-orange-400/10 border-orange-400/30";
-  if (s === "minor")         return "text-amber-400 bg-amber-400/10 border-amber-400/30";
+  if (s === "critical")      {return "text-rose-400 bg-rose-400/10 border-rose-400/30";}
+  if (s === "major")         {return "text-orange-400 bg-orange-400/10 border-orange-400/30";}
+  if (s === "minor")         {return "text-amber-400 bg-amber-400/10 border-amber-400/30";}
   return "text-blue-400 bg-blue-400/10 border-blue-400/30";
 };
 
@@ -149,10 +149,10 @@ export default function StatusPageBuilder() {
   const [editStatus, setEditStatus] = useState<ComponentStatus>("operational");
 
   const overallStatus: ComponentStatus = (() => {
-    if (components.some(c => c.status === "major-outage")) return "major-outage";
-    if (components.some(c => c.status === "partial-outage")) return "partial-outage";
-    if (components.some(c => c.status === "degraded")) return "degraded";
-    if (components.some(c => c.status === "maintenance")) return "maintenance";
+    if (components.some(c => c.status === "major-outage")) {return "major-outage";}
+    if (components.some(c => c.status === "partial-outage")) {return "partial-outage";}
+    if (components.some(c => c.status === "degraded")) {return "degraded";}
+    if (components.some(c => c.status === "maintenance")) {return "maintenance";}
     return "operational";
   })();
 
@@ -200,7 +200,7 @@ export default function StatusPageBuilder() {
           <div className="max-w-3xl mx-auto space-y-6">
             {GROUPS.map(group => {
               const groupComponents = components.filter(c => c.group === group);
-              if (groupComponents.length === 0) return null;
+              if (groupComponents.length === 0) {return null;}
               const groupStatus: ComponentStatus = groupComponents.some(c => c.status !== "operational")
                 ? groupComponents.find(c => c.status !== "operational")!.status
                 : "operational";
