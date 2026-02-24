@@ -555,7 +555,7 @@ function Step4TestMessage({ agentName, agentEmoji, onSuccess }: Step4Props) {
       </div>
 
       {/* Agent header */}
-      <div className="flex items-center gap-3 p-3 rounded-xl border border-zinc-700 bg-zinc-800/50">
+      <div className="flex items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
         <div className="w-9 h-9 rounded-full bg-zinc-700 flex items-center justify-center text-xl flex-shrink-0">
           {agentEmoji}
         </div>
@@ -658,8 +658,8 @@ function Step5Complete({ agentName, channelId }: Step5Props) {
       </div>
 
       {/* Summary card */}
-      <div className="rounded-xl border border-zinc-700 bg-zinc-800/50 p-5 space-y-3">
-        <div className="text-sm font-semibold text-zinc-300 mb-1">Setup complete ✓</div>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-3">
+        <div className="text-sm font-semibold text-zinc-200 mb-1">Setup complete ✓</div>
         {checklist.map((item) => (
           <div key={item.label} className="flex items-center gap-3 text-sm">
             <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">

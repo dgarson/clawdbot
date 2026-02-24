@@ -40,6 +40,7 @@ import {
   Brain,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -671,10 +672,12 @@ export default function CommandPaletteV2({ isLoading = false }: { isLoading?: bo
               {/* Command groups */}
               <div className="max-h-[440px] overflow-y-auto overscroll-contain p-2">
                 {flatItems.length === 0 ? (
-                  <div className="text-center py-12 text-zinc-600">
-                    <Search size={24} className="mx-auto mb-3 opacity-40" />
-                    <p className="text-sm">No commands match "{query}"</p>
-                  </div>
+                  <ContextualEmptyState
+                    icon={Search}
+                    title="No matching commands"
+                    description={`No commands match "${query}". Try a different search term.`}
+                    size="sm"
+                  />
                 ) : (
                   groupedItems.map(({ group, items }) => (
                     <div key={group} className="mb-1">

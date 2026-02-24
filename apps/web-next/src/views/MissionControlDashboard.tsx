@@ -19,8 +19,10 @@ import {
   ChevronUp,
   X,
   Check,
+  FilterX,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 // ============================================================================
 // Types
@@ -506,20 +508,22 @@ function ActiveSessionsPanel({ sessions }: { sessions: ActiveSession[] }) {
       <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-violet-400" />
-          <span className="text-sm font-semibold text-white">Active Sessions</span>
+          <span className="text-sm font-semibold text-zinc-200">Active Sessions</span>
         </div>
         <span className="text-xs text-zinc-500">{sessions.length} / 10</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/60">
+      <div className="flex-1 overflow-y-auto divide-y divide-zinc-800">
         {sessions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-zinc-500">
-            <Layers className="w-8 h-8 mb-2 opacity-40" />
-            <p className="text-sm">No active sessions. Agents are idle.</p>
-          </div>
+          <ContextualEmptyState
+            icon={Layers}
+            title="No active sessions"
+            description="All agents are currently idle. Sessions will appear here when agents start working."
+            size="sm"
+          />
         ) : (
           sessions.map((session) => (
-            <div key={session.id} className="px-4 py-3 hover:bg-zinc-800/40 transition-colors duration-150">
+            <div key={session.id} className="px-4 py-3 hover:bg-zinc-800/50 transition-colors duration-150">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-lg leading-none">{session.agentEmoji}</span>
@@ -570,13 +574,13 @@ function ToolCallsPanel({ toolCalls }: { toolCalls: ToolCall[] }) {
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col h-full">
       <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
         <Terminal className="w-4 h-4 text-amber-400" />
-        <span className="text-sm font-semibold text-white">Tool Calls</span>
+        <span className="text-sm font-semibold text-zinc-200">Tool Calls</span>
         <span className="ml-auto text-xs text-zinc-500">
           {toolCalls.filter((t) => t.status === 'running').length} running
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto divide-y divide-zinc-800/60">
+      <div className="flex-1 overflow-y-auto divide-y divide-zinc-800">
         {toolCalls.map((tc) => {
           const age = tc.completedAt ? now - tc.completedAt : 0;
           const fadingOut = tc.status !== 'running' && age > 3000;
@@ -635,7 +639,7 @@ function PendingApprovalsPanel({
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col h-full">
       <div className="px-4 py-3 border-b border-zinc-800 flex items-center gap-2">
         <CheckCircle className="w-4 h-4 text-violet-400" />
-        <span className="text-sm font-semibold text-white">Pending Approvals</span>
+        <span className="text-sm font-semibold text-zinc-200">Pending Approvals</span>
         {approvals.length > 0 && (
           <span className="ml-1 px-1.5 py-0.5 rounded-full bg-violet-600 text-white text-xs font-bold leading-none">
             {approvals.length}
@@ -645,12 +649,14 @@ function PendingApprovalsPanel({
 
       <div className="flex-1 overflow-y-auto">
         {approvals.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-zinc-500">
-            <CheckCircle className="w-8 h-8 mb-2 opacity-40" />
-            <p className="text-sm">No pending approvals</p>
-          </div>
+          <ContextualEmptyState
+            icon={CheckCircle}
+            title="No pending approvals"
+            description="All agent actions have been reviewed. New approval requests will appear here."
+            size="sm"
+          />
         ) : (
-          <div className="divide-y divide-zinc-800/60">
+          <div className="divide-y divide-zinc-800">
             {approvals.map((ap) => (
               <div key={ap.id} className="px-4 py-3">
                 <div className="flex items-center gap-2 mb-2">
@@ -722,7 +728,7 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
       <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-semibold text-white">System Event Feed</span>
+          <span className="text-sm font-semibold text-zinc-200">System Event Feed</span>
           <span className="text-xs text-zinc-500">last {Math.min(alerts.length, 20)} events</span>
         </div>
         <div className="flex items-center gap-1 bg-zinc-800 rounded-lg p-0.5">
@@ -743,11 +749,14 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
         </div>
       </div>
 
-      <div className="divide-y divide-zinc-800/40 max-h-64 overflow-y-auto">
+      <div className="divide-y divide-zinc-800 max-h-64 overflow-y-auto">
         {filtered.length === 0 ? (
-          <div className="flex items-center justify-center h-20 text-zinc-500 text-sm">
-            No entries for this filter.
-          </div>
+          <ContextualEmptyState
+            icon={FilterX}
+            title="No matching events"
+            description="No entries match the current filter. Try adjusting your selection."
+            size="sm"
+          />
         ) : (
           filtered.map((alert) => (
             <div

@@ -352,7 +352,7 @@ function ForecastSummary({ bars, settings }: ForecastSummaryProps) {
 
   return (
     <div className="grid grid-cols-3 gap-3 mt-4">
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-3">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
         <div className="flex items-center gap-1.5 text-zinc-400 text-xs mb-1">
           <DollarSign className="w-3.5 h-3.5" />
           Total Forecast
@@ -360,7 +360,7 @@ function ForecastSummary({ bars, settings }: ForecastSummaryProps) {
         <div className="text-lg font-bold text-white">${totalCost.toFixed(2)}</div>
         <div className="text-xs text-zinc-500">over 12 periods</div>
       </div>
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-3">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
         <div className="flex items-center gap-1.5 text-zinc-400 text-xs mb-1">
           <TrendingUp className="w-3.5 h-3.5" />
           vs. Budget
@@ -372,7 +372,7 @@ function ForecastSummary({ bars, settings }: ForecastSummaryProps) {
           {diff > 0 ? 'over' : 'under'} ${totalBudget.toFixed(0)}
         </div>
       </div>
-      <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-3">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3">
         <div className="flex items-center gap-1.5 text-zinc-400 text-xs mb-1">
           <Cpu className="w-3.5 h-3.5" />
           Token Estimate
@@ -399,7 +399,7 @@ function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-6 h-full">
-      <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Forecast Settings</h2>
+      <h2 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">Forecast Settings</h2>
 
       {/* Run Frequency */}
       <div>
@@ -528,7 +528,7 @@ export default function CostForecastChart() {
           {/* Right — Chart */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
+              <h2 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider">
                 Projected Cost per Run
               </h2>
               <div className="flex items-center gap-3 text-xs text-zinc-500">

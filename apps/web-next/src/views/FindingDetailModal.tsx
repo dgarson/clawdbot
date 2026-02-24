@@ -648,7 +648,7 @@ export default function FindingDetailModal() {
           >
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-violet-400" aria-hidden="true" />
-              <h2 id="evidence-heading" className="text-base font-semibold text-white">
+              <h2 id="evidence-heading" className="text-sm font-semibold text-zinc-200">
                 Evidence
               </h2>
               <span className="text-xs text-zinc-500 ml-1">— raw agent output</span>
@@ -688,7 +688,7 @@ export default function FindingDetailModal() {
         >
           <div className="flex items-center gap-2 mb-4">
             <Link2 className="w-4 h-4 text-violet-400" aria-hidden="true" />
-            <h2 id="sources-heading" className="text-base font-semibold text-white">
+            <h2 id="sources-heading" className="text-sm font-semibold text-zinc-200">
               Sources
             </h2>
             <span className="ml-auto text-xs text-zinc-500">
@@ -715,7 +715,7 @@ export default function FindingDetailModal() {
         >
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-4 h-4 text-violet-400" aria-hidden="true" />
-            <h2 id="confidence-heading" className="text-base font-semibold text-white">
+            <h2 id="confidence-heading" className="text-sm font-semibold text-zinc-200">
               Confidence
             </h2>
           </div>
@@ -732,7 +732,7 @@ export default function FindingDetailModal() {
         >
           <div className="flex items-center gap-2 mb-4">
             <Bot className="w-4 h-4 text-violet-400" aria-hidden="true" />
-            <h2 id="agents-heading" className="text-base font-semibold text-white">
+            <h2 id="agents-heading" className="text-sm font-semibold text-zinc-200">
               Agent Attribution
             </h2>
           </div>
@@ -771,7 +771,7 @@ export default function FindingDetailModal() {
           <div className="px-5 py-5">
             <div className="flex items-center gap-2 mb-3">
               <CheckCircle2 className="w-4 h-4 text-violet-400" aria-hidden="true" />
-              <h2 id="remediation-heading" className="text-base font-semibold text-white">
+              <h2 id="remediation-heading" className="text-sm font-semibold text-zinc-200">
                 Remediation
               </h2>
             </div>
@@ -885,7 +885,7 @@ export default function FindingDetailModal() {
         >
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="w-4 h-4 text-violet-400" aria-hidden="true" />
-            <h2 id="similar-heading" className="text-base font-semibold text-white">
+            <h2 id="similar-heading" className="text-sm font-semibold text-zinc-200">
               Similar Findings
             </h2>
           </div>
