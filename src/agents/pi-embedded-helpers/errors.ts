@@ -118,6 +118,10 @@ const BILLING_ERROR_HEAD_RE =
   /^(?:error[:\s-]+)?billing(?:\s+error)?(?:[:\s-]+|$)|^(?:error[:\s-]+)?(?:credit balance|insufficient credits?|payment required|http\s*402\b)/i;
 const HTTP_STATUS_PREFIX_RE = /^(?:http\s*)?(\d{3})\s+(.+)$/i;
 const HTTP_STATUS_CODE_PREFIX_RE = /^(?:http\s*)?(\d{3})(?:\s+([\s\S]+))?$/i;
+const EMAIL_PII_RE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
+const SSN_PII_RE = /\b\d{3}-\d{2}-\d{4}\b/g;
+const PHONE_PII_RE = /\b(?:\+?\d{1,3}[\s.-]?)?(?:\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}\b/g;
+const INPUT_ECHO_RE = /\b(?:prompt|input|user(?:\s+message)?)\s*[:=]/i;
 const HTML_ERROR_PREFIX_RE = /^\s*(?:<!doctype\s+html\b|<html\b)/i;
 const CLOUDFLARE_HTML_ERROR_CODES = new Set([521, 522, 523, 524, 525, 526, 530]);
 const TRANSIENT_HTTP_ERROR_CODES = new Set([500, 502, 503, 521, 522, 523, 524, 529]);
@@ -382,6 +386,44 @@ export function parseApiErrorInfo(raw?: string): ApiErrorInfo | null {
   };
 }
 
+function isLikelyCardNumber(value: string): boolean {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length < 13 || digits.length > 19) {
+    return false;
+  }
+  let sum = 0;
+  let shouldDouble = false;
+  for (let i = digits.length - 1; i >= 0; i -= 1) {
+    let digit = Number(digits[i]);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) {
+        digit -= 9;
+      }
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+}
+
+function sanitizeErrorDetailForUi(detail: string): string {
+  let sanitized = detail
+    .replace(EMAIL_PII_RE, "[redacted-email]")
+    .replace(SSN_PII_RE, "[redacted-ssn]")
+    .replace(PHONE_PII_RE, "[redacted-phone]");
+
+  sanitized = sanitized.replace(/\b(?:\d[ -]*?){13,19}\b/g, (candidate) =>
+    isLikelyCardNumber(candidate) ? "[redacted-card]" : candidate,
+  );
+
+  if (INPUT_ECHO_RE.test(sanitized) && sanitized.length > 220) {
+    return "Upstream API rejected the request (details redacted for privacy).";
+  }
+
+  return sanitized;
+}
+
 export function formatRawAssistantErrorForUi(raw?: string): string {
   const trimmed = (raw ?? "").trim();
   if (!trimmed) {
@@ -397,7 +439,7 @@ export function formatRawAssistantErrorForUi(raw?: string): string {
   if (httpMatch) {
     const rest = httpMatch[2].trim();
     if (!rest.startsWith("{")) {
-      return `HTTP ${httpMatch[1]}: ${rest}`;
+      return `HTTP ${httpMatch[1]}: ${sanitizeErrorDetailForUi(rest)}`;
     }
   }
 
@@ -406,10 +448,11 @@ export function formatRawAssistantErrorForUi(raw?: string): string {
     const prefix = info.httpCode ? `HTTP ${info.httpCode}` : "LLM error";
     const type = info.type ? ` ${info.type}` : "";
     const requestId = info.requestId ? ` (request_id: ${info.requestId})` : "";
-    return `${prefix}${type}: ${info.message}${requestId}`;
+    return `${prefix}${type}: ${sanitizeErrorDetailForUi(info.message)}${requestId}`;
   }
 
-  return trimmed.length > 600 ? `${trimmed.slice(0, 600)}…` : trimmed;
+  const safe = sanitizeErrorDetailForUi(trimmed);
+  return safe.length > 600 ? `${safe.slice(0, 600)}…` : safe;
 }
 
 export function formatAssistantErrorText(
