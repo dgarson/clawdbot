@@ -432,382 +432,423 @@ export default function AIGovernanceDashboard({ isLoading = false }: { isLoading
   const pendingApprovals = MODELS.filter(m => m.status === "pending" || m.status === "review").length;
 
   return (
-    <div className="h-full flex flex-col bg-surface-0 text-fg-primary">
-      {/* Header */}
-      <div className="border-b border-tok-border px-3 sm:px-4 md:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div>
-          <h1 className="text-lg font-semibold">AI Governance Dashboard</h1>
-          <p className="text-sm text-fg-secondary mt-0.5">Model registry, bias monitoring, policy compliance, and incident tracking</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {openIncidents > 0 && (
-            <span className="bg-rose-500/10 text-rose-400 text-xs px-2 py-1 rounded-full border border-rose-500/30">
-              {openIncidents} open incident{openIncidents > 1 ? "s" : ""}
-            </span>
-          )}
-          {pendingApprovals > 0 && (
-            <span className="bg-amber-500/10 text-amber-400 text-xs px-2 py-1 rounded-full border border-amber-500/30">
-              {pendingApprovals} pending review
-            </span>
-          )}
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-sm px-3 py-1.5 rounded-lg transition-colors">
-            Register Model
-          </button>
-        </div>
-      </div>
-
-      {/* Stat bar */}
-      <div className="border-b border-tok-border px-3 sm:px-4 md:px-6 py-3 grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Total Models", value: MODELS.length, color: "text-fg-primary" },
-          { label: "Critical Risk", value: criticalModels, color: "text-rose-400" },
-          { label: "Open Incidents", value: openIncidents, color: openIncidents > 0 ? "text-rose-400" : "text-emerald-400" },
-          { label: "Pending Approvals", value: pendingApprovals, color: pendingApprovals > 0 ? "text-amber-400" : "text-emerald-400" },
-        ].map((s, i) => (
-          <div key={i} className="text-center">
-            <div className={cn("text-xl font-bold", s.color)}>{s.value}</div>
-            <div className="text-xs text-fg-muted">{s.label}</div>
+    <>
+      <a
+        href="#aigov-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
+      <div className="h-full flex flex-col bg-surface-0 text-fg-primary">
+        {/* Header */}
+        <div className="border-b border-tok-border px-3 sm:px-4 md:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h1 className="text-lg font-semibold">AI Governance Dashboard</h1>
+            <p className="text-sm text-fg-secondary mt-0.5">Model registry, bias monitoring, policy compliance, and incident tracking</p>
           </div>
-        ))}
-      </div>
-
-      {/* Tabs */}
-      <div className="border-b border-tok-border px-6">
-        <div className="flex gap-6">
-          {(["models", "incidents", "policies", "audits"] as const).map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={cn(
-                "py-3 text-sm font-medium border-b-2 capitalize transition-colors",
-                tab === t ? "border-indigo-500 text-fg-primary" : "border-transparent text-fg-secondary hover:text-fg-primary"
-              )}
-            >
-              {t}
-              {t === "incidents" && openIncidents > 0 && (
-                <span className="ml-1.5 bg-rose-500 text-fg-primary text-xs px-1.5 rounded-full">{openIncidents}</span>
-              )}
+          <div className="flex items-center gap-2">
+            {openIncidents > 0 && (
+              <span role="status" className="bg-rose-500/10 text-rose-400 text-xs px-2 py-1 rounded-full border border-rose-500/30">
+                {openIncidents} open incident{openIncidents > 1 ? "s" : ""}
+              </span>
+            )}
+            {pendingApprovals > 0 && (
+              <span role="status" className="bg-amber-500/10 text-amber-400 text-xs px-2 py-1 rounded-full border border-amber-500/30">
+                {pendingApprovals} pending review
+              </span>
+            )}
+            <button className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-sm px-3 py-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+              Register Model
             </button>
+          </div>
+        </div>
+
+        {/* Stat bar */}
+        <div aria-live="polite" className="border-b border-tok-border px-3 sm:px-4 md:px-6 py-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Total Models", value: MODELS.length, color: "text-fg-primary" },
+            { label: "Critical Risk", value: criticalModels, color: "text-rose-400" },
+            { label: "Open Incidents", value: openIncidents, color: openIncidents > 0 ? "text-rose-400" : "text-emerald-400" },
+            { label: "Pending Approvals", value: pendingApprovals, color: pendingApprovals > 0 ? "text-amber-400" : "text-emerald-400" },
+          ].map((s, i) => (
+            <div key={i} className="text-center">
+              <div className={cn("text-xl font-bold", s.color)}>{s.value}</div>
+              <div className="text-xs text-fg-muted">{s.label}</div>
+            </div>
           ))}
         </div>
-      </div>
 
-      <div className="flex-1 overflow-auto">
-        {/* MODELS TAB */}
-        {tab === "models" && (
-          <div className="flex h-full">
-            <div className="w-96 border-r border-tok-border flex flex-col">
-              <div className="p-4 border-b border-tok-border space-y-3">
-                <input
-                  type="text"
-                  placeholder="Search models..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="w-full bg-surface-2 text-sm rounded-lg px-3 py-2 text-fg-primary placeholder-fg-muted outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-                <div className="flex gap-2">
-                  <select
-                    value={riskFilter}
-                    onChange={e => setRiskFilter(e.target.value as RiskLevel | "all")}
-                    className="flex-1 bg-surface-2 text-sm rounded-lg px-2 py-1.5 text-fg-primary outline-none"
-                  >
-                    <option value="all">All Risk</option>
-                    <option value="critical">Critical</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                  </select>
-                  <select
-                    value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value as ModelStatus | "all")}
-                    className="flex-1 bg-surface-2 text-sm rounded-lg px-2 py-1.5 text-fg-primary outline-none"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="approved">Approved</option>
-                    <option value="pending">Pending</option>
-                    <option value="review">Review</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="deprecated">Deprecated</option>
-                  </select>
+        {/* Tabs */}
+        <div className="border-b border-tok-border px-6">
+          <div role="tablist" aria-label="Governance sections" className="flex gap-6">
+            {(["models", "incidents", "policies", "audits"] as const).map(t => (
+              <button
+                key={t}
+                role="tab"
+                aria-selected={tab === t}
+                aria-controls={`aigov-panel-${t}`}
+                onClick={() => setTab(t)}
+                className={cn(
+                  "py-3 text-sm font-medium border-b-2 capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
+                  tab === t ? "border-indigo-500 text-fg-primary" : "border-transparent text-fg-secondary hover:text-fg-primary"
+                )}
+              >
+                {t}
+                {t === "incidents" && openIncidents > 0 && (
+                  <span className="ml-1.5 bg-rose-500 text-fg-primary text-xs px-1.5 rounded-full" aria-label={`${openIncidents} open`}>{openIncidents}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <main id="aigov-main" className="flex-1 overflow-auto">
+          {/* MODELS TAB */}
+          {tab === "models" && (
+            <div id="aigov-panel-models" role="tabpanel" aria-label="Models" className="flex h-full">
+              <div className="w-96 border-r border-tok-border flex flex-col">
+                <div className="p-4 border-b border-tok-border space-y-3">
+                  <label htmlFor="model-search" className="sr-only">Search models</label>
+                  <input
+                    id="model-search"
+                    type="text"
+                    placeholder="Search models..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-full bg-surface-2 text-sm rounded-lg px-3 py-2 text-fg-primary placeholder-fg-muted outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                  />
+                  <div className="flex gap-2">
+                    <label htmlFor="risk-filter" className="sr-only">Filter by risk level</label>
+                    <select
+                      id="risk-filter"
+                      value={riskFilter}
+                      onChange={e => setRiskFilter(e.target.value as RiskLevel | "all")}
+                      className="flex-1 bg-surface-2 text-sm rounded-lg px-2 py-1.5 text-fg-primary outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                    >
+                      <option value="all">All Risk</option>
+                      <option value="critical">Critical</option>
+                      <option value="high">High</option>
+                      <option value="medium">Medium</option>
+                      <option value="low">Low</option>
+                    </select>
+                    <label htmlFor="status-filter" className="sr-only">Filter by status</label>
+                    <select
+                      id="status-filter"
+                      value={statusFilter}
+                      onChange={e => setStatusFilter(e.target.value as ModelStatus | "all")}
+                      className="flex-1 bg-surface-2 text-sm rounded-lg px-2 py-1.5 text-fg-primary outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="approved">Approved</option>
+                      <option value="pending">Pending</option>
+                      <option value="review">Review</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="deprecated">Deprecated</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="overflow-y-auto flex-1">
+                  {filteredModels.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => setSelectedModel(m)}
+                      aria-pressed={selectedModel?.id === m.id}
+                      className={cn(
+                        "w-full text-left px-4 py-3 border-b border-tok-border hover:bg-surface-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
+                        selectedModel?.id === m.id && "bg-surface-1 border-l-2 border-l-indigo-500"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-medium text-fg-primary truncate">{m.name}</span>
+                        <span className={cn("text-xs px-1.5 py-0.5 rounded-full ml-2 shrink-0", statusBg(m.status))}>{m.status}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={cn("text-xs px-1.5 py-0.5 rounded", riskBg(m.riskLevel))}>{m.riskLevel}</span>
+                        <span className="text-xs text-fg-muted">{m.provider}</span>
+                      </div>
+                      <div className="text-xs text-fg-muted truncate">{m.useCase}</div>
+                      {m.driftScore > 25 && (
+                        <div className="mt-1 text-xs text-amber-400"><span aria-hidden="true">⚠</span> Drift: {m.driftScore}</div>
+                      )}
+                    </button>
+                  ))}
+                  {filteredModels.length === 0 && (
+                    <ContextualEmptyState
+                      icon={ShieldAlert}
+                      title="No models match filters"
+                      description="Adjust the status or risk-level filters, or register a new model."
+                      size="sm"
+                    />
+                  )}
                 </div>
               </div>
-              <div className="overflow-y-auto flex-1">
-                {filteredModels.map(m => (
-                  <button
-                    key={m.id}
-                    onClick={() => setSelectedModel(m)}
-                    className={cn(
-                      "w-full text-left px-4 py-3 border-b border-tok-border hover:bg-surface-1 transition-colors",
-                      selectedModel?.id === m.id && "bg-surface-1 border-l-2 border-l-indigo-500"
-                    )}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-fg-primary truncate">{m.name}</span>
-                      <span className={cn("text-xs px-1.5 py-0.5 rounded-full ml-2 shrink-0", statusBg(m.status))}>{m.status}</span>
+
+              <div className="flex-1 overflow-y-auto">
+                {selectedModel ? (
+                  <div className="p-3 sm:p-4 md:p-6">
+                    <div className="flex items-start justify-between mb-5">
+                      <div>
+                        <h2 className="text-xl font-semibold text-fg-primary">{selectedModel.name} <span className="text-fg-muted text-base font-normal">v{selectedModel.version}</span></h2>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={cn("text-xs px-2 py-0.5 rounded-full", riskBg(selectedModel.riskLevel))}>{selectedModel.riskLevel} risk</span>
+                          <span className={cn("text-xs px-2 py-0.5 rounded-full", statusBg(selectedModel.status))}>{selectedModel.status}</span>
+                          <span className="text-xs text-fg-muted">{selectedModel.provider}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {selectedModel.status === "pending" && (
+                          <button
+                            aria-label={`Approve ${selectedModel.name}`}
+                            className="bg-emerald-700 hover:bg-emerald-600 text-fg-primary text-sm px-3 py-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                          >
+                            Approve
+                          </button>
+                        )}
+                        <button
+                          aria-label={`Edit ${selectedModel.name}`}
+                          className="bg-surface-2 hover:bg-surface-3 text-sm px-3 py-1.5 rounded-lg text-fg-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={cn("text-xs px-1.5 py-0.5 rounded", riskBg(m.riskLevel))}>{m.riskLevel}</span>
-                      <span className="text-xs text-fg-muted">{m.provider}</span>
+
+                    {/* Scores */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-5">
+                      {[
+                        { label: "Explainability", value: selectedModel.explainabilityScore, suffix: "%" },
+                        { label: "Drift Score", value: selectedModel.driftScore, suffix: "", invert: true },
+                        { label: "Bias Audit Score", value: Math.round(Object.values(selectedModel.biasScores).reduce((a, b) => a + b, 0) / 4 * 100), suffix: "%" },
+                      ].map((s, i) => (
+                        <div key={i} className="bg-surface-1 rounded-xl p-4">
+                          <div className={cn("text-2xl font-bold", s.invert
+                            ? (s.value <= 10 ? "text-emerald-400" : s.value <= 25 ? "text-amber-400" : "text-rose-400")
+                            : scoreColor(s.value)
+                          )}>{s.value}{s.suffix}</div>
+                          <div className="text-xs text-fg-muted mt-1">{s.label}</div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="text-xs text-fg-muted truncate">{m.useCase}</div>
-                    {m.driftScore > 25 && (
-                      <div className="mt-1 text-xs text-amber-400">⚠ Drift: {m.driftScore}</div>
-                    )}
-                  </button>
-                ))}
-                {filteredModels.length === 0 && (
-                  <ContextualEmptyState
-                    icon={ShieldAlert}
-                    title="No models match filters"
-                    description="Adjust the status or risk-level filters, or register a new model."
-                    size="sm"
-                  />
+
+                    {/* Bias metrics */}
+                    <section aria-label="Fairness metrics" className="bg-surface-1 rounded-xl p-5 mb-4">
+                      <h3 className="text-sm font-medium text-fg-primary mb-4">Fairness Metrics</h3>
+                      {(Object.entries(selectedModel.biasScores) as [BiasMetric, number][]).map(([metric, score]) => (
+                        <div key={metric} className="mb-3">
+                          <div className="flex justify-between text-xs text-fg-secondary mb-1">
+                            <span>{biasLabel(metric)}</span>
+                            <span className={score >= 0.80 ? "text-emerald-400" : score >= 0.70 ? "text-amber-400" : "text-rose-400"}>
+                              {(score * 100).toFixed(0)}%
+                            </span>
+                          </div>
+                          <div
+                            className="h-1.5 bg-surface-2 rounded-full overflow-hidden"
+                            role="img"
+                            aria-label={`${biasLabel(metric)}: ${(score * 100).toFixed(0)}%`}
+                          >
+                            <div
+                              className={cn("h-full rounded-full", score >= 0.80 ? "bg-emerald-500" : score >= 0.70 ? "bg-amber-500" : "bg-rose-500")}
+                              style={{ width: `${score * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      <div className="mt-2 text-xs text-fg-muted">Policy minimum: 80% demographic parity, 75% equalized odds</div>
+                    </section>
+
+                    {/* Metadata */}
+                    <section aria-label="Model details" className="bg-surface-1 rounded-xl p-5 mb-4">
+                      <h3 className="text-sm font-medium text-fg-primary mb-3">Model Details</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                        <div><div className="text-fg-muted text-xs mb-0.5">Use Case</div><div className="text-fg-primary">{selectedModel.useCase}</div></div>
+                        <div><div className="text-fg-muted text-xs mb-0.5">Approved By</div><div className="text-fg-primary">{selectedModel.approvedBy || "—"}</div></div>
+                        <div><div className="text-fg-muted text-xs mb-0.5">Approved At</div><div className="text-fg-primary">{selectedModel.approvedAt || "—"}</div></div>
+                        <div><div className="text-fg-muted text-xs mb-0.5">Deployed At</div><div className="text-fg-primary">{selectedModel.deployedAt || "—"}</div></div>
+                        <div><div className="text-fg-muted text-xs mb-0.5">Last Audited</div><div className="text-fg-primary">{selectedModel.lastAudited || "—"}</div></div>
+                        <div>
+                          <div className="text-fg-muted text-xs mb-0.5">Data Sources</div>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {selectedModel.dataSources.map(ds => (
+                              <span key={ds} className="bg-surface-2 text-fg-primary text-xs px-1.5 py-0.5 rounded">{ds}</span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      {selectedModel.notes && (
+                        <div className="mt-3 p-3 bg-surface-2 rounded-lg text-xs text-amber-300"><span aria-hidden="true">⚠</span> {selectedModel.notes}</div>
+                      )}
+                    </section>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-fg-muted">
+                    <span aria-hidden="true" className="text-4xl mb-3">🤖</span>
+                    <span className="text-sm">Select a model to view governance details</span>
+                  </div>
                 )}
               </div>
             </div>
+          )}
 
-            <div className="flex-1 overflow-y-auto">
-              {selectedModel ? (
-                <div className="p-3 sm:p-4 md:p-6">
-                  <div className="flex items-start justify-between mb-5">
-                    <div>
-                      <h2 className="text-xl font-semibold text-fg-primary">{selectedModel.name} <span className="text-fg-muted text-base font-normal">v{selectedModel.version}</span></h2>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={cn("text-xs px-2 py-0.5 rounded-full", riskBg(selectedModel.riskLevel))}>{selectedModel.riskLevel} risk</span>
-                        <span className={cn("text-xs px-2 py-0.5 rounded-full", statusBg(selectedModel.status))}>{selectedModel.status}</span>
-                        <span className="text-xs text-fg-muted">{selectedModel.provider}</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      {selectedModel.status === "pending" && (
-                        <button className="bg-emerald-700 hover:bg-emerald-600 text-fg-primary text-sm px-3 py-1.5 rounded-lg transition-colors">Approve</button>
-                      )}
-                      <button className="bg-surface-2 hover:bg-surface-3 text-sm px-3 py-1.5 rounded-lg text-fg-primary transition-colors">Edit</button>
-                    </div>
-                  </div>
-
-                  {/* Scores */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-5">
-                    {[
-                      { label: "Explainability", value: selectedModel.explainabilityScore, suffix: "%" },
-                      { label: "Drift Score", value: selectedModel.driftScore, suffix: "", invert: true },
-                      { label: "Bias Audit Score", value: Math.round(Object.values(selectedModel.biasScores).reduce((a, b) => a + b, 0) / 4 * 100), suffix: "%" },
-                    ].map((s, i) => (
-                      <div key={i} className="bg-surface-1 rounded-xl p-4">
-                        <div className={cn("text-2xl font-bold", s.invert
-                          ? (s.value <= 10 ? "text-emerald-400" : s.value <= 25 ? "text-amber-400" : "text-rose-400")
-                          : scoreColor(s.value)
-                        )}>{s.value}{s.suffix}</div>
-                        <div className="text-xs text-fg-muted mt-1">{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Bias metrics */}
-                  <div className="bg-surface-1 rounded-xl p-5 mb-4">
-                    <h3 className="text-sm font-medium text-fg-primary mb-4">Fairness Metrics</h3>
-                    {(Object.entries(selectedModel.biasScores) as [BiasMetric, number][]).map(([metric, score]) => (
-                      <div key={metric} className="mb-3">
-                        <div className="flex justify-between text-xs text-fg-secondary mb-1">
-                          <span>{biasLabel(metric)}</span>
-                          <span className={score >= 0.80 ? "text-emerald-400" : score >= 0.70 ? "text-amber-400" : "text-rose-400"}>
-                            {(score * 100).toFixed(0)}%
-                          </span>
-                        </div>
-                        <div className="h-1.5 bg-surface-2 rounded-full overflow-hidden">
-                          <div
-                            className={cn("h-full rounded-full", score >= 0.80 ? "bg-emerald-500" : score >= 0.70 ? "bg-amber-500" : "bg-rose-500")}
-                            style={{ width: `${score * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <div className="mt-2 text-xs text-fg-muted">Policy minimum: 80% demographic parity, 75% equalized odds</div>
-                  </div>
-
-                  {/* Metadata */}
-                  <div className="bg-surface-1 rounded-xl p-5 mb-4">
-                    <h3 className="text-sm font-medium text-fg-primary mb-3">Model Details</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                      <div><div className="text-fg-muted text-xs mb-0.5">Use Case</div><div className="text-fg-primary">{selectedModel.useCase}</div></div>
-                      <div><div className="text-fg-muted text-xs mb-0.5">Approved By</div><div className="text-fg-primary">{selectedModel.approvedBy || "—"}</div></div>
-                      <div><div className="text-fg-muted text-xs mb-0.5">Approved At</div><div className="text-fg-primary">{selectedModel.approvedAt || "—"}</div></div>
-                      <div><div className="text-fg-muted text-xs mb-0.5">Deployed At</div><div className="text-fg-primary">{selectedModel.deployedAt || "—"}</div></div>
-                      <div><div className="text-fg-muted text-xs mb-0.5">Last Audited</div><div className="text-fg-primary">{selectedModel.lastAudited || "—"}</div></div>
-                      <div>
-                        <div className="text-fg-muted text-xs mb-0.5">Data Sources</div>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {selectedModel.dataSources.map(ds => (
-                            <span key={ds} className="bg-surface-2 text-fg-primary text-xs px-1.5 py-0.5 rounded">{ds}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    {selectedModel.notes && (
-                      <div className="mt-3 p-3 bg-surface-2 rounded-lg text-xs text-amber-300">⚠ {selectedModel.notes}</div>
+          {/* INCIDENTS TAB */}
+          {tab === "incidents" && (
+            <div id="aigov-panel-incidents" role="tabpanel" aria-label="Incidents" className="flex h-full">
+              <div className="w-96 border-r border-tok-border overflow-y-auto">
+                {INCIDENTS.map(inc => (
+                  <button
+                    key={inc.id}
+                    onClick={() => setSelectedIncident(inc)}
+                    aria-pressed={selectedIncident?.id === inc.id}
+                    className={cn(
+                      "w-full text-left px-4 py-3 border-b border-tok-border hover:bg-surface-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
+                      selectedIncident?.id === inc.id && "bg-surface-1 border-l-2 border-l-indigo-500"
                     )}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-fg-muted">
-                  <span className="text-4xl mb-3">🤖</span>
-                  <span className="text-sm">Select a model to view governance details</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* INCIDENTS TAB */}
-        {tab === "incidents" && (
-          <div className="flex h-full">
-            <div className="w-96 border-r border-tok-border overflow-y-auto">
-              {INCIDENTS.map(inc => (
-                <button
-                  key={inc.id}
-                  onClick={() => setSelectedIncident(inc)}
-                  className={cn(
-                    "w-full text-left px-4 py-3 border-b border-tok-border hover:bg-surface-1 transition-colors",
-                    selectedIncident?.id === inc.id && "bg-surface-1 border-l-2 border-l-indigo-500"
-                  )}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={cn("text-xs px-1.5 py-0.5 rounded-full", incidentSevBg(inc.severity))}>{inc.severity}</span>
-                    <span className={cn("text-xs px-1.5 py-0.5 rounded-full", incidentStateBg(inc.state))}>{inc.state}</span>
-                  </div>
-                  <div className="text-sm font-medium text-fg-primary mb-1">{inc.title}</div>
-                  <div className="text-xs text-fg-muted">{inc.modelName}</div>
-                  <div className="text-xs text-fg-muted mt-0.5">{inc.reportedAt}</div>
-                </button>
-              ))}
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              {selectedIncident ? (
-                <div className="p-3 sm:p-4 md:p-6">
-                  <div className="flex items-start justify-between mb-5">
-                    <div>
-                      <h2 className="text-xl font-semibold text-fg-primary mb-2">{selectedIncident.title}</h2>
-                      <div className="flex items-center gap-2">
-                        <span className={cn("text-xs px-2 py-0.5 rounded-full", incidentSevBg(selectedIncident.severity))}>{selectedIncident.severity}</span>
-                        <span className={cn("text-xs px-2 py-0.5 rounded-full", incidentStateBg(selectedIncident.state))}>{selectedIncident.state}</span>
-                        <span className="text-xs text-fg-muted">{selectedIncident.modelName}</span>
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={cn("text-xs px-1.5 py-0.5 rounded-full", incidentSevBg(inc.severity))}>{inc.severity}</span>
+                      <span className={cn("text-xs px-1.5 py-0.5 rounded-full", incidentStateBg(inc.state))}>{inc.state}</span>
+                    </div>
+                    <div className="text-sm font-medium text-fg-primary mb-1">{inc.title}</div>
+                    <div className="text-xs text-fg-muted">{inc.modelName}</div>
+                    <div className="text-xs text-fg-muted mt-0.5">{inc.reportedAt}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {selectedIncident ? (
+                  <div className="p-3 sm:p-4 md:p-6">
+                    <div className="flex items-start justify-between mb-5">
+                      <div>
+                        <h2 className="text-xl font-semibold text-fg-primary mb-2">{selectedIncident.title}</h2>
+                        <div className="flex items-center gap-2">
+                          <span className={cn("text-xs px-2 py-0.5 rounded-full", incidentSevBg(selectedIncident.severity))}>{selectedIncident.severity}</span>
+                          <span className={cn("text-xs px-2 py-0.5 rounded-full", incidentStateBg(selectedIncident.state))}>{selectedIncident.state}</span>
+                          <span className="text-xs text-fg-muted">{selectedIncident.modelName}</span>
+                        </div>
+                      </div>
+                      <button
+                        aria-label={`Update status for incident: ${selectedIncident.title}`}
+                        className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-sm px-3 py-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                      >
+                        Update Status
+                      </button>
+                    </div>
+                    <section aria-label="Incident description" className="bg-surface-1 rounded-xl p-5 mb-4">
+                      <h3 className="text-sm font-medium text-fg-primary mb-2">Description</h3>
+                      <p className="text-sm text-fg-primary">{selectedIncident.description}</p>
+                    </section>
+                    <section aria-label="Remediation steps" className="bg-surface-1 rounded-xl p-5 mb-4">
+                      <h3 className="text-sm font-medium text-fg-primary mb-3">Remediation Steps</h3>
+                      <ol className="space-y-2">
+                        {selectedIncident.remediationSteps.map((step, i) => (
+                          <li key={i} className="flex items-start gap-3 text-sm text-fg-primary">
+                            <span aria-hidden="true" className="bg-indigo-500/20 text-indigo-400 text-xs w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                            {step}
+                          </li>
+                        ))}
+                      </ol>
+                    </section>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-surface-1 rounded-xl p-4">
+                        <div className="text-xs text-fg-muted mb-1">Reported</div>
+                        <div className="text-sm text-fg-primary">{selectedIncident.reportedAt}</div>
+                      </div>
+                      <div className="bg-surface-1 rounded-xl p-4">
+                        <div className="text-xs text-fg-muted mb-1">Resolved</div>
+                        <div className="text-sm text-fg-primary">{selectedIncident.resolvedAt || "Open"}</div>
                       </div>
                     </div>
-                    <button className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-sm px-3 py-1.5 rounded-lg transition-colors">
-                      Update Status
-                    </button>
                   </div>
-                  <div className="bg-surface-1 rounded-xl p-5 mb-4">
-                    <h3 className="text-sm font-medium text-fg-primary mb-2">Description</h3>
-                    <p className="text-sm text-fg-primary">{selectedIncident.description}</p>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-fg-muted">
+                    <span aria-hidden="true" className="text-4xl mb-3">🚨</span>
+                    <span className="text-sm">Select an incident to view details</span>
                   </div>
-                  <div className="bg-surface-1 rounded-xl p-5 mb-4">
-                    <h3 className="text-sm font-medium text-fg-primary mb-3">Remediation Steps</h3>
-                    <ol className="space-y-2">
-                      {selectedIncident.remediationSteps.map((step, i) => (
-                        <li key={i} className="flex items-start gap-3 text-sm text-fg-primary">
-                          <span className="bg-indigo-500/20 text-indigo-400 text-xs w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                          {step}
-                        </li>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* POLICIES TAB */}
+          {tab === "policies" && (
+            <div id="aigov-panel-policies" role="tabpanel" aria-label="Policies" className="p-3 sm:p-4 md:p-6">
+              <div className="space-y-4">
+                {POLICIES.map(p => (
+                  <section key={p.id} aria-label={p.name} className="bg-surface-1 rounded-xl p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-medium text-fg-primary">{p.name}</span>
+                          <span className="text-xs text-fg-muted">v{p.version}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={cn("text-xs px-2 py-0.5 rounded-full", policyStatusBg(p.status))}>{p.status}</span>
+                          <span className="text-xs bg-surface-2 text-fg-secondary px-2 py-0.5 rounded">{p.category}</span>
+                        </div>
+                      </div>
+                      <button
+                        aria-label={`Edit policy: ${p.name}`}
+                        className="text-xs text-indigo-400 hover:text-indigo-300 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    <p className="text-sm text-fg-secondary mb-3">{p.description}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-fg-muted">
+                      <div><span className="block text-fg-muted">Owner</span>{p.owner}</div>
+                      <div><span className="block text-fg-muted">Last Review</span>{p.lastReviewed}</div>
+                      <div><span className="block text-fg-muted">Next Review</span>{p.nextReview}</div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-1">
+                      {p.appliesTo.map(risk => (
+                        <span key={risk} className={cn("text-xs px-1.5 py-0.5 rounded", riskBg(risk as RiskLevel))}>{risk}</span>
                       ))}
-                    </ol>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-surface-1 rounded-xl p-4">
-                      <div className="text-xs text-fg-muted mb-1">Reported</div>
-                      <div className="text-sm text-fg-primary">{selectedIncident.reportedAt}</div>
                     </div>
-                    <div className="bg-surface-1 rounded-xl p-4">
-                      <div className="text-xs text-fg-muted mb-1">Resolved</div>
-                      <div className="text-sm text-fg-primary">{selectedIncident.resolvedAt || "Open"}</div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-fg-muted">
-                  <span className="text-4xl mb-3">🚨</span>
-                  <span className="text-sm">Select an incident to view details</span>
-                </div>
-              )}
+                  </section>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* POLICIES TAB */}
-        {tab === "policies" && (
-          <div className="p-3 sm:p-4 md:p-6">
-            <div className="space-y-4">
-              {POLICIES.map(p => (
-                <div key={p.id} className="bg-surface-1 rounded-xl p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium text-fg-primary">{p.name}</span>
-                        <span className="text-xs text-fg-muted">v{p.version}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className={cn("text-xs px-2 py-0.5 rounded-full", policyStatusBg(p.status))}>{p.status}</span>
-                        <span className="text-xs bg-surface-2 text-fg-secondary px-2 py-0.5 rounded">{p.category}</span>
-                      </div>
-                    </div>
-                    <button className="text-xs text-indigo-400 hover:text-indigo-300 shrink-0">Edit</button>
-                  </div>
-                  <p className="text-sm text-fg-secondary mb-3">{p.description}</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-fg-muted">
-                    <div><span className="block text-fg-muted">Owner</span>{p.owner}</div>
-                    <div><span className="block text-fg-muted">Last Review</span>{p.lastReviewed}</div>
-                    <div><span className="block text-fg-muted">Next Review</span>{p.nextReview}</div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-1">
-                    {p.appliesTo.map(risk => (
-                      <span key={risk} className={cn("text-xs px-1.5 py-0.5 rounded", riskBg(risk as RiskLevel))}>{risk}</span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* AUDITS TAB */}
-        {tab === "audits" && (
-          <div className="p-3 sm:p-4 md:p-6">
-            <div className="bg-surface-1 rounded-xl overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-tok-border">
-                    <th className="text-left px-4 py-3 text-fg-secondary font-medium">Model</th>
-                    <th className="text-left px-4 py-3 text-fg-secondary font-medium">Audit Type</th>
-                    <th className="text-left px-4 py-3 text-fg-secondary font-medium">Result</th>
-                    <th className="text-left px-4 py-3 text-fg-secondary font-medium">Score</th>
-                    <th className="text-left px-4 py-3 text-fg-secondary font-medium">Auditor</th>
-                    <th className="text-left px-4 py-3 text-fg-secondary font-medium">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {AUDITS.map(a => (
-                    <tr key={a.id} className="border-b border-tok-border hover:bg-surface-2/50 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="text-fg-primary">{a.modelName}</div>
-                        <div className="text-xs text-fg-muted mt-0.5">{a.findings}</div>
-                      </td>
-                      <td className="px-4 py-3 text-fg-primary">{a.auditType}</td>
-                      <td className="px-4 py-3">
-                        <span className={cn("text-xs px-2 py-0.5 rounded-full", auditResultBg(a.result))}>{a.result}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={cn("font-medium", scoreColor(a.score))}>{a.score}</span>
-                      </td>
-                      <td className="px-4 py-3 text-fg-secondary">{a.auditor}</td>
-                      <td className="px-4 py-3 text-fg-secondary">{a.date}</td>
+          {/* AUDITS TAB */}
+          {tab === "audits" && (
+            <div id="aigov-panel-audits" role="tabpanel" aria-label="Audits" className="p-3 sm:p-4 md:p-6">
+              <div className="bg-surface-1 rounded-xl overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-tok-border">
+                      <th scope="col" className="text-left px-4 py-3 text-fg-secondary font-medium">Model</th>
+                      <th scope="col" className="text-left px-4 py-3 text-fg-secondary font-medium">Audit Type</th>
+                      <th scope="col" className="text-left px-4 py-3 text-fg-secondary font-medium">Result</th>
+                      <th scope="col" className="text-left px-4 py-3 text-fg-secondary font-medium">Score</th>
+                      <th scope="col" className="text-left px-4 py-3 text-fg-secondary font-medium">Auditor</th>
+                      <th scope="col" className="text-left px-4 py-3 text-fg-secondary font-medium">Date</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {AUDITS.map(a => (
+                      <tr key={a.id} className="border-b border-tok-border hover:bg-surface-2/50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="text-fg-primary">{a.modelName}</div>
+                          <div className="text-xs text-fg-muted mt-0.5">{a.findings}</div>
+                        </td>
+                        <td className="px-4 py-3 text-fg-primary">{a.auditType}</td>
+                        <td className="px-4 py-3">
+                          <span className={cn("text-xs px-2 py-0.5 rounded-full", auditResultBg(a.result))}>{a.result}</span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={cn("font-medium", scoreColor(a.score))}>{a.score}</span>
+                        </td>
+                        <td className="px-4 py-3 text-fg-secondary">{a.auditor}</td>
+                        <td className="px-4 py-3 text-fg-secondary">{a.date}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </main>
       </div>
-    </div>
+    </>
   );
 }

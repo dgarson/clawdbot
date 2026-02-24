@@ -24,7 +24,7 @@ interface Model {
   successRate: number;
 }
 
-interface Route {
+interface RouteConfig {
   id: string;
   name: string;
   description: string;
@@ -97,7 +97,7 @@ const models: Model[] = [
   },
 ];
 
-const routes: Route[] = [
+const routes: RouteConfig[] = [
   {
     id: "r1", name: "Production Chat", description: "Main chat interface — optimize for quality and reliability",
     enabled: true, action: "fallback", priority: "quality",
@@ -202,10 +202,10 @@ function fmtCtx(n: number): string {
 // ── Tabs ───────────────────────────────────────────────────────────────────
 
 function RoutesTab() {
-  const [selected, setSelected] = useState<Route | null>(null);
+  const [selected, setSelected] = useState<RouteConfig | null>(null);
 
   return (
-    <div className="space-y-3">
+    <section aria-label="Routes configuration" className="space-y-3">
       {routes.length === 0 && (
         <ContextualEmptyState
           icon={Route}
@@ -217,15 +217,19 @@ function RoutesTab() {
       {routes.map((route) => (
         <div
           key={route.id}
+          role="button"
+          tabIndex={0}
+          aria-expanded={selected?.id === route.id}
+          onClick={() => setSelected(selected?.id === route.id ? null : route)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(selected?.id === route.id ? null : route); } }}
           className={cn(
-            "rounded-xl border p-4 cursor-pointer transition-all",
+            "rounded-xl border p-4 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
             !route.enabled && "opacity-50",
             selected?.id === route.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
           )}
-          onClick={() => setSelected(selected?.id === route.id ? null : route)}
         >
           <div className="flex items-center gap-3">
-            <div className={cn("w-2 h-2 rounded-full shrink-0", route.enabled ? "bg-emerald-400" : "bg-surface-3")} />
+            <span aria-hidden="true" className={cn("w-2 h-2 rounded-full shrink-0", route.enabled ? "bg-emerald-400" : "bg-surface-3")} />
             <span className="font-medium text-fg-primary">{route.name}</span>
             <span className={cn("text-xs px-1.5 py-0.5 rounded border capitalize", actionColor(route.action))}>
               {route.action}
@@ -283,7 +287,7 @@ function RoutesTab() {
           )}
         </div>
       ))}
-    </div>
+    </section>
   );
 }
 
@@ -292,18 +296,22 @@ function ModelsTab() {
   const maxLatency = Math.max(...models.filter((m) => m.status !== "down").map((m) => m.avgLatencyMs));
 
   return (
-    <div className="space-y-3">
+    <section aria-label="Model statuses" className="space-y-3">
       {models.map((m) => (
         <div
           key={m.id}
+          role="button"
+          tabIndex={0}
+          aria-expanded={selected?.id === m.id}
+          onClick={() => setSelected(selected?.id === m.id ? null : m)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(selected?.id === m.id ? null : m); } }}
           className={cn(
-            "rounded-xl border p-4 cursor-pointer transition-all",
+            "rounded-xl border p-4 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
             selected?.id === m.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
           )}
-          onClick={() => setSelected(selected?.id === m.id ? null : m)}
         >
           <div className="flex items-center gap-3">
-            <span className={cn("w-2 h-2 rounded-full shrink-0", statusColor(m.status))} />
+            <span aria-hidden="true" className={cn("w-2 h-2 rounded-full shrink-0", statusColor(m.status))} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-fg-primary">{m.name}</span>
@@ -322,13 +330,17 @@ function ModelsTab() {
           {m.status !== "down" && (
             <div className="mt-3 flex items-center gap-2">
               <span className="text-xs text-fg-muted w-14">Latency</span>
-              <div className="flex-1 bg-surface-2 rounded-full h-1.5">
+              <div
+                className="flex-1 bg-surface-2 rounded-full h-1.5"
+                role="img"
+                aria-label={`${m.name} latency: ${m.avgLatencyMs}ms`}
+              >
                 <div
                   className={cn("h-1.5 rounded-full", m.status === "degraded" ? "bg-amber-500" : "bg-emerald-500")}
                   style={{ width: (m.avgLatencyMs / maxLatency * 100) + "%" }}
                 />
               </div>
-              <span className="text-xs text-fg-secondary w-16 text-right">{m.avgLatencyMs}ms</span>
+              <span className="text-xs text-fg-secondary w-16 text-right" aria-hidden="true">{m.avgLatencyMs}ms</span>
             </div>
           )}
 
@@ -354,7 +366,7 @@ function ModelsTab() {
           )}
         </div>
       ))}
-    </div>
+    </section>
   );
 }
 
@@ -364,14 +376,15 @@ function EventsTab() {
   const filtered = events.filter((e) => filter === "all" || e.status === filter);
 
   return (
-    <div className="space-y-3">
-      <div className="flex gap-2 mb-4">
+    <section aria-label="Routing events" className="space-y-3">
+      <div role="group" aria-label="Filter events by status" className="flex gap-2 mb-4">
         {(["all", "fallback", "error"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
+            aria-pressed={filter === f}
             className={cn(
-              "px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors",
+              "px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
               filter === f ? "bg-indigo-600 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
             )}
           >
@@ -380,18 +393,18 @@ function EventsTab() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-tok-border overflow-hidden">
+      <div className="rounded-xl border border-tok-border overflow-hidden" aria-live="polite">
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-tok-border bg-surface-1">
-              <th className="text-left px-3 py-2 text-fg-secondary">Time</th>
-              <th className="text-left px-3 py-2 text-fg-secondary">Route</th>
-              <th className="text-left px-3 py-2 text-fg-secondary">Model</th>
-              <th className="text-left px-3 py-2 text-fg-secondary">Reason</th>
-              <th className="text-left px-3 py-2 text-fg-secondary">Tokens</th>
-              <th className="text-left px-3 py-2 text-fg-secondary">Latency</th>
-              <th className="text-left px-3 py-2 text-fg-secondary">Cost</th>
-              <th className="text-left px-3 py-2 text-fg-secondary">Status</th>
+              <th scope="col" className="text-left px-3 py-2 text-fg-secondary">Time</th>
+              <th scope="col" className="text-left px-3 py-2 text-fg-secondary">Route</th>
+              <th scope="col" className="text-left px-3 py-2 text-fg-secondary">Model</th>
+              <th scope="col" className="text-left px-3 py-2 text-fg-secondary">Reason</th>
+              <th scope="col" className="text-left px-3 py-2 text-fg-secondary">Tokens</th>
+              <th scope="col" className="text-left px-3 py-2 text-fg-secondary">Latency</th>
+              <th scope="col" className="text-left px-3 py-2 text-fg-secondary">Cost</th>
+              <th scope="col" className="text-left px-3 py-2 text-fg-secondary">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-tok-border">
@@ -410,7 +423,7 @@ function EventsTab() {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -428,7 +441,7 @@ function AnalyticsTab() {
   const maxModelReqs = sortedModels[0]?.[1] ?? 1;
 
   return (
-    <div className="space-y-6">
+    <section aria-label="Analytics overview" className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Total Requests (24h)", value: (totalReqs / 1000).toFixed(0) + "K" },
@@ -443,49 +456,57 @@ function AnalyticsTab() {
         ))}
       </div>
 
-      <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
-        <h3 className="text-sm font-semibold text-fg-primary mb-4">Requests by Route (24h)</h3>
+      <section aria-label="Requests by route" className="rounded-xl border border-tok-border bg-surface-1 p-5">
+        <h2 className="text-sm font-semibold text-fg-primary mb-4">Requests by Route (24h)</h2>
         <div className="space-y-3">
           {routeReqs.toSorted((a, b) => b.requestCount24h - a.requestCount24h).map((r) => (
             <div key={r.id} className="flex items-center gap-3">
               <span className="text-xs text-fg-primary w-40 truncate">{r.name}</span>
-              <div className="flex-1 bg-surface-2 rounded-full h-2">
+              <div
+                className="flex-1 bg-surface-2 rounded-full h-2"
+                role="img"
+                aria-label={`${r.name}: ${(r.requestCount24h / 1000).toFixed(0)}K requests`}
+              >
                 <div
                   className="h-2 rounded-full bg-indigo-500"
                   style={{ width: (r.requestCount24h / (routeReqs[0]?.requestCount24h ?? 1) * 100) + "%" }}
                 />
               </div>
-              <span className="text-xs text-fg-primary w-16 text-right">{(r.requestCount24h / 1000).toFixed(0)}K</span>
-              <span className="text-xs text-fg-muted w-10 text-right">{(r.requestCount24h / totalReqs * 100).toFixed(0)}%</span>
+              <span className="text-xs text-fg-primary w-16 text-right" aria-hidden="true">{(r.requestCount24h / 1000).toFixed(0)}K</span>
+              <span className="text-xs text-fg-muted w-10 text-right" aria-hidden="true">{(r.requestCount24h / totalReqs * 100).toFixed(0)}%</span>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="rounded-xl border border-tok-border bg-surface-1 p-5">
-        <h3 className="text-sm font-semibold text-fg-primary mb-4">Model Utilization</h3>
+      <section aria-label="Model utilization" className="rounded-xl border border-tok-border bg-surface-1 p-5">
+        <h2 className="text-sm font-semibold text-fg-primary mb-4">Model Utilization</h2>
         <div className="space-y-3">
           {sortedModels.map(([mid, count]) => {
             const m = models.find((mo) => mo.id === mid);
             return (
               <div key={mid} className="flex items-center gap-3">
                 <div className="flex items-center gap-2 w-40">
-                  <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", m ? statusColor(m.status) : "bg-surface-3")} />
+                  <span aria-hidden="true" className={cn("w-1.5 h-1.5 rounded-full shrink-0", m ? statusColor(m.status) : "bg-surface-3")} />
                   <span className="text-xs text-fg-primary truncate">{m?.name ?? mid}</span>
                 </div>
-                <div className="flex-1 bg-surface-2 rounded-full h-2">
+                <div
+                  className="flex-1 bg-surface-2 rounded-full h-2"
+                  role="img"
+                  aria-label={`${m?.name ?? mid}: ${(count / 1000).toFixed(0)}K requests`}
+                >
                   <div
                     className="h-2 rounded-full bg-emerald-500"
                     style={{ width: (count / maxModelReqs * 100) + "%" }}
                   />
                 </div>
-                <span className="text-xs text-fg-primary w-16 text-right">{(count / 1000).toFixed(0)}K</span>
+                <span className="text-xs text-fg-primary w-16 text-right" aria-hidden="true">{(count / 1000).toFixed(0)}K</span>
               </div>
             );
           })}
         </div>
-      </div>
-    </div>
+      </section>
+    </section>
   );
 }
 
@@ -540,42 +561,55 @@ export default function AIPromptRouter({ isLoading = false }: { isLoading?: bool
   const totalReqs = routes.filter((r) => r.enabled).reduce((a, r) => a + r.requestCount24h, 0);
 
   return (
-    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
-          <h1 className="text-2xl font-bold">AI Prompt Router</h1>
-          {downModels > 0 && (
-            <span className="text-xs bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-full px-3 py-1">
-              {downModels} model{downModels > 1 ? "s" : ""} down
-            </span>
-          )}
-        </div>
-        <p className="text-fg-secondary text-sm">
-          Intelligent routing across {models.length} models · {routes.filter((r) => r.enabled).length} active routes · {(totalReqs / 1000).toFixed(0)}K requests today · {healthyModels}/{models.length} healthy
-        </p>
-      </div>
-
-      <div className="flex gap-1 mb-6 border-b border-tok-border">
-        {TABS.map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={cn(
-              "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
-              tab === t
-                ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-fg-secondary hover:text-fg-primary"
+    <>
+      <a
+        href="#aipr-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
+      <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
+            <h1 className="text-2xl font-bold">AI Prompt Router</h1>
+            {downModels > 0 && (
+              <span role="status" className="text-xs bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-full px-3 py-1">
+                {downModels} model{downModels > 1 ? "s" : ""} down
+              </span>
             )}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+          </div>
+          <p className="text-fg-secondary text-sm">
+            Intelligent routing across {models.length} models · {routes.filter((r) => r.enabled).length} active routes · {(totalReqs / 1000).toFixed(0)}K requests today · {healthyModels}/{models.length} healthy
+          </p>
+        </div>
 
-      {tab === "Routes" && <RoutesTab />}
-      {tab === "Models" && <ModelsTab />}
-      {tab === "Events" && <EventsTab />}
-      {tab === "Analytics" && <AnalyticsTab />}
-    </div>
+        <div role="tablist" aria-label="Router sections" className="flex gap-1 mb-6 border-b border-tok-border">
+          {TABS.map((t) => (
+            <button
+              key={t}
+              role="tab"
+              aria-selected={tab === t}
+              aria-controls={`aipr-panel-${t.toLowerCase()}`}
+              onClick={() => setTab(t)}
+              className={cn(
+                "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
+                tab === t
+                  ? "border-indigo-500 text-indigo-400"
+                  : "border-transparent text-fg-secondary hover:text-fg-primary"
+              )}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        <main id="aipr-main">
+          {tab === "Routes" && <RoutesTab />}
+          {tab === "Models" && <ModelsTab />}
+          {tab === "Events" && <EventsTab />}
+          {tab === "Analytics" && <AnalyticsTab />}
+        </main>
+      </div>
+    </>
   );
 }

@@ -333,363 +333,405 @@ export default function A11yAuditDashboard({ isLoading = false }: { isLoading?: 
   };
 
   const tabs: { id: Tab; label: string; emoji: string }[] = [
-    { id: "overview", label: "Overview",         emoji: "📊" },
-    { id: "issues",   label: "Issues",           emoji: "⚠️" },
-    { id: "pages",    label: "Pages",            emoji: "📄" },
-    { id: "fixes",    label: "Remediation",      emoji: "🔧" },
+    { id: "overview", label: "Overview",    emoji: "📊" },
+    { id: "issues",   label: "Issues",      emoji: "⚠️" },
+    { id: "pages",    label: "Pages",       emoji: "📄" },
+    { id: "fixes",    label: "Remediation", emoji: "🔧" },
   ];
 
   return (
-    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h1 className="text-2xl font-bold text-fg-primary">Accessibility Audit</h1>
-            <p className="text-fg-secondary text-sm mt-1">WCAG 2.1 compliance audit across all Horizon UI surfaces</p>
+    <>
+      <a
+        href="#aad-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
+      <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h1 className="text-2xl font-bold text-fg-primary">Accessibility Audit</h1>
+              <p className="text-fg-secondary text-sm mt-1">WCAG 2.1 compliance audit across all Horizon UI surfaces</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-tok-border mb-6">
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={cn(
-              "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
-              tab === t.id
-                ? "text-fg-primary bg-surface-2 border border-b-0 border-tok-border"
-                : "text-fg-secondary hover:text-fg-primary"
-            )}
-          >
-            {t.emoji} {t.label}
-          </button>
-        ))}
-      </div>
+        {/* Tabs */}
+        <div
+          role="tablist"
+          aria-label="Dashboard sections"
+          className="flex gap-1 border-b border-tok-border mb-6"
+        >
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={tab === t.id}
+              aria-controls={`panel-${t.id}`}
+              onClick={() => setTab(t.id)}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
+                tab === t.id
+                  ? "text-fg-primary bg-surface-2 border border-b-0 border-tok-border"
+                  : "text-fg-secondary hover:text-fg-primary"
+              )}
+            >
+              <span aria-hidden="true">{t.emoji}</span> {t.label}
+            </button>
+          ))}
+        </div>
 
-      {/* Overview Tab */}
-      {tab === "overview" && (
-        <div className="space-y-6">
-          {/* Score + Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-surface-1 border border-tok-border rounded-lg p-5 text-center col-span-1">
-              <div className={cn("text-5xl font-bold mb-1", overallScore >= 80 ? "text-emerald-400" : overallScore >= 60 ? "text-amber-400" : "text-rose-400")}>
-                {overallScore}
-              </div>
-              <div className="text-sm text-fg-secondary">Overall Score</div>
-              <div className="text-xs text-fg-muted mt-1">WCAG AA target: 90+</div>
-            </div>
-            {[
-              { label: "Total Issues",     value: totalIssues,  color: "text-fg-primary" },
-              { label: "Critical Issues",  value: totalCritical, color: "text-rose-400" },
-              { label: "Pages Audited",    value: PAGES.length, color: "text-sky-400" },
-            ].map(s => (
-              <div key={s.label} className="bg-surface-1 border border-tok-border rounded-lg p-5 text-center">
-                <div className={cn("text-4xl font-bold mb-1", s.color)}>{s.value}</div>
-                <div className="text-sm text-fg-secondary">{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Issues by severity */}
-          <div className="bg-surface-1 border border-tok-border rounded-lg p-5">
-            <div className="text-sm font-semibold text-fg-primary mb-4">Issues by Severity</div>
-            {(["critical", "serious", "moderate", "minor"] as Severity[]).map(sev => {
-              const count = VIOLATIONS.filter(v => v.impact === sev).length;
-              const pct = (count / VIOLATIONS.length) * 100;
-              return (
-                <div key={sev} className="flex items-center gap-3 mb-3">
-                  <div className="w-20 text-right">
-                    <span className={cn("text-xs font-medium", SEVERITY_CONFIG[sev].color)}>
-                      {SEVERITY_CONFIG[sev].label}
-                    </span>
+        <main id="aad-main">
+          {/* Overview Tab */}
+          {tab === "overview" && (
+            <section id="panel-overview" role="tabpanel" aria-label="Overview" className="space-y-6">
+              {/* Score + Stats */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-surface-1 border border-tok-border rounded-lg p-5 text-center col-span-1" role="status" aria-label={`Overall accessibility score: ${overallScore}`}>
+                  <div className={cn("text-5xl font-bold mb-1", overallScore >= 80 ? "text-emerald-400" : overallScore >= 60 ? "text-amber-400" : "text-rose-400")} aria-hidden="true">
+                    {overallScore}
                   </div>
-                  <div className="flex-1 bg-surface-2 rounded-full h-2">
-                    <div
-                      className={cn("h-full rounded-full", sev === "critical" ? "bg-rose-500" : sev === "serious" ? "bg-orange-500" : sev === "moderate" ? "bg-amber-500" : "bg-sky-500")}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                  <div className="w-8 text-right text-xs text-fg-secondary">{count}</div>
+                  <div className="text-sm text-fg-secondary">Overall Score</div>
+                  <div className="text-xs text-fg-muted mt-1">WCAG AA target: 90+</div>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* WCAG levels + top categories */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-surface-1 border border-tok-border rounded-lg p-5">
-              <div className="text-sm font-semibold text-fg-primary mb-4">WCAG Level Breakdown</div>
-              <div className="space-y-3">
-                {(["A", "AA", "AAA"] as WCAGLevel[]).map(level => (
-                  <div key={level} className="flex items-center gap-3">
-                    <span className="text-xs px-2 py-0.5 rounded bg-surface-2 text-fg-primary font-mono w-12 text-center">
-                      WCAG {level}
-                    </span>
-                    <div className="flex-1 bg-surface-2 rounded-full h-2">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(WCAG_COUNTS[level] / VIOLATIONS.length) * 100}%` }} />
-                    </div>
-                    <span className="text-xs text-fg-secondary w-4 text-right">{WCAG_COUNTS[level]}</span>
+                {[
+                  { label: "Total Issues",     value: totalIssues,  color: "text-fg-primary" },
+                  { label: "Critical Issues",  value: totalCritical, color: "text-rose-400" },
+                  { label: "Pages Audited",    value: PAGES.length, color: "text-sky-400" },
+                ].map(s => (
+                  <div key={s.label} className="bg-surface-1 border border-tok-border rounded-lg p-5 text-center">
+                    <div className={cn("text-4xl font-bold mb-1", s.color)}>{s.value}</div>
+                    <div className="text-sm text-fg-secondary">{s.label}</div>
                   </div>
                 ))}
               </div>
-            </div>
 
-            <div className="bg-surface-1 border border-tok-border rounded-lg p-5">
-              <div className="text-sm font-semibold text-fg-primary mb-4">Top Failing Categories</div>
-              <div className="space-y-2">
-                {categories.map(cat => {
-                  const count = VIOLATIONS.filter(v => v.category === cat).length;
-                  const affectedPages = Math.max(...VIOLATIONS.filter(v => v.category === cat).map(v => v.affectedPages));
+              {/* Issues by severity */}
+              <section aria-label="Issues by severity" className="bg-surface-1 border border-tok-border rounded-lg p-5">
+                <div className="text-sm font-semibold text-fg-primary mb-4">Issues by Severity</div>
+                {(["critical", "serious", "moderate", "minor"] as Severity[]).map(sev => {
+                  const count = VIOLATIONS.filter(v => v.impact === sev).length;
+                  const pct = (count / VIOLATIONS.length) * 100;
                   return (
-                    <div key={cat} className="flex items-center justify-between text-sm">
-                      <span className="text-fg-primary">{cat}</span>
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className="text-fg-muted">{count} rule{count !== 1 ? "s" : ""}</span>
-                        <span className="text-rose-400">{affectedPages} pages</span>
+                    <div key={sev} className="flex items-center gap-3 mb-3">
+                      <div className="w-20 text-right">
+                        <span className={cn("text-xs font-medium", SEVERITY_CONFIG[sev].color)}>
+                          {SEVERITY_CONFIG[sev].label}
+                        </span>
                       </div>
+                      <div className="flex-1 bg-surface-2 rounded-full h-2" role="img" aria-label={`${SEVERITY_CONFIG[sev].label}: ${count} issues`}>
+                        <div
+                          className={cn("h-full rounded-full", sev === "critical" ? "bg-rose-500" : sev === "serious" ? "bg-orange-500" : sev === "moderate" ? "bg-amber-500" : "bg-sky-500")}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <div className="w-8 text-right text-xs text-fg-secondary" aria-hidden="true">{count}</div>
+                    </div>
+                  );
+                })}
+              </section>
+
+              {/* WCAG levels + top categories */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <section aria-label="WCAG level breakdown" className="bg-surface-1 border border-tok-border rounded-lg p-5">
+                  <div className="text-sm font-semibold text-fg-primary mb-4">WCAG Level Breakdown</div>
+                  <div className="space-y-3">
+                    {(["A", "AA", "AAA"] as WCAGLevel[]).map(level => (
+                      <div key={level} className="flex items-center gap-3">
+                        <span className="text-xs px-2 py-0.5 rounded bg-surface-2 text-fg-primary font-mono w-12 text-center">
+                          WCAG {level}
+                        </span>
+                        <div className="flex-1 bg-surface-2 rounded-full h-2" role="img" aria-label={`WCAG ${level}: ${WCAG_COUNTS[level]} issues`}>
+                          <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(WCAG_COUNTS[level] / VIOLATIONS.length) * 100}%` }} />
+                        </div>
+                        <span className="text-xs text-fg-secondary w-4 text-right" aria-hidden="true">{WCAG_COUNTS[level]}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section aria-label="Top failing categories" className="bg-surface-1 border border-tok-border rounded-lg p-5">
+                  <div className="text-sm font-semibold text-fg-primary mb-4">Top Failing Categories</div>
+                  <div className="space-y-2">
+                    {categories.map(cat => {
+                      const count = VIOLATIONS.filter(v => v.category === cat).length;
+                      const affectedPages = Math.max(...VIOLATIONS.filter(v => v.category === cat).map(v => v.affectedPages));
+                      return (
+                        <div key={cat} className="flex items-center justify-between text-sm">
+                          <span className="text-fg-primary">{cat}</span>
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-fg-muted">{count} rule{count !== 1 ? "s" : ""}</span>
+                            <span className="text-rose-400">{affectedPages} pages</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              </div>
+            </section>
+          )}
+
+          {/* Issues Tab */}
+          {tab === "issues" && (
+            <section id="panel-issues" role="tabpanel" aria-label="Issues" className="flex gap-4">
+              {/* Filters */}
+              <div className="w-48 shrink-0 space-y-4">
+                <div role="group" aria-label="Filter by impact">
+                  <div className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-2">Impact</div>
+                  {(["all", "critical", "serious", "moderate", "minor"] as const).map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setImpactFilter(s)}
+                      aria-pressed={impactFilter === s}
+                      className={cn(
+                        "w-full text-left px-3 py-1.5 rounded text-sm flex items-center gap-2 transition-colors mb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
+                        impactFilter === s ? "bg-surface-2 text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
+                      )}
+                    >
+                      {s !== "all" && <div aria-hidden="true" className={cn("w-2 h-2 rounded-full", s === "critical" ? "bg-rose-400" : s === "serious" ? "bg-orange-400" : s === "moderate" ? "bg-amber-400" : "bg-sky-400")} />}
+                      {s === "all" ? "All" : SEVERITY_CONFIG[s].label}
+                      <span className="ml-auto text-xs text-fg-muted">
+                        {s === "all" ? VIOLATIONS.length : VIOLATIONS.filter(v => v.impact === s).length}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div role="group" aria-label="Filter by category">
+                  <div className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-2">Category</div>
+                  {["all", ...categories].map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setCategoryFilter(cat)}
+                      aria-pressed={categoryFilter === cat}
+                      className={cn(
+                        "w-full text-left px-3 py-1.5 rounded text-sm transition-colors mb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
+                        categoryFilter === cat ? "bg-surface-2 text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
+                      )}
+                    >
+                      {cat === "all" ? "All Categories" : cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Issue list */}
+              <div className="flex-1 space-y-3" aria-live="polite" aria-label="Filtered violations">
+                {filteredViolations.length === 0 && (
+                  <ContextualEmptyState
+                    icon={ShieldCheck}
+                    title="No violations match filters"
+                    description="Try adjusting the severity or category filters to see results."
+                    size="md"
+                  />
+                )}
+                {filteredViolations.map(v => (
+                  <div
+                    key={v.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={selectedViolation?.id === v.id}
+                    aria-controls={`violation-detail-${v.id}`}
+                    onClick={() => setSelectedViolation(selectedViolation?.id === v.id ? null : v)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedViolation(selectedViolation?.id === v.id ? null : v); } }}
+                    className={cn(
+                      "bg-surface-1 border rounded-lg p-4 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
+                      selectedViolation?.id === v.id ? "border-indigo-600" : "border-tok-border hover:border-tok-border"
+                    )}
+                  >
+                    <div className="flex items-start gap-3 mb-2">
+                      <span className={cn("text-xs px-2 py-0.5 rounded border mt-0.5 shrink-0", SEVERITY_CONFIG[v.impact].color, SEVERITY_CONFIG[v.impact].bg)}>
+                        {SEVERITY_CONFIG[v.impact].label}
+                      </span>
+                      <div>
+                        <div className="font-medium text-fg-primary text-sm">{v.description}</div>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-fg-muted">
+                          <span className="font-mono">{v.ruleId}</span>
+                          <span>{v.wcagCriteria}</span>
+                          <span className="text-fg-muted">WCAG {v.wcagLevel}</span>
+                          <span className="text-rose-400">{v.affectedPages} pages affected</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {selectedViolation?.id === v.id && (
+                      <div
+                        id={`violation-detail-${v.id}`}
+                        className="mt-4 space-y-4 border-t border-tok-border pt-4"
+                        onClick={e => e.stopPropagation()}
+                        onKeyDown={e => e.stopPropagation()}
+                      >
+                        <div>
+                          <div className="text-xs text-fg-muted mb-1">Selector</div>
+                          <code className="text-xs bg-surface-0 px-2 py-1 rounded text-amber-300 font-mono">{v.selector}</code>
+                        </div>
+                        <div>
+                          <div className="text-xs text-fg-muted mb-1">How to Fix</div>
+                          <p className="text-sm text-fg-primary">{v.howToFix}</p>
+                        </div>
+                        {v.codeExample && (
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <div className="text-xs text-rose-400 mb-1" aria-hidden="true">❌ Before</div>
+                              <pre className="bg-surface-0 border border-tok-border rounded p-3 text-xs text-fg-secondary font-mono overflow-x-auto whitespace-pre-wrap">{v.codeExample.before}</pre>
+                            </div>
+                            <div>
+                              <div className="text-xs text-emerald-400 mb-1" aria-hidden="true">✅ After</div>
+                              <pre className="bg-surface-0 border border-tok-border rounded p-3 text-xs text-fg-primary font-mono overflow-x-auto whitespace-pre-wrap">{v.codeExample.after}</pre>
+                            </div>
+                          </div>
+                        )}
+                        <a
+                          href={v.helpUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`View WCAG guidance for ${v.ruleId} (opens in new tab)`}
+                          className="text-xs text-indigo-400 hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded"
+                        >
+                          📖 View WCAG guidance →
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Pages Tab */}
+          {tab === "pages" && (
+            <section id="panel-pages" role="tabpanel" aria-label="Audited pages" className="space-y-4">
+              <div className="bg-surface-1 border border-tok-border rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-tok-border">
+                      {["Page", "Score", "Critical", "Serious", "Moderate", "Minor", "Last Audited"].map(h => (
+                        <th key={h} scope="col" className="text-left px-4 py-3 text-xs font-semibold text-fg-muted uppercase tracking-wider">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {PAGES.map(page => (
+                      <React.Fragment key={page.url}>
+                        <tr
+                          onClick={() => setSelectedPage(selectedPage?.url === page.url ? null : page)}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedPage(selectedPage?.url === page.url ? null : page); } }}
+                          tabIndex={0}
+                          role="row"
+                          aria-expanded={selectedPage?.url === page.url}
+                          className="border-b border-tok-border/50 hover:bg-surface-2/30 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                        >
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-fg-primary">{page.title}</div>
+                            <div className="text-xs text-fg-muted font-mono">{page.url}</div>
+                          </td>
+                          <td className="px-4 py-3"><ScoreBadge score={page.score} /></td>
+                          <td className="px-4 py-3 text-rose-400 font-medium">{page.critical > 0 ? page.critical : <span className="text-fg-muted">—</span>}</td>
+                          <td className="px-4 py-3 text-orange-400">{page.serious > 0 ? page.serious : <span className="text-fg-muted">—</span>}</td>
+                          <td className="px-4 py-3 text-amber-400">{page.moderate > 0 ? page.moderate : <span className="text-fg-muted">—</span>}</td>
+                          <td className="px-4 py-3 text-sky-400">{page.minor > 0 ? page.minor : <span className="text-fg-muted">—</span>}</td>
+                          <td className="px-4 py-3 text-fg-muted text-xs">{new Date(page.lastAuditedAt).toLocaleString()}</td>
+                        </tr>
+                        {selectedPage?.url === page.url && (
+                          <tr className="border-b border-tok-border bg-surface-2/20">
+                            <td colSpan={7} className="px-4 py-4">
+                              <div className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-3">Violations on this page</div>
+                              <div className="space-y-2">
+                                {page.violations.map(vid => {
+                                  const v = VIOLATIONS.find(vv => vv.id === vid);
+                                  if (!v) {return null;}
+                                  return (
+                                    <div key={vid} className="flex items-center gap-3 text-sm">
+                                      <span className={cn("text-xs px-2 py-0.5 rounded border shrink-0", SEVERITY_CONFIG[v.impact].color, SEVERITY_CONFIG[v.impact].bg)}>
+                                        {SEVERITY_CONFIG[v.impact].label}
+                                      </span>
+                                      <span className="text-fg-primary">{v.description}</span>
+                                      <span className="text-xs text-fg-muted font-mono ml-auto">{v.ruleId}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {/* Fixes / Remediation Tab */}
+          {tab === "fixes" && (
+            <section id="panel-fixes" role="tabpanel" aria-label="Remediation">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-5">
+                {[
+                  { label: "Total Items",  value: REMEDIATIONS.length, color: "text-fg-primary" },
+                  { label: "In Progress",  value: REMEDIATIONS.filter(r => r.status === "in-progress").length, color: "text-amber-400" },
+                  { label: "Completed",    value: REMEDIATIONS.filter(r => r.status === "done").length, color: "text-emerald-400" },
+                ].map(s => (
+                  <div key={s.label} className="bg-surface-1 border border-tok-border rounded-lg p-4 text-center">
+                    <div className={cn("text-3xl font-bold", s.color)}>{s.value}</div>
+                    <div className="text-xs text-fg-muted mt-1">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                {REMEDIATIONS.map(rem => {
+                  const v = VIOLATIONS.find(vv => vv.id === rem.violationId);
+                  if (!v) {return null;}
+                  return (
+                    <div key={rem.violationId} className="bg-surface-1 border border-tok-border rounded-lg p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className={cn("text-xs font-semibold", PRIORITY_CONFIG[rem.priority].color)}>
+                              {PRIORITY_CONFIG[rem.priority].label}
+                            </span>
+                            <span className="text-xs px-2 py-0.5 rounded bg-surface-2 text-fg-secondary">{rem.category}</span>
+                            <span className="text-xs text-fg-muted">effort: {rem.effort}</span>
+                            {rem.assignedTo && <span className="text-xs text-fg-muted"><span aria-hidden="true">👤</span> {rem.assignedTo}</span>}
+                          </div>
+                          <div className="font-medium text-fg-primary text-sm">{v.description}</div>
+                          <div className="text-xs text-fg-muted mt-1 font-mono">{v.ruleId} · {v.wcagCriteria}</div>
+                          <div className="text-xs text-fg-secondary mt-2">{v.howToFix}</div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2 shrink-0">
+                          <span className={cn("text-xs px-2 py-1 rounded", STATUS_CONFIG[rem.status].color)}>
+                            {STATUS_CONFIG[rem.status].label}
+                          </span>
+                          {rem.status !== "done" && (
+                            <button
+                              aria-label={`Mark ${v.ruleId} as done`}
+                              className="text-xs px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-fg-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                            >
+                              Mark Done
+                            </button>
+                          )}
+                          {rem.status === "done" && <span className="text-sm" aria-label="Completed">✅</span>}
+                        </div>
+                      </div>
+                      {v.codeExample && (
+                        <details className="mt-3">
+                          <summary className="text-xs text-fg-muted cursor-pointer hover:text-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded">Show code example</summary>
+                          <div className="mt-2 grid grid-cols-2 gap-2">
+                            <pre className="bg-surface-0 border border-rose-900/40 rounded p-2 text-xs text-fg-secondary font-mono overflow-x-auto whitespace-pre-wrap">{v.codeExample.before}</pre>
+                            <pre className="bg-surface-0 border border-emerald-900/40 rounded p-2 text-xs text-fg-primary font-mono overflow-x-auto whitespace-pre-wrap">{v.codeExample.after}</pre>
+                          </div>
+                        </details>
+                      )}
                     </div>
                   );
                 })}
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Issues Tab */}
-      {tab === "issues" && (
-        <div className="flex gap-4">
-          {/* Filters */}
-          <div className="w-48 shrink-0 space-y-4">
-            <div>
-              <div className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-2">Impact</div>
-              {(["all", "critical", "serious", "moderate", "minor"] as const).map(s => (
-                <button
-                  key={s}
-                  onClick={() => setImpactFilter(s)}
-                  className={cn(
-                    "w-full text-left px-3 py-1.5 rounded text-sm flex items-center gap-2 transition-colors mb-1",
-                    impactFilter === s ? "bg-surface-2 text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
-                  )}
-                >
-                  {s !== "all" && <div className={cn("w-2 h-2 rounded-full", s === "critical" ? "bg-rose-400" : s === "serious" ? "bg-orange-400" : s === "moderate" ? "bg-amber-400" : "bg-sky-400")} />}
-                  {s === "all" ? "All" : SEVERITY_CONFIG[s].label}
-                  <span className="ml-auto text-xs text-fg-muted">
-                    {s === "all" ? VIOLATIONS.length : VIOLATIONS.filter(v => v.impact === s).length}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-2">Category</div>
-              {["all", ...categories].map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setCategoryFilter(cat)}
-                  className={cn(
-                    "w-full text-left px-3 py-1.5 rounded text-sm transition-colors mb-1",
-                    categoryFilter === cat ? "bg-surface-2 text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
-                  )}
-                >
-                  {cat === "all" ? "All Categories" : cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Issue list */}
-          <div className="flex-1 space-y-3">
-            {filteredViolations.length === 0 && (
-              <ContextualEmptyState
-                icon={ShieldCheck}
-                title="No violations match filters"
-                description="Try adjusting the severity or category filters to see results."
-                size="md"
-              />
-            )}
-            {filteredViolations.map(v => (
-              <div
-                key={v.id}
-                onClick={() => setSelectedViolation(selectedViolation?.id === v.id ? null : v)}
-                className={cn(
-                  "bg-surface-1 border rounded-lg p-4 cursor-pointer transition-colors",
-                  selectedViolation?.id === v.id ? "border-indigo-600" : "border-tok-border hover:border-tok-border"
-                )}
-              >
-                <div className="flex items-start gap-3 mb-2">
-                  <span className={cn("text-xs px-2 py-0.5 rounded border mt-0.5 shrink-0", SEVERITY_CONFIG[v.impact].color, SEVERITY_CONFIG[v.impact].bg)}>
-                    {SEVERITY_CONFIG[v.impact].label}
-                  </span>
-                  <div>
-                    <div className="font-medium text-fg-primary text-sm">{v.description}</div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-fg-muted">
-                      <span className="font-mono">{v.ruleId}</span>
-                      <span>{v.wcagCriteria}</span>
-                      <span className="text-fg-muted">WCAG {v.wcagLevel}</span>
-                      <span className="text-rose-400">{v.affectedPages} pages affected</span>
-                    </div>
-                  </div>
-                </div>
-
-                {selectedViolation?.id === v.id && (
-                  <div className="mt-4 space-y-4 border-t border-tok-border pt-4" onClick={e => e.stopPropagation()}>
-                    <div>
-                      <div className="text-xs text-fg-muted mb-1">Selector</div>
-                      <code className="text-xs bg-surface-0 px-2 py-1 rounded text-amber-300 font-mono">{v.selector}</code>
-                    </div>
-                    <div>
-                      <div className="text-xs text-fg-muted mb-1">How to Fix</div>
-                      <p className="text-sm text-fg-primary">{v.howToFix}</p>
-                    </div>
-                    {v.codeExample && (
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <div className="text-xs text-rose-400 mb-1">❌ Before</div>
-                          <pre className="bg-surface-0 border border-tok-border rounded p-3 text-xs text-fg-secondary font-mono overflow-x-auto whitespace-pre-wrap">{v.codeExample.before}</pre>
-                        </div>
-                        <div>
-                          <div className="text-xs text-emerald-400 mb-1">✅ After</div>
-                          <pre className="bg-surface-0 border border-tok-border rounded p-3 text-xs text-fg-primary font-mono overflow-x-auto whitespace-pre-wrap">{v.codeExample.after}</pre>
-                        </div>
-                      </div>
-                    )}
-                    <div className="text-xs text-indigo-400 cursor-pointer hover:text-indigo-300">
-                      📖 View WCAG guidance →
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Pages Tab */}
-      {tab === "pages" && (
-        <div className="space-y-4">
-          <div className="bg-surface-1 border border-tok-border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-tok-border">
-                  {["Page", "Score", "Critical", "Serious", "Moderate", "Minor", "Last Audited"].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-fg-muted uppercase tracking-wider">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {PAGES.map(page => (
-                  <React.Fragment key={page.url}>
-                    <tr
-                      onClick={() => setSelectedPage(selectedPage?.url === page.url ? null : page)}
-                      className="border-b border-tok-border/50 hover:bg-surface-2/30 cursor-pointer"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-fg-primary">{page.title}</div>
-                        <div className="text-xs text-fg-muted font-mono">{page.url}</div>
-                      </td>
-                      <td className="px-4 py-3"><ScoreBadge score={page.score} /></td>
-                      <td className="px-4 py-3 text-rose-400 font-medium">{page.critical > 0 ? page.critical : <span className="text-fg-muted">—</span>}</td>
-                      <td className="px-4 py-3 text-orange-400">{page.serious > 0 ? page.serious : <span className="text-fg-muted">—</span>}</td>
-                      <td className="px-4 py-3 text-amber-400">{page.moderate > 0 ? page.moderate : <span className="text-fg-muted">—</span>}</td>
-                      <td className="px-4 py-3 text-sky-400">{page.minor > 0 ? page.minor : <span className="text-fg-muted">—</span>}</td>
-                      <td className="px-4 py-3 text-fg-muted text-xs">{new Date(page.lastAuditedAt).toLocaleString()}</td>
-                    </tr>
-                    {selectedPage?.url === page.url && (
-                      <tr className="border-b border-tok-border bg-surface-2/20">
-                        <td colSpan={7} className="px-4 py-4">
-                          <div className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-3">Violations on this page</div>
-                          <div className="space-y-2">
-                            {page.violations.map(vid => {
-                              const v = VIOLATIONS.find(vv => vv.id === vid);
-                              if (!v) {return null;}
-                              return (
-                                <div key={vid} className="flex items-center gap-3 text-sm">
-                                  <span className={cn("text-xs px-2 py-0.5 rounded border shrink-0", SEVERITY_CONFIG[v.impact].color, SEVERITY_CONFIG[v.impact].bg)}>
-                                    {SEVERITY_CONFIG[v.impact].label}
-                                  </span>
-                                  <span className="text-fg-primary">{v.description}</span>
-                                  <span className="text-xs text-fg-muted font-mono ml-auto">{v.ruleId}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Fixes / Remediation Tab */}
-      {tab === "fixes" && (
-        <div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-5">
-            {[
-              { label: "Total Items",  value: REMEDIATIONS.length, color: "text-fg-primary" },
-              { label: "In Progress",  value: REMEDIATIONS.filter(r => r.status === "in-progress").length, color: "text-amber-400" },
-              { label: "Completed",    value: REMEDIATIONS.filter(r => r.status === "done").length, color: "text-emerald-400" },
-            ].map(s => (
-              <div key={s.label} className="bg-surface-1 border border-tok-border rounded-lg p-4 text-center">
-                <div className={cn("text-3xl font-bold", s.color)}>{s.value}</div>
-                <div className="text-xs text-fg-muted mt-1">{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="space-y-3">
-            {REMEDIATIONS.map(rem => {
-              const v = VIOLATIONS.find(vv => vv.id === rem.violationId);
-              if (!v) {return null;}
-              return (
-                <div key={rem.violationId} className="bg-surface-1 border border-tok-border rounded-lg p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={cn("text-xs font-semibold", PRIORITY_CONFIG[rem.priority].color)}>
-                          {PRIORITY_CONFIG[rem.priority].label}
-                        </span>
-                        <span className="text-xs px-2 py-0.5 rounded bg-surface-2 text-fg-secondary">{rem.category}</span>
-                        <span className="text-xs text-fg-muted">effort: {rem.effort}</span>
-                        {rem.assignedTo && <span className="text-xs text-fg-muted">👤 {rem.assignedTo}</span>}
-                      </div>
-                      <div className="font-medium text-fg-primary text-sm">{v.description}</div>
-                      <div className="text-xs text-fg-muted mt-1 font-mono">{v.ruleId} · {v.wcagCriteria}</div>
-                      <div className="text-xs text-fg-secondary mt-2">{v.howToFix}</div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <span className={cn("text-xs px-2 py-1 rounded", STATUS_CONFIG[rem.status].color)}>
-                        {STATUS_CONFIG[rem.status].label}
-                      </span>
-                      {rem.status !== "done" && (
-                        <button className="text-xs px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-fg-primary transition-colors">
-                          Mark Done
-                        </button>
-                      )}
-                      {rem.status === "done" && <span className="text-sm">✅</span>}
-                    </div>
-                  </div>
-                  {v.codeExample && (
-                    <details className="mt-3">
-                      <summary className="text-xs text-fg-muted cursor-pointer hover:text-fg-primary">Show code example</summary>
-                      <div className="mt-2 grid grid-cols-2 gap-2">
-                        <pre className="bg-surface-0 border border-rose-900/40 rounded p-2 text-xs text-fg-secondary font-mono overflow-x-auto whitespace-pre-wrap">{v.codeExample.before}</pre>
-                        <pre className="bg-surface-0 border border-emerald-900/40 rounded p-2 text-xs text-fg-primary font-mono overflow-x-auto whitespace-pre-wrap">{v.codeExample.after}</pre>
-                      </div>
-                    </details>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
+            </section>
+          )}
+        </main>
+      </div>
+    </>
   );
 }
