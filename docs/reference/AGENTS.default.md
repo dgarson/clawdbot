@@ -105,7 +105,7 @@ git commit -m "Add Clawd workspace"
 - **discord** — Discord actions: react, stickers, polls. Use `user:<id>` or `channel:<id>` targets (bare numeric ids are ambiguous).
 - **gog** — Google Suite CLI: Gmail, Calendar, Drive, Contacts.
 - **spotify-player** — Terminal Spotify client to search/queue/control playback.
-- **sag** — ElevenLabs speech with mac-style say UX; streams to speakers by default.
+- **sag** — ⚠️ DEPRECATED — Use `openai-tts` for text-to-speech instead.
 - **Sonos CLI** — Control Sonos speakers (discover/status/playback/volume/grouping) from scripts.
 - **blucli** — Play, group, and automate BluOS players from scripts.
 - **OpenHue CLI** — Philips Hue lighting control for scenes and automations.

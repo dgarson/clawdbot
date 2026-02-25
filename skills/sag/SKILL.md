@@ -1,7 +1,9 @@
 ---
 name: sag
-description: ElevenLabs text-to-speech with mac-style say UX.
+description: ⚠️ DEPRECATED — Use OpenAI TTS instead (`openai-tts` skill, `audio-brief`, or `report-audio-dm`). ElevenLabs text-to-speech with mac-style say UX.
 homepage: https://sag.sh
+deprecated: true
+preferredAlternative: openai-tts
 metadata:
   {
     "openclaw":
@@ -24,6 +26,16 @@ metadata:
 ---
 
 # sag
+
+> ⚠️ **DEPRECATED** — Use OpenAI TTS instead.
+>
+> Preferred alternatives:
+>
+> - `openai-tts` skill — shared script for all agents
+> - `audio-brief` skill — convert content to spoken briefings
+> - `report-audio-dm` skill — reports with audio summaries
+>
+> This skill is no longer recommended for new use.
 
 Use `sag` for ElevenLabs TTS with local playback.
 

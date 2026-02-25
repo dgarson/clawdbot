@@ -111,7 +111,7 @@ git commit -m "Add Clawd workspace"
 - **discord** — Discord 操作：回应、贴纸、投票。使用 `user:<id>` 或 `channel:<id>` 目标（纯数字 id 有歧义）。
 - **gog** — Google Suite CLI：Gmail、日历、云端硬盘、通讯录。
 - **spotify-player** — 终端 Spotify 客户端，用于搜索/排队/控制播放。
-- **sag** — 具有 mac 风格 say UX 的 ElevenLabs 语音；默认流式输出到扬声器。
+- **sag** — ⚠️ 已弃用 — 请改用 `openai-tts` 进行语音合成。
 - **Sonos CLI** — 从脚本控制 Sonos 扬声器（发现/状态/播放/音量/分组）。
 - **blucli** — 从脚本播放、分组和自动化 BluOS 播放器。
 - **OpenHue CLI** — 用于场景和自动化的 Philips Hue 照明控制。

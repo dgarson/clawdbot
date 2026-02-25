@@ -17,8 +17,12 @@ It does not define which tools exist; OpenClaw provides built-in tools internall
 - Send an iMessage/SMS: describe who/what, confirm before sending.
 - Prefer short messages; avoid sending secrets.
 
+### openai-tts
+
+- Text-to-speech: specify voice and target speaker/room. Use the `openai-tts` skill.
+
 ### sag
 
-- Text-to-speech: specify voice, target speaker/room, and whether to stream.
+- ⚠️ DEPRECATED — Use `openai-tts` instead.
 
 Add whatever else you want the assistant to know about your local toolchain.
