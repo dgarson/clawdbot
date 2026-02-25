@@ -455,7 +455,7 @@ describe("session lifecycle — abort and control", () => {
     const promptPromise = session.prompt("Hello");
     // Abort after a microtask to ensure prompt() has started
     await new Promise((resolve) => setTimeout(resolve, 10));
-    session.abort();
+    void session.abort();
     await promptPromise;
 
     expect(interruptCalled).toBe(true);
