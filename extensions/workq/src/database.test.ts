@@ -341,6 +341,50 @@ describe("WorkqDatabase", () => {
     ).toThrow(/Not your work item/);
   });
 
+  it("repairs legacy rows where status and agent_id were swapped to system:unclaimed/claimed", () => {
+    const fixture = makeFixture();
+    const db = addDb(fixture);
+
+    db.claim({ issueRef: "ISS-UNCLAIMED", agentId: "agent-alpha" });
+
+    // Simulate the old bug where status='system:unclaimed' and agent_id='claimed' were swapped.
+    const internal = db as unknown as { db: { exec: (sql: string) => void } };
+    internal.db.exec("PRAGMA ignore_check_constraints = ON;");
+    internal.db.exec(
+      "UPDATE work_items SET status = 'system:unclaimed', agent_id = 'claimed' WHERE issue_ref = 'ISS-UNCLAIMED'",
+    );
+    internal.db.exec("PRAGMA ignore_check_constraints = OFF;");
+
+    db.close();
+
+    const reopened = addDb(fixture);
+    const repaired = reopened.get("ISS-UNCLAIMED");
+
+    // Both legacy swapped rows are repaired to status='dropped'
+    expect(repaired?.status).toBe("dropped");
+  });
+
+  it("repairs sentinel rows where agent_id was set to system:unclaimed", () => {
+    const fixture = makeFixture();
+    const db = addDb(fixture);
+
+    db.claim({ issueRef: "ISS-SENTINEL", agentId: "agent-beta" });
+
+    // Simulate the old autoReleaseBySession/systemReleaseToUnclaimed sentinel pattern.
+    const internal = db as unknown as { db: { exec: (sql: string) => void } };
+    internal.db.exec(
+      "UPDATE work_items SET agent_id = 'system:unclaimed' WHERE issue_ref = 'ISS-SENTINEL'",
+    );
+
+    db.close();
+
+    const reopened = addDb(fixture);
+    const repaired = reopened.get("ISS-SENTINEL");
+
+    // Sentinel rows are repaired to status='dropped' so they are reclaimable
+    expect(repaired?.status).toBe("dropped");
+  });
+
   it("handles write contention on file-backed WAL DBs and keeps state atomic", () => {
     const base = makeFixture();
     const db1 = addDb(base);

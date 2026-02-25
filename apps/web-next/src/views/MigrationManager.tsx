@@ -422,7 +422,7 @@ export default function MigrationManager() {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <div className="font-mono text-white text-sm">{table}</div>
-                    <div className="text-xs text-zinc-500 mt-0.5">{tableMigrations.length} migrations · last modified {lastApplied ? new Date(lastApplied.appliedAt).toLocaleDateString() : "never"}</div>
+                    <div className="text-xs text-zinc-500 mt-0.5">{tableMigrations.length} migrations · last modified {lastApplied?.appliedAt ? new Date(lastApplied.appliedAt).toLocaleDateString() : "never"}</div>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">

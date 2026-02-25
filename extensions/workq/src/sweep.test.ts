@@ -42,6 +42,7 @@ function createDb(): WorkqDatabaseApi {
     get: vi.fn(),
     getLog: vi.fn(),
     findStaleActiveItems: vi.fn(),
+    findSentinelAgentRows: vi.fn(() => []),
     autoReleaseBySession: vi.fn(),
     systemMoveToInReview: vi.fn(),
     systemMarkDone: vi.fn(),
