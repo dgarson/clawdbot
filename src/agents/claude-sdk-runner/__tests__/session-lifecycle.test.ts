@@ -1017,10 +1017,15 @@ describe("session lifecycle — steer-resume persistence", () => {
 
     await session.prompt("Initial task");
 
-    // appendMessage should have been called for both the initial prompt and the steer text
+    // NOTE: This test depends on the steer callback firing synchronously during
+    // generator iteration (before the first query completes). The mock generators
+    // above are structured to ensure this ordering, but changes to the prompt()
+    // loop or generator timing could make the assertion fragile.
     const userCalls = appendMessage.mock.calls.filter(
       (c: unknown[]) => (c[0] as { role: string }).role === "user",
     );
+    // Verify steer triggered a second query (prerequisite for persistence)
+    expect(queryMock).toHaveBeenCalledTimes(2);
     expect(userCalls.length).toBeGreaterThanOrEqual(2);
     const steerCall = userCalls[1] as unknown[];
     expect((steerCall[0] as { content: string }).content).toBe("new direction");
