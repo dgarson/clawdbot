@@ -12,6 +12,7 @@ describe("subscribeEmbeddedPiSession", () => {
     const { session, emit } = createStubSessionHarness();
 
     const subscription = subscribeEmbeddedPiSession({
+      enforceFinalTag: false,
       session,
       runId: "run",
       reasoningMode: "on",
@@ -40,6 +41,7 @@ describe("subscribeEmbeddedPiSession", () => {
     const onPartialReply = vi.fn();
 
     const subscription = subscribeEmbeddedPiSession({
+      enforceFinalTag: false,
       session,
       runId: "run",
       reasoningMode: "on",
