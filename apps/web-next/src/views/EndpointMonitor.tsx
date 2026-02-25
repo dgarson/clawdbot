@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { AlertFilterPillGroup } from "../components/alerts/AlertFilters";
+import { AlertRuleCard } from "../components/alerts/AlertRuleCard";
 
 type EndpointStatus = "healthy" | "degraded" | "down" | "unknown";
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD";
@@ -69,7 +71,7 @@ const methodColor: Record<HttpMethod, string> = {
   POST:   "bg-sky-500/20 text-sky-400",
   PUT:    "bg-amber-500/20 text-amber-400",
   DELETE: "bg-rose-500/20 text-rose-400",
-  PATCH:  "bg-violet-500/20 text-violet-400",
+  PATCH:  "bg-primary/20 text-primary",
   HEAD:   "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
 };
 
@@ -167,7 +169,7 @@ export default function EndpointMonitor() {
             <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Endpoint Monitor</h1>
             <p className="text-[var(--color-text-secondary)] text-sm mt-1">Uptime, latency, and incident tracking for API endpoints</p>
           </div>
-          <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition-colors">
+          <button className="px-4 py-2 rounded-lg bg-primary hover:bg-primary text-sm font-medium transition-colors">
             + Add Endpoint
           </button>
         </div>
@@ -197,7 +199,7 @@ export default function EndpointMonitor() {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
                 tab === t.id
-                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  ? "border-primary text-[var(--color-text-primary)]"
                   : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -210,19 +212,21 @@ export default function EndpointMonitor() {
         {tab === "overview" && (
           <div className="space-y-4">
             {/* Status filter */}
-            <div className="flex gap-2">
-              {(["all", "healthy", "degraded", "down", "unknown"] as const).map(f => (
-                <button
-                  key={f}
-                  onClick={() => { setStatusFilter(f === "all" ? "all" : f); setSelectedEndpoint(null); }}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                    statusFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
-                  )}
-                >
-                  {f.charAt(0).toUpperCase() + f.slice(1)}
-                </button>
-              ))}
+            <div>
+              <AlertFilterPillGroup
+                label="Endpoint Status"
+                value={statusFilter}
+                onChange={(next) => {
+                  setStatusFilter(next as EndpointStatus | "all");
+                  setSelectedEndpoint(null);
+                }}
+                options={
+                  (["all", "healthy", "degraded", "down", "unknown"] as const).map((value) => ({
+                    value,
+                    label: value.charAt(0).toUpperCase() + value.slice(1),
+                  }))
+                }
+              />
             </div>
 
             {selectedEndpoint ? (
@@ -271,7 +275,7 @@ export default function EndpointMonitor() {
                         />
                         {/* p50 bar overlay */}
                         <div
-                          className="bg-indigo-500 -mt-px"
+                          className="bg-primary -mt-px"
                           style={{ height: `${(pt.p50 / maxLatency) * 70}px`, marginTop: `${-((pt.p50 / maxLatency) * 70)}px` }}
                           title={`p50: ${pt.p50}ms`}
                         />
@@ -283,7 +287,7 @@ export default function EndpointMonitor() {
                     <span>{latencyHistory[latencyHistory.length - 1].time}</span>
                   </div>
                   <div className="flex gap-4 mt-2">
-                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-indigo-500" /><span className="text-xs text-[var(--color-text-secondary)]">p50</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-primary" /><span className="text-xs text-[var(--color-text-secondary)]">p50</span></div>
                     <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-rose-500/40" /><span className="text-xs text-[var(--color-text-secondary)]">p99</span></div>
                   </div>
                 </div>
@@ -376,23 +380,29 @@ export default function EndpointMonitor() {
         {tab === "alerts" && (
           <div className="space-y-3">
             {alertRules.map(rule => (
-              <div key={rule.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-center gap-4">
-                <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", rule.enabled ? "bg-emerald-400" : "bg-[var(--color-surface-3)]")} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{rule.name}</span>
-                    <span className={cn("text-xs px-2 py-0.5 rounded border font-medium", alertSeverityColor[rule.severity])}>{rule.severity}</span>
-                  </div>
-                  <p className="text-xs text-[var(--color-text-secondary)]">{rule.condition}</p>
-                  {rule.lastFired && <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Last fired: {rule.lastFired}</p>}
-                </div>
-                <button className={cn(
-                  "text-xs px-3 py-1.5 rounded-lg font-medium flex-shrink-0 transition-colors",
-                  rule.enabled ? "bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
-                )}>
-                  {rule.enabled ? "Disable" : "Enable"}
-                </button>
-              </div>
+              <AlertRuleCard
+                key={rule.id}
+                title={rule.name}
+                titleBadges={(
+                  <span className={cn("text-xs px-2 py-0.5 rounded border font-medium uppercase", alertSeverityColor[rule.severity])}>
+                    {rule.severity}
+                  </span>
+                )}
+                description={rule.condition}
+                stats={[
+                  { label: "Enabled", value: rule.enabled ? "Yes" : "No" },
+                  { label: "Last fired", value: rule.lastFired ?? "Never" },
+                ]}
+                headerActions={(
+                  <button className={cn(
+                    "text-xs px-3 py-1.5 rounded-lg font-medium flex-shrink-0 transition-colors",
+                    rule.enabled ? "bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" : "bg-primary hover:bg-primary text-[var(--color-text-primary)]"
+                  )}>
+                    {rule.enabled ? "Disable" : "Enable"}
+                  </button>
+                )}
+                className="bg-[var(--color-surface-1)]"
+              />
             ))}
           </div>
         )}

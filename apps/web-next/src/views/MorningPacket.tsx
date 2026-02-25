@@ -127,7 +127,7 @@ const PRIORITIES: PriorityItem[] = [
 const STATS: StatCard[] = [
   { label: 'PRs Opened Overnight', value: '7', delta: '+7', deltaUp: true, color: 'text-blue-400', icon: GitPullRequest },
   { label: 'Views Shipped', value: '263', delta: 'vs goal of 20', deltaUp: true, color: 'text-emerald-400', icon: Target },
-  { label: 'Active Agents', value: '4', delta: '4 idle', deltaUp: null as unknown as boolean, color: 'text-violet-400', icon: Bot },
+  { label: 'Active Agents', value: '4', delta: '4 idle', deltaUp: null as unknown as boolean, color: 'text-primary', icon: Bot },
   { label: 'Hours to Discovery Run', value: '~2h', delta: 'Brave key needed', deltaUp: false, color: 'text-amber-400', icon: Clock },
 ];
 
@@ -135,7 +135,7 @@ const STATS: StatCard[] = [
 
 function PRRow({ pr }: { pr: PRItem }) {
   const statusIcon = pr.status === 'merged'
-    ? <GitMerge className="w-3.5 h-3.5 text-violet-400" />
+    ? <GitMerge className="w-3.5 h-3.5 text-primary" />
     : pr.status === 'open'
     ? <GitPullRequest className="w-3.5 h-3.5 text-emerald-400" />
     : <XCircle className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />;
@@ -204,7 +204,7 @@ function PriorityCard({ item }: { item: PriorityItem }) {
             <p className="text-sm text-[var(--color-text-primary)] leading-snug">{item.title}</p>
             <div className="flex items-center gap-1.5 shrink-0">
               {item.requiresDavid && (
-                <span className="text-[10px] px-1.5 py-0.5 bg-violet-900/40 text-violet-400 border border-violet-800/40 rounded font-medium">
+                <span className="text-[10px] px-1.5 py-0.5 bg-violet-900/40 text-primary border border-violet-800/40 rounded font-medium">
                   David
                 </span>
               )}
@@ -260,7 +260,7 @@ export default function MorningPacket() {
             <span>{now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
           <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-1">
-            {greeting}, David. <span className="text-violet-400">☀️</span>
+            {greeting}, David. <span className="text-primary">☀️</span>
           </h1>
           <p className="text-[var(--color-text-secondary)] text-sm">
             The squad shipped overnight. Here's what happened and what needs your attention.
@@ -302,7 +302,7 @@ export default function MorningPacket() {
               className={cn(
                 'flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors focus-visible:outline-none',
                 tab === t.id
-                  ? 'border-violet-500 text-violet-400'
+                  ? 'border-primary text-primary'
                   : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
               )}
             >
@@ -322,7 +322,7 @@ export default function MorningPacket() {
             {/* Top priorities summary */}
             <div>
               <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
-                <Target className="w-4 h-4 text-violet-400" />
+                <Target className="w-4 h-4 text-primary" />
                 Top Priorities Today
               </h2>
               <div className="space-y-2">
@@ -419,16 +419,16 @@ export default function MorningPacket() {
 
             <div className="mt-6 p-4 bg-violet-900/10 border border-violet-800/30 rounded-xl">
               <div className="flex items-center gap-2 mb-2">
-                <Star className="w-4 h-4 text-violet-400" />
+                <Star className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium text-violet-300">David's action items</span>
               </div>
               <div className="space-y-1 text-sm text-[var(--color-text-primary)]">
                 <div className="flex items-center gap-2">
-                  <ChevronRight className="w-3 h-3 text-violet-500 shrink-0" />
+                  <ChevronRight className="w-3 h-3 text-primary shrink-0" />
                   <span>Configure Brave API key — <strong>before 10AM</strong> to avoid blind discovery run</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <ChevronRight className="w-3 h-3 text-violet-500 shrink-0" />
+                  <ChevronRight className="w-3 h-3 text-primary shrink-0" />
                   <span>Everything else — Tim or Xavier can handle without you per Merge Authority Matrix §12</span>
                 </div>
               </div>
@@ -475,7 +475,7 @@ export default function MorningPacket() {
             {/* Token summary */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Total Tokens Used', value: `${(AGENT_ACTIVITY.reduce((s, a) => s + a.tokensUsed, 0) / 1_000_000).toFixed(2)}M`, icon: Zap, color: 'text-violet-400' },
+                { label: 'Total Tokens Used', value: `${(AGENT_ACTIVITY.reduce((s, a) => s + a.tokensUsed, 0) / 1_000_000).toFixed(2)}M`, icon: Zap, color: 'text-primary' },
                 { label: 'Total Tasks Completed', value: AGENT_ACTIVITY.reduce((s, a) => s + a.tasksCompleted, 0).toString(), icon: CheckCircle, color: 'text-emerald-400' },
                 { label: 'Agents Active Now', value: AGENT_ACTIVITY.filter(a => a.status === 'active').length.toString(), icon: Activity, color: 'text-blue-400' },
               ].map(({ label, value, icon: Icon, color }) => (

@@ -463,7 +463,7 @@ const AVAILABILITY_CONFIG: Record<Availability, { label: string; dot: string; te
 };
 
 const TAG_STYLES: Record<DiscussionTag, string> = {
-  question: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+  question: "bg-primary/20 text-primary border-primary/30",
   announcement: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
   idea: "bg-amber-500/20 text-amber-400 border-amber-500/30",
   bug: "bg-rose-500/20 text-rose-400 border-rose-500/30",
@@ -660,7 +660,7 @@ export default function TeamCollaboration() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                   activeTab === tab.id
-                    ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
+                    ? "bg-primary/20 text-primary border border-primary/30"
                     : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50"
                 )}
               >
@@ -917,7 +917,7 @@ export default function TeamCollaboration() {
 
                       {discussion.replyCount > discussion.replies.length && (
                         <div className="px-4 py-3 border-t border-[var(--color-border)]/50 text-center">
-                          <span className="text-xs text-indigo-400">
+                          <span className="text-xs text-primary">
                             + {discussion.replyCount - discussion.replies.length} more{" "}
                             {discussion.replyCount - discussion.replies.length === 1
                               ? "reply"
@@ -972,7 +972,7 @@ export default function TeamCollaboration() {
                       className={cn(
                         "text-xs px-3 py-1.5 rounded-lg border transition-colors",
                         isEditing
-                          ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/30"
+                          ? "bg-primary/20 text-primary border-primary/30"
                           : "text-[var(--color-text-secondary)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)]"
                       )}
                     >
@@ -990,7 +990,7 @@ export default function TeamCollaboration() {
                             [section.id]: e.target.value,
                           }))
                         }
-                        className="w-full h-80 bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-lg p-3 text-sm font-mono text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
+                        className="w-full h-80 bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]/50 rounded-lg p-3 text-sm font-mono text-[var(--color-text-primary)] resize-y focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-indigo-500/20"
                       />
                     ) : (
                       <div className="prose-invert max-w-none">
@@ -1031,7 +1031,7 @@ export default function TeamCollaboration() {
                       <span className="text-[var(--color-text-secondary)]">{item.description}</span>
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-indigo-400/80 bg-indigo-500/10 px-2 py-0.5 rounded font-mono truncate max-w-xs">
+                      <span className="text-xs text-primary/80 bg-primary/10 px-2 py-0.5 rounded font-mono truncate max-w-xs">
                         {item.target}
                       </span>
                       <span className="text-xs text-[var(--color-text-muted)]">{item.timestamp}</span>

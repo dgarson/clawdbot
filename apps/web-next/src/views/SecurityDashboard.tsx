@@ -173,7 +173,7 @@ const THREAT_CONFIG: Record<ThreatLevel, { label: string; dot: string; badge: st
   critical: { label: "Critical", dot: "bg-rose-500",   badge: "bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/25",     text: "text-rose-400" },
   high:     { label: "High",     dot: "bg-orange-500", badge: "bg-orange-500/15 text-orange-300 ring-1 ring-orange-500/25", text: "text-orange-400" },
   medium:   { label: "Medium",   dot: "bg-amber-500",  badge: "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/25",   text: "text-amber-400" },
-  low:      { label: "Low",      dot: "bg-indigo-500", badge: "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/25", text: "text-indigo-400" },
+  low:      { label: "Low",      dot: "bg-primary", badge: "bg-primary/15 text-indigo-300 ring-1 ring-indigo-500/25", text: "text-primary" },
   info:     { label: "Info",     dot: "bg-[var(--color-surface-3)]",   badge: "bg-[var(--color-surface-3)]/15 text-[var(--color-text-secondary)] ring-1 ring-zinc-500/25",       text: "text-[var(--color-text-secondary)]" },
 };
 
@@ -248,7 +248,7 @@ function ThreatChart() {
         {THREAT_HISTORY.map((v, i) => {
           const barH = max > 0 ? Math.max(2, (v / max) * H) : 2;
           const isToday = i === THREAT_HISTORY.length - 1;
-          const color = v === 0 ? "bg-[var(--color-surface-2)]" : v >= 3 ? "bg-rose-500" : v >= 2 ? "bg-amber-500" : "bg-indigo-500";
+          const color = v === 0 ? "bg-[var(--color-surface-2)]" : v >= 3 ? "bg-rose-500" : v >= 2 ? "bg-amber-500" : "bg-primary";
           return (
             <div
               key={i}
@@ -404,7 +404,7 @@ export default function SecurityDashboard() {
                 {[
                   { color: "bg-rose-500",   label: "≥3 events" },
                   { color: "bg-amber-500",  label: "2 events" },
-                  { color: "bg-indigo-500", label: "1 event" },
+                  { color: "bg-primary", label: "1 event" },
                   { color: "bg-[var(--color-surface-2)]",   label: "None" },
                 ].map(({ color, label }) => (
                   <div key={label} className="flex items-center gap-1.5">
@@ -464,7 +464,7 @@ export default function SecurityDashboard() {
                   aria-pressed={eventFilter === f}
                   className={cn(
                     "px-3 py-1 text-xs font-medium rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                    eventFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
+                    eventFilter === f ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {f === "all" ? "All" : f === "unresolved" ? "Unresolved" : THREAT_CONFIG[f].label}

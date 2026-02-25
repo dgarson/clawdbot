@@ -213,6 +213,7 @@ body {
   0% {
     clip-path: circle(0% at var(--theme-switch-x, 50%) var(--theme-switch-y, 50%));
   }
+
   100% {
     clip-path: circle(150% at var(--theme-switch-x, 50%) var(--theme-switch-y, 50%));
   }
@@ -235,6 +236,7 @@ html.theme-transition::view-transition-new(theme) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   html.theme-transition::view-transition-old(theme),
   html.theme-transition::view-transition-new(theme) {
     animation: none !important;
@@ -295,6 +297,7 @@ select {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -305,6 +308,7 @@ select {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -315,6 +319,7 @@ select {
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -326,6 +331,7 @@ select {
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -336,26 +342,31 @@ select {
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
 }
 
 @keyframes pulse-subtle {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.7;
   }
 }
 
 @keyframes glow-pulse {
+
   0%,
   100% {
     box-shadow: 0 0 0 rgba(255, 92, 92, 0);
   }
+
   50% {
     box-shadow: 0 0 20px var(--accent-glow);
   }
@@ -365,18 +376,23 @@ select {
 .stagger-1 {
   animation-delay: 0ms;
 }
+
 .stagger-2 {
   animation-delay: 50ms;
 }
+
 .stagger-3 {
   animation-delay: 100ms;
 }
+
 .stagger-4 {
   animation-delay: 150ms;
 }
+
 .stagger-5 {
   animation-delay: 200ms;
 }
+
 .stagger-6 {
   animation-delay: 250ms;
 }
@@ -385,4 +401,93 @@ select {
 :focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+
+/* ===========================================
+   Color Themes
+   =========================================== */
+
+/* Oceanic - Soft blue */
+:root[data-theme-color="oceanic"] {
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-muted: #3b82f6;
+  --accent-subtle: rgba(59, 130, 246, 0.15);
+  --accent-foreground: #ffffff;
+  --accent-glow: rgba(59, 130, 246, 0.25);
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --ring: #3b82f6;
+  --focus: rgba(59, 130, 246, 0.25);
+}
+
+/* Emerald - Mint green */
+:root[data-theme-color="emerald"] {
+  --accent: #10b981;
+  --accent-hover: #34d399;
+  --accent-muted: #10b981;
+  --accent-subtle: rgba(16, 185, 129, 0.15);
+  --accent-foreground: #ffffff;
+  --accent-glow: rgba(16, 185, 129, 0.25);
+  --primary: #10b981;
+  --primary-foreground: #ffffff;
+  --ring: #10b981;
+  --focus: rgba(16, 185, 129, 0.25);
+}
+
+/* Amber - Warm gold */
+:root[data-theme-color="amber"] {
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+  --accent-muted: #f59e0b;
+  --accent-subtle: rgba(245, 158, 11, 0.15);
+  --accent-foreground: #ffffff;
+  --accent-glow: rgba(245, 158, 11, 0.25);
+  --primary: #f59e0b;
+  --primary-foreground: #ffffff;
+  --ring: #f59e0b;
+  --focus: rgba(245, 158, 11, 0.25);
+}
+
+/* Indigo - Soft deep purplish blue */
+:root[data-theme-color="indigo"] {
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-muted: #6366f1;
+  --accent-subtle: rgba(99, 102, 241, 0.15);
+  --accent-foreground: #ffffff;
+  --accent-glow: rgba(99, 102, 241, 0.25);
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --ring: #6366f1;
+  --focus: rgba(99, 102, 241, 0.25);
+}
+
+/* Light mode overrides for color themes (if darker contrast is needed) */
+:root[data-theme="light"][data-theme-color="oceanic"] {
+  --accent: #2563eb;
+  --accent-hover: #3b82f6;
+  --primary: #2563eb;
+  --ring: #2563eb;
+}
+
+:root[data-theme="light"][data-theme-color="emerald"] {
+  --accent: #059669;
+  --accent-hover: #10b981;
+  --primary: #059669;
+  --ring: #059669;
+}
+
+:root[data-theme="light"][data-theme-color="amber"] {
+  --accent: #d97706;
+  --accent-hover: #f59e0b;
+  --primary: #d97706;
+  --ring: #d97706;
+}
+
+:root[data-theme="light"][data-theme-color="indigo"] {
+  --accent: #4f46e5;
+  --accent-hover: #6366f1;
+  --primary: #4f46e5;
+  --ring: #4f46e5;
 }

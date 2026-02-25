@@ -262,7 +262,7 @@ const SEED_EVENTS: AuditEvent[] = [
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const SEVERITY_CONFIG: Record<EventSeverity, { label: string; dot: string; badge: string; text: string }> = {
-  info:    { label: "Info",    dot: "bg-indigo-500",  badge: "bg-indigo-500/15 text-indigo-300 ring-indigo-500/25", text: "text-indigo-300" },
+  info:    { label: "Info",    dot: "bg-primary",  badge: "bg-primary/15 text-indigo-300 ring-indigo-500/25", text: "text-indigo-300" },
   success: { label: "Success", dot: "bg-emerald-500", badge: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/25", text: "text-emerald-300" },
   warning: { label: "Warning", dot: "bg-amber-500",   badge: "bg-amber-500/15 text-amber-300 ring-amber-500/25", text: "text-amber-300" },
   error:   { label: "Error",   dot: "bg-rose-500",    badge: "bg-rose-500/15 text-rose-300 ring-rose-500/25", text: "text-rose-300" },
@@ -438,7 +438,7 @@ function DetailPanel({ event, onClose }: DetailPanelProps) {
           <div className="rounded-lg bg-surface-0 border border-tok-border divide-y divide-tok-border">
             {Object.entries(event.meta).map(([k, v]) => (
               <div key={k} className="flex items-center px-3 py-2 gap-3">
-                <span className="text-xs font-mono text-indigo-400 flex-none">{k}</span>
+                <span className="text-xs font-mono text-primary flex-none">{k}</span>
                 <span className="text-xs font-mono text-fg-secondary truncate">{v}</span>
               </div>
             ))}
@@ -682,7 +682,7 @@ export default function AuditLog({ isLoading = false }: { isLoading?: boolean })
           <button
             onClick={() => { setSearch(""); setSeverityFilter("all"); setCategoryFilter("all"); setResultFilter("all"); setActorKindFilter("all"); }}
             aria-label="Clear all filters"
-            className="text-xs text-indigo-400 hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded transition-colors px-1"
+            className="text-xs text-primary hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded transition-colors px-1"
           >
             Clear filters
           </button>

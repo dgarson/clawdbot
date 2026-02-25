@@ -91,7 +91,7 @@ function statusDotClass(status: AgentStatus): string {
 }
 
 function actionBadgeClass(action: ActionType): string {
-  if (action === "spawned")       {return "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";}
+  if (action === "spawned")       {return "bg-primary/20 text-primary border border-primary/30";}
   if (action === "shared_context"){return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";}
   if (action === "delegated")     {return "bg-amber-500/20 text-amber-400 border border-amber-500/30";}
   return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)] border border-[var(--color-surface-3)]";
@@ -111,7 +111,7 @@ function intensityClass(value: number, max: number): string {
   if (ratio < 0.4) {return "bg-indigo-900";}
   if (ratio < 0.6) {return "bg-indigo-800";}
   if (ratio < 0.8) {return "bg-indigo-700";}
-  return "bg-indigo-600";
+  return "bg-primary";
 }
 
 function getCirclePositions(count: number, radius: number, cx: number, cy: number): NodePosition[] {
@@ -210,7 +210,7 @@ function AgentNode({ agent, x, y, selected, highlighted, onClick }: AgentNodePro
       className={cn(
         "rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-0.5",
         selected
-          ? "border-indigo-500 bg-indigo-900/60 shadow-lg shadow-indigo-500/30"
+          ? "border-primary bg-indigo-900/60 shadow-lg shadow-indigo-500/30"
           : highlighted
           ? "border-[var(--color-surface-3)] bg-[var(--color-surface-2)]"
           : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)] hover:bg-[var(--color-surface-2)]"
@@ -323,7 +323,7 @@ function GraphView() {
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-lg bg-[var(--color-surface-2)] p-2">
-                  <div className="text-indigo-400 font-bold text-lg">
+                  <div className="text-primary font-bold text-lg">
                     {MATRIX_DATA[selectedIdx].reduce((a, b) => a + b, 0)}
                   </div>
                   <div className="text-[var(--color-text-muted)] text-xs">Total</div>
@@ -362,7 +362,7 @@ function GraphView() {
                       </div>
                       <div className="h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                          className="h-full bg-primary rounded-full transition-all duration-500"
                           style={{ width: `${barWidth}%` }}
                         />
                       </div>
@@ -423,7 +423,7 @@ function CollaborationMatrix() {
         <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
           <span>Low</span>
           <div className="flex gap-0.5">
-            {(["bg-indigo-950", "bg-indigo-900", "bg-indigo-800", "bg-indigo-700", "bg-indigo-600"] as string[]).map(c => (
+            {(["bg-indigo-950", "bg-indigo-900", "bg-indigo-800", "bg-indigo-700", "bg-primary"] as string[]).map(c => (
               <div key={c} className={cn("w-5 h-3 rounded-sm", c)} />
             ))}
           </div>
@@ -492,7 +492,7 @@ function CollaborationMatrix() {
                     );
                   })}
                   <td className="p-0.5">
-                    <div className="w-12 h-10 rounded bg-indigo-900/30 border border-indigo-800/30 flex items-center justify-center text-xs font-semibold text-indigo-400">
+                    <div className="w-12 h-10 rounded bg-indigo-900/30 border border-indigo-800/30 flex items-center justify-center text-xs font-semibold text-primary">
                       {rowTotals[rowIdx]}
                     </div>
                   </td>
@@ -504,13 +504,13 @@ function CollaborationMatrix() {
                 </td>
                 {colTotals.map((total, i) => (
                   <td key={i} className="p-0.5">
-                    <div className="w-12 h-10 rounded bg-indigo-900/30 border border-indigo-800/30 flex items-center justify-center text-xs font-semibold text-indigo-400">
+                    <div className="w-12 h-10 rounded bg-indigo-900/30 border border-indigo-800/30 flex items-center justify-center text-xs font-semibold text-primary">
                       {total}
                     </div>
                   </td>
                 ))}
                 <td className="p-0.5">
-                  <div className="w-12 h-10 rounded bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center text-xs font-bold text-indigo-300">
+                  <div className="w-12 h-10 rounded bg-primary/30 border border-primary/30 flex items-center justify-center text-xs font-bold text-indigo-300">
                     {grandTotal}
                   </div>
                 </td>
@@ -557,7 +557,7 @@ function ActivityFeed() {
               className={cn(
                 "px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap",
                 filter === opt.value
-                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -598,7 +598,7 @@ function ActivityFeed() {
                   <div className="flex items-center gap-3 mt-2">
                     <span className="text-[var(--color-text-muted)] text-xs">{event.timestamp}</span>
                     <span className="text-[var(--color-text-muted)] text-xs">·</span>
-                    <span className="text-indigo-500 text-xs font-mono hover:text-indigo-400 cursor-pointer transition-colors">
+                    <span className="text-primary text-xs font-mono hover:text-primary cursor-pointer transition-colors">
                       {event.sessionId}
                     </span>
                   </div>
@@ -653,7 +653,7 @@ function Analytics() {
     {
       name: "Product & UI Core",
       agents: ["luis", "piper", "quinn", "reed"],
-      colorClass: "bg-indigo-500/10 border-indigo-500/30 text-indigo-300",
+      colorClass: "bg-primary/10 border-primary/30 text-indigo-300",
     },
     {
       name: "UI Extension",
@@ -668,7 +668,7 @@ function Analytics() {
   ];
 
   const networkStats = [
-    { label: "Network Density", value: `${density}%`,  sub: "Edge saturation",       color: "text-indigo-400" },
+    { label: "Network Density", value: `${density}%`,  sub: "Edge saturation",       color: "text-primary" },
     { label: "Avg Connections", value: avgConnections,  sub: "Per agent",             color: "text-emerald-400" },
     { label: "Active Edges",    value: totalEdges,      sub: `of ${possibleEdges} possible`, color: "text-amber-400" },
     { label: "Hub Agents",      value: hubs.length,     sub: hubs.map(h => h.agent.name).join(", "), color: "text-rose-400" },
@@ -684,7 +684,7 @@ function Analytics() {
           <div className="space-y-3">
             {agentTotals.map(({ agent, total }) => {
               const barPct = Math.round((total / maxTotal) * 100);
-              const barColor = barPct >= 80 ? "bg-indigo-500" : barPct >= 55 ? "bg-indigo-600" : "bg-indigo-800";
+              const barColor = barPct >= 80 ? "bg-primary" : barPct >= 55 ? "bg-primary" : "bg-indigo-800";
               return (
                 <div key={agent.id} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
@@ -748,7 +748,7 @@ function Analytics() {
                       <div
                         className={cn(
                           "w-full rounded-t transition-all duration-700",
-                          isLatest ? "bg-indigo-500" : "bg-indigo-800"
+                          isLatest ? "bg-primary" : "bg-indigo-800"
                         )}
                         style={{ height: `${heightPct}%` }}
                       />
@@ -841,7 +841,7 @@ export default function AgentCollaborationGraph() {
     sum + MATRIX_DATA[i].filter((v, j) => j > i && v > 0).length, 0);
 
   const headerStats = [
-    { label: "Interactions", value: totalInteractions, color: "text-indigo-400" },
+    { label: "Interactions", value: totalInteractions, color: "text-primary" },
     { label: "Online",       value: activeAgents,      color: "text-emerald-400" },
     { label: "Active Links", value: totalEdges,        color: "text-amber-400"  },
   ];
@@ -879,7 +879,7 @@ export default function AgentCollaborationGraph() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-lg shadow-indigo-900/50"
+                  ? "bg-primary text-[var(--color-text-primary)] shadow-lg shadow-indigo-900/50"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >

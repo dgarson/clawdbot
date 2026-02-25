@@ -174,7 +174,7 @@ function statusColor(status: ExportStatus): string {
     case "failed":
       return "bg-rose-400/15 text-rose-400 border-rose-400/25";
     case "in-progress":
-      return "bg-indigo-400/15 text-indigo-400 border-indigo-400/25";
+      return "bg-primary/15 text-primary border-primary/25";
   }
 }
 
@@ -238,7 +238,7 @@ function ExportCard({ config, onExport, progress }: ExportCardProps) {
                 "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
                 selectedFormat === fmt
-                  ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/40"
+                  ? "bg-primary/20 text-primary border border-primary/40"
                   : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -279,11 +279,11 @@ function ExportCard({ config, onExport, progress }: ExportCardProps) {
         <div className="w-full" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label={`Exporting ${config.title}`}>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-surface-2)]">
             <div
-              className="h-full rounded-full bg-indigo-500 transition-all duration-200 ease-out"
+              className="h-full rounded-full bg-primary transition-all duration-200 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="mt-1 text-xs text-indigo-400">{Math.round(progress)}% — Exporting…</p>
+          <p className="mt-1 text-xs text-primary">{Math.round(progress)}% — Exporting…</p>
         </div>
       )}
 
@@ -298,7 +298,7 @@ function ExportCard({ config, onExport, progress }: ExportCardProps) {
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
             isExporting
               ? "cursor-not-allowed bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
-              : "bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 active:bg-indigo-700"
+              : "bg-primary text-[var(--color-text-primary)] hover:bg-primary active:bg-indigo-700"
           )}
         >
           {isExporting ? "Exporting…" : "Export Now"}
@@ -369,7 +369,7 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Weekly Sessions Backup"
-            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </label>
 
@@ -379,7 +379,7 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
           <select
             value={exportType}
             onChange={(e) => setExportType(e.target.value)}
-            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             {EXPORT_TYPES.map((t) => (
               <option key={t.id} value={t.title}>
@@ -395,7 +395,7 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
           <select
             value={frequency}
             onChange={(e) => setFrequency(e.target.value as Frequency)}
-            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
@@ -409,7 +409,7 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value as ExportFormat)}
-            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="json">JSON</option>
             <option value="csv">CSV</option>
@@ -423,7 +423,7 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
           <select
             value={destination}
             onChange={(e) => setDestination(e.target.value as Destination)}
-            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-indigo-500"
           >
             <option value="local">Local Storage</option>
             <option value="s3">S3 (coming soon)</option>
@@ -441,7 +441,7 @@ function ScheduleModal({ open, onClose, onSave }: ScheduleModalProps) {
           </button>
           <button
             type="submit"
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition-colors hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[var(--color-text-primary)] transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
             Save Schedule
           </button>
@@ -552,7 +552,7 @@ export default function DataExportManager() {
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-[var(--color-text-primary)] transition-colors hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+              className="rounded-lg bg-primary px-3.5 py-1.5 text-xs font-semibold text-[var(--color-text-primary)] transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
             >
               + Add Schedule
             </button>
@@ -600,7 +600,7 @@ export default function DataExportManager() {
                         className={cn(
                           "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors",
                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
-                          sched.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
+                          sched.enabled ? "bg-primary" : "bg-[var(--color-surface-3)]"
                         )}
                       >
                         <span

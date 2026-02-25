@@ -42,14 +42,14 @@ const statusBadge: Record<ChangeStatus, string> = {
   approved:    "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
   rejected:    "bg-rose-500/20 text-rose-400 border border-rose-500/30",
   "in-progress":"bg-sky-500/20 text-sky-400 border border-sky-500/30",
-  completed:   "bg-violet-500/20 text-violet-400 border border-violet-500/30",
+  completed:   "bg-primary/20 text-primary border border-primary/30",
   cancelled:   "bg-[var(--color-surface-3)]/20 text-[var(--color-text-muted)] border border-[var(--color-surface-3)]/30",
 };
 
 const typeColor: Record<ChangeType, string> = {
   standard:   "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
   normal:     "bg-sky-500/20 text-sky-400",
-  major:      "bg-indigo-500/20 text-indigo-400",
+  major:      "bg-primary/20 text-primary",
   emergency:  "bg-rose-500/20 text-rose-400",
 };
 
@@ -245,7 +245,7 @@ export default function ChangeApprovalBoard() {
             <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Change Approval Board</h1>
             <p className="text-[var(--color-text-secondary)] text-sm mt-1">Change requests, approvals, and change management workflow</p>
           </div>
-          <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition-colors">
+          <button className="px-4 py-2 rounded-lg bg-primary hover:bg-primary text-sm font-medium transition-colors">
             + Submit Change
           </button>
         </div>
@@ -274,7 +274,7 @@ export default function ChangeApprovalBoard() {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
                 tab === t.id
-                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  ? "border-primary text-[var(--color-text-primary)]"
                   : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -292,7 +292,7 @@ export default function ChangeApprovalBoard() {
                 <button
                   key={f}
                   onClick={() => { setStatusFilter(f === "all" ? "all" : f); setSelectedChange(null); }}
-                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", statusFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", statusFilter === f ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
                 >
                   {f === "all" ? "All" : f.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
                 </button>
@@ -321,7 +321,7 @@ export default function ChangeApprovalBoard() {
                     <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", statusBadge[selectedChange.status])}>{selectedChange.status}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded font-medium", typeColor[selectedChange.type])}>{selectedChange.type}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded font-medium", riskBadge[selectedChange.risk])}>risk: {selectedChange.risk}</span>
-                    {selectedChange.maintenanceWindow && <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded">maintenance window</span>}
+                    {selectedChange.maintenanceWindow && <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">maintenance window</span>}
                   </div>
                   <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{selectedChange.title}</h2>
                 </div>
@@ -387,7 +387,7 @@ export default function ChangeApprovalBoard() {
                     <p className="text-xs text-[var(--color-text-muted)] mb-2">Linked tickets</p>
                     <div className="flex gap-2 flex-wrap">
                       {selectedChange.linkedTickets.map(t => (
-                        <span key={t} className="text-xs bg-[var(--color-surface-2)] text-indigo-400 px-2 py-1 rounded font-mono">{t}</span>
+                        <span key={t} className="text-xs bg-[var(--color-surface-2)] text-primary px-2 py-1 rounded font-mono">{t}</span>
                       ))}
                     </div>
                   </div>
@@ -455,8 +455,8 @@ export default function ChangeApprovalBoard() {
               .toSorted((a, b) => a.scheduledStart.localeCompare(b.scheduledStart))
               .map(cr => (
                 <div key={cr.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-center gap-4">
-                  <div className="bg-indigo-500/20 border border-indigo-500/30 rounded-lg p-3 text-center flex-shrink-0 w-20">
-                    <p className="text-xs text-indigo-400 font-medium">{cr.scheduledStart.slice(5, 10)}</p>
+                  <div className="bg-primary/20 border border-primary/30 rounded-lg p-3 text-center flex-shrink-0 w-20">
+                    <p className="text-xs text-primary font-medium">{cr.scheduledStart.slice(5, 10)}</p>
                     <p className="text-xs text-indigo-300">{cr.scheduledStart.slice(11, 16)}</p>
                   </div>
                   <div className="flex-1 min-w-0">

@@ -378,7 +378,7 @@ function CommandRow({ item, isSelected, query, onActivate, onHover }: CommandRow
     return (
       <>
         {text.slice(0, idx)}
-        <mark className="bg-violet-500/30 text-violet-200 rounded-sm px-0.5 not-italic">
+        <mark className="bg-primary/30 text-violet-200 rounded-sm px-0.5 not-italic">
           {text.slice(idx, idx + query.length)}
         </mark>
         {text.slice(idx + query.length)}
@@ -393,7 +393,7 @@ function CommandRow({ item, isSelected, query, onActivate, onHover }: CommandRow
       className={cn(
         'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors duration-150 group focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
         isSelected
-          ? 'bg-violet-600/20 text-[var(--color-text-primary)]'
+          ? 'bg-primary/20 text-[var(--color-text-primary)]'
           : 'text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/60 hover:text-[var(--color-text-primary)]'
       )}
       aria-selected={isSelected}
@@ -402,7 +402,7 @@ function CommandRow({ item, isSelected, query, onActivate, onHover }: CommandRow
       <span
         className={cn(
           'shrink-0 w-7 h-7 flex items-center justify-center rounded-md transition-colors',
-          isSelected ? 'text-violet-400' : 'text-[var(--color-text-muted)] group-hover:text-[var(--color-text-primary)]'
+          isSelected ? 'text-primary' : 'text-[var(--color-text-muted)] group-hover:text-[var(--color-text-primary)]'
         )}
       >
         <Icon size={15} />
@@ -615,7 +615,7 @@ export default function CommandPaletteV2({ isLoading = false }: { isLoading?: bo
               <p className="text-xs text-[var(--color-text-muted)] mb-5">Press ⌘K or click below to reopen</p>
               <button
                 onClick={() => setIsClosed(false)}
-                className="px-4 py-2 bg-violet-600 hover:bg-violet-500 active:scale-95 text-[var(--color-text-primary)] text-sm rounded-lg transition-all duration-150 font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="px-4 py-2 bg-primary hover:bg-primary active:scale-95 text-[var(--color-text-primary)] text-sm rounded-lg transition-all duration-150 font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               >
                 Reopen palette
               </button>
@@ -659,7 +659,7 @@ export default function CommandPaletteV2({ isLoading = false }: { isLoading?: bo
               {/* NL intent badge */}
               {intent && (
                 <div className="px-4 py-2 border-b border-[var(--color-border)]/60 flex items-center gap-2">
-                  <Brain size={13} className="text-violet-400 shrink-0" />
+                  <Brain size={13} className="text-primary shrink-0" />
                   <span className="text-xs text-violet-300">
                     <span className="font-semibold">Intent:</span>{' '}
                     {intent.label}

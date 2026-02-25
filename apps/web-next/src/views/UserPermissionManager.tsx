@@ -47,7 +47,7 @@ interface RoleDefinition {
 const roleColor: Record<UserRole, string> = {
   owner:     "bg-rose-500/20 text-rose-300 border border-rose-500/30",
   admin:     "bg-orange-500/20 text-orange-300 border border-orange-500/30",
-  developer: "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
+  developer: "bg-primary/20 text-indigo-300 border border-primary/30",
   viewer:    "bg-[var(--color-surface-3)]/20 text-[var(--color-text-primary)] border border-[var(--color-surface-3)]/30",
   billing:   "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
 };
@@ -82,7 +82,7 @@ const scopeIcon: Record<ResourceScope, string> = {
 const MEMBERS: TeamMember[] = [
   {
     id: "u-01", name: "Tim Harper", email: "tim@clawdbot.io", role: "owner", status: "active",
-    teams: ["Platform Core", "Engineering Leadership"], lastActive: "2m ago", joinedAt: "2024-01-15", avatarColor: "bg-indigo-600",
+    teams: ["Platform Core", "Engineering Leadership"], lastActive: "2m ago", joinedAt: "2024-01-15", avatarColor: "bg-primary",
     permissions: [
       { action: "admin", resource: "Organization", scope: "organization", granted: true },
       { action: "read", resource: "Billing", scope: "organization", granted: true },
@@ -158,7 +158,7 @@ const TEAMS: Team[] = [
 const ROLES: RoleDefinition[] = [
   { role: "owner", description: "Full access to organization. Manage billing, members, and all settings.", permissionCount: 48, memberCount: 1, color: "text-rose-400" },
   { role: "admin", description: "Manage members, workspaces, and org settings. Cannot access billing.", permissionCount: 36, memberCount: 2, color: "text-orange-400" },
-  { role: "developer", description: "Create and manage projects, APIs, and resources within workspaces.", permissionCount: 22, memberCount: 4, color: "text-indigo-400" },
+  { role: "developer", description: "Create and manage projects, APIs, and resources within workspaces.", permissionCount: 22, memberCount: 4, color: "text-primary" },
   { role: "billing", description: "View and manage billing and subscription. Read-only for other resources.", permissionCount: 8, memberCount: 1, color: "text-emerald-400" },
   { role: "viewer", description: "Read-only access to specified workspaces and projects.", permissionCount: 5, memberCount: 1, color: "text-[var(--color-text-secondary)]" },
 ];
@@ -187,7 +187,7 @@ export default function UserPermissionManager() {
         <div className="flex items-center gap-3 text-sm">
           <span className="text-[var(--color-text-secondary)]">{MEMBERS.filter(m => m.status === "active").length} active</span>
           <span className="text-amber-400">{MEMBERS.filter(m => m.status === "invited").length} pending</span>
-          <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
+          <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded text-sm font-medium transition-colors">
             + Invite Member
           </button>
         </div>
@@ -201,7 +201,7 @@ export default function UserPermissionManager() {
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize",
-              tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              tab === t ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}
@@ -340,7 +340,7 @@ export default function UserPermissionManager() {
         <div className="flex-1 overflow-y-auto p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-semibold">Teams ({TEAMS.length})</h2>
-            <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">+ New Team</button>
+            <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded text-sm font-medium transition-colors">+ New Team</button>
           </div>
           <div className="grid grid-cols-2 gap-4">
             {TEAMS.map(team => (

@@ -219,7 +219,7 @@ const TraceSpan = ({ span, depth = 0, totalDuration }: { span: Span, depth?: num
   const width = Math.max((span.durationMs / totalDuration) * 100, 0.5);
 
   const colors: Record<string, string> = {
-    "API Gateway": "bg-indigo-500",
+    "API Gateway": "bg-primary",
     "Auth Service": "bg-emerald-500",
     "Billing Engine": "bg-amber-500",
     "Worker Queue": "bg-rose-500",
@@ -239,7 +239,7 @@ const TraceSpan = ({ span, depth = 0, totalDuration }: { span: Span, depth?: num
         </div>
         <div className="flex-grow h-4 relative bg-[var(--color-surface-1)]/50 rounded-sm">
           <div 
-            className={cn("absolute h-full rounded-sm opacity-80 group-hover:opacity-100 transition-opacity", colors[span.service] || "bg-indigo-500")}
+            className={cn("absolute h-full rounded-sm opacity-80 group-hover:opacity-100 transition-opacity", colors[span.service] || "bg-primary")}
             style={{ left: `${left}%`, width: `${width}%` }}
           />
           <span className="absolute text-[9px] text-[var(--color-text-secondary)] font-mono" style={{ left: `${left + width + 0.5}%` }}>
@@ -277,11 +277,11 @@ export default function ObservabilityDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-primary/30">
       {/* Header */}
       <header className="border-b border-[var(--color-border)] px-8 py-4 flex items-center justify-between sticky top-0 bg-[var(--color-surface-0)]/80 backdrop-blur-md z-30">
         <div className="flex items-center gap-4">
-          <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center font-bold text-[var(--color-text-primary)] italic">H</div>
+          <div className="w-8 h-8 bg-primary rounded flex items-center justify-center font-bold text-[var(--color-text-primary)] italic">H</div>
           <h1 className="text-lg font-semibold tracking-tight">Horizon Observability</h1>
         </div>
         <div className="flex items-center gap-6">
@@ -303,7 +303,7 @@ export default function ObservabilityDashboard() {
               className={cn(
                 "py-4 text-sm font-medium border-b-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
                 activeTab === tab 
-                  ? "border-indigo-500 text-indigo-400" 
+                  ? "border-primary text-primary" 
                   : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -356,7 +356,7 @@ export default function ObservabilityDashboard() {
               <div className="lg:col-span-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
                 <div className="px-6 py-4 border-b border-[var(--color-border)] flex justify-between items-center">
                   <h3 className="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Recent Incidents</h3>
-                  <button className="text-xs text-indigo-400 hover:text-indigo-300 font-medium">View History</button>
+                  <button className="text-xs text-primary hover:text-indigo-300 font-medium">View History</button>
                 </div>
                 <div className="divide-y divide-[var(--color-border)]">
                   {INCIDENTS_DATA.map((inc) => (
@@ -365,7 +365,7 @@ export default function ObservabilityDashboard() {
                         <div className={cn(
                           "w-2 h-2 mt-1.5 rounded-full shrink-0",
                           inc.severity === "critical" ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" :
-                          inc.severity === "high" ? "bg-amber-500" : "bg-indigo-500"
+                          inc.severity === "high" ? "bg-amber-500" : "bg-primary"
                         )} />
                         <div>
                           <p className="text-sm font-medium text-[var(--color-text-primary)]">{inc.title}</p>
@@ -397,7 +397,7 @@ export default function ObservabilityDashboard() {
                       onClick={() => setLogLevelFilter(lvl)}
                       className={cn(
                         "px-3 py-1 text-[10px] font-bold rounded transition-colors",
-                        logLevelFilter === lvl ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+                        logLevelFilter === lvl ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                       )}
                     >
                       {lvl}
@@ -410,7 +410,7 @@ export default function ObservabilityDashboard() {
                 <select 
                   value={logServiceFilter}
                   onChange={(e) => setLogServiceFilter(e.target.value)}
-                  className="bg-[var(--color-surface-0)] text-[var(--color-text-primary)] text-xs border border-[var(--color-border)] rounded px-2 py-1 outline-none focus:border-indigo-500"
+                  className="bg-[var(--color-surface-0)] text-[var(--color-text-primary)] text-xs border border-[var(--color-border)] rounded px-2 py-1 outline-none focus:border-primary"
                 >
                   <option value="ALL">All Services</option>
                   {SERVICES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -436,7 +436,7 @@ export default function ObservabilityDashboard() {
                       onClick={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
                       className={cn(
                         "grid grid-cols-[160px_80px_140px_1fr] px-4 py-2.5 text-xs font-mono cursor-pointer transition-colors group",
-                        expandedLogId === log.id ? "bg-indigo-500/5" : "hover:bg-[var(--color-surface-2)]/40"
+                        expandedLogId === log.id ? "bg-primary/5" : "hover:bg-[var(--color-surface-2)]/40"
                       )}
                     >
                       <div className="text-[var(--color-text-muted)] group-hover:text-[var(--color-text-secondary)]">{log.timestamp.split("T")[1].replace("Z", "")}</div>
@@ -445,7 +445,7 @@ export default function ObservabilityDashboard() {
                           log.level === "ERROR" ? "bg-rose-400/10 text-rose-400" :
                           log.level === "WARN" ? "bg-amber-400/10 text-amber-400" :
                           log.level === "INFO" ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]" :
-                          "bg-indigo-400/10 text-indigo-400"
+                          "bg-primary/10 text-primary"
                         )}>
                           {log.level}
                         </Badge>
@@ -458,7 +458,7 @@ export default function ObservabilityDashboard() {
                     </div>
                     {expandedLogId === log.id && (
                       <div className="p-4 bg-[var(--color-surface-0)] border-y border-[var(--color-border)]">
-                        <pre className="text-[11px] text-indigo-300 bg-indigo-500/5 p-3 rounded border border-indigo-500/20 overflow-x-auto">
+                        <pre className="text-[11px] text-indigo-300 bg-primary/5 p-3 rounded border border-primary/20 overflow-x-auto">
                           {JSON.stringify({ ...log.details, _id: log.id, _timestamp: log.timestamp }, null, 2)}
                         </pre>
                       </div>
@@ -509,7 +509,7 @@ export default function ObservabilityDashboard() {
                             {SERVICES.map(s => (
                               <div key={s} className="flex items-center gap-1.5">
                                 <span className={cn("w-2 h-2 rounded-full", 
-                                  s === "API Gateway" ? "bg-indigo-500" :
+                                  s === "API Gateway" ? "bg-primary" :
                                   s === "Auth Service" ? "bg-emerald-500" :
                                   s === "Worker Queue" ? "bg-rose-500" :
                                   s === "Billing Engine" ? "bg-amber-500" : "bg-[var(--color-surface-3)]"
@@ -550,7 +550,7 @@ export default function ObservabilityDashboard() {
                       "w-1.5 self-stretch",
                       alert.severity === "critical" ? "bg-rose-500" :
                       alert.severity === "high" ? "bg-amber-500" :
-                      alert.severity === "medium" ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
+                      alert.severity === "medium" ? "bg-primary" : "bg-[var(--color-surface-3)]"
                     )} />
                     <div className="flex-grow p-5 flex flex-wrap gap-6 items-center justify-between">
                       <div className="min-w-[240px]">
@@ -613,9 +613,9 @@ export default function ObservabilityDashboard() {
           Horizon Platform v2.4.0-stable
         </div>
         <div className="flex gap-6 text-xs">
-          <a href="#" className="hover:text-indigo-400 transition-colors">Documentation</a>
-          <a href="#" className="hover:text-indigo-400 transition-colors">API Reference</a>
-          <a href="#" className="hover:text-indigo-400 transition-colors">Support</a>
+          <a href="#" className="hover:text-primary transition-colors">Documentation</a>
+          <a href="#" className="hover:text-primary transition-colors">API Reference</a>
+          <a href="#" className="hover:text-primary transition-colors">Support</a>
         </div>
       </footer>
     </div>

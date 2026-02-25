@@ -139,8 +139,8 @@ function controlStatusBadge(status: ControlStatus): React.ReactNode {
 
 function categoryBadge(category: ControlCategory): React.ReactNode {
   const map: Record<ControlCategory, { cls: string }> = {
-    technical: { cls: "bg-indigo-500/15 text-indigo-400 border-indigo-500/30" },
-    administrative: { cls: "bg-violet-500/15 text-violet-400 border-violet-500/30" },
+    technical: { cls: "bg-primary/15 text-primary border-primary/30" },
+    administrative: { cls: "bg-primary/15 text-primary border-primary/30" },
     physical: { cls: "bg-teal-500/15 text-teal-400 border-teal-500/30" },
   };
   const { cls } = map[category];
@@ -222,8 +222,8 @@ function SummaryStats() {
 
   const stats = [
     { label: "Overall Compliance", value: `${overallScore}%`, accent: scoreColor(overallScore), emoji: "📊" },
-    { label: "Controls Passed", value: `${totalPassed} / ${totalControls}`, accent: "text-indigo-400", emoji: "🛡" },
-    { label: "Evidence Items", value: `${evidenceItems.length}`, accent: "text-violet-400", emoji: "📁" },
+    { label: "Controls Passed", value: `${totalPassed} / ${totalControls}`, accent: "text-primary", emoji: "🛡" },
+    { label: "Evidence Items", value: `${evidenceItems.length}`, accent: "text-primary", emoji: "📁" },
     { label: "Open Risks (High+)", value: `${openRisks}`, accent: "text-rose-400", emoji: "⚠" },
   ];
 
@@ -339,7 +339,7 @@ function ControlsTable() {
                 className="w-full grid grid-cols-[40px_100px_1fr_140px_110px_100px_110px_100px] items-center px-4 py-3 text-sm hover:bg-surface-2/40 transition-colors text-left"
               >
                 <span className="text-fg-muted text-xs">{isOpen ? "▾" : "▸"}</span>
-                <span className="text-indigo-400 font-mono text-xs">{ctrl.id}</span>
+                <span className="text-primary font-mono text-xs">{ctrl.id}</span>
                 <span className="text-fg-primary truncate pr-2">{ctrl.title}</span>
                 <span className="text-fg-secondary text-xs truncate">{ctrl.framework}</span>
                 <span>{categoryBadge(ctrl.category)}</span>
@@ -391,7 +391,7 @@ function EvidenceLocker() {
             <span className="text-fg-muted">📄</span>
             <span className="truncate">{ev.filename}</span>
           </div>
-          <span className="text-indigo-400 font-mono text-xs">{ev.controlId}</span>
+          <span className="text-primary font-mono text-xs">{ev.controlId}</span>
           <span className="text-fg-secondary text-xs font-mono">{ev.uploadDate}</span>
           <span className={cn("text-xs font-mono", ev.status === "expired" ? "text-rose-400" : ev.status === "expiring" ? "text-amber-400" : "text-fg-secondary")}>{ev.expiryDate}</span>
           <span className="text-fg-muted text-xs">{ev.size}</span>
@@ -467,7 +467,7 @@ export default function ComplianceDashboard() {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-fg-muted">Last sync: Feb 22, 2026 02:45 MST</span>
-          <button className="bg-indigo-500 hover:bg-indigo-600 text-fg-primary text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+          <button className="bg-primary hover:bg-primary text-fg-primary text-sm font-medium px-4 py-2 rounded-lg transition-colors">
             Export Report
           </button>
         </div>
@@ -492,7 +492,7 @@ export default function ComplianceDashboard() {
               className={cn(
                 "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px",
                 activeTab === tab.key
-                  ? "border-indigo-500 text-fg-primary"
+                  ? "border-primary text-fg-primary"
                   : "border-transparent text-fg-secondary hover:text-fg-primary"
               )}
             >

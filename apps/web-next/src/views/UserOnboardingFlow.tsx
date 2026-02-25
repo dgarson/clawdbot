@@ -156,7 +156,7 @@ const COHORTS: CohortMetric[] = [
 const flowStatusColor: Record<FlowStatus, string> = {
   active: "text-emerald-400 bg-emerald-400/10",
   paused: "text-amber-400 bg-amber-400/10",
-  draft: "text-indigo-400 bg-indigo-400/10",
+  draft: "text-primary bg-primary/10",
   archived: "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10",
 }
 
@@ -170,7 +170,7 @@ const stepTypeIcon: Record<StepType, string> = {
 
 const stepStatusColor: Record<UserStepStatus, string> = {
   completed: "bg-emerald-500 border-emerald-400",
-  current: "bg-indigo-500 border-indigo-400 ring-2 ring-indigo-400/30",
+  current: "bg-primary border-primary ring-2 ring-indigo-400/30",
   skipped: "bg-[var(--color-surface-3)] border-[var(--color-surface-3)]",
   pending: "bg-[var(--color-surface-2)] border-[var(--color-border)]",
 }
@@ -211,7 +211,7 @@ export default function UserOnboardingFlow() {
           <h1 className="text-2xl font-bold">User Onboarding Flows</h1>
           <p className="text-[var(--color-text-secondary)] text-sm mt-1">Design, monitor, and optimize user activation journeys</p>
         </div>
-        <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm font-medium transition-colors">
+        <button className="px-4 py-2 bg-primary hover:bg-primary rounded-md text-sm font-medium transition-colors">
           + New Flow
         </button>
       </div>
@@ -230,7 +230,7 @@ export default function UserOnboardingFlow() {
         </div>
         <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="text-xs text-[var(--color-text-secondary)] mb-1">Users This Week</div>
-          <div className="text-2xl font-bold text-indigo-400">261</div>
+          <div className="text-2xl font-bold text-primary">261</div>
           <div className="text-xs text-[var(--color-text-muted)] mt-1">↑ 12% vs last week</div>
         </div>
         <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
@@ -249,7 +249,7 @@ export default function UserOnboardingFlow() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                ? "border-primary text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -360,7 +360,7 @@ export default function UserOnboardingFlow() {
                     className="w-full text-left p-4 hover:bg-[var(--color-surface-2)]/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-sm font-medium text-indigo-300">
+                      <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-sm font-medium text-indigo-300">
                         {u.name.charAt(0)}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -512,7 +512,7 @@ export default function UserOnboardingFlow() {
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
                   selectedFlow === f.id
-                    ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                    ? "bg-primary/20 text-indigo-300 border border-primary/30"
                     : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] border border-[var(--color-border)]"
                 )}
               >
@@ -525,7 +525,7 @@ export default function UserOnboardingFlow() {
               <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-medium">{flow.name}</h2>
-                  <button className="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-400 rounded-md transition-colors">
+                  <button className="px-3 py-1 text-xs bg-primary hover:bg-primary rounded-md transition-colors">
                     + Add Step
                   </button>
                 </div>
@@ -553,7 +553,7 @@ export default function UserOnboardingFlow() {
                   ))}
                 </div>
                 <div className="flex gap-2 mt-4 pt-4 border-t border-[var(--color-border)]">
-                  <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm transition-colors">Save</button>
+                  <button className="px-4 py-2 bg-primary hover:bg-primary rounded-md text-sm transition-colors">Save</button>
                   <button className="px-4 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-md text-sm text-[var(--color-text-primary)] transition-colors">Preview</button>
                 </div>
               </div>

@@ -96,7 +96,7 @@ const POSTMORTEM: Postmortem = {
 const SEV_COLORS: Record<string, string> = {
   sev1: "bg-rose-400/15 text-rose-400 border-rose-500/30",
   sev2: "bg-amber-400/15 text-amber-400 border-amber-500/30",
-  sev3: "bg-indigo-400/15 text-indigo-300 border-indigo-500/30",
+  sev3: "bg-primary/15 text-indigo-300 border-primary/30",
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -108,20 +108,20 @@ const STATUS_COLORS: Record<string, string> = {
 const PRIORITY_COLORS: Record<string, string> = {
   critical: "bg-rose-400/15 text-rose-400 border-rose-500/30",
   high:     "bg-amber-400/15 text-amber-400 border-amber-500/30",
-  medium:   "bg-indigo-400/15 text-indigo-300 border-indigo-500/30",
+  medium:   "bg-primary/15 text-indigo-300 border-primary/30",
   low:      "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] border-[var(--color-surface-3)]",
 };
 
 const ACTION_STATUS_COLORS: Record<string, string> = {
   open:        "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
-  in_progress: "bg-indigo-500/20 text-indigo-300",
+  in_progress: "bg-primary/20 text-indigo-300",
   done:        "bg-emerald-400/15 text-emerald-400",
 };
 
 const TIMELINE_COLORS: Record<string, string> = {
   detection:     "bg-rose-500",
   escalation:    "bg-amber-500",
-  mitigation:    "bg-indigo-500",
+  mitigation:    "bg-primary",
   resolution:    "bg-emerald-500",
   communication: "bg-[var(--color-surface-3)]",
 };
@@ -170,7 +170,7 @@ export default function IncidentPostmortem() {
         </div>
         <div className="flex gap-2">
           <button className="text-sm px-4 py-2 border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-2)] transition-colors">⬇ Export PDF</button>
-          <button className="text-sm px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors">✏️ Edit</button>
+          <button className="text-sm px-4 py-2 bg-primary text-[var(--color-text-primary)] rounded hover:bg-primary transition-colors">✏️ Edit</button>
         </div>
       </div>
 
@@ -182,7 +182,7 @@ export default function IncidentPostmortem() {
             onClick={() => setActiveTab(t.id)}
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
-              activeTab === t.id ? "bg-indigo-500 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
+              activeTab === t.id ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t.emoji} {t.label}
@@ -337,7 +337,7 @@ export default function IncidentPostmortem() {
         <div className="space-y-3 max-w-3xl">
           <div className="flex items-center justify-between">
             <div className="text-sm text-[var(--color-text-secondary)]">{pm.actionItems.length} action items — {doneCount} done, {openCount} open</div>
-            <button className="text-xs px-3 py-1.5 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded hover:bg-indigo-500/30">+ Add Item</button>
+            <button className="text-xs px-3 py-1.5 bg-primary/20 border border-primary/30 text-indigo-300 rounded hover:bg-primary/30">+ Add Item</button>
           </div>
 
           {pm.actionItems.map(item => (
@@ -381,11 +381,11 @@ export default function IncidentPostmortem() {
               {ALL_INCIDENTS.map(inc => (
                 <tr
                   key={inc.id}
-                  className={cn("hover:bg-[var(--color-surface-2)]/30 cursor-pointer transition-colors", inc.id === "pm1" && "bg-indigo-500/5")}
+                  className={cn("hover:bg-[var(--color-surface-2)]/30 cursor-pointer transition-colors", inc.id === "pm1" && "bg-primary/5")}
                 >
                   <td className="px-4 py-3">
                     <div className="text-sm text-[var(--color-text-primary)]">{inc.title}</div>
-                    {inc.id === "pm1" && <div className="text-xs text-indigo-400">← currently viewing</div>}
+                    {inc.id === "pm1" && <div className="text-xs text-primary">← currently viewing</div>}
                   </td>
                   <td className="px-4 py-3">
                     <span className={cn("text-xs px-2 py-0.5 rounded border uppercase font-semibold", SEV_COLORS[inc.sev])}>{inc.sev}</span>

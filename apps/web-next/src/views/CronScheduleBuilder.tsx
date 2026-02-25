@@ -80,7 +80,7 @@ export default function CronScheduleBuilder() {
           </div>
           <button 
             onClick={() => setIsPanelOpen(true)}
-            className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] px-4 py-2 rounded-xl font-medium transition-all active:scale-95"
+            className="flex items-center gap-2 bg-primary hover:bg-primary text-[var(--color-text-primary)] px-4 py-2 rounded-xl font-medium transition-all active:scale-95"
           >
             <Plus className="w-5 h-5" />
             New Automation
@@ -118,7 +118,7 @@ export default function CronScheduleBuilder() {
                 </p>
                 <button 
                   onClick={() => setIsPanelOpen(true)}
-                  className="mt-6 text-violet-500 font-bold hover:text-violet-400"
+                  className="mt-6 text-primary font-bold hover:text-primary"
                 >
                   + Create Automation
                 </button>
@@ -191,7 +191,7 @@ export default function CronScheduleBuilder() {
                         onClick={() => toggleJob(job.id)}
                         className={cn(
                           "p-2 rounded-lg transition-colors",
-                          job.status === 'disabled' ? "text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)]" : "text-violet-500 hover:bg-violet-500/10"
+                          job.status === 'disabled' ? "text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)]" : "text-primary hover:bg-primary/10"
                         )} 
                         title={job.status === 'disabled' ? 'Enable' : 'Disable'}
                       >
@@ -223,7 +223,7 @@ export default function CronScheduleBuilder() {
                     <div className="px-6 pb-6 pt-2 border-t border-[var(--color-border)] bg-[var(--color-surface-0)]/30 animate-in slide-in-from-top-2 duration-200">
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest">Recent Run History</h4>
-                        <button className="text-xs text-violet-500 hover:text-violet-400 font-medium">View Logs</button>
+                        <button className="text-xs text-primary hover:text-primary font-medium">View Logs</button>
                       </div>
                       <div className="space-y-2">
                         {[1, 2, 3, 4, 5].map(i => (
@@ -305,7 +305,7 @@ export default function CronScheduleBuilder() {
                   className={cn(
                     "flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
                     newJob.agentId === agent.id 
-                      ? "bg-violet-600/10 border-violet-600" 
+                      ? "bg-primary/10 border-primary" 
                       : "bg-[var(--color-surface-0)] border-[var(--color-border)] hover:border-[var(--color-border)]"
                   )}
                 >
@@ -316,7 +316,7 @@ export default function CronScheduleBuilder() {
                     <div className="font-bold text-sm">{agent.name}</div>
                     <div className="text-xs text-[var(--color-text-muted)]">{agent.role}</div>
                   </div>
-                  {newJob.agentId === agent.id && <CheckCircle2 className="w-5 h-5 text-violet-500 ml-auto" />}
+                  {newJob.agentId === agent.id && <CheckCircle2 className="w-5 h-5 text-primary ml-auto" />}
                 </button>
               ))}
             </div>
@@ -327,7 +327,7 @@ export default function CronScheduleBuilder() {
               <label className="text-sm font-medium text-[var(--color-text-secondary)]">Schedule</label>
               <button 
                 onClick={() => setNewJob({...newJob, useCustom: !newJob.useCustom})}
-                className="text-xs font-bold text-violet-500 uppercase tracking-wider"
+                className="text-xs font-bold text-primary uppercase tracking-wider"
               >
                 {newJob.useCustom ? 'Use Presets' : 'Custom Cron'}
               </button>
@@ -343,7 +343,7 @@ export default function CronScheduleBuilder() {
                   aria-label="Custom cron expression"
                   value={newJob.customSchedule}
                   onChange={e => setNewJob({...newJob, customSchedule: e.target.value})}
-                  className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-xl px-4 py-3 font-mono text-violet-400 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-violet-600 transition-all"
+                  className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-xl px-4 py-3 font-mono text-primary placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-violet-600 transition-all"
                 />
                 <div className="p-4 bg-[var(--color-surface-0)]/50 rounded-xl border border-[var(--color-border)] border-dashed">
                   <h4 className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase mb-3 tracking-widest">Next 3 Runs</h4>
@@ -377,7 +377,7 @@ export default function CronScheduleBuilder() {
                     className={cn(
                       "p-4 rounded-xl border text-sm font-medium transition-all text-left",
                       newJob.schedule === preset.value && !newJob.useCustom
-                        ? "bg-violet-600/10 border-violet-600 text-violet-200" 
+                        ? "bg-primary/10 border-primary text-violet-200" 
                         : "bg-[var(--color-surface-0)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
@@ -410,7 +410,7 @@ export default function CronScheduleBuilder() {
           </button>
           <button 
             disabled={!newJob.name || !newJob.agentId}
-            className="flex-1 px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-[var(--color-text-primary)] shadow-lg shadow-violet-600/20 transition-all active:scale-95"
+            className="flex-1 px-6 py-3 rounded-xl bg-primary hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed font-bold text-[var(--color-text-primary)] shadow-lg shadow-violet-600/20 transition-all active:scale-95"
           >
             Create Job
           </button>

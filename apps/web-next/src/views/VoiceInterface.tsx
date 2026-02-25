@@ -118,7 +118,7 @@ function AudioBars({ active, color }: { active: boolean; color: string }) {
 
 function MicPulseRing({ state }: { state: VoiceState }) {
   const isActive = state === "listening" || state === "speaking" || state === "thinking";
-  const color = state === "listening" ? "bg-indigo-500" : state === "speaking" ? "bg-emerald-500" : state === "thinking" ? "bg-amber-500" : "bg-[var(--color-surface-3)]";
+  const color = state === "listening" ? "bg-primary" : state === "speaking" ? "bg-emerald-500" : state === "thinking" ? "bg-amber-500" : "bg-[var(--color-surface-3)]";
 
   return (
     <div className="relative flex items-center justify-center">
@@ -137,7 +137,7 @@ function MicPulseRing({ state }: { state: VoiceState }) {
           "relative z-10 flex items-center justify-center h-28 w-28 rounded-full border-4 transition-all duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
           state === "idle"      && "bg-[var(--color-surface-2)] border-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] focus-visible:ring-zinc-500",
           state === "connecting" && "bg-[var(--color-surface-2)] border-[var(--color-surface-3)] animate-pulse",
-          state === "listening" && "bg-indigo-600 border-indigo-400 hover:bg-indigo-700 focus-visible:ring-indigo-500",
+          state === "listening" && "bg-primary border-primary hover:bg-indigo-700 focus-visible:ring-indigo-500",
           state === "thinking"  && "bg-amber-600 border-amber-400 focus-visible:ring-amber-500",
           state === "speaking"  && "bg-emerald-600 border-emerald-400 focus-visible:ring-emerald-500",
           state === "error"     && "bg-rose-700 border-rose-500 focus-visible:ring-rose-500",
@@ -220,7 +220,7 @@ function TranscriptLine({ entry }: { entry: TranscriptEntry }) {
       {/* Avatar */}
       <div className={cn(
         "flex-none h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0",
-        isUser ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
+        isUser ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
       )}>
         {isUser ? "D" : "🎨"}
       </div>
@@ -230,7 +230,7 @@ function TranscriptLine({ entry }: { entry: TranscriptEntry }) {
         <div className={cn(
           "px-4 py-2.5 rounded-2xl text-sm leading-relaxed",
           isUser
-            ? "bg-indigo-600 text-[var(--color-text-primary)] rounded-tr-sm"
+            ? "bg-primary text-[var(--color-text-primary)] rounded-tr-sm"
             : "bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded-tl-sm",
           entry.isPartial && "opacity-60"
         )}>
@@ -374,7 +374,7 @@ export default function VoiceInterface() {
             aria-label="Toggle transcript"
             className={cn(
               "px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-              showTranscript ? "bg-indigo-600/20 text-indigo-300 border-indigo-500/30" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]"
+              showTranscript ? "bg-primary/20 text-indigo-300 border-primary/30" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]"
             )}
           >
             {showTranscript ? "Hide Transcript" : "Show Transcript"}
@@ -407,7 +407,7 @@ export default function VoiceInterface() {
                   aria-label={`Select ${agent.name} — ${agent.description}`}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                    selectedAgent.id === agent.id ? "bg-indigo-600/20 border border-indigo-500/30" : "hover:bg-[var(--color-surface-1)] border border-transparent",
+                    selectedAgent.id === agent.id ? "bg-primary/20 border border-primary/30" : "hover:bg-[var(--color-surface-1)] border border-transparent",
                     isActive && selectedAgent.id !== agent.id && "opacity-40 cursor-not-allowed"
                   )}
                 >
@@ -417,7 +417,7 @@ export default function VoiceInterface() {
                     <p className="text-xs text-[var(--color-text-muted)] truncate">{agent.voice}</p>
                   </div>
                   {selectedAgent.id === agent.id && (
-                    <svg className="h-4 w-4 text-indigo-400 flex-none ml-auto" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <svg className="h-4 w-4 text-primary flex-none ml-auto" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l4 4 6-6" />
                     </svg>
                   )}
@@ -451,7 +451,7 @@ export default function VoiceInterface() {
             {/* Audio visualizer */}
             <AudioBars
               active={voiceState === "listening" || voiceState === "speaking"}
-              color={voiceState === "speaking" ? "bg-emerald-500" : "bg-indigo-500"}
+              color={voiceState === "speaking" ? "bg-emerald-500" : "bg-primary"}
             />
 
             {/* State label */}
@@ -530,7 +530,7 @@ export default function VoiceInterface() {
             {voiceState === "listening" && (
               <div className="flex-none px-5 py-3 border-t border-[var(--color-border)]">
                 <div className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                   <span className="text-xs text-[var(--color-text-muted)]">Listening for speech…</span>
                 </div>
               </div>

@@ -436,7 +436,7 @@ function BarChart({
           >
             <div className="w-full relative flex items-end" style={{ height: height - 20 }}>
               <div
-                className="w-full bg-indigo-600 group-hover:bg-indigo-500 rounded-t transition-colors relative"
+                className="w-full bg-primary group-hover:bg-primary rounded-t transition-colors relative"
                 style={{ height: `${pct}%` }}
                 title={`${d.label}: ${d.value.toLocaleString()}`}
               />
@@ -458,7 +458,7 @@ function MiniBarChart({ trend }: { trend: number[] }) {
       {trend.map((v, i) => (
         <div
           key={i}
-          className="flex-1 bg-indigo-600 rounded-sm opacity-70"
+          className="flex-1 bg-primary rounded-sm opacity-70"
           style={{ height: `${(v / max) * 100}%` }}
         />
       ))}
@@ -535,7 +535,7 @@ function OverviewTab() {
           label="Avg Result Count"
           value={avgResultCount.toString()}
           sub="Per query"
-          accent="text-indigo-400"
+          accent="text-primary"
         />
         <MetricCard
           label="Click-Through Rate"
@@ -712,7 +712,7 @@ function QueriesTab() {
               className={cn(
                 "w-full px-4 py-3 border-b border-[var(--color-border)] last:border-0 flex flex-col gap-1 text-left transition-colors",
                 selectedId === q.id
-                  ? "bg-indigo-600/20"
+                  ? "bg-primary/20"
                   : "hover:bg-[var(--color-surface-2)]"
               )}
             >
@@ -786,7 +786,7 @@ function QueriesTab() {
                   </span>
                   <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2 overflow-hidden">
                     <div
-                      className="h-full bg-indigo-500 rounded-full"
+                      className="h-full bg-primary rounded-full"
                       style={{ width: `${(c.clicks / maxClicks) * 100}%` }}
                     />
                   </div>
@@ -810,7 +810,7 @@ function QueriesTab() {
                   className="flex items-center justify-between p-2 bg-[var(--color-surface-2)] rounded-lg"
                 >
                   <span className="text-[var(--color-text-primary)] text-sm truncate">{sq}</span>
-                  <button className="text-xs text-indigo-400 hover:text-indigo-300 ml-2 whitespace-nowrap">
+                  <button className="text-xs text-primary hover:text-indigo-300 ml-2 whitespace-nowrap">
                     Add
                   </button>
                 </div>
@@ -866,7 +866,7 @@ function ZeroResultsTab() {
                 className={cn(
                   "text-xs px-2 py-1 rounded",
                   sortBy === "count"
-                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    ? "bg-primary text-[var(--color-text-primary)]"
                     : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -877,7 +877,7 @@ function ZeroResultsTab() {
                 className={cn(
                   "text-xs px-2 py-1 rounded",
                   sortBy === "recent"
-                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    ? "bg-primary text-[var(--color-text-primary)]"
                     : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -902,7 +902,7 @@ function ZeroResultsTab() {
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-xs text-[var(--color-text-muted)]">{z.lastSearched}</span>
                   <span className="text-xs text-[var(--color-text-muted)]">·</span>
-                  <span className="text-xs text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
+                  <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                     {z.category}
                   </span>
                 </div>
@@ -1118,7 +1118,7 @@ function RelevanceTab() {
                     <div className="mt-3 flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-indigo-500"
+                          className="h-full bg-primary"
                           style={{ width: `${test.control * 100}%` }}
                         />
                       </div>
@@ -1234,7 +1234,7 @@ export default function SearchAnalyticsDashboard() {
               <button className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-1)] border border-[var(--color-border)] px-3 py-1.5 rounded-lg transition-colors">
                 Export CSV
               </button>
-              <button className="text-sm text-[var(--color-text-primary)] bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg transition-colors">
+              <button className="text-sm text-[var(--color-text-primary)] bg-primary hover:bg-primary px-3 py-1.5 rounded-lg transition-colors">
                 Configure Indexes
               </button>
             </div>
@@ -1256,7 +1256,7 @@ export default function SearchAnalyticsDashboard() {
             >
               {tab.label}
               {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t" />
               )}
               {tab.id === "zero-results" && (
                 <span className="ml-1.5 text-xs bg-amber-400/20 text-amber-400 px-1.5 py-0.5 rounded-full">

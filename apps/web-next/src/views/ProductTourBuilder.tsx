@@ -122,7 +122,7 @@ export default function ProductTourBuilder() {
           <h1 className="text-xl font-semibold tracking-tight">Product Tour Builder</h1>
           <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Interactive onboarding tours and feature walkthroughs</p>
         </div>
-        <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
+        <button className="px-4 py-2 text-sm bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">
           + New Tour
         </button>
       </div>
@@ -151,7 +151,7 @@ export default function ProductTourBuilder() {
             onClick={() => setTab(t.id)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              tab === t.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             <span>{t.emoji}</span>
@@ -188,7 +188,7 @@ export default function ProductTourBuilder() {
                   {tour.starts > 0 && (
                     <div className="mt-1.5">
                       <div className="h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${tour.completionRate}%` }} />
+                        <div className="h-full bg-primary rounded-full" style={{ width: `${tour.completionRate}%` }} />
                       </div>
                       <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{tour.completionRate}% complete</div>
                     </div>
@@ -213,7 +213,7 @@ export default function ProductTourBuilder() {
                     </div>
                     <div className="flex gap-2 shrink-0">
                       {selectedTour.status === "draft" && (
-                        <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Activate</button>
+                        <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">Activate</button>
                       )}
                       {selectedTour.status === "active" && (
                         <button className="px-3 py-1.5 text-xs bg-amber-500/20 border border-amber-500/40 rounded text-amber-400 hover:bg-amber-500/30 transition-colors">Pause</button>
@@ -327,7 +327,7 @@ export default function ProductTourBuilder() {
                   </div>
                 </button>
               ))}
-              <button className="w-full px-4 py-3 text-xs text-indigo-400 hover:text-indigo-300 text-left border-t border-[var(--color-border)]">
+              <button className="w-full px-4 py-3 text-xs text-primary hover:text-indigo-300 text-left border-t border-[var(--color-border)]">
                 + Add step
               </button>
             </div>
@@ -346,16 +346,16 @@ export default function ProductTourBuilder() {
                     </div>
                     <div>
                       <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Title</label>
-                      <input type="text" defaultValue={selectedStep.title} className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-indigo-500" />
+                      <input type="text" defaultValue={selectedStep.title} className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-primary" />
                     </div>
                     <div>
                       <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Body Text</label>
-                      <textarea rows={3} defaultValue={selectedStep.body} className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-indigo-500 resize-none" />
+                      <textarea rows={3} defaultValue={selectedStep.body} className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-primary resize-none" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Target Element</label>
-                        <input type="text" defaultValue={selectedStep.target} placeholder="#element-id or .class" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm font-mono text-[var(--color-text-primary)] outline-none focus:border-indigo-500" />
+                        <input type="text" defaultValue={selectedStep.target} placeholder="#element-id or .class" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm font-mono text-[var(--color-text-primary)] outline-none focus:border-primary" />
                       </div>
                       <div>
                         <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Position</label>
@@ -366,14 +366,14 @@ export default function ProductTourBuilder() {
                     </div>
                     <div>
                       <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">CTA Button Text (optional)</label>
-                      <input type="text" defaultValue={selectedStep.ctaText || ""} placeholder="Next" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-indigo-500" />
+                      <input type="text" defaultValue={selectedStep.ctaText || ""} placeholder="Next" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-primary" />
                     </div>
                     <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] cursor-pointer">
                       <input type="checkbox" defaultChecked={selectedStep.skippable} className="w-3 h-3" />
                       Allow users to skip this step
                     </label>
                     <div className="flex gap-2">
-                      <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Save Step</button>
+                      <button className="px-4 py-2 text-sm bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">Save Step</button>
                       <button className="px-4 py-2 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">Preview</button>
                     </div>
                   </div>

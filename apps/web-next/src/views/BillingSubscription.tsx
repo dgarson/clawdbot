@@ -138,9 +138,9 @@ const BillingSubscription: React.FC<{ isLoading?: boolean }> = ({ isLoading = fa
   ];
 
   const usageMeters = [
-    { label: "Tokens", used: 8.2, limit: 10, unit: "M", color: "bg-indigo-500", overage: "$0.002 per 1K" },
+    { label: "Tokens", used: 8.2, limit: 10, unit: "M", color: "bg-primary", overage: "$0.002 per 1K" },
     { label: "API Calls", used: 45200, limit: 100000, unit: "", color: "bg-emerald-500", overage: "$0.01 per 100" },
-    { label: "Active Agents", used: 12, limit: 20, unit: "", color: "bg-violet-500", overage: "$5 per agent" },
+    { label: "Active Agents", used: 12, limit: 20, unit: "", color: "bg-primary", overage: "$5 per agent" },
     { label: "Nodes Paired", used: 4, limit: 10, unit: "", color: "bg-amber-500", overage: "$10 per node" },
     { label: "Storage", used: 4.2, limit: 5, unit: "GB", color: "bg-rose-500", overage: "$0.50 per GB" },
   ];
@@ -165,7 +165,7 @@ const BillingSubscription: React.FC<{ isLoading?: boolean }> = ({ isLoading = fa
           className={cn(
             "px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none capitalize",
             activeTab === tab 
-              ? "text-fg-primary border-b-2 border-indigo-500" 
+              ? "text-fg-primary border-b-2 border-primary" 
               : "text-fg-secondary hover:text-fg-primary"
           )}
         >
@@ -188,12 +188,12 @@ const BillingSubscription: React.FC<{ isLoading?: boolean }> = ({ isLoading = fa
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-fg-primary">$49<span className="text-sm font-normal text-fg-muted">/mo</span></div>
-                <div className="text-xs text-indigo-400 font-medium">Next renewal: June 1, 2024</div>
+                <div className="text-xs text-primary font-medium">Next renewal: June 1, 2024</div>
               </div>
             </div>
             <div className="flex items-center space-x-3 mb-6 bg-surface-0/50 p-2 rounded-lg w-fit">
-              <span className={cn("text-xs font-medium px-2 py-1 rounded", billingCycle === 'monthly' ? 'bg-indigo-500 text-fg-primary' : 'text-fg-secondary cursor-pointer')} onClick={() => setBillingCycle('monthly')}>Monthly</span>
-              <span className={cn("text-xs font-medium px-2 py-1 rounded", billingCycle === 'annual' ? 'bg-indigo-500 text-fg-primary' : 'text-fg-secondary cursor-pointer')} onClick={() => setBillingCycle('annual')}>Annual (Save 20%)</span>
+              <span className={cn("text-xs font-medium px-2 py-1 rounded", billingCycle === 'monthly' ? 'bg-primary text-fg-primary' : 'text-fg-secondary cursor-pointer')} onClick={() => setBillingCycle('monthly')}>Monthly</span>
+              <span className={cn("text-xs font-medium px-2 py-1 rounded", billingCycle === 'annual' ? 'bg-primary text-fg-primary' : 'text-fg-secondary cursor-pointer')} onClick={() => setBillingCycle('annual')}>Annual (Save 20%)</span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 border-t border-tok-border pt-6">
@@ -246,13 +246,13 @@ const BillingSubscription: React.FC<{ isLoading?: boolean }> = ({ isLoading = fa
               key={plan.name} 
               className={cn(
                 "bg-surface-1 border rounded-xl p-3 sm:p-4 md:p-6 flex flex-col",
-                plan.current ? "border-indigo-500 ring-1 ring-indigo-500" : "border-tok-border"
+                plan.current ? "border-primary ring-1 ring-indigo-500" : "border-tok-border"
               )}
             >
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-1">
                   <h4 className="text-lg font-bold text-fg-primary">{plan.name}</h4>
-                  {plan.current && <span className="bg-indigo-500 text-[10px] font-bold text-fg-primary px-2 py-0.5 rounded-full uppercase">Current</span>}
+                  {plan.current && <span className="bg-primary text-[10px] font-bold text-fg-primary px-2 py-0.5 rounded-full uppercase">Current</span>}
                 </div>
                 <p className="text-sm text-fg-muted mb-4">{plan.description}</p>
                 <div className="text-3xl font-bold text-fg-primary">
@@ -277,7 +277,7 @@ const BillingSubscription: React.FC<{ isLoading?: boolean }> = ({ isLoading = fa
                     ? "bg-surface-2 text-fg-secondary cursor-default" 
                     : plan.name === "Enterprise"
                       ? "bg-white text-surface-0 hover:bg-surface-2"
-                      : "bg-indigo-500 text-fg-primary hover:bg-indigo-600 shadow-lg shadow-indigo-500/20"
+                      : "bg-primary text-fg-primary hover:bg-primary shadow-lg shadow-indigo-500/20"
                 )}
                 disabled={plan.current}
               >
@@ -352,7 +352,7 @@ const BillingSubscription: React.FC<{ isLoading?: boolean }> = ({ isLoading = fa
                 <div key={i} className="flex flex-col items-center group">
                   <div className="text-[10px] text-fg-muted font-bold mb-2 opacity-0 group-hover:opacity-100 transition-opacity">{(val * 100).toLocaleString()}</div>
                   <div 
-                    className="w-8 bg-indigo-500/20 border-t-2 border-indigo-500 rounded-t-sm transition-all duration-300 group-hover:bg-indigo-500/40"
+                    className="w-8 bg-primary/20 border-t-2 border-primary rounded-t-sm transition-all duration-300 group-hover:bg-primary/40"
                     style={{ height: `${val}%` }}
                   >
                     {/* SVG squiggle texture for "hand-drawn" feel */}
@@ -435,7 +435,7 @@ const BillingSubscription: React.FC<{ isLoading?: boolean }> = ({ isLoading = fa
                     </td>
                     <td className="px-6 py-4 text-right">
                       {invoice.status === "Failed" ? (
-                        <button className="text-xs font-bold text-indigo-400 hover:text-indigo-300 underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none p-1 rounded">
+                        <button className="text-xs font-bold text-primary hover:text-indigo-300 underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none p-1 rounded">
                           Retry Payment
                         </button>
                       ) : (

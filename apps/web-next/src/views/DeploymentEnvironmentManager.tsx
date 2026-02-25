@@ -264,7 +264,7 @@ function healthDot(h: HealthStatus): string {
 function statusColor(s: DeployStatus): string {
   if (s === "success") {return "text-emerald-400"}
   if (s === "failed") {return "text-rose-400"}
-  if (s === "in_progress") {return "text-indigo-400"}
+  if (s === "in_progress") {return "text-primary"}
   if (s === "rolled_back") {return "text-amber-400"}
   return "text-[var(--color-text-secondary)]"
 }
@@ -272,14 +272,14 @@ function statusColor(s: DeployStatus): string {
 function statusBadge(s: DeployStatus): string {
   if (s === "success") {return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"}
   if (s === "failed") {return "bg-rose-500/15 text-rose-400 border-rose-500/30"}
-  if (s === "in_progress") {return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30"}
+  if (s === "in_progress") {return "bg-primary/15 text-primary border-primary/30"}
   if (s === "rolled_back") {return "bg-amber-500/15 text-amber-400 border-amber-500/30"}
   return "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]"
 }
 
 function roleBadge(r: AccessRole): string {
   if (r === "admin") {return "bg-rose-500/15 text-rose-400 border-rose-500/30"}
-  if (r === "deployer") {return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30"}
+  if (r === "deployer") {return "bg-primary/15 text-primary border-primary/30"}
   return "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border-[var(--color-border)]"
 }
 
@@ -326,7 +326,7 @@ function ServiceRow({ svc }: { svc: Service }) {
         {svc.replicas}/{svc.desiredReplicas} pods
       </span>
       <div className="w-28 flex-shrink-0">
-        <MiniBar value={svc.cpu} color={svc.cpu > 80 ? "bg-rose-500" : svc.cpu > 60 ? "bg-amber-400" : "bg-indigo-500"} />
+        <MiniBar value={svc.cpu} color={svc.cpu > 80 ? "bg-rose-500" : svc.cpu > 60 ? "bg-amber-400" : "bg-primary"} />
       </div>
       <div className="w-28 flex-shrink-0">
         <MiniBar value={svc.memory} color={svc.memory > 85 ? "bg-rose-500" : svc.memory > 70 ? "bg-amber-400" : "bg-emerald-500"} />
@@ -365,7 +365,7 @@ function EnvDetail({ env }: { env: Environment }) {
         </div>
         <div className="mt-3 flex items-center gap-2">
           <span className="text-[var(--color-text-muted)] text-xs">Branch:</span>
-          <code className="text-indigo-400 text-xs bg-indigo-500/10 px-2 py-0.5 rounded font-mono">{env.branch}</code>
+          <code className="text-primary text-xs bg-primary/10 px-2 py-0.5 rounded font-mono">{env.branch}</code>
         </div>
       </div>
 
@@ -398,7 +398,7 @@ function EnvironmentsTab() {
             className={cn(
               "w-full text-left rounded-xl border p-4 transition-all",
               selectedId === env.id
-                ? "border-indigo-500/50 bg-indigo-500/10"
+                ? "border-primary/50 bg-primary/10"
                 : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]"
             )}
           >
@@ -443,7 +443,7 @@ function DeploymentsTab() {
             className={cn(
               "px-3 py-1.5 rounded-lg text-sm font-medium border transition-all capitalize",
               filterEnv === env
-                ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/40"
+                ? "bg-primary/20 text-primary border-primary/40"
                 : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -536,7 +536,7 @@ function ConfigTab() {
               className={cn(
                 "px-3 py-1.5 rounded-lg text-sm font-medium border transition-all capitalize",
                 selectedEnvId === env.id
-                  ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/40"
+                  ? "bg-primary/20 text-primary border-primary/40"
                   : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -550,7 +550,7 @@ function ConfigTab() {
             className={cn(
               "px-3 py-1.5 rounded-lg text-sm font-medium border transition-all flex items-center gap-1.5",
               diffMode
-                ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/40"
+                ? "bg-primary/20 text-primary border-primary/40"
                 : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)]"
             )}
           >
@@ -692,7 +692,7 @@ function AccessTab() {
               className={cn(
                 "px-3 py-1.5 rounded-lg text-sm font-medium border transition-all",
                 selectedEnvId === opt.id
-                  ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/40"
+                  ? "bg-primary/20 text-primary border-primary/40"
                   : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -792,7 +792,7 @@ export default function DeploymentEnvironmentManager() {
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px",
               activeTab === tab.id
-                ? "border-indigo-500 text-[var(--color-text-primary)]"
+                ? "border-primary text-[var(--color-text-primary)]"
                 : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
             )}
           >

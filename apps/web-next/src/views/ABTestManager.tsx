@@ -145,7 +145,7 @@ const SEED_EXPERIMENTS: Experiment[] = [
 const StatusBadge = ({ status }: { status: ExperimentStatus }) => {
   const styles: Record<ExperimentStatus, string> = {
     draft: "bg-surface-2 text-fg-secondary border-tok-border",
-    running: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 motion-safe:animate-pulse",
+    running: "bg-primary/10 text-primary border-primary/20 motion-safe:animate-pulse",
     paused: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     complete: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     archived: "bg-surface-1 text-fg-muted border-tok-border"
@@ -158,7 +158,7 @@ const StatusBadge = ({ status }: { status: ExperimentStatus }) => {
   );
 };
 
-const ProgressBar = ({ current, total, color = "bg-indigo-500", label }: { current: number; total: number; color?: string; label?: string }) => {
+const ProgressBar = ({ current, total, color = "bg-primary", label }: { current: number; total: number; color?: string; label?: string }) => {
   const percentage = Math.min(Math.round((current / total) * 100), 100);
   return (
     <div className="w-full">
@@ -274,11 +274,11 @@ export default function ABTestManager({ isLoading = false }: { isLoading?: boole
     <>
       <a
         href="#abt-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>
-      <div className="flex flex-col md:flex-row h-screen bg-surface-0 text-fg-primary font-sans selection:bg-indigo-500/30">
+      <div className="flex flex-col md:flex-row h-screen bg-surface-0 text-fg-primary font-sans selection:bg-primary/30">
         {/* Sidebar List */}
         <nav aria-label="Experiments list" className="w-full md:w-80 border-b md:border-b-0 md:border-r border-tok-border flex flex-col overflow-hidden bg-surface-0 max-h-[40vh] md:max-h-none">
           <div className="p-4 border-b border-tok-border flex items-center justify-between">
@@ -328,7 +328,7 @@ export default function ABTestManager({ isLoading = false }: { isLoading?: boole
                 <ProgressBar
                   current={exp.completedSessions}
                   total={exp.targetSessions}
-                  color={selectedId === exp.id ? "bg-indigo-500" : "bg-surface-3"}
+                  color={selectedId === exp.id ? "bg-primary" : "bg-surface-3"}
                   label={`${exp.name}: ${exp.completedSessions} of ${exp.targetSessions} sessions`}
                 />
               </button>
@@ -352,7 +352,7 @@ export default function ABTestManager({ isLoading = false }: { isLoading?: boole
                 <button className="px-3 py-1.5 rounded bg-surface-2 hover:bg-surface-3 border border-tok-border text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
                   Duplicate
                 </button>
-                <button className="px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+                <button className="px-3 py-1.5 rounded bg-primary hover:bg-primary text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
                   Save Changes
                 </button>
               </div>
@@ -369,12 +369,12 @@ export default function ABTestManager({ isLoading = false }: { isLoading?: boole
                   onClick={() => setActiveTab(tab)}
                   className={cn(
                     "pb-3 text-sm font-medium transition-all relative capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded-t",
-                    activeTab === tab ? "text-indigo-400" : "text-fg-muted hover:text-fg-primary"
+                    activeTab === tab ? "text-primary" : "text-fg-muted hover:text-fg-primary"
                   )}
                 >
                   {tab}
                   {activeTab === tab && (
-                    <div aria-hidden="true" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-full" />
+                    <div aria-hidden="true" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
                   )}
                 </button>
               ))}
@@ -432,7 +432,7 @@ export default function ABTestManager({ isLoading = false }: { isLoading?: boole
                       {selectedExp.status === 'paused' && (
                         <button
                           aria-label={`Resume experiment: ${selectedExp.name}`}
-                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-xs font-bold rounded transition-colors uppercase tracking-wide focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                          className="px-4 py-2 bg-primary hover:bg-primary text-fg-primary text-xs font-bold rounded transition-colors uppercase tracking-wide focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                         >
                           Resume Experiment
                         </button>
@@ -479,13 +479,13 @@ export default function ABTestManager({ isLoading = false }: { isLoading?: boole
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
-                                <span className="font-mono text-xs w-8 text-indigo-400">{v.trafficPct}%</span>
+                                <span className="font-mono text-xs w-8 text-primary">{v.trafficPct}%</span>
                                 <div
                                   className="w-24 h-1.5 bg-surface-2 rounded-full overflow-hidden"
                                   role="img"
                                   aria-label={`${v.trafficPct}% traffic allocation`}
                                 >
-                                  <div className="h-full bg-indigo-500" style={{ width: `${v.trafficPct}%` }} />
+                                  <div className="h-full bg-primary" style={{ width: `${v.trafficPct}%` }} />
                                 </div>
                               </div>
                             </td>

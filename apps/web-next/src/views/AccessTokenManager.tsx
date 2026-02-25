@@ -70,7 +70,7 @@ const JWT_SAMPLE: JWTClaim[] = [
 const ALL_SCOPES = ["read","write","admin","deploy","analytics.export","partner.api","billing","audit.read"];
 
 const TYPE_BADGES: Record<string, string> = {
-  spa:     "bg-indigo-400/15 border-indigo-500/30 text-indigo-300",
+  spa:     "bg-primary/15 border-primary/30 text-indigo-300",
   web:     "bg-blue-400/15 border-blue-500/30 text-blue-300",
   native:  "bg-emerald-400/15 border-emerald-500/30 text-emerald-300",
   machine: "bg-amber-400/15 border-amber-500/30 text-amber-300",
@@ -122,7 +122,7 @@ export default function AccessTokenManager() {
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Access Token Manager</h1>
           <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Manage OAuth apps, access tokens, and JWT configuration</p>
         </div>
-        <button className="text-sm px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors">
+        <button className="text-sm px-4 py-2 bg-primary text-[var(--color-text-primary)] rounded hover:bg-primary transition-colors">
           + Register App
         </button>
       </div>
@@ -130,7 +130,7 @@ export default function AccessTokenManager() {
       {/* Summary */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: "OAuth Apps",      value: APPS.filter(a=>a.status==="active").length, color: "text-indigo-400" },
+          { label: "OAuth Apps",      value: APPS.filter(a=>a.status==="active").length, color: "text-primary" },
           { label: "Active Tokens",   value: activeTokens,  color: "text-emerald-400" },
           { label: "Expired",         value: expiredTokens, color: "text-[var(--color-text-secondary)]" },
           { label: "Revoked",         value: revokedTokens, color: "text-rose-400" },
@@ -150,7 +150,7 @@ export default function AccessTokenManager() {
             onClick={() => setActiveTab(t.id)}
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
-              activeTab === t.id ? "bg-indigo-500 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
+              activeTab === t.id ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t.emoji} {t.label}
@@ -267,7 +267,7 @@ export default function AccessTokenManager() {
                 onClick={() => setSelectedApp(app)}
                 className={cn(
                   "w-full bg-[var(--color-surface-1)] border rounded-lg p-4 text-left hover:border-[var(--color-surface-3)] transition-colors",
-                  selectedApp?.id === app.id ? "border-indigo-500/50" : "border-[var(--color-border)]"
+                  selectedApp?.id === app.id ? "border-primary/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-center gap-2 mb-1.5">
@@ -314,7 +314,7 @@ export default function AccessTokenManager() {
                       <span key={s} className={cn(
                         "text-xs px-2 py-0.5 rounded border font-mono",
                         selectedApp.scopes.includes(s)
-                          ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-300"
+                          ? "bg-primary/10 border-primary/30 text-indigo-300"
                           : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)]"
                       )}>{s}</span>
                     ))}
@@ -333,7 +333,7 @@ export default function AccessTokenManager() {
                 )}
 
                 <div className="flex gap-2 pt-2 border-t border-[var(--color-border)]">
-                  <button className="text-xs px-3 py-1.5 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded hover:bg-indigo-500/30">Edit App</button>
+                  <button className="text-xs px-3 py-1.5 bg-primary/20 border border-primary/30 text-indigo-300 rounded hover:bg-primary/30">Edit App</button>
                   <button className="text-xs px-3 py-1.5 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-3)]">Rotate Secret</button>
                   {selectedApp.status === "active" ? (
                     <button className="text-xs px-3 py-1.5 bg-rose-400/10 border border-rose-500/30 text-rose-300 rounded hover:bg-rose-400/20">Suspend</button>
@@ -360,11 +360,11 @@ export default function AccessTokenManager() {
               value={jwtInput}
               onChange={e => setJwtInput(e.target.value)}
               placeholder="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
-              className="w-full h-32 bg-[var(--color-surface-1)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs font-mono rounded p-3 resize-none focus:outline-none focus:border-indigo-500 placeholder:text-[var(--color-text-muted)]"
+              className="w-full h-32 bg-[var(--color-surface-1)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs font-mono rounded p-3 resize-none focus:outline-none focus:border-primary placeholder:text-[var(--color-text-muted)]"
             />
             <button
               onClick={() => setShowDecoded(true)}
-              className="mt-2 w-full py-2 bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded hover:bg-indigo-600 transition-colors"
+              className="mt-2 w-full py-2 bg-primary text-[var(--color-text-primary)] text-sm rounded hover:bg-primary transition-colors"
             >
               🔍 Decode JWT
             </button>
@@ -396,7 +396,7 @@ export default function AccessTokenManager() {
                     )}>{claim.key}</span>
                     <span className="text-xs text-[var(--color-text-primary)] font-mono">{claim.value}</span>
                     <span className={cn("ml-auto text-xs px-1.5 py-0.5 rounded flex-shrink-0",
-                      claim.type === "standard" ? "bg-amber-400/10 text-amber-400" : "bg-indigo-500/10 text-indigo-300"
+                      claim.type === "standard" ? "bg-amber-400/10 text-amber-400" : "bg-primary/10 text-indigo-300"
                     )}>{claim.type}</span>
                   </div>
                 ))}
@@ -431,11 +431,11 @@ export default function AccessTokenManager() {
                   {f.opts?.map(o => <option key={o} selected={o === f.value}>{o}</option>)}
                 </select>
               ) : (
-                <input type={f.type} defaultValue={f.value} className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500 font-mono" />
+                <input type={f.type} defaultValue={f.value} className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none focus:border-primary font-mono" />
               )}
             </div>
           ))}
-          <button className="px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded hover:bg-indigo-600 transition-colors">Save Configuration</button>
+          <button className="px-4 py-2 bg-primary text-[var(--color-text-primary)] text-sm rounded hover:bg-primary transition-colors">Save Configuration</button>
         </div>
       )}
     </div>

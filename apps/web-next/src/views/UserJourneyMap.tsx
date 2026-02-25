@@ -87,7 +87,7 @@ function SatisfactionDots({ score }: { score: number }) {
           key={i}
           className={cn(
             "w-2 h-2 rounded-full",
-            i < score ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
+            i < score ? "bg-primary" : "bg-[var(--color-surface-3)]"
           )}
         />
       ))}
@@ -104,7 +104,7 @@ function PercentBar({ value, label }: { value: number; label: string }) {
       </div>
       <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
         <div
-          className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+          className="h-full bg-primary rounded-full transition-all duration-500"
           style={{ width: `${value}%` }}
         />
       </div>
@@ -146,7 +146,7 @@ export default function UserJourneyMap() {
               className={cn(
                 "px-4 py-2 text-sm font-medium rounded-md transition-all duration-200",
                 activeJourneyId === journey.id
-                  ? "bg-indigo-500 text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20"
+                  ? "bg-primary text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
@@ -174,12 +174,12 @@ export default function UserJourneyMap() {
                       className={cn(
                         "flex-shrink-0 w-48 rounded-lg border p-4 text-left transition-all duration-200",
                         selectedStepId === step.id
-                          ? "border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/10"
+                          ? "border-primary bg-primary/10 shadow-lg shadow-indigo-500/10"
                           : "border-[var(--color-border)] bg-[var(--color-surface-2)]/50 hover:border-[var(--color-surface-3)] hover:bg-[var(--color-surface-2)]"
                       )}
                     >
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center">
                           {idx + 1}
                         </div>
                         <span className="text-sm font-semibold text-[var(--color-text-primary)] truncate">
@@ -247,12 +247,12 @@ export default function UserJourneyMap() {
                         className={cn(
                           "w-full rounded transition-all duration-500",
                           ratio > 0.8
-                            ? "bg-indigo-500"
+                            ? "bg-primary"
                             : ratio > 0.6
-                            ? "bg-indigo-500/70"
+                            ? "bg-primary/70"
                             : ratio > 0.4
-                            ? "bg-indigo-500/50"
-                            : "bg-indigo-500/30"
+                            ? "bg-primary/50"
+                            : "bg-primary/30"
                         )}
                         style={{ height: `${height}px` }}
                       />
@@ -288,13 +288,13 @@ export default function UserJourneyMap() {
                 <div className="grid grid-cols-3 gap-5">
                   {/* Actions */}
                   <div className="space-y-3">
-                    <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">
+                    <h3 className="text-xs font-semibold text-primary uppercase tracking-wider">
                       What Users Do Here
                     </h3>
                     <ul className="space-y-2">
                       {selectedStep.detail.actions.map((action, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-[var(--color-text-primary)]">
-                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0" />
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
                           {action}
                         </li>
                       ))}

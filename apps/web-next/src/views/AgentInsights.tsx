@@ -326,7 +326,7 @@ function AgentDetailPanel({ agent }: { agent: AgentStat }) {
         <BarChart
           data={agent.weeklyTokens}
           labels={DAY_LABELS}
-          color="bg-indigo-500"
+          color="bg-primary"
           label="Tokens this week"
           formatValue={(v) => fmtTokens(v)}
         />
@@ -389,7 +389,7 @@ function AgentDetailPanel({ agent }: { agent: AgentStat }) {
                   </div>
                   <div className="h-1 w-full bg-[var(--color-surface-2)] rounded-full">
                     <div
-                      className="h-1 rounded-full bg-indigo-500 opacity-80"
+                      className="h-1 rounded-full bg-primary opacity-80"
                       style={{ width: `${(action.count / max) * 100}%` }}
                     />
                   </div>
@@ -457,7 +457,7 @@ export default function AgentInsights() {
           <div className="flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
             <span><span className="text-[var(--color-text-primary)] font-semibold">{AGENTS.length}</span> agents</span>
             <span><span className="text-emerald-400 font-semibold">{activeCount}</span> active</span>
-            <span><span className="text-indigo-400 font-semibold">{fmtTokens(totalTokens)}</span> total tokens</span>
+            <span><span className="text-primary font-semibold">{fmtTokens(totalTokens)}</span> total tokens</span>
             <span><span className="text-amber-400 font-semibold">${totalCost.toFixed(2)}</span> total cost</span>
           </div>
         </div>

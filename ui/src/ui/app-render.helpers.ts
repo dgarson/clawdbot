@@ -9,7 +9,7 @@ import { ChatState, loadChatHistory } from "./controllers/chat.ts";
 import { icons } from "./icons.ts";
 import { iconForTab, pathForTab, titleForTab, type Tab } from "./navigation.ts";
 import type { ThemeTransitionContext } from "./theme-transition.ts";
-import type { ThemeMode } from "./theme.ts";
+import type { ThemeMode, ThemeColor } from "./theme.ts";
 import type { SessionsListResult } from "./types.ts";
 
 type SessionDefaultsSnapshot = {
@@ -439,6 +439,40 @@ export function renderThemeToggle(state: AppViewState) {
         >
           ${renderMoonIcon()}
         </button>
+      </div>
+    </div>
+  `;
+}
+
+const THEME_COLORS: ThemeColor[] = ["original", "oceanic", "emerald", "amber", "indigo"];
+
+export function renderThemeColorToggle(state: AppViewState) {
+  const applyThemeColor = (next: ThemeColor) => (event: MouseEvent) => {
+    const element = event.currentTarget as HTMLElement;
+    const context: ThemeTransitionContext = { element };
+    if (event.clientX || event.clientY) {
+      context.pointerClientX = event.clientX;
+      context.pointerClientY = event.clientY;
+    }
+    state.setThemeColor(next, context);
+  };
+
+  return html`
+    <div class="theme-toggle theme-color-toggle">
+      <div class="theme-toggle__track" role="group" aria-label="Theme Color">
+        ${THEME_COLORS.map(
+          (color) => html`
+          <button
+            class="theme-toggle__button color-btn color-btn--${color} ${state.themeColor === color ? "active" : ""}"
+            @click=${applyThemeColor(color)}
+            aria-pressed=${state.themeColor === color}
+            title=${color.charAt(0).toUpperCase() + color.slice(1)}
+            aria-label=${color + " color theme"}
+          >
+            <span class="color-dot"></span>
+          </button>
+        `,
+        )}
       </div>
     </div>
   `;

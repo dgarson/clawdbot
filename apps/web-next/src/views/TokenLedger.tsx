@@ -111,7 +111,7 @@ const PROVIDER_COLORS: Record<string, string> = {
   google:    "bg-blue-500",
   minimax:   "bg-purple-500",
   zai:       "bg-pink-500",
-  meta:      "bg-indigo-500",
+  meta:      "bg-primary",
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -126,7 +126,7 @@ function CostBarChart({ summaries }: { summaries: DailySummary[] }) {
           <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
             <span className="text-[9px] text-[var(--color-text-muted)] font-mono">${day.totalCost.toFixed(2)}</span>
             <div
-              className="w-full bg-indigo-500 rounded-t transition-all"
+              className="w-full bg-primary rounded-t transition-all"
               style={{ height: `${barH(day.totalCost, maxCost)}px` }}
               role="presentation"
             />
@@ -359,7 +359,7 @@ export default function TokenLedger() {
                         </div>
                         <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                           <div
-                            className="h-full bg-indigo-500 rounded-full"
+                            className="h-full bg-primary rounded-full"
                             style={{ width: `${(cost / maxCost) * 100}%` }}
                             role="presentation"
                           />

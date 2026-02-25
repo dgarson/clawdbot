@@ -391,7 +391,7 @@ export default function RateLimitDashboard() {
                       "text-xs px-3 py-1.5 rounded-lg border transition-colors",
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       scopeFilter === s.value
-                        ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                        ? "border-primary bg-indigo-950/40 text-indigo-300"
                         : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
@@ -410,7 +410,7 @@ export default function RateLimitDashboard() {
                       "text-xs px-3 py-1.5 rounded-lg border transition-colors",
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       statusFilter === s.value
-                        ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                        ? "border-primary bg-indigo-950/40 text-indigo-300"
                         : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >

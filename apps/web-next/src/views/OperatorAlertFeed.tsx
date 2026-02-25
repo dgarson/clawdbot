@@ -306,7 +306,7 @@ function TagBadge({ tag }: { tag: AlertTag }) {
   const colors: Record<AlertTag['type'], string> = {
     channel: 'bg-[var(--color-surface-3)]/50 text-[var(--color-text-primary)]',
     tool: 'bg-amber-500/15 text-amber-400',
-    action: 'bg-violet-500/15 text-violet-400',
+    action: 'bg-primary/15 text-primary',
   };
   return (
     <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-mono', colors[tag.type])}>
@@ -355,7 +355,7 @@ function FilterButton({
       className={cn(
         'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
         active
-          ? 'bg-violet-600 text-[var(--color-text-primary)]'
+          ? 'bg-primary text-[var(--color-text-primary)]'
           : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]',
       )}
     >
@@ -421,7 +421,7 @@ function AlertCard({
 
   const statusStyles: Record<AlertStatus, string> = {
     active: 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]',
-    acknowledged: 'bg-violet-500/15 text-violet-400',
+    acknowledged: 'bg-primary/15 text-primary',
     resolved: 'bg-green-500/15 text-green-400',
   };
 
@@ -475,7 +475,7 @@ function AlertCard({
 
         {/* Acknowledged info */}
         {alert.status === 'acknowledged' && alert.acknowledgedBy && (
-          <div className="text-xs text-violet-400 mb-3 flex items-center gap-1">
+          <div className="text-xs text-primary mb-3 flex items-center gap-1">
             <CheckCircle className="w-3 h-3" />
             Acknowledged by {alert.acknowledgedBy} · {formatRelativeTime(alert.acknowledgedAt!)}
           </div>
@@ -494,7 +494,7 @@ function AlertCard({
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => onAcknowledge(alert.id)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-violet-600/20 hover:bg-violet-600/30 text-violet-400 text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/20 hover:bg-primary/30 text-primary text-xs font-medium transition-colors"
             >
               <Check className="w-3 h-3" />
               Acknowledge
@@ -571,7 +571,7 @@ function MuteRulesDrawer({
               >
                 <div className="flex-1 min-w-0">
                   {rule.agentName && (
-                    <p className="text-xs text-violet-400 mb-0.5">{rule.agentName}</p>
+                    <p className="text-xs text-primary mb-0.5">{rule.agentName}</p>
                   )}
                   <p className="text-xs text-[var(--color-text-primary)] font-mono truncate">{rule.pattern}</p>
                   <p className="text-[10px] text-[var(--color-text-muted)] mt-1 flex items-center gap-1">
@@ -591,7 +591,7 @@ function MuteRulesDrawer({
         </div>
 
         <div className="px-4 py-3 border-t border-[var(--color-border)]">
-          <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-xs font-medium transition-colors">
+          <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary text-[var(--color-text-primary)] text-xs font-medium transition-colors">
             <Plus className="w-3.5 h-3.5" />
             Add Rule
           </button>
@@ -717,7 +717,7 @@ export default function OperatorAlertFeed() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
-            <Bell className="w-6 h-6 text-violet-400" />
+            <Bell className="w-6 h-6 text-primary" />
             Alert Feed
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Real-time alert management for operators</p>

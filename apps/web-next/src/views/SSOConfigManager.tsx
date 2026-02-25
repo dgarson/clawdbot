@@ -129,7 +129,7 @@ const provisioningLogs: ProvisioningLog[] = [
 
 function protocolColor(p: SSOProtocol): string {
   const map: Record<SSOProtocol, string> = {
-    saml:   "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+    saml:   "bg-primary/20 text-primary border-primary/30",
     oidc:   "bg-blue-500/20 text-blue-400 border-blue-500/30",
     oauth2: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
     ldap:   "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/30",
@@ -160,7 +160,7 @@ function statusText(s: ConnectionStatus): string {
 function logActionColor(a: ProvisioningLog["action"]): string {
   const map: Record<ProvisioningLog["action"], string> = {
     created:     "text-emerald-400",
-    updated:     "text-indigo-400",
+    updated:     "text-primary",
     deactivated: "text-amber-400",
     failed:      "text-rose-400",
   };
@@ -179,7 +179,7 @@ function ConnectionsTab() {
           key={conn.id}
           className={cn(
             "rounded-xl border p-4 cursor-pointer transition-all",
-            selected?.id === conn.id ? "border-indigo-500 bg-indigo-500/5" : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
+            selected?.id === conn.id ? "border-primary bg-primary/5" : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
           )}
           onClick={() => setSelected(selected?.id === conn.id ? null : conn)}
         >
@@ -271,7 +271,7 @@ function MappingsTab() {
             onClick={() => setActiveConn(c.id)}
             className={cn(
               "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-              activeConn === c.id ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              activeConn === c.id ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {c.name}
@@ -325,13 +325,13 @@ function SessionsTab() {
         <div className="flex gap-1">
           <button
             onClick={() => setShowActive(false)}
-            className={cn("px-3 py-1 rounded-full text-xs font-medium transition-colors", !showActive ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+            className={cn("px-3 py-1 rounded-full text-xs font-medium transition-colors", !showActive ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             All
           </button>
           <button
             onClick={() => setShowActive(true)}
-            className={cn("px-3 py-1 rounded-full text-xs font-medium transition-colors", showActive ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+            className={cn("px-3 py-1 rounded-full text-xs font-medium transition-colors", showActive ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             Active Only
           </button>
@@ -425,7 +425,7 @@ export default function SSOConfigManager() {
         {[
           { label: "Active Connections", value: active, color: "text-emerald-400" },
           { label: "Total SSO Users", value: totalUsers.toLocaleString(), color: "text-[var(--color-text-primary)]" },
-          { label: "Active Sessions", value: activeSessions, color: "text-indigo-400" },
+          { label: "Active Sessions", value: activeSessions, color: "text-primary" },
           { label: "Domains Protected", value: new Set(connections.flatMap((c) => c.domains)).size, color: "text-[var(--color-text-primary)]" },
         ].map((kpi) => (
           <div key={kpi.label} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-4">
@@ -444,7 +444,7 @@ export default function SSOConfigManager() {
             className={cn(
               "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
               tab === t
-                ? "border-indigo-500 text-indigo-400"
+                ? "border-primary text-primary"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >

@@ -162,7 +162,7 @@ const STATUS_CONFIG: Record<MigrationStatus, { label: string; color: string; bg:
 };
 
 const TYPE_CONFIG: Record<MigrationType, { label: string; color: string; icon: string }> = {
-  schema:     { label: "Schema",     color: "text-indigo-400", icon: "🗂️" },
+  schema:     { label: "Schema",     color: "text-primary", icon: "🗂️" },
   data:       { label: "Data",       color: "text-sky-400",    icon: "📦" },
   index:      { label: "Index",      color: "text-purple-400", icon: "🔍" },
   constraint: { label: "Constraint", color: "text-orange-400", icon: "🔗" },
@@ -262,7 +262,7 @@ export default function MigrationManager() {
                 onClick={() => setSelectedMigration(selectedMigration?.id === m.id ? null : m)}
                 className={cn(
                   "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
-                  selectedMigration?.id === m.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                  selectedMigration?.id === m.id ? "border-primary" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -295,7 +295,7 @@ export default function MigrationManager() {
                     <div className="flex gap-2 mb-3">
                       <button
                         onClick={() => setShowSql(showSql === "up" ? null : "up")}
-                        className={cn("px-3 py-1.5 text-xs rounded-lg border transition-colors", showSql === "up" ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+                        className={cn("px-3 py-1.5 text-xs rounded-lg border transition-colors", showSql === "up" ? "bg-primary border-primary text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
                       >
                         ▲ UP Migration SQL
                       </button>
@@ -338,7 +338,7 @@ export default function MigrationManager() {
 
                     {m.status === "pending" && (
                       <div className="flex gap-2 mt-2">
-                        <button className="px-4 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">
+                        <button className="px-4 py-1.5 text-sm bg-primary hover:bg-primary rounded-lg text-[var(--color-text-primary)] transition-colors">
                           ▶ Apply Migration
                         </button>
                         <button className="px-4 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">
@@ -380,7 +380,7 @@ export default function MigrationManager() {
               onClick={() => setSelectedRun(selectedRun?.id === run.id ? null : run)}
               className={cn(
                 "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
-                selectedRun?.id === run.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                selectedRun?.id === run.id ? "border-primary" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
               )}
             >
               <div className="flex items-center justify-between mb-2">
@@ -399,7 +399,7 @@ export default function MigrationManager() {
               {selectedRun?.id === run.id && (
                 <div className="mt-3 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg p-3 font-mono text-xs space-y-0.5">
                   {run.log.map((line, i) => (
-                    <div key={i} className={cn("", line.includes("✓") ? "text-emerald-400" : line.includes("▶") ? "text-indigo-400" : "text-[var(--color-text-muted)]")}>
+                    <div key={i} className={cn("", line.includes("✓") ? "text-emerald-400" : line.includes("▶") ? "text-primary" : "text-[var(--color-text-muted)]")}>
                       {line}
                     </div>
                   ))}

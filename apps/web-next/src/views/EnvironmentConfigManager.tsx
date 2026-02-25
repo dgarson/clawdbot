@@ -50,14 +50,14 @@ interface ChangeEvent {
 }
 
 const envColor: Record<ConfigEnv, string> = {
-  development: "text-indigo-400",
+  development: "text-primary",
   staging:     "text-amber-400",
   production:  "text-rose-400",
   dr:          "text-purple-400",
 };
 
 const envBadge: Record<ConfigEnv, string> = {
-  development: "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
+  development: "bg-primary/20 text-indigo-300 border border-primary/30",
   staging:     "bg-amber-500/20 text-amber-300 border border-amber-500/30",
   production:  "bg-rose-500/20 text-rose-300 border border-rose-500/30",
   dr:          "bg-purple-500/20 text-purple-300 border border-purple-500/30",
@@ -131,7 +131,7 @@ const actionBadge: Record<ChangeEvent["action"], string> = {
   created:  "bg-emerald-500/20 text-emerald-300",
   updated:  "bg-blue-500/20 text-blue-300",
   deleted:  "bg-rose-500/20 text-rose-300",
-  promoted: "bg-indigo-500/20 text-indigo-300",
+  promoted: "bg-primary/20 text-indigo-300",
 };
 
 export default function EnvironmentConfigManager() {
@@ -163,7 +163,7 @@ export default function EnvironmentConfigManager() {
               </span>
             ))}
           </div>
-          <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
+          <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded text-sm font-medium transition-colors">
             + Add Variable
           </button>
         </div>
@@ -177,7 +177,7 @@ export default function EnvironmentConfigManager() {
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize",
-              tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              tab === t ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t === "vars" ? "Variables" : t === "diff" ? "Env Diff" : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -339,7 +339,7 @@ export default function EnvironmentConfigManager() {
 
               <div className="flex gap-2">
                 <button className="flex-1 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded text-sm transition-colors">Edit</button>
-                <button className="flex-1 py-2 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 rounded text-sm transition-colors">Promote to Prod</button>
+                <button className="flex-1 py-2 bg-primary/30 hover:bg-primary/50 text-indigo-300 rounded text-sm transition-colors">Promote to Prod</button>
                 <button className="px-4 py-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 rounded text-sm transition-colors">Delete</button>
               </div>
             </div>

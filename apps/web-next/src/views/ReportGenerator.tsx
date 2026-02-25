@@ -239,7 +239,7 @@ export default function ReportGenerator() {
               className={cn(
                 "px-6 py-3 text-sm font-medium transition-colors border-b-2",
                 activeTab === tab
-                  ? "border-indigo-500 text-indigo-300"
+                  ? "border-primary text-indigo-300"
                   : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -258,7 +258,7 @@ export default function ReportGenerator() {
                 value={reportName}
                 onChange={e => setReportName(e.target.value)}
                 placeholder={`${template.name} — ${dateRangeLabel(selectedDateRange)}`}
-                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm px-3 py-2 rounded placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm px-3 py-2 rounded placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
               />
             </div>
 
@@ -273,7 +273,7 @@ export default function ReportGenerator() {
                     className={cn(
                       "text-left p-3 rounded border transition-colors",
                       selectedTemplate === tmpl.id
-                        ? "bg-indigo-500/10 border-indigo-500 text-[var(--color-text-primary)]"
+                        ? "bg-primary/10 border-primary text-[var(--color-text-primary)]"
                         : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
@@ -297,7 +297,7 @@ export default function ReportGenerator() {
                       className={cn(
                         "text-xs px-3 py-1.5 rounded border transition-colors",
                         selectedDateRange === r
-                          ? "bg-indigo-500/20 border-indigo-500 text-indigo-300"
+                          ? "bg-primary/20 border-primary text-indigo-300"
                           : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                       )}
                     >
@@ -317,7 +317,7 @@ export default function ReportGenerator() {
                       className={cn(
                         "text-xs px-3 py-1.5 rounded border transition-colors capitalize",
                         selectedSchedule === s
-                          ? "bg-indigo-500/20 border-indigo-500 text-indigo-300"
+                          ? "bg-primary/20 border-primary text-indigo-300"
                           : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                       )}
                     >
@@ -356,7 +356,7 @@ export default function ReportGenerator() {
                   Sections ({enabledSections} selected)
                 </label>
                 <div className="flex gap-2">
-                  <button onClick={() => setSections(prev => prev.map(s => ({ ...s, enabled: true })))} className="text-[10px] text-indigo-400 hover:text-indigo-300">All</button>
+                  <button onClick={() => setSections(prev => prev.map(s => ({ ...s, enabled: true })))} className="text-[10px] text-primary hover:text-indigo-300">All</button>
                   <button onClick={() => setSections(prev => prev.map(s => ({ ...s, enabled: false })))} className="text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]">None</button>
                 </div>
               </div>
@@ -374,7 +374,7 @@ export default function ReportGenerator() {
                   >
                     <div className={cn(
                       "w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors",
-                      sec.enabled ? "bg-indigo-500 border-indigo-500 text-[var(--color-text-primary)] text-[10px]" : "border-[var(--color-surface-3)]"
+                      sec.enabled ? "bg-primary border-primary text-[var(--color-text-primary)] text-[10px]" : "border-[var(--color-surface-3)]"
                     )}>
                       {sec.enabled && "✓"}
                     </div>
@@ -392,7 +392,7 @@ export default function ReportGenerator() {
               <button
                 onClick={generateReport}
                 disabled={isGenerating || enabledSections === 0}
-                className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-text-primary)] px-6 py-2.5 rounded font-medium text-sm transition-colors"
+                className="flex items-center gap-2 bg-primary hover:bg-primary disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-text-primary)] px-6 py-2.5 rounded font-medium text-sm transition-colors"
               >
                 {isGenerating ? (
                   <>
@@ -422,7 +422,7 @@ export default function ReportGenerator() {
                       onClick={() => setSelectedHistoryId(r.id)}
                       className={cn(
                         "w-full text-left p-4 transition-colors hover:bg-[var(--color-surface-1)]",
-                        selectedHistoryId === r.id && "bg-indigo-500/10"
+                        selectedHistoryId === r.id && "bg-primary/10"
                       )}
                     >
                       <div className="flex items-start gap-3">
@@ -471,7 +471,7 @@ export default function ReportGenerator() {
                         <span className="text-xs text-[var(--color-text-muted)]">{selectedHistoryItem.sizeKb}kB</span>
                       </div>
                     </div>
-                    <button className="bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)] text-sm px-4 py-2 rounded transition-colors">
+                    <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm px-4 py-2 rounded transition-colors">
                       ⬇ Download
                     </button>
                   </div>

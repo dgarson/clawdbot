@@ -8,11 +8,11 @@ export default {
         // ---- Backward-compat shadcn-style (now CSS-var backed for theming) ----
         border:     "var(--color-border-ui)",
         input:      "var(--color-input-ui)",
-        ring:       "hsl(240 4.9% 83.9%)",
+        ring:       "var(--color-accent)",
         background: "var(--color-background)",
         foreground: "var(--color-foreground)",
         primary: {
-          DEFAULT:    "hsl(263 70% 50%)",
+          DEFAULT:    "var(--color-accent)",
           foreground: "hsl(0 0% 98%)",
         },
         secondary: {
@@ -32,7 +32,7 @@ export default {
           foreground: "var(--color-card-fg)",
         },
         destructive: {
-          DEFAULT:    "hsl(0 62.8% 30.6%)",
+          DEFAULT:    "var(--color-error)",
           foreground: "hsl(0 0% 98%)",
         },
 

@@ -60,7 +60,7 @@ const CATEGORY_LABEL: Record<Category, string> = {
 
 const CATEGORY_BADGE: Record<Category, string> = {
   communication: "bg-blue-500/15 text-blue-400 border border-blue-500/30",
-  development: "bg-violet-500/15 text-violet-400 border border-violet-500/30",
+  development: "bg-primary/15 text-primary border border-primary/30",
   analytics: "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30",
   database: "bg-orange-500/15 text-orange-400 border border-orange-500/30",
   crm: "bg-pink-500/15 text-pink-400 border border-pink-500/30",
@@ -385,7 +385,7 @@ export default function IntegrationHub() {
             Manage third-party services and data pipelines
           </p>
         </div>
-        <button className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary px-4 py-2 rounded text-sm font-medium transition-colors">
+        <button className="bg-primary hover:bg-primary text-fg-primary px-4 py-2 rounded text-sm font-medium transition-colors">
           + Add Integration
         </button>
       </div>
@@ -420,7 +420,7 @@ export default function IntegrationHub() {
           <div className="text-fg-muted text-xs font-medium uppercase tracking-wider">
             Total Syncs
           </div>
-          <div className="text-2xl font-bold text-indigo-400 mt-1">
+          <div className="text-2xl font-bold text-primary mt-1">
             {totalSyncs.toLocaleString()}
           </div>
         </div>
@@ -433,7 +433,7 @@ export default function IntegrationHub() {
           placeholder="Search integrations…"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-surface-2 border border-tok-border text-fg-primary rounded px-3 py-2 text-sm w-64 placeholder:text-fg-muted focus:outline-none focus:border-indigo-500"
+          className="bg-surface-2 border border-tok-border text-fg-primary rounded px-3 py-2 text-sm w-64 placeholder:text-fg-muted focus:outline-none focus:border-primary"
         />
         <div className="flex gap-1 overflow-x-auto">
           <button
@@ -441,7 +441,7 @@ export default function IntegrationHub() {
             className={cn(
               "px-3 py-1.5 rounded text-sm font-medium whitespace-nowrap transition-colors",
               activeCategory === "all"
-                ? "bg-indigo-600 text-fg-primary"
+                ? "bg-primary text-fg-primary"
                 : "bg-surface-2 text-fg-secondary hover:text-fg-primary",
             )}
           >
@@ -456,7 +456,7 @@ export default function IntegrationHub() {
                 className={cn(
                   "px-3 py-1.5 rounded text-sm font-medium whitespace-nowrap transition-colors",
                   activeCategory === cat
-                    ? "bg-indigo-600 text-fg-primary"
+                    ? "bg-primary text-fg-primary"
                     : "bg-surface-2 text-fg-secondary hover:text-fg-primary",
                 )}
               >
@@ -485,7 +485,7 @@ export default function IntegrationHub() {
               className={cn(
                 "bg-surface-1 border rounded-lg p-4 text-left transition-all hover:border-tok-border",
                 selectedId === intg.id
-                  ? "border-indigo-500 ring-1 ring-indigo-500/30"
+                  ? "border-primary ring-1 ring-indigo-500/30"
                   : "border-tok-border",
               )}
             >
@@ -534,7 +534,7 @@ export default function IntegrationHub() {
                     intg.status === "error"
                       ? "bg-rose-500/15 text-rose-400 hover:bg-rose-500/25"
                       : intg.status === "connected"
-                        ? "bg-indigo-600 hover:bg-indigo-500 text-fg-primary"
+                        ? "bg-primary hover:bg-primary text-fg-primary"
                         : "bg-surface-3 hover:bg-surface-3 text-fg-primary",
                   )}
                 >
@@ -716,7 +716,7 @@ export default function IntegrationHub() {
                               ? "bg-rose-500/40"
                               : entry.status === "partial"
                                 ? "bg-amber-500/50"
-                                : "bg-indigo-500/60",
+                                : "bg-primary/60",
                           )}
                           style={{ height: `${Math.max(pct, 4)}%` }}
                         />
@@ -753,7 +753,7 @@ export default function IntegrationHub() {
               )}
               {(selected.status === "disconnected" ||
                 selected.status === "pending") && (
-                <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-fg-primary px-3 py-2 rounded text-sm font-medium transition-colors">
+                <button className="flex-1 bg-primary hover:bg-primary text-fg-primary px-3 py-2 rounded text-sm font-medium transition-colors">
                   {selected.status === "pending"
                     ? "Retry Connection"
                     : "Connect"}

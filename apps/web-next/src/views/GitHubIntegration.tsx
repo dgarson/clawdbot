@@ -125,7 +125,7 @@ function AccessBadge({ access }: { access: "read" | "write" }) {
       className={cn(
         "px-2 py-0.5 rounded text-xs font-medium",
         access === "read" && "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]",
-        access === "write" && "bg-indigo-500/15 text-indigo-400"
+        access === "write" && "bg-primary/15 text-primary"
       )}
     >
       {access}
@@ -207,7 +207,7 @@ export default function GitHubIntegration() {
           <div className="flex items-center gap-2 text-sm">
             <StatusDot status="synced" />
             <span className="text-[var(--color-text-secondary)]">Connected as</span>
-            <span className="font-mono text-indigo-400">openclaw-bot[app]</span>
+            <span className="font-mono text-primary">openclaw-bot[app]</span>
           </div>
         </div>
 
@@ -273,7 +273,7 @@ export default function GitHubIntegration() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Default Branch</div>
-                        <div className="font-mono text-sm text-indigo-400">{repo.defaultBranch}</div>
+                        <div className="font-mono text-sm text-primary">{repo.defaultBranch}</div>
                       </div>
                       <div>
                         <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Webhook URL</div>
@@ -286,7 +286,7 @@ export default function GitHubIntegration() {
                       <div className="space-y-1">
                         {repo.protectionRules.map((rule) => (
                           <div key={rule} className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
-                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                             {rule}
                           </div>
                         ))}
@@ -302,7 +302,7 @@ export default function GitHubIntegration() {
                             className="flex items-center justify-between bg-[var(--color-surface-0)] rounded-lg px-3 py-2"
                           >
                             <div className="flex items-center gap-3 min-w-0">
-                              <span className="font-mono text-xs text-indigo-400 shrink-0">
+                              <span className="font-mono text-xs text-primary shrink-0">
                                 {commit.sha}
                               </span>
                               <span className="text-sm text-[var(--color-text-primary)] truncate">{commit.message}</span>
@@ -325,7 +325,7 @@ export default function GitHubIntegration() {
                           ? "bg-emerald-500/15 text-emerald-400"
                           : pingStatus[repo.id] === "sending"
                             ? "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] cursor-wait"
-                            : "bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25"
+                            : "bg-primary/15 text-primary hover:bg-primary/25"
                       )}
                     >
                       {pingStatus[repo.id] === "sending"
@@ -357,7 +357,7 @@ export default function GitHubIntegration() {
                   className="flex items-center justify-between px-5 py-3 hover:bg-[var(--color-surface-2)]/30 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                    <div className="w-2 h-2 rounded-full bg-primary" />
                     <span className="font-mono text-sm">{perm.scope}</span>
                   </div>
                   <AccessBadge access={perm.access} />
@@ -396,7 +396,7 @@ export default function GitHubIntegration() {
                         onClick={() => toggleEvent(evt.id)}
                         className={cn(
                           "w-10 h-5 rounded-full transition-colors relative",
-                          evt.enabled ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
+                          evt.enabled ? "bg-primary" : "bg-[var(--color-surface-3)]"
                         )}
                       >
                         <div
@@ -438,7 +438,7 @@ export default function GitHubIntegration() {
                       onClick={() => toggleAutoSync(setting.key)}
                       className={cn(
                         "w-10 h-5 rounded-full transition-colors relative shrink-0 ml-4",
-                        autoSync[setting.key] ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
+                        autoSync[setting.key] ? "bg-primary" : "bg-[var(--color-surface-3)]"
                       )}
                     >
                       <div

@@ -15,6 +15,7 @@ import ProficiencyBadge from "./components/ProficiencyBadge";
 import AppBreadcrumbs, { type BreadcrumbItem } from "./components/AppBreadcrumbs";
 import { PromptDialog } from "./components/ui/ActionDialogs";
 import ThemeToggle from "./components/ui/ThemeToggle";
+import ThemeColorToggle from "./components/ui/ThemeColorToggle";
 import { useGateway, GatewayProvider } from "./hooks/useGateway";
 import { GatewayAuthModal } from "./components/GatewayAuthModal";
 
@@ -2004,7 +2005,7 @@ function AppContent() {
         "shrink-0 rounded-md border transition-colors",
         size === "desktop" ? "p-1.5" : "p-2",
         manualHubOrdering
-          ? "border-violet-500/35 bg-violet-600/10 text-violet-300"
+          ? "border-primary/35 bg-primary/10 text-violet-300"
           : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
       )}
       aria-pressed={manualHubOrdering}
@@ -2029,7 +2030,7 @@ function AppContent() {
         <button
           onClick={() => setMenuOpen((prev) => !prev)}
           className={cn(
-            "w-full min-w-0 rounded-xl border border-violet-500/25 bg-gradient-to-b from-secondary/70 to-secondary/25 text-left transition-colors hover:border-violet-500/40 hover:from-secondary/90 hover:to-secondary/40",
+            "w-full min-w-0 rounded-xl border border-primary/25 bg-gradient-to-b from-secondary/70 to-secondary/25 text-left transition-colors hover:border-primary/40 hover:from-secondary/90 hover:to-secondary/40",
             buttonSizing
           )}
           aria-expanded={menuOpen}
@@ -2038,7 +2039,7 @@ function AppContent() {
           title="View mode"
         >
           <span className="flex items-center gap-2.5">
-            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-violet-500/12 text-sm text-violet-300" aria-hidden="true">
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-primary/12 text-sm text-violet-300" aria-hidden="true">
               {currentNavFilterOption.icon}
             </span>
             <span className="min-w-0 flex-1">
@@ -2066,7 +2067,7 @@ function AppContent() {
               onClick={() => setMenuOpen(false)}
               aria-label="Close view mode options"
             />
-            <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-violet-500/30 bg-[var(--color-surface-1)]/95 p-1.5 shadow-2xl backdrop-blur">
+            <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-primary/30 bg-[var(--color-surface-1)]/95 p-1.5 shadow-2xl backdrop-blur">
               <div role="listbox" aria-label="View modes" className="space-y-1">
                 {NAV_FILTER_OPTIONS.map((option) => (
                   <button
@@ -2078,7 +2079,7 @@ function AppContent() {
                     className={cn(
                       "w-full min-w-0 rounded-lg border px-2.5 py-2 text-left transition-colors",
                       navFilter === option.value
-                        ? "border-violet-500/40 bg-violet-600/12 text-violet-200"
+                        ? "border-primary/40 bg-primary/12 text-violet-200"
                         : "border-transparent bg-secondary/30 text-muted-foreground hover:border-border hover:bg-secondary/55 hover:text-foreground"
                     )}
                     role="option"
@@ -2117,7 +2118,7 @@ function AppContent() {
         {isDropTarget && (
           <div
             className={cn(
-              "absolute left-2 right-2 h-0.5 rounded bg-violet-500/80",
+              "absolute left-2 right-2 h-0.5 rounded bg-primary/80",
               dragOverPosition === "before" ? "-top-1" : "-bottom-1"
             )}
             aria-hidden="true"
@@ -2133,7 +2134,7 @@ function AppContent() {
             "flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 text-sm rounded-md transition-colors text-left",
             manualHubOrdering && !sidebarCollapsed && "cursor-grab active:cursor-grabbing",
             activeOperatorHubId === hub.id
-              ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border border-violet-500/35"
+              ? "bg-primary/15 text-[var(--color-text-primary)] font-medium border border-primary/35"
               : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border border-transparent"
           )}
           aria-current={activeOperatorHubId === hub.id ? "page" : undefined}
@@ -2153,7 +2154,7 @@ function AppContent() {
             className={cn(
               "px-2 py-2 text-xs rounded-md border transition-colors",
               isPinned
-                ? "border-violet-500/30 text-violet-400 bg-violet-600/10"
+                ? "border-primary/30 text-primary bg-primary/10"
                 : "border-border text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             )}
             aria-label={isPinned ? `Unpin ${hub.label}` : `Pin ${hub.label}`}
@@ -2173,7 +2174,7 @@ function AppContent() {
       className={cn(
         "w-full min-w-0 flex items-center gap-3 px-3 py-3 min-h-[44px] text-sm rounded-md border transition-colors",
         activeOperatorHubId === hub.id
-          ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border-violet-500/35"
+          ? "bg-primary/15 text-[var(--color-text-primary)] font-medium border-primary/35"
           : "text-muted-foreground hover:text-foreground hover:bg-secondary/50 border-transparent"
       )}
       aria-current={activeOperatorHubId === hub.id ? "page" : undefined}
@@ -2190,7 +2191,7 @@ function AppContent() {
       className={cn(
         "w-full flex items-center gap-2 rounded-md border px-3 py-2 text-sm text-left transition-colors",
         activeView === item.id
-          ? "bg-violet-600/15 text-violet-200 border-violet-500/35"
+          ? "bg-primary/15 text-violet-200 border-primary/35"
           : "bg-[var(--color-surface-2)]/25 text-muted-foreground border-border/70 hover:text-foreground hover:bg-[var(--color-surface-2)]/45"
       )}
       aria-current={activeView === item.id ? "page" : undefined}
@@ -2217,7 +2218,7 @@ function AppContent() {
         role="navigation"
         aria-label="Main navigation"
         className={cn(
-          "flex flex-col border-r border-border bg-card transition-all duration-300 z-40",
+          "relative isolate flex flex-col border-r border-border bg-card transition-all duration-300 z-40",
           // Desktop: collapsible width
           "hidden md:flex",
           sidebarCollapsed ? "w-16" : "w-56",
@@ -2226,7 +2227,7 @@ function AppContent() {
         )}
       >
         {/* Logo + Operator Mode Toggle */}
-        <div className="flex items-center gap-3 p-4 border-b border-border">
+        <div className="relative flex h-14 items-center gap-3 border-b border-border px-4 pr-10">
           <span className="text-xl" aria-hidden="true">🐾</span>
           {!sidebarCollapsed && (
             <span className="font-bold text-lg text-foreground" data-tour="brand">OpenClaw</span>
@@ -2237,7 +2238,7 @@ function AppContent() {
               className={cn(
                 "ml-auto text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border transition-colors",
                 operatorMode
-                  ? "bg-violet-600/20 text-violet-400 border-violet-500/30 hover:bg-violet-600/30"
+                  ? "bg-primary/20 text-primary border-primary/30 hover:bg-primary/30"
                   : "bg-secondary/50 text-muted-foreground border-border hover:text-foreground hover:bg-secondary"
               )}
               title={operatorMode ? "Switch to Standard mode" : "Switch to Operator mode"}
@@ -2248,8 +2249,7 @@ function AppContent() {
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className={cn(
-              "ml-auto shrink-0 rounded-md border border-border bg-secondary/40 p-1.5 text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary/60",
-              sidebarCollapsed && "mx-auto"
+              "absolute -right-3 top-1/2 z-50 -translate-y-1/2 shrink-0 rounded-md border border-border bg-[var(--color-surface-1)] p-1.5 text-foreground shadow-md transition-colors hover:bg-[var(--color-surface-2)]"
             )}
             aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={sidebarCollapsed ? "Expand sidebar (])" : "Collapse sidebar ([)"}
@@ -2261,7 +2261,7 @@ function AppContent() {
         </div>
 
         {!sidebarCollapsed && (
-          <div className="p-2 border-b border-border">
+          <div className="h-14 border-b border-border p-2">
             {renderViewModePicker("desktop")}
           </div>
         )}
@@ -2303,11 +2303,11 @@ function AppContent() {
                 <div className="px-3 pt-3 pb-1 border-t border-border mt-2">
                   <button
                     onClick={() => setCopilotOpen(true)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg bg-violet-600/10 text-violet-400 border border-violet-500/20 hover:bg-violet-600/20 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
                   >
                     <span className="text-base">✨</span>
                     <span>AI Copilot</span>
-                    <span className="ml-auto text-[9px] bg-violet-600/30 px-1.5 py-0.5 rounded font-mono">⌘J</span>
+                    <span className="ml-auto text-[9px] bg-primary/30 px-1.5 py-0.5 rounded font-mono">⌘J</span>
                   </button>
                 </div>
               )}
@@ -2320,7 +2320,7 @@ function AppContent() {
                 onClick={() => navigate(item.id)}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
-                  activeView === item.id ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border-r-2 border-violet-500" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  activeView === item.id ? "bg-primary/15 text-[var(--color-text-primary)] font-medium border-r-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 )}
                 aria-current={activeView === item.id ? "page" : undefined}
                 title={item.shortcut ? `${item.label} (Alt+${item.shortcut})` : item.label}
@@ -2328,14 +2328,14 @@ function AppContent() {
                 <span className="text-base relative" aria-hidden="true">
                   {item.emoji}
                   {item.id === "notifications" && notificationUnreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                    <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                       {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
                     </span>
                   )}
                 </span>
                 {!sidebarCollapsed && <span>{item.label}</span>}
                 {!sidebarCollapsed && item.id === "notifications" && notificationUnreadCount > 0 && (
-                  <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
+                  <span className="ml-auto text-[9px] bg-primary text-white rounded-full px-1.5 py-0.5 font-bold">
                     {notificationUnreadCount}
                   </span>
                 )}
@@ -2426,26 +2426,6 @@ function AppContent() {
         </div>
       </aside>
 
-      {/* Desktop nested sub-navigation */}
-      {operatorMode && (
-        <aside
-          role="navigation"
-          aria-label={`${activeOperatorHub.label} navigation`}
-          className="hidden md:flex w-60 flex-col border-r border-border/80 bg-[var(--color-surface-1)]/90"
-        >
-          <div
-            className={cn(
-              "shrink-0 border-b border-border/70",
-              sidebarCollapsed ? "h-[78px]" : "h-[138px]"
-            )}
-            aria-hidden="true"
-          />
-          <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-            {activeOperatorHub.items.map((item) => renderDesktopOperatorSubnavItem(item))}
-          </div>
-        </aside>
-      )}
-
       {/* Mobile sidebar (separate element for overlay) */}
       {/* M9: responsive pass — mobile drawer with ≥44px touch targets */}
       {mobileSidebarOpen && (
@@ -2462,7 +2442,7 @@ function AppContent() {
               className={cn(
                 "text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border transition-colors",
                 operatorMode
-                  ? "bg-violet-600/20 text-violet-400 border-violet-500/30"
+                  ? "bg-primary/20 text-primary border-primary/30"
                   : "bg-secondary/50 text-muted-foreground border-border"
               )}
             >
@@ -2521,7 +2501,7 @@ function AppContent() {
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
                     activeView === item.id
-                      ? "bg-violet-600/15 text-[var(--color-text-primary)] font-medium border-r-2 border-violet-500"
+                      ? "bg-primary/15 text-[var(--color-text-primary)] font-medium border-r-2 border-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                   )}
                   aria-current={activeView === item.id ? "page" : undefined}
@@ -2529,14 +2509,14 @@ function AppContent() {
                   <span className="text-base relative" aria-hidden="true">
                     {item.emoji}
                     {item.id === "notifications" && notificationUnreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                      <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                         {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
                       </span>
                     )}
                   </span>
                   <span>{item.label}</span>
                   {item.id === "notifications" && notificationUnreadCount > 0 && (
-                    <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
+                    <span className="ml-auto text-[9px] bg-primary text-white rounded-full px-1.5 py-0.5 font-bold">
                       {notificationUnreadCount}
                     </span>
                   )}
@@ -2556,7 +2536,7 @@ function AppContent() {
       {/* Main Content */}
       <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         {/* Top header bar */}
-        <header className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card/50 backdrop-blur-sm shrink-0">
+        <header className="flex h-14 min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-4 border-b border-border bg-card/50 backdrop-blur-sm shrink-0 overflow-hidden">
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileSidebarOpen(true)}
@@ -2582,7 +2562,7 @@ function AppContent() {
           </button>
 
           {/* Back / Forward */}
-          <div className="hidden sm:flex items-center gap-1">
+          <div className="hidden sm:flex items-center gap-1 shrink-0">
             <button
               onClick={goBack}
               disabled={!canGoBack}
@@ -2618,13 +2598,13 @@ function AppContent() {
           </div>
 
           {/* Breadcrumb */}
-          <AppBreadcrumbs items={breadcrumbs} className="min-w-0 max-w-[48vw]" />
+          <AppBreadcrumbs items={breadcrumbs} className="min-w-0 flex-1 max-w-[28vw] lg:max-w-[40vw] 2xl:max-w-[52vw]" />
 
           {/* Spacer */}
           <div className="flex-1" />
 
           {/* Presets */}
-          <div className="relative hidden lg:block">
+          <div className="relative hidden xl:block shrink-0">
             <button
               onClick={() => setPresetsOpen(!presetsOpen)}
               className="flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1.5 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)] transition-colors"
@@ -2663,7 +2643,7 @@ function AppContent() {
           </div>
           {/* Operator Mode indicator */}
           {operatorMode && (
-            <div className="hidden md:flex items-center gap-3 text-xs">
+            <div className="hidden 2xl:flex items-center gap-2 text-xs shrink-0">
               <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-500/10 text-green-400 border border-green-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 5 active
@@ -2676,7 +2656,7 @@ function AppContent() {
               </span>
               <button
                 onClick={() => setCopilotOpen(true)}
-                className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-violet-500/10 text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
                 title="Open AI Copilot (⌘J)"
               >
                 ✨ Copilot
@@ -2685,22 +2665,27 @@ function AppContent() {
           )}
 
           {/* Theme toggle */}
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <ThemeColorToggle />
+            <ThemeToggle />
+          </div>
 
           {/* Search trigger */}
-          <button
-            onClick={openCommandPalette}
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground bg-secondary/50 border border-border rounded-lg hover:bg-secondary hover:text-foreground transition-colors"
-            aria-label="Open command palette"
-            title="Open command palette (Ctrl/Cmd+K)"
-          >
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="5.5" cy="5.5" r="4" />
-              <path d="m9 9 2.5 2.5" strokeLinecap="round" />
-            </svg>
-            <span>Search...</span>
-            <span className="font-mono bg-background/60 px-1 py-0.5 rounded text-[10px]">⌘/Ctrl K</span>
-          </button>
+          {!operatorMode && (
+            <button
+              onClick={openCommandPalette}
+              className="hidden xl:flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground bg-secondary/50 border border-border rounded-lg hover:bg-secondary hover:text-foreground transition-colors shrink-0"
+              aria-label="Open command palette"
+              title="Open command palette (Ctrl/Cmd+K)"
+            >
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="5.5" cy="5.5" r="4" />
+                <path d="m9 9 2.5 2.5" strokeLinecap="round" />
+              </svg>
+              <span>Search...</span>
+              <span className="font-mono bg-background/60 px-1 py-0.5 rounded text-[10px]">⌘/Ctrl K</span>
+            </button>
+          )}
         </header>
 
         {/* Skip nav link for accessibility */}
@@ -2711,8 +2696,37 @@ function AppContent() {
           Skip to main content
         </a>
 
-        {/* View content */}
-        <main id="main-content" className="flex-1 overflow-y-auto" role="main" data-tour="main-content">
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+          {/* Desktop nested sub-navigation */}
+          {operatorMode && (
+            <aside
+              role="navigation"
+              aria-label={`${activeOperatorHub.label} navigation`}
+              className="hidden md:flex w-60 flex-col border-r border-border/80 bg-[var(--color-surface-1)]/90"
+            >
+              <div className="shrink-0 h-14 border-b border-border/70 p-2">
+                <button
+                  onClick={openCommandPalette}
+                  className="flex h-full w-full items-center gap-2 rounded-lg border border-border/80 bg-secondary/30 px-2.5 text-xs text-muted-foreground transition-colors hover:bg-secondary/55 hover:text-foreground"
+                  aria-label="Open command palette"
+                  title="Open command palette (Ctrl/Cmd+K)"
+                >
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5" className="shrink-0">
+                    <circle cx="5.5" cy="5.5" r="4" />
+                    <path d="m9 9 2.5 2.5" strokeLinecap="round" />
+                  </svg>
+                  <span className="truncate">Search...</span>
+                  <span className="ml-auto font-mono rounded bg-background/60 px-1 py-0.5 text-[10px]">⌘/Ctrl K</span>
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+                {activeOperatorHub.items.map((item) => renderDesktopOperatorSubnavItem(item))}
+              </div>
+            </aside>
+          )}
+
+          {/* View content */}
+          <main id="main-content" className="flex-1 overflow-y-auto" role="main" data-tour="main-content">
           {showNavigationFilterWarning && (
             <div className="mx-3 mt-3 sm:mx-4 md:mx-6 max-w-7xl rounded-lg border border-[var(--color-warning)]/35 bg-[var(--color-warning)]/10 px-3 py-2 text-xs text-[var(--color-text-primary)]">
               <div className="flex flex-wrap items-center gap-2">
@@ -2732,7 +2746,7 @@ function AppContent() {
           <ViewErrorBoundary viewId={activeView}>
             <React.Suspense fallback={<LoadingFallback viewId={activeView} />}>
               {/* M9: responsive pass — reduce padding on mobile */}
-              <div key={activeView} className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto animate-slide-in">
+              <div key={activeView} className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
                 {operatorMode && (
                   <section className="mb-3 rounded-xl border border-border bg-card/40 p-2.5 md:hidden" aria-label={`${activeOperatorHub.label} views`}>
                     <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-2">
@@ -2747,7 +2761,7 @@ function AppContent() {
                           className={cn(
                             "shrink-0 flex items-center gap-2 rounded-md border px-3 py-2 text-xs transition-colors",
                             activeView === item.id
-                              ? "bg-violet-600/15 text-violet-300 border-violet-500/35"
+                              ? "bg-primary/15 text-violet-300 border-primary/35"
                               : "bg-secondary/30 text-muted-foreground border-border hover:text-foreground hover:bg-secondary/50"
                           )}
                           aria-current={activeView === item.id ? "page" : undefined}
@@ -2764,7 +2778,8 @@ function AppContent() {
               </div>
             </React.Suspense>
           </ViewErrorBoundary>
-        </main>
+          </main>
+        </div>
       </div>
 
       {/* AI Copilot Panel — Operator Mode */}

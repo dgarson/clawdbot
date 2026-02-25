@@ -352,7 +352,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
               className="w-24 h-24 rounded-full object-cover shadow-2xl shadow-violet-500/20"
             />
           ) : (
-            <div className="w-24 h-24 bg-violet-600 rounded-full flex items-center justify-center text-5xl shadow-2xl shadow-violet-500/20">
+            <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center text-5xl shadow-2xl shadow-violet-500/20">
               {formData.emoji}
             </div>
           )}
@@ -367,7 +367,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
           </p>
         </div>
         <button
-          className="px-8 py-3 bg-violet-600 hover:bg-violet-500 text-fg-primary font-medium rounded-xl transition-all shadow-lg shadow-violet-600/20 active:scale-95 flex items-center gap-2"
+          className="px-8 py-3 bg-primary hover:bg-primary text-fg-primary font-medium rounded-xl transition-all shadow-lg shadow-violet-600/20 active:scale-95 flex items-center gap-2"
           onClick={() => window.location.reload()}
         >
           <MessageSquare className="w-5 h-5" />
@@ -393,8 +393,8 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                 <div key={step.id} className="flex items-center gap-4 relative z-10">
                   <div className={cn(
                     'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors',
-                    isCompleted ? 'bg-violet-600 text-fg-primary' :
-                    isActive ? 'border-2 border-violet-600 text-violet-600 bg-surface-0' :
+                    isCompleted ? 'bg-primary text-fg-primary' :
+                    isActive ? 'border-2 border-primary text-primary bg-surface-0' :
                     'border-2 border-tok-border text-fg-muted bg-surface-0',
                   )}>
                     {isCompleted ? <Check className="w-4 h-4" /> : idx + 1}
@@ -420,8 +420,8 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                   key={step.id}
                   className={cn(
                     'w-2 h-2 rounded-full transition-colors',
-                    idx < stepIndex ? 'bg-violet-600' :
-                    idx === stepIndex ? 'bg-violet-400' :
+                    idx < stepIndex ? 'bg-primary' :
+                    idx === stepIndex ? 'bg-primary' :
                     'bg-surface-3',
                   )}
                 />
@@ -433,7 +433,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
           <div className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-12">
             {loading ? (
               <div className="h-full flex flex-col items-center justify-center space-y-4">
-                <div className="w-12 h-12 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                 <p className="text-fg-secondary animate-pulse">Creating your new agent...</p>
               </div>
             ) : (
@@ -458,14 +458,14 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                           className={cn(
                             'p-6 rounded-2xl border text-left transition-all group',
                             formData.template === template.id
-                              ? 'border-violet-600 bg-violet-600/10 ring-1 ring-violet-600'
+                              ? 'border-primary bg-primary/10 ring-1 ring-violet-600'
                               : 'border-tok-border bg-surface-1 hover:border-tok-border',
                           )}
                         >
                           <div className={cn(
                             'w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors',
                             formData.template === template.id
-                              ? 'bg-violet-600 text-fg-primary'
+                              ? 'bg-primary text-fg-primary'
                               : 'bg-surface-2 text-fg-secondary group-hover:bg-surface-3',
                           )}>
                             <template.icon className="w-6 h-6" />
@@ -496,7 +496,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                                 onClick={() => setFormData({ ...formData, emoji })}
                                 className={cn(
                                   'w-10 h-10 flex items-center justify-center rounded-lg text-2xl transition-all',
-                                  formData.emoji === emoji ? 'bg-violet-600 scale-110' : 'hover:bg-surface-2',
+                                  formData.emoji === emoji ? 'bg-primary scale-110' : 'hover:bg-surface-2',
                                 )}
                               >
                                 {emoji}
@@ -513,7 +513,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                                 className="w-20 h-20 rounded-xl object-cover"
                               />
                             ) : (
-                              <div className="w-20 h-20 rounded-xl bg-violet-600 flex items-center justify-center text-4xl">
+                              <div className="w-20 h-20 rounded-xl bg-primary flex items-center justify-center text-4xl">
                                 {formData.emoji}
                               </div>
                             )}
@@ -553,7 +553,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                                   'flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all',
                                   generateAvatarDisabledReason
                                     ? 'bg-surface-2 text-fg-muted cursor-not-allowed border border-tok-border'
-                                    : 'bg-violet-600 hover:bg-violet-500 text-fg-primary shadow-lg shadow-violet-600/20',
+                                    : 'bg-primary hover:bg-primary text-fg-primary shadow-lg shadow-violet-600/20',
                                 )}
                               >
                                 {avatarGenerating ? (
@@ -602,7 +602,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                         <div key={trait.key} className="space-y-4">
                           <div className="flex justify-between items-center">
                             <label className="font-medium text-lg">{trait.label}</label>
-                            <span className="text-violet-500 font-bold">{formData.personality[trait.key as keyof typeof formData.personality]}%</span>
+                            <span className="text-primary font-bold">{formData.personality[trait.key as keyof typeof formData.personality]}%</span>
                           </div>
                           <input
                             type="range"
@@ -643,14 +643,14 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                           className={cn(
                             'p-6 rounded-2xl border flex items-center justify-between text-left transition-all',
                             formData.model === model.id
-                              ? 'border-violet-600 bg-violet-600/10 ring-1 ring-violet-600'
+                              ? 'border-primary bg-primary/10 ring-1 ring-violet-600'
                               : 'border-tok-border bg-surface-1 hover:border-tok-border',
                           )}
                         >
                           <div className="flex items-center gap-6">
                             <div className={cn(
                               'w-14 h-14 rounded-xl flex items-center justify-center',
-                              formData.model === model.id ? 'bg-violet-600 text-fg-primary' : 'bg-surface-2 text-fg-secondary',
+                              formData.model === model.id ? 'bg-primary text-fg-primary' : 'bg-surface-2 text-fg-secondary',
                             )}>
                               <Shield className="w-8 h-8" />
                             </div>
@@ -664,7 +664,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                               <span className="text-xs px-2 py-1 bg-surface-2 rounded text-fg-secondary uppercase tracking-wider font-bold">{model.speed}</span>
                               <span className="text-xs px-2 py-1 bg-surface-2 rounded text-fg-secondary uppercase tracking-wider font-bold">{model.quality}</span>
                             </div>
-                            <span className="text-violet-500 font-bold">{model.cost}</span>
+                            <span className="text-primary font-bold">{model.cost}</span>
                           </div>
                         </button>
                       ))}
@@ -688,7 +688,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                             className="w-20 h-20 rounded-2xl object-cover shadow-xl"
                           />
                         ) : (
-                          <div className="w-20 h-20 bg-violet-600 rounded-2xl flex items-center justify-center text-4xl shadow-xl">
+                          <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center text-4xl shadow-xl">
                             {formData.emoji}
                           </div>
                         )}
@@ -712,7 +712,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                                 <span className="capitalize text-fg-secondary">{key}</span>
                                 <div className="flex items-center gap-3">
                                   <div className="w-24 h-1.5 bg-surface-2 rounded-full overflow-hidden">
-                                    <div className="h-full bg-violet-600" style={{ width: `${value}%` }} />
+                                    <div className="h-full bg-primary" style={{ width: `${value}%` }} />
                                   </div>
                                   <span className="text-fg-primary font-mono w-8 text-right">{value}%</span>
                                 </div>
@@ -723,8 +723,8 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
                       </div>
                     </div>
 
-                    <div className="bg-violet-600/10 border border-violet-600/20 rounded-xl p-4 flex items-start gap-4">
-                      <Bot className="w-6 h-6 text-violet-500 shrink-0" />
+                    <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-start gap-4">
+                      <Bot className="w-6 h-6 text-primary shrink-0" />
                       <p className="text-sm text-violet-200/80">
                         Creating an agent will initialize a new neural workspace. You can always change these settings later in the agent management view.
                       </p>
@@ -754,7 +754,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
               className={cn(
                 'flex items-center gap-2 px-8 py-3 rounded-xl font-bold transition-all shadow-lg',
                 currentStep === 'review'
-                  ? 'bg-violet-600 hover:bg-violet-500 text-fg-primary shadow-violet-600/20'
+                  ? 'bg-primary hover:bg-primary text-fg-primary shadow-violet-600/20'
                   : 'bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]',
               )}
             >
@@ -817,7 +817,7 @@ export default function AgentBuilderWizard({ isLoading = false }: { isLoading?: 
               </button>
               <button
                 onClick={handleApproveAvatar}
-                className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary font-semibold"
+                className="px-4 py-2 rounded-lg bg-primary hover:bg-primary text-fg-primary font-semibold"
               >
                 Approve Avatar
               </button>

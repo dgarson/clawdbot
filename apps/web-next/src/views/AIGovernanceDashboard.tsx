@@ -269,7 +269,7 @@ function statusBg(s: ModelStatus) {
   if (s === "pending") {return "bg-amber-400/10 text-amber-400";}
   if (s === "rejected") {return "bg-rose-400/10 text-rose-400";}
   if (s === "deprecated") {return "bg-surface-3 text-fg-secondary";}
-  return "bg-indigo-400/10 text-indigo-400";
+  return "bg-primary/10 text-primary";
 }
 function incidentSevBg(s: IncidentSeverity) {
   if (s === "critical") {return "bg-rose-500/10 text-rose-400";}
@@ -435,7 +435,7 @@ export default function AIGovernanceDashboard({ isLoading = false }: { isLoading
     <>
       <a
         href="#aigov-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>
@@ -457,7 +457,7 @@ export default function AIGovernanceDashboard({ isLoading = false }: { isLoading
                 {pendingApprovals} pending review
               </span>
             )}
-            <button className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-sm px-3 py-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+            <button className="bg-primary hover:bg-primary text-fg-primary text-sm px-3 py-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
               Register Model
             </button>
           </div>
@@ -490,7 +490,7 @@ export default function AIGovernanceDashboard({ isLoading = false }: { isLoading
                 onClick={() => setTab(t)}
                 className={cn(
                   "py-3 text-sm font-medium border-b-2 capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
-                  tab === t ? "border-indigo-500 text-fg-primary" : "border-transparent text-fg-secondary hover:text-fg-primary"
+                  tab === t ? "border-primary text-fg-primary" : "border-transparent text-fg-secondary hover:text-fg-primary"
                 )}
               >
                 {t}
@@ -727,7 +727,7 @@ export default function AIGovernanceDashboard({ isLoading = false }: { isLoading
                       </div>
                       <button
                         aria-label={`Update status for incident: ${selectedIncident.title}`}
-                        className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-sm px-3 py-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                        className="bg-primary hover:bg-primary text-fg-primary text-sm px-3 py-1.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                       >
                         Update Status
                       </button>
@@ -741,7 +741,7 @@ export default function AIGovernanceDashboard({ isLoading = false }: { isLoading
                       <ol className="space-y-2">
                         {selectedIncident.remediationSteps.map((step, i) => (
                           <li key={i} className="flex items-start gap-3 text-sm text-fg-primary">
-                            <span aria-hidden="true" className="bg-indigo-500/20 text-indigo-400 text-xs w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                            <span aria-hidden="true" className="bg-primary/20 text-primary text-xs w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
                             {step}
                           </li>
                         ))}
@@ -787,7 +787,7 @@ export default function AIGovernanceDashboard({ isLoading = false }: { isLoading
                       </div>
                       <button
                         aria-label={`Edit policy: ${p.name}`}
-                        className="text-xs text-indigo-400 hover:text-indigo-300 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded"
+                        className="text-xs text-primary hover:text-indigo-300 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded"
                       >
                         Edit
                       </button>

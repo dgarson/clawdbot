@@ -228,11 +228,11 @@ const REQUESTS: NetworkRequest[] = [
 
 const METHOD_COLORS: Record<RequestMethod, string> = {
   GET:    "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
-  POST:   "text-indigo-400 bg-indigo-400/10 border-indigo-400/20",
+  POST:   "text-primary bg-primary/10 border-primary/20",
   PUT:    "text-amber-400 bg-amber-400/10 border-amber-400/20",
   PATCH:  "text-blue-400 bg-blue-400/10 border-blue-400/20",
   DELETE: "text-rose-400 bg-rose-400/10 border-rose-400/20",
-  WS:     "text-violet-400 bg-violet-400/10 border-violet-400/20",
+  WS:     "text-primary bg-primary/10 border-primary/20",
 };
 
 const STATUS_COLORS: Record<RequestStatus, string> = {
@@ -370,7 +370,7 @@ export default function NetworkInspector() {
                   "text-xs px-2 py-1 rounded border transition-colors font-mono",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   methodFilter === m
-                    ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                    ? "border-primary bg-indigo-950/40 text-indigo-300"
                     : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -477,7 +477,7 @@ export default function NetworkInspector() {
                       "px-4 py-2 text-sm border-b-2 transition-colors",
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       detailTab === t.id
-                        ? "border-indigo-500 text-[var(--color-text-primary)]"
+                        ? "border-primary text-[var(--color-text-primary)]"
                         : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
@@ -551,8 +551,8 @@ export default function NetworkInspector() {
                           { name: "DNS Lookup",    pct: 5,  color: "bg-emerald-500" },
                           { name: "TCP Connect",   pct: 10, color: "bg-blue-500" },
                           { name: "Request Sent",  pct: 5,  color: "bg-amber-500" },
-                          { name: "Waiting (TTFB)", pct: 60, color: "bg-indigo-500" },
-                          { name: "Content Download", pct: 20, color: "bg-violet-500" },
+                          { name: "Waiting (TTFB)", pct: 60, color: "bg-primary" },
+                          { name: "Content Download", pct: 20, color: "bg-primary" },
                         ].map(s => (
                           <div key={s.name} className="flex items-center gap-3">
                             <span className="text-xs text-[var(--color-text-muted)] w-36 shrink-0">{s.name}</span>

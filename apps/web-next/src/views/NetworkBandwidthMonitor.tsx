@@ -386,8 +386,8 @@ function stateColor(state: AlertState): string {
 
 function protocolColor(protocol: Protocol): string {
   if (protocol === "HTTP") {return "bg-blue-500"}
-  if (protocol === "HTTPS") {return "bg-indigo-500"}
-  if (protocol === "DB") {return "bg-violet-500"}
+  if (protocol === "HTTPS") {return "bg-primary"}
+  if (protocol === "DB") {return "bg-primary"}
   if (protocol === "SSH") {return "bg-amber-500"}
   return "bg-[var(--color-surface-3)]"
 }
@@ -401,8 +401,8 @@ function directionLabel(direction: Direction): string {
 function utilizationBarColor(pct: number): string {
   if (pct >= 90) {return "bg-red-500"}
   if (pct >= 75) {return "bg-amber-500"}
-  if (pct >= 50) {return "bg-indigo-400"}
-  return "bg-indigo-500"
+  if (pct >= 50) {return "bg-primary"}
+  return "bg-primary"
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -476,7 +476,7 @@ function InterfacesTab({ interfaces }: InterfacesTabProps) {
               className={cn(
                 "w-full text-left rounded-lg border p-3 transition-all",
                 isSelected
-                  ? "bg-indigo-500/10 border-indigo-500/50"
+                  ? "bg-primary/10 border-primary/50"
                   : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/60"
               )}
             >
@@ -927,7 +927,7 @@ function AlertsTab({ alerts: initialAlerts, thresholds: initialThresholds, inter
                           onChange={(e) =>
                             handleThresholdChange(iface.id, field, parseFloat(e.target.value))
                           }
-                          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm text-[var(--color-text-primary)] font-mono focus:border-indigo-500 focus:outline-none w-full"
+                          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm text-[var(--color-text-primary)] font-mono focus:border-primary focus:outline-none w-full"
                         />
                       </label>
                     ))}
@@ -975,7 +975,7 @@ function CapacityTab({ interfaces }: CapacityTabProps) {
             className={cn(
               "px-3 py-1 rounded text-xs font-medium transition-colors",
               sortKey === key
-                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)]"
             )}
           >
@@ -1143,7 +1143,7 @@ export default function NetworkBandwidthMonitor() {
               className={cn(
                 "relative px-4 py-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2",
                 activeTab === tab.id
-                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  ? "border-primary text-[var(--color-text-primary)]"
                   : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >

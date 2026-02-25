@@ -200,10 +200,10 @@ const SEED_FLAGS: FeatureFlag[] = [
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TYPE_CONFIG: Record<FlagType, { label: string; color: string }> = {
-  boolean:    { label: "Boolean",    color: "text-indigo-400" },
+  boolean:    { label: "Boolean",    color: "text-primary" },
   string:     { label: "String",     color: "text-[var(--color-text-secondary)]" },
   number:     { label: "Number",     color: "text-emerald-400" },
-  percentage: { label: "Rollout %",  color: "text-violet-400" },
+  percentage: { label: "Rollout %",  color: "text-primary" },
 };
 
 const ENV_LABELS: Record<FlagEnv, string> = {
@@ -252,7 +252,7 @@ function FlagCard({ flag, onToggle, onRolloutChange }: FlagCardProps) {
           aria-label={`${flag.enabled ? "Disable" : "Enable"} ${flag.name}`}
           className={cn(
             "flex-none mt-0.5 relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
-            flag.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
+            flag.enabled ? "bg-primary" : "bg-[var(--color-surface-3)]"
           )}
         >
           <span className={cn(
@@ -311,7 +311,7 @@ function FlagCard({ flag, onToggle, onRolloutChange }: FlagCardProps) {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label htmlFor={`rollout-${flag.id}`} className="text-xs text-[var(--color-text-muted)]">Rollout Percentage</label>
-                  <span className="text-xs font-mono font-semibold text-violet-400">{flag.rolloutPercent ?? 0}%</span>
+                  <span className="text-xs font-mono font-semibold text-primary">{flag.rolloutPercent ?? 0}%</span>
                 </div>
                 <input
                   id={`rollout-${flag.id}`}
@@ -445,7 +445,7 @@ export default function FeatureFlags() {
             <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Feature Flags</h1>
             <p className="text-sm text-[var(--color-text-muted)] mt-0.5">Toggle features, manage rollouts, and configure per-environment or per-agent overrides</p>
           </div>
-          <button aria-label="Create new feature flag" className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
+          <button aria-label="Create new feature flag" className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-[var(--color-text-primary)] hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
             <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" d="M7 2v10M2 7h10" /></svg>
             New Flag
           </button>
@@ -474,7 +474,7 @@ export default function FeatureFlags() {
               aria-pressed={filterMode === id}
               className={cn(
                 "px-2.5 py-1 text-xs font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                filterMode === id ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
+                filterMode === id ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               {label} <span className={cn("ml-1 tabular-nums", filterMode === id ? "opacity-80" : "text-[var(--color-text-muted)]")}>{count}</span>

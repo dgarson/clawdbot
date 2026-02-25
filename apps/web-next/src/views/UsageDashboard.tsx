@@ -124,7 +124,7 @@ export default function UsageDashboard({ isLoading = false }: { isLoading?: bool
       {/* Skip link */}
       <a
         href="#usage-dashboard-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
@@ -231,7 +231,7 @@ export default function UsageDashboard({ isLoading = false }: { isLoading?: bool
                     <div
                       className={cn(
                         'w-full rounded-t-sm transition-all',
-                        isHovered ? 'bg-violet-400' : 'bg-violet-600'
+                        isHovered ? 'bg-primary' : 'bg-primary'
                       )}
                       style={{ height: `${heightPercent}%` }}
                       aria-label={`${formatDate(day.date)}: ${formatTokens(day.tokens)} tokens, $${day.cost.toFixed(2)}`}
@@ -343,7 +343,7 @@ export default function UsageDashboard({ isLoading = false }: { isLoading?: bool
                 return (
                   <tr key={session.key} className="border-b border-tok-border/50">
                     <td className="px-4 py-3">
-                      <span className="font-mono text-xs text-violet-400">
+                      <span className="font-mono text-xs text-primary">
                         {session.key.length > 24 ? `${session.key.slice(0, 18)}...` : session.key}
                       </span>
                       {session.label && (
@@ -402,7 +402,7 @@ interface SummaryCardProps {
 
 function SummaryCard({ icon, label, value, color, valueClassName }: SummaryCardProps) {
   const colorClasses = {
-    violet: 'bg-violet-600/10 text-violet-400 border-violet-600/30',
+    violet: 'bg-primary/10 text-primary border-primary/30',
     green: 'bg-green-600/10 text-green-400 border-green-600/30',
     blue: 'bg-blue-600/10 text-blue-400 border-blue-600/30',
     yellow: 'bg-yellow-600/10 text-yellow-400 border-yellow-600/30',

@@ -176,7 +176,7 @@ function statusBg(s: SLAStatus) {
   return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 function tierBadge(t: SLATier) {
-  if (t === "platinum") {return "bg-indigo-500/20 text-indigo-300";}
+  if (t === "platinum") {return "bg-primary/20 text-indigo-300";}
   if (t === "gold") {return "bg-amber-400/20 text-amber-300";}
   if (t === "silver") {return "bg-[var(--color-surface-3)]/20 text-[var(--color-text-primary)]";}
   return "bg-orange-700/20 text-orange-300";
@@ -281,7 +281,7 @@ export default function SLAComplianceTracker() {
         </div>
         <div className="flex gap-2">
           <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Export Report</button>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Contract</button>
+          <button className="px-3 py-1.5 text-sm bg-primary hover:bg-primary rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Contract</button>
         </div>
       </div>
 
@@ -291,7 +291,7 @@ export default function SLAComplianceTracker() {
           { label: "Compliant", value: compliantCount, total: totalContracts, color: "text-emerald-400" },
           { label: "At Risk", value: atRiskCount, total: totalContracts, color: "text-amber-400" },
           { label: "Breached", value: breachedCount, total: totalContracts, color: "text-rose-400" },
-          { label: "Avg Health", value: `${avgHealth}%`, total: null, color: "text-indigo-400" },
+          { label: "Avg Health", value: `${avgHealth}%`, total: null, color: "text-primary" },
         ].map(k => (
           <div key={k.label} className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
             <div className="text-xs text-[var(--color-text-muted)] mb-1">{k.label}</div>
@@ -317,7 +317,7 @@ export default function SLAComplianceTracker() {
           <button
             key={t.id}
             onClick={() => { setTab(t.id); setSelectedContract(null); }}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             {t.label}
           </button>
@@ -611,7 +611,7 @@ export default function SLAComplianceTracker() {
                     </div>
                     <div className="h-3 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                       <div
-                        className={cn("h-full rounded-full transition-all", isHigh ? "bg-rose-500" : "bg-indigo-500")}
+                        className={cn("h-full rounded-full transition-all", isHigh ? "bg-rose-500" : "bg-primary")}
                         style={{ width: `${usedPct}%` }}
                       />
                     </div>

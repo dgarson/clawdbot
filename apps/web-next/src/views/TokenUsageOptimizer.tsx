@@ -417,7 +417,7 @@ function getCategoryIcon(category: RecCategory): string {
 function getCategoryBadgeClass(category: RecCategory): string {
   switch (category) {
     case "compression":
-      return "text-indigo-400 bg-indigo-400/10 border-indigo-400/20";
+      return "text-primary bg-primary/10 border-primary/20";
     case "pruning":
       return "text-amber-400 bg-amber-400/10 border-amber-400/20";
     case "routing":
@@ -762,7 +762,7 @@ function AnalysisTab() {
     return (
       <button
         onClick={() => toggleSort(field)}
-        className={cn("text-xs font-medium text-left transition-colors hover:text-[var(--color-text-primary)]", active ? "text-indigo-400" : "text-[var(--color-text-muted)]")}
+        className={cn("text-xs font-medium text-left transition-colors hover:text-[var(--color-text-primary)]", active ? "text-primary" : "text-[var(--color-text-muted)]")}
       >
         {label} {active ? (sortDir === "asc" ? "▲" : "▼") : ""}
       </button>
@@ -780,7 +780,7 @@ function AnalysisTab() {
           onClick={() => setModelFilter("all")}
           className={cn(
             "px-3 py-1 rounded-lg text-sm border transition-colors",
-            modelFilter === "all" ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+            modelFilter === "all" ? "bg-primary border-primary text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           )}
         >
           All
@@ -791,7 +791,7 @@ function AnalysisTab() {
             onClick={() => setModelFilter(m)}
             className={cn(
               "px-3 py-1 rounded-lg text-sm border transition-colors",
-              modelFilter === m ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              modelFilter === m ? "bg-primary border-primary text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {m}
@@ -1044,7 +1044,7 @@ function OptimizationTab() {
           onClick={() => setCategoryFilter("all")}
           className={cn(
             "px-3 py-1 rounded-lg text-sm border transition-colors",
-            categoryFilter === "all" ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+            categoryFilter === "all" ? "bg-primary border-primary text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           )}
         >
           All
@@ -1055,7 +1055,7 @@ function OptimizationTab() {
             onClick={() => setCategoryFilter(c)}
             className={cn(
               "px-3 py-1 rounded-lg text-sm border transition-colors capitalize",
-              categoryFilter === c ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              categoryFilter === c ? "bg-primary border-primary text-[var(--color-text-primary)]" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {getCategoryIcon(c)} {c}
@@ -1099,7 +1099,7 @@ function OptimizationTab() {
                     </span>
                     <span className="text-[var(--color-text-muted)] text-xs">
                       Tokens saved:{" "}
-                      <span className="text-indigo-400 font-semibold">{formatTokens(rec.estimatedSavings)}</span>
+                      <span className="text-primary font-semibold">{formatTokens(rec.estimatedSavings)}</span>
                     </span>
                     <span className="text-[var(--color-text-muted)] text-xs">
                       Affects:{" "}
@@ -1119,7 +1119,7 @@ function OptimizationTab() {
                     <>
                       <button
                         onClick={() => applyRec(rec.id)}
-                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded-lg transition-colors font-medium"
+                        className="px-3 py-1.5 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm rounded-lg transition-colors font-medium"
                       >
                         Apply
                       </button>
@@ -1403,7 +1403,7 @@ function BudgetTab() {
                         }
                       }}
                       autoFocus
-                      className="bg-[var(--color-surface-2)] border border-indigo-500 text-[var(--color-text-primary)] rounded px-2 py-1 text-sm font-mono w-20 outline-none"
+                      className="bg-[var(--color-surface-2)] border border-primary text-[var(--color-text-primary)] rounded px-2 py-1 text-sm font-mono w-20 outline-none"
                       min="0"
                       step="0.01"
                     />
@@ -1486,7 +1486,7 @@ export default function TokenUsageOptimizer() {
               className={cn(
                 "px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors",
                 activeTab === tab.id
-                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  ? "border-primary text-[var(--color-text-primary)]"
                   : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
               )}
             >

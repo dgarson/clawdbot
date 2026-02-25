@@ -134,8 +134,8 @@ const SPANS: Record<string, Span[]> = {
 };
 
 const KIND_COLORS: Record<SpanKind, string> = {
-  session: "bg-indigo-500",
-  llm: "bg-violet-500",
+  session: "bg-primary",
+  llm: "bg-primary",
   tool: "bg-emerald-500",
   subagent: "bg-amber-500",
   webhook: "bg-sky-500",
@@ -179,8 +179,8 @@ const DURATION_PILL: Record<DurationBucket, string> = {
 
 // Kind pills — translucent background variant of KIND_COLORS
 const KIND_PILL: Record<SpanKind, string> = {
-  session: "bg-indigo-500/10 text-indigo-400 ring-1 ring-indigo-500/20",
-  llm: "bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/20",
+  session: "bg-primary/10 text-primary ring-1 ring-indigo-500/20",
+  llm: "bg-primary/10 text-primary ring-1 ring-violet-500/20",
   tool: "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20",
   subagent: "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20",
   webhook: "bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/20",
@@ -189,7 +189,7 @@ const KIND_PILL: Record<SpanKind, string> = {
 
 // Semantic colors for status filter buttons
 const STATUS_FILTER_ACTIVE: Record<string, string> = {
-  all: "bg-indigo-600 text-white",
+  all: "bg-primary text-white",
   ok: "bg-emerald-600 text-white",
   error: "bg-rose-600 text-white",
   timeout: "bg-amber-600 text-white",
@@ -388,7 +388,7 @@ export default function AgentTracer() {
                   }}
                   className={cn(
                     "w-full text-left px-4 py-3 hover:bg-zinc-800/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                    trace.id === selectedTraceId && "bg-indigo-500/5 border-l-[3px] border-indigo-500"
+                    trace.id === selectedTraceId && "bg-primary/5 border-l-[3px] border-primary"
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">

@@ -106,7 +106,7 @@ const ENV_COLORS: Record<string, string> = {
 
 const STATUS_STYLES: Record<string, string> = {
   success:     "bg-emerald-400/15 text-emerald-400 border-emerald-500/30",
-  in_progress: "bg-indigo-400/15 text-indigo-300 border-indigo-500/30",
+  in_progress: "bg-primary/15 text-indigo-300 border-primary/30",
   failed:      "bg-rose-400/15 text-rose-400 border-rose-500/30",
   rolled_back: "bg-amber-400/15 text-amber-400 border-amber-500/30",
   scheduled:   "bg-surface-3 text-fg-secondary border-tok-border",
@@ -166,7 +166,7 @@ export default function DeploymentTracker() {
           <h1 className="text-xl sm:text-2xl font-bold text-fg-primary">Deployment Tracker</h1>
           <p className="text-fg-secondary text-sm mt-0.5">Track releases across environments and services</p>
         </div>
-        <button className="text-sm px-4 py-2 bg-indigo-500 text-fg-primary rounded hover:bg-indigo-600 transition-colors">
+        <button className="text-sm px-4 py-2 bg-primary text-fg-primary rounded hover:bg-primary transition-colors">
           🚀 New Deployment
         </button>
       </div>
@@ -174,7 +174,7 @@ export default function DeploymentTracker() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Deployments Today",  value: DEPLOYMENTS.filter(d=>d.startTime.startsWith("2026-02-22")).length, color: "text-indigo-400" },
+          { label: "Deployments Today",  value: DEPLOYMENTS.filter(d=>d.startTime.startsWith("2026-02-22")).length, color: "text-primary" },
           { label: "Success Rate",       value: `${Math.round((DEPLOYMENTS.filter(d=>d.status==="success").length/DEPLOYMENTS.length)*100)}%`, color: "text-emerald-400" },
           { label: "Avg Deploy Time",    value: fmtDuration(Math.round(DEPLOYMENTS.filter(d=>d.duration).reduce((s,d)=>s+(d.duration??0),0)/DEPLOYMENTS.filter(d=>d.duration).length)), color: "text-fg-primary" },
           { label: "Failed",             value: DEPLOYMENTS.filter(d=>d.status==="failed"||d.status==="rolled_back").length, color: "text-rose-400" },
@@ -195,7 +195,7 @@ export default function DeploymentTracker() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-fg-primary"
+                ? "bg-primary text-fg-primary"
                 : "text-fg-secondary hover:text-fg-primary hover:bg-surface-2"
             )}
           >
@@ -248,7 +248,7 @@ export default function DeploymentTracker() {
                 onClick={() => setSelectedDeployment(dep)}
                 className={cn(
                   "w-full bg-surface-1 border rounded-lg p-4 text-left hover:border-tok-border transition-colors",
-                  selectedDeployment?.id === dep.id ? "border-indigo-500/50" : "border-tok-border"
+                  selectedDeployment?.id === dep.id ? "border-primary/50" : "border-tok-border"
                 )}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -344,7 +344,7 @@ export default function DeploymentTracker() {
                         🔄 Rollback to {selectedDeployment.previousVersion}
                       </button>
                     )}
-                    <button className="text-xs px-3 py-2 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded hover:bg-indigo-500/30 transition-colors">
+                    <button className="text-xs px-3 py-2 bg-primary/20 border border-primary/30 text-indigo-300 rounded hover:bg-primary/30 transition-colors">
                       🔁 Retry
                     </button>
                     {selectedDeployment.status === "in_progress" && (
@@ -446,11 +446,11 @@ export default function DeploymentTracker() {
                   {f.opts?.map(o => <option key={o} selected={o === f.value}>{o}</option>)}
                 </select>
               ) : (
-                <input type={f.type} defaultValue={f.value} className="w-full bg-surface-2 border border-tok-border text-fg-primary text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500" />
+                <input type={f.type} defaultValue={f.value} className="w-full bg-surface-2 border border-tok-border text-fg-primary text-sm rounded px-3 py-2 focus:outline-none focus:border-primary" />
               )}
             </div>
           ))}
-          <button className="px-4 py-2 bg-indigo-500 text-fg-primary text-sm rounded hover:bg-indigo-600 transition-colors">Save Settings</button>
+          <button className="px-4 py-2 bg-primary text-fg-primary text-sm rounded hover:bg-primary transition-colors">Save Settings</button>
         </div>
       )}
     </div>

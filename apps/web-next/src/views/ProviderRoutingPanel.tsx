@@ -33,7 +33,7 @@ const mockProviders: Provider[] = [
   { id: 'openai', name: 'OpenAI', status: 'active', latency: 142, requestsPerMin: 847, successRate: 99.2, modelCount: 12, color: 'bg-emerald-500' },
   { id: 'anthropic', name: 'Anthropic', status: 'active', latency: 189, requestsPerMin: 623, successRate: 99.7, modelCount: 8, color: 'bg-orange-500' },
   { id: 'xai', name: 'xAI', status: 'active', latency: 156, requestsPerMin: 234, successRate: 98.4, modelCount: 3, color: 'bg-blue-500' },
-  { id: 'zai', name: 'ZAI', status: 'degraded', latency: 312, requestsPerMin: 156, successRate: 94.1, modelCount: 5, color: 'bg-violet-500' },
+  { id: 'zai', name: 'ZAI', status: 'degraded', latency: 312, requestsPerMin: 156, successRate: 94.1, modelCount: 5, color: 'bg-primary' },
   { id: 'openrouter', name: 'OpenRouter', status: 'active', latency: 198, requestsPerMin: 412, successRate: 97.8, modelCount: 45, color: 'bg-cyan-500' },
 ]
 
@@ -68,7 +68,7 @@ const trafficDistribution = [
   { provider: 'Anthropic', percentage: 28, color: 'bg-orange-500' },
   { provider: 'OpenRouter', percentage: 18, color: 'bg-cyan-500' },
   { provider: 'xAI', percentage: 11, color: 'bg-blue-500' },
-  { provider: 'ZAI', percentage: 5, color: 'bg-violet-500' },
+  { provider: 'ZAI', percentage: 5, color: 'bg-primary' },
 ]
 
 // ============================================================================
@@ -107,8 +107,8 @@ function StatCard({ title, value, subtitle, icon: Icon, trend }: {
             </div>
           )}
         </div>
-        <div className="p-2 bg-violet-600/10 rounded-lg">
-          <Icon className="w-5 h-5 text-violet-400" aria-hidden="true" />
+        <div className="p-2 bg-primary/10 rounded-lg">
+          <Icon className="w-5 h-5 text-primary" aria-hidden="true" />
         </div>
       </div>
     </div>
@@ -237,7 +237,7 @@ export default function ProviderRoutingPanel() {
       {/* Skip link — WCAG 2.4.1 */}
       <a
         href="#provider-routing-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-fg-primary focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
@@ -255,7 +255,7 @@ export default function ProviderRoutingPanel() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
-                  <Network className="w-6 h-6 text-violet-400" aria-hidden="true" />
+                  <Network className="w-6 h-6 text-primary" aria-hidden="true" />
                   Provider Routing
                 </h1>
                 <p className="text-fg-secondary text-sm mt-1">AI model routing, load balancing, and failover management</p>
@@ -263,7 +263,7 @@ export default function ProviderRoutingPanel() {
               <button
                 onClick={handleRefresh}
                 aria-label={isRefreshing ? 'Refreshing provider data…' : 'Refresh provider data'}
-                className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-fg-primary rounded-lg font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary text-fg-primary rounded-lg font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               >
                 <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} aria-hidden="true" />
                 Refresh
@@ -281,7 +281,7 @@ export default function ProviderRoutingPanel() {
             {/* Provider Cards */}
             <section aria-label="Provider status cards">
               <h2 className="text-lg font-semibold text-fg-primary mb-4 flex items-center gap-2">
-                <Cpu className="w-5 h-5 text-violet-400" aria-hidden="true" />
+                <Cpu className="w-5 h-5 text-primary" aria-hidden="true" />
                 Providers
               </h2>
               <div className="grid grid-cols-5 gap-4">
@@ -293,7 +293,7 @@ export default function ProviderRoutingPanel() {
             <section aria-label="Routing rules configuration" className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
               <div className="p-4 border-b border-tok-border">
                 <h2 className="text-lg font-semibold text-fg-primary flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-violet-400" aria-hidden="true" />
+                  <Shield className="w-5 h-5 text-primary" aria-hidden="true" />
                   Routing Rules
                 </h2>
                 <p className="text-fg-muted text-sm mt-1">Configure primary and fallback providers for each model</p>
@@ -324,7 +324,7 @@ export default function ProviderRoutingPanel() {
                         </td>
                         <td className="px-4 py-3">
                           <span className={cn('inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold',
-                            rule.priority === 1 ? 'bg-violet-600/20 text-violet-400' :
+                            rule.priority === 1 ? 'bg-primary/20 text-primary' :
                             rule.priority === 2 ? 'bg-blue-600/20 text-blue-400' :
                             rule.priority === 3 ? 'bg-amber-600/20 text-amber-400' : 'bg-surface-3/50 text-fg-secondary'
                           )}>
@@ -340,7 +340,7 @@ export default function ProviderRoutingPanel() {
                             onClick={() => handleToggleRule(rule.id)}
                             className={cn(
                               'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
-                              rule.active ? 'bg-violet-600' : 'bg-surface-3'
+                              rule.active ? 'bg-primary' : 'bg-surface-3'
                             )}
                           >
                             <span className="sr-only">{rule.active ? 'Enabled' : 'Disabled'}</span>
@@ -361,7 +361,7 @@ export default function ProviderRoutingPanel() {
             <section aria-label="Failover event log" className="bg-surface-1 border border-tok-border rounded-xl overflow-hidden">
               <div className="p-4 border-b border-tok-border">
                 <h2 className="text-lg font-semibold text-fg-primary flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-violet-400" aria-hidden="true" />
+                  <Activity className="w-5 h-5 text-primary" aria-hidden="true" />
                   Failover Log
                 </h2>
                 <p className="text-fg-muted text-sm mt-1">Recent failover events and provider switches</p>
@@ -378,7 +378,7 @@ export default function ProviderRoutingPanel() {
                     <div className="flex items-center gap-2 flex-1">
                       <span className="text-[var(--color-text-primary)]">{event.fromProvider}</span>
                       <ArrowRight className="w-4 h-4 text-amber-400 flex-shrink-0" aria-hidden="true" />
-                      <span className="text-violet-400 font-medium">{event.toProvider}</span>
+                      <span className="text-primary font-medium">{event.toProvider}</span>
                     </div>
                     <div className="w-40 flex-shrink-0 text-right">
                       <span className="text-fg-muted text-sm">{event.reason}</span>

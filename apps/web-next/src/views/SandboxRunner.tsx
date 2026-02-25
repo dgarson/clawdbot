@@ -329,7 +329,7 @@ export default function SandboxRunner() {
                 "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
                 runStatus === "running"
                   ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
+                  : "bg-primary hover:bg-primary text-[var(--color-text-primary)]"
               )}
             >
               {runStatus === "running" ? (
@@ -346,7 +346,7 @@ export default function SandboxRunner() {
           <span><span className="text-[var(--color-text-muted)]">Runs:</span> <span className="text-[var(--color-text-primary)] font-medium">{runs.length}</span></span>
           <span><span className="text-[var(--color-text-muted)]">Success:</span> <span className="text-emerald-400 font-medium">{successCount}</span></span>
           <span><span className="text-[var(--color-text-muted)]">Errors:</span> <span className="text-rose-400 font-medium">{errorCount}</span></span>
-          <span><span className="text-[var(--color-text-muted)]">Avg duration:</span> <span className="text-indigo-400 font-medium">{Math.round(avgDuration)}ms</span></span>
+          <span><span className="text-[var(--color-text-muted)]">Avg duration:</span> <span className="text-primary font-medium">{Math.round(avgDuration)}ms</span></span>
           <div className="flex items-center gap-1.5 ml-auto">
             <span className={cn("w-2 h-2 rounded-full", RUN_STATUS_CONFIG[runStatus].dot)} />
             <span className={cn("text-xs", RUN_STATUS_CONFIG[runStatus].color)}>{RUN_STATUS_CONFIG[runStatus].label}</span>
@@ -391,7 +391,7 @@ export default function SandboxRunner() {
                   className={cn(
                     "px-3 py-2 text-xs border-b-2 -mb-px transition-colors",
                     outputTab === tab
-                      ? "border-indigo-500 text-[var(--color-text-primary)]"
+                      ? "border-primary text-[var(--color-text-primary)]"
                       : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
@@ -444,7 +444,7 @@ export default function SandboxRunner() {
                 className={cn(
                   "flex-1 px-3 py-3 text-xs capitalize border-b-2 -mb-px transition-colors",
                   activePanel === tab
-                    ? "border-indigo-500 text-[var(--color-text-primary)]"
+                    ? "border-primary text-[var(--color-text-primary)]"
                     : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -497,7 +497,7 @@ export default function SandboxRunner() {
                       className={cn(
                         "w-full text-left p-3 rounded-lg border transition-all",
                         isSelected
-                          ? "bg-indigo-900/20 border-indigo-600/50"
+                          ? "bg-indigo-900/20 border-primary/50"
                           : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                       )}
                     >

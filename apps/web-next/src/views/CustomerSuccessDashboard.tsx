@@ -452,14 +452,14 @@ function formatARR(arr: number): string {
 
 function healthScoreColor(score: number): string {
   if (score >= 90) {return "text-emerald-400"}
-  if (score >= 70) {return "text-indigo-400"}
+  if (score >= 70) {return "text-primary"}
   if (score >= 50) {return "text-amber-400"}
   return "text-rose-400"
 }
 
 function healthScoreBadge(score: number): string {
   if (score >= 90) {return "bg-emerald-400/10 text-emerald-400"}
-  if (score >= 70) {return "bg-indigo-400/10 text-indigo-400"}
+  if (score >= 70) {return "bg-primary/10 text-primary"}
   if (score >= 50) {return "bg-amber-400/10 text-amber-400"}
   return "bg-rose-400/10 text-rose-400"
 }
@@ -472,7 +472,7 @@ function riskBadgeClass(risk: RiskLevel): string {
 
 function npsScoreColor(score: number): string {
   if (score >= 9) {return "text-emerald-400"}
-  if (score >= 7) {return "text-indigo-400"}
+  if (score >= 7) {return "text-primary"}
   if (score >= 5) {return "text-amber-400"}
   return "text-rose-400"
 }
@@ -559,7 +559,7 @@ export default function CustomerSuccessDashboard() {
           </div>
           <div className="bg-[var(--color-surface-1)] rounded-lg p-4 border border-[var(--color-border)]">
             <div className="text-[var(--color-text-secondary)] text-sm">Current NPS</div>
-            <div className="text-2xl font-bold text-indigo-400 mt-1">{currentNPS}</div>
+            <div className="text-2xl font-bold text-primary mt-1">{currentNPS}</div>
             <div className="text-xs text-emerald-400 mt-1">↑ 5 pts from Jan</div>
           </div>
           <div className="bg-[var(--color-surface-1)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -578,7 +578,7 @@ export default function CustomerSuccessDashboard() {
               className={cn(
                 "px-4 py-2 text-sm font-medium rounded-t-md transition-colors",
                 activeTab === tab.id
-                  ? "text-indigo-400 border-b-2 border-indigo-400 bg-[var(--color-surface-1)]"
+                  ? "text-primary border-b-2 border-primary bg-[var(--color-surface-1)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -594,7 +594,7 @@ export default function CustomerSuccessDashboard() {
               <select
                 value={planFilter}
                 onChange={e => setPlanFilter(e.target.value)}
-                className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-2 border border-[var(--color-border)] focus:outline-none focus:border-indigo-500"
+                className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-2 border border-[var(--color-border)] focus:outline-none focus:border-primary"
               >
                 <option value="all">All Plans</option>
                 <option value="Starter">Starter</option>
@@ -605,7 +605,7 @@ export default function CustomerSuccessDashboard() {
               <select
                 value={riskFilter}
                 onChange={e => setRiskFilter(e.target.value)}
-                className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-2 border border-[var(--color-border)] focus:outline-none focus:border-indigo-500"
+                className="bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-2 border border-[var(--color-border)] focus:outline-none focus:border-primary"
               >
                 <option value="all">All Risk Levels</option>
                 <option value="healthy">Healthy</option>
@@ -759,7 +759,7 @@ export default function CustomerSuccessDashboard() {
               <div className="space-y-4">
                 {[
                   { label: "90–100 (Excellent)", count: bucket90, color: "bg-emerald-400" },
-                  { label: "70–89 (Good)", count: bucket70, color: "bg-indigo-400" },
+                  { label: "70–89 (Good)", count: bucket70, color: "bg-primary" },
                   { label: "50–69 (Fair)", count: bucket50, color: "bg-amber-400" },
                   { label: "<50 (Critical)", count: bucketLow, color: "bg-rose-400" },
                 ].map(bucket => (
@@ -786,7 +786,7 @@ export default function CustomerSuccessDashboard() {
                   <div key={m.month} className="flex flex-col items-center flex-1 h-full justify-end">
                     <div className="text-xs text-[var(--color-text-secondary)] mb-1">{m.avg}</div>
                     <div
-                      className="w-full bg-indigo-500 rounded-t-md"
+                      className="w-full bg-primary rounded-t-md"
                       style={{ height: `${(m.avg / maxHealth) * 100}%` }}
                     />
                     <div className="text-xs text-[var(--color-text-secondary)] mt-2">{m.month}</div>
@@ -842,7 +842,7 @@ export default function CustomerSuccessDashboard() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-6 flex flex-col items-center justify-center">
                 <div className="text-[var(--color-text-secondary)] text-sm mb-2">Current NPS</div>
-                <div className="text-6xl font-bold text-indigo-400">{currentNPS}</div>
+                <div className="text-6xl font-bold text-primary">{currentNPS}</div>
                 <div className="text-[var(--color-text-secondary)] text-xs mt-2">Net Promoter Score</div>
               </div>
               <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 flex flex-col items-center justify-center">
@@ -878,7 +878,7 @@ export default function CustomerSuccessDashboard() {
                   <div key={m.month} className="flex flex-col items-center flex-1 h-full justify-end">
                     <div className="text-xs text-[var(--color-text-secondary)] mb-1">{m.score}</div>
                     <div
-                      className="w-full bg-indigo-500/80 rounded-t-sm"
+                      className="w-full bg-primary/80 rounded-t-sm"
                       style={{ height: `${(m.score / maxNPS) * 100}%` }}
                     />
                     <div className="text-xs text-[var(--color-text-secondary)] mt-2">{m.month}</div>
@@ -979,7 +979,7 @@ export default function CustomerSuccessDashboard() {
                         </div>
                         <div className="w-full bg-[var(--color-surface-3)] rounded-full h-2">
                           <div
-                            className="bg-indigo-500 h-2 rounded-full"
+                            className="bg-primary h-2 rounded-full"
                             style={{
                               width: `${(pb.stepsCompleted / pb.stepsTotal) * 100}%`,
                             }}

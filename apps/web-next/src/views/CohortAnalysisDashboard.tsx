@@ -114,14 +114,14 @@ const PLAN_OPTIONS: PlanType[] = ["starter", "pro", "enterprise"];
 
 function retentionColor(value: number): string {
   if (value > 60) {return "bg-emerald-500/80 text-emerald-50";}
-  if (value >= 40) {return "bg-indigo-500/80 text-indigo-50";}
+  if (value >= 40) {return "bg-primary/80 text-indigo-50";}
   if (value >= 20) {return "bg-amber-500/80 text-amber-50";}
   return "bg-rose-500/80 text-rose-50";
 }
 
 function retentionBgClass(value: number): string {
   if (value > 60) {return "bg-emerald-500";}
-  if (value >= 40) {return "bg-indigo-500";}
+  if (value >= 40) {return "bg-primary";}
   if (value >= 20) {return "bg-amber-500";}
   return "bg-rose-500";
 }
@@ -129,7 +129,7 @@ function retentionBgClass(value: number): string {
 function channelColor(ch: AcquisitionChannel): string {
   const map: Record<AcquisitionChannel, string> = {
     organic: "bg-emerald-500",
-    paid: "bg-indigo-500",
+    paid: "bg-primary",
     referral: "bg-amber-500",
     direct: "bg-rose-400",
   };
@@ -139,7 +139,7 @@ function channelColor(ch: AcquisitionChannel): string {
 function planColor(p: PlanType): string {
   const map: Record<PlanType, string> = {
     starter: "bg-[var(--color-surface-3)]",
-    pro: "bg-indigo-500",
+    pro: "bg-primary",
     enterprise: "bg-emerald-500",
   };
   return map[p];
@@ -258,7 +258,7 @@ function RetentionMatrix({
         </span>
         {[
           { label: ">60%", cls: "bg-emerald-500/80" },
-          { label: "40-60%", cls: "bg-indigo-500/80" },
+          { label: "40-60%", cls: "bg-primary/80" },
           { label: "20-40%", cls: "bg-amber-500/80" },
           { label: "<20%", cls: "bg-rose-500/80" },
         ].map((item) => (
@@ -431,7 +431,7 @@ function FilterBar({
               className={cn(
                 "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
                 channelFilter === opt
-                  ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -452,7 +452,7 @@ function FilterBar({
               className={cn(
                 "px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
                 planFilter === opt
-                  ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -545,7 +545,7 @@ export default function CohortAnalysisDashboard() {
           <MetricCard
             label="Avg W3 Retention"
             value={`${avgD7}%`}
-            accent="text-indigo-400"
+            accent="text-primary"
           />
           <MetricCard
             label="Avg W7 Retention"

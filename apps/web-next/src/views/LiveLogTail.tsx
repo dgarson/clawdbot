@@ -62,8 +62,8 @@ const LEVEL_ROW_BG: Record<LogLevel, string> = {
 
 const SOURCE_BADGE: Record<LogSource, string> = {
   system: "bg-[var(--color-surface-3)]/30 text-[var(--color-text-secondary)]",
-  agent: "bg-indigo-500/10 text-indigo-400",
-  llm: "bg-violet-500/10 text-violet-400",
+  agent: "bg-primary/10 text-primary",
+  llm: "bg-primary/10 text-primary",
   tool: "bg-emerald-500/10 text-emerald-400",
   webhook: "bg-sky-500/10 text-sky-400",
   cron: "bg-amber-500/10 text-amber-400",
@@ -512,7 +512,7 @@ function LogRow({
         </span>
 
         {/* Agent name */}
-        <span className="w-[72px] shrink-0 truncate text-indigo-400/80 mr-1.5">
+        <span className="w-[72px] shrink-0 truncate text-primary/80 mr-1.5">
           {entry.agentEmoji && (
             <span className="mr-0.5 text-[10px]">{entry.agentEmoji}</span>
           )}
@@ -785,7 +785,7 @@ export default function LiveLogTail({
               placeholder="Search logs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded pl-7 pr-7 py-1.5 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500 w-52 font-mono transition-colors"
+              className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded pl-7 pr-7 py-1.5 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-primary w-52 font-mono transition-colors"
             />
             {searchQuery && (
               <button
@@ -834,7 +834,7 @@ export default function LiveLogTail({
             className={cn(
               "flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-colors",
               showFilters
-                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
             )}
             title="Toggle filters"
@@ -851,7 +851,7 @@ export default function LiveLogTail({
             className={cn(
               "flex items-center gap-1.5 px-2 py-1.5 rounded text-xs transition-colors",
               wrapLines
-                ? "bg-indigo-500/10 text-indigo-400"
+                ? "bg-primary/10 text-primary"
                 : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-muted)]"
             )}
             title="Toggle line wrapping"
@@ -871,7 +871,7 @@ export default function LiveLogTail({
             className={cn(
               "flex items-center gap-1.5 px-2 py-1.5 rounded text-xs transition-colors",
               autoScroll
-                ? "bg-indigo-500/10 text-indigo-400"
+                ? "bg-primary/10 text-primary"
                 : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-muted)]"
             )}
             title={autoScroll ? "Auto-scroll ON" : "Auto-scroll OFF"}
@@ -896,7 +896,7 @@ export default function LiveLogTail({
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors",
                 activeStream === tab.id
-                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  ? "border-primary text-[var(--color-text-primary)]"
                   : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -904,7 +904,7 @@ export default function LiveLogTail({
                 className={cn(
                   "w-4 h-4 flex items-center justify-center rounded text-[9px] font-bold",
                   activeStream === tab.id
-                    ? "bg-indigo-500/20 text-indigo-400"
+                    ? "bg-primary/20 text-primary"
                     : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                 )}
               >
@@ -949,7 +949,7 @@ export default function LiveLogTail({
           <select
             value={selectedAgent}
             onChange={(e) => setSelectedAgent(e.target.value)}
-            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
           >
             <option value="all">All agents</option>
             {activeAgents.map((agent) => (
@@ -1041,7 +1041,7 @@ export default function LiveLogTail({
           {!autoScroll && (
             <button
               onClick={jumpToBottom}
-              className="flex items-center gap-1 text-indigo-400 hover:text-indigo-300 transition-colors"
+              className="flex items-center gap-1 text-primary hover:text-indigo-300 transition-colors"
             >
               <ArrowDownToLine className="w-3 h-3" />
               Jump to latest

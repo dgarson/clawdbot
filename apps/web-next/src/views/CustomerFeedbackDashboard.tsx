@@ -106,7 +106,7 @@ const NPS_HISTORY: NPSSurvey[] = [
 const CATEGORY_CONFIG: Record<FeedbackCategory, { label: string; emoji: string; color: string }> = {
   ux:          { label: "UX/Design",    emoji: "🎨", color: "text-purple-400" },
   performance: { label: "Performance",  emoji: "⚡", color: "text-amber-400" },
-  features:    { label: "Features",     emoji: "✨", color: "text-indigo-400" },
+  features:    { label: "Features",     emoji: "✨", color: "text-primary" },
   pricing:     { label: "Pricing",      emoji: "💰", color: "text-rose-400" },
   support:     { label: "Support",      emoji: "🎧", color: "text-teal-400" },
   onboarding:  { label: "Onboarding",  emoji: "🚀", color: "text-sky-400" },
@@ -120,7 +120,7 @@ const SENTIMENT_CONFIG: Record<SentimentScore, { label: string; emoji: string; c
 
 const PLAN_CONFIG: Record<string, { label: string; color: string }> = {
   free:       { label: "Free",       color: "text-[var(--color-text-secondary)] bg-[var(--color-surface-2)]" },
-  pro:        { label: "Pro",        color: "text-indigo-400 bg-indigo-900/30" },
+  pro:        { label: "Pro",        color: "text-primary bg-indigo-900/30" },
   enterprise: { label: "Enterprise", color: "text-amber-400 bg-amber-900/30" },
 };
 
@@ -331,7 +331,7 @@ export default function CustomerFeedbackDashboard() {
                 onClick={() => setSelectedFeedback(selectedFeedback?.id === item.id ? null : item)}
                 className={cn(
                   "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
-                  selectedFeedback?.id === item.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                  selectedFeedback?.id === item.id ? "border-primary" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -383,7 +383,7 @@ export default function CustomerFeedbackDashboard() {
             <div className="flex items-end gap-4 h-40 mb-3">
               {NPS_HISTORY.map(survey => {
                 const h = Math.max(((survey.score + 100) / 200) * 100, 5);
-                const color = survey.score >= 50 ? "bg-emerald-500" : survey.score >= 30 ? "bg-indigo-500" : survey.score >= 0 ? "bg-amber-500" : "bg-rose-500";
+                const color = survey.score >= 50 ? "bg-emerald-500" : survey.score >= 30 ? "bg-primary" : survey.score >= 0 ? "bg-amber-500" : "bg-rose-500";
                 return (
                   <div key={survey.month} className="flex-1 flex flex-col items-center gap-1">
                     <div className="text-xs text-[var(--color-text-secondary)] font-medium">{survey.score}</div>
@@ -413,7 +413,7 @@ export default function CustomerFeedbackDashboard() {
                       <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">{survey.month}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className={cn("font-bold text-lg", survey.score >= 50 ? "text-emerald-400" : survey.score >= 30 ? "text-indigo-400" : "text-amber-400")}>
+                          <span className={cn("font-bold text-lg", survey.score >= 50 ? "text-emerald-400" : survey.score >= 30 ? "text-primary" : "text-amber-400")}>
                             {survey.score}
                           </span>
                           {prev && (

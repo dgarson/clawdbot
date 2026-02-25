@@ -186,7 +186,7 @@ export default function LocalizationManager() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-indigo-400">{totalCoverage}%</div>
+            <div className="text-2xl font-bold text-primary">{totalCoverage}%</div>
             <div className="text-xs text-[var(--color-text-muted)]">avg coverage</div>
           </div>
         </div>
@@ -202,7 +202,7 @@ export default function LocalizationManager() {
               <div
                 key={l.code}
                 title={`${l.name}: ${l.coverage}%`}
-                className={cn("flex items-center justify-center text-xs", l.coverage === 100 ? "bg-emerald-500" : l.coverage >= 80 ? "bg-indigo-500" : l.coverage >= 60 ? "bg-amber-500" : "bg-rose-500")}
+                className={cn("flex items-center justify-center text-xs", l.coverage === 100 ? "bg-emerald-500" : l.coverage >= 80 ? "bg-primary" : l.coverage >= 60 ? "bg-amber-500" : "bg-rose-500")}
                 style={{ width: `${100 / LOCALES.length}%` }}
               >
                 {l.flag}
@@ -237,7 +237,7 @@ export default function LocalizationManager() {
                 onClick={() => setSelectedLocale(selectedLocale?.code === locale.code ? null : locale)}
                 className={cn(
                   "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
-                  selectedLocale?.code === locale.code ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                  selectedLocale?.code === locale.code ? "border-primary" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start justify-between mb-3">
@@ -249,7 +249,7 @@ export default function LocalizationManager() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className={cn("text-xl font-bold", locale.coverage === 100 ? "text-emerald-400" : locale.coverage >= 80 ? "text-indigo-400" : locale.coverage >= 60 ? "text-amber-400" : "text-rose-400")}>
+                    <div className={cn("text-xl font-bold", locale.coverage === 100 ? "text-emerald-400" : locale.coverage >= 80 ? "text-primary" : locale.coverage >= 60 ? "text-amber-400" : "text-rose-400")}>
                       {locale.coverage}%
                     </div>
                   </div>
@@ -257,7 +257,7 @@ export default function LocalizationManager() {
 
                 <div className="bg-[var(--color-surface-2)] rounded-full h-2 mb-3">
                   <div
-                    className={cn("h-full rounded-full", locale.coverage === 100 ? "bg-emerald-500" : locale.coverage >= 80 ? "bg-indigo-500" : locale.coverage >= 60 ? "bg-amber-500" : "bg-rose-500")}
+                    className={cn("h-full rounded-full", locale.coverage === 100 ? "bg-emerald-500" : locale.coverage >= 80 ? "bg-primary" : locale.coverage >= 60 ? "bg-amber-500" : "bg-rose-500")}
                     style={{ width: `${locale.coverage}%` }}
                   />
                 </div>
@@ -328,13 +328,13 @@ export default function LocalizationManager() {
                 onClick={() => setSelectedKey(selectedKey?.id === key.id ? null : key)}
                 className={cn(
                   "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
-                  selectedKey?.id === key.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                  selectedKey?.id === key.id ? "border-primary" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start gap-3 mb-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-sm text-indigo-400">{key.key}</span>
+                      <span className="font-mono text-sm text-primary">{key.key}</span>
                       <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]">{key.namespace}</span>
                       {key.interpolations.length > 0 && (
                         <span className="text-xs text-sky-400">variables: {key.interpolations.map(v => `{{${v}}}`).join(", ")}</span>
@@ -387,10 +387,10 @@ export default function LocalizationManager() {
                                     type="text"
                                     value={editValue}
                                     onChange={e => setEditValue(e.target.value)}
-                                    className="flex-1 bg-[var(--color-surface-1)] border border-indigo-600 rounded px-2 py-1 text-sm text-[var(--color-text-primary)] font-mono focus:outline-none"
+                                    className="flex-1 bg-[var(--color-surface-1)] border border-primary rounded px-2 py-1 text-sm text-[var(--color-text-primary)] font-mono focus:outline-none"
                                     autoFocus
                                   />
-                                  <button onClick={() => setEditingLocale(null)} className="px-2 py-1 text-xs rounded bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]">Save</button>
+                                  <button onClick={() => setEditingLocale(null)} className="px-2 py-1 text-xs rounded bg-primary hover:bg-primary text-[var(--color-text-primary)]">Save</button>
                                   <button onClick={() => setEditingLocale(null)} className="px-2 py-1 text-xs rounded bg-[var(--color-surface-3)] text-[var(--color-text-primary)]">Cancel</button>
                                 </div>
                               ) : (
@@ -400,7 +400,7 @@ export default function LocalizationManager() {
                                   </span>
                                   <button
                                     onClick={() => { setEditingLocale(locale.code); setEditValue(t?.value ?? ""); }}
-                                    className="text-xs text-[var(--color-text-muted)] hover:text-indigo-400 px-2 py-0.5 rounded hover:bg-[var(--color-surface-2)] transition-colors"
+                                    className="text-xs text-[var(--color-text-muted)] hover:text-primary px-2 py-0.5 rounded hover:bg-[var(--color-surface-2)] transition-colors"
                                   >
                                     ✏️ Edit
                                   </button>
@@ -434,7 +434,7 @@ export default function LocalizationManager() {
                       <div className="text-xs text-[var(--color-text-muted)]">{locale.code}.json</div>
                     </div>
                   </div>
-                  <div className={cn("text-sm font-bold", locale.coverage === 100 ? "text-emerald-400" : locale.coverage >= 80 ? "text-indigo-400" : "text-amber-400")}>
+                  <div className={cn("text-sm font-bold", locale.coverage === 100 ? "text-emerald-400" : locale.coverage >= 80 ? "text-primary" : "text-amber-400")}>
                     {locale.coverage}%
                   </div>
                 </div>
@@ -455,7 +455,7 @@ export default function LocalizationManager() {
             <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Export All Locales</div>
             <div className="flex gap-3">
               {["i18next (JSON)", "react-intl (AST)", "XLIFF 2.0", "PO Format"].map(fmt => (
-                <button key={fmt} className="px-4 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">
+                <button key={fmt} className="px-4 py-2 text-xs bg-primary hover:bg-primary rounded-lg text-[var(--color-text-primary)] transition-colors">
                   📦 {fmt}
                 </button>
               ))}

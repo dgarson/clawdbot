@@ -53,7 +53,7 @@ const PROVIDER_COLORS: Record<ModelProvider, string> = {
   openai: "text-emerald-400",
   google: "text-blue-400",
   minimax: "text-purple-400",
-  meta: "text-indigo-400",
+  meta: "text-primary",
 };
 
 // ─── Seed Data ────────────────────────────────────────────────────────────────
@@ -183,7 +183,7 @@ function fmtCtx(tokens: number): string {
 
 function scoreColor(score: number): string {
   if (score >= 90) {return "text-emerald-400";}
-  if (score >= 80) {return "text-indigo-400";}
+  if (score >= 80) {return "text-primary";}
   if (score >= 70) {return "text-amber-400";}
   if (score === 0) {return "text-[var(--color-text-muted)]";}
   return "text-rose-400";
@@ -191,7 +191,7 @@ function scoreColor(score: number): string {
 
 function scoreBg(score: number): string {
   if (score >= 90) {return "bg-emerald-400";}
-  if (score >= 80) {return "bg-indigo-400";}
+  if (score >= 80) {return "bg-primary";}
   if (score >= 70) {return "bg-amber-400";}
   if (score === 0) {return "bg-[var(--color-surface-3)]";}
   return "bg-rose-400";
@@ -241,7 +241,7 @@ function ModelCard({ model, rank, selected, onSelect }: ModelCardProps) {
         "w-full text-left rounded-xl border p-4 transition-all",
         "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
         selected
-          ? "border-indigo-500 bg-indigo-950/40"
+          ? "border-primary bg-indigo-950/40"
           : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-border)]"
       )}
     >
@@ -279,7 +279,7 @@ function ModelCard({ model, rank, selected, onSelect }: ModelCardProps) {
       </div>
 
       {model.highlighted && (
-        <div className="mt-2 inline-block rounded text-[10px] px-1.5 py-0.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+        <div className="mt-2 inline-block rounded text-[10px] px-1.5 py-0.5 bg-primary/20 text-indigo-300 border border-primary/30">
           ⭐ Current default
         </div>
       )}
@@ -356,7 +356,7 @@ export default function ModelBenchmark() {
                   "text-xs px-2 py-1 rounded capitalize transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   providerFilter === p
-                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    ? "bg-primary text-[var(--color-text-primary)]"
                     : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -427,7 +427,7 @@ export default function ModelBenchmark() {
                 <div className="flex items-center gap-3">
                   <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">{selected.name}</h2>
                   {selected.highlighted && (
-                    <span className="rounded text-xs px-2 py-0.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    <span className="rounded text-xs px-2 py-0.5 bg-primary/20 text-indigo-300 border border-primary/30">
                       Default
                     </span>
                   )}
@@ -521,7 +521,7 @@ export default function ModelBenchmark() {
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             {model.id === selected.id && (
-                              <span className="text-indigo-400">▶</span>
+                              <span className="text-primary">▶</span>
                             )}
                             <span className={cn("font-medium", model.id === selected.id ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)]")}>
                               {model.name}
@@ -570,7 +570,7 @@ export default function ModelBenchmark() {
                     "px-3 py-1 rounded border transition-colors",
                     "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                     sortKey === key
-                      ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                      ? "border-primary bg-indigo-950/40 text-indigo-300"
                       : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >

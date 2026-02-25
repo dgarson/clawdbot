@@ -208,7 +208,7 @@ export default function InfrastructureDriftDetector() {
               <span className="text-xs text-rose-400 font-medium">🚨 {criticalCount} critical</span>
             </div>
           )}
-          <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
+          <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">
             ↻ Scan Now
           </button>
         </div>
@@ -239,7 +239,7 @@ export default function InfrastructureDriftDetector() {
             onClick={() => setTab(t.id)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              tab === t.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             <span>{t.emoji}</span>
@@ -457,7 +457,7 @@ export default function InfrastructureDriftDetector() {
 
                   {selectedResource.drifts.length > 0 && (
                     <div className="flex gap-2">
-                      <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Apply Fix (terraform apply)</button>
+                      <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">Apply Fix (terraform apply)</button>
                       <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">Acknowledge</button>
                       <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">View Plan</button>
                     </div>
@@ -511,7 +511,7 @@ export default function InfrastructureDriftDetector() {
                     <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Terraform Apply</h3>
                     <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Will reconcile 7 drifted resources across AWS + Kubernetes</p>
                   </div>
-                  <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
+                  <button className="px-4 py-2 text-sm bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">
                     Run Plan →
                   </button>
                 </div>
@@ -549,7 +549,7 @@ export default function InfrastructureDriftDetector() {
                     </div>
                     <div className={cn(
                       "w-10 h-5 rounded-full relative shrink-0 cursor-pointer transition-colors",
-                      setting.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
+                      setting.enabled ? "bg-primary" : "bg-[var(--color-surface-3)]"
                     )}>
                       <div className={cn(
                         "absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform",

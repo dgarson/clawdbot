@@ -319,7 +319,7 @@ function JsonHighlight({ text }: { text: string }): React.ReactElement {
             </span>,
           )
           parts.push(
-            <span key={ki++} className="text-indigo-400">
+            <span key={ki++} className="text-primary">
               &quot;{keyMatch[2]}&quot;
             </span>,
           )
@@ -511,7 +511,7 @@ export default function WebhookPlayground(): React.ReactElement {
   const methods: HttpMethod[] = ["POST", "PUT", "PATCH"]
 
   const inputBase =
-    "bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
+    "bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-primary transition-colors"
 
   return (
     <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-4 md:p-6">
@@ -549,8 +549,8 @@ export default function WebhookPlayground(): React.ReactElement {
                 className={cn(
                   "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
                   sending
-                    ? "bg-indigo-500/30 text-indigo-300 cursor-wait"
-                    : "bg-indigo-500 text-[var(--color-text-primary)] hover:bg-indigo-400 active:bg-indigo-600",
+                    ? "bg-primary/30 text-indigo-300 cursor-wait"
+                    : "bg-primary text-[var(--color-text-primary)] hover:bg-primary active:bg-primary",
                   "disabled:opacity-40 disabled:cursor-not-allowed",
                 )}
               >
@@ -564,7 +564,7 @@ export default function WebhookPlayground(): React.ReactElement {
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value as HttpMethod)}
-              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-2 text-sm text-indigo-400 font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-2 text-sm text-primary font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer"
             >
               {methods.map((m) => (
                 <option key={m} value={m}>
@@ -587,7 +587,7 @@ export default function WebhookPlayground(): React.ReactElement {
               onClick={() => setSignatureEnabled(!signatureEnabled)}
               className={cn(
                 "w-9 h-5 rounded-full transition-colors relative flex-shrink-0",
-                signatureEnabled ? "bg-indigo-500" : "bg-[var(--color-surface-3)]",
+                signatureEnabled ? "bg-primary" : "bg-[var(--color-surface-3)]",
               )}
             >
               <span
@@ -617,7 +617,7 @@ export default function WebhookPlayground(): React.ReactElement {
               </span>
               <button
                 onClick={handleAddHeader}
-                className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                className="text-xs text-primary hover:text-indigo-300 transition-colors"
               >
                 ➕ Add
               </button>
@@ -665,7 +665,7 @@ export default function WebhookPlayground(): React.ReactElement {
                   "absolute inset-0 w-full h-full bg-transparent text-transparent caret-white",
                   "font-mono text-sm leading-relaxed p-3 resize-none",
                   "border border-[var(--color-border)] rounded-md",
-                  "focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500",
+                  "focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-primary",
                   "z-10",
                 )}
               />
@@ -734,7 +734,7 @@ export default function WebhookPlayground(): React.ReactElement {
                   ) : (
                     Object.entries(response.headers).map(([k, v]) => (
                       <div key={k}>
-                        <span className="text-indigo-400">{k}</span>
+                        <span className="text-primary">{k}</span>
                         <span className="text-[var(--color-text-muted)]">: </span>
                         <span className="text-[var(--color-text-primary)]">{v}</span>
                       </div>
@@ -807,7 +807,7 @@ export default function WebhookPlayground(): React.ReactElement {
                 "w-full grid grid-cols-[1fr_2fr_auto_auto_auto] gap-3 px-3 py-3 text-left transition-colors",
                 "hover:bg-[var(--color-surface-2)]/60",
                 selectedDeliveryId === d.id
-                  ? "bg-indigo-500/10 border-l-2 border-l-indigo-500"
+                  ? "bg-primary/10 border-l-2 border-l-indigo-500"
                   : "border-l-2 border-l-transparent",
               )}
             >
@@ -815,7 +815,7 @@ export default function WebhookPlayground(): React.ReactElement {
                 {formatTime(d.timestamp)}
               </span>
               <span className="text-xs text-[var(--color-text-primary)] font-mono truncate">
-                <span className="text-indigo-400 font-semibold mr-1.5">
+                <span className="text-primary font-semibold mr-1.5">
                   {d.method}
                 </span>
                 {d.endpoint.replace("https://", "")}

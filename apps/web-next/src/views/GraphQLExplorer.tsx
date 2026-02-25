@@ -247,7 +247,7 @@ export default function GraphQLExplorer(): React.ReactElement {
   );
 
   const opType: OperationType = query.trim().startsWith("mutation") ? "mutation" : query.trim().startsWith("subscription") ? "subscription" : "query";
-  const opColor = opType === "mutation" ? "text-amber-400" : opType === "subscription" ? "text-emerald-400" : "text-indigo-400";
+  const opColor = opType === "mutation" ? "text-amber-400" : opType === "subscription" ? "text-emerald-400" : "text-primary";
 
   return (
     <div className="h-full flex flex-col bg-[var(--color-surface-0)] text-[var(--color-text-primary)] overflow-hidden">
@@ -272,7 +272,7 @@ export default function GraphQLExplorer(): React.ReactElement {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
-                ? "text-indigo-400 border-indigo-500"
+                ? "text-primary border-primary"
                 : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -298,7 +298,7 @@ export default function GraphQLExplorer(): React.ReactElement {
                     "px-4 py-1.5 text-xs font-medium rounded-md transition-colors",
                     isRunning
                       ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-not-allowed"
-                      : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
+                      : "bg-primary hover:bg-primary text-[var(--color-text-primary)]"
                   )}
                 >
                   {isRunning ? "Running..." : "▶ Run"}
@@ -379,7 +379,7 @@ export default function GraphQLExplorer(): React.ReactElement {
                   placeholder="Search schema..."
                   value={schemaSearch}
                   onChange={(e) => setSchemaSearch(e.target.value)}
-                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
                 />
               </div>
               <div className="flex-1 overflow-y-auto">
@@ -389,7 +389,7 @@ export default function GraphQLExplorer(): React.ReactElement {
                     onClick={() => setSelectedType(type)}
                     className={cn(
                       "w-full text-left px-4 py-3 text-sm border-b border-[var(--color-border)]/50 transition-colors",
-                      selectedType.name === type.name ? "bg-indigo-600/10 text-indigo-300" : "text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50"
+                      selectedType.name === type.name ? "bg-primary/10 text-indigo-300" : "text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50"
                     )}
                   >
                     <div className="font-medium">{type.name}</div>
@@ -459,7 +459,7 @@ export default function GraphQLExplorer(): React.ReactElement {
                     <span className="text-xs text-[var(--color-text-muted)]">{h.duration}ms</span>
                     <span className="text-xs text-[var(--color-text-muted)]">{h.responseSize}</span>
                     <span className={cn("text-xs ml-auto", h.status === "success" ? "text-emerald-400" : "text-rose-400")}>{h.status}</span>
-                    <span className="text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">Load →</span>
+                    <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">Load →</span>
                   </div>
                   <pre className="text-xs font-mono text-[var(--color-text-secondary)] truncate">{h.query}</pre>
                 </div>
@@ -478,13 +478,13 @@ export default function GraphQLExplorer(): React.ReactElement {
                   onClick={() => setSelectedSavedQuery(sq)}
                   className={cn(
                     "w-full text-left px-4 py-4 border-b border-[var(--color-border)]/50 transition-colors",
-                    selectedSavedQuery?.id === sq.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/50"
+                    selectedSavedQuery?.id === sq.id ? "bg-primary/10" : "hover:bg-[var(--color-surface-2)]/50"
                   )}
                 >
                   <div className="text-sm font-medium text-[var(--color-text-primary)]">{sq.name}</div>
                   <div className="flex items-center gap-2 mt-1">
                     <span className={cn("text-[10px] font-mono font-bold uppercase",
-                      sq.type === "mutation" ? "text-amber-400" : sq.type === "subscription" ? "text-emerald-400" : "text-indigo-400"
+                      sq.type === "mutation" ? "text-amber-400" : sq.type === "subscription" ? "text-emerald-400" : "text-primary"
                     )}>{sq.type}</span>
                     <span className="text-[10px] text-[var(--color-text-muted)]">{sq.lastRun.slice(0, 10)}</span>
                   </div>
@@ -498,7 +498,7 @@ export default function GraphQLExplorer(): React.ReactElement {
                     <h3 className="text-base font-semibold">{selectedSavedQuery.name}</h3>
                     <button
                       onClick={() => { setQuery(selectedSavedQuery.query); setVariables(selectedSavedQuery.variables); setTab("Explorer"); }}
-                      className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors"
+                      className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded-md transition-colors"
                     >
                       Open in Explorer
                     </button>

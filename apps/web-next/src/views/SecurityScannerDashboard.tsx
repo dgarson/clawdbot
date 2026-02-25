@@ -94,7 +94,7 @@ const scanTypeLabel: Record<ScanType, string> = {
 };
 
 const scanTypeBg: Record<ScanType, string> = {
-  sast:      "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
+  sast:      "bg-primary/20 text-indigo-300 border border-primary/30",
   dast:      "bg-purple-500/20 text-purple-300 border border-purple-500/30",
   sca:       "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30",
   container: "bg-teal-500/20 text-teal-300 border border-teal-500/30",
@@ -306,7 +306,7 @@ export default function SecurityScannerDashboard() {
               </span>
             ))}
           </div>
-          <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
+          <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded text-sm font-medium transition-colors">
             + New Scan
           </button>
         </div>
@@ -320,7 +320,7 @@ export default function SecurityScannerDashboard() {
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize",
-              tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              tab === t ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t}
@@ -558,7 +558,7 @@ export default function SecurityScannerDashboard() {
                 <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{selectedVuln.description}</p>
               </div>
 
-              <div className="bg-[var(--color-surface-1)] rounded-lg p-4 mb-4 border border-indigo-500/20">
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-4 mb-4 border border-primary/20">
                 <div className="text-sm font-medium mb-2 text-indigo-300">Recommendation</div>
                 <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{selectedVuln.recommendation}</p>
               </div>
@@ -592,7 +592,7 @@ export default function SecurityScannerDashboard() {
               <h2 className="text-base font-semibold">Scan Policies</h2>
               <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Rules applied across all scan types</p>
             </div>
-            <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
+            <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded text-sm font-medium transition-colors">
               + Add Rule
             </button>
           </div>

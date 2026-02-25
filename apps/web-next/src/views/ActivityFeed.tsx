@@ -224,16 +224,16 @@ const KIND_LABELS: Record<ActivityKind, string> = {
 };
 
 const KIND_COLORS: Record<ActivityKind, string> = {
-  "agent-session": "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+  "agent-session": "bg-primary/10 text-primary border-primary/20",
   "code-push":     "bg-surface-3/10 text-fg-secondary border-tok-border/20",
   "pr-merged":     "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   "pr-opened":     "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  "view-shipped":  "bg-violet-500/10 text-violet-400 border-violet-500/20",
+  "view-shipped":  "bg-primary/10 text-primary border-primary/20",
   "alert-fired":   "bg-rose-500/10 text-rose-400 border-rose-500/20",
   "alert-resolved": "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   "cron-run":      "bg-amber-500/10 text-amber-400 border-amber-500/20",
   "webhook":       "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
-  "deploy":        "bg-violet-500/10 text-violet-400 border-violet-500/20",
+  "deploy":        "bg-primary/10 text-primary border-primary/20",
   "member-joined": "bg-green-500/10 text-green-400 border-green-500/20",
   "feature-flag":  "bg-orange-500/10 text-orange-400 border-orange-500/20",
   "comment":       "bg-surface-3/10 text-fg-secondary border-tok-border/20",
@@ -291,7 +291,7 @@ function ActivityItem({ event, selected, onSelect }: ActivityItemProps) {
                   {KIND_LABELS[event.kind]}
                 </span>
                 {event.important && (
-                  <span className="text-[10px] text-indigo-400">★</span>
+                  <span className="text-[10px] text-primary">★</span>
                 )}
               </div>
               <p className="text-sm text-fg-primary truncate">{event.title}</p>
@@ -439,7 +439,7 @@ export default function ActivityFeed({ isLoading = false }: { isLoading?: boolea
       {/* Skip link */}
       <a
         href="#activity-feed-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
@@ -458,7 +458,7 @@ export default function ActivityFeed({ isLoading = false }: { isLoading?: boolea
                   "text-xs px-2 py-1 rounded border transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   importantOnly
-                    ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                    ? "border-primary bg-indigo-950/40 text-indigo-300"
                     : "border-tok-border text-fg-secondary hover:text-fg-primary"
                 )}
               >
@@ -492,7 +492,7 @@ export default function ActivityFeed({ isLoading = false }: { isLoading?: boolea
                   "text-[10px] px-2 py-0.5 rounded border transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   kindFilter === opt.value
-                    ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                    ? "border-primary bg-indigo-950/40 text-indigo-300"
                     : "border-tok-border text-fg-muted hover:text-fg-primary"
                 )}
               >
@@ -561,7 +561,7 @@ export default function ActivityFeed({ isLoading = false }: { isLoading?: boolea
                     {KIND_EMOJIS[selected.kind]} {KIND_LABELS[selected.kind]}
                   </span>
                   {selected.important && (
-                    <span className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded">
+                    <span className="text-xs bg-primary/20 text-indigo-300 border border-primary/30 px-2 py-0.5 rounded">
                       ★ Important
                     </span>
                   )}

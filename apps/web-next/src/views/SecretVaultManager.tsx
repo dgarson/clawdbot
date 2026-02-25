@@ -43,7 +43,7 @@ interface Secret {
 // ============================================================================
 
 const CATEGORY_CONFIG: Record<SecretCategory, { label: string; icon: React.ElementType; color: string }> = {
-  'api-key': { label: 'API Key', icon: Key, color: 'text-violet-400' },
+  'api-key': { label: 'API Key', icon: Key, color: 'text-primary' },
   'password': { label: 'Password', icon: Lock, color: 'text-blue-400' },
   'certificate': { label: 'Certificate', icon: Shield, color: 'text-green-400' },
   'token': { label: 'Token', icon: Tag, color: 'text-amber-400' },
@@ -316,7 +316,7 @@ function SecretDialog({ isOpen, editingSecret, onClose, onSave }: SecretDialogPr
             <button
               type="submit"
               disabled={!name.trim()}
-              className="flex-1 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              className="flex-1 px-4 py-2 rounded-lg bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             >
               {editingSecret ? 'Save Changes' : 'Add Secret'}
             </button>
@@ -420,7 +420,7 @@ export default function SecretVaultManager() {
       {/* Skip link — WCAG 2.4.1 */}
       <a
         href="#vault-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
@@ -437,14 +437,14 @@ export default function SecretVaultManager() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
-                <Lock className="w-6 h-6 text-violet-400" aria-hidden="true" />
+                <Lock className="w-6 h-6 text-primary" aria-hidden="true" />
                 Secret Vault Manager
               </h1>
               <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Manage credentials, API keys, and sensitive configuration</p>
             </div>
             <button
               onClick={() => { setEditingSecret(null); setDialogOpen(true); }}
-              className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] px-4 py-2 rounded-lg font-medium text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+              className="flex items-center gap-2 bg-primary hover:bg-primary text-[var(--color-text-primary)] px-4 py-2 rounded-lg font-medium text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
             >
               <Plus className="w-4 h-4" aria-hidden="true" />
               Add Secret
@@ -464,7 +464,7 @@ export default function SecretVaultManager() {
           {/* Stats row */}
           <div className="grid grid-cols-4 gap-4">
             {[
-              { label: 'Total Secrets', value: statusCounts.all, icon: Lock, color: 'text-violet-400' },
+              { label: 'Total Secrets', value: statusCounts.all, icon: Lock, color: 'text-primary' },
               { label: 'Active', value: statusCounts.active, icon: CheckCircle, color: 'text-green-400' },
               { label: 'Expiring Soon', value: statusCounts['expiring-soon'], icon: AlertTriangle, color: 'text-amber-400' },
               { label: 'Expired / Revoked', value: statusCounts.expired + statusCounts.revoked, icon: Shield, color: 'text-red-400' },
@@ -495,7 +495,7 @@ export default function SecretVaultManager() {
                           className={cn(
                             'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                             activeStatus === s
-                              ? 'bg-violet-600/20 text-violet-300'
+                              ? 'bg-primary/20 text-violet-300'
                               : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]'
                           )}
                         >
@@ -520,7 +520,7 @@ export default function SecretVaultManager() {
                         className={cn(
                           'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                           activeCategory === 'all'
-                            ? 'bg-violet-600/20 text-violet-300'
+                            ? 'bg-primary/20 text-violet-300'
                             : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]'
                         )}
                       >
@@ -535,7 +535,7 @@ export default function SecretVaultManager() {
                           className={cn(
                             'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                             activeCategory === key
-                              ? 'bg-violet-600/20 text-violet-300'
+                              ? 'bg-primary/20 text-violet-300'
                               : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]'
                           )}
                         >

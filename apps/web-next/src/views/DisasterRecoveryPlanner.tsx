@@ -81,7 +81,7 @@ const testBadge: Record<TestResult, string> = {
 };
 
 const roleBadge: Record<SiteRole, string> = {
-  primary:   "bg-indigo-500/20 text-indigo-400",
+  primary:   "bg-primary/20 text-primary",
   secondary: "bg-sky-500/20 text-sky-400",
   tertiary:  "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
 };
@@ -226,7 +226,7 @@ export default function DisasterRecoveryPlanner() {
             <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Disaster Recovery Planner</h1>
             <p className="text-[var(--color-text-secondary)] text-sm mt-1">Failover plans, test schedules, and recovery history</p>
           </div>
-          <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition-colors">
+          <button className="px-4 py-2 rounded-lg bg-primary hover:bg-primary text-sm font-medium transition-colors">
             + New Plan
           </button>
         </div>
@@ -240,7 +240,7 @@ export default function DisasterRecoveryPlanner() {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
                 tab === t.id
-                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  ? "border-primary text-[var(--color-text-primary)]"
                   : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -258,7 +258,7 @@ export default function DisasterRecoveryPlanner() {
                 { label: "Total Plans",     value: drPlans.length, color: "text-[var(--color-text-primary)]" },
                 { label: "Ready",           value: readyCt,        color: "text-emerald-400" },
                 { label: "Degraded/Untested", value: degradedCt + drPlans.filter(p=>p.status==="untested").length, color: "text-amber-400" },
-                { label: "Sites Online",    value: `${drSites.filter(s=>s.status==="ready").length}/${drSites.length}`, color: "text-indigo-400" },
+                { label: "Sites Online",    value: `${drSites.filter(s=>s.status==="ready").length}/${drSites.length}`, color: "text-primary" },
               ].map(kpi => (
                 <div key={kpi.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
                   <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{kpi.label}</p>
@@ -306,7 +306,7 @@ export default function DisasterRecoveryPlanner() {
                     <div className="w-40 text-xs text-[var(--color-text-primary)] truncate">{plan.name}</div>
                     <div className="flex gap-2">
                       <span className="text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded">RTO: {plan.rto}</span>
-                      <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded">RPO: {plan.rpo}</span>
+                      <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">RPO: {plan.rpo}</span>
                     </div>
                     <div className="flex-1">
                       <div className={cn("w-2.5 h-2.5 rounded-full inline-block", statusDot[plan.status])} />
@@ -330,7 +330,7 @@ export default function DisasterRecoveryPlanner() {
                   onClick={() => { setStatusFilter(f); setSelectedPlan(null); }}
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                    statusFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                    statusFilter === f ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
@@ -375,7 +375,7 @@ export default function DisasterRecoveryPlanner() {
                   <ol className="space-y-2">
                     {selectedPlan.steps.map((step, i) => (
                       <li key={i} className="flex gap-3 items-start">
-                        <span className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs flex items-center justify-center flex-shrink-0 font-bold">{i + 1}</span>
+                        <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center flex-shrink-0 font-bold">{i + 1}</span>
                         <span className="text-sm text-[var(--color-text-primary)] leading-relaxed">{step}</span>
                       </li>
                     ))}
@@ -429,7 +429,7 @@ export default function DisasterRecoveryPlanner() {
                       </div>
                       <div className="flex gap-2 flex-shrink-0">
                         <span className="text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded">RTO {plan.rto}</span>
-                        <span className="text-xs bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded">RPO {plan.rpo}</span>
+                        <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">RPO {plan.rpo}</span>
                         <span className={cn("text-xs px-2 py-0.5 rounded font-medium", statusBadge[plan.status])}>{plan.status}</span>
                       </div>
                     </div>
@@ -479,7 +479,7 @@ export default function DisasterRecoveryPlanner() {
                   </div>
                   <div className="bg-[var(--color-surface-2)]/50 rounded p-2">
                     <p className="text-xs text-[var(--color-text-muted)]">Actual RPO</p>
-                    <p className="text-sm font-medium text-violet-400">{run.rpoActual}min</p>
+                    <p className="text-sm font-medium text-primary">{run.rpoActual}min</p>
                   </div>
                 </div>
                 <p className="text-xs text-[var(--color-text-secondary)]">{run.notes}</p>

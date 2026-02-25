@@ -26,7 +26,7 @@ export default function WorkspaceSettings() {
   ];
 
   return (
-    <div className="flex h-full min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30">
+    <div className="flex h-full min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-primary/30">
       {/* Sidebar Navigation */}
       <nav className="w-64 border-r border-[var(--color-border)] bg-[var(--color-surface-0)] p-4 sticky top-0 h-screen overflow-y-auto" aria-label="Settings Navigation">
         <h2 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-4 px-2">Workspace Settings</h2>
@@ -107,7 +107,7 @@ export default function WorkspaceSettings() {
                     <span className="block text-sm font-medium text-[var(--color-text-secondary)]">Interface Density</span>
                     <div className="flex gap-2">
                       {["Compact", "Comfortable", "Spacious"].map((d) => (
-                        <button key={d} className={cn("px-4 py-2 rounded-md text-sm border border-[var(--color-border)] transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none", d === "Comfortable" ? "bg-indigo-600 border-indigo-500" : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)]")}>
+                        <button key={d} className={cn("px-4 py-2 rounded-md text-sm border border-[var(--color-border)] transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none", d === "Comfortable" ? "bg-primary border-primary" : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)]")}>
                           {d}
                         </button>
                       ))}
@@ -143,12 +143,12 @@ export default function WorkspaceSettings() {
               <Header title="Billing & Subscription" description="Manage your plan and payment details." />
               <Card>
                 <div className="space-y-6">
-                  <div className="p-4 rounded-md bg-indigo-500/10 border border-indigo-500/20 flex justify-between items-center">
+                  <div className="p-4 rounded-md bg-primary/10 border border-primary/20 flex justify-between items-center">
                     <div>
-                      <p className="text-sm font-semibold text-indigo-400 uppercase tracking-tight">Active Plan</p>
+                      <p className="text-sm font-semibold text-primary uppercase tracking-tight">Active Plan</p>
                       <p className="text-xl font-bold">Enterprise Pro</p>
                     </div>
-                    <span className="px-3 py-1 bg-indigo-500 text-xs font-bold rounded-full">ANNUAL</span>
+                    <span className="px-3 py-1 bg-primary text-xs font-bold rounded-full">ANNUAL</span>
                   </div>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center py-2 border-b border-[var(--color-border)]">
@@ -336,7 +336,7 @@ function SwitchField({ label, description, id, defaultChecked }: { label: string
         onClick={() => setChecked(!checked)}
         className={cn(
           "relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-          checked ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
+          checked ? "bg-primary" : "bg-[var(--color-surface-3)]"
         )}
       >
         <span
@@ -356,7 +356,7 @@ function SaveButton({ onSave, isSaved }: { onSave: () => void; isSaved: boolean 
     <div className="flex items-center gap-4 pt-4 border-t border-[var(--color-border)]">
       <button
         onClick={onSave}
-        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded-md text-sm font-semibold focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-colors flex items-center gap-2"
+        className="px-4 py-2 bg-primary hover:bg-primary text-[var(--color-text-primary)] rounded-md text-sm font-semibold focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-colors flex items-center gap-2"
       >
         Save Changes
       </button>

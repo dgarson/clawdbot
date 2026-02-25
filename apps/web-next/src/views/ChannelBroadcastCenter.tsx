@@ -305,7 +305,7 @@ function BroadcastComposer({
                 type="checkbox"
                 checked={selectedChannels.includes(ch.id)}
                 onChange={() => toggleChannel(ch.id)}
-                className="rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] text-violet-500 focus:ring-violet-500"
+                className="rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] text-primary focus:ring-violet-500"
               />
               {ch.name}
             </label>
@@ -320,7 +320,7 @@ function BroadcastComposer({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
-          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-2 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500"
+          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-2 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-primary"
           placeholder="Type your broadcast message..."
         />
         <div className="text-xs text-[var(--color-text-muted)] text-right">{message.length} characters</div>
@@ -333,7 +333,7 @@ function BroadcastComposer({
             type="checkbox"
             checked={scheduleMode}
             onChange={(e) => setScheduleMode(e.target.checked)}
-            className="rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] text-violet-500 focus:ring-violet-500"
+            className="rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] text-primary focus:ring-violet-500"
           />
           Schedule for later
         </label>
@@ -341,7 +341,7 @@ function BroadcastComposer({
           <input
             type="datetime-local"
             onChange={(e) => setScheduleTime(e.target.value ? new Date(e.target.value) : null)}
-            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-2 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-2 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-primary"
           />
         )}
       </div>
@@ -369,7 +369,7 @@ function BroadcastComposer({
         <button
           onClick={handleSubmit}
           disabled={!message || selectedChannels.length === 0}
-          className="flex-1 bg-violet-600 text-[var(--color-text-primary)] py-2 rounded-lg font-medium text-sm hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 bg-primary text-[var(--color-text-primary)] py-2 rounded-lg font-medium text-sm hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {scheduleMode ? 'Schedule' : 'Send Now'}
         </button>
@@ -382,7 +382,7 @@ function HistoryTable({ history }: { history: Broadcast[] }) {
   return (
     <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
       <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
-        <BarChart className="w-4 h-4 text-violet-400" />
+        <BarChart className="w-4 h-4 text-primary" />
         <span className="text-sm font-semibold text-[var(--color-text-primary)]">Broadcast History</span>
       </div>
       <div className="overflow-auto max-h-64">
@@ -564,12 +564,12 @@ export default function ChannelBroadcastCenter() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 text-violet-400" />
+            <MessageSquare className="w-6 h-6 text-primary" />
             Broadcast Center
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Unified channel management & messaging</p>
         </div>
-        <button className="flex items-center gap-2 bg-violet-600 text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-violet-500">
+        <button className="flex items-center gap-2 bg-primary text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-primary">
           <Plus className="w-4 h-4" />
           New Broadcast
         </button>

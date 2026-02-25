@@ -350,7 +350,7 @@ function ScheduleTimeline({ jobs }: { jobs: CronJob[] }) {
   return (
     <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <BarChart className="w-4 h-4 text-violet-400" />
+        <BarChart className="w-4 h-4 text-primary" />
         <span className="text-sm font-semibold text-fg-primary">24h Schedule Timeline</span>
       </div>
       <div className="relative h-32 overflow-hidden">
@@ -360,7 +360,7 @@ function ScheduleTimeline({ jobs }: { jobs: CronJob[] }) {
               <div className="absolute left-0 top-1/2 h-1 w-full bg-surface-2" />
               {/* Mock firings: for simplicity, place one bar per job */}
               <div
-                className="absolute top-1/2 h-1 bg-violet-500"
+                className="absolute top-1/2 h-1 bg-primary"
                 style={{
                   left: `${((job.nextRun.getTime() - start.getTime()) / totalMs) * 100}%`,
                   width: '2%',
@@ -447,7 +447,7 @@ function AddJobModal({ open, onClose }: { open: boolean; onClose: () => void }) 
           <input placeholder="Payload Kind" className="w-full bg-surface-2 p-2 rounded text-fg-primary" />
           <input placeholder="Session Target" className="w-full bg-surface-2 p-2 rounded text-fg-primary" />
           <div className="flex gap-2">
-            <button type="submit" className="flex-1 bg-violet-600 text-fg-primary py-2 rounded">Add</button>
+            <button type="submit" className="flex-1 bg-primary text-fg-primary py-2 rounded">Add</button>
             <button onClick={onClose} className="flex-1 bg-surface-3 text-fg-primary py-2 rounded">Cancel</button>
           </div>
         </form>
@@ -491,7 +491,7 @@ export default function CronJobManager() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
         <div>
           <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-violet-400" />
+            <Calendar className="w-6 h-6 text-primary" />
             Cron Jobs
           </h1>
           <p className="text-sm text-fg-secondary mt-0.5">Manage scheduled tasks and heartbeats</p>
@@ -500,7 +500,7 @@ export default function CronJobManager() {
           <span className="text-sm text-fg-primary flex items-center gap-2">
             Active: <span className="font-bold">{activeJobs}</span>
           </span>
-          <button onClick={() => setModalOpen(true)} className="flex items-center gap-1 bg-violet-600 px-3 py-1.5 rounded text-sm text-fg-primary">
+          <button onClick={() => setModalOpen(true)} className="flex items-center gap-1 bg-primary px-3 py-1.5 rounded text-sm text-fg-primary">
             <Plus className="w-4 h-4" /> Add Job
           </button>
           <div className="flex items-center gap-2 text-sm text-fg-secondary">

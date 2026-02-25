@@ -297,7 +297,7 @@ function DailyTrendChart({ data }: { data: DailySpend[] }) {
           key={i}
           className={cn(
             'w-4 rounded-t-sm transition-all',
-            day.date === today ? 'bg-violet-500' : 'bg-[var(--color-surface-3)]',
+            day.date === today ? 'bg-primary' : 'bg-[var(--color-surface-3)]',
           )}
           style={{ height: `${(day.spend / maxSpend) * 100}%` }}
           title={`${day.date}: ${formatCurrency(day.spend)}`}
@@ -382,7 +382,7 @@ function HeaderSection({
         <TimeRangeSelector current={range} onChange={onRangeChange} />
         <button
           onClick={onSetBudget}
-          className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium text-[var(--color-text-primary)] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary rounded-lg text-sm font-medium text-[var(--color-text-primary)] transition-colors"
         >
           <Settings className="w-4 h-4" />
           Set Budget
@@ -408,7 +408,7 @@ function BreakdownSection({
   return (
     <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex flex-col">
       <div className="flex items-center gap-2 mb-4">
-        <Icon className="w-4 h-4 text-violet-400" />
+        <Icon className="w-4 h-4 text-primary" />
         <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{title}</h3>
       </div>
       <div className="flex-1 overflow-y-auto space-y-4">
@@ -421,7 +421,7 @@ function BreakdownSection({
               </span>
               <span className="select-none"><span className={costColorClass(item.cost)}>{formatCurrency(item.cost)}</span> <span className="text-[var(--color-text-secondary)]">({formatPercentage(item.percentage)})</span></span>
             </div>
-            <SpendBar value={item.cost} max={maxCost} color="bg-violet-500" />
+            <SpendBar value={item.cost} max={maxCost} color="bg-primary" />
             <div className="text-xs text-[var(--color-text-muted)] flex justify-between">
               <span className={cn('select-none', tokenColorClass(item.tokensIn))}>In: {formatTokens(item.tokensIn)}</span>
               <span className={cn('select-none', tokenColorClass(item.tokensOut))}>Out: {formatTokens(item.tokensOut)}</span>

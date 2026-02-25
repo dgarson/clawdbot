@@ -740,19 +740,19 @@ function timeAgo(iso: string): string {
 function severityTextColor(severity: Severity): string {
   if (severity === "critical") {return "text-rose-400";}
   if (severity === "warning") {return "text-amber-400";}
-  return "text-indigo-400";
+  return "text-primary";
 }
 
 function severityBgBorder(severity: Severity): string {
   if (severity === "critical") {return "bg-rose-400/10 border-rose-400/30";}
   if (severity === "warning") {return "bg-amber-400/10 border-amber-400/30";}
-  return "bg-indigo-400/10 border-indigo-400/30";
+  return "bg-primary/10 border-primary/30";
 }
 
 function severityDotColor(severity: Severity): string {
   if (severity === "critical") {return "bg-rose-400";}
   if (severity === "warning") {return "bg-amber-400";}
-  return "bg-indigo-400";
+  return "bg-primary";
 }
 
 function envBadgeStyle(env: Environment): string {
@@ -785,7 +785,7 @@ function categoryLabel(cat: Category | "all"): string {
 function actionTextColor(action: HistoryAction): string {
   if (action === "changed") {return "text-amber-400";}
   if (action === "resolved") {return "text-emerald-400";}
-  if (action === "added") {return "text-indigo-400";}
+  if (action === "added") {return "text-primary";}
   if (action === "removed") {return "text-rose-400";}
   return "text-[var(--color-text-secondary)]";
 }
@@ -832,7 +832,7 @@ function ToggleSwitch({ enabled, onChange }: ToggleSwitchProps) {
       onClick={onChange}
       className={cn(
         "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 transition-colors duration-200",
-        enabled ? "bg-indigo-500 border-indigo-500" : "bg-[var(--color-surface-3)] border-[var(--color-surface-3)]"
+        enabled ? "bg-primary border-primary" : "bg-[var(--color-surface-3)] border-[var(--color-surface-3)]"
       )}
     >
       <span
@@ -865,7 +865,7 @@ function SummaryCard({ label, value, sub, accent, barPercent }: SummaryCardProps
       ? "text-amber-400"
       : accent === "success"
       ? "text-emerald-400"
-      : "text-indigo-400";
+      : "text-primary";
 
   const barColor =
     accent === "critical"
@@ -874,7 +874,7 @@ function SummaryCard({ label, value, sub, accent, barPercent }: SummaryCardProps
       ? "bg-amber-500"
       : accent === "success"
       ? "bg-emerald-500"
-      : "bg-indigo-500";
+      : "bg-primary";
 
   return (
     <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 flex flex-col gap-2">
@@ -1020,7 +1020,7 @@ function CategoryBarChart({ entries }: CategoryBarChartProps) {
             <div
               className={cn(
                 "h-full rounded transition-all duration-700",
-                drifted === 0 ? "bg-emerald-500/20" : "bg-indigo-500"
+                drifted === 0 ? "bg-emerald-500/20" : "bg-primary"
               )}
               style={{ width: `${Math.max(4, (drifted / maxDrifted) * 100)}%` }}
             />
@@ -1060,7 +1060,7 @@ function TrendChart({ entries }: TrendChartProps) {
               <div
                 className={cn(
                   "w-full rounded-t transition-all duration-500",
-                  isToday ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
+                  isToday ? "bg-primary" : "bg-[var(--color-surface-3)]"
                 )}
                 style={{ height: `${heightPct}%`, minHeight: "4px" }}
               />
@@ -1327,7 +1327,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search config keys, descriptions, or authors…"
-            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg pl-8 pr-4 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg pl-8 pr-4 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-indigo-500/20"
           />
           {searchQuery && (
             <button
@@ -1406,7 +1406,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
               className={cn(
                 "px-2 py-0.5 rounded text-xs border transition-all",
                 filterCategory === cat
-                  ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-300"
+                  ? "bg-primary/20 border-primary/40 text-indigo-300"
                   : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -1427,7 +1427,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
 
       {/* Bulk Actions Bar */}
       {selectedIds.length > 0 && (
-        <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div className="bg-primary/10 border border-primary/30 rounded-xl px-4 py-3 flex items-center gap-3">
           <span className="text-sm text-indigo-300 font-medium">
             {selectedIds.length} selected
           </span>
@@ -1489,7 +1489,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                 {entry.status === "drifted" && (
                   <button
                     onClick={() => toggleSelect(entry.id)}
-                    className="pl-4 pr-2 py-3.5 text-[var(--color-text-muted)] hover:text-indigo-400 transition-colors shrink-0"
+                    className="pl-4 pr-2 py-3.5 text-[var(--color-text-muted)] hover:text-primary transition-colors shrink-0"
                   >
                     <span className="text-base leading-none">
                       {isSelected ? "☑" : "☐"}
@@ -1623,7 +1623,7 @@ function DriftDetailsTab({ entries, onResolve, onIgnore }: DriftDetailsTabProps)
                       >
                         Ignore Drift
                       </button>
-                      <button className="px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-medium hover:bg-indigo-500/20 transition-colors">
+                      <button className="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30 text-primary text-xs font-medium hover:bg-primary/20 transition-colors">
                         View in History
                       </button>
                     </div>
@@ -1713,7 +1713,7 @@ function HistoryTab({ events }: HistoryTabProps) {
             value={searchActor}
             onChange={(e) => setSearchActor(e.target.value)}
             placeholder="Search by actor, config key, or comment…"
-            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg pl-8 pr-4 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg pl-8 pr-4 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-indigo-500/20"
           />
         </div>
 
@@ -1918,7 +1918,7 @@ function PoliciesTab({
           className={cn(
             "px-4 py-2 rounded-lg text-sm font-medium border transition-all",
             activeSection === "policies"
-              ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-300"
+              ? "bg-primary/20 border-primary/40 text-indigo-300"
               : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           )}
         >
@@ -1929,7 +1929,7 @@ function PoliciesTab({
           className={cn(
             "px-4 py-2 rounded-lg text-sm font-medium border transition-all",
             activeSection === "ignore-rules"
-              ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-300"
+              ? "bg-primary/20 border-primary/40 text-indigo-300"
               : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           )}
         >
@@ -1955,7 +1955,7 @@ function PoliciesTab({
               <div className="text-xs text-[var(--color-text-secondary)] mt-1">Disabled</div>
             </div>
             <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-indigo-400">{totalTriggers}</div>
+              <div className="text-3xl font-bold text-primary">{totalTriggers}</div>
               <div className="text-xs text-[var(--color-text-secondary)] mt-1">Total Triggers</div>
             </div>
           </div>
@@ -2026,7 +2026,7 @@ function PoliciesTab({
                   <div className="mt-3">
                     <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-indigo-500/60 rounded-full transition-all duration-700"
+                        className="h-full bg-primary/60 rounded-full transition-all duration-700"
                         style={{
                           width: `${Math.min(100, (policy.triggerCount / Math.max(totalTriggers, 1)) * 100 * 3)}%`,
                         }}
@@ -2084,7 +2084,7 @@ function PoliciesTab({
               <div className="text-xs text-[var(--color-text-secondary)] mt-1">Disabled</div>
             </div>
             <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-indigo-400">{totalMatches}</div>
+              <div className="text-3xl font-bold text-primary">{totalMatches}</div>
               <div className="text-xs text-[var(--color-text-secondary)] mt-1">Total Matches</div>
             </div>
           </div>
@@ -2286,7 +2286,7 @@ export default function EnvironmentDriftDetector() {
                   "px-3 py-1.5 rounded-lg border text-xs font-medium transition-all",
                   isRefreshing
                     ? "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-muted)] cursor-not-allowed"
-                    : "bg-indigo-500/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/20"
+                    : "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20"
                 )}
               >
                 {isRefreshing ? "Scanning…" : "↻ Refresh"}
@@ -2303,7 +2303,7 @@ export default function EnvironmentDriftDetector() {
                 className={cn(
                   "px-4 py-2 text-sm font-medium border-b-2 transition-all flex items-center gap-1.5 -mb-px",
                   activeTab === tab.id
-                    ? "border-indigo-500 text-[var(--color-text-primary)]"
+                    ? "border-primary text-[var(--color-text-primary)]"
                     : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
                 )}
               >

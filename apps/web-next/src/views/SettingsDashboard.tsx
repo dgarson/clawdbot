@@ -49,7 +49,7 @@ function Toggle({ value, onChange, id, label }: { value: boolean; onChange: (v: 
       onClick={() => onChange(!value)}
       className={cn(
         'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
-        value ? 'bg-violet-600' : 'bg-surface-3'
+        value ? 'bg-primary' : 'bg-surface-3'
       )}
     >
       <span className={cn(
@@ -254,7 +254,7 @@ function GeneralSettings() {
             'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
             saved
               ? 'bg-green-600/20 text-green-400 border border-green-600/30'
-              : 'bg-violet-600 hover:bg-violet-500 text-fg-primary'
+              : 'bg-primary hover:bg-primary text-fg-primary'
           )}
         >
           {saved ? <><Check className="w-4 h-4" aria-hidden="true" /> Saved</> : 'Save Changes'}
@@ -283,7 +283,7 @@ function AppearanceSettings() {
   ] as const;
 
   const ACCENTS = [
-    { id: 'violet', color: 'bg-violet-500', label: 'Violet' },
+    { id: 'violet', color: 'bg-primary', label: 'Violet' },
     { id: 'blue', color: 'bg-blue-500', label: 'Blue' },
     { id: 'green', color: 'bg-green-500', label: 'Green' },
     { id: 'orange', color: 'bg-orange-500', label: 'Orange' },
@@ -303,7 +303,7 @@ function AppearanceSettings() {
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                 theme === id
-                  ? 'bg-violet-600/20 text-violet-400 border border-violet-500/50'
+                  ? 'bg-primary/20 text-primary border border-primary/50'
                   : 'bg-surface-2 text-fg-secondary border border-tok-border hover:border-tok-border'
               )}
             >
@@ -450,7 +450,7 @@ function DataSettings() {
           type="button"
           className="flex items-center gap-3 p-4 bg-surface-2 hover:bg-surface-3 rounded-xl border border-tok-border transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
-          <Download className="w-5 h-5 text-violet-400" aria-hidden="true" />
+          <Download className="w-5 h-5 text-primary" aria-hidden="true" />
           <div className="text-left">
             <p className="text-sm font-medium text-fg-primary">Export All Data</p>
             <p className="text-xs text-fg-muted">JSON backup of all agents, sessions, config</p>
@@ -590,7 +590,7 @@ function ProvidersSettings() {
         <a
           href="#"
           onClick={(e) => { e.preventDefault(); }}
-          className="flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded"
+          className="flex items-center gap-1.5 text-xs text-primary hover:text-violet-300 transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none rounded"
         >
           Open Provider Manager
           <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
@@ -626,7 +626,7 @@ function ProvidersSettings() {
 
       {loading ? (
         <div className="flex items-center justify-center h-24">
-          <RefreshCw className="w-5 h-5 text-violet-500 animate-spin" aria-hidden="true" />
+          <RefreshCw className="w-5 h-5 text-primary animate-spin" aria-hidden="true" />
           <span className="sr-only">Loading provider profiles…</span>
         </div>
       ) : profileKeys.length === 0 ? (
@@ -758,7 +758,7 @@ export default function SettingsDashboard({ isLoading = false }: { isLoading?: b
       {/* Skip link */}
       <a
         href="#settings-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
@@ -768,7 +768,7 @@ export default function SettingsDashboard({ isLoading = false }: { isLoading?: b
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-fg-primary flex items-center gap-3">
-              <Settings className="w-6 h-6 text-violet-400" aria-hidden="true" />
+              <Settings className="w-6 h-6 text-primary" aria-hidden="true" />
               Settings
             </h1>
             <p className="text-sm text-fg-secondary mt-1">Manage your OpenClaw preferences and configuration</p>
@@ -790,13 +790,13 @@ export default function SettingsDashboard({ isLoading = false }: { isLoading?: b
                       className={cn(
                         'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 text-left focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                         isActive
-                          ? 'bg-violet-600/15 text-violet-300 border border-violet-500/30'
+                          ? 'bg-primary/15 text-violet-300 border border-primary/30'
                           : 'text-fg-secondary hover:text-fg-primary hover:bg-surface-2/50'
                       )}
                     >
-                      <Icon className={cn('w-4 h-4', isActive ? 'text-violet-400' : 'text-fg-muted')} aria-hidden="true" />
+                      <Icon className={cn('w-4 h-4', isActive ? 'text-primary' : 'text-fg-muted')} aria-hidden="true" />
                       <span>{section.label}</span>
-                      {isActive && <ChevronRight className="w-3 h-3 ml-auto text-violet-500" aria-hidden="true" />}
+                      {isActive && <ChevronRight className="w-3 h-3 ml-auto text-primary" aria-hidden="true" />}
                     </button>
                   );
                 })}

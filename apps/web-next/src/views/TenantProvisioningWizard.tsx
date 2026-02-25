@@ -129,7 +129,7 @@ const STEP_ORDER: WizardStep[] = ["plan", "identity", "resources", "integrations
 function stepIndex(s: WizardStep) { return STEP_ORDER.indexOf(s); }
 
 function planBadge(p: PlanTier) {
-  if (p === "enterprise") {return "border-indigo-500 ring-2 ring-indigo-500/30";}
+  if (p === "enterprise") {return "border-primary ring-2 ring-indigo-500/30";}
   if (p === "growth") {return "border-amber-500 ring-2 ring-amber-500/20";}
   return "border-[var(--color-border)]";
 }
@@ -142,7 +142,7 @@ function provisionStatusIcon(s: ProvisionStatus) {
 }
 function provisionStatusColor(s: ProvisionStatus) {
   if (s === "complete") {return "text-emerald-400";}
-  if (s === "provisioning") {return "text-indigo-400 animate-pulse";}
+  if (s === "provisioning") {return "text-primary animate-pulse";}
   if (s === "failed") {return "text-rose-400";}
   return "text-[var(--color-text-muted)]";
 }
@@ -213,7 +213,7 @@ export default function TenantProvisioningWizard() {
                 <div className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all flex-shrink-0",
                   i < currentIdx ? "border-emerald-500 bg-emerald-500 text-[var(--color-text-primary)]" :
-                  i === currentIdx ? "border-indigo-500 bg-indigo-500/20 text-indigo-400" :
+                  i === currentIdx ? "border-primary bg-primary/20 text-primary" :
                   "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-text-muted)]",
                 )}>
                   {i < currentIdx ? "✓" : i + 1}
@@ -249,9 +249,9 @@ export default function TenantProvisioningWizard() {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <div className="font-bold text-[var(--color-text-primary)] text-lg">{plan.name}</div>
-                    <div className="text-indigo-400 font-semibold">{plan.price}</div>
+                    <div className="text-primary font-semibold">{plan.price}</div>
                   </div>
-                  {selectedPlan === plan.id && <div className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-[var(--color-text-primary)] text-xs">✓</div>}
+                  {selectedPlan === plan.id && <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[var(--color-text-primary)] text-xs">✓</div>}
                 </div>
                 <div className="text-xs text-[var(--color-text-secondary)] mb-4">{plan.description}</div>
                 <div className="space-y-2">
@@ -286,7 +286,7 @@ export default function TenantProvisioningWizard() {
                   value={identity[field.key] as string}
                   onChange={e => setIdentity(prev => ({ ...prev, [field.key]: e.target.value }))}
                   placeholder={field.placeholder}
-                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
                 />
                 {field.key === "slug" && identity.slug && (
                   <div className="text-xs text-[var(--color-text-muted)] mt-1">Preview: https://app.example.com/{identity.slug}</div>
@@ -300,7 +300,7 @@ export default function TenantProvisioningWizard() {
               </div>
               <button
                 onClick={() => setIdentity(prev => ({ ...prev, mfaRequired: !prev.mfaRequired }))}
-                className={cn("w-10 h-6 rounded-full transition-colors relative", identity.mfaRequired ? "bg-indigo-600" : "bg-[var(--color-surface-3)]")}
+                className={cn("w-10 h-6 rounded-full transition-colors relative", identity.mfaRequired ? "bg-primary" : "bg-[var(--color-surface-3)]")}
               >
                 <div className={cn("w-4 h-4 bg-white rounded-full absolute top-1 transition-transform", identity.mfaRequired ? "translate-x-5" : "translate-x-1")} />
               </button>
@@ -376,7 +376,7 @@ export default function TenantProvisioningWizard() {
                 onClick={() => toggleIntegration(integ.key)}
                 className={cn(
                   "bg-[var(--color-surface-1)] rounded-xl p-4 border cursor-pointer transition-all",
-                  integ.enabled ? "border-indigo-500 bg-indigo-500/5" : "border-[var(--color-border)] hover:border-[var(--color-surface-3)]",
+                  integ.enabled ? "border-primary bg-primary/5" : "border-[var(--color-border)] hover:border-[var(--color-surface-3)]",
                 )}
               >
                 <div className="flex items-start justify-between">
@@ -387,7 +387,7 @@ export default function TenantProvisioningWizard() {
                       <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{integ.description}</div>
                     </div>
                   </div>
-                  <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ml-2", integ.enabled ? "border-indigo-500 bg-indigo-500" : "border-[var(--color-surface-3)]")}>
+                  <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0 ml-2", integ.enabled ? "border-primary bg-primary" : "border-[var(--color-surface-3)]")}>
                     {integ.enabled && <span className="text-[var(--color-text-primary)] text-xs">✓</span>}
                   </div>
                 </div>
@@ -462,7 +462,7 @@ export default function TenantProvisioningWizard() {
           <p className="text-xs text-[var(--color-text-muted)] mb-6">{provisionPct}% complete · {completeSteps}/{totalSteps} steps done</p>
 
           <div className="h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden mb-6">
-            <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${provisionPct}%` }} />
+            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${provisionPct}%` }} />
           </div>
 
           <div className="space-y-2 mb-8">
@@ -482,7 +482,7 @@ export default function TenantProvisioningWizard() {
               <div className="text-lg font-bold text-emerald-400">Tenant Successfully Provisioned!</div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">{identity.orgName || "Your organization"} is ready to use.</div>
               <div className="flex gap-3 justify-center mt-4">
-                <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">Open Dashboard</button>
+                <button className="px-4 py-2 text-sm bg-primary hover:bg-primary rounded-lg text-[var(--color-text-primary)] transition-colors">Open Dashboard</button>
                 <button className="px-4 py-2 text-sm bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Copy Invite Link</button>
               </div>
             </div>
@@ -503,7 +503,7 @@ export default function TenantProvisioningWizard() {
           <button
             onClick={goNext}
             disabled={!canProceed(currentStep)}
-            className={cn("px-6 py-2 text-sm rounded-lg transition-colors font-medium", canProceed(currentStep) ? "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-3)] text-[var(--color-text-muted)] cursor-not-allowed")}
+            className={cn("px-6 py-2 text-sm rounded-lg transition-colors font-medium", canProceed(currentStep) ? "bg-primary hover:bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-3)] text-[var(--color-text-muted)] cursor-not-allowed")}
           >
             {currentStep === "review" ? "🚀 Provision Tenant" : "Next →"}
           </button>

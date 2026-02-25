@@ -137,7 +137,7 @@ export default function AgentWaveScheduler() {
         <div className="flex gap-3">
           <button
             onClick={handleAutoBalance}
-            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm font-medium transition-colors"
+            className="px-4 py-2 rounded-lg bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm font-medium transition-colors"
           >
             Auto-balance
           </button>
@@ -168,7 +168,7 @@ export default function AgentWaveScheduler() {
             onClick={() => handleAssignToWave(null)}
             className={cn(
               "flex-1 space-y-3 p-1 rounded-lg transition-colors cursor-pointer",
-              selectedAgentId && waveAssignments[selectedAgentId] !== null && "bg-indigo-500/5 hover:bg-indigo-500/10"
+              selectedAgentId && waveAssignments[selectedAgentId] !== null && "bg-primary/5 hover:bg-primary/10"
             )}
           >
             {unassignedAgents.map((agent) => (
@@ -226,7 +226,7 @@ export default function AgentWaveScheduler() {
                       type="time"
                       value={wave.startTime}
                       onChange={(e) => updateWaveConfig(wave.id, { startTime: e.target.value })}
-                      className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
                     />
                   </div>
                   <div className="space-y-1">
@@ -235,7 +235,7 @@ export default function AgentWaveScheduler() {
                       type="number"
                       value={wave.staggerInterval}
                       onChange={(e) => updateWaveConfig(wave.id, { staggerInterval: parseInt(e.target.value) || 0 })}
-                      className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
                     />
                   </div>
                 </div>
@@ -246,7 +246,7 @@ export default function AgentWaveScheduler() {
                 onClick={() => handleAssignToWave(wave.id)}
                 className={cn(
                   "flex-1 min-h-[100px] space-y-3 p-1 rounded-lg transition-colors cursor-pointer mb-4",
-                  selectedAgentId && waveAssignments[selectedAgentId] !== wave.id && "bg-indigo-500/5 hover:bg-indigo-500/10 border-2 border-dashed border-indigo-500/20"
+                  selectedAgentId && waveAssignments[selectedAgentId] !== wave.id && "bg-primary/5 hover:bg-primary/10 border-2 border-dashed border-primary/20"
                 )}
               >
                 {agentsInWave.map((agent) => (
@@ -264,7 +264,7 @@ export default function AgentWaveScheduler() {
                 )}
                 {selectedAgentId && waveAssignments[selectedAgentId] !== wave.id && agentsInWave.length === 0 && (
                    <div className="h-full flex flex-col items-center justify-center py-8 text-center">
-                    <p className="text-indigo-400/60 text-xs animate-pulse">Click to assign</p>
+                    <p className="text-primary/60 text-xs animate-pulse">Click to assign</p>
                   </div>
                 )}
               </div>
@@ -304,7 +304,7 @@ export default function AgentWaveScheduler() {
       
       {/* Selection Overlay (Mobile) */}
       {selectedAgentId && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-indigo-600 text-[var(--color-text-primary)] px-6 py-3 rounded-full shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-200 z-50">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-primary text-[var(--color-text-primary)] px-6 py-3 rounded-full shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-200 z-50">
           <span className="text-sm font-medium">Assigning {SEED_AGENTS.find(a => a.id === selectedAgentId)?.name}</span>
           <div className="w-px h-4 bg-white/20" />
           <button 
@@ -341,7 +341,7 @@ function AgentCard({
       className={cn(
         "group relative rounded-xl border p-3 transition-all cursor-pointer",
         isSelected
-          ? "bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-500/20 translate-y-[-2px]"
+          ? "bg-primary border-primary shadow-lg shadow-indigo-500/20 translate-y-[-2px]"
           : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/80"
       )}
       role="button"

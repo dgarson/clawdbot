@@ -2,6 +2,8 @@ import React, { useState, useMemo, useCallback } from "react";
 import { Bug } from "lucide-react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { AlertFilterPillGroup } from "../components/alerts/AlertFilters";
+import { AlertRuleCard } from "../components/alerts/AlertRuleCard";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -477,43 +479,37 @@ function CrashListItem({
   onSelect: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-selected={isSelected}
-      aria-label={`${crash.severity} crash: ${crash.errorType} from ${crash.agent.name}`}
-      className={cn(
-        "w-full text-left px-3 py-3 border-b border-[var(--color-border)]/50 transition-colors",
-        "hover:bg-[var(--color-surface-2)]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset",
-        isSelected && "bg-[var(--color-surface-2)]/70 border-l-2 border-l-indigo-500"
-      )}
-    >
-      <div className="flex items-center justify-between gap-2 mb-1.5">
-        <SeverityBadge severity={crash.severity} />
-        <StatusIndicator status={crash.status} />
-      </div>
-      <div className="flex items-center gap-1.5 mb-1">
-        <code className="text-xs font-mono font-semibold text-[var(--color-text-primary)]">
-          {crash.errorType}
-        </code>
-      </div>
-      <div className="flex items-center gap-1.5 mb-1">
-        <span className="text-sm" aria-hidden="true">
-          {crash.agent.emoji}
-        </span>
-        <span className="text-xs text-[var(--color-text-secondary)]">{crash.agent.name}</span>
-      </div>
-      <p className="text-xs text-[var(--color-text-muted)] line-clamp-2 mb-1.5 leading-relaxed">
-        {crash.message}
-      </p>
-      <time
-        className="text-[11px] text-[var(--color-text-muted)]"
-        dateTime={crash.timestamp.toISOString()}
-        title={formatTimestamp(crash.timestamp)}
-      >
-        {relativeTime(crash.timestamp)}
-      </time>
-    </button>
+    <div role="option" aria-selected={isSelected}>
+      <AlertRuleCard
+        title={crash.errorType}
+        titleBadges={(
+          <>
+            <SeverityBadge severity={crash.severity} />
+            <StatusIndicator status={crash.status} />
+          </>
+        )}
+        description={
+          <>
+            <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)] mb-1">
+              <span aria-hidden="true">{crash.agent.emoji}</span>
+              <span>{crash.agent.name}</span>
+            </div>
+            <p className="line-clamp-2 leading-relaxed">{crash.message}</p>
+          </>
+        }
+        stats={[
+          { label: "When", value: relativeTime(crash.timestamp) },
+          { label: "Model", value: crash.agent.model },
+        ]}
+        onClick={onSelect}
+        className={cn(
+          "mx-2 my-2",
+          isSelected
+            ? "border-primary/60 ring-1 ring-indigo-500/30"
+            : "hover:bg-[var(--color-surface-2)]/50"
+        )}
+      />
+    </div>
   );
 }
 
@@ -666,7 +662,7 @@ function DetailPanel({
               <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                 Tool
               </span>
-              <code className="text-sm text-indigo-400 font-mono font-semibold">
+              <code className="text-sm text-primary font-mono font-semibold">
                 {crash.toolCall.toolName}
               </code>
             </div>
@@ -896,30 +892,18 @@ export default function CrashReporter() {
               className={cn(
                 "w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-1)] py-1.5 pl-9 pr-3 text-sm text-[var(--color-text-primary)]",
                 "placeholder:text-[var(--color-text-muted)]",
-                "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-primary"
               )}
             />
           </div>
 
-          {/* Filter Chips */}
-          <div className="flex items-center gap-1.5" role="group" aria-label="Filter crash reports">
-            {FILTER_CHIPS.map((chip) => (
-              <button
-                key={chip.key}
-                type="button"
-                onClick={() => setActiveFilter(chip.key)}
-                aria-pressed={activeFilter === chip.key}
-                className={cn(
-                  "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                  activeFilter === chip.key
-                    ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
-                    : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border border-[var(--color-border)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
-                )}
-              >
-                {chip.label}
-              </button>
-            ))}
+          <div className="min-w-[420px]">
+            <AlertFilterPillGroup
+              label="Filters"
+              value={activeFilter}
+              onChange={(next) => setActiveFilter(next as FilterChip)}
+              options={FILTER_CHIPS.map((chip) => ({ value: chip.key, label: chip.label }))}
+            />
           </div>
         </div>
       </header>
@@ -971,7 +955,7 @@ export default function CrashReporter() {
               size="sm"
             />
           ) : (
-            <div role="listbox" aria-label="Crash reports">
+            <div role="listbox" aria-label="Crash reports" className="pb-2">
               {filteredAndSorted.map((crash) => (
                 <CrashListItem
                   key={crash.id}

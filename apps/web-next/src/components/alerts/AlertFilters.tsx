@@ -42,7 +42,7 @@ export function AlertFilterPillGroup<T extends string>({
               "text-xs px-2 py-1 rounded border transition-colors inline-flex items-center gap-1",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
               value === option.value
-                ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                ? "border-primary bg-indigo-950/40 text-indigo-300"
                 : "border-tok-border text-fg-secondary hover:text-fg-primary"
             )}
           >

@@ -277,7 +277,7 @@ function statusBadge(status: OrgStatus | AccountStatus | Invoice["status"]): str
 function planBadge(plan: PlanTier): string {
   switch (plan) {
     case "enterprise":
-      return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30";
+      return "bg-primary/15 text-primary border-primary/30";
     case "professional":
       return "bg-sky-500/15 text-sky-400 border-sky-500/30";
     case "custom":
@@ -294,7 +294,7 @@ function roleBadge(role: UserRole): string {
     case "owner":
       return "bg-amber-400/15 text-amber-400 border-amber-400/30";
     case "admin":
-      return "bg-indigo-500/15 text-indigo-400 border-indigo-500/30";
+      return "bg-primary/15 text-primary border-primary/30";
     case "member":
       return "bg-[var(--color-surface-3)]/40 text-[var(--color-text-primary)] border-[var(--color-surface-3)]";
     case "viewer":
@@ -339,7 +339,7 @@ function progressPercent(used: number, limit: number): number {
 function progressColor(pct: number): string {
   if (pct >= 90) {return "bg-rose-400";}
   if (pct >= 70) {return "bg-amber-400";}
-  return "bg-indigo-500";
+  return "bg-primary";
 }
 
 // ─── Badge / Pill Component ─────────────────────────────────────────────────
@@ -543,7 +543,7 @@ function UsersTab() {
               className={cn(
                 "px-3 py-1 text-xs rounded-md border transition-colors",
                 statusFilter === f
-                  ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/40"
+                  ? "bg-primary/20 text-primary border-primary/40"
                   : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)]"
               )}
             >
@@ -587,7 +587,7 @@ function UsersTab() {
             key={user.id}
             className={cn(
               "grid grid-cols-[2rem_1.5fr_2fr_1fr_0.8fr_0.7fr_0.6fr_0.8fr] gap-3 px-4 py-3 text-sm border-t border-[var(--color-border)]/50 transition-colors",
-              selectedIds.has(user.id) ? "bg-indigo-500/5" : "hover:bg-[var(--color-surface-2)]/30"
+              selectedIds.has(user.id) ? "bg-primary/5" : "hover:bg-[var(--color-surface-2)]/30"
             )}
           >
             <span>
@@ -816,7 +816,7 @@ function MultiTenantManager() {
                 className={cn(
                   "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors border-b-2",
                   activeTab === tab.id
-                    ? "text-[var(--color-text-primary)] bg-[var(--color-surface-1)] border-indigo-500"
+                    ? "text-[var(--color-text-primary)] bg-[var(--color-surface-1)] border-primary"
                     : "text-[var(--color-text-muted)] bg-transparent border-transparent hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]/50"
                 )}
               >

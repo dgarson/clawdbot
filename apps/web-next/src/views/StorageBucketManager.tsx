@@ -130,7 +130,7 @@ function providerColor(p: Bucket["provider"]): string {
   const map: Record<Bucket["provider"], string> = {
     aws:   "bg-amber-500/20 text-amber-400 border-amber-500/30",
     gcs:   "bg-blue-500/20 text-blue-400 border-blue-500/30",
-    azure: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+    azure: "bg-primary/20 text-primary border-primary/30",
   };
   return map[p];
 }
@@ -140,7 +140,7 @@ function classColor(c: StorageClass): string {
     standard:    "text-[var(--color-text-primary)]",
     infrequent:  "text-amber-400",
     archive:     "text-[var(--color-text-secondary)]",
-    intelligent: "text-indigo-400",
+    intelligent: "text-primary",
   };
   return map[c];
 }
@@ -185,7 +185,7 @@ function BucketsTab() {
             key={bucket.id}
             className={cn(
               "rounded-xl border p-4 cursor-pointer transition-all",
-              selected?.id === bucket.id ? "border-indigo-500 bg-indigo-500/5" : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
+              selected?.id === bucket.id ? "border-primary bg-primary/5" : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
             )}
             onClick={() => setSelected(selected?.id === bucket.id ? null : bucket)}
           >
@@ -232,7 +232,7 @@ function BucketsTab() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[var(--color-text-muted)]">Lifecycle rules</span>
-                    <span className={bucket.lifecycle ? "text-indigo-400" : "text-[var(--color-text-muted)]"}>
+                    <span className={bucket.lifecycle ? "text-primary" : "text-[var(--color-text-muted)]"}>
                       {bucket.lifecycle ? "configured" : "none"}
                     </span>
                   </div>
@@ -283,7 +283,7 @@ function ObjectsTab() {
         <select
           value={bucket}
           onChange={(e) => setBucket(e.target.value)}
-          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
         >
           {buckets.map((b) => (
             <option key={b.id} value={b.id}>{b.name}</option>
@@ -293,12 +293,12 @@ function ObjectsTab() {
           value={prefix}
           onChange={(e) => setPrefix(e.target.value)}
           placeholder="Filter by prefix..."
-          className="flex-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+          className="flex-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
         />
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as "key" | "size" | "modified")}
-          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
         >
           <option value="modified">Sort: Recent</option>
           <option value="size">Sort: Size</option>
@@ -409,7 +409,7 @@ function CostTab() {
               <span className="text-xs text-[var(--color-text-primary)] w-40 truncate">{b.name}</span>
               <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                 <div
-                  className="h-2 rounded-full bg-indigo-500"
+                  className="h-2 rounded-full bg-primary"
                   style={{ width: (b.monthlyCost / sorted[0].monthlyCost * 100) + "%" }}
                 />
               </div>
@@ -467,7 +467,7 @@ export default function StorageBucketManager() {
             className={cn(
               "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
               tab === t
-                ? "border-indigo-500 text-indigo-400"
+                ? "border-primary text-primary"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >

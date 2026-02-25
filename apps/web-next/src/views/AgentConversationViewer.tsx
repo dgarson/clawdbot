@@ -110,7 +110,7 @@ const MOCK_CONVERSATIONS: Conversation[] = [
       {
         id: "msg-7",
         role: "assistant",
-        content: "For sidebar navigation items:\n\n```tsx\n// Hover\nbg-[var(--color-surface-2)]/50 text-[var(--color-text-primary)]\n\n// Active (current page)\nbg-[var(--color-surface-2)] text-[var(--color-text-primary)] border-l-2 border-indigo-500\n\n// Focus (keyboard nav)\nfocus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset\n```\n\nThe left border indicator is crucial—it provides persistent position awareness that doesn't disappear when you move the mouse.",
+        content: "For sidebar navigation items:\n\n```tsx\n// Hover\nbg-[var(--color-surface-2)]/50 text-[var(--color-text-primary)]\n\n// Active (current page)\nbg-[var(--color-surface-2)] text-[var(--color-text-primary)] border-l-2 border-primary\n\n// Focus (keyboard nav)\nfocus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset\n```\n\nThe left border indicator is crucial—it provides persistent position awareness that doesn't disappear when you move the mouse.",
         timestamp: "2026-02-22T09:06:30Z",
         tokenCount: 165,
         model: "claude-sonnet-4-6",
@@ -447,7 +447,7 @@ export default function AgentConversationViewer() {
   };
 
   return (
-    <div className="flex h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30 overflow-hidden">
+    <div className="flex h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-primary/30 overflow-hidden">
       {/* Sidebar */}
       <aside
         className="w-[320px] border-r border-[var(--color-border)] flex flex-col bg-[var(--color-surface-0)] z-10"
@@ -457,7 +457,7 @@ export default function AgentConversationViewer() {
         <div className="p-4 border-b border-[var(--color-border)] space-y-4">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-              <span className="text-indigo-400">💬</span>
+              <span className="text-primary">💬</span>
               Conversations
             </h1>
             <span className="text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-1)] px-2 py-0.5 rounded-full">
@@ -504,7 +504,7 @@ export default function AgentConversationViewer() {
                     className={cn(
                       "px-2.5 py-1 rounded-md text-[11px] font-medium uppercase tracking-wider transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       statusFilter === status
-                        ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20"
+                        ? "bg-primary text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20"
                         : "bg-[var(--color-surface-2)]/50 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                     )}
                   >
@@ -526,7 +526,7 @@ export default function AgentConversationViewer() {
                 className={cn(
                   "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   agentFilter === "all"
-                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    ? "bg-primary text-[var(--color-text-primary)]"
                     : "bg-[var(--color-surface-2)]/50 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
@@ -539,7 +539,7 @@ export default function AgentConversationViewer() {
                   className={cn(
                     "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none flex items-center gap-1.5",
                     agentFilter === agent.id
-                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "bg-[var(--color-surface-2)]/50 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                   )}
                 >
@@ -586,7 +586,7 @@ export default function AgentConversationViewer() {
                   </div>
                   <ConversationStatus status={conv.status} />
                 </div>
-                <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-2 line-clamp-2 group-hover:text-indigo-400 transition-colors">
+                <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                   {conv.title}
                 </h3>
                 <div className="flex items-center justify-between text-[10px] text-[var(--color-text-muted)] font-medium">
@@ -645,7 +645,7 @@ export default function AgentConversationViewer() {
                   </div>
                 )}
                 {selectedId === conv.id && (
-                  <div className="absolute left-0 top-4 bottom-4 w-0.5 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+                  <div className="absolute left-0 top-4 bottom-4 w-0.5 bg-primary rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
                 )}
               </button>
             ))
@@ -661,7 +661,7 @@ export default function AgentConversationViewer() {
                   setStatusFilter("all");
                   setAgentFilter("all");
                 }}
-                className="mt-2 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                className="mt-2 text-xs text-primary hover:text-indigo-300 transition-colors"
               >
                 Clear filters
               </button>
@@ -757,7 +757,7 @@ export default function AgentConversationViewer() {
                         className={cn(
                           "text-[10px] font-semibold uppercase tracking-wider",
                           msg.role === "user"
-                            ? "text-indigo-400"
+                            ? "text-primary"
                             : msg.role === "assistant"
                             ? "text-emerald-400"
                             : msg.role === "tool"
@@ -789,7 +789,7 @@ export default function AgentConversationViewer() {
                       className={cn(
                         "px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm transition-all",
                         msg.role === "user"
-                          ? "bg-indigo-600 text-[var(--color-text-primary)] rounded-tr-md"
+                          ? "bg-primary text-[var(--color-text-primary)] rounded-tr-md"
                           : msg.role === "assistant"
                           ? "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] border border-[var(--color-border)] rounded-tl-md"
                           : msg.role === "tool"
@@ -801,7 +801,7 @@ export default function AgentConversationViewer() {
                       {shouldTruncate && (
                         <button
                           onClick={() => toggleMessageExpand(msg.id)}
-                          className="mt-2 text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded"
+                          className="mt-2 text-[10px] text-primary hover:text-indigo-300 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded"
                         >
                           {isExpanded ? "Show less" : "Show more"}
                         </button>
@@ -953,7 +953,7 @@ function ConversationStatus({
 }) {
   const config = {
     active: {
-      color: "bg-indigo-400",
+      color: "bg-primary",
       shadow: "shadow-[0_0_8px_rgba(129,140,248,0.5)]",
       label: "Active",
     },

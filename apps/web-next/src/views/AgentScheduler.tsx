@@ -250,7 +250,7 @@ function CalendarStrip({ schedules }: { schedules: ScheduledTask[] }) {
               {tasks.slice(0, 3).map(t => (
                 <div
                   key={t.id}
-                  className="text-[9px] bg-indigo-950/60 border border-indigo-500/20 rounded px-1 py-0.5 text-indigo-300 truncate"
+                  className="text-[9px] bg-indigo-950/60 border border-primary/20 rounded px-1 py-0.5 text-indigo-300 truncate"
                   title={t.name}
                 >
                   {t.agentEmoji} {t.name}
@@ -459,7 +459,7 @@ export default function AgentScheduler({ isLoading = false }: { isLoading?: bool
             </div>
             <button
               className={cn(
-                "px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-xs font-medium transition-colors",
+                "px-3 py-1.5 rounded-lg bg-primary hover:bg-primary text-fg-primary text-xs font-medium transition-colors",
                 "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
               )}
             >
@@ -481,7 +481,7 @@ export default function AgentScheduler({ isLoading = false }: { isLoading?: bool
                   "text-xs px-2.5 py-1 rounded-lg border transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   statusFilter === s.value
-                    ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                    ? "border-primary bg-indigo-950/40 text-indigo-300"
                     : "border-tok-border text-fg-secondary hover:text-fg-primary"
                 )}
               >
@@ -539,7 +539,7 @@ export default function AgentScheduler({ isLoading = false }: { isLoading?: bool
                       "w-full text-left rounded-xl border p-3 transition-all",
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                       selectedId === sched.id
-                        ? "border-indigo-500 bg-indigo-950/30"
+                        ? "border-primary bg-indigo-950/30"
                         : "border-tok-border bg-surface-1 hover:border-tok-border"
                     )}
                   >
@@ -555,7 +555,7 @@ export default function AgentScheduler({ isLoading = false }: { isLoading?: bool
                     <p className="text-xs text-fg-muted mb-2 line-clamp-1">{sched.description}</p>
                     <div className="flex items-center justify-between text-[10px] text-fg-muted">
                       <span>{REPEAT_LABELS[sched.repeatMode]}</span>
-                      <span className="text-indigo-400">{futureTime(sched.nextRunAt)}</span>
+                      <span className="text-primary">{futureTime(sched.nextRunAt)}</span>
                     </div>
                   </button>
                 </div>
@@ -570,7 +570,7 @@ export default function AgentScheduler({ isLoading = false }: { isLoading?: bool
                 {/* Mobile back button */}
                 <button
                   onClick={() => setSelectedId(null)}
-                  className="md:hidden flex items-center gap-1.5 text-sm text-indigo-400 hover:text-indigo-300 mb-2"
+                  className="md:hidden flex items-center gap-1.5 text-sm text-primary hover:text-indigo-300 mb-2"
                 >
                   ← Back to schedules
                 </button>
@@ -592,7 +592,7 @@ export default function AgentScheduler({ isLoading = false }: { isLoading?: bool
                     className={cn(
                       "relative inline-flex h-6 w-11 rounded-full transition-colors",
                       "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                      selected.status === "active" ? "bg-indigo-600" : "bg-surface-3"
+                      selected.status === "active" ? "bg-primary" : "bg-surface-3"
                     )}
                   >
                     <span
@@ -642,7 +642,7 @@ export default function AgentScheduler({ isLoading = false }: { isLoading?: bool
                 <div className="flex gap-2">
                   <button
                     className={cn(
-                      "px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-sm font-medium transition-colors",
+                      "px-4 py-2 rounded-xl bg-primary hover:bg-primary text-fg-primary text-sm font-medium transition-colors",
                       "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
                     )}
                   >

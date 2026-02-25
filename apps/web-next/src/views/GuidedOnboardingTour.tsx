@@ -59,7 +59,7 @@ const AGENT_ROLES = [
 // ─── Confetti ─────────────────────────────────────────────────────────────────
 
 const CONFETTI_COLORS = [
-  'bg-violet-500',
+  'bg-primary',
   'bg-pink-500',
   'bg-yellow-400',
   'bg-emerald-400',
@@ -135,7 +135,7 @@ function Stepper({ current, completed, onNavigate }: StepperProps) {
               <div
                 className={cn(
                   'flex-1 h-0.5 mx-1 transition-colors duration-300',
-                  completed.has((idx) as StepId) ? 'bg-violet-600' : 'bg-[var(--color-surface-3)]'
+                  completed.has((idx) as StepId) ? 'bg-primary' : 'bg-[var(--color-surface-3)]'
                 )}
               />
             )}
@@ -152,9 +152,9 @@ function Stepper({ current, completed, onNavigate }: StepperProps) {
                 className={cn(
                   'w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 border-2',
                   isDone
-                    ? 'bg-violet-600 border-violet-600'
+                    ? 'bg-primary border-primary'
                     : isCurrent
-                    ? 'bg-transparent border-violet-500'
+                    ? 'bg-transparent border-primary'
                     : 'bg-[var(--color-surface-2)] border-[var(--color-border)]'
                 )}
               >
@@ -164,7 +164,7 @@ function Stepper({ current, completed, onNavigate }: StepperProps) {
                   <span
                     className={cn(
                       'text-xs font-bold',
-                      isCurrent ? 'text-violet-400' : 'text-[var(--color-text-muted)]'
+                      isCurrent ? 'text-primary' : 'text-[var(--color-text-muted)]'
                     )}
                   >
                     {step}
@@ -175,7 +175,7 @@ function Stepper({ current, completed, onNavigate }: StepperProps) {
                 className={cn(
                   'text-[10px] sm:text-xs font-medium whitespace-nowrap hidden sm:block',
                   isDone
-                    ? 'text-violet-400'
+                    ? 'text-primary'
                     : isCurrent
                     ? 'text-[var(--color-text-primary)]'
                     : 'text-[var(--color-text-muted)]'
@@ -226,7 +226,7 @@ function Step1Gateway({ onSuccess }: Step1Props) {
           type="text"
           value={url}
           onChange={(e) => { setUrl(e.target.value); setStatus('idle'); }}
-          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500 transition-colors"
+          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-primary transition-colors"
           placeholder="http://localhost:9999"
         />
       </div>
@@ -238,7 +238,7 @@ function Step1Gateway({ onSuccess }: Step1Props) {
           'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
           status === 'success'
             ? 'bg-emerald-600 text-[var(--color-text-primary)] cursor-default'
-            : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] disabled:opacity-60 disabled:cursor-not-allowed'
+            : 'bg-primary hover:bg-primary text-[var(--color-text-primary)] disabled:opacity-60 disabled:cursor-not-allowed'
         )}
       >
         {status === 'loading' ? (
@@ -307,7 +307,7 @@ function Step2Channel({ onSuccess }: Step2Props) {
             className={cn(
               'flex flex-col items-center gap-2 py-4 rounded-lg border transition-all duration-200',
               selected === ch.id
-                ? 'border-violet-500 bg-violet-950/30'
+                ? 'border-primary bg-violet-950/30'
                 : 'border-[var(--color-border)] bg-[var(--color-surface-2)]/50 hover:border-[var(--color-surface-3)]'
             )}
           >
@@ -329,7 +329,7 @@ function Step2Channel({ onSuccess }: Step2Props) {
               value={token}
               onChange={(e) => { setToken(e.target.value); setStatus('idle'); }}
               placeholder="Paste your bot token here…"
-              className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500 transition-colors"
+              className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-primary transition-colors"
             />
             <button
               onClick={verify}
@@ -338,7 +338,7 @@ function Step2Channel({ onSuccess }: Step2Props) {
                 'flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap',
                 status === 'success'
                   ? 'bg-emerald-600 text-[var(--color-text-primary)] cursor-default'
-                  : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] disabled:opacity-50 disabled:cursor-not-allowed'
+                  : 'bg-primary hover:bg-primary text-[var(--color-text-primary)] disabled:opacity-50 disabled:cursor-not-allowed'
               )}
             >
               {status === 'loading' ? (
@@ -400,7 +400,7 @@ function Step3Agent({ onSuccess }: Step3Props) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Aria, Helper, Codebot…"
-          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500 transition-colors"
+          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-primary transition-colors"
         />
       </div>
 
@@ -416,7 +416,7 @@ function Step3Agent({ onSuccess }: Step3Props) {
               className={cn(
                 'text-2xl p-2.5 rounded-lg border transition-all duration-150',
                 emoji === e
-                  ? 'border-violet-500 bg-violet-950/30'
+                  ? 'border-primary bg-violet-950/30'
                   : 'border-[var(--color-border)] bg-[var(--color-surface-2)]/60 hover:border-[var(--color-surface-3)]'
               )}
             >
@@ -437,7 +437,7 @@ function Step3Agent({ onSuccess }: Step3Props) {
               className={cn(
                 'text-sm px-4 py-2.5 rounded-lg border font-medium transition-all duration-150',
                 role === r
-                  ? 'border-violet-500 bg-violet-950/30 text-violet-300'
+                  ? 'border-primary bg-violet-950/30 text-violet-300'
                   : 'border-[var(--color-border)] bg-[var(--color-surface-2)]/60 text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]'
               )}
             >
@@ -482,7 +482,7 @@ function Step3Agent({ onSuccess }: Step3Props) {
           'flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
           status === 'success'
             ? 'bg-emerald-600 text-[var(--color-text-primary)] cursor-default'
-            : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] disabled:opacity-50 disabled:cursor-not-allowed'
+            : 'bg-primary hover:bg-primary text-[var(--color-text-primary)] disabled:opacity-50 disabled:cursor-not-allowed'
         )}
       >
         {status === 'loading' ? (
@@ -585,7 +585,7 @@ function Step4TestMessage({ agentName, agentEmoji, onSuccess }: Step4Props) {
               className={cn(
                 'max-w-[78%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed',
                 m.from === 'user'
-                  ? 'bg-violet-600 text-[var(--color-text-primary)] rounded-br-sm'
+                  ? 'bg-primary text-[var(--color-text-primary)] rounded-br-sm'
                   : 'bg-[var(--color-surface-2)] text-[var(--color-text-primary)] rounded-bl-sm'
               )}
             >
@@ -614,12 +614,12 @@ function Step4TestMessage({ agentName, agentEmoji, onSuccess }: Step4Props) {
           onKeyDown={handleKey}
           disabled={replySent || sending}
           placeholder="Message your agent…"
-          className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-violet-500 transition-colors disabled:opacity-50"
+          className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
         />
         <button
           onClick={send}
           disabled={!input.trim() || sending || replySent}
-          className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-[var(--color-text-primary)] rounded-lg text-sm font-semibold transition-all duration-150"
+          className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed text-[var(--color-text-primary)] rounded-lg text-sm font-semibold transition-all duration-150"
         >
           <Send size={15} />
           Send
@@ -674,7 +674,7 @@ function Step5Complete({ agentName, channelId }: Step5Props) {
       <div className="flex gap-3">
         <a
           href="/dashboard"
-          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-violet-600 hover:bg-violet-500 active:scale-95 text-[var(--color-text-primary)] rounded-lg text-sm font-semibold transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-primary hover:bg-primary active:scale-95 text-[var(--color-text-primary)] rounded-lg text-sm font-semibold transition-all duration-150 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
         >
           <LayoutDashboard size={16} />
           Open Dashboard
@@ -785,8 +785,8 @@ export default function GuidedOnboardingTour({ isLoading = false }: { isLoading?
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-violet-600/20 border border-violet-700 mb-4">
-            <Bot size={22} className="text-violet-400" />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/20 border border-violet-700 mb-4">
+            <Bot size={22} className="text-primary" />
           </div>
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Welcome to OpenClaw</h1>
           <p className="text-[var(--color-text-secondary)] text-sm mt-1">

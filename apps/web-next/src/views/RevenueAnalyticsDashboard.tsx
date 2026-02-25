@@ -93,7 +93,7 @@ const TOP_CUSTOMERS: TopCustomer[] = [
 const planColor: Record<PlanTier, string> = {
   free: "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10",
   starter: "text-blue-400 bg-blue-400/10",
-  pro: "text-indigo-400 bg-indigo-400/10",
+  pro: "text-primary bg-primary/10",
   enterprise: "text-amber-400 bg-amber-400/10",
 }
 
@@ -131,7 +131,7 @@ export default function RevenueAnalyticsDashboard() {
 
   // Net MRR components for waterfall-style chart
   const netMrrComponents = [
-    { label: "New", value: latestMonth.newMrr, color: "bg-indigo-500" },
+    { label: "New", value: latestMonth.newMrr, color: "bg-primary" },
     { label: "Expansion", value: latestMonth.expansionMrr, color: "bg-emerald-500" },
     { label: "Contraction", value: latestMonth.contractionMrr, color: "bg-amber-500" },
     { label: "Churn", value: latestMonth.churnMrr, color: "bg-rose-500" },
@@ -153,7 +153,7 @@ export default function RevenueAnalyticsDashboard() {
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={cn("px-3 py-1.5 text-sm rounded-md transition-colors uppercase font-mono", period === p ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]")}
+              className={cn("px-3 py-1.5 text-sm rounded-md transition-colors uppercase font-mono", period === p ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]")}
             >
               {p}
             </button>
@@ -165,7 +165,7 @@ export default function RevenueAnalyticsDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="text-xs text-[var(--color-text-secondary)] mb-1">Current MRR</div>
-          <div className="text-2xl font-bold text-indigo-400">{fmtMoney(latestMonth.mrr)}</div>
+          <div className="text-2xl font-bold text-primary">{fmtMoney(latestMonth.mrr)}</div>
           <div className="text-xs text-[var(--color-text-muted)] mt-1">
             <span className={parseFloat(mrrGrowth) > 0 ? "text-emerald-400" : "text-rose-400"}>
               {parseFloat(mrrGrowth) > 0 ? "↑" : "↓"} {Math.abs(parseFloat(mrrGrowth))}%
@@ -200,7 +200,7 @@ export default function RevenueAnalyticsDashboard() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                ? "border-primary text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -220,7 +220,7 @@ export default function RevenueAnalyticsDashboard() {
                 <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
                   <div className="w-full flex flex-col justify-end" style={{ height: "120px" }}>
                     <div
-                      className="w-full bg-indigo-500 rounded-t-sm"
+                      className="w-full bg-primary rounded-t-sm"
                       style={{ height: `${(m.mrr / maxMrr) * 120}px` }}
                     />
                   </div>
@@ -271,7 +271,7 @@ export default function RevenueAnalyticsDashboard() {
                 {[...MONTHLY_METRICS].toReversed().map(m => (
                   <tr key={m.month} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/20">
                     <td className="p-3 text-[var(--color-text-primary)]">{m.month}</td>
-                    <td className="p-3 text-right font-mono text-indigo-400">{fmtMoney(m.mrr)}</td>
+                    <td className="p-3 text-right font-mono text-primary">{fmtMoney(m.mrr)}</td>
                     <td className="p-3 text-right text-emerald-400 font-mono">+{fmtMoney(m.newMrr)}</td>
                     <td className="p-3 text-right text-blue-400 font-mono">+{fmtMoney(m.expansionMrr)}</td>
                     <td className="p-3 text-right text-rose-400 font-mono">{fmtMoney(m.churnMrr)}</td>
@@ -298,7 +298,7 @@ export default function RevenueAnalyticsDashboard() {
                   <span className="text-[var(--color-text-secondary)]">{p.customers} accounts</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-lg font-bold text-indigo-400">{fmtMoney(p.mrr)}/mo</div>
+                  <div className="text-lg font-bold text-primary">{fmtMoney(p.mrr)}/mo</div>
                   <div className="text-xs text-[var(--color-text-muted)]">{fmtMoney(p.arr)} ARR</div>
                 </div>
               </div>
@@ -324,7 +324,7 @@ export default function RevenueAnalyticsDashboard() {
               </div>
               <div className="mt-3 w-full h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-500 rounded-full"
+                  className="h-full bg-primary rounded-full"
                   style={{ width: `${(p.arr / MONTHLY_METRICS[MONTHLY_METRICS.length-1].arr) * 100}%` }}
                 />
               </div>
@@ -413,7 +413,7 @@ export default function RevenueAnalyticsDashboard() {
                   <div className="flex items-center gap-6 shrink-0 text-sm">
                     <div className="text-center">
                       <div className="text-xs text-[var(--color-text-muted)] mb-0.5">ARR</div>
-                      <div className="text-indigo-400 font-mono font-medium">{fmtMoney(c.arr)}</div>
+                      <div className="text-primary font-mono font-medium">{fmtMoney(c.arr)}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Expansion</div>
@@ -449,7 +449,7 @@ export default function RevenueAnalyticsDashboard() {
                     </div>
                   </div>
                   <div className="flex gap-2 mt-3">
-                    <button className="px-3 py-1 text-xs bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-md transition-colors">
+                    <button className="px-3 py-1 text-xs bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors">
                       View in CRM
                     </button>
                     <button className="px-3 py-1 text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] rounded-md transition-colors">

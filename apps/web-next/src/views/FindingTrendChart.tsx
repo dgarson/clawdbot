@@ -567,7 +567,7 @@ export default function FindingTrendChart() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h2 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-indigo-400" />
+            <BarChart3 className="w-5 h-5 text-primary" />
             Finding Trend Analysis
           </h2>
           <p className="text-[var(--color-text-secondary)] text-sm mt-1">
@@ -583,7 +583,7 @@ export default function FindingTrendChart() {
                 onClick={() => setViewMode(mode)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150 ${
                   viewMode === mode
-                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    ? "bg-primary text-[var(--color-text-primary)]"
                     : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
                 }`}
               >
@@ -599,7 +599,7 @@ export default function FindingTrendChart() {
                 onClick={() => setTimeRange(range)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150 ${
                   timeRange === range
-                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    ? "bg-primary text-[var(--color-text-primary)]"
                     : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
                 }`}
               >
@@ -717,11 +717,11 @@ export default function FindingTrendChart() {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5 bg-indigo-500" />
+            <div className="w-6 h-0.5 bg-primary" />
             <span>Total</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5 bg-indigo-400 opacity-80" />
+            <div className="w-6 h-0.5 bg-primary opacity-80" />
             <span>Trend Line</span>
           </div>
           <div className="flex items-center gap-2">

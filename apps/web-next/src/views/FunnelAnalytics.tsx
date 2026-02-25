@@ -32,7 +32,7 @@ const FUNNELS: FunnelDefinition[] = [
     totalEntered: 847,
     totalCompleted: 312,
     stages: [
-      { id: "s1", name: "Signup",           count: 847,  conversionRate: 100,  avgDuration: "0s",  dropoffReasons: [],                                            color: "bg-indigo-500" },
+      { id: "s1", name: "Signup",           count: 847,  conversionRate: 100,  avgDuration: "0s",  dropoffReasons: [],                                            color: "bg-primary" },
       { id: "s2", name: "Email Verified",   count: 720,  conversionRate: 85.0, avgDuration: "4m",  dropoffReasons: ["Email not received (32%)", "Bounced (68%)"],  color: "bg-blue-500" },
       { id: "s3", name: "Profile Setup",    count: 612,  conversionRate: 85.0, avgDuration: "7m",  dropoffReasons: ["Abandoned form (45%)", "Timeout (55%)"],       color: "bg-sky-500" },
       { id: "s4", name: "First Agent",      count: 480,  conversionRate: 78.4, avgDuration: "12m", dropoffReasons: ["Confused by UI (60%)", "No use case (40%)"],  color: "bg-teal-500" },
@@ -48,9 +48,9 @@ const FUNNELS: FunnelDefinition[] = [
     totalEntered: 15420,
     totalCompleted: 13891,
     stages: [
-      { id: "t1", name: "Task Created",    count: 15420, conversionRate: 100,  avgDuration: "0s",   dropoffReasons: [],                                           color: "bg-indigo-500" },
+      { id: "t1", name: "Task Created",    count: 15420, conversionRate: 100,  avgDuration: "0s",   dropoffReasons: [],                                           color: "bg-primary" },
       { id: "t2", name: "Queued",          count: 15380, conversionRate: 99.7, avgDuration: "0.2s", dropoffReasons: ["Validation failed (100%)"],                  color: "bg-blue-500" },
-      { id: "t3", name: "Executing",       count: 14980, conversionRate: 97.4, avgDuration: "0.5s", dropoffReasons: ["Queue timeout (60%)", "Rate limit (40%)"],   color: "bg-violet-500" },
+      { id: "t3", name: "Executing",       count: 14980, conversionRate: 97.4, avgDuration: "0.5s", dropoffReasons: ["Queue timeout (60%)", "Rate limit (40%)"],   color: "bg-primary" },
       { id: "t4", name: "Tool Calls",      count: 14600, conversionRate: 97.5, avgDuration: "4.2s", dropoffReasons: ["Agent errored (70%)", "Context full (30%)"], color: "bg-purple-500" },
       { id: "t5", name: "Completed",       count: 13891, conversionRate: 95.1, avgDuration: "8.7s", dropoffReasons: ["Timeout (50%)", "API error (50%)"],           color: "bg-emerald-500" },
     ],
@@ -63,7 +63,7 @@ const FUNNELS: FunnelDefinition[] = [
     totalEntered: 284,
     totalCompleted: 221,
     stages: [
-      { id: "d1", name: "PR Merged",       count: 284, conversionRate: 100,  avgDuration: "0s",   dropoffReasons: [],                                         color: "bg-indigo-500" },
+      { id: "d1", name: "PR Merged",       count: 284, conversionRate: 100,  avgDuration: "0s",   dropoffReasons: [],                                         color: "bg-primary" },
       { id: "d2", name: "CI Triggered",    count: 282, conversionRate: 99.3, avgDuration: "30s",  dropoffReasons: ["Config error (100%)"],                     color: "bg-blue-500" },
       { id: "d3", name: "Tests Passed",    count: 261, conversionRate: 92.6, avgDuration: "4m",   dropoffReasons: ["Flaky tests (40%)", "Real failures (60%)"], color: "bg-amber-500" },
       { id: "d4", name: "Build Success",   count: 248, conversionRate: 95.0, avgDuration: "2m",   dropoffReasons: ["TS errors (80%)", "Bundle too large (20%)"],color: "bg-orange-400" },
@@ -95,7 +95,7 @@ export default function FunnelAnalytics() {
             <button
               key={f.id}
               onClick={() => { setActiveFunnelId(f.id); setSelectedStageId(null); }}
-              className={cn("text-xs px-3 py-1.5 rounded border transition-colors", activeFunnelId === f.id ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]")}
+              className={cn("text-xs px-3 py-1.5 rounded border transition-colors", activeFunnelId === f.id ? "bg-primary/20 border-primary text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]")}
             >
               {f.name}
             </button>
@@ -123,7 +123,7 @@ export default function FunnelAnalytics() {
             <button
               key={m}
               onClick={() => setViewMode(m)}
-              className={cn("text-xs px-3 py-1.5 capitalize transition-colors", viewMode === m ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+              className={cn("text-xs px-3 py-1.5 capitalize transition-colors", viewMode === m ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
             >
               {m === "funnel" ? "📊 Funnel" : "📋 Table"}
             </button>

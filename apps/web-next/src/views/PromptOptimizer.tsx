@@ -195,7 +195,7 @@ export default function PromptOptimizer() {
       case 'format': return "bg-pink-500/10 text-pink-400 border-pink-500/20";
       case 'safety': return "bg-orange-500/10 text-orange-400 border-orange-500/20";
       case 'token-efficiency': return "bg-cyan-500/10 text-cyan-400 border-cyan-500/20";
-      case 'role-definition': return "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+      case 'role-definition': return "bg-primary/10 text-primary border-primary/20";
     }
   };
 
@@ -230,7 +230,7 @@ export default function PromptOptimizer() {
                   "w-full py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2",
                   isAnalyzing 
                     ? "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] cursor-not-allowed" 
-                    : "bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20"
+                    : "bg-primary hover:bg-primary text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20"
                 )}
               >
                 {isAnalyzing ? (
@@ -266,7 +266,7 @@ export default function PromptOptimizer() {
               <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-12 flex flex-col items-center justify-center text-center h-[600px] space-y-6">
                 <div className="relative">
                   <div className="w-20 h-20 border-4 border-[var(--color-border)] rounded-full"></div>
-                  <div className="w-20 h-20 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin absolute inset-0"></div>
+                  <div className="w-20 h-20 border-4 border-primary rounded-full border-t-transparent animate-spin absolute inset-0"></div>
                 </div>
                 <div className="space-y-2">
                   <p className="text-[var(--color-text-primary)] font-medium animate-pulse">Running analysis engines...</p>
@@ -350,7 +350,7 @@ export default function PromptOptimizer() {
                         className={cn(
                           "px-6 py-3 text-sm font-medium transition-colors border-b-2",
                           activeTab === i 
-                            ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border-indigo-500" 
+                            ? "bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border-primary" 
                             : "text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-primary)]"
                         )}
                       >
@@ -362,7 +362,7 @@ export default function PromptOptimizer() {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-[var(--color-text-muted)] uppercase font-medium">Estimated Tokens:</span>
-                        <span className="text-sm font-mono text-indigo-400">{result.optimizedVersions[activeTab].estimatedTokens}</span>
+                        <span className="text-sm font-mono text-primary">{result.optimizedVersions[activeTab].estimatedTokens}</span>
                         <span className={cn(
                           "text-xs font-mono px-1.5 py-0.5 rounded",
                           result.optimizedVersions[activeTab].estimatedTokens > result.tokenCount 

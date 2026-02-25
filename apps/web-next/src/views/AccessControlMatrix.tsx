@@ -197,7 +197,7 @@ export default function AccessControlMatrix() {
           <select
             value={resourceFilter}
             onChange={(e) => setResourceFilter(e.target.value)}
-            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
           >
             <option value="all">All Resources</option>
             {RESOURCES.map((r) => (
@@ -210,7 +210,7 @@ export default function AccessControlMatrix() {
           <select
             value={accessFilter}
             onChange={(e) => setAccessFilter(e.target.value as AccessFilter)}
-            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+            className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-2 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
           >
             <option value="all">All Levels</option>
             <option value="granted">Granted</option>
@@ -238,7 +238,7 @@ export default function AccessControlMatrix() {
             </button>
             <button
               onClick={handleSave}
-              className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded font-medium transition-colors"
+              className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded font-medium transition-colors"
             >
               Save Changes
             </button>
@@ -283,7 +283,7 @@ export default function AccessControlMatrix() {
                   <th
                     key={group.resource}
                     colSpan={group.cols.length}
-                    className="p-2 text-center text-indigo-400 font-semibold border-l border-[var(--color-border)] uppercase tracking-wider"
+                    className="p-2 text-center text-primary font-semibold border-l border-[var(--color-border)] uppercase tracking-wider"
                   >
                     {group.resource}
                   </th>
@@ -328,7 +328,7 @@ export default function AccessControlMatrix() {
                           )}>
                             ▶
                           </span>
-                          <span className="font-semibold text-[var(--color-text-primary)] group-hover:text-indigo-400 transition-colors">
+                          <span className="font-semibold text-[var(--color-text-primary)] group-hover:text-primary transition-colors">
                             {role.name}
                           </span>
                           <span className="text-[var(--color-text-muted)] text-[10px] ml-1">{role.memberCount}</span>
@@ -372,7 +372,7 @@ export default function AccessControlMatrix() {
                                 {perm.level === "granted" ? "✓" : perm.level === "denied" ? "✗" : "⚠"}
                               </span>
                               {isChanged && (
-                                <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                                <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-primary" />
                               )}
                             </button>
                             {/* Tooltip for conditional */}
@@ -401,7 +401,7 @@ export default function AccessControlMatrix() {
                                 <div className="text-xl font-bold text-[var(--color-text-primary)]">{role.memberCount}</div>
                                 <div className="mt-1.5 h-1.5 w-full bg-[var(--color-surface-3)] rounded-full overflow-hidden">
                                   <div
-                                    className="h-full bg-indigo-500 rounded-full transition-all"
+                                    className="h-full bg-primary rounded-full transition-all"
                                     style={{ width: `${Math.min(100, (role.memberCount / 70) * 100)}%` }}
                                   />
                                 </div>
@@ -410,7 +410,7 @@ export default function AccessControlMatrix() {
                                 <div className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] mb-1">Inherits From</div>
                                 <div className="text-xs">
                                   {role.inheritsFrom ? (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-500/15 text-indigo-400 rounded border border-indigo-500/20">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/15 text-primary rounded border border-primary/20">
                                       {role.inheritsFrom}
                                     </span>
                                   ) : (
@@ -492,9 +492,9 @@ export default function AccessControlMatrix() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-md bg-[var(--color-surface-2)] border border-indigo-500/50 flex items-center justify-center relative">
+            <div className="w-8 h-8 rounded-md bg-[var(--color-surface-2)] border border-primary/50 flex items-center justify-center relative">
               <span className="text-[var(--color-text-muted)] text-sm">·</span>
-              <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-indigo-500" />
+              <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-primary" />
             </div>
             <div>
               <div className="text-xs font-medium text-[var(--color-text-primary)]">Modified</div>

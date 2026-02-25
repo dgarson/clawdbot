@@ -209,18 +209,18 @@ function utilizationBarColor(pct: number): string {
 function severityTextColor(severity: AlertSeverity): string {
   if (severity === "critical") {return "text-rose-400"}
   if (severity === "warning")  {return "text-amber-400"}
-  return "text-indigo-400"
+  return "text-primary"
 }
 
 function severityBadgeClass(severity: AlertSeverity): string {
   if (severity === "critical") {return "bg-rose-400/10 text-rose-400 border border-rose-400/20"}
   if (severity === "warning")  {return "bg-amber-400/10 text-amber-400 border border-amber-400/20"}
-  return "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
+  return "bg-primary/10 text-primary border border-primary/20"
 }
 
 function statusBadgeClass(status: ChangeStatus): string {
   if (status === "completed") {return "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20"}
-  if (status === "approved")  {return "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"}
+  if (status === "approved")  {return "bg-primary/10 text-primary border border-primary/20"}
   if (status === "scheduled") {return "bg-amber-400/10 text-amber-400 border border-amber-400/20"}
   return "bg-[var(--color-surface-3)]/50 text-[var(--color-text-secondary)] border border-[var(--color-border)]"
 }
@@ -300,7 +300,7 @@ export default function CapacityForecastDashboard() {
               className={cn(
                 "px-4 py-2 rounded-md text-sm font-medium transition-colors",
                 activeTab === tab.id
-                  ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
@@ -439,7 +439,7 @@ export default function CapacityForecastDashboard() {
                   className={cn(
                     "px-5 py-2 rounded-md text-sm font-medium transition-colors border",
                     forecastResource === res
-                      ? "bg-indigo-500 border-indigo-500 text-[var(--color-text-primary)]"
+                      ? "bg-primary border-primary text-[var(--color-text-primary)]"
                       : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
@@ -474,7 +474,7 @@ export default function CapacityForecastDashboard() {
                       <span className="text-xs text-[var(--color-text-muted)] w-16 text-right shrink-0">Current</span>
                       <div className="flex-1 h-5 bg-[var(--color-surface-2)] rounded overflow-hidden">
                         <div
-                          className="h-full bg-indigo-500/60 rounded flex items-center px-2"
+                          className="h-full bg-primary/60 rounded flex items-center px-2"
                           style={{ width: `${month.current}%` }}
                         >
                           <span className="text-xs text-[var(--color-text-primary)]/90 whitespace-nowrap">{month.current}%</span>
@@ -514,7 +514,7 @@ export default function CapacityForecastDashboard() {
               {/* Legend */}
               <div className="flex gap-5 mt-6 pt-5 border-t border-[var(--color-border)]">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-sm bg-indigo-500/60" />
+                  <div className="w-3 h-3 rounded-sm bg-primary/60" />
                   <span className="text-xs text-[var(--color-text-secondary)]">Current baseline</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -571,9 +571,9 @@ export default function CapacityForecastDashboard() {
                 <div className="text-3xl font-bold text-amber-400">{pendingApprovals}</div>
                 <div className="text-xs text-[var(--color-text-muted)] mt-1">awaiting review</div>
               </div>
-              <div className="bg-[var(--color-surface-1)] rounded-lg p-4 border border-indigo-500/20">
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-4 border border-primary/20">
                 <div className="text-[var(--color-text-secondary)] text-xs mb-1">📅 Scheduled Changes</div>
-                <div className="text-3xl font-bold text-indigo-400">{scheduledChanges}</div>
+                <div className="text-3xl font-bold text-primary">{scheduledChanges}</div>
                 <div className="text-xs text-[var(--color-text-muted)] mt-1">in queue</div>
               </div>
               <div className="bg-[var(--color-surface-1)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -680,12 +680,12 @@ export default function CapacityForecastDashboard() {
                 <div className="text-3xl font-bold text-amber-400">{warningCount}</div>
                 <div className="text-xs text-[var(--color-text-muted)] mt-1">unacknowledged</div>
               </div>
-              <div className="bg-[var(--color-surface-1)] rounded-lg p-4 border border-indigo-500/25">
+              <div className="bg-[var(--color-surface-1)] rounded-lg p-4 border border-primary/25">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm">🔵</span>
                   <span className="text-[var(--color-text-secondary)] text-xs font-medium">Info</span>
                 </div>
-                <div className="text-3xl font-bold text-indigo-400">{infoCount}</div>
+                <div className="text-3xl font-bold text-primary">{infoCount}</div>
                 <div className="text-xs text-[var(--color-text-muted)] mt-1">unacknowledged</div>
               </div>
             </div>
@@ -703,7 +703,7 @@ export default function CapacityForecastDashboard() {
                 className={cn(
                   "px-3 py-1.5 rounded-md text-xs font-medium border transition-colors",
                   showAcknowledged
-                    ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-400"
+                    ? "bg-primary/20 border-primary/40 text-primary"
                     : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >

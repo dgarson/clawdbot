@@ -101,14 +101,14 @@ const statusColor: Record<SecretStatus, string> = {
   active: "text-emerald-400",
   expiring: "text-amber-400",
   expired: "text-rose-400",
-  rotated: "text-indigo-400",
+  rotated: "text-primary",
 };
 
 const statusBg: Record<SecretStatus, string> = {
   active: "bg-emerald-400/10 border-emerald-400/30",
   expiring: "bg-amber-400/10 border-amber-400/30",
   expired: "bg-rose-400/10 border-rose-400/30",
-  rotated: "bg-indigo-400/10 border-indigo-400/30",
+  rotated: "bg-primary/10 border-primary/30",
 };
 
 const engineIcon: Record<EngineType, string> = {
@@ -195,7 +195,7 @@ export default function VaultSecretsManager() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-[var(--color-text-primary)]"
+                ? "border-primary text-[var(--color-text-primary)]"
                 : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -342,7 +342,7 @@ export default function VaultSecretsManager() {
                       {[42, 67, 54, 89, 73, 91, 85].map((v, i) => (
                         <div key={i} className="flex-1 flex flex-col items-center gap-1">
                           <div
-                            className="w-full bg-indigo-500/60 rounded-sm"
+                            className="w-full bg-primary/60 rounded-sm"
                             style={{ height: `${(v / 91) * 100}%` }}
                           />
                         </div>
@@ -381,7 +381,7 @@ export default function VaultSecretsManager() {
           <div className="p-6 space-y-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Secret Engines</h2>
-              <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
+              <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">
                 + Enable Engine
               </button>
             </div>
@@ -441,7 +441,7 @@ export default function VaultSecretsManager() {
             <div className="w-80 border-r border-[var(--color-border)] overflow-y-auto">
               <div className="p-3 border-b border-[var(--color-border)]">
                 <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Policies (18)</div>
-                <button className="w-full px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
+                <button className="w-full px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">
                   + New Policy
                 </button>
               </div>
@@ -509,7 +509,7 @@ export default function VaultSecretsManager() {
                     <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-4 font-mono text-xs text-[var(--color-text-secondary)] overflow-x-auto">
                       {selectedPolicy.rules.map((rule, i) => (
                         <div key={i} className="mb-3 last:mb-0">
-                          <span className="text-indigo-400">path</span>
+                          <span className="text-primary">path</span>
                           <span className="text-[var(--color-text-primary)]"> "{rule.path}" </span>
                           <span className="text-[var(--color-text-muted)]">{"{"}</span>
                           <div className="ml-4">
@@ -549,7 +549,7 @@ export default function VaultSecretsManager() {
                     onClick={() => setAuditFilter(f)}
                     className={cn(
                       "px-3 py-1 text-xs rounded transition-colors capitalize",
-                      auditFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                      auditFilter === f ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
                     {f}
@@ -577,7 +577,7 @@ export default function VaultSecretsManager() {
                     event.type === "read" ? "text-sky-400" :
                     event.type === "write" ? "text-amber-400" :
                     event.type === "delete" ? "text-rose-400" :
-                    event.type === "rotate" ? "text-indigo-400" :
+                    event.type === "rotate" ? "text-primary" :
                     event.type === "login" ? "text-emerald-400" :
                     "text-[var(--color-text-secondary)]"
                   )}>{event.type}</span>

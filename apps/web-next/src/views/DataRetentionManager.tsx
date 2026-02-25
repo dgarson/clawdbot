@@ -64,13 +64,13 @@ const dataClassColor: Record<DataClass, string> = {
   financial:      "bg-amber-500/20 text-amber-400",
   logs:           "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
   metrics:        "bg-sky-500/20 text-sky-400",
-  backups:        "bg-indigo-500/20 text-indigo-400",
-  "user-content": "bg-violet-500/20 text-violet-400",
+  backups:        "bg-primary/20 text-primary",
+  "user-content": "bg-primary/20 text-primary",
 };
 
 const actionBadge: Record<PolicyAction, string> = {
   delete:     "bg-rose-500/20 text-rose-400",
-  archive:    "bg-indigo-500/20 text-indigo-400",
+  archive:    "bg-primary/20 text-primary",
   anonymize:  "bg-amber-500/20 text-amber-400",
   compress:   "bg-sky-500/20 text-sky-400",
 };
@@ -250,7 +250,7 @@ export default function DataRetentionManager() {
             <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Data Retention Manager</h1>
             <p className="text-[var(--color-text-secondary)] text-sm mt-1">Lifecycle policies, expiry tracking, and compliance records</p>
           </div>
-          <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition-colors">
+          <button className="px-4 py-2 rounded-lg bg-primary hover:bg-primary text-sm font-medium transition-colors">
             + New Policy
           </button>
         </div>
@@ -264,7 +264,7 @@ export default function DataRetentionManager() {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
                 tab === t.id
-                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  ? "border-primary text-[var(--color-text-primary)]"
                   : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -357,7 +357,7 @@ export default function DataRetentionManager() {
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => setClassFilter("all")}
-                className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", classFilter === "all" ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+                className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", classFilter === "all" ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
               >
                 All
               </button>
@@ -365,7 +365,7 @@ export default function DataRetentionManager() {
                 <button
                   key={c}
                   onClick={() => setClassFilter(c)}
-                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", classFilter === c ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", classFilter === c ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
                 >
                   {c}
                 </button>

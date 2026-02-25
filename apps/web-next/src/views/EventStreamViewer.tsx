@@ -53,7 +53,7 @@ const EVENTS: StreamEvent[] = [
 
 const BROKER_COLORS: Record<string, string> = {
   kafka:    "bg-orange-400/20 text-orange-300 border-orange-500/30",
-  rabbitmq: "bg-indigo-400/20 text-indigo-300 border-indigo-500/30",
+  rabbitmq: "bg-primary/20 text-indigo-300 border-primary/30",
   sqs:      "bg-amber-400/20 text-amber-300 border-amber-500/30",
   pubsub:   "bg-emerald-400/20 text-emerald-300 border-emerald-500/30",
   nats:     "bg-cyan-400/20 text-cyan-300 border-cyan-500/30",
@@ -63,7 +63,7 @@ const STATUS_STYLES: Record<string, string> = {
   delivered: "bg-emerald-400/15 text-emerald-400 border-emerald-500/30",
   pending:   "bg-amber-400/15 text-amber-400 border-amber-500/30",
   failed:    "bg-rose-400/15 text-rose-400 border-rose-500/30",
-  replayed:  "bg-indigo-400/15 text-indigo-300 border-indigo-500/30",
+  replayed:  "bg-primary/15 text-indigo-300 border-primary/30",
 };
 
 const STREAM_STATUS: Record<string, string> = {
@@ -139,7 +139,7 @@ export default function EventStreamViewer() {
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total EPS",       value: totalEPS.toLocaleString(), sub: "events/sec",    color: "text-indigo-400" },
+          { label: "Total EPS",       value: totalEPS.toLocaleString(), sub: "events/sec",    color: "text-primary" },
           { label: "Active Streams",  value: `${healthyStreams}/${STREAMS.length}`, sub: "healthy", color: "text-emerald-400" },
           { label: "Total Lag",       value: totalLag.toLocaleString(), sub: "messages behind", color: totalLag > 500 ? "text-amber-400" : "text-emerald-400" },
           { label: "Failed (DLQ)",    value: dlqEvents.length.toString(), sub: "dead letters",  color: dlqEvents.length > 0 ? "text-rose-400" : "text-[var(--color-text-secondary)]" },
@@ -161,7 +161,7 @@ export default function EventStreamViewer() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
@@ -182,7 +182,7 @@ export default function EventStreamViewer() {
                 placeholder="Search events..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary"
               />
               <select
                 value={filterStatus}
@@ -281,7 +281,7 @@ export default function EventStreamViewer() {
                 <div className="text-xs text-[var(--color-text-muted)]">{new Date(selectedEvent.timestamp).toLocaleString()}</div>
 
                 <div className="flex gap-2">
-                  <button className="flex-1 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs py-1.5 rounded hover:bg-indigo-500/30 transition-colors">
+                  <button className="flex-1 bg-primary/20 border border-primary/30 text-indigo-300 text-xs py-1.5 rounded hover:bg-primary/30 transition-colors">
                     🔁 Replay
                   </button>
                   <button className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs py-1.5 rounded hover:bg-[var(--color-surface-3)] transition-colors">
@@ -308,7 +308,7 @@ export default function EventStreamViewer() {
                 onClick={() => setSelectedStream(s)}
                 className={cn(
                   "w-full bg-[var(--color-surface-1)] border rounded-lg p-4 text-left hover:border-[var(--color-surface-3)] transition-colors",
-                  selectedStream?.id === s.id ? "border-indigo-500/50" : "border-[var(--color-border)]"
+                  selectedStream?.id === s.id ? "border-primary/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -339,7 +339,7 @@ export default function EventStreamViewer() {
 
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { label: "Events/sec",  value: selectedStream.eventsPerSec.toLocaleString(), color: "text-indigo-400" },
+                    { label: "Events/sec",  value: selectedStream.eventsPerSec.toLocaleString(), color: "text-primary" },
                     { label: "Consumers",   value: selectedStream.consumers,                      color: "text-[var(--color-text-primary)]" },
                     { label: "Message Lag", value: selectedStream.lag.toLocaleString(),           color: selectedStream.lag > 0 ? "text-amber-400" : "text-emerald-400" },
                   ].map(m => (
@@ -368,7 +368,7 @@ export default function EventStreamViewer() {
                       const h = Math.max(10, Math.round(base * (0.6 + Math.random() * 0.8)));
                       const pct = Math.min(100, (h / (base * 1.5)) * 100);
                       return (
-                        <div key={i} className="flex-1 bg-indigo-500/70 rounded-t transition-all" style={{ height: `${pct}%` }} />
+                        <div key={i} className="flex-1 bg-primary/70 rounded-t transition-all" style={{ height: `${pct}%` }} />
                       );
                     })}
                   </div>
@@ -433,7 +433,7 @@ export default function EventStreamViewer() {
             <div className="space-y-2">
               {[
                 { label: "< 2ms",    count: EVENTS.filter(e => e.latency < 2).length,   color: "bg-emerald-500" },
-                { label: "2–5ms",    count: EVENTS.filter(e => e.latency >= 2 && e.latency < 5).length, color: "bg-indigo-500" },
+                { label: "2–5ms",    count: EVENTS.filter(e => e.latency >= 2 && e.latency < 5).length, color: "bg-primary" },
                 { label: "5–10ms",   count: EVENTS.filter(e => e.latency >= 5 && e.latency < 10).length, color: "bg-amber-500" },
                 { label: "> 10ms",   count: EVENTS.filter(e => e.latency >= 10).length, color: "bg-rose-500" },
               ].map(bucket => (
@@ -485,7 +485,7 @@ export default function EventStreamViewer() {
                       <span className="text-xs text-[var(--color-text-secondary)]">{ev.source}</span>
                     </div>
                     <div className="flex gap-2">
-                      <button className="text-xs px-3 py-1 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded hover:bg-indigo-500/30">Replay</button>
+                      <button className="text-xs px-3 py-1 bg-primary/20 border border-primary/30 text-indigo-300 rounded hover:bg-primary/30">Replay</button>
                       <button className="text-xs px-3 py-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-3)]">Discard</button>
                     </div>
                   </div>

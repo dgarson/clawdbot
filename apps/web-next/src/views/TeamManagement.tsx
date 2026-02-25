@@ -61,7 +61,7 @@ const ROLES: RoleInfo[] = [
     id: 'admin',
     name: 'Admin',
     description: 'Can manage team members and most settings',
-    badgeColor: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
+    badgeColor: 'bg-primary/20 text-primary border-primary/30',
     permissions: ['Manage agents', 'View sessions', 'Edit cron jobs', 'Manage billing', 'Invite members', 'Manage team members'],
     canChangeRole: true,
   },
@@ -85,7 +85,7 @@ const ROLES: RoleInfo[] = [
 
 const SEED_MEMBERS: Member[] = [
   { id: '1', name: 'Luis Rodriguez', email: 'luis@horizon.ai', role: 'owner', status: 'active', avatarColor: 'bg-amber-500', invitedAt: '2024-01-15' },
-  { id: '2', name: 'Sarah Chen', email: 'sarah@horizon.ai', role: 'admin', status: 'active', avatarColor: 'bg-violet-500', invitedAt: '2024-02-20' },
+  { id: '2', name: 'Sarah Chen', email: 'sarah@horizon.ai', role: 'admin', status: 'active', avatarColor: 'bg-primary', invitedAt: '2024-02-20' },
   { id: '3', name: 'Marcus Johnson', email: 'marcus@horizon.ai', role: 'member', status: 'active', avatarColor: 'bg-blue-500', invitedAt: '2024-03-10' },
   { id: '4', name: 'Emily Davis', email: 'emily@horizon.ai', role: 'member', status: 'invited', avatarColor: 'bg-emerald-500', invitedAt: '2024-06-01' },
   { id: '5', name: 'James Wilson', email: 'james@horizon.ai', role: 'viewer', status: 'active', avatarColor: 'bg-cyan-500', invitedAt: '2024-04-05' },
@@ -364,7 +364,7 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary bg-primary rounded-lg hover:bg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
             >
               Send Invite
             </button>
@@ -536,7 +536,7 @@ function RoleDropdown({ currentRole, onChange, disabled = false }: RoleDropdownP
                   className={cn(
                     'w-full px-3 py-2 text-xs text-left flex items-center gap-2 transition-colors',
                     currentRole === role.id
-                      ? 'bg-indigo-600/20 text-indigo-400'
+                      ? 'bg-primary/20 text-primary'
                       : 'text-fg-secondary hover:bg-surface-3'
                   )}
                   role="option"
@@ -613,7 +613,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
         <button
           type="button"
           onClick={() => setIsInviteModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-fg-primary bg-primary rounded-lg hover:bg-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
           Invite Member
@@ -807,7 +807,7 @@ function RolesTab() {
                 {role.id === 'owner' ? (
                   <Crown className="w-5 h-5 text-amber-400" aria-hidden="true" />
                 ) : role.id === 'admin' ? (
-                  <ShieldCheck className="w-5 h-5 text-violet-400" aria-hidden="true" />
+                  <ShieldCheck className="w-5 h-5 text-primary" aria-hidden="true" />
                 ) : role.id === 'member' ? (
                   <User className="w-5 h-5 text-blue-400" aria-hidden="true" />
                 ) : (
@@ -857,7 +857,7 @@ function RolesTab() {
             <p className="text-xs text-fg-muted mb-4 max-w-[200px]">
               Create custom roles with specific permissions for your team
             </p>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-300 bg-indigo-500/20 rounded-full">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-300 bg-primary/20 rounded-full">
               <Crown className="w-3 h-3" aria-hidden="true" />
               Pro Feature
             </span>
@@ -1092,7 +1092,7 @@ export default function TeamManagement({ isLoading = false }: { isLoading?: bool
       {/* Skip link */}
       <a
         href="#team-management-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
@@ -1130,7 +1130,7 @@ export default function TeamManagement({ isLoading = false }: { isLoading?: bool
                   className={cn(
                     'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                     isActive
-                      ? 'border-violet-500 text-violet-400'
+                      ? 'border-primary text-primary'
                       : 'border-transparent text-fg-secondary hover:text-fg-primary hover:border-tok-border'
                   )}
                 >

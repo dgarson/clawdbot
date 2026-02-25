@@ -428,7 +428,7 @@ export function AlertRuleConfigDialog({
               <button
                 type="button"
                 onClick={() => addChannel(channelInput)}
-                className="rounded-lg px-3 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-fg-primary transition-colors"
+                className="rounded-lg px-3 py-2 text-xs bg-primary hover:bg-primary text-fg-primary transition-colors"
               >
                 Add target
               </button>
@@ -495,7 +495,7 @@ export function AlertRuleConfigDialog({
                 <button
                   type="button"
                   onClick={() => onOpenDiagnostics?.(draft.diagnosticsView)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-500/40 bg-indigo-500/10 px-2.5 py-2 text-indigo-300 hover:bg-indigo-500/20 transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-2 text-indigo-300 hover:bg-primary/20 transition-colors"
                 >
                   <ExternalLink className="size-3.5" />
                   Open diagnostics view
@@ -532,7 +532,7 @@ export function AlertRuleConfigDialog({
               className={cn(
                 "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
                 canSave
-                  ? "bg-indigo-600 hover:bg-indigo-500 text-fg-primary"
+                  ? "bg-primary hover:bg-primary text-fg-primary"
                   : "bg-surface-2 text-fg-muted cursor-not-allowed"
               )}
             >

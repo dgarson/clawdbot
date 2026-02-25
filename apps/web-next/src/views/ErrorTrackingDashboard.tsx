@@ -182,7 +182,7 @@ function IssuesTab() {
               onClick={() => setFilter(f)}
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors",
-                filter === f ? "bg-indigo-600 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
+                filter === f ? "bg-primary text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
               )}
             >
               {f}
@@ -196,7 +196,7 @@ function IssuesTab() {
               onClick={() => setStatusFilter(s)}
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors",
-                statusFilter === s ? "bg-indigo-600 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
+                statusFilter === s ? "bg-primary text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
               )}
             >
               {s}
@@ -218,7 +218,7 @@ function IssuesTab() {
             key={err.id}
             className={cn(
               "rounded-xl border p-4 cursor-pointer transition-all",
-              selected?.id === err.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
+              selected?.id === err.id ? "border-primary bg-primary/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
             )}
             onClick={() => setSelected(selected?.id === err.id ? null : err)}
           >
@@ -317,7 +317,7 @@ function TrendsTab() {
         <div className="space-y-3">
           {releases.map((r) => (
             <div key={r.version} className="flex items-center gap-4 text-sm">
-              <span className="font-mono text-indigo-400 w-20">{r.version}</span>
+              <span className="font-mono text-primary w-20">{r.version}</span>
               <span className="text-fg-muted text-xs">{r.deployedAt}</span>
               <div className="flex items-center gap-2 ml-auto">
                 <span className="text-xs text-emerald-400">+{r.resolvedErrors} resolved</span>
@@ -407,7 +407,7 @@ export default function ErrorTrackingDashboard() {
             className={cn(
               "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
               tab === t
-                ? "border-indigo-500 text-indigo-400"
+                ? "border-primary text-primary"
                 : "border-transparent text-fg-secondary hover:text-fg-primary"
             )}
           >

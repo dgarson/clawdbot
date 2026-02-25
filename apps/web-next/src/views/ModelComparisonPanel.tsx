@@ -211,7 +211,7 @@ function ModelHeader({ model, onRemove }: { model: ModelName; onRemove?: () => v
   return (
     <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <Sparkles className="w-5 h-5 text-violet-400" />
+        <Sparkles className="w-5 h-5 text-primary" />
         <span className="text-lg font-semibold text-[var(--color-text-primary)]">{model}</span>
       </div>
       {onRemove && (
@@ -364,7 +364,7 @@ export default function ModelComparisonPanel() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
-            <BarChartIcon className="w-6 h-6 text-violet-400" />
+            <BarChartIcon className="w-6 h-6 text-primary" />
             Model Comparison
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Side-by-side AI model performance evaluation</p>
@@ -386,7 +386,7 @@ export default function ModelComparisonPanel() {
             <div className="relative">
               <button
                 onClick={() => setShowAddDropdown(!showAddDropdown)}
-                className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium text-[var(--color-text-primary)] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary rounded-lg text-sm font-medium text-[var(--color-text-primary)] transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Add Model
@@ -490,7 +490,7 @@ export default function ModelComparisonPanel() {
       {/* Task Performance Breakdown */}
       <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
         <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-          <Radar className="w-5 h-5 text-violet-400" />
+          <Radar className="w-5 h-5 text-primary" />
           Task Performance Breakdown
         </h2>
         <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${selectedModels.length}, minmax(0, 1fr))` }}>
@@ -531,7 +531,7 @@ export default function ModelComparisonPanel() {
       {/* Usage Share */}
       <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-6">
         <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-          <PieChartIcon className="w-5 h-5 text-violet-400" />
+          <PieChartIcon className="w-5 h-5 text-primary" />
           Usage Share This Month (% of total tokens)
         </h2>
         <div className="flex justify-center">

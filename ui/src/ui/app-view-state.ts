@@ -8,7 +8,7 @@ import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
 import type { UiSettings } from "./storage.ts";
 import type { ThemeTransitionContext } from "./theme-transition.ts";
-import type { ThemeMode } from "./theme.ts";
+import type { ThemeMode, ThemeColor } from "./theme.ts";
 import type {
   AgentsListResult,
   AgentsFilesListResult,
@@ -43,6 +43,7 @@ export type AppViewState = {
   basePath: string;
   connected: boolean;
   theme: ThemeMode;
+  themeColor: ThemeColor;
   themeResolved: "light" | "dark";
   hello: GatewayHelloOk | null;
   lastError: string | null;
@@ -229,6 +230,7 @@ export type AppViewState = {
   connect: () => void;
   setTab: (tab: Tab) => void;
   setTheme: (theme: ThemeMode, context?: ThemeTransitionContext) => void;
+  setThemeColor: (themeColor: ThemeColor, context?: ThemeTransitionContext) => void;
   applySettings: (next: UiSettings) => void;
   loadOverview: () => Promise<void>;
   loadAssistantIdentity: () => Promise<void>;

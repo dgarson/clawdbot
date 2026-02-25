@@ -229,7 +229,7 @@ export default function ConversationHistory() {
   }, [selectedSession, toast]);
 
   return (
-    <div className="flex h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30 overflow-hidden">
+    <div className="flex h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-primary/30 overflow-hidden">
       {/* Sidebar */}
       <aside 
         className="w-[280px] border-r border-[var(--color-border)] flex flex-col bg-[var(--color-surface-0)] z-10"
@@ -258,7 +258,7 @@ export default function ConversationHistory() {
                 className={cn(
                   "px-2 py-0.5 rounded text-[11px] font-medium uppercase tracking-wider transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   filter === f 
-                    ? "bg-indigo-600 text-[var(--color-text-primary)]" 
+                    ? "bg-primary text-[var(--color-text-primary)]" 
                     : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -302,7 +302,7 @@ export default function ConversationHistory() {
                 </div>
                 <StatusDot status={session.status} />
               </div>
-              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-2 line-clamp-1 group-hover:text-indigo-400 transition-colors">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-2 line-clamp-1 group-hover:text-primary transition-colors">
                 {session.title}
               </h3>
               <div className="flex items-center justify-between text-[10px] text-[var(--color-text-muted)] font-medium">
@@ -313,7 +313,7 @@ export default function ConversationHistory() {
                 <span>{new Date(session.startedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
               </div>
               {selectedId === session.id && (
-                <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-indigo-500 rounded-full" />
+                <div className="absolute left-0 top-1/4 bottom-1/4 w-0.5 bg-primary rounded-full" />
               )}
             </button>
           ))}
@@ -388,7 +388,7 @@ export default function ConversationHistory() {
                     className={cn(
                       "px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm transition-all",
                       msg.role === "user" 
-                        ? "bg-indigo-600 text-[var(--color-text-primary)] rounded-tr-none" 
+                        ? "bg-primary text-[var(--color-text-primary)] rounded-tr-none" 
                         : msg.role === "assistant" 
                         ? "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] border border-[var(--color-border)] rounded-tl-none"
                         : msg.role === "tool"
@@ -436,7 +436,7 @@ export default function ConversationHistory() {
 
 function StatusDot({ status }: { status: SessionStatus }) {
   const colors = {
-    active: "bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.5)]",
+    active: "bg-primary shadow-[0_0_8px_rgba(129,140,248,0.5)]",
     completed: "bg-emerald-400",
     error: "bg-rose-400",
     timeout: "bg-amber-400"

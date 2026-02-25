@@ -133,7 +133,7 @@ const statusColor: Record<CertStatus, string> = {
 };
 
 const typeColor: Record<CertType, string> = {
-  tls:          "text-indigo-400",
+  tls:          "text-primary",
   wildcard:     "text-purple-400",
   code_signing: "text-amber-400",
   client:       "text-blue-400",
@@ -142,7 +142,7 @@ const typeColor: Record<CertType, string> = {
 
 const actionColor: Record<CertAuditEntry["action"], string> = {
   issued:   "text-emerald-400",
-  renewed:  "text-indigo-400",
+  renewed:  "text-primary",
   revoked:  "text-rose-400",
   imported: "text-amber-400",
   exported: "text-[var(--color-text-secondary)]",
@@ -178,7 +178,7 @@ export default function CertificateManager(): React.ReactElement {
           {expiredCount > 0 && (
             <span className="text-xs px-2 py-1 rounded bg-rose-400/10 border border-rose-400/30 text-rose-400">✗ {expiredCount} expired</span>
           )}
-          <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
+          <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded-md transition-colors">
             + Import Cert
           </button>
         </div>
@@ -193,7 +193,7 @@ export default function CertificateManager(): React.ReactElement {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
-                ? "text-indigo-400 border-indigo-500"
+                ? "text-primary border-primary"
                 : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -212,7 +212,7 @@ export default function CertificateManager(): React.ReactElement {
                   {(["all", "valid", "expiring", "expired", "revoked"] as const).map((s) => (
                     <button key={s} onClick={() => setStatusFilter(s)}
                       className={cn("px-2 py-0.5 text-[10px] rounded border transition-colors",
-                        statusFilter === s ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
+                        statusFilter === s ? "bg-primary/20 border-primary text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                       )}>{s}</button>
                   ))}
                 </div>
@@ -230,7 +230,7 @@ export default function CertificateManager(): React.ReactElement {
                   return (
                     <button key={cert.id} onClick={() => setSelectedCert(cert)}
                       className={cn("w-full text-left px-4 py-3 transition-colors",
-                        selectedCert.id === cert.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/40"
+                        selectedCert.id === cert.id ? "bg-primary/10" : "hover:bg-[var(--color-surface-2)]/40"
                       )}>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-[var(--color-text-primary)] truncate max-w-[130px]">{cert.commonName}</span>
@@ -327,7 +327,7 @@ export default function CertificateManager(): React.ReactElement {
           <div className="h-full overflow-y-auto p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium">Certificate Signing Requests</h3>
-              <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">Generate CSR</button>
+              <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded-md transition-colors">Generate CSR</button>
             </div>
             {CSR_REQUESTS.map((csr) => (
               <div key={csr.id} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
@@ -385,7 +385,7 @@ export default function CertificateManager(): React.ReactElement {
                   <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{s.desc}</div>
                 </div>
                 <div className="text-sm font-mono text-[var(--color-text-primary)] text-right">{s.value}</div>
-                <button className="text-xs text-indigo-400 hover:text-indigo-300 shrink-0">Edit</button>
+                <button className="text-xs text-primary hover:text-indigo-300 shrink-0">Edit</button>
               </div>
             ))}
           </div>

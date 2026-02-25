@@ -55,7 +55,7 @@ interface MatrixCell {
 
 const TIER_CONFIG: Record<AgentTier, { label: string; color: string; bg: string }> = {
   core: { label: 'Core', color: 'text-blue-400', bg: 'bg-blue-400/10' },
-  enterprise: { label: 'Enterprise', color: 'text-violet-400', bg: 'bg-violet-400/10' },
+  enterprise: { label: 'Enterprise', color: 'text-primary', bg: 'bg-primary/10' },
   research: { label: 'Research', color: 'text-amber-400', bg: 'bg-amber-400/10' },
 };
 
@@ -236,7 +236,7 @@ export default function AgentCapabilityMatrix() {
       {/* Skip link — WCAG 2.4.1 */}
       <a
         href="#capability-matrix-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
@@ -248,7 +248,7 @@ export default function AgentCapabilityMatrix() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
-                <Bot className="w-6 h-6 text-violet-400" aria-hidden="true" />
+                <Bot className="w-6 h-6 text-primary" aria-hidden="true" />
                 Agent Capability Matrix
               </h1>
               <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">

@@ -209,7 +209,7 @@ const INITIAL_SCHEDULES: Schedule[] = [
 const StatusBadge = ({ status }: { status: BackupStatus }) => {
   const styles = {
     completed: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
-    running: "bg-indigo-400/10 text-indigo-400 border-indigo-400/20",
+    running: "bg-primary/10 text-primary border-primary/20",
     failed: "bg-rose-400/10 text-rose-400 border-rose-400/20",
     pending: "bg-amber-400/10 text-amber-400 border-amber-400/20"
   };
@@ -242,7 +242,7 @@ const TypeBadge = ({ type }: { type: BackupType }) => {
   );
 };
 
-const ProgressBar = ({ value, color = "bg-indigo-500" }: { value: number; color?: string }) => (
+const ProgressBar = ({ value, color = "bg-primary" }: { value: number; color?: string }) => (
   <div className="w-full h-1.5 bg-surface-2 rounded-full overflow-hidden">
     <div 
       className={cn("h-full transition-all duration-500", color)} 
@@ -349,7 +349,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
             <button className="px-4 py-2 bg-surface-1 border border-tok-border rounded-lg hover:bg-surface-2 transition-colors text-sm font-medium">
               Export Logs
             </button>
-            <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors text-sm font-medium shadow-lg shadow-indigo-500/20">
+            <button className="px-4 py-2 bg-primary hover:bg-primary rounded-lg transition-colors text-sm font-medium shadow-lg shadow-indigo-500/20">
               ⚡ Trigger Backup
             </button>
           </div>
@@ -364,12 +364,12 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                 onClick={() => setActiveTab(tab)}
                 className={cn(
                   "pb-4 text-sm font-medium transition-all relative capitalize",
-                  activeTab === tab ? "text-indigo-400" : "text-fg-muted hover:text-fg-primary"
+                  activeTab === tab ? "text-primary" : "text-fg-muted hover:text-fg-primary"
                 )}
               >
                 {tab}
                 {activeTab === tab && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 shadow-[0_-4px_10px_rgba(99,102,241,0.4)]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_-4px_10px_rgba(99,102,241,0.4)]" />
                 )}
               </button>
             ))}
@@ -410,7 +410,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                 </div>
                 <div className="bg-surface-1 p-4 rounded-xl border border-tok-border">
                   <div className="text-fg-muted text-xs font-bold uppercase tracking-widest mb-1">Active Jobs</div>
-                  <div className="text-2xl font-mono text-indigo-400">1 Running</div>
+                  <div className="text-2xl font-mono text-primary">1 Running</div>
                   <div className="mt-2 text-xs text-fg-secondary">Next scheduled: 14 mins</div>
                 </div>
               </div>
@@ -487,7 +487,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                                     {job.path}
                                   </div>
                                   <div className="flex gap-2 mt-4">
-                                    <button className="text-[10px] px-3 py-1 bg-indigo-600 rounded hover:bg-indigo-500 transition-colors">Verify Path</button>
+                                    <button className="text-[10px] px-3 py-1 bg-primary rounded hover:bg-primary transition-colors">Verify Path</button>
                                     <button className="text-[10px] px-3 py-1 bg-surface-2 rounded hover:bg-surface-3 border border-tok-border transition-colors">Download Zip</button>
                                   </div>
                                 </div>
@@ -537,7 +537,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                             <button 
                               className={cn(
                                 "w-10 h-5 rounded-full relative transition-colors",
-                                sch.enabled ? "bg-indigo-600" : "bg-surface-3"
+                                sch.enabled ? "bg-primary" : "bg-surface-3"
                               )}
                             >
                               <div className={cn(
@@ -565,12 +565,12 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                     <input 
                       type="text" 
                       placeholder="e.g. Daily Logs Archive" 
-                      className="w-full bg-surface-0 border border-tok-border rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                      className="w-full bg-surface-0 border border-tok-border rounded-lg p-3 text-sm focus:outline-none focus:border-primary transition-colors"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-fg-muted uppercase">Frequency</label>
-                    <select className="w-full bg-surface-0 border border-tok-border rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors appearance-none">
+                    <select className="w-full bg-surface-0 border border-tok-border rounded-lg p-3 text-sm focus:outline-none focus:border-primary transition-colors appearance-none">
                       <option>Hourly</option>
                       <option>Daily</option>
                       <option>Weekly</option>
@@ -592,7 +592,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                       </select>
                     </div>
                   </div>
-                  <button className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold text-sm transition-all mt-4">
+                  <button className="w-full py-3 bg-primary hover:bg-primary rounded-lg font-bold text-sm transition-all mt-4">
                     Create Schedule
                   </button>
                 </form>
@@ -610,14 +610,14 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                   <div key={step} className="relative z-10 flex flex-col items-center gap-2">
                     <div className={cn(
                       "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all",
-                      restoreStep === step ? "bg-indigo-600 border-indigo-500 text-fg-primary shadow-lg shadow-indigo-500/20" : 
+                      restoreStep === step ? "bg-primary border-primary text-fg-primary shadow-lg shadow-indigo-500/20" : 
                       restoreStep > step ? "bg-emerald-500 border-emerald-400 text-fg-primary" : "bg-surface-1 border-tok-border text-fg-muted"
                     )}>
                       {restoreStep > step ? "✓" : step}
                     </div>
                     <span className={cn(
                       "text-xs font-bold uppercase tracking-wider",
-                      restoreStep === step ? "text-indigo-400" : "text-fg-muted"
+                      restoreStep === step ? "text-primary" : "text-fg-muted"
                     )}>
                       {step === 1 ? "Select Source" : step === 2 ? "Configuration" : "Execution"}
                     </span>
@@ -639,15 +639,15 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                         onClick={() => setSelectedBackup(job.id)}
                         className={cn(
                           "p-4 border-b border-tok-border last:border-0 cursor-pointer transition-colors flex items-center justify-between",
-                          selectedBackup === job.id ? "bg-indigo-500/10 border-indigo-500/30" : "hover:bg-surface-2"
+                          selectedBackup === job.id ? "bg-primary/10 border-primary/30" : "hover:bg-surface-2"
                         )}
                       >
                         <div className="flex items-center gap-4">
                           <div className={cn(
                             "w-4 h-4 rounded-full border flex items-center justify-center",
-                            selectedBackup === job.id ? "border-indigo-500" : "border-tok-border"
+                            selectedBackup === job.id ? "border-primary" : "border-tok-border"
                           )}>
-                            {selectedBackup === job.id && <div className="w-2 h-2 rounded-full bg-indigo-500" />}
+                            {selectedBackup === job.id && <div className="w-2 h-2 rounded-full bg-primary" />}
                           </div>
                           <div>
                             <div className="text-sm font-medium">{job.name}</div>
@@ -662,7 +662,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                     <button 
                       disabled={!selectedBackup}
                       onClick={() => setRestoreStep(2)}
-                      className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-bold text-sm transition-all"
+                      className="px-6 py-2 bg-primary hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-bold text-sm transition-all"
                     >
                       Next: Target Configuration
                     </button>
@@ -684,7 +684,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                               onClick={() => setRestoreTarget(env)}
                               className={cn(
                                 "flex items-center justify-between p-4 rounded-lg border transition-all text-left",
-                                restoreTarget === env ? "bg-indigo-500/10 border-indigo-500 text-fg-primary" : "bg-surface-0 border-tok-border text-fg-secondary hover:border-tok-border"
+                                restoreTarget === env ? "bg-primary/10 border-primary text-fg-primary" : "bg-surface-0 border-tok-border text-fg-secondary hover:border-tok-border"
                               )}
                             >
                               <span className="capitalize font-medium">{env} environment</span>
@@ -731,7 +731,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
               {restoreStep === 3 && (
                 <div className="space-y-6 animate-in zoom-in-95 duration-300">
                   <div className="bg-surface-1 border border-tok-border rounded-xl p-8 text-center space-y-6">
-                    <div className="w-20 h-20 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto border-4 border-primary/20 border-t-indigo-500 animate-spin" />
                     <div>
                       <h3 className="text-2xl font-bold">Restore in Progress</h3>
                       <p className="text-fg-secondary text-sm mt-2">Currently writing blocks to <span className="text-fg-primary font-mono">{restoreTarget}-cluster-01</span></p>
@@ -748,9 +748,9 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                   <div className="bg-black rounded-xl border border-tok-border p-6 font-mono text-xs overflow-hidden h-64 relative">
                     <div className="absolute top-4 left-6 text-fg-muted font-bold uppercase tracking-widest text-[10px]">Restore Logic Stream</div>
                     <div className="mt-8 space-y-2 text-fg-secondary">
-                      <div>[04:12:01] <span className="text-indigo-400">INFO</span> Initializing connection to S3 backend...</div>
-                      <div>[04:12:03] <span className="text-indigo-400">INFO</span> Validating manifest checksums...</div>
-                      <div>[04:12:05] <span className="text-indigo-400">INFO</span> Verified 3 of 3 files. Integrity match 100%.</div>
+                      <div>[04:12:01] <span className="text-primary">INFO</span> Initializing connection to S3 backend...</div>
+                      <div>[04:12:03] <span className="text-primary">INFO</span> Validating manifest checksums...</div>
+                      <div>[04:12:05] <span className="text-primary">INFO</span> Verified 3 of 3 files. Integrity match 100%.</div>
                       <div>[04:12:08] <span className="text-amber-400">WARN</span> Suspending health check probes on target...</div>
                       <div>[04:12:12] <span className="text-emerald-400">EXEC</span> BEGIN DATA STREAM: db_dump.sql (442MB)</div>
                       <div className="animate-pulse text-fg-primary">_ [04:12:15] WRITING BLOCK 122/840...</div>
@@ -780,7 +780,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold">Storage Backends</h3>
-                  <button className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">+ Add Provider</button>
+                  <button className="text-[10px] font-bold text-primary uppercase tracking-widest">+ Add Provider</button>
                 </div>
                 <div className="space-y-4">
                   {[
@@ -800,7 +800,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                             store.status === "connected" ? "text-emerald-400" : "text-rose-400"
                           )}>{store.status}</span>
                         </div>
-                        <ProgressBar value={store.usage} color={store.status === "connected" ? "bg-indigo-500" : "bg-surface-3"} />
+                        <ProgressBar value={store.usage} color={store.status === "connected" ? "bg-primary" : "bg-surface-3"} />
                         <div className="text-[10px] text-fg-muted mt-1 uppercase tracking-tighter">Capacity: {store.usage}% full</div>
                       </div>
                     </div>
@@ -818,7 +818,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                         <div className="text-sm font-bold">AES-256 Encryption</div>
                         <div className="text-xs text-fg-muted">Enable at-rest encryption for all backup targets.</div>
                       </div>
-                      <div className="w-10 h-5 bg-indigo-600 rounded-full relative">
+                      <div className="w-10 h-5 bg-primary rounded-full relative">
                         <div className="absolute top-1 left-6 w-3 h-3 bg-white rounded-full" />
                       </div>
                     </div>
@@ -839,7 +839,7 @@ export default function BackupManager({ isLoading = false }: { isLoading?: boole
                   <div className="space-y-3">
                     {["Failure Alerts", "Weekly Reports", "Storage Quota Warnings"].map((rule, i) => (
                       <div key={i} className="flex items-center gap-3">
-                        <div className="w-4 h-4 rounded border border-indigo-500 bg-indigo-500 flex items-center justify-center text-[10px] text-fg-primary">✓</div>
+                        <div className="w-4 h-4 rounded border border-primary bg-primary flex items-center justify-center text-[10px] text-fg-primary">✓</div>
                         <span className="text-sm text-fg-primary">{rule}</span>
                       </div>
                     ))}

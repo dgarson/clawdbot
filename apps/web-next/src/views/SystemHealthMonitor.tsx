@@ -367,7 +367,7 @@ function HeatmapPanel({ services }: { services: Service[] }) {
   return (
     <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
-        <Calendar className="w-4 h-4 text-violet-400" />
+        <Calendar className="w-4 h-4 text-primary" />
         <span className="text-sm font-semibold text-[var(--color-text-primary)]">30-Day Uptime History</span>
       </div>
       <div className="space-y-3">
@@ -415,7 +415,7 @@ export default function SystemHealthMonitor() {
             <Clock className="w-4 h-4" />
             Last checked: {formatTimestamp(lastChecked)}
           </span>
-          <button className="px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm font-medium text-[var(--color-text-primary)] transition-colors flex items-center gap-2">
+          <button className="px-4 py-2 bg-primary hover:bg-primary rounded-lg text-sm font-medium text-[var(--color-text-primary)] transition-colors flex items-center gap-2">
             <RefreshCcw className="w-4 h-4" />
             Run Diagnostics
           </button>

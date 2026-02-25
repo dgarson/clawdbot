@@ -145,10 +145,10 @@ const PIPELINES: Pipeline[] = [
 
 const STAGE_COLORS: Record<PipelineStage["kind"], string> = {
   extract: "bg-sky-500",
-  transform: "bg-violet-500",
+  transform: "bg-primary",
   load: "bg-emerald-500",
   validate: "bg-amber-500",
-  notify: "bg-indigo-500",
+  notify: "bg-primary",
 };
 
 const STAGE_STATUS_STYLES: Record<StageStatus, string> = {
@@ -161,7 +161,7 @@ const STAGE_STATUS_STYLES: Record<StageStatus, string> = {
 
 const PIPELINE_STATUS_BADGE: Record<PipelineStatus, string> = {
   idle: "bg-surface-3 text-fg-primary",
-  running: "bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/30",
+  running: "bg-primary/20 text-primary ring-1 ring-indigo-500/30",
   success: "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20",
   failed: "bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20",
   scheduled: "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20",
@@ -169,7 +169,7 @@ const PIPELINE_STATUS_BADGE: Record<PipelineStatus, string> = {
 
 const RUN_STATUS_COLORS: Record<PipelineRun["status"], string> = {
   idle: "text-fg-secondary",
-  running: "text-indigo-400",
+  running: "text-primary",
   success: "text-emerald-400",
   failed: "text-rose-400",
   scheduled: "text-amber-400",
@@ -253,7 +253,7 @@ export default function DataPipelineViewer() {
               className={cn(
                 "px-2.5 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                 statusFilter === s
-                  ? "bg-indigo-600 text-fg-primary"
+                  ? "bg-primary text-fg-primary"
                   : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
               )}
             >
@@ -278,7 +278,7 @@ export default function DataPipelineViewer() {
                 onClick={() => setSelectedId(pipeline.id)}
                 className={cn(
                   "w-full text-left px-4 py-3 hover:bg-surface-2/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                  pipeline.id === selectedId && "bg-surface-2 border-l-2 border-indigo-500"
+                  pipeline.id === selectedId && "bg-surface-2 border-l-2 border-primary"
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -308,7 +308,7 @@ export default function DataPipelineViewer() {
                 <p className="text-sm text-fg-secondary mt-0.5">{selected.description}</p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+                <button className="px-3 py-1.5 bg-primary hover:bg-primary text-fg-primary text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
                   Run Now
                 </button>
                 <span className={cn("text-xs px-2 py-1 rounded font-medium", PIPELINE_STATUS_BADGE[selected.status])}>
@@ -346,7 +346,7 @@ export default function DataPipelineViewer() {
                   className={cn(
                     "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                     tab === t
-                      ? "border-indigo-500 text-indigo-400"
+                      ? "border-primary text-primary"
                       : "border-transparent text-fg-muted hover:text-fg-primary"
                   )}
                 >
@@ -408,7 +408,7 @@ export default function DataPipelineViewer() {
                               "font-medium",
                               stage.status === "success" ? "text-emerald-400" :
                               stage.status === "failed" ? "text-rose-400" :
-                              stage.status === "running" ? "text-indigo-400" :
+                              stage.status === "running" ? "text-primary" :
                               stage.status === "skipped" ? "text-fg-muted" :
                               "text-fg-muted"
                             )}>

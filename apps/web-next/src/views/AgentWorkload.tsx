@@ -236,7 +236,7 @@ function AgentCard({ agent, selected, onSelect }: AgentCardProps) {
         "w-full text-left rounded-xl border p-4 transition-all",
         "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
         selected
-          ? "border-indigo-500 bg-indigo-950/30"
+          ? "border-primary bg-indigo-950/30"
           : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-border)]"
       )}
     >
@@ -344,7 +344,7 @@ export default function AgentWorkload() {
                   "text-xs px-2.5 py-1 rounded-lg border transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   statusFilter === s.value
-                    ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                    ? "border-primary bg-indigo-950/40 text-indigo-300"
                     : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -464,7 +464,7 @@ export default function AgentWorkload() {
                           </div>
                           <div className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
                             <div
-                              className="h-full rounded-full bg-indigo-500 transition-all"
+                              className="h-full rounded-full bg-primary transition-all"
                               style={{ width: `${item.progress}%` }}
                               role="progressbar"
                               aria-valuenow={item.progress}

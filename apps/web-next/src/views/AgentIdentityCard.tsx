@@ -20,7 +20,7 @@ export default function AgentIdentityCard() {
             className={cn(
               "group relative bg-[var(--color-surface-1)] border rounded-2xl p-6 transition-all duration-300 cursor-pointer overflow-hidden",
               selectedAgentId === agent.id 
-                ? "border-violet-500 shadow-[0_0_20px_rgba(124,58,237,0.15)] scale-[1.02]" 
+                ? "border-primary shadow-[0_0_20px_rgba(124,58,237,0.15)] scale-[1.02]" 
                 : "border-[var(--color-border)] hover:border-[var(--color-border)] hover:-translate-y-1 hover:shadow-xl"
             )}
           >
@@ -29,7 +29,7 @@ export default function AgentIdentityCard() {
 
             <div className="flex items-start gap-5">
               {/* Emoji Circle */}
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600/20 to-indigo-600/20 border border-violet-500/20 flex items-center justify-center text-4xl shadow-inner shrink-0">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600/20 to-indigo-600/20 border border-primary/20 flex items-center justify-center text-4xl shadow-inner shrink-0">
                 {agent.emoji}
               </div>
 
@@ -46,7 +46,7 @@ export default function AgentIdentityCard() {
                   </div>
                 </div>
                 
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-violet-900/30 border border-violet-500/30 text-violet-300 text-xs font-medium mb-3">
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-violet-900/30 border border-primary/30 text-violet-300 text-xs font-medium mb-3">
                   {agent.role}
                 </span>
 
@@ -62,7 +62,7 @@ export default function AgentIdentityCard() {
                       <span className="text-[10px] text-[var(--color-text-muted)] w-16 uppercase">{trait.label}</span>
                       <div className="flex-1 h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-violet-600 transition-all duration-1000" 
+                          className="h-full bg-primary transition-all duration-1000" 
                           style={{ width: `${trait.value}%` }} 
                         />
                       </div>
@@ -96,7 +96,7 @@ export default function AgentIdentityCard() {
               <button className="flex-1 py-2 px-4 rounded-xl bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm font-medium flex items-center justify-center gap-2 transition-colors">
                 <Edit3 size={16} /> Edit
               </button>
-              <button className="flex-1 py-2 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-sm font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-violet-900/20">
+              <button className="flex-1 py-2 px-4 rounded-xl bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm font-medium flex items-center justify-center gap-2 transition-colors shadow-lg shadow-violet-900/20">
                 <MessageSquare size={16} /> Chat
               </button>
             </div>
@@ -154,7 +154,7 @@ export default function AgentIdentityCard() {
                     <span className="text-[var(--color-text-primary)] font-mono">{value}%</span>
                   </div>
                   <div className="h-1.5 bg-[var(--color-surface-0)] rounded-full border border-[var(--color-border)]">
-                    <div className="h-full bg-violet-500 rounded-full" style={{ width: `${value}%` }} />
+                    <div className="h-full bg-primary rounded-full" style={{ width: `${value}%` }} />
                   </div>
                 </div>
               ))}

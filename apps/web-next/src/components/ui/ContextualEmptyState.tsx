@@ -111,7 +111,7 @@ export function ContextualEmptyState({
               onClick={primaryAction.onClick}
               className={cn(
                 'inline-flex items-center justify-center rounded-md font-medium',
-                'bg-violet-600 text-white hover:bg-violet-500',
+                'bg-primary text-white hover:bg-primary',
                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
                 'transition-colors duration-150',
                 s.btn,

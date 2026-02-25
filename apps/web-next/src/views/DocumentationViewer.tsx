@@ -519,7 +519,7 @@ function SearchBar({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Search docs..."
-          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg py-2 pl-9 pr-3 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+          className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg py-2 pl-9 pr-3 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary focus:ring-1 focus:ring-indigo-500 transition-colors"
         />
       </div>
     </div>
@@ -580,7 +580,7 @@ function NavTree({
                     className={cn(
                       "w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors",
                       activeSubId === sub.id
-                        ? "bg-indigo-500/15 text-indigo-400 font-medium"
+                        ? "bg-primary/15 text-primary font-medium"
                         : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50"
                     )}
                   >
@@ -608,9 +608,9 @@ function CalloutBox({ callout }: { callout: Callout }) {
   > = {
     info: {
       emoji: "ℹ️",
-      borderColor: "border-indigo-500/40",
-      bgColor: "bg-indigo-500/5",
-      titleColor: "text-indigo-400",
+      borderColor: "border-primary/40",
+      bgColor: "bg-primary/5",
+      titleColor: "text-primary",
     },
     warning: {
       emoji: "⚠️",
@@ -674,7 +674,7 @@ function ParamTable({ params }: { params: Param[] }) {
               )}
             >
               <td className="px-4 py-2.5">
-                <code className="text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded text-xs font-mono">
+                <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-xs font-mono">
                   {p.name}
                 </code>
               </td>
@@ -707,7 +707,7 @@ function InlineCodeList({ codes }: { codes: string[] }) {
       {"Related: "}
       {codes.map((c, i) => (
         <React.Fragment key={c}>
-          <code className="text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded text-sm font-mono">
+          <code className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-sm font-mono">
             {c}
           </code>
           {i < codes.length - 1 && ", "}
@@ -732,7 +732,7 @@ function ContentRenderer({
         <div key={section.id} id={section.id}>
           {section.level === 1 && (
             <h1
-              className="text-3xl font-bold text-[var(--color-text-primary)] mb-4 cursor-pointer hover:text-indigo-400 transition-colors"
+              className="text-3xl font-bold text-[var(--color-text-primary)] mb-4 cursor-pointer hover:text-primary transition-colors"
               onClick={() => onTocClick(section.id)}
             >
               {section.heading}
@@ -740,7 +740,7 @@ function ContentRenderer({
           )}
           {section.level === 2 && (
             <h2
-              className="text-xl font-semibold text-[var(--color-text-primary)] mb-3 pt-4 border-t border-[var(--color-border)]/50 cursor-pointer hover:text-indigo-400 transition-colors"
+              className="text-xl font-semibold text-[var(--color-text-primary)] mb-3 pt-4 border-t border-[var(--color-border)]/50 cursor-pointer hover:text-primary transition-colors"
               onClick={() => onTocClick(section.id)}
             >
               {section.heading}
@@ -748,7 +748,7 @@ function ContentRenderer({
           )}
           {section.level === 3 && (
             <h3
-              className="text-lg font-medium text-[var(--color-text-primary)] mb-2 pt-2 cursor-pointer hover:text-indigo-400 transition-colors"
+              className="text-lg font-medium text-[var(--color-text-primary)] mb-2 pt-2 cursor-pointer hover:text-primary transition-colors"
               onClick={() => onTocClick(section.id)}
             >
               {section.heading}
@@ -810,7 +810,7 @@ function TableOfContents({
               section.level === 2 && "px-2 pl-4",
               section.level === 3 && "px-2 pl-6",
               activeTocId === section.id
-                ? "text-indigo-400 font-medium bg-indigo-500/5"
+                ? "text-primary font-medium bg-primary/5"
                 : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -897,7 +897,7 @@ export default function DocumentationViewer() {
         <div className="flex items-center gap-3">
           <span className="text-xl">📖</span>
           <h1 className="text-lg font-bold text-[var(--color-text-primary)]">OpenClaw Docs</h1>
-          <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full font-medium">
+          <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">
             v2.4.0
           </span>
         </div>
@@ -937,7 +937,7 @@ export default function DocumentationViewer() {
             {/* Breadcrumb + edit */}
             <div className="flex items-center justify-between mb-2">
               <Breadcrumb items={breadcrumbItems} />
-              <button className="text-sm text-[var(--color-text-muted)] hover:text-indigo-400 transition-colors flex items-center gap-1.5 shrink-0">
+              <button className="text-sm text-[var(--color-text-muted)] hover:text-primary transition-colors flex items-center gap-1.5 shrink-0">
                 <span>✏️</span>
                 <span>Edit on GitHub</span>
               </button>
@@ -953,7 +953,7 @@ export default function DocumentationViewer() {
             {/* Bottom nav */}
             <div className="mt-12 pt-6 border-t border-[var(--color-border)] flex items-center justify-between">
               <button
-                className="text-sm text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors flex items-center gap-2"
+                className="text-sm text-[var(--color-text-secondary)] hover:text-primary transition-colors flex items-center gap-2"
                 onClick={() => {
                   const pageIds = Object.keys(DOC_PAGES);
                   const idx = pageIds.indexOf(activePageId);
@@ -967,7 +967,7 @@ export default function DocumentationViewer() {
                 <span>Previous</span>
               </button>
               <button
-                className="text-sm text-[var(--color-text-secondary)] hover:text-indigo-400 transition-colors flex items-center gap-2"
+                className="text-sm text-[var(--color-text-secondary)] hover:text-primary transition-colors flex items-center gap-2"
                 onClick={() => {
                   const pageIds = Object.keys(DOC_PAGES);
                   const idx = pageIds.indexOf(activePageId);

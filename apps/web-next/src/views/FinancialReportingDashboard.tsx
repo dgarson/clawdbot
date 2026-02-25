@@ -76,9 +76,9 @@ const REVENUE_WATERFALL: WaterfallItem[] = [
 ];
 
 const REVENUE_SOURCES: DonutData[] = [
-  { label: "Enterprise", value: 620000, color: "bg-indigo-500" },
-  { label: "Mid-Market", value: 380000, color: "bg-indigo-400" },
-  { label: "Self-Serve", value: 240500, color: "bg-indigo-600" },
+  { label: "Enterprise", value: 620000, color: "bg-primary" },
+  { label: "Mid-Market", value: 380000, color: "bg-primary" },
+  { label: "Self-Serve", value: 240500, color: "bg-primary" },
 ];
 
 const PL_DATA: PLRow[] = [
@@ -207,12 +207,12 @@ const OverviewTab = () => {
             {REVENUE_WATERFALL.map((item, i) => {
               let height = 0;
               let bottom = 0;
-              let color = "bg-indigo-500";
+              let color = "bg-primary";
 
               if (item.type === "base" || item.type === "total") {
                 height = (item.value / 1300000) * 100;
                 bottom = 0;
-                color = item.type === "total" ? "bg-indigo-600" : "bg-[var(--color-surface-3)]";
+                color = item.type === "total" ? "bg-primary" : "bg-[var(--color-surface-3)]";
               } else {
                 const prevSum = REVENUE_WATERFALL.slice(0, i).reduce((acc, curr) => 
                   curr.type === "base" || curr.type === "total" ? curr.value : acc + curr.value, startVal
@@ -255,9 +255,9 @@ const OverviewTab = () => {
               <div className="absolute inset-0 rounded-full border-[12px] border-[var(--color-border)]" />
               
               {/* Segmented Ring (Visual Approximation with CSS) */}
-              <div className="absolute inset-0 rounded-full border-[12px] border-indigo-500" 
+              <div className="absolute inset-0 rounded-full border-[12px] border-primary" 
                    style={{ clipPath: 'polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 50%)' }} />
-              <div className="absolute inset-0 rounded-full border-[12px] border-indigo-400" 
+              <div className="absolute inset-0 rounded-full border-[12px] border-primary" 
                    style={{ clipPath: 'polygon(50% 50%, 0% 50%, 0% 0%, 50% 0%)', transform: 'rotate(20deg)' }} />
               
               <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -295,8 +295,8 @@ const OverviewTab = () => {
                   </div>
                </div>
                <div className="w-full bg-[var(--color-surface-2)] h-2 rounded-full overflow-hidden flex">
-                  <div className="h-full bg-indigo-500" style={{ width: '65%' }} />
-                  <div className="h-full bg-indigo-400" style={{ width: '25%' }} />
+                  <div className="h-full bg-primary" style={{ width: '65%' }} />
+                  <div className="h-full bg-primary" style={{ width: '25%' }} />
                   <div className="h-full bg-indigo-300" style={{ width: '10%' }} />
                </div>
                <div className="grid grid-cols-3 gap-2 text-[10px]">
@@ -314,7 +314,7 @@ const OverviewTab = () => {
               </div>
               <div className="flex items-end gap-1 h-16">
                 {[30, 45, 40, 55, 60, 75, 85].map((h, i) => (
-                  <div key={i} className="w-3 bg-indigo-500/40 rounded-t-sm" style={{ height: `${h}%` }} />
+                  <div key={i} className="w-3 bg-primary/40 rounded-t-sm" style={{ height: `${h}%` }} />
                 ))}
               </div>
             </div>
@@ -350,7 +350,7 @@ const PLTab = () => {
               <tr key={i} className={cn(
                 "hover:bg-[var(--color-surface-2)]/30 transition-colors",
                 row.isHeader && "bg-[var(--color-surface-1)]/30",
-                row.isTotal && "bg-indigo-500/5"
+                row.isTotal && "bg-primary/5"
               )}>
                 <td className={cn(
                   "px-6 py-3 text-sm",
@@ -441,7 +441,7 @@ const CashFlowTab = () => {
               return (
                 <div key={i} className="flex-1 flex flex-col items-center group relative">
                   <div 
-                    className="w-full bg-indigo-500/40 border-t-2 border-indigo-500 rounded-t-sm group-hover:bg-indigo-500/60 transition-all"
+                    className="w-full bg-primary/40 border-t-2 border-primary rounded-t-sm group-hover:bg-primary/60 transition-all"
                     style={{ height: `${height}%` }}
                   />
                   <span className="text-[10px] text-[var(--color-text-muted)] mt-2">{months[i]}</span>
@@ -460,9 +460,9 @@ const CashFlowTab = () => {
             <p className="text-2xl font-bold text-emerald-400">{formatCurrency(130600)}</p>
             <p className="text-[10px] text-[var(--color-text-secondary)] mt-2 italic">Cash from operations minus CapEx</p>
           </Card>
-          <Card className="bg-indigo-500/5 border-indigo-500/20">
+          <Card className="bg-primary/5 border-primary/20">
             <p className="text-[var(--color-text-muted)] text-xs font-medium uppercase mb-1">Months of Runway</p>
-            <p className="text-2xl font-bold text-indigo-400">20.4 Months</p>
+            <p className="text-2xl font-bold text-primary">20.4 Months</p>
             <p className="text-[10px] text-[var(--color-text-secondary)] mt-2 italic">Based on 3-month avg net burn</p>
           </Card>
         </div>
@@ -625,7 +625,7 @@ export default function FinancialReportingDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-primary/30">
       <div className="max-w-7xl mx-auto px-6 py-8">
         
         {/* Header */}
@@ -638,7 +638,7 @@ export default function FinancialReportingDashboard() {
              <button className="px-4 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-sm font-medium hover:bg-[var(--color-surface-2)] transition-colors">
                Export PDF
              </button>
-             <button className="px-4 py-2 bg-indigo-600 rounded-lg text-sm font-semibold hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-500/20">
+             <button className="px-4 py-2 bg-primary rounded-lg text-sm font-semibold hover:bg-primary transition-colors shadow-lg shadow-indigo-500/20">
                Financial Settings
              </button>
           </div>
@@ -653,13 +653,13 @@ export default function FinancialReportingDashboard() {
               className={cn(
                 "px-6 py-4 text-sm font-medium transition-all relative whitespace-nowrap",
                 activeTab === tab.id 
-                  ? "text-indigo-400" 
+                  ? "text-primary" 
                   : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {tab.label}
               {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
               )}
             </button>
           ))}

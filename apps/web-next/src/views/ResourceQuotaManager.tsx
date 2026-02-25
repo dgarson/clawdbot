@@ -170,7 +170,7 @@ function statusBg(s: QuotaStatus) {
 }
 function scopeBg(s: QuotaScope) {
   if (s === "global") {return "bg-purple-500/10 text-purple-400";}
-  if (s === "tenant") {return "bg-indigo-500/10 text-indigo-400";}
+  if (s === "tenant") {return "bg-primary/10 text-primary";}
   if (s === "user") {return "bg-cyan-500/10 text-cyan-400";}
   return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]";
 }
@@ -181,7 +181,7 @@ function barColor(p: number) {
   if (p >= 100) {return "bg-rose-500";}
   if (p >= 90) {return "bg-orange-500";}
   if (p >= 75) {return "bg-amber-500";}
-  return "bg-indigo-500";
+  return "bg-primary";
 }
 function fmt(n: number) {
   if (n >= 1_000_000) {return (n / 1_000_000).toFixed(1) + "M";}
@@ -213,7 +213,7 @@ function TrendChart({ data }: { data: UsageTrend[] }) {
         {data.map((d, i) => (
           <div key={i} className="flex-1 flex flex-col items-center gap-1">
             <div className="w-full bg-[var(--color-surface-2)] rounded-sm overflow-hidden flex flex-col-reverse" style={{ height: "80px" }}>
-              <div className="bg-indigo-500 rounded-sm" style={{ height: `${(d.requests / maxReq) * 100}%` }} />
+              <div className="bg-primary rounded-sm" style={{ height: `${(d.requests / maxReq) * 100}%` }} />
             </div>
             <span className="text-xs text-[var(--color-text-muted)]">{d.hour}</span>
           </div>
@@ -255,7 +255,7 @@ export default function ResourceQuotaManager() {
               {alerts.length} quota{alerts.length > 1 ? "s" : ""} over limit
             </span>
           )}
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">
+          <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">
             + New Quota
           </button>
         </div>
@@ -270,7 +270,7 @@ export default function ResourceQuotaManager() {
               onClick={() => setTab(t)}
               className={cn(
                 "py-3 text-sm font-medium border-b-2 capitalize transition-colors",
-                tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                tab === t ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t}
@@ -396,7 +396,7 @@ export default function ResourceQuotaManager() {
                   <div className="bg-[var(--color-surface-1)] rounded-xl p-5 mb-4">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Alert Thresholds</h3>
-                      <button className="text-xs text-indigo-400 hover:text-indigo-300">+ Add Alert</button>
+                      <button className="text-xs text-primary hover:text-indigo-300">+ Add Alert</button>
                     </div>
                     {selected.alerts.length > 0 ? (
                       selected.alerts.map(a => (
@@ -503,7 +503,7 @@ export default function ResourceQuotaManager() {
                   <div className="space-y-1">
                     <div className="flex justify-between text-sm">
                       <span className="text-[var(--color-text-secondary)]">Requests</span>
-                      <span className="text-indigo-400">{fmt(d.requests)}</span>
+                      <span className="text-primary">{fmt(d.requests)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-[var(--color-text-secondary)]">Tokens</span>
@@ -556,7 +556,7 @@ export default function ResourceQuotaManager() {
                     <span className="text-sm text-[var(--color-text-primary)]">{item.label}</span>
                     <div className={cn(
                       "w-10 h-5 rounded-full relative cursor-pointer transition-colors",
-                      item.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
+                      item.enabled ? "bg-primary" : "bg-[var(--color-surface-3)]"
                     )}>
                       <div className={cn(
                         "absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform",
@@ -567,7 +567,7 @@ export default function ResourceQuotaManager() {
                 ))}
               </div>
             </div>
-            <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-4 py-2 rounded-lg transition-colors">
+            <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm px-4 py-2 rounded-lg transition-colors">
               Save Settings
             </button>
           </div>

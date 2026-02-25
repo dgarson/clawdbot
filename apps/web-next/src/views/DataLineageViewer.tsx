@@ -258,7 +258,7 @@ const impacts: DatasetImpact[] = [
 function kindColor(kind: NodeKind): string {
   const map: Record<NodeKind, string> = {
     source:    "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-    transform: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+    transform: "bg-primary/20 text-primary border-primary/30",
     sink:      "bg-amber-500/20 text-amber-400 border-amber-500/30",
     storage:   "bg-blue-500/20 text-blue-400 border-blue-500/30",
   };
@@ -279,7 +279,7 @@ function statusColor(status: LineageRun["status"]): string {
   const map: Record<LineageRun["status"], string> = {
     success: "text-emerald-400",
     failed:  "text-rose-400",
-    running: "text-indigo-400",
+    running: "text-primary",
     partial: "text-amber-400",
   };
   return map[status];
@@ -289,7 +289,7 @@ function statusDot(status: LineageRun["status"]): string {
   const map: Record<LineageRun["status"], string> = {
     success: "bg-emerald-400",
     failed:  "bg-rose-400",
-    running: "bg-indigo-400 animate-pulse",
+    running: "bg-primary animate-pulse",
     partial: "bg-amber-400",
   };
   return map[status];
@@ -329,7 +329,7 @@ function GraphTab() {
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize",
                 filterKind === k
-                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -356,7 +356,7 @@ function GraphTab() {
                       className={cn(
                         "w-full text-left rounded-xl border p-3 transition-all",
                         isSelected
-                          ? "border-indigo-500 bg-indigo-500/10"
+                          ? "border-primary bg-primary/10"
                           : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
@@ -456,7 +456,7 @@ function RunsTab() {
           key={run.id}
           className={cn(
             "rounded-xl border p-4 cursor-pointer transition-all",
-            selected?.id === run.id ? "border-indigo-500 bg-indigo-500/5" : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
+            selected?.id === run.id ? "border-primary bg-primary/5" : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
           )}
           onClick={() => setSelected(selected?.id === run.id ? null : run)}
         >
@@ -522,7 +522,7 @@ function ImpactTab() {
             <span className="text-xs text-[var(--color-text-muted)] w-24">Downstream</span>
             <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
               <div
-                className={cn("h-2 rounded-full", item.criticalPath ? "bg-rose-500" : "bg-indigo-500")}
+                className={cn("h-2 rounded-full", item.criticalPath ? "bg-rose-500" : "bg-primary")}
                 style={{ width: (item.downstreamCount / maxDown * 100) + "%" }}
               />
             </div>
@@ -568,7 +568,7 @@ function QualityTab() {
             <div key={owner} className="flex items-center gap-3">
               <span className="w-28 text-xs text-[var(--color-text-secondary)] shrink-0">{owner}</span>
               <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
-                <div className="h-2 rounded-full bg-indigo-500" style={{ width: (count / nodes.length * 100) + "%" }} />
+                <div className="h-2 rounded-full bg-primary" style={{ width: (count / nodes.length * 100) + "%" }} />
               </div>
               <span className="text-xs text-[var(--color-text-primary)] w-6 text-right">{count}</span>
             </div>
@@ -620,7 +620,7 @@ export default function DataLineageViewer() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
           { label: "Pipeline Nodes", value: nodes.length, color: "text-[var(--color-text-primary)]" },
-          { label: "Active Runs", value: running, color: "text-indigo-400" },
+          { label: "Active Runs", value: running, color: "text-primary" },
           { label: "Failed (24h)", value: failed24h, color: failed24h > 0 ? "text-rose-400" : "text-emerald-400" },
           { label: "Critical Path", value: impacts.filter((i) => i.criticalPath).length, color: "text-amber-400" },
         ].map((kpi) => (
@@ -640,7 +640,7 @@ export default function DataLineageViewer() {
             className={cn(
               "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
               tab === t
-                ? "border-indigo-500 text-indigo-400"
+                ? "border-primary text-primary"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >

@@ -209,7 +209,7 @@ const THROUGHPUT: ThroughputPoint[] = [
 
 function wfStatusColor(s: WorkflowStatus) {
   if (s === "completed") {return "text-emerald-400";}
-  if (s === "running") {return "text-indigo-400";}
+  if (s === "running") {return "text-primary";}
   if (s === "paused") {return "text-amber-400";}
   if (s === "scheduled") {return "text-cyan-400";}
   if (s === "failed") {return "text-rose-400";}
@@ -217,7 +217,7 @@ function wfStatusColor(s: WorkflowStatus) {
 }
 function wfStatusBg(s: WorkflowStatus) {
   if (s === "completed") {return "bg-emerald-400/10 text-emerald-400";}
-  if (s === "running") {return "bg-indigo-400/10 text-indigo-400 animate-pulse";}
+  if (s === "running") {return "bg-primary/10 text-primary animate-pulse";}
   if (s === "paused") {return "bg-amber-400/10 text-amber-400";}
   if (s === "scheduled") {return "bg-cyan-400/10 text-cyan-400";}
   if (s === "failed") {return "bg-rose-400/10 text-rose-400";}
@@ -225,7 +225,7 @@ function wfStatusBg(s: WorkflowStatus) {
 }
 function stepStatusColor(s: StepStatus) {
   if (s === "completed") {return "bg-emerald-500";}
-  if (s === "running") {return "bg-indigo-500 animate-pulse";}
+  if (s === "running") {return "bg-primary animate-pulse";}
   if (s === "failed") {return "bg-rose-500";}
   if (s === "skipped") {return "bg-[var(--color-surface-3)]";}
   return "bg-[var(--color-surface-3)]";
@@ -237,7 +237,7 @@ function stepTypeEmoji(t: StepType) {
 function triggerBg(t: TriggerType) {
   if (t === "schedule") {return "bg-purple-500/10 text-purple-400";}
   if (t === "webhook") {return "bg-cyan-500/10 text-cyan-400";}
-  if (t === "event") {return "bg-indigo-500/10 text-indigo-400";}
+  if (t === "event") {return "bg-primary/10 text-primary";}
   if (t === "condition") {return "bg-amber-500/10 text-amber-400";}
   return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
@@ -298,7 +298,7 @@ export default function WorkflowOrchestrationDashboard() {
         </div>
         <div className="flex items-center gap-2">
           {runningCount > 0 && (
-            <span className="bg-indigo-500/10 text-indigo-400 text-xs px-2 py-1 rounded-full border border-indigo-500/30 animate-pulse">
+            <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full border border-primary/30 animate-pulse">
               {runningCount} running
             </span>
           )}
@@ -307,7 +307,7 @@ export default function WorkflowOrchestrationDashboard() {
               {failedCount} failed
             </span>
           )}
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">
+          <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">
             + New Workflow
           </button>
         </div>
@@ -322,7 +322,7 @@ export default function WorkflowOrchestrationDashboard() {
               onClick={() => setTab(t)}
               className={cn(
                 "py-3 text-sm font-medium border-b-2 capitalize transition-colors",
-                tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                tab === t ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t}
@@ -423,7 +423,7 @@ export default function WorkflowOrchestrationDashboard() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <button className="bg-indigo-600 hover:bg-indigo-500 text-sm px-3 py-1.5 rounded-lg text-[var(--color-text-primary)] transition-colors">▶ Run Now</button>
+                      <button className="bg-primary hover:bg-primary text-sm px-3 py-1.5 rounded-lg text-[var(--color-text-primary)] transition-colors">▶ Run Now</button>
                       <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-sm px-3 py-1.5 rounded-lg text-[var(--color-text-primary)] transition-colors">Edit</button>
                     </div>
                   </div>
@@ -591,9 +591,9 @@ export default function WorkflowOrchestrationDashboard() {
             <div className="grid grid-cols-4 gap-4 mb-6">
               {[
                 { label: "Total Workflows", value: WORKFLOWS.length, color: "text-[var(--color-text-primary)]" },
-                { label: "Total Runs", value: totalRuns.toLocaleString(), color: "text-indigo-400" },
+                { label: "Total Runs", value: totalRuns.toLocaleString(), color: "text-primary" },
                 { label: "Avg Success Rate", value: `${avgSuccess.toFixed(1)}%`, color: "text-emerald-400" },
-                { label: "Currently Running", value: runningCount, color: runningCount > 0 ? "text-indigo-400" : "text-[var(--color-text-secondary)]" },
+                { label: "Currently Running", value: runningCount, color: runningCount > 0 ? "text-primary" : "text-[var(--color-text-secondary)]" },
               ].map((s, i) => (
                 <div key={i} className="bg-[var(--color-surface-1)] rounded-xl p-5">
                   <div className={cn("text-2xl font-bold", s.color)}>{s.value}</div>

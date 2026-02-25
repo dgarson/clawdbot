@@ -260,7 +260,7 @@ export default function ThemeEditor() {
                       'flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-150',
                       'border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
                       activePreset === preset.id
-                        ? 'border-indigo-500 bg-[var(--color-surface-1)]'
+                        ? 'border-primary bg-[var(--color-surface-1)]'
                         : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 hover:border-[var(--color-border)]'
                     )}
                     role="radio"
@@ -344,7 +344,7 @@ export default function ThemeEditor() {
                       'flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-150',
                       'border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
                       tokens.fontSize === size.id
-                        ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400'
+                        ? 'border-primary bg-primary/10 text-primary'
                         : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 text-[var(--color-text-secondary)] hover:border-[var(--color-border)]'
                     )}
                     role="radio"
@@ -368,7 +368,7 @@ export default function ThemeEditor() {
                       'flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-150',
                       'border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
                       tokens.borderRadius === radius.id
-                        ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400'
+                        ? 'border-primary bg-primary/10 text-primary'
                         : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 text-[var(--color-text-secondary)] hover:border-[var(--color-border)]'
                     )}
                     role="radio"
@@ -392,7 +392,7 @@ export default function ThemeEditor() {
                       'flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-150',
                       'border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
                       tokens.typography === typo.id
-                        ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400'
+                        ? 'border-primary bg-primary/10 text-primary'
                         : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 text-[var(--color-text-secondary)] hover:border-[var(--color-border)]'
                     )}
                     role="radio"
@@ -412,7 +412,7 @@ export default function ThemeEditor() {
                   onClick={handleCopyCSS}
                   className={cn(
                     'flex-1 py-2.5 px-4 rounded-lg font-medium transition-all duration-150',
-                    'bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)]',
+                    'bg-primary hover:bg-primary text-[var(--color-text-primary)]',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950'
                   )}
                   aria-label={copyFeedback ? 'CSS copied to clipboard' : 'Copy CSS variables to clipboard'}

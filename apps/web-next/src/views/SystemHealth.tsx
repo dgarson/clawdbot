@@ -220,13 +220,13 @@ const INCIDENT_SEVERITY_CONFIG: Record<IncidentSeverity, { label: string; badge:
   critical:    { label: "Critical",    badge: "bg-rose-500/15 text-rose-300 ring-rose-500/25 ring-1" },
   major:       { label: "Major",       badge: "bg-orange-500/15 text-orange-300 ring-orange-500/25 ring-1" },
   minor:       { label: "Minor",       badge: "bg-amber-500/15 text-amber-300 ring-amber-500/25 ring-1" },
-  maintenance: { label: "Maintenance", badge: "bg-indigo-500/15 text-indigo-300 ring-indigo-500/25 ring-1" },
+  maintenance: { label: "Maintenance", badge: "bg-primary/15 text-indigo-300 ring-indigo-500/25 ring-1" },
 };
 
 const INCIDENT_STATUS_CONFIG: Record<Incident["status"], { label: string; color: string }> = {
   investigating: { label: "Investigating", color: "text-amber-400" },
   identified:    { label: "Identified",    color: "text-orange-400" },
-  monitoring:    { label: "Monitoring",    color: "text-indigo-400" },
+  monitoring:    { label: "Monitoring",    color: "text-primary" },
   resolved:      { label: "Resolved",      color: "text-emerald-400" },
 };
 
@@ -622,7 +622,7 @@ export default function SystemHealth({ isLoading = false }: { isLoading?: boolea
       {/* Skip link */}
       <a
         href="#system-health-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
@@ -709,7 +709,7 @@ export default function SystemHealth({ isLoading = false }: { isLoading?: boolea
                   className={cn(
                     "px-2.5 py-1 text-xs font-medium rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
                     categoryFilter === cat
-                      ? "bg-violet-600 text-fg-primary"
+                      ? "bg-primary text-fg-primary"
                       : "text-fg-secondary hover:text-fg-primary hover:bg-surface-2"
                   )}
                 >

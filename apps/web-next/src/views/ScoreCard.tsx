@@ -217,7 +217,7 @@ export default function ScoreCard() {
                 onClick={() => setView(v)}
                 className={cn(
                   "px-3 py-1.5 rounded text-sm capitalize",
-                  view === v ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  view === v ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {v === "pillars" ? "By Pillar" : "By Agent"}

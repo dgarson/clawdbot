@@ -556,7 +556,7 @@ const SESSIONS: DebugSession[] = [
 // ─── Constants & Helpers ───────────────────────────────────────────────────────
 
 const EVENT_COLORS: Record<EventType, string> = {
-  user: "bg-indigo-500",
+  user: "bg-primary",
   assistant: "bg-emerald-500",
   tool_call: "bg-amber-500",
   tool_result: "bg-amber-400/60",
@@ -640,7 +640,7 @@ function ScrubBar({
       >
         {/* Progress fill */}
         <div
-          className="absolute inset-y-0 left-0 bg-indigo-600/40 rounded-lg transition-none"
+          className="absolute inset-y-0 left-0 bg-primary/40 rounded-lg transition-none"
           style={{ width: `${progressPct}%` }}
         />
         {/* Event markers */}
@@ -699,7 +699,7 @@ function EventRow({
         className={cn(
           "w-full text-left flex items-start gap-3 px-3 py-2.5 transition-colors rounded-lg",
           selected
-            ? "bg-indigo-600/20 border border-indigo-500/40"
+            ? "bg-primary/20 border border-primary/40"
             : "hover:bg-[var(--color-surface-2)]/60 border border-transparent"
         )}
       >
@@ -792,7 +792,7 @@ function EventInspector({
             className={cn(
               "px-3 py-1 text-xs font-medium rounded transition-colors capitalize",
               panelTab === t
-                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
@@ -961,7 +961,7 @@ function EventInspector({
                       ? "bg-rose-500"
                       : session.totalTokens / 200000 > 0.6
                       ? "bg-amber-500"
-                      : "bg-indigo-500"
+                      : "bg-primary"
                   )}
                   style={{
                     width: `${Math.min((session.totalTokens / 200000) * 100, 100)}%`,
@@ -1146,7 +1146,7 @@ export default function SessionDebugTimeline() {
             {/* Play / Pause */}
             <button
               onClick={playing ? () => setPlaying(false) : handlePlay}
-              className="w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-500 flex items-center justify-center text-[var(--color-text-primary)] transition-colors"
+              className="w-8 h-8 rounded-full bg-primary hover:bg-primary flex items-center justify-center text-[var(--color-text-primary)] transition-colors"
             >
               {playing ? "⏸" : "▶"}
             </button>
@@ -1178,7 +1178,7 @@ export default function SessionDebugTimeline() {
                   className={cn(
                     "px-2 py-0.5 text-xs font-mono rounded transition-colors",
                     speed === s
-                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                   )}
                 >

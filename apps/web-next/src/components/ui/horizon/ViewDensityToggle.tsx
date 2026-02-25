@@ -15,10 +15,10 @@ export function ViewDensityToggle({ value, onChange }: ViewDensityToggleProps) {
           key={density}
           onClick={() => onChange(density)}
           className={cn(
-            'rounded px-2 py-1 text-[11px] capitalize transition-colors',
+            'rounded border px-2 py-1 text-[11px] capitalize transition-colors',
             value === density
-              ? 'bg-[var(--color-pill-active-bg)] text-[var(--color-pill-active-text)]'
-              : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'
+              ? 'border-violet-300/70 bg-primary text-white shadow-[0_0_0_1px_rgba(196,181,253,0.35)]'
+              : 'border-transparent text-foreground/85 hover:text-foreground hover:bg-secondary/45'
           )}
         >
           {density}

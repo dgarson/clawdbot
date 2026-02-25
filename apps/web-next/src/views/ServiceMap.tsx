@@ -67,9 +67,9 @@ const STATUS_META: Record<ServiceStatus, { dot: string; label: string; badge: st
 };
 
 const KIND_META: Record<ServiceKind, { label: string; color: string }> = {
-  gateway: { label: "Gateway", color: "bg-indigo-500/10 text-indigo-400 ring-indigo-500/20" },
+  gateway: { label: "Gateway", color: "bg-primary/10 text-primary ring-indigo-500/20" },
   api: { label: "API", color: "bg-sky-500/10 text-sky-400 ring-sky-500/20" },
-  worker: { label: "Worker", color: "bg-violet-500/10 text-violet-400 ring-violet-500/20" },
+  worker: { label: "Worker", color: "bg-primary/10 text-primary ring-violet-500/20" },
   database: { label: "Database", color: "bg-orange-500/10 text-orange-400 ring-orange-500/20" },
   cache: { label: "Cache", color: "bg-teal-500/10 text-teal-400 ring-teal-500/20" },
   queue: { label: "Queue", color: "bg-pink-500/10 text-pink-400 ring-pink-500/20" },
@@ -284,8 +284,8 @@ function LatencySparkline({
   maxMs: number;
 }) {
   const bars: { value: number; color: string }[] = [
-    { value: metrics.p50, color: "bg-indigo-500" },
-    { value: metrics.p95, color: "bg-indigo-400" },
+    { value: metrics.p50, color: "bg-primary" },
+    { value: metrics.p95, color: "bg-primary" },
     { value: metrics.p99, color: "bg-indigo-300" },
   ];
 
@@ -324,7 +324,7 @@ function FilterChip({
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors",
         active
-          ? "bg-indigo-500/15 text-indigo-400 ring-1 ring-indigo-500/30"
+          ? "bg-primary/15 text-primary ring-1 ring-indigo-500/30"
           : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] ring-1 ring-[var(--color-border)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
       )}
     >
@@ -380,8 +380,8 @@ function LatencyBar({ metrics, maxMs }: { metrics: ServiceMetric; maxMs: number 
     <div className="space-y-2">
       {(
         [
-          { label: "p50", value: metrics.p50, color: "bg-indigo-500" },
-          { label: "p95", value: metrics.p95, color: "bg-indigo-400" },
+          { label: "p50", value: metrics.p50, color: "bg-primary" },
+          { label: "p95", value: metrics.p95, color: "bg-primary" },
           { label: "p99", value: metrics.p99, color: "bg-indigo-300" },
         ] as const
       ).map((row) => (

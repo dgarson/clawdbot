@@ -209,12 +209,12 @@ function sevBg(s: Severity) {
 function pbStatusBg(s: PlaybookStatus) {
   if (s === "active") {return "bg-emerald-400/10 text-emerald-400";}
   if (s === "draft") {return "bg-amber-400/10 text-amber-400";}
-  if (s === "testing") {return "bg-indigo-400/10 text-indigo-400";}
+  if (s === "testing") {return "bg-primary/10 text-primary";}
   return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 function stepTypeBg(t: StepType) {
   const m: Record<StepType, string> = {
-    action: "bg-indigo-500/10 text-indigo-400",
+    action: "bg-primary/10 text-primary",
     decision: "bg-purple-500/10 text-purple-400",
     notify: "bg-cyan-500/10 text-cyan-400",
     escalate: "bg-orange-500/10 text-orange-400",
@@ -225,7 +225,7 @@ function stepTypeBg(t: StepType) {
 }
 function stepStateColor(s: StepState) {
   if (s === "done") {return "bg-emerald-500";}
-  if (s === "running") {return "bg-indigo-500 animate-pulse";}
+  if (s === "running") {return "bg-primary animate-pulse";}
   if (s === "failed") {return "bg-rose-500";}
   if (s === "skipped") {return "bg-[var(--color-surface-3)]";}
   return "bg-[var(--color-surface-3)]";
@@ -256,10 +256,10 @@ export default function IncidentResponsePlaybook() {
           <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Standardized response procedures for incidents across severity levels</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="bg-indigo-500/10 text-indigo-400 text-xs px-2 py-1 rounded-full border border-indigo-500/30 animate-pulse">
+          <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full border border-primary/30 animate-pulse">
             1 active run
           </span>
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">
+          <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">
             + New Playbook
           </button>
         </div>
@@ -274,12 +274,12 @@ export default function IncidentResponsePlaybook() {
               onClick={() => setTab(t)}
               className={cn(
                 "py-3 text-sm font-medium border-b-2 capitalize transition-colors",
-                tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                tab === t ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.replace("-", " ")}
               {t === "active-runs" && (
-                <span className="ml-1.5 bg-indigo-500 text-[var(--color-text-primary)] text-xs px-1.5 rounded-full">1</span>
+                <span className="ml-1.5 bg-primary text-[var(--color-text-primary)] text-xs px-1.5 rounded-full">1</span>
               )}
             </button>
           ))}
@@ -364,7 +364,7 @@ export default function IncidentResponsePlaybook() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">▶ Execute</button>
+                      <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">▶ Execute</button>
                       <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-sm px-3 py-1.5 rounded-lg text-[var(--color-text-primary)] transition-colors">Edit</button>
                     </div>
                   </div>
@@ -502,7 +502,7 @@ export default function IncidentResponsePlaybook() {
                       <td className="px-4 py-3 text-[var(--color-text-primary)]">{run.playbookName}</td>
                       <td className="px-4 py-3 text-[var(--color-text-secondary)] font-mono text-xs">{run.incidentId}</td>
                       <td className="px-4 py-3"><span className={cn("text-xs px-2 py-0.5 rounded", sevBg(run.severity))}>{run.severity}</span></td>
-                      <td className="px-4 py-3"><span className="text-xs bg-indigo-400/10 text-indigo-400 px-2 py-0.5 rounded-full animate-pulse">{run.status}</span></td>
+                      <td className="px-4 py-3"><span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full animate-pulse">{run.status}</span></td>
                       <td className="px-4 py-3 text-[var(--color-text-secondary)]">{run.assignee}</td>
                       <td className="px-4 py-3 text-[var(--color-text-secondary)]">{run.startedAt}</td>
                     </tr>
@@ -528,7 +528,7 @@ export default function IncidentResponsePlaybook() {
                 <div className="text-3xl mb-3">{t.icon}</div>
                 <div className="text-sm font-medium text-[var(--color-text-primary)] mb-1">{t.name}</div>
                 <div className="text-xs text-[var(--color-text-muted)] mb-3">{t.desc}</div>
-                <button className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Use template →</button>
+                <button className="text-xs text-primary hover:text-indigo-300 transition-colors">Use template →</button>
               </div>
             ))}
           </div>

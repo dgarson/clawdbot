@@ -185,7 +185,7 @@ export default function DatabaseQueryBuilder() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
@@ -244,7 +244,7 @@ export default function DatabaseQueryBuilder() {
                   "flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-colors",
                   running
                     ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-not-allowed"
-                    : "bg-indigo-500 text-[var(--color-text-primary)] hover:bg-indigo-600"
+                    : "bg-primary text-[var(--color-text-primary)] hover:bg-primary"
                 )}
               >
                 {running ? "⏳ Running..." : "▶ Run Query"}
@@ -293,7 +293,7 @@ export default function DatabaseQueryBuilder() {
                   <span className="text-xs text-[var(--color-text-secondary)]">Results</span>
                   <span className="text-xs text-emerald-400">{result.rowsAffected} rows</span>
                   <span className="text-xs text-[var(--color-text-muted)]">{result.duration}ms</span>
-                  <button className="ml-auto text-xs text-indigo-400 hover:text-indigo-300">⬇ Export CSV</button>
+                  <button className="ml-auto text-xs text-primary hover:text-indigo-300">⬇ Export CSV</button>
                 </div>
                 <div className="overflow-x-auto max-h-80">
                   <table className="w-full text-xs font-mono">
@@ -336,7 +336,7 @@ export default function DatabaseQueryBuilder() {
                 onClick={() => setSelectedTable(tbl)}
                 className={cn(
                   "w-full bg-[var(--color-surface-1)] border rounded-lg p-3 text-left hover:border-[var(--color-surface-3)] transition-colors",
-                  selectedTable?.name === tbl.name ? "border-indigo-500/50" : "border-[var(--color-border)]"
+                  selectedTable?.name === tbl.name ? "border-primary/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-center justify-between mb-1">
@@ -374,7 +374,7 @@ export default function DatabaseQueryBuilder() {
                         <td className={cn("px-4 py-2.5 font-mono text-xs", getTypeColor(col.type))}>{col.type}</td>
                         <td className="px-4 py-2.5 text-center text-xs">{col.nullable ? <span className="text-amber-400">yes</span> : <span className="text-[var(--color-text-muted)]">no</span>}</td>
                         <td className="px-4 py-2.5 text-center">{col.isPK ? <span className="text-amber-400">🔑</span> : <span className="text-[var(--color-text-muted)]">—</span>}</td>
-                        <td className="px-4 py-2.5 text-center">{col.isFK ? <span className="text-indigo-400">🔗</span> : <span className="text-[var(--color-text-muted)]">—</span>}</td>
+                        <td className="px-4 py-2.5 text-center">{col.isFK ? <span className="text-primary">🔗</span> : <span className="text-[var(--color-text-muted)]">—</span>}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -399,14 +399,14 @@ export default function DatabaseQueryBuilder() {
                 onClick={() => setSelectedSaved(sq)}
                 className={cn(
                   "w-full bg-[var(--color-surface-1)] border rounded-lg p-4 text-left hover:border-[var(--color-surface-3)] transition-colors",
-                  selectedSaved?.id === sq.id ? "border-indigo-500/50" : "border-[var(--color-border)]"
+                  selectedSaved?.id === sq.id ? "border-primary/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="text-sm font-medium text-[var(--color-text-primary)] mb-1">{sq.name}</div>
                 <div className="text-xs text-[var(--color-text-muted)] mb-2">Last run {sq.lastRun}</div>
                 <div className="flex flex-wrap gap-1">
                   {sq.tags.map(tag => (
-                    <span key={tag} className="text-xs bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">{tag}</span>
+                    <span key={tag} className="text-xs bg-primary/10 border border-primary/20 text-indigo-300 px-2 py-0.5 rounded">{tag}</span>
                   ))}
                 </div>
               </button>
@@ -420,7 +420,7 @@ export default function DatabaseQueryBuilder() {
                   <span className="text-sm font-semibold text-[var(--color-text-primary)]">{selectedSaved.name}</span>
                   <button
                     onClick={() => { setSqlValue(selectedSaved.sql); setActiveTab("editor"); }}
-                    className="text-xs px-3 py-1.5 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors"
+                    className="text-xs px-3 py-1.5 bg-primary text-[var(--color-text-primary)] rounded hover:bg-primary transition-colors"
                   >
                     Open in Editor
                   </button>
@@ -450,7 +450,7 @@ export default function DatabaseQueryBuilder() {
                     <span className="text-[var(--color-text-secondary)]">{h.rows} rows</span>
                     <button
                       onClick={() => { setSqlValue(h.sql); setActiveTab("editor"); }}
-                      className="text-indigo-400 hover:text-indigo-300"
+                      className="text-primary hover:text-indigo-300"
                     >Re-run →</button>
                   </div>
                 </div>

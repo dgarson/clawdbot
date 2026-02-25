@@ -361,7 +361,7 @@ function getIntensityColor(intensity: number): string {
 }
 
 function getEventBadgeClass(type: EventType): string {
-  if (type === "click") {return "bg-indigo-500/20 text-indigo-400";}
+  if (type === "click") {return "bg-primary/20 text-primary";}
   if (type === "navigation") {return "bg-emerald-500/20 text-emerald-400";}
   if (type === "error") {return "bg-rose-500/20 text-rose-400";}
   if (type === "rage_click") {return "bg-amber-400/20 text-amber-400";}
@@ -369,7 +369,7 @@ function getEventBadgeClass(type: EventType): string {
 }
 
 function getEventDotClass(type: EventType): string {
-  if (type === "click") {return "bg-indigo-500";}
+  if (type === "click") {return "bg-primary";}
   if (type === "navigation") {return "bg-emerald-500";}
   if (type === "error") {return "bg-rose-500";}
   if (type === "rage_click") {return "bg-amber-400";}
@@ -431,7 +431,7 @@ function SessionsTab(): React.ReactElement {
               className={cn(
                 "w-full text-left p-3 border-b border-[var(--color-border)] transition-colors",
                 selectedId === session.id
-                  ? "bg-indigo-500/10 border-l-2 border-l-indigo-500"
+                  ? "bg-primary/10 border-l-2 border-l-indigo-500"
                   : "hover:bg-[var(--color-surface-2)]"
               )}
             >
@@ -512,7 +512,7 @@ function SessionsTab(): React.ReactElement {
             <div className="relative z-10 text-center">
               <p className="text-[var(--color-text-secondary)] text-sm font-medium">Session Recording</p>
               <p className="text-[var(--color-text-muted)] text-xs mt-0.5">{selected.url}</p>
-              <p className="text-indigo-400 text-xs mt-1 font-mono">
+              <p className="text-primary text-xs mt-1 font-mono">
                 {formatTimestamp(playbackTime)} / {formatTimestamp(selected.duration)}
               </p>
             </div>
@@ -524,7 +524,7 @@ function SessionsTab(): React.ReactElement {
             onClick={handleScrubClick}
           >
             <div
-              className="absolute inset-y-0 left-0 bg-indigo-500 rounded-full pointer-events-none"
+              className="absolute inset-y-0 left-0 bg-primary rounded-full pointer-events-none"
               style={{ width: `${scrubPercent}%` }}
             ></div>
             {SESSION_EVENTS.map((ev) => (
@@ -553,7 +553,7 @@ function SessionsTab(): React.ReactElement {
             </button>
             <button
               onClick={() => setIsPlaying((p) => !p)}
-              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-4 py-1.5 rounded-lg transition-colors font-medium"
+              className="flex items-center gap-1.5 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm px-4 py-1.5 rounded-lg transition-colors font-medium"
             >
               {isPlaying ? "⏸ Pause" : "▶ Play"}
             </button>
@@ -662,7 +662,7 @@ function HeatmapsTab(): React.ReactElement {
                 className={cn(
                   "text-xs px-3 py-1.5 rounded-lg transition-colors font-mono",
                   selectedPage === page
-                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    ? "bg-primary text-[var(--color-text-primary)]"
                     : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
                 )}
               >
@@ -738,7 +738,7 @@ function HeatmapsTab(): React.ReactElement {
                       <div className="flex items-center justify-end gap-1.5">
                         <div className="w-10 bg-[var(--color-surface-2)] rounded-full h-1.5">
                           <div
-                            className="bg-indigo-500 h-1.5 rounded-full"
+                            className="bg-primary h-1.5 rounded-full"
                             style={{ width: share + "%" }}
                           ></div>
                         </div>
@@ -760,7 +760,7 @@ function HeatmapsTab(): React.ReactElement {
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-[var(--color-text-muted)] text-xs flex-shrink-0">{i + 1}.</span>
-                    <code className="text-indigo-400 text-xs truncate">{el.selector}</code>
+                    <code className="text-primary text-xs truncate">{el.selector}</code>
                   </div>
                   <span className="text-[var(--color-text-secondary)] text-xs flex-shrink-0 ml-2">
                     {el.clicks.toLocaleString()}
@@ -769,7 +769,7 @@ function HeatmapsTab(): React.ReactElement {
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-1.5">
                     <div
-                      className="bg-indigo-500 h-1.5 rounded-full"
+                      className="bg-primary h-1.5 rounded-full"
                       style={{ width: el.percentage + "%" }}
                     ></div>
                   </div>
@@ -813,7 +813,7 @@ function FunnelsTab(): React.ReactElement {
             className={cn(
               "text-sm px-4 py-1.5 rounded-lg transition-colors font-medium",
               selectedFunnel === i
-                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
             )}
           >
@@ -840,7 +840,7 @@ function FunnelsTab(): React.ReactElement {
                       <div
                         className={cn(
                           "h-9 rounded-lg flex items-center px-3 min-w-0 transition-all",
-                          isFirst ? "bg-indigo-600" : "bg-indigo-500/60"
+                          isFirst ? "bg-primary" : "bg-primary/60"
                         )}
                         style={{ width: barWidth + "%" }}
                       >
@@ -899,7 +899,7 @@ function FunnelsTab(): React.ReactElement {
               <span className="text-[var(--color-text-secondary)] text-xs">Mobile</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-2 bg-indigo-500 rounded-sm"></div>
+              <div className="w-3 h-2 bg-primary rounded-sm"></div>
               <span className="text-[var(--color-text-secondary)] text-xs">Desktop</span>
             </div>
           </div>
@@ -927,7 +927,7 @@ function FunnelsTab(): React.ReactElement {
                       <span className="text-[var(--color-text-muted)] text-xs w-12">Desktop</span>
                       <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                         <div
-                          className="bg-indigo-500 h-2 rounded-full"
+                          className="bg-primary h-2 rounded-full"
                           style={{ width: desktop + "%" }}
                         ></div>
                       </div>
@@ -962,7 +962,7 @@ function FunnelsTab(): React.ReactElement {
                 <span className="text-[var(--color-text-secondary)] text-xs">{point.rate}%</span>
                 <div className="w-full flex items-end" style={{ height: "80px" }}>
                   <div
-                    className="w-full bg-indigo-500 hover:bg-indigo-400 rounded-t-md transition-colors"
+                    className="w-full bg-primary hover:bg-primary rounded-t-md transition-colors"
                     style={{ height: barH + "px" }}
                   ></div>
                 </div>
@@ -1202,7 +1202,7 @@ export default function SessionReplayViewer() {
             <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm px-4 py-2 rounded-lg transition-colors border border-[var(--color-border)]">
               Date Range
             </button>
-            <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-4 py-2 rounded-lg transition-colors font-medium">
+            <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm px-4 py-2 rounded-lg transition-colors font-medium">
               Export Data
             </button>
           </div>
@@ -1232,7 +1232,7 @@ export default function SessionReplayViewer() {
             className={cn(
               "px-6 py-2 rounded-lg text-sm font-medium transition-colors",
               activeTab === tab
-                ? "bg-indigo-600 text-[var(--color-text-primary)] shadow"
+                ? "bg-primary text-[var(--color-text-primary)] shadow"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >

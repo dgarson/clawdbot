@@ -206,7 +206,7 @@ function severityColor(s: RuleSeverity) {
 }
 function typeBadge(t: RuleType) {
   const colors: Record<RuleType, string> = {
-    threshold: "bg-indigo-500/10 text-indigo-400",
+    threshold: "bg-primary/10 text-primary",
     anomaly: "bg-purple-500/10 text-purple-400",
     trend: "bg-blue-500/10 text-blue-400",
     composite: "bg-orange-500/10 text-orange-400",
@@ -375,7 +375,7 @@ export default function ObservabilityRulesEngine() {
           </div>
           <div className="flex gap-2">
             <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg transition-colors">Import Rules</button>
-            <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors">+ New Rule</button>
+            <button className="px-3 py-1.5 text-sm bg-primary hover:bg-primary rounded-lg transition-colors">+ New Rule</button>
           </div>
         </div>
 
@@ -398,7 +398,7 @@ export default function ObservabilityRulesEngine() {
             <button
               key={item.id}
               onClick={() => { setTab(item.id as typeof tab); setSelectedRule(null); }}
-              className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === item.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+              className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === item.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
             >
               {item.label}
             </button>

@@ -164,7 +164,7 @@ export default function InvoiceManager() {
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Invoice Manager</h1>
           <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Manage invoices, track revenue, configure billing</p>
         </div>
-        <button className="text-sm px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors">
+        <button className="text-sm px-4 py-2 bg-primary text-[var(--color-text-primary)] rounded hover:bg-primary transition-colors">
           + New Invoice
         </button>
       </div>
@@ -175,7 +175,7 @@ export default function InvoiceManager() {
           { label: "Total Paid",     value: fmt(totals.paid),    sub: `${INVOICES.filter(i=>i.status==="paid").length} invoices`,    color: "text-emerald-400" },
           { label: "Pending",        value: fmt(totals.pending), sub: `${INVOICES.filter(i=>i.status==="pending").length} invoices`, color: "text-amber-400"  },
           { label: "Overdue",        value: fmt(totals.overdue), sub: `${INVOICES.filter(i=>i.status==="overdue").length} invoices`, color: "text-rose-400"   },
-          { label: "Total (Feb 26)", value: fmt(INVOICES.filter(i=>i.issueDate.startsWith("2026-02")).reduce((s,i)=>s+i.amount,0)), sub: "this month", color: "text-indigo-400" },
+          { label: "Total (Feb 26)", value: fmt(INVOICES.filter(i=>i.issueDate.startsWith("2026-02")).reduce((s,i)=>s+i.amount,0)), sub: "this month", color: "text-primary" },
         ].map(card => (
           <div key={card.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
             <div className="text-xs text-[var(--color-text-secondary)] mb-1">{card.label}</div>
@@ -194,7 +194,7 @@ export default function InvoiceManager() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
@@ -213,7 +213,7 @@ export default function InvoiceManager() {
               placeholder="Search customer or invoice #..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-64 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+              className="w-64 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary"
             />
             <div className="flex gap-1">
               {["all","paid","pending","overdue","draft","void"].map(s => (
@@ -223,7 +223,7 @@ export default function InvoiceManager() {
                   className={cn(
                     "text-xs px-3 py-1.5 rounded border capitalize transition-colors",
                     filterStatus === s
-                      ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300"
+                      ? "bg-primary/20 border-primary/50 text-indigo-300"
                       : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
@@ -278,7 +278,7 @@ export default function InvoiceManager() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openDetail(inv)}
-                          className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                          className="text-xs text-primary hover:text-indigo-300 transition-colors"
                         >View</button>
                         {inv.status === "draft" && (
                           <button className="text-xs text-emerald-400 hover:text-emerald-300">Send</button>
@@ -379,7 +379,7 @@ export default function InvoiceManager() {
 
               <div className="flex gap-3 mt-5">
                 {selectedInvoice.status === "draft" && (
-                  <button className="px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded hover:bg-indigo-600">Send Invoice</button>
+                  <button className="px-4 py-2 bg-primary text-[var(--color-text-primary)] text-sm rounded hover:bg-primary">Send Invoice</button>
                 )}
                 {selectedInvoice.status === "pending" && (
                   <button className="px-4 py-2 bg-amber-500/20 border border-amber-500/30 text-amber-300 text-sm rounded hover:bg-amber-500/30">Send Reminder</button>
@@ -414,7 +414,7 @@ export default function InvoiceManager() {
                     <div className="text-xs text-[var(--color-text-secondary)]">{fmt(m.rev).replace("$","$").replace(".00","")}</div>
                     <div className="w-full flex items-end justify-center" style={{ height: "80px" }}>
                       <div
-                        className={cn("w-full rounded-t", m.month.includes("26") ? "bg-indigo-500" : "bg-[var(--color-surface-3)]")}
+                        className={cn("w-full rounded-t", m.month.includes("26") ? "bg-primary" : "bg-[var(--color-surface-3)]")}
                         style={{ height: `${pct}%` }}
                       />
                     </div>
@@ -470,12 +470,12 @@ export default function InvoiceManager() {
               <input
                 type={field.type}
                 defaultValue={field.value}
-                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none focus:border-primary"
               />
             </div>
           ))}
           <div className="pt-2">
-            <button className="px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded hover:bg-indigo-600 transition-colors">
+            <button className="px-4 py-2 bg-primary text-[var(--color-text-primary)] text-sm rounded hover:bg-primary transition-colors">
               Save Settings
             </button>
           </div>

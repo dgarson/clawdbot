@@ -369,7 +369,7 @@ function AlertCard({ alert, selected, onSelect }: AlertCardProps) {
         "w-full text-left rounded-xl border p-4 transition-all",
         "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
         selected
-          ? "border-indigo-500 bg-indigo-950/30"
+          ? "border-primary bg-indigo-950/30"
           : isFiring
           ? "border-rose-500/30 bg-surface-1 hover:border-rose-500/50"
           : "border-tok-border bg-surface-1 hover:border-tok-border"
@@ -436,9 +436,9 @@ function AlertCenterSkeleton() {
       </div>
 
       {/* Alert list + detail */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden gap-5">
         {/* List */}
-        <div className="w-80 shrink-0 flex flex-col border-r border-tok-border overflow-hidden">
+        <div className="w-96 xl:w-[30rem] shrink-0 flex flex-col border-r border-tok-border overflow-hidden">
           {/* Filters */}
           <div className="p-3 border-b border-tok-border space-y-2">
             <div className="flex flex-wrap gap-1">
@@ -472,7 +472,7 @@ function AlertCenterSkeleton() {
         </div>
 
         {/* Detail panel */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto pl-1 pr-6 py-6">
           <div className="space-y-5 max-w-2xl">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -852,7 +852,7 @@ export default function AlertCenter({
                     "rounded-xl border px-3 py-1.5 text-center transition-colors min-w-20",
                     "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                     metric.surface,
-                    statusFilter === metric.value ? "ring-1 ring-indigo-500/70 bg-indigo-500/10" : "hover:bg-surface-2/50"
+                    statusFilter === metric.value ? "ring-1 ring-indigo-500/70 bg-primary/10" : "hover:bg-surface-2/50"
                   )}
                 >
                   <p className={cn("text-lg font-bold font-mono leading-tight", metric.color)}>{metric.count}</p>
@@ -882,8 +882,8 @@ export default function AlertCenter({
         </div>
 
         {tab === "alerts" ? (
-          <div className="flex flex-1 overflow-hidden">
-            <div className="w-64 sm:w-72 md:w-80 shrink-0 flex flex-col border-r border-tok-border overflow-hidden">
+          <div className="flex flex-1 overflow-hidden gap-5">
+            <div className="w-80 md:w-96 xl:w-[30rem] shrink-0 flex flex-col border-r border-tok-border overflow-hidden">
               <div className="p-3 border-b border-tok-border space-y-2">
                 <AlertFilterPillGroup
                   label="State"
@@ -936,7 +936,7 @@ export default function AlertCenter({
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 lg:pl-2">
               {selectedAlert ? (
                 <div className="space-y-5 max-w-2xl">
                   <div>
@@ -1074,13 +1074,13 @@ export default function AlertCenter({
           <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
             <div className="space-y-3">
               {originAlertId && (
-                <section className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-3">
+                <section className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-xs text-indigo-200">Viewing rule context from alert details</p>
                     <button
                       type="button"
                       onClick={handleBackToAlert}
-                      className="inline-flex items-center gap-1 rounded-md border border-indigo-400/40 bg-indigo-500/20 px-2.5 py-1 text-xs text-indigo-100 hover:bg-indigo-500/30 transition-colors"
+                      className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/20 px-2.5 py-1 text-xs text-indigo-100 hover:bg-primary/30 transition-colors"
                     >
                       <ExternalLink className="size-3.5 rotate-180" />
                       Back to Alert
@@ -1099,7 +1099,7 @@ export default function AlertCenter({
                   <button
                     onClick={handleNewRule}
                     className={cn(
-                      "text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-fg-primary transition-colors",
+                      "text-xs px-3 py-1.5 rounded-lg bg-primary hover:bg-primary text-fg-primary transition-colors",
                       "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
                     )}
                   >
@@ -1172,7 +1172,7 @@ export default function AlertCenter({
                           <AlertRuleCard
                             id={`rule-${rule.id}`}
                             key={rule.id}
-                            className={cn(focusedRuleId === rule.id && "ring-1 ring-indigo-500/60 bg-indigo-500/10")}
+                            className={cn(focusedRuleId === rule.id && "ring-1 ring-indigo-500/60 bg-primary/10")}
                             onClick={() => {
                               setShowRuleSlideout(true);
                               setFocusedRuleId(rule.id);
@@ -1204,7 +1204,7 @@ export default function AlertCenter({
                                 className={cn(
                                   "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors mt-0.5",
                                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                                  rule.enabled ? "bg-indigo-600" : "bg-surface-3"
+                                  rule.enabled ? "bg-primary" : "bg-surface-3"
                                 )}
                               >
                                 <span
@@ -1239,7 +1239,7 @@ export default function AlertCenter({
                                     event.stopPropagation();
                                     openDiagnosticsView(rule.diagnosticsView);
                                   }}
-                                  className="inline-flex items-center gap-1.5 rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-xs text-indigo-300 hover:bg-indigo-500/20 transition-colors"
+                                  className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs text-indigo-300 hover:bg-primary/20 transition-colors"
                                 >
                                   <ExternalLink className="size-3.5" />
                                   {DIAGNOSTICS_LABELS[rule.diagnosticsView]}

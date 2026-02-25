@@ -386,9 +386,9 @@ Xavier approves all new principal agents.`,
 const TYPE_CONFIG: Record<DocType, { label: string; emoji: string; color: string }> = {
   note:      { label: "Note",      emoji: "📝", color: "text-[var(--color-text-secondary)]" },
   guide:     { label: "Guide",     emoji: "📖", color: "text-emerald-400" },
-  reference: { label: "Reference", emoji: "📋", color: "text-indigo-400" },
+  reference: { label: "Reference", emoji: "📋", color: "text-primary" },
   runbook:   { label: "Runbook",   emoji: "⚙️", color: "text-amber-400" },
-  decision:  { label: "Decision",  emoji: "⚖️", color: "text-violet-400" },
+  decision:  { label: "Decision",  emoji: "⚖️", color: "text-primary" },
   spec:      { label: "Spec",      emoji: "📐", color: "text-cyan-400" },
 };
 
@@ -597,9 +597,9 @@ export default function KnowledgeBase() {
           <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
             <span><span className="text-[var(--color-text-primary)] font-semibold">{stats.total}</span> docs</span>
             <span><span className="text-emerald-400 font-semibold">{stats.published}</span> published</span>
-            <span><span className="text-indigo-400 font-semibold">{stats.totalViews}</span> total views</span>
+            <span><span className="text-primary font-semibold">{stats.totalViews}</span> total views</span>
             <span><span className="text-[var(--color-text-secondary)] font-semibold">{(stats.totalWords / 1000).toFixed(1)}K</span> words</span>
-            <button aria-label="Create new document" className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors font-medium">
+            <button aria-label="Create new document" className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-[var(--color-text-primary)] hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors font-medium">
               <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" d="M7 2v10M2 7h10" /></svg>
               New Doc
             </button>

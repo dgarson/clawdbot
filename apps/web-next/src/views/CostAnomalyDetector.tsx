@@ -168,12 +168,12 @@ const Tabs = ({ active, onChange, items }: { active: string; onChange: (id: stri
         onClick={() => onChange(item.id)}
         className={cn(
           "px-4 py-2 text-sm font-medium transition-colors relative",
-          active === item.id ? "text-indigo-400" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+          active === item.id ? "text-primary" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
         )}
       >
         {item.label}
         {active === item.id && (
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500" aria-hidden="true" />
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" aria-hidden="true" />
         )}
       </button>
     ))}
@@ -184,7 +184,7 @@ const SeverityBadge = ({ level }: { level: Severity }) => {
   const styles = {
     critical: "bg-rose-950 text-rose-400 border-rose-900",
     high: "bg-amber-950 text-amber-400 border-amber-900",
-    medium: "bg-indigo-950 text-indigo-400 border-indigo-900",
+    medium: "bg-indigo-950 text-primary border-indigo-900",
   };
   return (
     <span className={cn("px-2 py-0.5 text-[10px] uppercase font-bold border rounded-full", styles[level])}>
@@ -209,7 +209,7 @@ const StatusBadge = ({ status }: { status: Status | ServiceStatus }) => {
   );
 };
 
-const Sparkline = ({ data, colorClass = "bg-indigo-500" }: { data: number[]; colorClass?: string }) => {
+const Sparkline = ({ data, colorClass = "bg-primary" }: { data: number[]; colorClass?: string }) => {
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
@@ -256,7 +256,7 @@ const OverviewView = () => {
                   <div 
                     className={cn(
                       "w-full max-w-[40px] rounded-t-md transition-all duration-300 relative",
-                      isAnomaly ? "bg-rose-500" : "bg-indigo-500/40 group-hover:bg-indigo-500/60"
+                      isAnomaly ? "bg-rose-500" : "bg-primary/40 group-hover:bg-primary/60"
                     )}
                     style={{ height: `${height}%` }}
                   >
@@ -352,17 +352,17 @@ const AnomaliesView = () => {
                           </div>
                         </div>
                         <div className="bg-[var(--color-surface-0)] p-4 rounded-lg border border-[var(--color-border)]">
-                          <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-4">Recommended Actions</h4>
+                          <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-4">Recommended Actions</h4>
                           <ul className="space-y-3">
                             {anom.recommendedActions.map((action, idx) => (
                               <li key={idx} className="flex gap-3 text-sm text-[var(--color-text-primary)]">
-                                <span className="text-indigo-500 font-bold">{idx + 1}.</span>
+                                <span className="text-primary font-bold">{idx + 1}.</span>
                                 {action}
                               </li>
                             ))}
                           </ul>
                           <div className="mt-6 flex gap-3">
-                            <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-xs font-bold rounded transition-colors">
+                            <button className="px-4 py-2 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-xs font-bold rounded transition-colors">
                               Take Action
                             </button>
                             <button className="px-4 py-2 border border-[var(--color-border)] hover:bg-[var(--color-surface-2)] text-[var(--color-text-primary)] text-xs font-bold rounded transition-colors">
@@ -524,7 +524,7 @@ export default function CostAnomalyDetector() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="p-1.5 bg-indigo-500 rounded-lg text-[var(--color-text-primary)]" aria-hidden="true">
+              <span className="p-1.5 bg-primary rounded-lg text-[var(--color-text-primary)]" aria-hidden="true">
                 💰
               </span>
               <h1 className="text-2xl font-bold tracking-tight">Cost Anomaly Detector</h1>

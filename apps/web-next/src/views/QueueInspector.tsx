@@ -479,7 +479,7 @@ function truncate(str: string, max: number): string {
 
 function QueueTypeBadge({ type }: { type: QueueType }) {
   const cls =
-    type === "fifo"     ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/30" :
+    type === "fifo"     ? "bg-primary/20 text-primary border-primary/30" :
     type === "priority" ? "bg-amber-400/20 text-amber-400 border-amber-400/30"   :
                           "bg-[var(--color-surface-3)]/60 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/50";
   return (
@@ -501,7 +501,7 @@ function TrajectoryBadge({ status }: { status: TrajectoryStatus }) {
   const cls =
     status === "delivered"  ? "bg-emerald-400/20 text-emerald-400 border-emerald-400/30" :
     status === "failed"     ? "bg-rose-400/20 text-rose-400 border-rose-400/30"          :
-    status === "processing" ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/30"    :
+    status === "processing" ? "bg-primary/20 text-primary border-primary/30"    :
                               "bg-[var(--color-surface-3)]/60 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/50";
   return (
     <span className={cn("px-1.5 py-0.5 text-xs rounded border capitalize", cls)}>
@@ -550,14 +550,14 @@ function DualBarChart({ data }: { data: MetricPoint[] }) {
   return (
     <div>
       <div className="flex gap-4 mb-2">
-        <div className="flex items-center gap-1.5"><div className="w-3 h-1.5 rounded bg-indigo-500" /><span className="text-xs text-[var(--color-text-secondary)]">Messages In</span></div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-1.5 rounded bg-primary" /><span className="text-xs text-[var(--color-text-secondary)]">Messages In</span></div>
         <div className="flex items-center gap-1.5"><div className="w-3 h-1.5 rounded bg-emerald-400" /><span className="text-xs text-[var(--color-text-secondary)]">Messages Out</span></div>
       </div>
       <div className="flex items-end gap-1 h-24">
         {data.map((d, i) => (
           <div key={i} className="flex-1 flex items-end gap-px">
             <div className="flex-1 flex flex-col justify-end">
-              <div className="bg-indigo-500 rounded-t-sm opacity-80" style={{ height: `${Math.round((d.messagesIn / maxVal) * 100)}%`, minHeight: "2px" }} />
+              <div className="bg-primary rounded-t-sm opacity-80" style={{ height: `${Math.round((d.messagesIn / maxVal) * 100)}%`, minHeight: "2px" }} />
             </div>
             <div className="flex-1 flex flex-col justify-end">
               <div className="bg-emerald-400 rounded-t-sm opacity-70" style={{ height: `${Math.round((d.messagesOut / maxVal) * 100)}%`, minHeight: "2px" }} />
@@ -631,7 +631,7 @@ function QueueBarChart({ queues }: { queues: Queue[] }) {
           <span className="text-xs text-[var(--color-text-secondary)] w-36 truncate shrink-0 font-mono">{q.name}</span>
           <div className="flex-1 h-4 bg-[var(--color-surface-2)] rounded overflow-hidden">
             <div
-              className="h-full bg-indigo-500 opacity-75 rounded"
+              className="h-full bg-primary opacity-75 rounded"
               style={{ width: `${Math.round((q.depth / max) * 100)}%`, minWidth: "2px" }}
             />
           </div>
@@ -647,7 +647,7 @@ function QueueBarChart({ queues }: { queues: Queue[] }) {
 function TrajectoryTimeline({ steps }: { steps: TrajectoryStep[] }) {
   const dotColor: Record<TrajectoryStatus, string> = {
     received:   "bg-[var(--color-surface-3)]",
-    processing: "bg-indigo-500",
+    processing: "bg-primary",
     delivered:  "bg-emerald-400",
     failed:     "bg-rose-400",
   };
@@ -689,7 +689,7 @@ function QueuesTab({ selectedQueueId, onSelectQueue }: { selectedQueueId: string
             className={cn(
               "w-full text-left px-3 py-2.5 rounded-lg border transition-colors",
               q.id === selectedQueueId
-                ? "bg-[var(--color-surface-2)] border-indigo-500/40"
+                ? "bg-[var(--color-surface-2)] border-primary/40"
                 : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/60"
             )}
           >
@@ -748,7 +748,7 @@ function QueuesTab({ selectedQueueId, onSelectQueue }: { selectedQueueId: string
         {/* Throughput Chart */}
         <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
           <SectionLabel>Throughput — last 12 intervals</SectionLabel>
-          <BarChart data={selectedQueue.throughputHistory} colorClass="bg-indigo-500 opacity-80 hover:opacity-100" />
+          <BarChart data={selectedQueue.throughputHistory} colorClass="bg-primary opacity-80 hover:opacity-100" />
           <div className="flex justify-between mt-2">
             <span className="text-xs text-[var(--color-text-muted)]">−11</span>
             <span className="text-xs text-[var(--color-text-muted)]">now</span>
@@ -834,7 +834,7 @@ function MessagesTab() {
           <select
             value={msgQueueFilter}
             onChange={(e) => setMsgQueueFilter(e.target.value)}
-            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-indigo-500"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:border-primary"
           >
             <option value="all">All Queues</option>
             {QUEUES.map((q) => (
@@ -846,7 +846,7 @@ function MessagesTab() {
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
             placeholder="Search message ID or body…"
-            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-primary"
           />
         </div>
 
@@ -869,12 +869,12 @@ function MessagesTab() {
                 className={cn(
                   "w-full text-left px-3 py-2.5 rounded-lg border transition-colors",
                   m.id === (selected?.id)
-                    ? "bg-[var(--color-surface-2)] border-indigo-500/40"
+                    ? "bg-[var(--color-surface-2)] border-primary/40"
                     : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/60"
                 )}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-mono text-indigo-400">{m.id}</span>
+                  <span className="text-xs font-mono text-primary">{m.id}</span>
                   <TrajectoryBadge status={m.trajectory[m.trajectory.length - 1].status} />
                 </div>
                 <div className="text-xs text-[var(--color-text-secondary)] truncate mb-1">{truncate(m.bodyPreview, 58)}</div>
@@ -1061,7 +1061,7 @@ function DeadLetterTab() {
           <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
             <SectionLabel>Actions</SectionLabel>
             <div className="flex gap-3">
-              <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm font-semibold py-2.5 rounded-lg transition-colors">
+              <button className="flex-1 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm font-semibold py-2.5 rounded-lg transition-colors">
                 Retry Message
               </button>
               <button className="flex-1 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-sm font-semibold py-2.5 rounded-lg transition-colors">
@@ -1096,7 +1096,7 @@ function MetricsTab() {
       {/* KPI Row */}
       <div className="grid grid-cols-4 gap-3">
         {[
-          { label: "Total In (12 intervals)",  value: String(totalIn),          sub: "messages",   color: "text-indigo-400" },
+          { label: "Total In (12 intervals)",  value: String(totalIn),          sub: "messages",   color: "text-primary" },
           { label: "Total Out",                value: String(totalOut),          sub: "messages",   color: "text-emerald-400" },
           { label: "Avg Error Rate",           value: avgError.toFixed(2) + "%", sub: "per interval", color: "text-rose-400" },
           { label: "Consumer Lag",             value: String(currentLag),        sub: "messages",   color: "text-amber-400" },
@@ -1218,7 +1218,7 @@ export default function QueueInspector() {
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg border-b-2 transition-colors",
               activeTab === tab.id
-                ? "text-[var(--color-text-primary)] border-indigo-500 bg-[var(--color-surface-1)]/60"
+                ? "text-[var(--color-text-primary)] border-primary bg-[var(--color-surface-1)]/60"
                 : "text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]/30"
             )}
           >
@@ -1227,7 +1227,7 @@ export default function QueueInspector() {
               <span className={cn(
                 "text-xs px-1.5 py-0.5 rounded font-mono",
                 activeTab === tab.id
-                  ? (tab.id === "deadletter" ? "bg-rose-500/30 text-rose-300" : "bg-indigo-500/30 text-indigo-300")
+                  ? (tab.id === "deadletter" ? "bg-rose-500/30 text-rose-300" : "bg-primary/30 text-indigo-300")
                   : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
               )}>
                 {tab.badge}

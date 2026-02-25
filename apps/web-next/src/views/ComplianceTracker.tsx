@@ -170,7 +170,7 @@ function severityText(s: RiskLevel): string {
 
 function certBadge(status: string): string {
   if (status === "Certified") {return "bg-emerald-400/15 text-emerald-400";}
-  if (status === "Compliant") {return "bg-indigo-400/15 text-indigo-400";}
+  if (status === "Compliant") {return "bg-primary/15 text-primary";}
   return "bg-amber-400/15 text-amber-400";
 }
 
@@ -197,9 +197,9 @@ function OverviewTab() {
         {/* Compliance score card */}
         <div className="lg:col-span-1 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)] p-5 flex flex-col items-center justify-center gap-2">
           <span className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-secondary)]">Compliance Score</span>
-          <span className="text-5xl font-extrabold text-indigo-400">78%</span>
+          <span className="text-5xl font-extrabold text-primary">78%</span>
           <div className="w-full h-2 rounded-full bg-[var(--color-surface-2)] mt-1">
-            <div className="h-full rounded-full bg-indigo-500" style={{ width: "78%" }} />
+            <div className="h-full rounded-full bg-primary" style={{ width: "78%" }} />
           </div>
         </div>
 
@@ -277,7 +277,7 @@ function ControlsTab() {
               onClick={() => setFilter(s)}
               className={cn(
                 "px-3 py-1 rounded-md text-xs font-medium transition-colors",
-                filter === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
+                filter === s ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
               )}
             >
               {s === "all" ? "All" : s === "not-started" ? "Not Started" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -292,7 +292,7 @@ function ControlsTab() {
               onClick={() => setFwFilter(fw)}
               className={cn(
                 "px-3 py-1 rounded-md text-xs font-medium transition-colors",
-                fwFilter === fw ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
+                fwFilter === fw ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
               )}
             >
               {fw === "all" ? "All" : fw}
@@ -321,7 +321,7 @@ function ControlsTab() {
                   onClick={() => setExpanded(expanded === c.id ? null : c.id)}
                   className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)]/40 cursor-pointer transition-colors"
                 >
-                  <td className="px-4 py-3 font-mono text-xs text-indigo-400">{c.id}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-primary">{c.id}</td>
                   <td className="px-4 py-3 text-[var(--color-text-primary)]">{c.name}</td>
                   <td className="px-4 py-3">
                     <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", statusBg(c.status))}>
@@ -438,7 +438,7 @@ function EvidenceTab() {
             onClick={() => setStatusFilter(s)}
             className={cn(
               "px-3 py-1 rounded-md text-xs font-medium transition-colors",
-              statusFilter === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
+              statusFilter === s ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
             )}
           >
             {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -466,7 +466,7 @@ function EvidenceTab() {
                 <td className="px-4 py-3 text-[var(--color-text-primary)]">{e.name}</td>
                 <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden sm:table-cell">{e.type}</td>
                 <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden md:table-cell">{e.framework}</td>
-                <td className="px-4 py-3 font-mono text-xs text-indigo-400 hidden md:table-cell">{e.control}</td>
+                <td className="px-4 py-3 font-mono text-xs text-primary hidden md:table-cell">{e.control}</td>
                 <td className="px-4 py-3 text-[var(--color-text-secondary)] hidden lg:table-cell">{e.uploadedBy}</td>
                 <td className="px-4 py-3 text-[var(--color-text-muted)] hidden lg:table-cell">{e.uploadDate}</td>
                 <td className="px-4 py-3">
@@ -522,7 +522,7 @@ export default function ComplianceTracker() {
           >
             {tab.label}
             {activeTab === tab.key && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t" />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t" />
             )}
           </button>
         ))}

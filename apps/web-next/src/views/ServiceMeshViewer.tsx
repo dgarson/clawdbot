@@ -195,7 +195,7 @@ const CERTIFICATES: Certificate[] = [
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const NS_COLORS: Record<Namespace, string> = {
-  frontend: "text-indigo-400 bg-indigo-500/10 border-indigo-500/30",
+  frontend: "text-primary bg-primary/10 border-primary/30",
   backend:  "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
   data:     "text-amber-400 bg-amber-500/10 border-amber-500/30",
   infra:    "text-[var(--color-text-primary)] bg-[var(--color-surface-2)] border-[var(--color-border)]",
@@ -279,9 +279,9 @@ function TopologyTab() {
                     key={svc.id}
                     onClick={() => handleSelect(svc.id)}
                     className={cn(
-                      "w-full text-left bg-[var(--color-surface-1)] rounded-lg border p-3 transition-colors hover:border-indigo-500/60",
+                      "w-full text-left bg-[var(--color-surface-1)] rounded-lg border p-3 transition-colors hover:border-primary/60",
                       selectedId === svc.id
-                        ? "border-indigo-500 ring-1 ring-indigo-500/40"
+                        ? "border-primary ring-1 ring-indigo-500/40"
                         : "border-[var(--color-border)]"
                     )}
                   >
@@ -316,7 +316,7 @@ function TopologyTab() {
       </div>
 
       {selectedService && (
-        <div className="bg-[var(--color-surface-1)] rounded-lg border border-indigo-500/40 p-4 space-y-4">
+        <div className="bg-[var(--color-surface-1)] rounded-lg border border-primary/40 p-4 space-y-4">
           <div className="flex items-center gap-3">
             <span className="text-base font-semibold text-[var(--color-text-primary)]">{selectedService.name}</span>
             <Badge label={selectedService.version} className="text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] border-[var(--color-border)]" />
@@ -404,7 +404,7 @@ function TrafficTab() {
   const namespaceOptions: Array<Namespace | "all"> = ["all", "frontend", "backend", "data", "infra"]
 
   const PROTO_COLORS: Record<Protocol, string> = {
-    HTTP:  "text-indigo-400 bg-indigo-500/10 border-indigo-500/30",
+    HTTP:  "text-primary bg-primary/10 border-primary/30",
     gRPC:  "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
     TCP:   "text-[var(--color-text-primary)] bg-[var(--color-surface-2)] border-[var(--color-border)]",
   }
@@ -426,7 +426,7 @@ function TrafficTab() {
             className={cn(
               "text-xs px-3 py-1.5 rounded-md border transition-colors",
               filterNs === ns
-                ? "bg-indigo-500 border-indigo-400 text-[var(--color-text-primary)]"
+                ? "bg-primary border-primary text-[var(--color-text-primary)]"
                 : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
             )}
           >
@@ -705,7 +705,7 @@ export default function ServiceMeshViewer() {
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 -mb-px transition-colors",
               activeTab === tab.id
-                ? "text-[var(--color-text-primary)] border-indigo-500 bg-[var(--color-surface-1)]"
+                ? "text-[var(--color-text-primary)] border-primary bg-[var(--color-surface-1)]"
                 : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]/50"
             )}
           >

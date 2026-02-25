@@ -61,7 +61,7 @@ interface Incident {
 }
 
 const PEOPLE: OnCallPerson[] = [
-  { id: "p1", name: "Alice Nguyen", email: "alice@company.com", timezone: "US/Pacific (UTC-8)", phone: "+1-555-0101", avatarInitials: "AN", avatarColor: "bg-indigo-600", team: "Platform", role: "Staff Engineer", alertChannels: ["phone", "sms", "pagerduty"], incidentsThisMonth: 7, avgResponseMin: 3.2, lastAck: "2h ago" },
+  { id: "p1", name: "Alice Nguyen", email: "alice@company.com", timezone: "US/Pacific (UTC-8)", phone: "+1-555-0101", avatarInitials: "AN", avatarColor: "bg-primary", team: "Platform", role: "Staff Engineer", alertChannels: ["phone", "sms", "pagerduty"], incidentsThisMonth: 7, avgResponseMin: 3.2, lastAck: "2h ago" },
   { id: "p2", name: "Bob Martinez", email: "bob@company.com", timezone: "US/Eastern (UTC-5)", phone: "+1-555-0102", avatarInitials: "BM", avatarColor: "bg-emerald-600", team: "Platform", role: "Senior Engineer", alertChannels: ["phone", "slack", "email"], incidentsThisMonth: 4, avgResponseMin: 7.8, lastAck: "1d ago" },
   { id: "p3", name: "Carol Kim", email: "carol@company.com", timezone: "Europe/London (UTC+0)", phone: "+44-20-0103", avatarInitials: "CK", avatarColor: "bg-purple-600", team: "Backend", role: "Principal Engineer", alertChannels: ["pagerduty", "sms"], incidentsThisMonth: 11, avgResponseMin: 2.1, lastAck: "4h ago" },
   { id: "p4", name: "Dave Patel", email: "dave@company.com", timezone: "Asia/Kolkata (UTC+5:30)", phone: "+91-98-0104", avatarInitials: "DP", avatarColor: "bg-amber-600", team: "Data", role: "Data Engineer", alertChannels: ["phone", "slack"], incidentsThisMonth: 2, avgResponseMin: 9.4, lastAck: "3d ago" },
@@ -118,7 +118,7 @@ const escalationLabel: Record<EscalationPolicy, string> = {
 
 const shiftStatusBadge: Record<ShiftStatus, string> = {
   active:   "bg-emerald-500/15 border-emerald-500/30 text-emerald-400",
-  upcoming: "bg-indigo-500/10 border-indigo-500/20 text-indigo-400",
+  upcoming: "bg-primary/10 border-primary/20 text-primary",
   past:     "bg-[var(--color-surface-3)]/40 border-[var(--color-surface-3)] text-[var(--color-text-muted)]",
 };
 
@@ -141,7 +141,7 @@ export default function OnCallRotationManager() {
             <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">On-Call Rotation Manager</h1>
             <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{ROTATIONS.length} rotations · {PEOPLE.length} on-call engineers</p>
           </div>
-          <button className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium transition-colors">+ New Rotation</button>
+          <button className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary text-xs font-medium transition-colors">+ New Rotation</button>
         </div>
         {/* Stats */}
         <div className="flex gap-4 mt-3">
@@ -149,7 +149,7 @@ export default function OnCallRotationManager() {
             { label: "Active Incidents", value: activeIncidents.length, color: activeIncidents.length > 0 ? "text-rose-400" : "text-emerald-400", pulse: activeIncidents.length > 0 },
             { label: "Alerts This Month", value: totalAlerts, color: "text-[var(--color-text-primary)]", pulse: false },
             { label: "Avg MTTR", value: `${Math.round(ROTATIONS.reduce((s, r) => s + r.mttrMin, 0) / ROTATIONS.length)}m`, color: "text-[var(--color-text-primary)]", pulse: false },
-            { label: "On-Call Now", value: ROTATIONS.length, color: "text-indigo-400", pulse: false },
+            { label: "On-Call Now", value: ROTATIONS.length, color: "text-primary", pulse: false },
           ].map(s => (
             <div key={s.label} className="flex items-center gap-2">
               {s.pulse && <div className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />}
@@ -234,8 +234,8 @@ export default function OnCallRotationManager() {
                     </div>
                     {/* Current on-call */}
                     {current && (
-                      <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-4">
-                        <div className="text-xs text-indigo-400 font-medium mb-2">Currently On-Call</div>
+                      <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
+                        <div className="text-xs text-primary font-medium mb-2">Currently On-Call</div>
                         <div className="flex items-center gap-3">
                           <div className={cn("w-10 h-10 rounded-full flex items-center justify-center font-bold", current.avatarColor)}>{current.avatarInitials}</div>
                           <div>

@@ -112,7 +112,7 @@ const WORKFLOWS: Workflow[] = [
 const NODE_CONFIG: Record<NodeKind, { emoji: string; color: string; bg: string; border: string; label: string }> = {
   trigger: { emoji: "⚡", color: "text-amber-400", bg: "bg-amber-900/30", border: "border-amber-600/50", label: "Trigger" },
   condition: { emoji: "🔀", color: "text-blue-400", bg: "bg-blue-900/30", border: "border-blue-600/50", label: "Condition" },
-  action: { emoji: "⚙️", color: "text-indigo-400", bg: "bg-indigo-900/30", border: "border-indigo-600/50", label: "Action" },
+  action: { emoji: "⚙️", color: "text-primary", bg: "bg-indigo-900/30", border: "border-primary/50", label: "Action" },
   delay: { emoji: "⏱️", color: "text-purple-400", bg: "bg-purple-900/30", border: "border-purple-600/50", label: "Delay" },
   notify: { emoji: "🔔", color: "text-emerald-400", bg: "bg-emerald-900/30", border: "border-emerald-600/50", label: "Notify" },
   branch: { emoji: "🌿", color: "text-teal-400", bg: "bg-teal-900/30", border: "border-teal-600/50", label: "Branch" },
@@ -158,7 +158,7 @@ export default function WorkflowBuilder() {
           </div>
           <button
             onClick={() => setIsAddingNode(!isAddingNode)}
-            className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-4 py-2 rounded-lg text-sm font-medium"
+            className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-4 py-2 rounded-lg text-sm font-medium"
           >
             + New Workflow
           </button>
@@ -169,7 +169,7 @@ export default function WorkflowBuilder() {
           {[
             { label: "Total Workflows", value: WORKFLOWS.length, color: "text-[var(--color-text-primary)]" },
             { label: "Active", value: activeWfs, color: "text-emerald-400" },
-            { label: "Total Runs", value: totalRuns, color: "text-indigo-400" },
+            { label: "Total Runs", value: totalRuns, color: "text-primary" },
             { label: "Success Rate", value: `${Math.round((successRuns / totalRuns) * 100)}%`, color: "text-emerald-400" },
           ].map((s) => (
             <div key={s.label} className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
@@ -198,7 +198,7 @@ export default function WorkflowBuilder() {
                   className={cn(
                     "w-full text-left p-3 rounded-lg border transition-all",
                     isSelected
-                      ? "bg-indigo-900/30 border-indigo-600/60"
+                      ? "bg-indigo-900/30 border-primary/60"
                       : "bg-[var(--color-surface-1)]/50 border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
@@ -269,7 +269,7 @@ export default function WorkflowBuilder() {
                   onClick={() => setActiveTab(tab)}
                   className={cn(
                     "px-3 py-1.5 rounded text-sm capitalize",
-                    activeTab === tab ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                    activeTab === tab ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {tab}
@@ -473,7 +473,7 @@ export default function WorkflowBuilder() {
                       </select>
                     </div>
                     <div className="flex gap-2 pt-2">
-                      <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-4 py-2 rounded text-sm">Save Changes</button>
+                      <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-4 py-2 rounded text-sm">Save Changes</button>
                       <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-4 py-2 rounded text-sm">Cancel</button>
                     </div>
                   </div>
@@ -541,7 +541,7 @@ export default function WorkflowBuilder() {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-3 border-t border-[var(--color-border)]">
-                  <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] py-1.5 rounded text-xs">Save</button>
+                  <button className="flex-1 bg-primary hover:bg-primary text-[var(--color-text-primary)] py-1.5 rounded text-xs">Save</button>
                   <button className="flex-1 bg-rose-900/40 hover:bg-rose-900/60 text-rose-400 border border-rose-700/50 py-1.5 rounded text-xs">Delete</button>
                 </div>
               </div>

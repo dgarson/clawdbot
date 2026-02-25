@@ -121,7 +121,7 @@ function UsageBar({ value, className }: { value: number; className?: string }) {
 function QuotaBar({ used, limit, unit }: { used: number; limit: number; unit: string }) {
   const pct = limit > 0 ? Math.round((used / limit) * 100) : 0;
   const barColor =
-    pct >= 85 ? "bg-rose-400" : pct >= 65 ? "bg-amber-400" : "bg-indigo-500";
+    pct >= 85 ? "bg-rose-400" : pct >= 65 ? "bg-amber-400" : "bg-primary";
   return (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between text-xs text-[var(--color-text-secondary)]">
@@ -171,7 +171,7 @@ function EventTypeBadge({ type }: { type: "Normal" | "Warning" }) {
         "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
         type === "Warning"
           ? "bg-amber-400/15 text-amber-400"
-          : "bg-indigo-500/15 text-indigo-400"
+          : "bg-primary/15 text-primary"
       )}
     >
       {type === "Warning" ? "⚠" : "●"} {type}
@@ -209,7 +209,7 @@ function NodesPanel() {
                   className={cn(
                     "text-xs rounded px-2 py-0.5",
                     n.role === "control-plane"
-                      ? "bg-indigo-500/15 text-indigo-400"
+                      ? "bg-primary/15 text-primary"
                       : "bg-[var(--color-surface-3)]/50 text-[var(--color-text-primary)]"
                   )}
                 >
@@ -336,7 +336,7 @@ function EventsPanel() {
             <div className="flex items-center gap-3">
               <EventTypeBadge type={e.type} />
               <span className="text-xs font-medium text-[var(--color-text-primary)]">{e.reason}</span>
-              <span className="text-xs font-mono text-indigo-400">{e.object}</span>
+              <span className="text-xs font-mono text-primary">{e.object}</span>
             </div>
             <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap">{e.age}</span>
           </div>

@@ -144,7 +144,7 @@ function makeResults(query: string): SearchResult[] {
 }
 
 const KIND_CONFIG: Record<ResultKind, { emoji: string; label: string; color: string; bg: string; border: string }> = {
-  agent: { emoji: "🤖", label: "Agent", color: "text-indigo-400", bg: "bg-indigo-900/20", border: "border-indigo-700/50" },
+  agent: { emoji: "🤖", label: "Agent", color: "text-primary", bg: "bg-indigo-900/20", border: "border-indigo-700/50" },
   session: { emoji: "💬", label: "Session", color: "text-blue-400", bg: "bg-blue-900/20", border: "border-blue-700/50" },
   file: { emoji: "📄", label: "File", color: "text-[var(--color-text-primary)]", bg: "bg-[var(--color-surface-2)]/50", border: "border-[var(--color-border)]" },
   commit: { emoji: "🔀", label: "Commit", color: "text-emerald-400", bg: "bg-emerald-900/20", border: "border-emerald-700/50" },
@@ -203,7 +203,7 @@ export default function SearchResultsView() {
     const parts = text.split(regex);
     return parts.map((part, i) =>
       phrases.some((p) => p.toLowerCase() === part.toLowerCase())
-        ? <mark key={i} className="bg-indigo-500/20 text-indigo-300 rounded px-0.5">{part}</mark>
+        ? <mark key={i} className="bg-primary/20 text-indigo-300 rounded px-0.5">{part}</mark>
         : part
     );
   }
@@ -236,7 +236,7 @@ export default function SearchResultsView() {
           </div>
           <button
             onClick={handleSearch}
-            className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-4 py-2.5 rounded-xl text-sm font-medium"
+            className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-4 py-2.5 rounded-xl text-sm font-medium"
           >
             Search
           </button>
@@ -251,7 +251,7 @@ export default function SearchResultsView() {
                 onClick={() => setSortBy(s)}
                 className={cn(
                   "px-2.5 py-1 rounded text-xs capitalize",
-                  sortBy === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  sortBy === s ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 Sort: {s}
@@ -266,7 +266,7 @@ export default function SearchResultsView() {
                 onClick={() => setFilterRelevance(r)}
                 className={cn(
                   "px-2.5 py-1 rounded text-xs capitalize",
-                  filterRelevance === r ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  filterRelevance === r ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {r === "all" ? "All relevance" : r}
@@ -346,7 +346,7 @@ export default function SearchResultsView() {
                   onClick={() => setSelectedResult(isSelected ? null : result)}
                   className={cn(
                     "w-full text-left p-4 rounded-xl border transition-all",
-                    isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
+                    isSelected ? "bg-indigo-900/20 border-primary/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
                   <div className="flex items-start gap-3">
@@ -386,7 +386,7 @@ export default function SearchResultsView() {
                         <a
                           href={result.url}
                           onClick={(e) => e.preventDefault()}
-                          className="text-xs text-indigo-400 bg-indigo-900/20 border border-indigo-700/50 px-2 py-1 rounded"
+                          className="text-xs text-primary bg-indigo-900/20 border border-indigo-700/50 px-2 py-1 rounded"
                         >
                           Open →
                         </a>

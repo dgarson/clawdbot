@@ -167,7 +167,7 @@ export default function SlackIntegrationManager() {
             onClick={() => setActiveTab(tab)}
             className={cn(
               "px-5 py-2.5 text-sm font-medium transition-colors border-b-2 capitalize",
-              activeTab === tab ? "border-indigo-500 text-indigo-300" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              activeTab === tab ? "border-primary text-indigo-300" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {tab === "channels" ? `📢 Channels (${channels.length})` :
@@ -190,7 +190,7 @@ export default function SlackIntegrationManager() {
                     onClick={() => setFilterType(f)}
                     className={cn(
                       "text-xs px-3 py-1 rounded border transition-colors capitalize",
-                      filterType === f ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]"
+                      filterType === f ? "bg-primary/20 border-primary text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]"
                     )}
                   >
                     {f}
@@ -214,7 +214,7 @@ export default function SlackIntegrationManager() {
                     <tr
                       key={ch.id}
                       onClick={() => setSelectedChannelId(selectedChannelId === ch.id ? null : ch.id)}
-                      className={cn("cursor-pointer hover:bg-[var(--color-surface-1)] transition-colors", selectedChannelId === ch.id && "bg-indigo-500/5")}
+                      className={cn("cursor-pointer hover:bg-[var(--color-surface-1)] transition-colors", selectedChannelId === ch.id && "bg-primary/5")}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -263,8 +263,8 @@ export default function SlackIntegrationManager() {
                 <div className="text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Event Notifications</div>
                 <div className="space-y-1.5">
                   {EVENT_TYPES.map(ev => (
-                    <div key={ev} onClick={() => toggleEventNotification(selectedChannel.id, ev)} className={cn("flex items-center gap-2 px-2 py-1.5 rounded border cursor-pointer transition-colors", selectedChannel.notifyOnEvents.includes(ev) ? "bg-indigo-500/10 border-indigo-500/30" : "border-[var(--color-border)] hover:bg-[var(--color-surface-2)]")}>
-                      <div className={cn("w-3 h-3 rounded border flex items-center justify-center text-[8px]", selectedChannel.notifyOnEvents.includes(ev) ? "bg-indigo-500 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-surface-3)]")}>
+                    <div key={ev} onClick={() => toggleEventNotification(selectedChannel.id, ev)} className={cn("flex items-center gap-2 px-2 py-1.5 rounded border cursor-pointer transition-colors", selectedChannel.notifyOnEvents.includes(ev) ? "bg-primary/10 border-primary/30" : "border-[var(--color-border)] hover:bg-[var(--color-surface-2)]")}>
+                      <div className={cn("w-3 h-3 rounded border flex items-center justify-center text-[8px]", selectedChannel.notifyOnEvents.includes(ev) ? "bg-primary border-primary text-[var(--color-text-primary)]" : "border-[var(--color-surface-3)]")}>
                         {selectedChannel.notifyOnEvents.includes(ev) && "✓"}
                       </div>
                       <span className="text-[10px] font-mono text-[var(--color-text-secondary)]">{ev}</span>
@@ -284,7 +284,7 @@ export default function SlackIntegrationManager() {
                   <div
                     key={wh.id}
                     onClick={() => setSelectedWebhookId(selectedWebhookId === wh.id ? null : wh.id)}
-                    className={cn("p-4 cursor-pointer hover:bg-[var(--color-surface-1)] transition-colors", selectedWebhookId === wh.id && "bg-indigo-500/5")}
+                    className={cn("p-4 cursor-pointer hover:bg-[var(--color-surface-1)] transition-colors", selectedWebhookId === wh.id && "bg-primary/5")}
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
@@ -322,11 +322,11 @@ export default function SlackIntegrationManager() {
               <div className="bg-[var(--color-surface-1)] rounded border border-[var(--color-border)] divide-y divide-[var(--color-border)]">
                 {BOT_SCOPES.map(sc => (
                   <div key={sc.scope} className="flex items-center gap-4 px-4 py-3">
-                    <div className={cn("w-2 h-2 rounded-full flex-shrink-0", sc.required ? "bg-indigo-500" : "bg-[var(--color-surface-3)]")} />
+                    <div className={cn("w-2 h-2 rounded-full flex-shrink-0", sc.required ? "bg-primary" : "bg-[var(--color-surface-3)]")} />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <code className="text-xs font-mono text-[var(--color-text-primary)]">{sc.scope}</code>
-                        {sc.required && <span className="text-[9px] text-indigo-400 border border-indigo-400/30 px-1 rounded">required</span>}
+                        {sc.required && <span className="text-[9px] text-primary border border-primary/30 px-1 rounded">required</span>}
                       </div>
                       <div className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{sc.description}</div>
                     </div>

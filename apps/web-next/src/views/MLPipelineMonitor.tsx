@@ -249,7 +249,7 @@ export default function MLPipelineMonitor() {
             onClick={() => setTab(t.id)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              tab === t.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             <span>{t.emoji}</span>
@@ -378,7 +378,7 @@ export default function MLPipelineMonitor() {
                     {selectedPipeline.status === "running" ? (
                       <button className="px-3 py-1.5 text-xs bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 rounded text-amber-400 transition-colors">Stop Run</button>
                     ) : (
-                      <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Trigger Run</button>
+                      <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">Trigger Run</button>
                     )}
                     {["View Logs", "Edit Config", "Clone Pipeline"].map(action => (
                       <button key={action} className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">{action}</button>
@@ -525,7 +525,7 @@ export default function MLPipelineMonitor() {
                           <span className="text-xs text-[var(--color-text-secondary)] w-28 font-mono shrink-0">{key}</span>
                           <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-1.5 overflow-hidden">
                             <div
-                              className="h-full bg-indigo-500 rounded-full"
+                              className="h-full bg-primary rounded-full"
                               style={{ width: `${Math.min(value, 1) * 100}%` }}
                             />
                           </div>
@@ -619,7 +619,7 @@ export default function MLPipelineMonitor() {
                         </div>
                         <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-indigo-500 rounded-full transition-all"
+                            className="h-full bg-primary rounded-full transition-all"
                             style={{ width: `${node.memUtil}%` }}
                           />
                         </div>
@@ -634,7 +634,7 @@ export default function MLPipelineMonitor() {
                       </div>
                       <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-indigo-500 rounded-full transition-all"
+                          className="h-full bg-primary rounded-full transition-all"
                           style={{ width: `${node.memUtil}%` }}
                         />
                       </div>

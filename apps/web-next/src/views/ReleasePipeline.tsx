@@ -145,7 +145,7 @@ const ENV_COLORS: Record<Environment, string> = {
 
 const RELEASE_STATUS_COLORS: Record<ReleaseStatus, string> = {
   draft: "text-[var(--color-text-muted)] bg-[var(--color-surface-2)]",
-  deploying: "text-indigo-400 bg-indigo-400/10",
+  deploying: "text-primary bg-primary/10",
   live: "text-emerald-400 bg-emerald-400/10",
   "rolled-back": "text-rose-400 bg-rose-400/10",
   failed: "text-rose-400 bg-rose-400/10",
@@ -196,7 +196,7 @@ export default function ReleasePipeline() {
                   <div className="flex items-center gap-2 mb-2">
                     <span className={cn("w-2 h-2 rounded-full", 
                       release.status === 'live' ? 'bg-emerald-400' : 
-                      release.status === 'deploying' ? 'bg-indigo-400 animate-pulse' : 
+                      release.status === 'deploying' ? 'bg-primary animate-pulse' : 
                       'bg-[var(--color-surface-3)]'
                     )} />
                     <span className="text-xs text-[var(--color-text-secondary)] capitalize">{release.status.replace("-", " ")}</span>
@@ -241,7 +241,7 @@ export default function ReleasePipeline() {
                 </button>
               )}
               {selectedRelease.environment === "staging" && (
-                <button className="px-4 py-2 bg-indigo-600 text-[var(--color-text-primary)] rounded text-sm font-bold hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-all">
+                <button className="px-4 py-2 bg-primary text-[var(--color-text-primary)] rounded text-sm font-bold hover:bg-primary focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none transition-all">
                   Promote to Prod
                 </button>
               )}
@@ -256,7 +256,7 @@ export default function ReleasePipeline() {
           <div className="grid grid-cols-4 gap-8 text-sm">
             <div>
               <span className="block text-[var(--color-text-muted)] mb-1">Branch</span>
-              <span className="font-mono text-indigo-400">{selectedRelease.branch}</span>
+              <span className="font-mono text-primary">{selectedRelease.branch}</span>
             </div>
             <div>
               <span className="block text-[var(--color-text-muted)] mb-1">Commit</span>
@@ -290,7 +290,7 @@ export default function ReleasePipeline() {
                     aria-label={`Stage: ${stage.name}, status: ${stage.status}`}
                     className={cn(
                       "w-full p-4 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-left transition-all hover:border-[var(--color-border)] focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
-                      stage.status === "running" && "border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.1)]",
+                      stage.status === "running" && "border-primary/50 shadow-[0_0_15px_rgba(99,102,241,0.1)]",
                       expandedStageId === stage.id && "bg-[var(--color-surface-2)]/50 border-[var(--color-surface-3)]"
                     )}
                   >
@@ -307,7 +307,7 @@ export default function ReleasePipeline() {
                       "text-[10px] uppercase font-bold tracking-tighter mt-1",
                       stage.status === "passed" && "text-emerald-400",
                       stage.status === "failed" && "text-rose-400",
-                      stage.status === "running" && "text-indigo-400",
+                      stage.status === "running" && "text-primary",
                       stage.status === "pending" && "text-[var(--color-text-muted)]"
                     )}>
                       {stage.status}

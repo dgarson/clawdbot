@@ -127,11 +127,11 @@ function SessionVolumeChart({ data }: { data: typeof DAILY_SESSIONS }) {
       {/* Legend */}
       <div className="flex items-center gap-4 mb-3 text-xs text-fg-secondary">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-indigo-500" aria-hidden="true" />
+          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-primary" aria-hidden="true" />
           AI Sessions
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-indigo-500/30" aria-hidden="true" />
+          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-primary/30" aria-hidden="true" />
           Human Sessions
         </span>
       </div>
@@ -367,10 +367,10 @@ function FunnelViz({ steps }: { steps: typeof FUNNEL_STEPS }) {
                 <div
                   className={cn(
                     "h-full rounded transition-all",
-                    i === 0 ? "bg-indigo-500" :
-                    i === 1 ? "bg-indigo-500/80" :
-                    i === 2 ? "bg-indigo-500/60" :
-                    "bg-indigo-500/40"
+                    i === 0 ? "bg-primary" :
+                    i === 1 ? "bg-primary/80" :
+                    i === 2 ? "bg-primary/60" :
+                    "bg-primary/40"
                   )}
                   style={{ width: `${widthPct}%` }}
                   role="progressbar"

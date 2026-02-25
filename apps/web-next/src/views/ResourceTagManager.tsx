@@ -96,13 +96,13 @@ const typeIcon: Record<TaggableType, string> = {
 const providerColor: Record<string, string> = {
   aws: "text-amber-400",
   gcp: "text-blue-400",
-  azure: "text-indigo-400",
+  azure: "text-primary",
 }
 
 const policyActionColor: Record<PolicyAction, string> = {
   enforce: "text-rose-400 bg-rose-400/10",
   audit: "text-amber-400 bg-amber-400/10",
-  suggest: "text-indigo-400 bg-indigo-400/10",
+  suggest: "text-primary bg-primary/10",
 }
 
 function TagBadge({ tag }: { tag: Tag }) {
@@ -174,7 +174,7 @@ export default function ResourceTagManager() {
           <button className="px-4 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-md text-sm text-[var(--color-text-primary)] transition-colors">
             Import Tags
           </button>
-          <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm font-medium transition-colors">
+          <button className="px-4 py-2 bg-primary hover:bg-primary rounded-md text-sm font-medium transition-colors">
             + New Policy
           </button>
         </div>
@@ -199,7 +199,7 @@ export default function ResourceTagManager() {
         </div>
         <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="text-xs text-[var(--color-text-secondary)] mb-1">Cost Attributed</div>
-          <div className="text-2xl font-bold text-indigo-400">{taggedCostPct}%</div>
+          <div className="text-2xl font-bold text-primary">{taggedCostPct}%</div>
           <div className="text-xs text-[var(--color-text-muted)] mt-1">${totalCost.toLocaleString()}/mo total</div>
         </div>
       </div>
@@ -213,7 +213,7 @@ export default function ResourceTagManager() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                ? "border-primary text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -257,7 +257,7 @@ export default function ResourceTagManager() {
             </select>
             <span className="text-sm text-[var(--color-text-secondary)] self-center">{filtered.length} resources</span>
             {bulkSelected.size > 0 && (
-              <button className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm transition-colors ml-auto">
+              <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded-md text-sm transition-colors ml-auto">
                 Apply Template to {bulkSelected.size} selected
               </button>
             )}
@@ -326,7 +326,7 @@ export default function ResourceTagManager() {
                         <div className="flex gap-1">
                           <button
                             onClick={() => setSelectedResource(selectedResource === r.id ? null : r.id)}
-                            className="px-2 py-1 text-xs bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded transition-colors"
+                            className="px-2 py-1 text-xs bg-primary/10 text-primary hover:bg-primary/20 rounded transition-colors"
                           >
                             Edit Tags
                           </button>
@@ -340,7 +340,7 @@ export default function ResourceTagManager() {
                             <div className="flex items-center justify-between">
                               <h3 className="text-sm font-medium">Edit Tags — {r.name}</h3>
                               <div className="flex gap-2">
-                                <button className="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-400 rounded-md transition-colors">Save</button>
+                                <button className="px-3 py-1 text-xs bg-primary hover:bg-primary rounded-md transition-colors">Save</button>
                                 <button className="px-3 py-1 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-md text-[var(--color-text-secondary)] transition-colors">Cancel</button>
                               </div>
                             </div>
@@ -453,7 +453,7 @@ export default function ResourceTagManager() {
       {tab === "templates" && (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm font-medium transition-colors">
+            <button className="px-4 py-2 bg-primary hover:bg-primary rounded-md text-sm font-medium transition-colors">
               + New Template
             </button>
           </div>
@@ -466,7 +466,7 @@ export default function ResourceTagManager() {
                     <div className="text-sm text-[var(--color-text-secondary)] mt-0.5">{tmpl.description}</div>
                   </div>
                   <div className="text-xs text-[var(--color-text-muted)] text-right">
-                    <div className="text-indigo-400 font-medium">{tmpl.usageCount}</div>
+                    <div className="text-primary font-medium">{tmpl.usageCount}</div>
                     <div>uses</div>
                   </div>
                 </div>
@@ -482,7 +482,7 @@ export default function ResourceTagManager() {
                   ))}
                 </div>
                 <div className="flex gap-2 mt-3 pt-3 border-t border-[var(--color-border)]">
-                  <button className="flex-1 px-3 py-1.5 text-xs bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-md transition-colors">
+                  <button className="flex-1 px-3 py-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors">
                     Apply to Selection
                   </button>
                   <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-md text-[var(--color-text-secondary)] transition-colors">

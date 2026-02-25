@@ -83,7 +83,7 @@ const statusBadge: Record<IncidentStatus, string> = {
   triggered:     "bg-rose-500/20 text-rose-300 border border-rose-500/30",
   acknowledged:  "bg-blue-500/20 text-blue-300 border border-blue-500/30",
   investigating: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
-  mitigated:     "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
+  mitigated:     "bg-primary/20 text-indigo-300 border border-primary/30",
   resolved:      "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
 };
 
@@ -250,7 +250,7 @@ export default function IncidentCommandCenter() {
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize",
-              tab === t ? "border-indigo-500 text-fg-primary" : "border-transparent text-fg-secondary hover:text-fg-primary"
+              tab === t ? "border-primary text-fg-primary" : "border-transparent text-fg-secondary hover:text-fg-primary"
             )}
           >
             {t === "postmortem" ? "Postmortem" : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -313,7 +313,7 @@ export default function IncidentCommandCenter() {
                 <h2 className="text-base font-semibold">{selectedIncident.title}</h2>
               </div>
               {selectedIncident.status !== "resolved" && (
-                <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
+                <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded text-sm font-medium transition-colors">
                   Update Status
                 </button>
               )}
@@ -396,7 +396,7 @@ export default function IncidentCommandCenter() {
             </div>
             <div className="w-48 bg-surface-2 rounded-full h-2">
               <div
-                className="bg-indigo-500 h-2 rounded-full transition-all"
+                className="bg-primary h-2 rounded-full transition-all"
                 style={{ width: `${(steps.filter(s => s.completed).length / steps.length) * 100}%` }}
               />
             </div>
@@ -476,7 +476,7 @@ export default function IncidentCommandCenter() {
               <h2 className="text-base font-semibold">Postmortem Draft — {selectedIncident.id}</h2>
               <p className="text-sm text-fg-secondary mt-0.5">Blameless postmortem in progress</p>
             </div>
-            <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
+            <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded text-sm font-medium transition-colors">
               Publish
             </button>
           </div>

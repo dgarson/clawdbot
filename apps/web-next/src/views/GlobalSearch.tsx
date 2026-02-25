@@ -80,11 +80,11 @@ const ALL_RESULTS: SearchResult[] = [
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const KIND_CONFIG: Record<ResultKind, { label: string; emoji: string; color: string }> = {
-  agent:   { label: "Agent",   emoji: "🤖", color: "text-indigo-400"  },
+  agent:   { label: "Agent",   emoji: "🤖", color: "text-primary"  },
   session: { label: "Session", emoji: "🌳", color: "text-emerald-400" },
   file:    { label: "File",    emoji: "📄", color: "text-amber-400"   },
   event:   { label: "Event",   emoji: "📋", color: "text-rose-400"    },
-  skill:   { label: "Skill",   emoji: "🧩", color: "text-violet-400"  },
+  skill:   { label: "Skill",   emoji: "🧩", color: "text-primary"  },
   view:    { label: "View",    emoji: "🖥️", color: "text-cyan-400"    },
 };
 
@@ -93,8 +93,8 @@ const BADGE_COLORS: Record<string, string> = {
   rose:    "bg-rose-500/15 text-rose-300 ring-rose-500/25",
   amber:   "bg-amber-500/15 text-amber-300 ring-amber-500/25",
   zinc:    "bg-[var(--color-surface-3)]/50 text-[var(--color-text-secondary)] ring-zinc-600/25",
-  indigo:  "bg-indigo-500/15 text-indigo-300 ring-indigo-500/25",
-  violet:  "bg-violet-500/15 text-violet-300 ring-violet-500/25",
+  indigo:  "bg-primary/15 text-indigo-300 ring-indigo-500/25",
+  violet:  "bg-primary/15 text-violet-300 ring-violet-500/25",
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -112,7 +112,7 @@ function highlight(text: string, query: string): React.ReactNode {
   const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
   const parts = text.split(regex);
   return parts.map((part, i) =>
-    regex.test(part) ? <mark key={i} className="bg-indigo-500/30 text-indigo-200 rounded px-0.5">{part}</mark> : part
+    regex.test(part) ? <mark key={i} className="bg-primary/30 text-indigo-200 rounded px-0.5">{part}</mark> : part
   );
 }
 
@@ -376,13 +376,13 @@ export default function GlobalSearch() {
                 onClick={() => setKindFilter(kind)}
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                  kindFilter === kind ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
+                  kindFilter === kind ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
                 {cfg && <span>{cfg.emoji}</span>}
                 <span className="capitalize">{kind === "all" ? "All" : cfg?.label}</span>
                 {count > 0 && (
-                  <span className={cn("px-1.5 py-0.5 rounded-full text-xs tabular-nums", kindFilter === kind ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]")}>
+                  <span className={cn("px-1.5 py-0.5 rounded-full text-xs tabular-nums", kindFilter === kind ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]")}>
                     {count}
                   </span>
                 )}

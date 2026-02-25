@@ -213,12 +213,12 @@ function TreeNode({ node, depth, selectedPath, onSelect, path }: TreeNodeProps) 
       onClick={() => onSelect(path, node)}
       className={cn(
         'w-full flex items-center gap-1.5 px-2 py-1 rounded-lg text-sm transition-colors text-left group',
-        isSelected ? 'bg-violet-600/15 text-violet-300' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)]/50 hover:text-[var(--color-text-primary)]'
+        isSelected ? 'bg-primary/15 text-violet-300' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)]/50 hover:text-[var(--color-text-primary)]'
       )}
       style={{ paddingLeft: `${depth * 12 + 8}px` }}
     >
       <span className="w-3 flex-shrink-0" />
-      {FileIcon && <FileIcon className={cn('w-4 h-4 flex-shrink-0', isSelected ? 'text-violet-400' : getLanguageColor(node.language))} />}
+      {FileIcon && <FileIcon className={cn('w-4 h-4 flex-shrink-0', isSelected ? 'text-primary' : getLanguageColor(node.language))} />}
       <span className="truncate flex-1">{node.name}</span>
       {node.size && (
         <span className="text-xs text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
@@ -283,7 +283,7 @@ export default function WorkspaceFileBrowser() {
               placeholder="Search files..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded-lg pl-7 pr-3 py-1.5 focus:outline-none focus:border-violet-500 placeholder-gray-600"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded-lg pl-7 pr-3 py-1.5 focus:outline-none focus:border-primary placeholder-gray-600"
             />
           </div>
         </div>
@@ -345,7 +345,7 @@ export default function WorkspaceFileBrowser() {
                     <button
                       type="button"
                       onClick={handleSave}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-xs rounded-lg transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-xs rounded-lg transition-colors"
                     >
                       <Save className="w-3 h-3" /> Save
                     </button>
@@ -367,7 +367,7 @@ export default function WorkspaceFileBrowser() {
                     <button
                       type="button"
                       onClick={() => setEditMode(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600/20 hover:bg-violet-600/30 text-violet-400 text-xs rounded-lg border border-violet-500/30 transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary text-xs rounded-lg border border-primary/30 transition-colors"
                     >
                       <Edit2 className="w-3 h-3" /> Edit
                     </button>

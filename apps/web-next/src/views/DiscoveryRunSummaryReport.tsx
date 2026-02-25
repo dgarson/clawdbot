@@ -59,7 +59,7 @@ const DiscoveryRunSummaryReport: React.FC = () => {
             <span>Feb 22, 2026 12:45:00 MST</span>
           </div>
         </div>
-        <div className="px-4 py-2 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20 flex flex-col items-center">
+        <div className="px-4 py-2 bg-primary/10 text-primary rounded-xl border border-primary/20 flex flex-col items-center">
           <span className="text-[10px] uppercase font-bold tracking-widest mb-0.5">Total Runtime</span>
           <span className="text-xl font-mono font-bold">03:47:12</span>
         </div>
@@ -68,8 +68,8 @@ const DiscoveryRunSummaryReport: React.FC = () => {
       {/* KPI Bar */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: 'Total Findings', value: '161', color: 'text-indigo-400' },
-          { label: 'Unique Sources', value: '42', color: 'text-violet-400' },
+          { label: 'Total Findings', value: '161', color: 'text-primary' },
+          { label: 'Unique Sources', value: '42', color: 'text-primary' },
           { label: 'Models Used', value: '3', color: 'text-emerald-400' },
           { label: 'Total Cost', value: '$14.85', color: 'text-orange-400' },
         ].map((kpi) => (
@@ -132,7 +132,7 @@ const DiscoveryRunSummaryReport: React.FC = () => {
                 <div className="h-1.5 w-full bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div 
                     className={cn("h-full rounded-full transition-all duration-1000", 
-                      m.color === 'indigo' ? 'bg-indigo-500' : m.color === 'violet' ? 'bg-violet-500' : 'bg-emerald-500'
+                      m.color === 'indigo' ? 'bg-primary' : m.color === 'violet' ? 'bg-primary' : 'bg-emerald-500'
                     )}
                     style={{ width: `${m.success}%` }}
                   />
@@ -242,7 +242,7 @@ const DiscoveryRunSummaryReport: React.FC = () => {
                         <div className="text-[10px] text-[var(--color-text-muted)]">{c.model}</div>
                       </td>
                       <td className="py-3 text-right font-mono text-[var(--color-text-muted)]">{c.in} / {c.out}</td>
-                      <td className="py-3 text-right font-bold text-indigo-400">${c.cost.toFixed(2)}</td>
+                      <td className="py-3 text-right font-bold text-primary">${c.cost.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -256,7 +256,7 @@ const DiscoveryRunSummaryReport: React.FC = () => {
       <div className="flex justify-end space-x-4 pt-4 border-t border-[var(--color-border)]">
         <button className="px-6 py-2 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded-xl border border-[var(--color-border)] text-sm font-bold transition-all">CSV</button>
         <button className="px-6 py-2 bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] rounded-xl border border-[var(--color-border)] text-sm font-bold transition-all">JSON</button>
-        <button className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all">Export PDF</button>
+        <button className="px-6 py-2 bg-primary hover:bg-primary text-[var(--color-text-primary)] rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all">Export PDF</button>
       </div>
     </div>
   );

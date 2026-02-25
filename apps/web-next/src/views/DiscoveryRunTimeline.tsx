@@ -69,11 +69,11 @@ const DiscoveryRunTimeline: React.FC = () => {
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-indigo-500" />
+            <div className="w-3 h-3 rounded-full bg-primary" />
             <span className="text-sm text-[var(--color-text-secondary)]">Wave 1</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-violet-500" />
+            <div className="w-3 h-3 rounded-full bg-primary" />
             <span className="text-sm text-[var(--color-text-secondary)]">Wave 2</span>
           </div>
           <div className="flex items-center space-x-2">
@@ -133,7 +133,7 @@ const DiscoveryRunTimeline: React.FC = () => {
             <div className="font-bold text-[var(--color-text-primary)]">{hoveredAgent.name}</div>
             <div className="flex justify-between space-x-4">
               <span className="text-[var(--color-text-secondary)]">Wave:</span>
-              <span className={cn("font-semibold", hoveredAgent.wave === 1 ? 'text-indigo-400' : hoveredAgent.wave === 2 ? 'text-violet-400' : 'text-emerald-400')}>
+              <span className={cn("font-semibold", hoveredAgent.wave === 1 ? 'text-primary' : hoveredAgent.wave === 2 ? 'text-primary' : 'text-emerald-400')}>
                 {hoveredAgent.wave}
               </span>
             </div>
@@ -153,11 +153,11 @@ const DiscoveryRunTimeline: React.FC = () => {
       <div className="grid grid-cols-4 gap-4 bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] rounded-xl p-6">
         <div className="space-y-1">
           <div className="text-sm text-[var(--color-text-secondary)]">Total Duration</div>
-          <div className="text-2xl font-bold text-indigo-400">3h 47m</div>
+          <div className="text-2xl font-bold text-primary">3h 47m</div>
         </div>
         <div className="space-y-1">
           <div className="text-sm text-[var(--color-text-secondary)]">Agents Deployed</div>
-          <div className="text-2xl font-bold text-violet-400">15</div>
+          <div className="text-2xl font-bold text-primary">15</div>
         </div>
         <div className="space-y-1">
           <div className="text-sm text-[var(--color-text-secondary)]">Discovery Waves</div>
@@ -193,7 +193,7 @@ const DiscoveryRunTimeline: React.FC = () => {
               </div>
               <div className="p-4 bg-[var(--color-surface-0)] rounded-xl border border-[var(--color-border)]">
                 <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider font-bold mb-1">Cost</div>
-                <div className="text-2xl font-bold text-indigo-400">${selectedAgent.cost.toFixed(2)}</div>
+                <div className="text-2xl font-bold text-primary">${selectedAgent.cost.toFixed(2)}</div>
               </div>
               <div className="p-4 bg-[var(--color-surface-0)] rounded-xl border border-[var(--color-border)] col-span-2">
                 <div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider font-bold mb-1">Model</div>
@@ -204,7 +204,7 @@ const DiscoveryRunTimeline: React.FC = () => {
             <div className="space-y-2">
               <div className="text-sm font-semibold text-[var(--color-text-primary)]">Wave Assignment</div>
               <div className="flex items-center space-x-2">
-                <div className={cn("w-3 h-3 rounded-full", selectedAgent.wave === 1 ? 'bg-indigo-500' : selectedAgent.wave === 2 ? 'bg-violet-500' : 'bg-emerald-500')} />
+                <div className={cn("w-3 h-3 rounded-full", selectedAgent.wave === 1 ? 'bg-primary' : selectedAgent.wave === 2 ? 'bg-primary' : 'bg-emerald-500')} />
                 <span className="text-[var(--color-text-secondary)]">Wave {selectedAgent.wave}</span>
               </div>
             </div>

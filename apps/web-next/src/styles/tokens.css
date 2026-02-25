@@ -10,51 +10,77 @@
 :root,
 [data-theme="dark"] {
   /* Surface layers */
-  --color-surface-0: #09090b; /* zinc-950 — deepest page background */
-  --color-surface-1: #18181b; /* zinc-900 — card / panel background  */
-  --color-surface-2: #27272a; /* zinc-800 — elevated surface          */
-  --color-surface-3: #3f3f46; /* zinc-700 — hover / active state      */
+  --color-surface-0: #09090b;
+  /* zinc-950 — deepest page background */
+  --color-surface-1: #18181b;
+  /* zinc-900 — card / panel background  */
+  --color-surface-2: #27272a;
+  /* zinc-800 — elevated surface          */
+  --color-surface-3: #3f3f46;
+  /* zinc-700 — hover / active state      */
 
   /* Text / foreground */
-  --color-text-primary:   #f4f4f5; /* zinc-100 — primary readable text  */
-  --color-text-secondary: #a1a1aa; /* zinc-400 — secondary / meta text  */
-  --color-text-muted:     #71717a; /* zinc-500 — muted / disabled text  */
+  --color-text-primary: #f4f4f5;
+  /* zinc-100 — primary readable text  */
+  --color-text-secondary: #a1a1aa;
+  /* zinc-400 — secondary / meta text  */
+  --color-text-muted: #71717a;
+  /* zinc-500 — muted / disabled text  */
 
   /* Border */
-  --color-border: #27272a; /* zinc-800 */
+  --color-border: #27272a;
+  /* zinc-800 */
 
   /* Accent */
-  --color-accent: #7c3aed; /* violet-600 */
+  --color-accent: #7c3aed;
+  /* violet-600 */
 
   /* Status */
-  --color-success: #22c55e; /* green-500  */
-  --color-warning: #eab308; /* yellow-500 */
-  --color-error:   #ef4444; /* red-500    */
-  --color-info:    #3b82f6; /* blue-500   */
+  --color-success: #22c55e;
+  /* green-500  */
+  --color-warning: #eab308;
+  /* yellow-500 */
+  --color-error: #ef4444;
+  /* red-500    */
+  --color-info: #3b82f6;
+  /* blue-500   */
 
   /* Pill / chip tokens */
-  --color-pill-bg:          #27272a; /* zinc-800 */
-  --color-pill-text:        #d4d4d8; /* zinc-300 */
-  --color-pill-active-bg:   #7c3aed; /* violet-600 */
-  --color-pill-active-text: #ffffff; /* white */
-  --color-pill-border:      #3f3f46; /* zinc-700 */
+  --color-pill-bg: #27272a;
+  /* zinc-800 */
+  --color-pill-text: #d4d4d8;
+  /* zinc-300 */
+  --color-pill-active-bg: #7c3aed;
+  /* violet-600 */
+  --color-pill-active-text: #ffffff;
+  /* white */
+  --color-pill-border: #3f3f46;
+  /* zinc-700 */
 
   /* ---- Backward-compat shadcn-style variables ----
      These power existing Tailwind utilities:
      bg-background, text-foreground, bg-card, border-border,
      bg-secondary, bg-muted, text-muted-foreground */
-  --color-background:  #09090b; /* zinc-950         */
-  --color-foreground:  #f4f4f5; /* zinc-100         */
-  --color-card:        #18181b; /* zinc-900         */
-  --color-card-fg:     #f4f4f5;
-  --color-border-ui:   #27272a; /* zinc-800         */
-  --color-input-ui:    #27272a;
-  --color-secondary:   #27272a; /* zinc-800         */
-  --color-secondary-fg:#f4f4f5;
-  --color-muted:       #27272a; /* zinc-800         */
-  --color-muted-fg:    #a1a1aa; /* zinc-400         */
-  --color-accent-ui:   #27272a; /* zinc-800 (hover) */
-  --color-accent-ui-fg:#f4f4f5;
+  --color-background: #09090b;
+  /* zinc-950         */
+  --color-foreground: #f4f4f5;
+  /* zinc-100         */
+  --color-card: #18181b;
+  /* zinc-900         */
+  --color-card-fg: #f4f4f5;
+  --color-border-ui: #27272a;
+  /* zinc-800         */
+  --color-input-ui: #27272a;
+  --color-secondary: #27272a;
+  /* zinc-800         */
+  --color-secondary-fg: #f4f4f5;
+  --color-muted: #27272a;
+  /* zinc-800         */
+  --color-muted-fg: #a1a1aa;
+  /* zinc-400         */
+  --color-accent-ui: #27272a;
+  /* zinc-800 (hover) */
+  --color-accent-ui-fg: #f4f4f5;
 }
 
 /* ---------------------
@@ -64,48 +90,75 @@
    --------------------- */
 [data-theme="light"] {
   /* Surface layers */
-  --color-surface-0: #f8fafc; /* slate-50  — page background    */
-  --color-surface-1: #ffffff; /* white     — card / panel       */
-  --color-surface-2: #f1f5f9; /* slate-100 — elevated surface   */
-  --color-surface-3: #e2e8f0; /* slate-200 — hover / active     */
+  --color-surface-0: #f8fafc;
+  /* slate-50  — page background    */
+  --color-surface-1: #ffffff;
+  /* white     — card / panel       */
+  --color-surface-2: #f1f5f9;
+  /* slate-100 — elevated surface   */
+  --color-surface-3: #e2e8f0;
+  /* slate-200 — hover / active     */
 
   /* Text / foreground */
-  --color-text-primary:   #0f172a; /* slate-900 — primary text   */
-  --color-text-secondary: #475569; /* slate-600 — secondary text */
-  --color-text-muted:     #94a3b8; /* slate-400 — muted text     */
+  --color-text-primary: #0f172a;
+  /* slate-900 — primary text   */
+  --color-text-secondary: #475569;
+  /* slate-600 — secondary text */
+  --color-text-muted: #94a3b8;
+  /* slate-400 — muted text     */
 
   /* Border */
-  --color-border: #e2e8f0; /* slate-200 */
+  --color-border: #e2e8f0;
+  /* slate-200 */
 
   /* Accent */
-  --color-accent: #6d28d9; /* violet-700 */
+  --color-accent: #6d28d9;
+  /* violet-700 */
 
   /* Status */
-  --color-success: #16a34a; /* green-600  */
-  --color-warning: #ca8a04; /* yellow-600 */
-  --color-error:   #dc2626; /* red-600    */
-  --color-info:    #2563eb; /* blue-600   */
+  --color-success: #16a34a;
+  /* green-600  */
+  --color-warning: #ca8a04;
+  /* yellow-600 */
+  --color-error: #dc2626;
+  /* red-600    */
+  --color-info: #2563eb;
+  /* blue-600   */
 
   /* Pill / chip tokens */
-  --color-pill-bg:          #f1f5f9; /* slate-100 */
-  --color-pill-text:        #475569; /* slate-600 */
-  --color-pill-active-bg:   #7c3aed; /* violet-600 */
-  --color-pill-active-text: #ffffff; /* white */
-  --color-pill-border:      #cbd5e1; /* slate-300 */
+  --color-pill-bg: #f1f5f9;
+  /* slate-100 */
+  --color-pill-text: #475569;
+  /* slate-600 */
+  --color-pill-active-bg: #7c3aed;
+  /* violet-600 */
+  --color-pill-active-text: #ffffff;
+  /* white */
+  --color-pill-border: #cbd5e1;
+  /* slate-300 */
 
   /* ---- Backward-compat shadcn-style variables ---- */
-  --color-background:  #f8fafc; /* slate-50  */
-  --color-foreground:  #0f172a; /* slate-900 */
-  --color-card:        #ffffff; /* white     */
-  --color-card-fg:     #0f172a;
-  --color-border-ui:   #e2e8f0; /* slate-200 */
-  --color-input-ui:    #cbd5e1; /* slate-300 */
-  --color-secondary:   #f1f5f9; /* slate-100 */
-  --color-secondary-fg:#0f172a;
-  --color-muted:       #f1f5f9; /* slate-100 */
-  --color-muted-fg:    #64748b; /* slate-500 */
-  --color-accent-ui:   #f1f5f9; /* slate-100 */
-  --color-accent-ui-fg:#0f172a;
+  --color-background: #f8fafc;
+  /* slate-50  */
+  --color-foreground: #0f172a;
+  /* slate-900 */
+  --color-card: #ffffff;
+  /* white     */
+  --color-card-fg: #0f172a;
+  --color-border-ui: #e2e8f0;
+  /* slate-200 */
+  --color-input-ui: #cbd5e1;
+  /* slate-300 */
+  --color-secondary: #f1f5f9;
+  /* slate-100 */
+  --color-secondary-fg: #0f172a;
+  --color-muted: #f1f5f9;
+  /* slate-100 */
+  --color-muted-fg: #64748b;
+  /* slate-500 */
+  --color-accent-ui: #f1f5f9;
+  /* slate-100 */
+  --color-accent-ui-fg: #0f172a;
 }
 
 /* Smooth theme transitions — prevents hard flash on toggle */
@@ -137,4 +190,61 @@ button,
 summary,
 .select-none {
   user-select: none;
+}
+
+/* ============================================================
+   Custom Color Themes Overrides
+   These styles override the violet defaults when a custom theme is selected
+   ============================================================ */
+
+/* Oceanic - Blue */
+[data-theme-color="oceanic"] {
+  --color-accent: #3b82f6;
+  /* blue-500 */
+  --color-pill-active-bg: #3b82f6;
+}
+
+[data-theme="light"][data-theme-color="oceanic"] {
+  --color-accent: #2563eb;
+  /* blue-600 */
+  --color-pill-active-bg: #2563eb;
+}
+
+/* Emerald - Green */
+[data-theme-color="emerald"] {
+  --color-accent: #10b981;
+  /* emerald-500 */
+  --color-pill-active-bg: #10b981;
+}
+
+[data-theme="light"][data-theme-color="emerald"] {
+  --color-accent: #059669;
+  /* emerald-600 */
+  --color-pill-active-bg: #059669;
+}
+
+/* Amber - Gold/Yellow */
+[data-theme-color="amber"] {
+  --color-accent: #f59e0b;
+  /* amber-500 */
+  --color-pill-active-bg: #f59e0b;
+}
+
+[data-theme="light"][data-theme-color="amber"] {
+  --color-accent: #d97706;
+  /* amber-600 */
+  --color-pill-active-bg: #d97706;
+}
+
+/* Indigo - True Indigo */
+[data-theme-color="indigo"] {
+  --color-accent: #6366f1;
+  /* indigo-500 */
+  --color-pill-active-bg: #6366f1;
+}
+
+[data-theme="light"][data-theme-color="indigo"] {
+  --color-accent: #4f46e5;
+  /* indigo-600 */
+  --color-pill-active-bg: #4f46e5;
 }

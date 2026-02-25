@@ -305,7 +305,7 @@ function AgentSelector({ value, onChange, agents, label, 'aria-label': ariaLabel
                 <div className="font-medium text-fg-primary">{agent.name}</div>
                 <div className="text-xs text-fg-muted">{agent.role}</div>
               </div>
-              {agent.id === value.id && <Check aria-hidden="true" className="w-4 h-4 text-indigo-500" />}
+              {agent.id === value.id && <Check aria-hidden="true" className="w-4 h-4 text-primary" />}
             </button>
           ))}
         </div>
@@ -348,7 +348,7 @@ interface SectionHeaderProps {
 function SectionHeader({ icon, title }: SectionHeaderProps) {
   return (
     <div className="flex items-center gap-2 pb-3 border-b border-tok-border mb-4">
-      <span aria-hidden="true" className="text-indigo-500">{icon}</span>
+      <span aria-hidden="true" className="text-primary">{icon}</span>
       <h3 className="text-sm font-semibold text-fg-primary uppercase tracking-wider">{title}</h3>
     </div>
   );
@@ -454,7 +454,7 @@ export default function AgentComparison({ isLoading = false }: { isLoading?: boo
       {/* WCAG 2.1 AA — Skip navigation */}
       <a
         href="#agcomp-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>
@@ -503,8 +503,8 @@ export default function AgentComparison({ isLoading = false }: { isLoading?: boo
             onClick={handleSwap}
             aria-label="Swap agents A and B"
             className={cn(
-              "p-3 rounded-xl bg-surface-1 border border-tok-border hover:border-indigo-500",
-              "text-fg-secondary hover:text-indigo-500 transition-all duration-200",
+              "p-3 rounded-xl bg-surface-1 border border-tok-border hover:border-primary",
+              "text-fg-secondary hover:text-primary transition-all duration-200",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0"
             )}
           >
@@ -661,7 +661,7 @@ export default function AgentComparison({ isLoading = false }: { isLoading?: boo
                   <div className="text-xs text-fg-muted uppercase tracking-wider mb-2">Communication Style</div>
                   <div className="flex flex-wrap gap-2">
                     {agentA.personality.communicationStyle.map((style) => (
-                      <span key={style} className="px-2 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs">
+                      <span key={style} className="px-2 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary text-xs">
                         {style}
                       </span>
                     ))}
@@ -850,7 +850,7 @@ export default function AgentComparison({ isLoading = false }: { isLoading?: boo
                   <div className="text-xs text-fg-muted uppercase tracking-wider mb-2">Communication Style</div>
                   <div className="flex flex-wrap gap-2">
                     {agentB.personality.communicationStyle.map((style) => (
-                      <span key={style} className="px-2 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs">
+                      <span key={style} className="px-2 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary text-xs">
                         {style}
                       </span>
                     ))}

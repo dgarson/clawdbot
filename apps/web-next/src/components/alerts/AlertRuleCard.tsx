@@ -46,7 +46,7 @@ export function AlertRuleCard({
           </div>
 
           {targets && targets.length > 0 ? <AlertTargetPills targets={targets} /> : null}
-          {description ? <p className="text-xs text-fg-muted mt-2">{description}</p> : null}
+          {description ? <div className="text-xs text-fg-muted mt-2">{description}</div> : null}
           {footerActions ? <div className="mt-3 flex flex-wrap items-center gap-2">{footerActions}</div> : null}
         </div>
         <AlertRuleStatsRail stats={stats} />
@@ -54,4 +54,3 @@ export function AlertRuleCard({
     </article>
   );
 }
-

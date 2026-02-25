@@ -33,7 +33,7 @@ interface SegmentUser {
 const SEGMENTS: Segment[] = [
   {
     id: "s1", name: "Power Users", description: "High-frequency users with >100 API calls/day",
-    color: "bg-indigo-500", tags: ["engagement", "retention"],
+    color: "bg-primary", tags: ["engagement", "retention"],
     conditions: [
       { field: "api_calls_daily",  operator: "greater_than", value: "100" },
       { field: "account_age_days", operator: "greater_than", value: "30"  },
@@ -153,7 +153,7 @@ export default function UserSegmentation() {
         </div>
         <button
           onClick={() => setActiveTab("builder")}
-          className="text-sm px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors"
+          className="text-sm px-4 py-2 bg-primary text-[var(--color-text-primary)] rounded hover:bg-primary transition-colors"
         >
           + New Segment
         </button>
@@ -162,7 +162,7 @@ export default function UserSegmentation() {
       {/* Summary */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Segments",    value: SEGMENTS.length,                                          color: "text-indigo-400" },
+          { label: "Total Segments",    value: SEGMENTS.length,                                          color: "text-primary" },
           { label: "Largest Segment",   value: SEGMENTS.reduce((a,s)=>s.userCount>a.userCount?s:a).name, color: "text-[var(--color-text-primary)]"     },
           { label: "Users Segmented",   value: `${Math.round((SEGMENTS.reduce((a,s)=>a+s.userCount,0)/totalUsers)*100)}%`, color: "text-emerald-400" },
           { label: "Avg Segment Size",  value: Math.round(SEGMENTS.reduce((a,s)=>a+s.userCount,0)/SEGMENTS.length).toLocaleString(), color: "text-amber-400" },
@@ -183,7 +183,7 @@ export default function UserSegmentation() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
@@ -204,7 +204,7 @@ export default function UserSegmentation() {
                   onClick={() => setSortBy(s)}
                   className={cn(
                     "text-xs px-2.5 py-1 rounded border capitalize transition-colors",
-                    sortBy === s ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
+                    sortBy === s ? "bg-primary/20 border-primary/50 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
                   {s}
@@ -218,7 +218,7 @@ export default function UserSegmentation() {
                 onClick={() => setSelectedSegment(seg)}
                 className={cn(
                   "w-full bg-[var(--color-surface-1)] border rounded-lg p-4 text-left hover:border-[var(--color-surface-3)] transition-colors",
-                  selectedSegment?.id === seg.id ? "border-indigo-500/50" : "border-[var(--color-border)]"
+                  selectedSegment?.id === seg.id ? "border-primary/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-center gap-2 mb-2">
@@ -271,7 +271,7 @@ export default function UserSegmentation() {
                   </div>
                   <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
                     <div className="text-xs text-[var(--color-text-secondary)]">% of Total</div>
-                    <div className="text-2xl font-bold text-indigo-400 mt-1">{selectedSegment.percentage}%</div>
+                    <div className="text-2xl font-bold text-primary mt-1">{selectedSegment.percentage}%</div>
                   </div>
                 </div>
 
@@ -307,7 +307,7 @@ export default function UserSegmentation() {
                 </div>
 
                 <div className="flex gap-2 pt-2 border-t border-[var(--color-border)]">
-                  <button className="flex-1 text-xs py-2 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded hover:bg-indigo-500/30 transition-colors">Export CSV</button>
+                  <button className="flex-1 text-xs py-2 bg-primary/20 border border-primary/30 text-indigo-300 rounded hover:bg-primary/30 transition-colors">Export CSV</button>
                   <button className="flex-1 text-xs py-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-3)] transition-colors">Create Campaign</button>
                   <button className="text-xs py-2 px-3 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-surface-3)] transition-colors">Edit</button>
                 </div>
@@ -330,7 +330,7 @@ export default function UserSegmentation() {
               type="text"
               value={builderName}
               onChange={e => setBuilderName(e.target.value)}
-              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500"
+              className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 focus:outline-none focus:border-primary"
             />
           </div>
 
@@ -362,7 +362,7 @@ export default function UserSegmentation() {
                     value={cond.value}
                     onChange={e => updateCondition(i, "value", e.target.value)}
                     placeholder="value"
-                    className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500"
+                    className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs rounded px-2 py-1.5 focus:outline-none focus:border-primary"
                   />
                   <button onClick={() => removeCondition(i)} className="text-[var(--color-text-muted)] hover:text-rose-400 transition-colors text-lg leading-none">×</button>
                 </div>
@@ -371,7 +371,7 @@ export default function UserSegmentation() {
 
             <button
               onClick={addCondition}
-              className="mt-3 w-full text-xs py-2 border border-dashed border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:border-indigo-500/50 hover:text-indigo-300 transition-colors"
+              className="mt-3 w-full text-xs py-2 border border-dashed border-[var(--color-border)] text-[var(--color-text-secondary)] rounded hover:border-primary/50 hover:text-indigo-300 transition-colors"
             >
               + Add Condition
             </button>
@@ -381,13 +381,13 @@ export default function UserSegmentation() {
           <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
             <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Estimated Audience</div>
             <div className="flex items-center gap-3">
-              <div className="text-2xl font-bold text-indigo-400">~3,200</div>
+              <div className="text-2xl font-bold text-primary">~3,200</div>
               <div className="text-xs text-[var(--color-text-secondary)]">users (6.6% of total)</div>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <button className="px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] text-sm rounded hover:bg-indigo-600 transition-colors">Save Segment</button>
+            <button className="px-4 py-2 bg-primary text-[var(--color-text-primary)] text-sm rounded hover:bg-primary transition-colors">Save Segment</button>
             <button className="px-4 py-2 border border-[var(--color-border)] text-[var(--color-text-secondary)] text-sm rounded hover:bg-[var(--color-surface-2)] transition-colors">Preview Users</button>
           </div>
         </div>
@@ -416,7 +416,7 @@ export default function UserSegmentation() {
                   <td className="px-4 py-3">
                     <span className={cn(
                       "text-xs px-2 py-0.5 rounded border",
-                      u.plan === "enterprise" ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-300" :
+                      u.plan === "enterprise" ? "bg-primary/10 border-primary/30 text-indigo-300" :
                       u.plan === "pro"        ? "bg-amber-500/10 border-amber-500/30 text-amber-300" :
                                                "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
                     )}>{u.plan}</span>

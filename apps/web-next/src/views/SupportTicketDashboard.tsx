@@ -622,9 +622,9 @@ const CATEGORY_BREAKDOWN: CategoryBreakdown[] = [
     category: "Authentication",
     count: 87,
     percentage: 22,
-    color: "bg-indigo-500",
+    color: "bg-primary",
   },
-  { category: "Billing", count: 71, percentage: 18, color: "bg-violet-500" },
+  { category: "Billing", count: 71, percentage: 18, color: "bg-primary" },
   { category: "API", count: 63, percentage: 16, color: "bg-blue-500" },
   { category: "Dashboard", count: 51, percentage: 13, color: "bg-cyan-500" },
   {
@@ -1016,7 +1016,7 @@ function getStatusClasses(status: TicketStatus): string {
     case "open":
       return "text-blue-400 bg-blue-400/10"
     case "in-progress":
-      return "text-indigo-400 bg-indigo-400/10"
+      return "text-primary bg-primary/10"
     case "pending":
       return "text-amber-400 bg-amber-400/10"
     case "resolved":
@@ -1027,9 +1027,9 @@ function getStatusClasses(status: TicketStatus): string {
 function getTierClasses(tier: SLATier): string {
   switch (tier) {
     case "enterprise":
-      return "text-violet-400 bg-violet-400/10 border-violet-400/30"
+      return "text-primary bg-primary/10 border-primary/30"
     case "pro":
-      return "text-indigo-400 bg-indigo-400/10 border-indigo-400/30"
+      return "text-primary bg-primary/10 border-primary/30"
     case "free":
       return "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30"
   }
@@ -1179,7 +1179,7 @@ function QueueTab({ tickets }: QueueTabProps) {
             onChange={(e) =>
               setFilterStatus(e.target.value as TicketStatus | "all")
             }
-            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-2 py-1.5 focus:outline-none focus:border-primary"
           >
             <option value="all">All Statuses</option>
             <option value="open">Open</option>
@@ -1192,7 +1192,7 @@ function QueueTab({ tickets }: QueueTabProps) {
             onChange={(e) =>
               setFilterPriority(e.target.value as Priority | "all")
             }
-            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-2 py-1.5 focus:outline-none focus:border-primary"
           >
             <option value="all">All Priorities</option>
             <option value="critical">Critical</option>
@@ -1214,8 +1214,8 @@ function QueueTab({ tickets }: QueueTabProps) {
                 key={ticket.id}
                 onClick={() => setSelectedId(isSelected ? null : ticket.id)}
                 className={cn(
-                  "bg-[var(--color-surface-1)] border rounded-lg p-3.5 cursor-pointer hover:border-indigo-500/40 transition-colors",
-                  isSelected ? "border-indigo-500" : "border-[var(--color-border)]"
+                  "bg-[var(--color-surface-1)] border rounded-lg p-3.5 cursor-pointer hover:border-primary/40 transition-colors",
+                  isSelected ? "border-primary" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -1342,7 +1342,7 @@ function QueueTab({ tickets }: QueueTabProps) {
                   className={cn(
                     "rounded-xl p-3.5 text-sm",
                     isAgent
-                      ? "bg-indigo-600/15 border border-indigo-500/25 ml-8"
+                      ? "bg-primary/15 border border-primary/25 ml-8"
                       : "bg-[var(--color-surface-2)] mr-8"
                   )}
                 >
@@ -1355,7 +1355,7 @@ function QueueTab({ tickets }: QueueTabProps) {
                     >
                       {msg.author}
                       {isAgent && (
-                        <span className="ml-1.5 text-indigo-500 font-normal">
+                        <span className="ml-1.5 text-primary font-normal">
                           · Agent
                         </span>
                       )}
@@ -1412,7 +1412,7 @@ function AnalyticsTab() {
             label: "Resolution Rate",
             value: `${resolutionRate}%`,
             sub: "of submitted",
-            color: "text-indigo-400",
+            color: "text-primary",
           },
           {
             label: "Avg Resolution",
@@ -1457,7 +1457,7 @@ function AnalyticsTab() {
                 </div>
                 {/* Submitted bar */}
                 <div
-                  className="w-full bg-indigo-500/70 rounded-t"
+                  className="w-full bg-primary/70 rounded-t"
                   style={{
                     height: `${(day.tickets / maxTickets) * 100}%`,
                   }}
@@ -1486,7 +1486,7 @@ function AnalyticsTab() {
           </div>
           <div className="flex items-center gap-4 mt-2 text-xs text-[var(--color-text-muted)]">
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500/70 inline-block" />
+              <span className="w-2.5 h-2.5 rounded-sm bg-primary/70 inline-block" />
               Submitted
             </span>
             <span className="flex items-center gap-1.5">
@@ -1528,7 +1528,7 @@ function AnalyticsTab() {
                     "w-full rounded-t",
                     day.avgResolutionHours > parseFloat(avgResolution)
                       ? "bg-amber-500/70"
-                      : "bg-violet-500/70"
+                      : "bg-primary/70"
                   )}
                   style={{
                     height: `${(day.avgResolutionHours / maxResolution) * 100}%`,
@@ -1625,7 +1625,7 @@ function AnalyticsTab() {
                         row.satisfactionScore >= 4.8
                           ? "text-emerald-400"
                           : row.satisfactionScore >= 4.5
-                          ? "text-indigo-400"
+                          ? "text-primary"
                           : "text-[var(--color-text-primary)]"
                       )}
                     >
@@ -1926,7 +1926,7 @@ function KnowledgeBaseTab() {
                 className="flex items-start gap-3 p-3 rounded-lg bg-[var(--color-surface-2)]/50 border border-[var(--color-border)]"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-indigo-400 truncate">
+                  <p className="text-xs font-medium text-primary truncate">
                     {suggestion.articleTitle}
                   </p>
                   <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
@@ -1944,7 +1944,7 @@ function KnowledgeBaseTab() {
                       suggestion.relevanceScore >= 95
                         ? "text-emerald-400"
                         : suggestion.relevanceScore >= 90
-                        ? "text-indigo-400"
+                        ? "text-primary"
                         : "text-amber-400"
                     )}
                   >
@@ -1982,7 +1982,7 @@ function KnowledgeBaseTab() {
                   key={article.id}
                   className={cn(
                     "border-b border-[var(--color-border)]/50 transition-colors hover:bg-[var(--color-surface-2)]/30",
-                    highlightedArticle === article.id && "bg-indigo-500/5"
+                    highlightedArticle === article.id && "bg-primary/5"
                   )}
                 >
                   <td className="py-3">
@@ -2010,7 +2010,7 @@ function KnowledgeBaseTab() {
                             article.helpfulnessRate >= 90
                               ? "bg-emerald-500"
                               : article.helpfulnessRate >= 80
-                              ? "bg-indigo-500"
+                              ? "bg-primary"
                               : "bg-amber-500"
                           )}
                           style={{ width: `${article.helpfulnessRate}%` }}
@@ -2028,7 +2028,7 @@ function KnowledgeBaseTab() {
                         article.deflectionRate >= 70
                           ? "text-emerald-400"
                           : article.deflectionRate >= 60
-                          ? "text-indigo-400"
+                          ? "text-primary"
                           : "text-[var(--color-text-secondary)]"
                       )}
                     >
@@ -2107,7 +2107,7 @@ export default function SupportTicketDashboard() {
                 {TICKETS.filter((t) => t.status === "resolved").length} resolved
               </span>
             </div>
-            <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+            <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm font-medium px-4 py-2 rounded-lg transition-colors">
               + New Ticket
             </button>
           </div>
@@ -2124,7 +2124,7 @@ export default function SupportTicketDashboard() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors",
                   isActive
-                    ? "text-[var(--color-text-primary)] border-indigo-500"
+                    ? "text-[var(--color-text-primary)] border-primary"
                     : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
                 )}
               >
@@ -2134,7 +2134,7 @@ export default function SupportTicketDashboard() {
                     className={cn(
                       "text-xs px-1.5 py-0.5 rounded-full font-medium",
                       isActive
-                        ? "bg-indigo-500/25 text-indigo-300"
+                        ? "bg-primary/25 text-indigo-300"
                         : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                     )}
                   >

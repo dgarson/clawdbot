@@ -394,7 +394,7 @@ const DECISION_STYLES: Record<Decision, { bg: string; emoji: string }> = {
   approved: { bg: "text-emerald-400", emoji: "✓" },
   removed: { bg: "text-rose-400", emoji: "✕" },
   warned: { bg: "text-amber-400", emoji: "⚠" },
-  escalated: { bg: "text-indigo-400", emoji: "↑" },
+  escalated: { bg: "text-primary", emoji: "↑" },
 };
 
 function formatDate(iso: string): string {
@@ -477,7 +477,7 @@ export default function ContentModerationQueue() {
     return (
       <div className="grid grid-cols-4 gap-3">
         {[
-          { label: "Queue Size", value: totalQueue, icon: "📋", accent: "text-indigo-400" },
+          { label: "Queue Size", value: totalQueue, icon: "📋", accent: "text-primary" },
           { label: "Avg Review", value: "2.4m", icon: "⏱", accent: "text-[var(--color-text-primary)]" },
           { label: "Resolved Today", value: resolvedToday, icon: "✓", accent: "text-emerald-400" },
           { label: "Escalated", value: escalatedCount, icon: "↑", accent: "text-amber-400" },
@@ -501,7 +501,7 @@ export default function ContentModerationQueue() {
 
   function FilterBar() {
     const selectBase =
-      "bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 outline-none focus:border-indigo-500 transition-colors";
+      "bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 outline-none focus:border-primary transition-colors";
     return (
       <div className="flex items-center gap-3 flex-wrap">
         <span className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Filters</span>
@@ -568,7 +568,7 @@ export default function ContentModerationQueue() {
         className={cn(
           "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/60 transition-colors",
           isSelected
-            ? "bg-indigo-500/10 border-l-2 border-l-indigo-500"
+            ? "bg-primary/10 border-l-2 border-l-indigo-500"
             : "hover:bg-[var(--color-surface-2)]/50 border-l-2 border-l-transparent"
         )}
       >
@@ -691,7 +691,7 @@ export default function ContentModerationQueue() {
         <div className="px-5 py-4 border-b border-[var(--color-border)]">
           <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Reviewer Notes</p>
           <textarea
-            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-2 outline-none focus:border-indigo-500 transition-colors resize-none h-20 placeholder:text-[var(--color-text-muted)]"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg px-3 py-2 outline-none focus:border-primary transition-colors resize-none h-20 placeholder:text-[var(--color-text-muted)]"
             placeholder="Add notes about your decision..."
             value={notes}
             onChange={(e) =>
@@ -724,7 +724,7 @@ export default function ContentModerationQueue() {
             </button>
             <button
               onClick={() => handleAction("escalated")}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-500/25 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 transition-colors"
             >
               ↑ Escalate
             </button>
@@ -791,7 +791,7 @@ export default function ContentModerationQueue() {
               className={cn(
                 "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
                 activeTab === "queue"
-                  ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -802,7 +802,7 @@ export default function ContentModerationQueue() {
               className={cn(
                 "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
                 activeTab === "history"
-                  ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >

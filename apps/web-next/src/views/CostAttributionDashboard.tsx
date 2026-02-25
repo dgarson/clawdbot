@@ -89,7 +89,7 @@ const MONTHLY_ALLOCATION: Allocation[] = [
 ];
 
 const deptColor: Record<CostCenter, string> = {
-  engineering: "bg-indigo-500",
+  engineering: "bg-primary",
   marketing:   "bg-purple-500",
   sales:       "bg-amber-500",
   support:     "bg-sky-500",
@@ -195,7 +195,7 @@ export default function CostAttributionDashboard() {
                     <div className="mt-2 px-4">
                       <div className="w-full bg-[var(--color-surface-2)] rounded-full h-1.5">
                         <div
-                          className={cn("h-1.5 rounded-full", over ? "bg-rose-500" : pct > 80 ? "bg-amber-500" : "bg-indigo-500")}
+                          className={cn("h-1.5 rounded-full", over ? "bg-rose-500" : pct > 80 ? "bg-amber-500" : "bg-primary")}
                           style={{ width: `${Math.min(100, pct)}%` }}
                         />
                       </div>
@@ -242,7 +242,7 @@ export default function CostAttributionDashboard() {
                     </div>
                     <div className="w-full bg-[var(--color-surface-2)] rounded-full h-3">
                       <div
-                        className={cn("h-3 rounded-full relative", selected.spent > selected.budget ? "bg-rose-500" : selected.spent / selected.budget > 0.8 ? "bg-amber-500" : "bg-indigo-500")}
+                        className={cn("h-3 rounded-full relative", selected.spent > selected.budget ? "bg-rose-500" : selected.spent / selected.budget > 0.8 ? "bg-amber-500" : "bg-primary")}
                         style={{ width: `${Math.min(100, (selected.spent / selected.budget) * 100)}%` }}
                       />
                     </div>
@@ -303,7 +303,7 @@ export default function CostAttributionDashboard() {
                     </div>
                   </div>
                   <div className="mt-3 w-full bg-[var(--color-surface-2)] rounded-full h-1.5">
-                    <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${(svc.cost / maxServiceCost) * 100}%` }} />
+                    <div className="bg-primary h-1.5 rounded-full" style={{ width: `${(svc.cost / maxServiceCost) * 100}%` }} />
                   </div>
                 </div>
               ))}
@@ -359,7 +359,7 @@ export default function CostAttributionDashboard() {
                   const total = m.engineering + m.marketing + m.sales + m.support + m.data + m.infra;
                   const heightPct = (total / maxMonthTotal) * 100;
                   const segments = [
-                    { key: "engineering", val: m.engineering, color: "bg-indigo-500" },
+                    { key: "engineering", val: m.engineering, color: "bg-primary" },
                     { key: "data", val: m.data, color: "bg-emerald-500" },
                     { key: "infra", val: m.infra, color: "bg-[var(--color-surface-3)]" },
                     { key: "marketing", val: m.marketing, color: "bg-purple-500" },
@@ -381,7 +381,7 @@ export default function CostAttributionDashboard() {
               </div>
               <div className="flex flex-wrap gap-3 mt-4 text-[10px]">
                 {[
-                  { label: "Engineering", color: "bg-indigo-500" },
+                  { label: "Engineering", color: "bg-primary" },
                   { label: "Data", color: "bg-emerald-500" },
                   { label: "Infra", color: "bg-[var(--color-surface-3)]" },
                   { label: "Marketing", color: "bg-purple-500" },

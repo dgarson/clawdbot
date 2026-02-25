@@ -157,7 +157,7 @@ export function AlertFilterPillGroup({
               "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
               value === option.value
-                ? "border-indigo-500/40 bg-indigo-500/15 text-indigo-200"
+                ? "border-primary/40 bg-primary/15 text-indigo-200"
                 : "border-tok-border bg-surface-2 text-fg-secondary hover:text-fg-primary hover:bg-surface-2/80"
             )}
           >

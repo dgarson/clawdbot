@@ -105,7 +105,7 @@ type Tab = typeof TABS[number];
 
 const tierColor: Record<TierType, string> = {
   starter:    "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30",
-  growth:     "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
+  growth:     "text-primary bg-primary/10 border-primary/30",
   enterprise: "text-amber-400 bg-amber-400/10 border-amber-400/30",
   trial:      "text-blue-400 bg-blue-400/10 border-blue-400/30",
 };
@@ -131,7 +131,7 @@ function usagePct(used: number, limit: number): number {
 function usageColor(pct: number): string {
   if (pct >= 95) {return "bg-rose-500";}
   if (pct >= 80) {return "bg-amber-500";}
-  return "bg-indigo-500";
+  return "bg-primary";
 }
 
 export default function TenantUsageDashboard(): React.ReactElement {
@@ -182,7 +182,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
-                ? "text-indigo-400 border-indigo-500"
+                ? "text-primary border-primary"
                 : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -219,7 +219,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
                     <div key={tier} className="flex items-center gap-3 mb-3">
                       <div className="w-20 text-xs capitalize text-[var(--color-text-secondary)]">{tier}</div>
                       <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(count / TENANTS.length) * 100}%` }} />
+                        <div className="h-full bg-primary rounded-full" style={{ width: `${(count / TENANTS.length) * 100}%` }} />
                       </div>
                       <div className="w-6 text-xs text-right text-[var(--color-text-primary)]">{count}</div>
                     </div>
@@ -256,7 +256,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
                 {(["all", "healthy", "warning", "critical", "churning"] as const).map((h) => (
                   <button key={h} onClick={() => setHealthFilter(h)}
                     className={cn("px-2 py-0.5 text-[10px] rounded border transition-colors",
-                      healthFilter === h ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
+                      healthFilter === h ? "bg-primary/20 border-primary text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                     )}>{h}</button>
                 ))}
               </div>
@@ -265,7 +265,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
                 {(["all", "enterprise", "growth", "starter", "trial"] as const).map((t) => (
                   <button key={t} onClick={() => setTierFilter(t)}
                     className={cn("px-2 py-0.5 text-[10px] rounded border transition-colors",
-                      tierFilter === t ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
+                      tierFilter === t ? "bg-primary/20 border-primary text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                     )}>{t}</button>
                 ))}
               </div>
@@ -282,7 +282,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
                     onClick={() => setSelectedTenant(tenant)}
                     className={cn(
                       "bg-[var(--color-surface-1)] border rounded-lg p-5 cursor-pointer transition-colors",
-                      selectedTenant.id === tenant.id ? "border-indigo-500/50" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                      selectedTenant.id === tenant.id ? "border-primary/50" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                     )}
                   >
                     <div className="flex items-start justify-between mb-4">
@@ -340,7 +340,7 @@ export default function TenantUsageDashboard(): React.ReactElement {
                   return (
                     <div key={t.month} className="flex-1 flex flex-col items-center gap-1">
                       <div className="text-[10px] text-[var(--color-text-secondary)]">{(t.apiCalls / 1000).toFixed(0)}k</div>
-                      <div className="w-full bg-indigo-500 rounded-t" style={{ height: h }} />
+                      <div className="w-full bg-primary rounded-t" style={{ height: h }} />
                       <div className="text-[10px] text-[var(--color-text-muted)]">{t.month}</div>
                     </div>
                   );

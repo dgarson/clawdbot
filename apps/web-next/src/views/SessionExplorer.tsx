@@ -165,7 +165,7 @@ export default function SessionExplorer({ navigate }: { navigate?: (viewId: stri
                     <td className="px-4 py-3">
                       <button
                         type="button"
-                        className="font-mono text-sm text-violet-400 cursor-pointer hover:underline text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded"
+                        className="font-mono text-sm text-primary cursor-pointer hover:underline text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded"
                         onClick={() => setSelectedSession(session)}
                         aria-label={`View session details for ${session.key}`}
                       >
@@ -213,7 +213,7 @@ export default function SessionExplorer({ navigate }: { navigate?: (viewId: stri
                         {navigate && (
                           <button
                             onClick={() => navigate(`agent-session:${session.agentId}:${session.key}`)}
-                            className="p-1.5 hover:bg-[var(--color-surface-3)] rounded-md text-[var(--color-text-secondary)] hover:text-violet-400 transition-colors"
+                            className="p-1.5 hover:bg-[var(--color-surface-3)] rounded-md text-[var(--color-text-secondary)] hover:text-primary transition-colors"
                             title="Open Agent Session"
                           >
                             <ExternalLink className="w-4 h-4" />
@@ -321,7 +321,7 @@ function SessionDetailPanel({ session, onClose, navigate }: SessionDetailPanelPr
           {/* Session Key */}
           <div className="mb-4">
             <label className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Session Key</label>
-            <div className="font-mono text-sm text-violet-400 mt-1 break-all bg-[var(--color-surface-2)] p-2 rounded-lg">
+            <div className="font-mono text-sm text-primary mt-1 break-all bg-[var(--color-surface-2)] p-2 rounded-lg">
               {session.key}
             </div>
           </div>
@@ -405,7 +405,7 @@ function SessionDetailPanel({ session, onClose, navigate }: SessionDetailPanelPr
           {navigate && (
             <button
               onClick={() => navigate(`agent-session:${session.agentId}:${session.key}`)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors mb-4 font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary text-white rounded-lg transition-colors mb-4 font-medium"
             >
               <ExternalLink className="w-4 h-4" />
               Open Agent Session
@@ -438,7 +438,7 @@ interface TimelineItemProps {
 function TimelineItem({ role, timestamp, content }: TimelineItemProps) {
   const roleColors: Record<string, string> = {
     user: 'bg-blue-500',
-    assistant: 'bg-violet-500',
+    assistant: 'bg-primary',
     system: 'bg-[var(--color-surface-3)]',
   };
 

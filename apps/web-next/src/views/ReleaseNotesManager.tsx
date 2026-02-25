@@ -402,7 +402,7 @@ function ReleasesTab({
             className={cn(
               "w-full text-left rounded-xl border p-4 transition-all",
               selected?.id === r.id
-                ? "border-indigo-500/60 bg-indigo-500/10"
+                ? "border-primary/60 bg-primary/10"
                 : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/50"
             )}
           >
@@ -441,7 +441,7 @@ function ReleasesTab({
             {selected.sections.features.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <IconRocket className="w-4 h-4 text-indigo-400" />
+                  <IconRocket className="w-4 h-4 text-primary" />
                   <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">New Features</h3>
                   <span className="ml-auto text-xs text-[var(--color-text-muted)]">{selected.sections.features.length} items</span>
                 </div>
@@ -546,7 +546,7 @@ function EditorTab() {
           <input
             value={version}
             onChange={(e) => setVersion(e.target.value)}
-            className="w-24 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-2.5 py-1.5 text-sm text-[var(--color-text-primary)] font-mono focus:outline-none focus:border-indigo-500"
+            className="w-24 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-2.5 py-1.5 text-sm text-[var(--color-text-primary)] font-mono focus:outline-none focus:border-primary"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -554,7 +554,7 @@ function EditorTab() {
           <select
             value={releaseType}
             onChange={(e) => setReleaseType(e.target.value)}
-            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-2.5 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-2.5 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
           >
             <option value="major">Major</option>
             <option value="minor">Minor</option>
@@ -567,7 +567,7 @@ function EditorTab() {
             onClick={() => setIsPreview(false)}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-              !isPreview ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
+              !isPreview ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             <IconEdit className="w-3.5 h-3.5" />
@@ -577,7 +577,7 @@ function EditorTab() {
             onClick={() => setIsPreview(true)}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-              isPreview ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
+              isPreview ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             <IconEye className="w-3.5 h-3.5" />
@@ -589,7 +589,7 @@ function EditorTab() {
               "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all",
               saved
                 ? "bg-emerald-600 text-[var(--color-text-primary)]"
-                : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
+                : "bg-primary hover:bg-primary text-[var(--color-text-primary)]"
             )}
           >
             {saved ? <><IconCheck className="w-3.5 h-3.5" /> Saved</> : "Save Draft"}
@@ -674,8 +674,8 @@ function DistributionTab({
             <div key={list.id} className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4 hover:border-[var(--color-border)] transition-colors">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                    <IconMail className="w-4 h-4 text-indigo-400" />
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <IconMail className="w-4 h-4 text-primary" />
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-[var(--color-text-primary)]">{list.name}</p>
@@ -754,7 +754,7 @@ function DistributionTab({
                     <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Clicks</p>
                   </div>
                   <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3 text-center">
-                    <p className="text-lg font-bold text-indigo-400">{ctr}%</p>
+                    <p className="text-lg font-bold text-primary">{ctr}%</p>
                     <p className="text-xs text-[var(--color-text-muted)] mt-0.5">CTR</p>
                   </div>
                 </div>
@@ -797,7 +797,7 @@ function DistributionTab({
             </div>
           ))}
           <div className="bg-[var(--color-surface-1)] rounded-xl border border-dashed border-[var(--color-border)] p-4 flex items-center justify-center">
-            <button className="text-sm text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+            <button className="text-sm text-primary hover:text-indigo-300 font-medium transition-colors">
               + Add Slack Channel
             </button>
           </div>
@@ -825,9 +825,9 @@ function AnalyticsTab({ data }: { data: AnalyticsEntry[] }) {
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: "Total Sent", value: totalSent.toLocaleString(), icon: <IconPackage className="w-4 h-4 text-indigo-400" />, color: "text-[var(--color-text-primary)]" },
+          { label: "Total Sent", value: totalSent.toLocaleString(), icon: <IconPackage className="w-4 h-4 text-primary" />, color: "text-[var(--color-text-primary)]" },
           { label: "Total Opens", value: totalOpens.toLocaleString(), icon: <IconMail className="w-4 h-4 text-emerald-400" />, color: "text-emerald-400" },
-          { label: "Total Clicks", value: totalClicks.toLocaleString(), icon: <IconBarChart className="w-4 h-4 text-indigo-400" />, color: "text-indigo-400" },
+          { label: "Total Clicks", value: totalClicks.toLocaleString(), icon: <IconBarChart className="w-4 h-4 text-primary" />, color: "text-primary" },
           { label: "Avg Open Rate", value: `${avgOpen}%`, icon: <IconEye className="w-4 h-4 text-amber-400" />, color: "text-amber-400" },
         ].map(({ label, value, icon, color }) => (
           <div key={label} className="bg-[var(--color-surface-1)] rounded-xl border border-[var(--color-border)] p-4">
@@ -874,7 +874,7 @@ function AnalyticsTab({ data }: { data: AnalyticsEntry[] }) {
           {data.map((entry) => {
             const val = metric === "openRate" ? entry.openRate : entry.clickRate
             const pct = maxRate > 0 ? (val / maxRate) * 100 : 0
-            const barColor = metric === "openRate" ? "bg-emerald-500" : "bg-indigo-500"
+            const barColor = metric === "openRate" ? "bg-emerald-500" : "bg-primary"
             return (
               <div key={entry.version} className="flex items-center gap-3">
                 <span className="w-14 text-right text-xs font-mono text-[var(--color-text-secondary)] shrink-0">
@@ -910,7 +910,7 @@ function AnalyticsTab({ data }: { data: AnalyticsEntry[] }) {
                 <span className="text-xs font-mono text-[var(--color-text-secondary)]">{entry.version}</span>
                 <div className="flex items-center gap-3 text-xs">
                   <span className="text-emerald-400 font-semibold">{entry.openRate}% open</span>
-                  <span className="text-indigo-400 font-semibold">{entry.clickRate}% click</span>
+                  <span className="text-primary font-semibold">{entry.clickRate}% click</span>
                 </div>
               </div>
               <div className="relative h-4 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
@@ -919,7 +919,7 @@ function AnalyticsTab({ data }: { data: AnalyticsEntry[] }) {
                   style={{ width: `${entry.openRate}%` }}
                 />
                 <div
-                  className="absolute left-0 top-0 h-full rounded-full bg-indigo-500"
+                  className="absolute left-0 top-0 h-full rounded-full bg-primary"
                   style={{ width: `${entry.clickRate}%` }}
                 />
               </div>
@@ -932,7 +932,7 @@ function AnalyticsTab({ data }: { data: AnalyticsEntry[] }) {
             Open Rate
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-indigo-500" />
+            <div className="w-3 h-3 rounded-sm bg-primary" />
             Click Rate
           </div>
         </div>
@@ -971,7 +971,7 @@ function AnalyticsTab({ data }: { data: AnalyticsEntry[] }) {
                   </td>
                   <td className="px-4 py-3 text-[var(--color-text-primary)]">{entry.clicks.toLocaleString()}</td>
                   <td className="px-4 py-3">
-                    <span className="text-indigo-400 font-semibold">{entry.clickRate}%</span>
+                    <span className="text-primary font-semibold">{entry.clickRate}%</span>
                   </td>
                 </tr>
               ))}
@@ -1008,7 +1008,7 @@ export default function ReleaseNotesManager() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2.5 mb-0.5">
-                <IconPackage className="w-5 h-5 text-indigo-400" />
+                <IconPackage className="w-5 h-5 text-primary" />
                 <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Release Notes Manager</h1>
               </div>
               <p className="text-sm text-[var(--color-text-muted)]">Author, distribute, and track release communications</p>
@@ -1019,7 +1019,7 @@ export default function ReleaseNotesManager() {
                 <span><span className="text-[var(--color-text-secondary)] font-semibold">{draftCount}</span> draft</span>
                 <span><span className="text-amber-400 font-semibold">{scheduledCount}</span> scheduled</span>
               </div>
-              <button className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded-lg text-sm font-semibold transition-colors">
+              <button className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary text-[var(--color-text-primary)] rounded-lg text-sm font-semibold transition-colors">
                 <span className="text-base leading-none">+</span>
                 New Release
               </button>

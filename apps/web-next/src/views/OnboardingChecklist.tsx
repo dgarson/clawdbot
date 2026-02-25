@@ -99,7 +99,7 @@ export default function OnboardingChecklist() {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-primary/30">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Header & Overall Progress */}
@@ -110,14 +110,14 @@ export default function OnboardingChecklist() {
               <p className="text-[var(--color-text-secondary)] mt-1">Complete these steps to unlock your full workspace potential.</p>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-mono font-bold text-indigo-400">{stats.percent}%</span>
+              <span className="text-2xl font-mono font-bold text-primary">{stats.percent}%</span>
               <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider font-semibold">Workspace Ready</p>
             </div>
           </div>
           
           <div className="relative h-3 bg-[var(--color-surface-1)] rounded-full overflow-hidden border border-[var(--color-border)]" role="progressbar" aria-valuenow={stats.percent} aria-valuemin={0} aria-valuemax={100}>
             <div 
-              className="absolute top-0 left-0 h-full bg-indigo-500 transition-all duration-500 ease-out shadow-[0_0_12px_rgba(99,102,241,0.4)]"
+              className="absolute top-0 left-0 h-full bg-primary transition-all duration-500 ease-out shadow-[0_0_12px_rgba(99,102,241,0.4)]"
               style={{ width: `${stats.percent}%` }}
             />
           </div>
@@ -134,10 +134,10 @@ export default function OnboardingChecklist() {
 
         {/* Celebration Banner */}
         {stats.allRequiredDone && (
-          <div className="bg-indigo-600/20 border border-indigo-500/50 rounded-xl p-6 text-center space-y-2 animate-in fade-in zoom-in duration-500">
+          <div className="bg-primary/20 border border-primary/50 rounded-xl p-6 text-center space-y-2 animate-in fade-in zoom-in duration-500">
             <h2 className="text-xl font-bold text-indigo-300">🎉 Mission Accomplished!</h2>
             <p className="text-indigo-200/80 max-w-lg mx-auto">Your workspace is now fully configured and ready for production. All core agents and integrations are live.</p>
-            <button className="mt-2 px-6 py-2 bg-indigo-500 hover:bg-indigo-600 rounded-lg font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none">
+            <button className="mt-2 px-6 py-2 bg-primary hover:bg-primary rounded-lg font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none">
               Go to Dashboard
             </button>
           </div>
@@ -170,7 +170,7 @@ export default function OnboardingChecklist() {
                   </div>
                   <div className="flex items-center gap-2 text-xs font-mono">
                     <span className={cn(
-                      isActive ? "text-indigo-400" : "text-[var(--color-text-muted)]",
+                      isActive ? "text-primary" : "text-[var(--color-text-muted)]",
                       isDone && "text-emerald-400"
                     )}>
                       {progress.done}/{progress.total}
@@ -214,7 +214,7 @@ export default function OnboardingChecklist() {
                       isCompleted 
                         ? "bg-emerald-400 border-emerald-400 text-[var(--color-text-primary)]" 
                         : "border-[var(--color-border)] hover:border-[var(--color-surface-3)]",
-                      isInProgress && "border-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+                      isInProgress && "border-primary animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.5)]"
                     )}
                   >
                     {isCompleted && <span className="text-xs font-bold">✓</span>}
@@ -232,7 +232,7 @@ export default function OnboardingChecklist() {
                         {step.title}
                       </h3>
                       {step.required && !isCompleted && !isSkipped && (
-                        <span className="text-[10px] uppercase tracking-widest font-bold bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20">
+                        <span className="text-[10px] uppercase tracking-widest font-bold bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20">
                           Required
                         </span>
                       )}

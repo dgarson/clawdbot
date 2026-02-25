@@ -29,7 +29,7 @@ interface Violation {
 const CATEGORY_COLORS: Record<Category, { text: string; bg: string; border: string }> = {
   security: { text: "text-rose-400", bg: "bg-rose-500/15", border: "border-rose-500/30" },
   privacy: { text: "text-purple-400", bg: "bg-purple-500/15", border: "border-purple-500/30" },
-  compliance: { text: "text-indigo-400", bg: "bg-indigo-500/15", border: "border-indigo-500/30" },
+  compliance: { text: "text-primary", bg: "bg-primary/15", border: "border-primary/30" },
   access: { text: "text-blue-400", bg: "bg-blue-500/15", border: "border-blue-500/30" },
   "data-retention": { text: "text-amber-400", bg: "bg-amber-500/15", border: "border-amber-500/30" },
   "model-usage": { text: "text-emerald-400", bg: "bg-emerald-500/15", border: "border-emerald-500/30" },
@@ -172,7 +172,7 @@ export default function PolicyManager() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Policy Manager</h1>
-        <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-4 py-2 rounded text-sm font-medium transition-colors">
+        <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-4 py-2 rounded text-sm font-medium transition-colors">
           + New Policy
         </button>
       </div>
@@ -184,7 +184,7 @@ export default function PolicyManager() {
           className={cn(
             "px-3 py-1 rounded-full text-sm border transition-colors",
             activeCategory === null
-              ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+              ? "bg-primary border-primary text-[var(--color-text-primary)]"
               : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
           )}
         >
@@ -238,7 +238,7 @@ export default function PolicyManager() {
                 onClick={() => setSelectedId(isSelected ? null : policy.id)}
                 className={cn(
                   "w-full text-left bg-[var(--color-surface-1)] border rounded-lg p-4 transition-colors",
-                  isSelected ? "border-indigo-500 ring-1 ring-indigo-500/30" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                  isSelected ? "border-primary ring-1 ring-indigo-500/30" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -319,7 +319,7 @@ export default function PolicyManager() {
                 <ol className="space-y-1.5">
                   {selected.rules.map((rule, i) => (
                     <li key={i} className="flex gap-2 text-sm">
-                      <span className="text-indigo-400 font-mono shrink-0">{i + 1}.</span>
+                      <span className="text-primary font-mono shrink-0">{i + 1}.</span>
                       <span className="text-[var(--color-text-primary)]">{rule}</span>
                     </li>
                   ))}
@@ -365,7 +365,7 @@ export default function PolicyManager() {
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-2">
-                <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm transition-colors">
+                <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm transition-colors">
                   Edit Policy
                 </button>
                 <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-amber-400 border border-[var(--color-border)] px-3 py-1.5 rounded text-sm transition-colors">

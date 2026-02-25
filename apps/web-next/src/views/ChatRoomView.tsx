@@ -224,7 +224,7 @@ export default function ChatRoomView() {
               onClick={() => { setActiveChannelId(ch.id); setOpenThreadId(null); }}
               className={cn(
                 "w-full text-left px-3 py-1 flex items-center gap-2 rounded mx-1 my-0.5 text-sm transition-colors",
-                activeChannelId === ch.id ? "bg-indigo-500/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
+                activeChannelId === ch.id ? "bg-primary/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
               )}
             >
               <span className="text-[var(--color-text-muted)]">#</span>
@@ -247,7 +247,7 @@ export default function ChatRoomView() {
               onClick={() => { setActiveChannelId(ch.id); setOpenThreadId(null); }}
               className={cn(
                 "w-full text-left px-3 py-1 flex items-center gap-2 rounded mx-1 my-0.5 text-sm transition-colors",
-                activeChannelId === ch.id ? "bg-indigo-500/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
+                activeChannelId === ch.id ? "bg-primary/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
               )}
             >
               <span className="text-[var(--color-text-muted)]">🔒</span>
@@ -290,11 +290,11 @@ export default function ChatRoomView() {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search messages..."
-              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-1.5 rounded placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 w-40"
+              className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-1.5 rounded placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary w-40"
             />
             <button
               onClick={() => setShowMembers(v => !v)}
-              className={cn("text-xs px-3 py-1.5 rounded border transition-colors", showMembers ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+              className={cn("text-xs px-3 py-1.5 rounded border transition-colors", showMembers ? "bg-primary/20 border-primary text-indigo-300" : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
             >
               👥 {channel.memberCount}
             </button>
@@ -348,7 +348,7 @@ export default function ChatRoomView() {
                             className={cn(
                               "flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border transition-colors",
                               r.reactedByMe
-                                ? "bg-indigo-500/20 border-indigo-500 text-indigo-300"
+                                ? "bg-primary/20 border-primary text-indigo-300"
                                 : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                             )}
                           >
@@ -362,7 +362,7 @@ export default function ChatRoomView() {
                     {msg.threadCount > 0 && (
                       <button
                         onClick={e => { e.stopPropagation(); setOpenThreadId(openThreadId === msg.id ? null : msg.id); }}
-                        className="mt-1.5 text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                        className="mt-1.5 text-xs text-primary hover:text-indigo-300 flex items-center gap-1"
                       >
                         💬 {msg.threadCount} {msg.threadCount === 1 ? "reply" : "replies"}
                       </button>
@@ -411,7 +411,7 @@ export default function ChatRoomView() {
             {/* Message input */}
             <div className="p-4 border-t border-[var(--color-border)]">
               <div className="flex gap-2 items-end">
-                <div className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded overflow-hidden focus-within:border-indigo-500 transition-colors">
+                <div className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded overflow-hidden focus-within:border-primary transition-colors">
                   <textarea
                     value={inputText}
                     onChange={e => setInputText(e.target.value)}
@@ -429,7 +429,7 @@ export default function ChatRoomView() {
                 <button
                   onClick={sendMessage}
                   disabled={!inputText.trim()}
-                  className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-text-primary)] px-4 py-2 rounded text-sm transition-colors"
+                  className="bg-primary hover:bg-primary disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-text-primary)] px-4 py-2 rounded text-sm transition-colors"
                 >
                   Send
                 </button>
@@ -487,12 +487,12 @@ export default function ChatRoomView() {
                     onChange={e => setThreadInput(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter") {sendThreadReply();} }}
                     placeholder="Reply in thread..."
-                    className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                    className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
                   />
                   <button
                     onClick={sendThreadReply}
                     disabled={!threadInput.trim()}
-                    className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-xs"
+                    className="bg-primary hover:bg-primary disabled:opacity-40 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-xs"
                   >
                     ↵
                   </button>

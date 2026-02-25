@@ -296,7 +296,7 @@ export default function ResourceInventoryDashboard() {
                       <div className="flex flex-wrap gap-1.5">
                         {Object.entries(selected.tags).map(([k, v]) => (
                           <span key={k} className="px-2 py-0.5 rounded bg-[var(--color-surface-2)] text-xs font-mono">
-                            <span className="text-indigo-400">{k}</span><span className="text-[var(--color-text-muted)]">=</span><span className="text-[var(--color-text-primary)]">{v}</span>
+                            <span className="text-primary">{k}</span><span className="text-[var(--color-text-muted)]">=</span><span className="text-[var(--color-text-primary)]">{v}</span>
                           </span>
                         ))}
                       </div>
@@ -359,7 +359,7 @@ export default function ResourceInventoryDashboard() {
                       </div>
                     </div>
                     <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
-                      <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${(cb.cost / maxCost) * 100}%` }} />
+                      <div className="bg-primary h-2 rounded-full" style={{ width: `${(cb.cost / maxCost) * 100}%` }} />
                     </div>
                   </div>
                 ))}

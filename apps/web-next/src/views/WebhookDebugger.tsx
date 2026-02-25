@@ -103,7 +103,7 @@ const statusDot: Record<WebhookStatus, string> = {
 };
 
 const eventColor: Record<EventType, string> = {
-  "order.created":       "text-indigo-400",
+  "order.created":       "text-primary",
   "order.updated":       "text-sky-400",
   "payment.succeeded":   "text-emerald-400",
   "payment.failed":      "text-rose-400",
@@ -353,7 +353,7 @@ export default function WebhookDebugger() {
                   <select
                     value={testState.endpointId}
                     onChange={e => setTestState(p => ({ ...p, endpointId: e.target.value }))}
-                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
                   >
                     {ENDPOINTS.filter(e => e.active).map(e => (
                       <option key={e.id} value={e.id}>{e.url}</option>
@@ -365,7 +365,7 @@ export default function WebhookDebugger() {
                   <select
                     value={testState.eventType}
                     onChange={e => setTestState(p => ({ ...p, eventType: e.target.value as EventType }))}
-                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
                   >
                     {ALL_EVENT_TYPES.map(ev => (
                       <option key={ev} value={ev}>{ev}</option>
@@ -385,7 +385,7 @@ export default function WebhookDebugger() {
                     testState.status === "sending" ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-wait" :
                     testState.status === "success" ? "bg-emerald-600 text-[var(--color-text-primary)]" :
                     testState.status === "error" ? "bg-rose-600 text-[var(--color-text-primary)]" :
-                    "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
+                    "bg-primary hover:bg-primary text-[var(--color-text-primary)]"
                   )}>
                   {testState.status === "sending" ? "Sending..." :
                    testState.status === "success" ? "✓ Delivered Successfully" :

@@ -213,7 +213,7 @@ export default function MultiModelComparator() {
             onClick={() => setActiveTab(tab)}
             className={cn(
               "px-5 py-2.5 text-sm font-medium transition-colors border-b-2 capitalize",
-              activeTab === tab ? "border-indigo-500 text-indigo-300" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              activeTab === tab ? "border-primary text-indigo-300" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {tab === "compare" ? "⚡ Compare" : `📋 History (${SAVED_RUNS.length})`}
@@ -234,7 +234,7 @@ export default function MultiModelComparator() {
                     onClick={() => toggleModel(m.id)}
                     className={cn("flex items-center gap-2 px-2 py-1.5 rounded border cursor-pointer transition-colors", enabledModels.has(m.id) ? "bg-[var(--color-surface-2)] border-[var(--color-border)]" : "border-[var(--color-border)]/50 opacity-50")}
                   >
-                    <div className={cn("w-3 h-3 rounded border flex items-center justify-center text-[8px] flex-shrink-0", enabledModels.has(m.id) ? "bg-indigo-500 border-indigo-500 text-[var(--color-text-primary)]" : "border-[var(--color-surface-3)]")}>
+                    <div className={cn("w-3 h-3 rounded border flex items-center justify-center text-[8px] flex-shrink-0", enabledModels.has(m.id) ? "bg-primary border-primary text-[var(--color-text-primary)]" : "border-[var(--color-surface-3)]")}>
                       {enabledModels.has(m.id) && "✓"}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -251,7 +251,7 @@ export default function MultiModelComparator() {
                   value={systemPromptText}
                   onChange={e => setSystemPromptText(e.target.value)}
                   rows={3}
-                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-[10px] px-2 py-1.5 rounded resize-none focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-[10px] px-2 py-1.5 rounded resize-none focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -283,12 +283,12 @@ export default function MultiModelComparator() {
                   onChange={e => setPromptText(e.target.value)}
                   placeholder="Enter your prompt to compare across models..."
                   rows={3}
-                  className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm px-3 py-2 rounded resize-none placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                  className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm px-3 py-2 rounded resize-none placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
                 />
                 <button
                   onClick={runComparison}
                   disabled={!promptText.trim() || enabledModels.size === 0 || status === "running"}
-                  className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-text-primary)] px-4 py-2 rounded font-medium text-sm transition-colors self-start"
+                  className="bg-primary hover:bg-primary disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-text-primary)] px-4 py-2 rounded font-medium text-sm transition-colors self-start"
                 >
                   {status === "running" ? (
                     <span className="flex items-center gap-2"><span className="animate-spin w-3 h-3 border border-white border-t-transparent rounded-full inline-block" />Running…</span>
@@ -307,7 +307,7 @@ export default function MultiModelComparator() {
                     <button
                       key={m}
                       onClick={() => setMetric(m)}
-                      className={cn("text-xs px-3 py-1 rounded border transition-colors capitalize", metric === m ? "bg-indigo-500/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]")}
+                      className={cn("text-xs px-3 py-1 rounded border transition-colors capitalize", metric === m ? "bg-primary/20 border-primary text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]")}
                     >
                       {m}
                     </button>
@@ -328,10 +328,10 @@ export default function MultiModelComparator() {
                   const barPct = getMetricBar(result, selectedRun.results);
                   const isExpanded = expandedResultId === result.modelId;
                   return (
-                    <div key={result.modelId} className={cn("bg-[var(--color-surface-1)] rounded border overflow-hidden", i === 0 ? "border-indigo-500/40" : "border-[var(--color-border)]")}>
+                    <div key={result.modelId} className={cn("bg-[var(--color-surface-1)] rounded border overflow-hidden", i === 0 ? "border-primary/40" : "border-[var(--color-border)]")}>
                       {/* Model header */}
                       <div className="flex items-center gap-3 px-4 py-3">
-                        {i === 0 && <span className="text-xs text-indigo-400 font-bold">🥇</span>}
+                        {i === 0 && <span className="text-xs text-primary font-bold">🥇</span>}
                         {i === 1 && <span className="text-xs text-[var(--color-text-secondary)]">🥈</span>}
                         {i >= 2 && <span className="text-xs text-[var(--color-text-muted)]">{i + 1}.</span>}
                         <div className="flex-1">
@@ -342,7 +342,7 @@ export default function MultiModelComparator() {
                           <div className="flex items-center gap-2 mt-1">
                             <div className="flex-1 h-1.5 bg-[var(--color-surface-2)] rounded overflow-hidden">
                               <div
-                                className={cn("h-full rounded transition-all", metric === "quality" ? qualityBar(result.qualityScore) : "bg-indigo-400")}
+                                className={cn("h-full rounded transition-all", metric === "quality" ? qualityBar(result.qualityScore) : "bg-primary")}
                                 style={{ width: `${barPct}%` }}
                               />
                             </div>
@@ -380,7 +380,7 @@ export default function MultiModelComparator() {
         <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-4 max-w-3xl">
             {SAVED_RUNS.map(run => (
-              <div key={run.id} className={cn("bg-[var(--color-surface-1)] rounded border cursor-pointer transition-colors hover:border-[var(--color-border)]", selectedRunId === run.id ? "border-indigo-500/40" : "border-[var(--color-border)]")} onClick={() => { setSelectedRunId(run.id); setActiveTab("compare"); }}>
+              <div key={run.id} className={cn("bg-[var(--color-surface-1)] rounded border cursor-pointer transition-colors hover:border-[var(--color-border)]", selectedRunId === run.id ? "border-primary/40" : "border-[var(--color-border)]")} onClick={() => { setSelectedRunId(run.id); setActiveTab("compare"); }}>
                 <div className="p-4">
                   <div className="flex items-start justify-between">
                     <p className="text-sm text-[var(--color-text-primary)] font-medium">{run.prompt}</p>

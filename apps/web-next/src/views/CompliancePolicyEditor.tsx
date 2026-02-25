@@ -186,7 +186,7 @@ function statusBadge(s: PolicyStatus) {
   if (s === "active") {return "bg-emerald-400/10 text-emerald-400";}
   if (s === "draft") {return "bg-amber-400/10 text-amber-400";}
   if (s === "archived") {return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";}
-  return "bg-indigo-400/10 text-indigo-400";
+  return "bg-primary/10 text-primary";
 }
 function riskBadge(r: RiskLevel) {
   if (r === "critical") {return "bg-rose-500/10 text-rose-400";}
@@ -275,7 +275,7 @@ export default function CompliancePolicyEditor() {
         </div>
         <div className="flex gap-2">
           <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Export PDF</button>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Policy</button>
+          <button className="px-3 py-1.5 text-sm bg-primary hover:bg-primary rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Policy</button>
         </div>
       </div>
 
@@ -305,7 +305,7 @@ export default function CompliancePolicyEditor() {
           <button
             key={t.id}
             onClick={() => { setTab(t.id); setSelectedPolicy(null); }}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             {t.label}
           </button>
@@ -378,7 +378,7 @@ export default function CompliancePolicyEditor() {
               ← Back to policies
             </button>
             <div className="flex gap-2">
-              <button onClick={() => setEditMode(!editMode)} className={cn("px-3 py-1.5 text-sm rounded-lg transition-colors", editMode ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]")}>
+              <button onClick={() => setEditMode(!editMode)} className={cn("px-3 py-1.5 text-sm rounded-lg transition-colors", editMode ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]")}>
                 {editMode ? "Editing..." : "Edit Policy"}
               </button>
               {editMode && <button className="px-3 py-1.5 text-sm bg-emerald-600 hover:bg-emerald-500 rounded-lg text-[var(--color-text-primary)] transition-colors">Save Changes</button>}
@@ -440,7 +440,7 @@ export default function CompliancePolicyEditor() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-[var(--color-text-muted)] capitalize">{ctrl.evidenceType}</span>
-                      {ctrl.automationId && <span className="text-xs text-indigo-400">⚙ {ctrl.automationId}</span>}
+                      {ctrl.automationId && <span className="text-xs text-primary">⚙ {ctrl.automationId}</span>}
                     </div>
                   </div>
                   <p className="text-xs text-[var(--color-text-secondary)] ml-5 mb-2">{ctrl.description}</p>

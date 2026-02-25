@@ -172,15 +172,15 @@ const STATUS_ICON: Record<ValidatorStatus, string> = {
 };
 
 const KIND_STYLES: Record<ConfigFile["kind"], string> = {
-  agent: "bg-indigo-500/10 text-indigo-400",
+  agent: "bg-primary/10 text-primary",
   cron: "bg-amber-500/10 text-amber-400",
   gateway: "bg-emerald-500/10 text-emerald-400",
-  tool: "bg-violet-500/10 text-violet-400",
+  tool: "bg-primary/10 text-primary",
   integration: "bg-sky-500/10 text-sky-400",
 };
 
 const CATEGORY_COLORS: Record<IssueCategory, string> = {
-  schema: "text-violet-400",
+  schema: "text-primary",
   security: "text-rose-400",
   performance: "text-amber-400",
   compatibility: "text-sky-400",
@@ -247,7 +247,7 @@ export default function ConfigValidatorView() {
                   onClick={() => setSelectedFileId(file.id)}
                   className={cn(
                     "w-full text-left px-4 py-3 hover:bg-[var(--color-surface-2)]/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                    file.id === selectedFileId && "bg-[var(--color-surface-2)] border-l-2 border-indigo-500"
+                    file.id === selectedFileId && "bg-[var(--color-surface-2)] border-l-2 border-primary"
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -289,7 +289,7 @@ export default function ConfigValidatorView() {
                   onClick={() => setSeverityFilter(s)}
                   className={cn(
                     "px-2 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                    severityFilter === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                    severityFilter === s ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -356,7 +356,7 @@ export default function ConfigValidatorView() {
                                   </div>
                                   <p className="text-xs text-[var(--color-text-primary)] mt-1.5 leading-relaxed">{issue.message}</p>
                                   <div className="mt-1.5 flex items-start gap-1.5">
-                                    <span className="text-xs text-indigo-400 shrink-0">→</span>
+                                    <span className="text-xs text-primary shrink-0">→</span>
                                     <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{issue.suggestion}</p>
                                   </div>
                                 </div>

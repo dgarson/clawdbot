@@ -148,7 +148,7 @@ function formatMs(ms: number): string {
 
 function SparkBar({
   values,
-  color = "bg-indigo-500",
+  color = "bg-primary",
   height = "h-8",
 }: {
   values: number[]
@@ -197,7 +197,7 @@ function StatCard({
 
 function BotTypeBadge({ type }: { type: BotEntry["type"] }) {
   const styleMap: Record<BotEntry["type"], string> = {
-    crawler:   "bg-indigo-500/20 text-indigo-400  border-indigo-500/30",
+    crawler:   "bg-primary/20 text-primary  border-primary/30",
     scanner:   "bg-amber-500/20  text-amber-400   border-amber-500/30",
     social:    "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
     monitor:   "bg-[var(--color-surface-3)]/20   text-[var(--color-text-secondary)]    border-[var(--color-surface-3)]/30",
@@ -233,7 +233,7 @@ function OverviewTab() {
     <div className="space-y-6">
       {/* KPI row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Requests / sec" value="8,924"   sub="↑ 12% from last hour"  valueColor="text-indigo-400"  />
+        <StatCard label="Requests / sec" value="8,924"   sub="↑ 12% from last hour"  valueColor="text-primary"  />
         <StatCard label="Bandwidth"       value="1.34 GB/s" sub="↑ 8% from last hour" valueColor="text-emerald-400" />
         <StatCard label="Error Rate"      value="0.9%"    sub="↓ 0.3% from last hour" valueColor="text-amber-400"   />
         <StatCard label="P95 Latency"     value="142ms"   sub="↓ 18ms from last hour" />
@@ -249,13 +249,13 @@ function OverviewTab() {
               <div className="text-[var(--color-text-primary)] font-semibold text-sm">Requests / Second</div>
               <div className="text-[var(--color-text-muted)] text-xs">Last 24 hours</div>
             </div>
-            <div className="text-indigo-400 font-bold text-lg tabular-nums">8,924</div>
+            <div className="text-primary font-bold text-lg tabular-nums">8,924</div>
           </div>
           <div className="flex items-end gap-0.5 h-24">
             {REQUEST_TREND.map((v, i) => (
               <div
                 key={i}
-                className="flex-1 bg-indigo-500 rounded-sm opacity-75 hover:opacity-100 transition-opacity"
+                className="flex-1 bg-primary rounded-sm opacity-75 hover:opacity-100 transition-opacity"
                 style={{ height: `${Math.max(4, (v / maxReq) * 100)}%` }}
                 title={`${v.toLocaleString()} req/s`}
               />
@@ -410,7 +410,7 @@ function TopPagesTab() {
                 className={cn(
                   "text-xs px-2.5 py-1 rounded-lg border transition-colors",
                   sortBy === key
-                    ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                    ? "bg-primary border-primary text-[var(--color-text-primary)]"
                     : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -443,7 +443,7 @@ function TopPagesTab() {
                 <div className="text-[var(--color-text-primary)] text-sm tabular-nums font-medium">{formatNumber(page.requests)}</div>
                 <div className="mt-1.5 h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-indigo-500 rounded-full"
+                    className="h-full bg-primary rounded-full"
                     style={{ width: `${(page.requests / maxRequests) * 100}%` }}
                   />
                 </div>
@@ -473,7 +473,7 @@ function TopPagesTab() {
                 </span>
               </div>
               <div className="col-span-2">
-                <SparkBar values={page.trend} color="bg-indigo-500" height="h-6" />
+                <SparkBar values={page.trend} color="bg-primary" height="h-6" />
               </div>
             </div>
           ))}
@@ -494,7 +494,7 @@ function GeoTab() {
       {/* KPI row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total Visits"   value={formatNumber(totalVisits)} sub="last 24 hours"    />
-        <StatCard label="Countries"      value="68"          sub="active today"       valueColor="text-indigo-400"  />
+        <StatCard label="Countries"      value="68"          sub="active today"       valueColor="text-primary"  />
         <StatCard label="Top Region"     value="N. America"  sub="50.1% of traffic"   />
         <StatCard label="New Regions"    value="+3"          sub="vs. yesterday"      valueColor="text-emerald-400" />
       </div>
@@ -521,7 +521,7 @@ function GeoTab() {
                   </div>
                   <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-indigo-500 rounded-full"
+                      className="h-full bg-primary rounded-full"
                       style={{ width: `${(stat.visits / maxVisits) * 100}%` }}
                     />
                   </div>
@@ -638,7 +638,7 @@ function BotsTab() {
                 className={cn(
                   "text-xs px-2.5 py-1 rounded-lg border capitalize transition-colors",
                   botFilter === f
-                    ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                    ? "bg-primary border-primary text-[var(--color-text-primary)]"
                     : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -837,7 +837,7 @@ export default function TrafficAnalyticsDashboard() {
             <div className="text-[var(--color-text-muted)] text-xs">Last updated</div>
             <div className="text-[var(--color-text-primary)] text-sm font-medium tabular-nums">Just now</div>
           </div>
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-4 py-2 rounded-xl border border-indigo-500 transition-colors font-medium">
+          <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm px-4 py-2 rounded-xl border border-primary transition-colors font-medium">
             Export
           </button>
         </div>
@@ -852,7 +852,7 @@ export default function TrafficAnalyticsDashboard() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
               activeTab === tab.id
-                ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-sm"
+                ? "bg-primary text-[var(--color-text-primary)] shadow-sm"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >

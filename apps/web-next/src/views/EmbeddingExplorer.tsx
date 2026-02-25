@@ -18,7 +18,7 @@ interface Embedding {
 }
 
 const CATEGORY_COLORS: Record<Category, { dot: string; text: string; label: string }> = {
-  agent: { dot: "bg-indigo-400", text: "text-indigo-400", label: "Agent" },
+  agent: { dot: "bg-primary", text: "text-primary", label: "Agent" },
   tool: { dot: "bg-emerald-400", text: "text-emerald-400", label: "Tool" },
   memory: { dot: "bg-purple-400", text: "text-purple-400", label: "Memory" },
   task: { dot: "bg-amber-400", text: "text-amber-400", label: "Task" },
@@ -124,7 +124,7 @@ export default function EmbeddingExplorer() {
               "px-3 py-1.5 rounded text-sm font-medium transition-colors",
               !query.trim() || isEmbedding
                 ? "bg-[var(--color-surface-3)] text-[var(--color-text-muted)] cursor-not-allowed"
-                : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
+                : "bg-primary hover:bg-primary text-[var(--color-text-primary)]"
             )}
           >
             {isEmbedding ? "Embedding..." : "Embed Query"}
@@ -184,7 +184,7 @@ export default function EmbeddingExplorer() {
               {/* Shimmer overlay during embedding */}
               {isEmbedding && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center">
-                  <div className="bg-[var(--color-surface-1)]/80 rounded-lg px-4 py-2 text-sm text-indigo-400 animate-pulse">
+                  <div className="bg-[var(--color-surface-1)]/80 rounded-lg px-4 py-2 text-sm text-primary animate-pulse">
                     Computing embedding vector...
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export default function EmbeddingExplorer() {
                     </div>
                     <div className="h-1 bg-[var(--color-surface-2)] rounded-full mt-1.5 overflow-hidden">
                       <div
-                        className="h-full bg-indigo-500 rounded-full"
+                        className="h-full bg-primary rounded-full"
                         style={{ width: `${emb.similarity * 100}%` }}
                       />
                     </div>

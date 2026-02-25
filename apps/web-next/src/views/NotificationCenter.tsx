@@ -3,6 +3,8 @@ import { BellOff } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Skeleton } from "../components/ui/Skeleton";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { AlertFilterPillGroup, AlertSelectFilterBar } from "../components/alerts/AlertFilters";
+import { AlertSlideoutPanel } from "../components/alerts/AlertSlideoutPanel";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -379,26 +381,15 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-end">
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} aria-hidden />
-      <div
-        role="dialog"
-        aria-label="Notification settings"
-        className="relative w-80 bg-surface-1 border-l border-tok-border h-full overflow-y-auto shadow-2xl animate-slide-in"
+    <div className="fixed inset-0 z-50">
+      <button className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
+      <AlertSlideoutPanel
+        open={open}
+        onClose={onClose}
+        title="Notification Settings"
+        subtitle="Tune categories, severities, and behavior."
       >
-        <div className="flex items-center justify-between p-4 border-b border-tok-border">
-          <h2 className="text-lg font-bold text-fg-primary">Notification Settings</h2>
-          <button
-            onClick={onClose}
-            className="text-fg-secondary hover:text-fg-primary transition-colors"
-            aria-label="Close settings"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="p-4 space-y-6">
-          {/* Categories */}
+        <div className="space-y-6">
           <div>
             <h3 className="text-xs uppercase tracking-wider font-semibold text-fg-muted mb-3">
               Categories
@@ -416,7 +407,7 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
                       type="checkbox"
                       checked={enabled}
                       onChange={() => toggleCategory(cat)}
-                      className="w-4 h-4 rounded border-tok-border text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+                      className="w-4 h-4 rounded border-tok-border text-primary focus:ring-violet-500 focus:ring-offset-0"
                     />
                     <span className="text-sm">{cfg.icon}</span>
                     <span className={cn("text-sm", enabled ? "text-fg-primary" : "text-fg-muted")}>
@@ -428,7 +419,6 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
             </div>
           </div>
 
-          {/* Severities */}
           <div>
             <h3 className="text-xs uppercase tracking-wider font-semibold text-fg-muted mb-3">
               Severity Levels
@@ -456,7 +446,7 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
                       type="checkbox"
                       checked={enabled}
                       onChange={() => toggleSeverity(sev)}
-                      className="w-4 h-4 rounded border-tok-border text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+                      className="w-4 h-4 rounded border-tok-border text-primary focus:ring-violet-500 focus:ring-offset-0"
                     />
                     <span className="text-sm">{cfg.icon}</span>
                     <span className={cn("text-sm", enabled ? "text-fg-primary" : "text-fg-muted")}>
@@ -468,7 +458,6 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
             </div>
           </div>
 
-          {/* Behavior */}
           <div>
             <h3 className="text-xs uppercase tracking-wider font-semibold text-fg-muted mb-3">
               Behavior
@@ -483,22 +472,20 @@ function SettingsDrawer({ open, onClose, settings, onUpdate }: SettingsDrawerPro
                     markAllReadOnOpen: !settings.markAllReadOnOpen,
                   })
                 }
-                className="w-4 h-4 rounded border-tok-border text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+                className="w-4 h-4 rounded border-tok-border text-primary focus:ring-violet-500 focus:ring-offset-0"
               />
               <span className="text-sm text-fg-primary">Mark all read on open</span>
             </label>
           </div>
-        </div>
 
-        <div className="p-4 border-t border-tok-border">
           <button
             onClick={onClose}
-            className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-fg-primary text-sm font-semibold transition-colors"
+            className="w-full py-2 rounded-lg bg-primary hover:bg-primary text-fg-primary text-sm font-semibold transition-colors"
           >
             Done
           </button>
         </div>
-      </div>
+      </AlertSlideoutPanel>
     </div>
   );
 }
@@ -753,7 +740,7 @@ function DetailPanel({ notif, onRead, onDismiss, onPin }: DetailPanelProps) {
         {notif.action && (
           <button
             type="button"
-            className="w-full py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 active:scale-95 text-fg-primary text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            className="w-full py-2.5 rounded-lg bg-primary hover:bg-primary active:scale-95 text-fg-primary text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
           >
             {notif.action.label}
           </button>
@@ -1118,12 +1105,12 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
     }
   }, [focusedIndex]);
 
-  const SEVERITY_FILTERS: { value: FilterSeverity; label: string; color: string }[] = [
-    { value: "all",      label: "All",      color: "text-fg-secondary" },
-    { value: "critical", label: "Critical", color: "text-red-400"   },
-    { value: "warning",  label: "Warning",  color: "text-amber-400" },
-    { value: "success",  label: "Success",  color: "text-emerald-400" },
-    { value: "info",     label: "Info",     color: "text-blue-400"  },
+  const SEVERITY_FILTERS: { value: FilterSeverity; label: string }[] = [
+    { value: "all", label: "All" },
+    { value: "critical", label: "Critical" },
+    { value: "warning", label: "Warning" },
+    { value: "success", label: "Success" },
+    { value: "info", label: "Info" },
   ];
 
   if (isLoading) return <NotificationCenterSkeleton />;
@@ -1135,7 +1122,7 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-fg-primary">Notification Center</h1>
           {unreadCount > 0 && (
-            <span className="text-xs bg-violet-600 text-fg-primary rounded-full px-2 py-0.5 font-bold" aria-label={`${unreadCount} unread`}>
+            <span className="text-xs bg-primary text-fg-primary rounded-full px-2 py-0.5 font-bold" aria-label={`${unreadCount} unread`}>
               {unreadCount}
             </span>
           )}
@@ -1220,54 +1207,43 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
             </div>
           </div>
 
-          {/* Severity filter chips */}
-          <div className="flex gap-1 px-3 py-2 border-b border-tok-border/60 overflow-x-auto flex-shrink-0">
-            {SEVERITY_FILTERS.map((f) => (
-              <button
-                key={f.value}
-                type="button"
-                onClick={() => setFilterSeverity(f.value)}
-                className={cn(
-                  "flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
-                  filterSeverity === f.value
-                    ? "bg-violet-600 text-fg-primary"
-                    : "bg-surface-2 text-fg-secondary hover:bg-surface-3"
-                )}
-                aria-pressed={filterSeverity === f.value}
-              >
-                {f.label}
-              </button>
-            ))}
+          <div className="px-3 py-2 border-b border-tok-border/60 overflow-x-auto flex-shrink-0">
+            <AlertFilterPillGroup
+              label="Severity"
+              value={filterSeverity}
+              onChange={(next) => setFilterSeverity(next as FilterSeverity)}
+              options={SEVERITY_FILTERS}
+            />
           </div>
 
-          {/* Read / Category filters */}
-          <div className="flex gap-2 px-3 py-2 border-b border-tok-border/60 overflow-x-auto flex-shrink-0">
-            {(["all", "unread", "read"] as FilterRead[]).map((v) => (
-              <button
-                key={v}
-                type="button"
-                onClick={() => setFilterRead(v)}
-                className={cn(
-                  "flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 capitalize",
-                  filterRead === v ? "bg-surface-3 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:bg-surface-3"
-                )}
-                aria-pressed={filterRead === v}
-              >
-                {v}
-              </button>
-            ))}
-            <div className="w-px bg-surface-3 mx-1 flex-shrink-0" aria-hidden />
-            <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value as NotifCategory | "all")}
-              className="flex-shrink-0 text-xs bg-surface-2 text-fg-secondary border border-tok-border rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-violet-500"
-              aria-label="Filter by category"
-            >
-              <option value="all">All categories</option>
-              {(Object.keys(CATEGORY_CONFIG) as NotifCategory[]).map((c) => (
-                <option key={c} value={c}>{CATEGORY_CONFIG[c].icon} {CATEGORY_CONFIG[c].label}</option>
-              ))}
-            </select>
+          <div className="px-3 py-2 border-b border-tok-border/60 overflow-x-auto flex-shrink-0 space-y-2">
+            <AlertFilterPillGroup
+              label="Read State"
+              value={filterRead}
+              onChange={(next) => setFilterRead(next as FilterRead)}
+              options={
+                (["all", "unread", "read"] as FilterRead[]).map((value) => ({
+                  value,
+                  label: value.charAt(0).toUpperCase() + value.slice(1),
+                }))
+              }
+            />
+            <AlertSelectFilterBar
+              filters={[
+                {
+                  value: filterCategory,
+                  onChange: (next) => setFilterCategory(next as NotifCategory | "all"),
+                  ariaLabel: "Filter by category",
+                  options: [
+                    { value: "all", label: "All categories" },
+                    ...(Object.keys(CATEGORY_CONFIG) as NotifCategory[]).map((category) => ({
+                      value: category,
+                      label: `${CATEGORY_CONFIG[category].icon} ${CATEGORY_CONFIG[category].label}`,
+                    })),
+                  ],
+                },
+              ]}
+            />
           </div>
 
           {/* Notification list */}

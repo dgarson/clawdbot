@@ -338,7 +338,7 @@ function edgeLineColor(kind: EdgeKind): string {
 }
 
 function edgePillClass(kind: EdgeKind): string {
-  if (kind === "spawn")    {return "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30";}
+  if (kind === "spawn")    {return "bg-primary/20 text-primary border border-primary/30";}
   if (kind === "delegate") {return "bg-amber-500/20 text-amber-400 border border-amber-500/30";}
   return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] border border-[var(--color-surface-3)]";
 }
@@ -350,7 +350,7 @@ function edgeText(kind: EdgeKind): string {
 }
 
 function eventDotClass(kind: EventKind): string {
-  if (kind === "spawn")    {return "bg-indigo-400";}
+  if (kind === "spawn")    {return "bg-primary";}
   if (kind === "delegate") {return "bg-amber-400";}
   if (kind === "complete") {return "bg-emerald-400";}
   if (kind === "error")    {return "bg-rose-400";}
@@ -358,7 +358,7 @@ function eventDotClass(kind: EventKind): string {
 }
 
 function eventPillClass(kind: EventKind): string {
-  if (kind === "spawn")    {return "bg-indigo-500/20 text-indigo-400";}
+  if (kind === "spawn")    {return "bg-primary/20 text-primary";}
   if (kind === "delegate") {return "bg-amber-500/20 text-amber-400";}
   if (kind === "complete") {return "bg-emerald-500/20 text-emerald-400";}
   if (kind === "error")    {return "bg-rose-500/20 text-rose-400";}
@@ -441,7 +441,7 @@ function MapNode({ agent, x, y, selected, connected, onClick }: MapNodeProps) {
       className={cn(
         "rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all duration-200",
         selected
-          ? "border-indigo-500 bg-indigo-900/60 shadow-lg shadow-indigo-500/30"
+          ? "border-primary bg-indigo-900/60 shadow-lg shadow-indigo-500/30"
           : connected
           ? "border-[var(--color-surface-3)] bg-[var(--color-surface-2)]"
           : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)] hover:bg-[var(--color-surface-2)]"
@@ -506,7 +506,7 @@ function SelectedAgentPanel({ agentId, onClose }: SelectedPanelProps) {
           <div className="text-[var(--color-text-muted)] text-xs">tier</div>
         </div>
         <div className="rounded-lg bg-[var(--color-surface-2)] px-3 py-2 flex-1 text-center">
-          <div className="text-indigo-400 text-xs font-bold">
+          <div className="text-primary text-xs font-bold">
             {outbound.filter(e => e.kind === "spawn").length}
           </div>
           <div className="text-[var(--color-text-muted)] text-xs">spawns</div>
@@ -562,7 +562,7 @@ function SelectedAgentPanel({ agentId, onClose }: SelectedPanelProps) {
           <div className="space-y-1">
             {activeSessions.map(ev => (
               <div key={ev.id} className="text-xs text-[var(--color-text-secondary)] flex items-start gap-1.5">
-                <span className="text-indigo-500 mt-0.5 flex-shrink-0">↳</span>
+                <span className="text-primary mt-0.5 flex-shrink-0">↳</span>
                 <span className="leading-relaxed">{ev.description}</span>
               </div>
             ))}
@@ -704,7 +704,7 @@ function SpawnTree() {
           { label: "Total Agents",   value: TOPO_AGENTS.length.toString(), color: "text-[var(--color-text-primary)]" },
           { label: "Active / Busy",  value: `${activeNodes}`,              color: "text-emerald-400" },
           { label: "Completed",      value: `${completedNodes}`,           color: "text-[var(--color-text-secondary)]" },
-          { label: "Messages",       value: `${totalMessages}`,            color: "text-indigo-400" },
+          { label: "Messages",       value: `${totalMessages}`,            color: "text-primary" },
         ].map(s => (
           <div key={s.label}>
             <div className={cn("text-2xl font-bold", s.color)}>{s.value}</div>
@@ -874,7 +874,7 @@ function SessionChains() {
               key={chain.id}
               className={cn(
                 "rounded-xl border transition-all",
-                isOpen ? "border-indigo-500/40 bg-[var(--color-surface-1)]" : "border-[var(--color-border)] bg-[var(--color-surface-1)]/50 hover:border-[var(--color-border)]"
+                isOpen ? "border-primary/40 bg-[var(--color-surface-1)]" : "border-[var(--color-border)] bg-[var(--color-surface-1)]/50 hover:border-[var(--color-border)]"
               )}
             >
               {/* Header row */}
@@ -996,7 +996,7 @@ function EventStream() {
               className={cn(
                 "px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap",
                 filter === f.value
-                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -1062,7 +1062,7 @@ function EventStream() {
                     <span className="text-[var(--color-text-muted)] text-xs ml-auto">{event.timestamp}</span>
                   </div>
                   <p className="text-[var(--color-text-secondary)] text-xs leading-relaxed">{event.description}</p>
-                  <span className="text-indigo-500/70 text-xs font-mono mt-1.5 block hover:text-indigo-400 cursor-pointer transition-colors">
+                  <span className="text-primary/70 text-xs font-mono mt-1.5 block hover:text-primary cursor-pointer transition-colors">
                     {event.sessionId}
                   </span>
                 </div>
@@ -1100,7 +1100,7 @@ export default function AgentRelationshipTopology() {
 
   const headerStats = [
     { label: "Online",   value: activeAgents, color: "text-emerald-400" },
-    { label: "Spawns",   value: spawnCount,   color: "text-indigo-400"  },
+    { label: "Spawns",   value: spawnCount,   color: "text-primary"  },
     { label: "Edges",    value: edgeCount,    color: "text-amber-400"   },
   ];
 
@@ -1145,7 +1145,7 @@ export default function AgentRelationshipTopology() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-lg shadow-indigo-900/50"
+                  ? "bg-primary text-[var(--color-text-primary)] shadow-lg shadow-indigo-900/50"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >

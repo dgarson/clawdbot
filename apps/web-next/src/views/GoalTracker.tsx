@@ -152,7 +152,7 @@ const GOALS: Goal[] = [
 
 const STATUS_BADGE: Record<GoalStatus, string> = {
   "not-started": "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]",
-  "in-progress": "bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/30",
+  "in-progress": "bg-primary/20 text-primary ring-1 ring-indigo-500/30",
   "at-risk": "bg-rose-500/20 text-rose-400 ring-1 ring-rose-500/30",
   "complete": "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20",
   "paused": "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20",
@@ -180,8 +180,8 @@ const MILESTONE_ICON: Record<MilestoneStatus, string> = {
 
 const TIMEFRAME_COLORS: Record<GoalTimeframe, string> = {
   weekly: "text-sky-400",
-  monthly: "text-violet-400",
-  quarterly: "text-indigo-400",
+  monthly: "text-primary",
+  quarterly: "text-primary",
   annual: "text-amber-400",
 };
 
@@ -231,7 +231,7 @@ export default function GoalTracker() {
                 onClick={() => setStatusFilter(s)}
                 className={cn(
                   "px-2 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                  statusFilter === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  statusFilter === s ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {s === "all" ? "All" : STATUS_LABEL[s]}
@@ -252,7 +252,7 @@ export default function GoalTracker() {
                 onClick={() => setSelectedId(goal.id)}
                 className={cn(
                   "w-full text-left px-4 py-3 hover:bg-[var(--color-surface-2)]/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                  goal.id === selectedId && "bg-[var(--color-surface-2)] border-l-2 border-indigo-500"
+                  goal.id === selectedId && "bg-[var(--color-surface-2)] border-l-2 border-primary"
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -275,7 +275,7 @@ export default function GoalTracker() {
                         goal.status === "at-risk" ? "bg-rose-500" :
                         goal.status === "complete" ? "bg-emerald-500" :
                         goal.status === "paused" ? "bg-amber-500" :
-                        "bg-indigo-500"
+                        "bg-primary"
                       )}
                       style={{ width: `${goal.progress}%` }}
                       role="progressbar"
@@ -332,7 +332,7 @@ export default function GoalTracker() {
                 selected.status === "at-risk" ? "text-rose-400" :
                 selected.status === "complete" ? "text-emerald-400" :
                 selected.status === "paused" ? "text-amber-400" :
-                "text-indigo-400"
+                "text-primary"
               )}>
                 {selected.progress}%
               </span>
@@ -344,7 +344,7 @@ export default function GoalTracker() {
                   selected.status === "at-risk" ? "bg-rose-500" :
                   selected.status === "complete" ? "bg-emerald-500" :
                   selected.status === "paused" ? "bg-amber-500" :
-                  "bg-indigo-500"
+                  "bg-primary"
                 )}
                 style={{ width: `${selected.progress}%` }}
                 role="progressbar"

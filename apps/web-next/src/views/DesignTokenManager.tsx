@@ -214,7 +214,7 @@ export default function DesignTokenManager() {
                 placeholder="🔍 Search tokens..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
               />
             </div>
             <div className="space-y-0.5">
@@ -258,7 +258,7 @@ export default function DesignTokenManager() {
                   onClick={() => setSelectedToken(selectedToken?.id === token.id ? null : token)}
                   className={cn(
                     "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
-                    selectedToken?.id === token.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                    selectedToken?.id === token.id ? "border-primary" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                   )}
                 >
                   <div className="flex items-center gap-4">
@@ -271,12 +271,12 @@ export default function DesignTokenManager() {
                     )}
                     {token.type === "spacing" && (
                       <div className="w-10 h-10 flex items-center justify-center bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)] shrink-0">
-                        <div className="bg-indigo-500 h-1 rounded" style={{ width: token.value === "4px" ? "12px" : token.value === "8px" ? "20px" : token.value === "12px" ? "28px" : "36px" }} />
+                        <div className="bg-primary h-1 rounded" style={{ width: token.value === "4px" ? "12px" : token.value === "8px" ? "20px" : token.value === "12px" ? "28px" : "36px" }} />
                       </div>
                     )}
                     {token.type === "radius" && (
                       <div className="w-10 h-10 flex items-center justify-center bg-[var(--color-surface-2)] rounded-lg border border-[var(--color-border)] shrink-0">
-                        <div className="w-6 h-6 bg-indigo-500" style={{ borderRadius: token.value }} />
+                        <div className="w-6 h-6 bg-primary" style={{ borderRadius: token.value }} />
                       </div>
                     )}
                     {token.type === "typography" && (
@@ -437,7 +437,7 @@ export default function DesignTokenManager() {
                 className={cn(
                   "px-4 py-2 text-sm rounded-lg border transition-colors font-mono",
                   exportFormat === fmt
-                    ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                    ? "bg-primary border-primary text-[var(--color-text-primary)]"
                     : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >

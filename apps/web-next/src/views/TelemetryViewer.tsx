@@ -358,7 +358,7 @@ export default function TelemetryViewer() {
             <div
               className={cn(
                 "h-4 rounded-sm w-full",
-                span.status === "ok" ? "bg-indigo-500/70" : span.status === "error" ? "bg-rose-500/70" : "bg-[var(--color-surface-3)]"
+                span.status === "ok" ? "bg-primary/70" : span.status === "error" ? "bg-rose-500/70" : "bg-[var(--color-surface-3)]"
               )}
             />
           </div>
@@ -384,7 +384,7 @@ export default function TelemetryViewer() {
               <option>Last 6 hours</option>
               <option>Last 24 hours</option>
             </select>
-            <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm">
+            <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm">
               ⟳ Refresh
             </button>
           </div>
@@ -399,7 +399,7 @@ export default function TelemetryViewer() {
               className={cn(
                 "px-4 py-2 text-sm capitalize border-b-2 -mb-px transition-colors",
                 activeTab === tab
-                  ? "border-indigo-500 text-[var(--color-text-primary)] font-medium"
+                  ? "border-primary text-[var(--color-text-primary)] font-medium"
                   : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -425,7 +425,7 @@ export default function TelemetryViewer() {
                       onClick={() => { setSelectedTrace(trace); setSelectedSpan(null); }}
                       className={cn(
                         "w-full text-left p-3 rounded-xl border transition-all",
-                        isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
+                        isSelected ? "bg-indigo-900/20 border-primary/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       <div className="flex items-center justify-between mb-1.5">
@@ -490,7 +490,7 @@ export default function TelemetryViewer() {
                     </div>
                     <div className="grid grid-cols-3 gap-3 text-xs mb-3">
                       <div><span className="text-[var(--color-text-muted)]">Service: </span><span className="text-[var(--color-text-primary)]">{selectedSpan.service}</span></div>
-                      <div><span className="text-[var(--color-text-muted)]">Duration: </span><span className="text-indigo-400">{selectedSpan.duration}ms</span></div>
+                      <div><span className="text-[var(--color-text-muted)]">Duration: </span><span className="text-primary">{selectedSpan.duration}ms</span></div>
                       <div><span className="text-[var(--color-text-muted)]">Status: </span><span className={STATUS_CONFIG[selectedSpan.status].color}>{selectedSpan.status}</span></div>
                     </div>
                     <div className="space-y-1">
@@ -509,7 +509,7 @@ export default function TelemetryViewer() {
                         <div className="text-xs text-[var(--color-text-muted)] font-medium mb-1">Events</div>
                         {selectedSpan.events.map((ev, i) => (
                           <div key={i} className="flex items-center gap-2 text-[11px] text-[var(--color-text-secondary)]">
-                            <span className="text-indigo-400">+{ev.ts}ms</span>
+                            <span className="text-primary">+{ev.ts}ms</span>
                             <span className="text-[var(--color-text-primary)]">{ev.name}</span>
                           </div>
                         ))}
@@ -535,7 +535,7 @@ export default function TelemetryViewer() {
                     onClick={() => setSelectedMetric(metric)}
                     className={cn(
                       "w-full text-left p-3 rounded-xl border transition-all",
-                      isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
+                      isSelected ? "bg-indigo-900/20 border-primary/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                     )}
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -544,7 +544,7 @@ export default function TelemetryViewer() {
                     </div>
                     <div className="text-sm font-medium text-[var(--color-text-primary)] mb-1 font-mono truncate">{metric.name}</div>
                     <div className="text-xs text-[var(--color-text-muted)]">{metric.description}</div>
-                    <div className="text-lg font-bold text-indigo-400 mt-1">{metric.currentValue.toLocaleString()}</div>
+                    <div className="text-lg font-bold text-primary mt-1">{metric.currentValue.toLocaleString()}</div>
                   </button>
                 );
               })}
@@ -562,7 +562,7 @@ export default function TelemetryViewer() {
                 <div className="flex flex-wrap gap-2 mb-4">
                   {Object.entries(selectedMetric.labels).map(([k, v]) => (
                     <span key={k} className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-2 py-0.5 rounded-full font-mono">
-                      {k}=<span className="text-indigo-400">{v}</span>
+                      {k}=<span className="text-primary">{v}</span>
                     </span>
                   ))}
                   <span className={cn("text-xs px-2 py-0.5 rounded-full", METRIC_TYPE_CONFIG[selectedMetric.type].color, "bg-[var(--color-surface-2)] border border-[var(--color-border)]")}>
@@ -582,7 +582,7 @@ export default function TelemetryViewer() {
                           <div className="text-[9px] text-[var(--color-text-muted)]">{v.value.toLocaleString()}</div>
                           <div className="w-full flex-1 flex items-end">
                             <div
-                              className="w-full rounded-t bg-indigo-500/50 hover:bg-indigo-500/70 transition-colors"
+                              className="w-full rounded-t bg-primary/50 hover:bg-primary/70 transition-colors"
                               style={{ height: `${pct}%`, minHeight: 2 }}
                             />
                           </div>
@@ -601,7 +601,7 @@ export default function TelemetryViewer() {
                   ].map((s) => (
                     <div key={s.label} className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
                       <div className="text-xs text-[var(--color-text-muted)]">{s.label}</div>
-                      <div className="text-base font-bold text-indigo-400">{s.value}</div>
+                      <div className="text-base font-bold text-primary">{s.value}</div>
                     </div>
                   ))}
                 </div>

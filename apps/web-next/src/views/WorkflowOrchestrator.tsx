@@ -219,19 +219,19 @@ const statusColor: Record<WorkflowStatus, string> = {
   paused: "text-amber-400 bg-amber-400/10",
   completed: "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10",
   failed: "text-rose-400 bg-rose-400/10",
-  draft: "text-indigo-400 bg-indigo-400/10",
+  draft: "text-primary bg-primary/10",
 }
 
 const stepStatusColor: Record<StepStatus, string> = {
   pending: "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
-  running: "bg-indigo-500/20 text-indigo-400",
+  running: "bg-primary/20 text-primary",
   completed: "bg-emerald-400/10 text-emerald-400",
   failed: "bg-rose-400/10 text-rose-400",
   skipped: "bg-[var(--color-surface-3)]/50 text-[var(--color-text-muted)]",
 }
 
 const runStatusColor: Record<RunStatus, string> = {
-  running: "text-indigo-400",
+  running: "text-primary",
   completed: "text-emerald-400",
   failed: "text-rose-400",
   cancelled: "text-[var(--color-text-secondary)]",
@@ -341,7 +341,7 @@ export default function WorkflowOrchestrator() {
           <h1 className="text-2xl font-bold">Workflow Orchestrator</h1>
           <p className="text-[var(--color-text-secondary)] text-sm mt-1">Automate, monitor and manage multi-step workflows</p>
         </div>
-        <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm font-medium transition-colors">
+        <button className="px-4 py-2 bg-primary hover:bg-primary rounded-md text-sm font-medium transition-colors">
           + New Workflow
         </button>
       </div>
@@ -349,7 +349,7 @@ export default function WorkflowOrchestrator() {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <StatCard label="Active Workflows" value={WORKFLOWS.filter(w => w.status === "active").length.toString()} sub="2 paused, 1 draft" color="text-emerald-400" />
-        <StatCard label="Today's Runs" value={totalRuns.toString()} sub={`${runningRuns} currently running`} color="text-indigo-400" />
+        <StatCard label="Today's Runs" value={totalRuns.toString()} sub={`${runningRuns} currently running`} color="text-primary" />
         <StatCard label="Success Rate" value={`${((successRuns / totalRuns) * 100).toFixed(1)}%`} sub={`${failedRuns} failed today`} color="text-emerald-400" />
         <StatCard label="Avg Duration" value="42m" sub="across all workflows" color="text-[var(--color-text-primary)]" />
       </div>
@@ -363,7 +363,7 @@ export default function WorkflowOrchestrator() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                ? "border-primary text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -467,7 +467,7 @@ export default function WorkflowOrchestrator() {
                         <React.Fragment key={step.id}>
                           <div className={cn("shrink-0 rounded-md px-3 py-2 text-xs border", {
                             "border-emerald-500/50 bg-emerald-400/5": step.status === "completed",
-                            "border-indigo-500/50 bg-indigo-400/5 animate-pulse": step.status === "running",
+                            "border-primary/50 bg-primary/5 animate-pulse": step.status === "running",
                             "border-rose-500/50 bg-rose-400/5": step.status === "failed",
                             "border-[var(--color-border)] bg-[var(--color-surface-1)]": step.status === "pending",
                             "border-[var(--color-border)]/30 bg-[var(--color-surface-1)]/30": step.status === "skipped",
@@ -476,7 +476,7 @@ export default function WorkflowOrchestrator() {
                               <span>{stepTypeIcon[step.type]}</span>
                               <span className={cn("font-medium", {
                                 "text-emerald-400": step.status === "completed",
-                                "text-indigo-400": step.status === "running",
+                                "text-primary": step.status === "running",
                                 "text-rose-400": step.status === "failed",
                                 "text-[var(--color-text-secondary)]": step.status === "pending",
                                 "text-[var(--color-text-muted)]": step.status === "skipped",
@@ -506,7 +506,7 @@ export default function WorkflowOrchestrator() {
                             ▶ Resume
                           </button>
                         )}
-                        <button className="px-3 py-1 text-xs bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-md transition-colors">
+                        <button className="px-3 py-1 text-xs bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors">
                           ▶ Run Now
                         </button>
                         <button className="px-3 py-1 text-xs bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] rounded-md transition-colors">
@@ -582,9 +582,9 @@ export default function WorkflowOrchestrator() {
                       {selectedRun === r.id && r.status === "running" && (
                         <tr className="border-b border-[var(--color-border)]/50">
                           <td colSpan={7} className="px-3 pb-3">
-                            <div className="bg-indigo-400/5 border border-indigo-400/20 rounded-md p-3">
-                              <div className="text-xs text-indigo-400 font-medium mb-2">Progress</div>
-                              <ProgressBar value={(r.stepsCompleted / r.stepsTotal) * 100} color="bg-indigo-500" />
+                            <div className="bg-primary/5 border border-primary/20 rounded-md p-3">
+                              <div className="text-xs text-primary font-medium mb-2">Progress</div>
+                              <ProgressBar value={(r.stepsCompleted / r.stepsTotal) * 100} color="bg-primary" />
                               <div className="text-xs text-[var(--color-text-secondary)] mt-1">{r.stepsCompleted} of {r.stepsTotal} steps complete</div>
                             </div>
                           </td>
@@ -613,7 +613,7 @@ export default function WorkflowOrchestrator() {
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
                     selectedWorkflow === wf.id
-                      ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                      ? "bg-primary/20 text-indigo-300 border border-primary/30"
                       : "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] border border-[var(--color-border)]"
                   )}
                 >
@@ -629,7 +629,7 @@ export default function WorkflowOrchestrator() {
                 <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="font-medium">{workflow.name}</h2>
-                    <button className="px-3 py-1 text-xs bg-indigo-500 hover:bg-indigo-400 rounded-md transition-colors">
+                    <button className="px-3 py-1 text-xs bg-primary hover:bg-primary rounded-md transition-colors">
                       + Add Step
                     </button>
                   </div>
@@ -658,7 +658,7 @@ export default function WorkflowOrchestrator() {
                     ))}
                   </div>
                   <div className="flex gap-2 mt-4 pt-4 border-t border-[var(--color-border)]">
-                    <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm transition-colors">
+                    <button className="px-4 py-2 bg-primary hover:bg-primary rounded-md text-sm transition-colors">
                       Save Changes
                     </button>
                     <button className="px-4 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-md text-sm text-[var(--color-text-primary)] transition-colors">
@@ -691,7 +691,7 @@ export default function WorkflowOrchestrator() {
                       style={{ height: `${(d.failed / maxVol) * 120}px` }}
                     />
                     <div
-                      className="w-full bg-indigo-500 rounded-t"
+                      className="w-full bg-primary rounded-t"
                       style={{ height: `${((d.runs - d.failed) / maxVol) * 120}px` }}
                     />
                   </div>
@@ -701,7 +701,7 @@ export default function WorkflowOrchestrator() {
               ))}
             </div>
             <div className="flex gap-4 mt-2 text-xs text-[var(--color-text-secondary)]">
-              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-indigo-500 inline-block" /> Success</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-primary inline-block" /> Success</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-rose-400/60 inline-block" /> Failed</span>
             </div>
           </div>
@@ -734,7 +734,7 @@ export default function WorkflowOrchestrator() {
           {/* Summary stats */}
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-indigo-400">4,241</div>
+              <div className="text-3xl font-bold text-primary">4,241</div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">Total Runs This Month</div>
             </div>
             <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">

@@ -107,7 +107,7 @@ function ChatMessageComponent({ message }: { message: ChatMessageType }) {
         className={cn(
           'max-w-[80%] rounded-2xl px-4 py-3',
           isUser
-            ? 'bg-violet-600 text-fg-primary rounded-br-sm'
+            ? 'bg-primary text-fg-primary rounded-br-sm'
             : 'bg-surface-1 text-fg-primary rounded-bl-sm'
         )}
       >
@@ -180,7 +180,7 @@ function SessionItem({
       className={cn(
         'w-full text-left p-3 rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
         isActive
-          ? 'bg-surface-2 border border-violet-600'
+          ? 'bg-surface-2 border border-primary'
           : 'hover:bg-surface-2/50 border border-transparent'
       )}
     >
@@ -369,7 +369,7 @@ export default function ChatInterface({
       {/* Skip link */}
       <a
         href="#chat-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to chat
       </a>
@@ -465,7 +465,7 @@ export default function ChatInterface({
                   onKeyDown={handleKeyDown}
                   placeholder="Message..."
                   rows={1}
-                  className="w-full bg-surface-2 border border-tok-border rounded-xl px-4 py-3 pr-12 text-fg-primary placeholder:text-fg-muted resize-none focus-visible:outline-none focus-visible:border-violet-600 focus-visible:ring-1 focus-visible:ring-violet-600"
+                  className="w-full bg-surface-2 border border-tok-border rounded-xl px-4 py-3 pr-12 text-fg-primary placeholder:text-fg-muted resize-none focus-visible:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-violet-600"
                 />
                 <button
                   onClick={handleSend}
@@ -474,7 +474,7 @@ export default function ChatInterface({
                   className={cn(
                     'absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none',
                     inputValue.trim() && !isStreaming
-                      ? 'bg-violet-600 hover:bg-violet-500 text-fg-primary'
+                      ? 'bg-primary hover:bg-primary text-fg-primary'
                       : 'bg-surface-3 text-fg-muted cursor-not-allowed'
                   )}
                 >

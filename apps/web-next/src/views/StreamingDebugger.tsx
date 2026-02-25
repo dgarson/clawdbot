@@ -309,7 +309,7 @@ function finishColor(reason: FinishReason): string {
   if (reason === "stop") {return "text-emerald-400";}
   if (reason === "length") {return "text-amber-400";}
   if (reason === "error") {return "text-rose-400";}
-  return "text-indigo-400";
+  return "text-primary";
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -329,7 +329,7 @@ function TabButton({
       className={cn(
         "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
         active
-          ? "bg-indigo-600 text-[var(--color-text-primary)]"
+          ? "bg-primary text-[var(--color-text-primary)]"
           : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
       )}
     >
@@ -508,7 +508,7 @@ function LiveStreamTab() {
               onClick={() => setJsonMode((v) => !v)}
               className={cn(
                 "w-10 h-6 rounded-full transition-colors relative",
-                jsonMode ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
+                jsonMode ? "bg-primary" : "bg-[var(--color-surface-3)]"
               )}
             >
               <span
@@ -524,7 +524,7 @@ function LiveStreamTab() {
             <button
               onClick={startStream}
               disabled={streamState === "running"}
-              className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-[var(--color-text-primary)] text-sm rounded-lg transition-colors"
+              className="px-4 py-1.5 bg-primary hover:bg-primary disabled:opacity-40 text-[var(--color-text-primary)] text-sm rounded-lg transition-colors"
             >
               Start
             </button>
@@ -562,7 +562,7 @@ function LiveStreamTab() {
                     : streamState === "paused"
                     ? "bg-amber-500/20 text-amber-400"
                     : streamState === "done"
-                    ? "bg-indigo-500/20 text-indigo-400"
+                    ? "bg-primary/20 text-primary"
                     : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
                 )}
               >
@@ -572,7 +572,7 @@ function LiveStreamTab() {
             <div className="font-mono text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed min-h-[180px]">
               {displayedText}
               {streamState === "running" && (
-                <span className="inline-block w-0.5 h-4 bg-indigo-400 animate-pulse ml-0.5 align-text-bottom" />
+                <span className="inline-block w-0.5 h-4 bg-primary animate-pulse ml-0.5 align-text-bottom" />
               )}
               {displayedText === "" && streamState === "idle" && (
                 <span className="text-[var(--color-text-muted)] italic">
@@ -614,7 +614,7 @@ function LiveStreamTab() {
               Metadata
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <MetaBadge label="TTFT" value={ttft ? `${ttft}ms` : "—"} color="text-indigo-400" />
+              <MetaBadge label="TTFT" value={ttft ? `${ttft}ms` : "—"} color="text-primary" />
               <MetaBadge label="Tok/s" value={tokensPerSec ? `${tokensPerSec}` : "—"} color="text-emerald-400" />
               <MetaBadge
                 label="Finish"
@@ -711,7 +711,7 @@ function HistoryTab() {
                   selectedSession?.id === s.id && "ring-1 ring-inset ring-indigo-500/50"
                 )}
               >
-                <td className="px-4 py-3 text-indigo-400 font-mono text-xs">{s.model}</td>
+                <td className="px-4 py-3 text-primary font-mono text-xs">{s.model}</td>
                 <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">
                   {s.promptPreview}
                 </td>
@@ -755,7 +755,7 @@ function HistoryTab() {
             </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-            <MetaBadge label="TTFT" value={formatMs(selectedSession.ttft)} color="text-indigo-400" />
+            <MetaBadge label="TTFT" value={formatMs(selectedSession.ttft)} color="text-primary" />
             <MetaBadge label="Tok/s" value={selectedSession.tokensPerSec > 0 ? selectedSession.tokensPerSec.toFixed(1) : "—"} color="text-emerald-400" />
             <MetaBadge label="Finish" value={selectedSession.finishReason} color={finishColor(selectedSession.finishReason)} />
             <MetaBadge label="Status" value={selectedSession.status} color={statusColor(selectedSession.status)} />
@@ -790,7 +790,7 @@ function AnalysisTab() {
                 <div key={bin.label} className="flex flex-col items-center gap-1 flex-1">
                   <span className="text-xs text-[var(--color-text-muted)] font-mono">{bin.count}</span>
                   <div
-                    className="w-full bg-indigo-500/80 rounded-t-sm transition-all"
+                    className="w-full bg-primary/80 rounded-t-sm transition-all"
                     style={{ height: `${Math.max(pct, 2)}%` }}
                   />
                   <span className="text-xs text-[var(--color-text-muted)]">{bin.label}</span>
@@ -854,7 +854,7 @@ function AnalysisTab() {
                 <span className="text-xs font-mono text-[var(--color-text-muted)] w-8">{p.label}</span>
                 <div className="flex-1 bg-[var(--color-surface-2)] rounded-full h-2">
                   <div
-                    className="bg-indigo-500 h-2 rounded-full"
+                    className="bg-primary h-2 rounded-full"
                     style={{ width: `${(p.value / p.max) * 100}%` }}
                   />
                 </div>
@@ -911,7 +911,7 @@ function AnalysisTab() {
             <tbody>
               {MODEL_PERFS.map((mp) => (
                 <tr key={mp.model} className="border-b border-[var(--color-border)]/50">
-                  <td className="py-3 text-indigo-400 font-mono text-xs">{mp.model}</td>
+                  <td className="py-3 text-primary font-mono text-xs">{mp.model}</td>
                   <td className="py-3 text-right font-mono text-[var(--color-text-primary)]">{mp.avgTtft}ms</td>
                   <td className="py-3 text-right font-mono text-[var(--color-text-primary)]">{mp.avgTps.toFixed(1)}</td>
                   <td
@@ -930,7 +930,7 @@ function AnalysisTab() {
                   <td className="py-3 pl-4 w-32">
                     <div className="bg-[var(--color-surface-2)] rounded-full h-1.5">
                       <div
-                        className="bg-indigo-500 h-1.5 rounded-full"
+                        className="bg-primary h-1.5 rounded-full"
                         style={{ width: `${(mp.avgTps / maxTps) * 100}%` }}
                       />
                     </div>
@@ -1081,7 +1081,7 @@ function SettingsTab() {
               onClick={() => setDebugLogging((v) => !v)}
               className={cn(
                 "w-10 h-6 rounded-full transition-colors relative",
-                debugLogging ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
+                debugLogging ? "bg-primary" : "bg-[var(--color-surface-3)]"
               )}
             >
               <span
@@ -1119,7 +1119,7 @@ function SettingsTab() {
             "px-6 py-2 rounded-lg text-sm font-medium transition-colors",
             saved
               ? "bg-emerald-600 text-[var(--color-text-primary)]"
-              : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
+              : "bg-primary hover:bg-primary text-[var(--color-text-primary)]"
           )}
         >
           {saved ? "Saved!" : "Save Settings"}
@@ -1167,7 +1167,7 @@ export default function StreamingDebugger() {
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">Streaming Debugger</h1>
           </div>
           <p className="text-sm text-[var(--color-text-muted)]">
@@ -1193,7 +1193,7 @@ export default function StreamingDebugger() {
           </Card>
           <Card className="p-3">
             <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Models</p>
-            <p className="text-2xl font-bold text-indigo-400 mt-1">{MODEL_PERFS.length}</p>
+            <p className="text-2xl font-bold text-primary mt-1">{MODEL_PERFS.length}</p>
           </Card>
         </div>
 

@@ -166,14 +166,14 @@ export default function HealthChecklist() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => { setSelectedSuite(null); setSelectedCheck(null); }}
-              className={cn("px-3 py-1.5 rounded text-sm", !selectedSuite ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+              className={cn("px-3 py-1.5 rounded text-sm", !selectedSuite ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
             >
               All Suites
             </button>
             <button
               onClick={runChecks}
               disabled={isRunning}
-              className={cn("px-4 py-1.5 rounded text-sm", isRunning ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]" : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]")}
+              className={cn("px-4 py-1.5 rounded text-sm", isRunning ? "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]" : "bg-primary hover:bg-primary text-[var(--color-text-primary)]")}
             >
               {isRunning ? "⟳ Running…" : "▶ Run All"}
             </button>
@@ -194,7 +194,7 @@ export default function HealthChecklist() {
               onClick={() => setFilterStatus(filterStatus === s.status ? "all" : s.status)}
               className={cn(
                 "p-3 rounded-lg border text-left transition-all",
-                filterStatus === s.status ? "bg-indigo-900/30 border-indigo-600/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
+                filterStatus === s.status ? "bg-indigo-900/30 border-primary/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
               )}
             >
               <div className={cn("text-xl font-bold", s.color)}>{s.value}</div>
@@ -215,7 +215,7 @@ export default function HealthChecklist() {
                 onClick={() => setSelectedSuite(selectedSuite?.id === suite.id ? null : suite)}
                 className={cn(
                   "px-3 py-1.5 rounded text-xs",
-                  selectedSuite?.id === suite.id ? "bg-indigo-600 text-[var(--color-text-primary)]" :
+                  selectedSuite?.id === suite.id ? "bg-primary text-[var(--color-text-primary)]" :
                   hasIssue ? "bg-rose-900/30 text-rose-400 border border-rose-700/50" :
                   hasWarn ? "bg-amber-900/30 text-amber-400 border border-amber-700/50" :
                   "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
@@ -256,7 +256,7 @@ export default function HealthChecklist() {
                         onClick={() => setSelectedCheck(isSelected ? null : check)}
                         className={cn(
                           "w-full text-left px-4 py-3 rounded-xl border flex items-start gap-4 transition-all",
-                          isSelected ? "bg-indigo-900/20 border-indigo-600/50" :
+                          isSelected ? "bg-indigo-900/20 border-primary/50" :
                           check.status === "fail" ? "bg-rose-900/10 border-rose-800/50" :
                           check.status === "warn" ? "bg-amber-900/10 border-amber-800/50" :
                           "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"

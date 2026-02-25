@@ -132,7 +132,7 @@ export default function MultiRegionFailoverManager() {
       <div className="w-[340px] shrink-0 border-r border-[var(--color-border)] flex flex-col">
         <div className="p-4 border-b border-[var(--color-border)]">
           <div className="flex items-center gap-2 mb-1">
-            <Globe className="w-4 h-4 text-violet-400" />
+            <Globe className="w-4 h-4 text-primary" />
             <h1 className="text-sm font-semibold">Multi-Region Failover</h1>
           </div>
           <p className="text-xs text-[var(--color-text-muted)]">Monitor regions and trigger failover</p>
@@ -150,7 +150,7 @@ export default function MultiRegionFailoverManager() {
                 className={cn(
                   'w-full text-left p-3 border rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500',
                   selected.id === region.id
-                    ? 'border-violet-500 bg-violet-500/5'
+                    ? 'border-primary bg-primary/5'
                     : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 hover:border-[var(--color-border)]'
                 )}
               >
@@ -247,7 +247,7 @@ export default function MultiRegionFailoverManager() {
                     'flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500',
                     failing
                       ? 'bg-[var(--color-surface-3)] text-[var(--color-text-secondary)] cursor-not-allowed'
-                      : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]'
+                      : 'bg-primary hover:bg-primary text-[var(--color-text-primary)]'
                   )}
                 >
                   {failing ? (

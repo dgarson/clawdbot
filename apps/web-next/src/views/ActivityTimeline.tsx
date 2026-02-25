@@ -40,7 +40,7 @@ type TimeRange = "1h" | "6h" | "24h" | "7d";
 const KIND_COLORS: Record<EventKind, { dot: string; badge: string; bar: string }> = {
   commit:          { dot: "bg-emerald-500", badge: "bg-emerald-500/20 text-emerald-400", bar: "bg-emerald-500" },
   pr:              { dot: "bg-blue-500",    badge: "bg-blue-500/20 text-blue-400",       bar: "bg-blue-500" },
-  deploy:          { dot: "bg-indigo-500",  badge: "bg-indigo-500/20 text-indigo-400",   bar: "bg-indigo-500" },
+  deploy:          { dot: "bg-primary",  badge: "bg-primary/20 text-primary",   bar: "bg-primary" },
   alert:           { dot: "bg-rose-500",    badge: "bg-rose-500/20 text-rose-400",       bar: "bg-rose-500" },
   message:         { dot: "bg-purple-500",  badge: "bg-purple-500/20 text-purple-400",   bar: "bg-purple-500" },
   spawn:           { dot: "bg-amber-500",   badge: "bg-amber-500/20 text-amber-400",     bar: "bg-amber-500" },
@@ -227,7 +227,7 @@ export default function ActivityTimeline() {
           placeholder="Search events…"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setVisibleCount(15); }}
-          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm w-64 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm w-64 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary"
         />
         <div className="flex items-center gap-1 ml-auto">
           {TIME_RANGES.map((tr) => (
@@ -237,7 +237,7 @@ export default function ActivityTimeline() {
               className={cn(
                 "px-3 py-1.5 rounded text-sm transition-colors",
                 timeRange === tr.value
-                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -336,7 +336,7 @@ export default function ActivityTimeline() {
                   <div
                     className={cn(
                       "w-full rounded-sm transition-all",
-                      count > 0 ? "bg-indigo-500" : "bg-[var(--color-surface-2)]"
+                      count > 0 ? "bg-primary" : "bg-[var(--color-surface-2)]"
                     )}
                     style={{ height: `${Math.max(count > 0 ? 10 : 2, (count / maxDensity) * 100)}%` }}
                   />
@@ -450,7 +450,7 @@ export default function ActivityTimeline() {
             <div className="flex justify-center pt-4">
               <button
                 onClick={() => setVisibleCount((c) => c + 10)}
-                className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm transition-colors"
+                className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm transition-colors"
               >
                 Load more ({filtered.length - visibleCount} remaining)
               </button>

@@ -189,7 +189,7 @@ export default function CDNManager() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-primary/30">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
@@ -206,7 +206,7 @@ export default function CDNManager() {
                 className={cn(
                   "px-4 py-1.5 rounded-md text-sm font-medium transition-all capitalize",
                   activeTab === tab 
-                    ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20" 
+                    ? "bg-primary text-[var(--color-text-primary)] shadow-lg shadow-indigo-500/20" 
                     : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
@@ -235,7 +235,7 @@ export default function CDNManager() {
                     <div className="text-4xl font-bold">94.2%</div>
                     {/* Gauge Visual */}
                     <div className="flex-1 h-3 bg-[var(--color-surface-2)] rounded-full overflow-hidden flex">
-                      <div className="h-full bg-indigo-500" style={{ width: "94.2%" }} />
+                      <div className="h-full bg-primary" style={{ width: "94.2%" }} />
                     </div>
                   </div>
                   <div className="mt-4 text-[var(--color-text-muted)] text-sm">1.17 PB served from edge</div>
@@ -276,7 +276,7 @@ export default function CDNManager() {
                         {[...Array(5)].map((_, i) => (
                           <div 
                             key={i} 
-                            className="flex-1 bg-indigo-500/40 rounded-t-sm" 
+                            className="flex-1 bg-primary/40 rounded-t-sm" 
                             style={{ height: `${Math.max(10, region.traffic * (0.6 + Math.random() * 0.4))}%` }} 
                           />
                         ))}
@@ -298,7 +298,7 @@ export default function CDNManager() {
                     {origins.slice(0, 5).map((origin) => (
                       <div key={origin.id} className="flex items-center justify-between group">
                         <div className="flex flex-col">
-                          <span className="text-sm font-mono text-[var(--color-text-primary)] group-hover:text-indigo-400 transition-colors">{origin.hostname}</span>
+                          <span className="text-sm font-mono text-[var(--color-text-primary)] group-hover:text-primary transition-colors">{origin.hostname}</span>
                           <span className="text-xs text-[var(--color-text-muted)] uppercase">{origin.protocol}</span>
                         </div>
                         <div className="text-right">
@@ -309,13 +309,13 @@ export default function CDNManager() {
                     ))}
                   </div>
                 </Card>
-                <Card className="p-6 flex flex-col justify-center items-center text-center space-y-4 bg-indigo-600/5 border-indigo-500/20">
+                <Card className="p-6 flex flex-col justify-center items-center text-center space-y-4 bg-primary/5 border-primary/20">
                   <div className="text-5xl">⚡️</div>
                   <div>
                     <h3 className="text-lg font-semibold">Edge Optimization Active</h3>
                     <p className="text-[var(--color-text-secondary)] text-sm mt-1 max-w-sm">Smart Routing and Tiered Caching are currently reducing origin load by 82% across all regions.</p>
                   </div>
-                  <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors">
+                  <button className="px-4 py-2 bg-primary hover:bg-primary rounded-lg text-sm font-medium transition-colors">
                     View Network Settings
                   </button>
                 </Card>
@@ -444,7 +444,7 @@ export default function CDNManager() {
                           <div className="font-mono text-sm font-semibold">{rule.pathPattern}</div>
                           <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)] mt-1 uppercase">
                             <span className={cn(
-                              rule.directive === "bypass" ? "text-rose-400" : rule.directive === "force-cache" ? "text-emerald-400" : "text-indigo-400"
+                              rule.directive === "bypass" ? "text-rose-400" : rule.directive === "force-cache" ? "text-emerald-400" : "text-primary"
                             )}>
                               {rule.directive}
                             </span>
@@ -489,7 +489,7 @@ export default function CDNManager() {
                             className={cn(
                               "text-[10px] uppercase font-bold py-2 rounded border transition-all",
                               newRule.directive === dir 
-                                ? "bg-indigo-600/20 border-indigo-500 text-indigo-400" 
+                                ? "bg-primary/20 border-primary text-primary" 
                                 : "bg-[var(--color-surface-0)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border)]"
                             )}
                           >
@@ -515,7 +515,7 @@ export default function CDNManager() {
                       </select>
                     </div>
 
-                    <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] py-2 rounded-lg text-sm font-semibold transition-colors mt-2">
+                    <button type="submit" className="w-full bg-primary hover:bg-primary text-[var(--color-text-primary)] py-2 rounded-lg text-sm font-semibold transition-colors mt-2">
                       Create Rule
                     </button>
                   </form>
@@ -541,7 +541,7 @@ export default function CDNManager() {
                           {item.value} GB
                         </div>
                         <div 
-                          className="w-full bg-indigo-500/60 rounded-t-sm group-hover:bg-indigo-400 transition-colors" 
+                          className="w-full bg-primary/60 rounded-t-sm group-hover:bg-primary transition-colors" 
                           style={{ height: `${(item.value / 1000) * 100}%` }}
                         />
                         <div className="text-[10px] text-[var(--color-text-muted)] mt-2 rotate-45 origin-left">{item.day}</div>
@@ -556,11 +556,11 @@ export default function CDNManager() {
                     <div className="space-y-6">
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs uppercase font-medium">
-                          <span className="text-indigo-400">Cache Hits</span>
+                          <span className="text-primary">Cache Hits</span>
                           <span>94.2%</span>
                         </div>
                         <div className="h-4 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                          <div className="h-full bg-indigo-500" style={{ width: "94.2%" }} />
+                          <div className="h-full bg-primary" style={{ width: "94.2%" }} />
                         </div>
                       </div>
                       <div className="space-y-2">

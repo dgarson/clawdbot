@@ -143,7 +143,7 @@ const RELEASES: Release[] = [
 
 const TypeBadge = ({ type, latest }: { type: ReleaseType; latest?: boolean }) => {
   const colors = {
-    major: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    major: "bg-primary/10 text-primary border-primary/20",
     minor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     patch: "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/20",
     beta: "bg-amber-500/10 text-amber-400 border-amber-500/20",
@@ -155,7 +155,7 @@ const TypeBadge = ({ type, latest }: { type: ReleaseType; latest?: boolean }) =>
         {type}
       </span>
       {latest && (
-        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium border border-indigo-500/50 bg-indigo-500 text-[var(--color-text-primary)] uppercase tracking-wider">
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium border border-primary/50 bg-primary text-[var(--color-text-primary)] uppercase tracking-wider">
           Latest
         </span>
       )}
@@ -220,7 +220,7 @@ export default function ChangelogView() {
   };
 
   return (
-    <div className="flex h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-indigo-500/30">
+    <div className="flex h-full bg-[var(--color-surface-0)] text-[var(--color-text-primary)] font-sans selection:bg-primary/30">
       {/* Sidebar */}
       <aside className="w-80 border-r border-[var(--color-border)] flex flex-col shrink-0">
         <div className="p-6 border-b border-[var(--color-border)]">
@@ -229,7 +229,7 @@ export default function ChangelogView() {
             <input
               type="text"
               placeholder="Search versions..."
-              className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+              className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-primary transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -257,7 +257,7 @@ export default function ChangelogView() {
               <div className="flex justify-between items-start mb-2">
                 <span className={cn(
                   "font-mono font-bold text-lg transition-colors",
-                  selectedVersion === release.version ? "text-indigo-400" : "text-[var(--color-text-secondary)] group-hover:text-[var(--color-text-primary)]"
+                  selectedVersion === release.version ? "text-primary" : "text-[var(--color-text-secondary)] group-hover:text-[var(--color-text-primary)]"
                 )}>
                   v{release.version}
                 </span>
@@ -267,14 +267,14 @@ export default function ChangelogView() {
                 {release.date}
               </div>
               {selectedVersion === release.version && (
-                <div className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-indigo-500 rounded-r-full" />
+                <div className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-primary rounded-r-full" />
               )}
             </button>
           ))}
         </nav>
 
         <div className="p-6 border-t border-[var(--color-border)] bg-[var(--color-surface-1)]/20">
-          <button className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm font-semibold rounded-lg transition-colors shadow-lg shadow-indigo-500/10">
+          <button className="w-full py-3 px-4 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm font-semibold rounded-lg transition-colors shadow-lg shadow-indigo-500/10">
             Subscribe to updates
           </button>
         </div>
@@ -295,7 +295,7 @@ export default function ChangelogView() {
               <span className="w-2 h-2 rounded-full bg-[var(--color-surface-3)]" />
               Released on {currentRelease.date}
             </div>
-            <p className="text-xl text-[var(--color-text-primary)] leading-relaxed border-l-4 border-indigo-500 pl-6 py-2 bg-indigo-500/5 rounded-r-lg">
+            <p className="text-xl text-[var(--color-text-primary)] leading-relaxed border-l-4 border-primary pl-6 py-2 bg-primary/5 rounded-r-lg">
               {currentRelease.tagline}
             </p>
           </header>
@@ -313,8 +313,8 @@ export default function ChangelogView() {
               title="Improvements" 
               icon="🛠️" 
               items={currentRelease.improvements} 
-              colorClass="text-indigo-400"
-              iconColor="text-indigo-500"
+              colorClass="text-primary"
+              iconColor="text-primary"
             />
             <Section 
               title="Bug Fixes" 
@@ -367,7 +367,7 @@ export default function ChangelogView() {
               disabled={currentIndex === RELEASES.length - 1}
               className="group flex flex-col items-start disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">
+              <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-1 group-hover:text-primary transition-colors">
                 ← Previous
               </span>
               <span className="text-[var(--color-text-primary)] group-hover:text-[var(--color-text-primary)] transition-colors">
@@ -380,7 +380,7 @@ export default function ChangelogView() {
               disabled={currentIndex === 0}
               className="group flex flex-col items-end disabled:opacity-30 disabled:cursor-not-allowed text-right"
             >
-              <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">
+              <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-1 group-hover:text-primary transition-colors">
                 Next →
               </span>
               <span className="text-[var(--color-text-primary)] group-hover:text-[var(--color-text-primary)] transition-colors">

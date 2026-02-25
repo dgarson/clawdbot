@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface WorkflowModalProps {
   open: boolean;
@@ -37,7 +38,7 @@ export function WorkflowModal({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3">
       {/* Click-outside backdrop */}
       <div className="absolute inset-0 bg-black/70" onClick={onClose} aria-hidden="true" />
@@ -69,6 +70,7 @@ export function WorkflowModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

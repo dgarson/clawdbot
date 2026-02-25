@@ -156,7 +156,7 @@ export default function ContainerLogViewer() {
       >
         <span className="text-[var(--color-text-muted)] w-20 shrink-0 pt-0.5">{log.ts}</span>
         <span className={cn("w-12 shrink-0 text-center mr-2 rounded px-1 pt-0.5", levelBadge[log.level])}>{log.level}</span>
-        <span className="text-indigo-400 w-44 shrink-0 truncate pt-0.5" title={log.pod}>{log.pod.split("-").slice(0, 2).join("-")}</span>
+        <span className="text-primary w-44 shrink-0 truncate pt-0.5" title={log.pod}>{log.pod.split("-").slice(0, 2).join("-")}</span>
         <span className="text-[var(--color-text-muted)] w-20 shrink-0 pt-0.5">{log.container}</span>
         <span className={cn(
           levelColor[log.level],
@@ -226,7 +226,7 @@ export default function ContainerLogViewer() {
             onClick={() => setLevelFilter(levelFilter === level ? "all" : level)}
             className={cn(
               "flex-1 py-2 text-xs font-medium transition-colors border-b-2",
-              levelFilter === level ? "border-indigo-500 bg-indigo-500/5" : "border-transparent hover:bg-[var(--color-surface-1)]"
+              levelFilter === level ? "border-primary bg-primary/5" : "border-transparent hover:bg-[var(--color-surface-1)]"
             )}
           >
             <span className={levelColor[level]}>{level.toUpperCase()}</span>
@@ -243,7 +243,7 @@ export default function ContainerLogViewer() {
             onClick={() => setTab(t.id)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              tab === t.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             <span>{t.emoji}</span>
@@ -310,7 +310,7 @@ export default function ContainerLogViewer() {
                 placeholder='Search logs... (e.g. "error", pod:api-server, "timeout")'
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-4 py-2.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500 font-mono"
+                className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-4 py-2.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-primary font-mono"
               />
               <div className="flex items-center gap-2 mt-2 text-xs text-[var(--color-text-muted)]">
                 <span className="px-2 py-0.5 bg-[var(--color-surface-2)] rounded font-mono">level:error</span>
@@ -393,7 +393,7 @@ export default function ContainerLogViewer() {
           <div className="p-6 space-y-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Log Alerts</h2>
-              <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
+              <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">
                 + New Alert
               </button>
             </div>
@@ -424,7 +424,7 @@ export default function ContainerLogViewer() {
                       <label className="flex items-center gap-1.5 cursor-pointer">
                         <div className={cn(
                           "w-8 h-4 rounded-full transition-colors relative",
-                          alert.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
+                          alert.enabled ? "bg-primary" : "bg-[var(--color-surface-3)]"
                         )}>
                           <div className={cn(
                             "absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform",

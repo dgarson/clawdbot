@@ -177,7 +177,7 @@ function statusText(s: ModelStatus): string {
 
 function actionColor(a: RouteAction): string {
   const map: Record<RouteAction, string> = {
-    direct:        "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+    direct:        "bg-primary/20 text-primary border-primary/30",
     "load-balance": "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
     fallback:      "bg-amber-500/20 text-amber-400 border-amber-500/30",
     "ab-test":     "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -225,7 +225,7 @@ function RoutesTab() {
           className={cn(
             "rounded-xl border p-4 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
             !route.enabled && "opacity-50",
-            selected?.id === route.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
+            selected?.id === route.id ? "border-primary bg-primary/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
           )}
         >
           <div className="flex items-center gap-3">
@@ -236,7 +236,7 @@ function RoutesTab() {
             </span>
             <span className="text-xs text-fg-muted ml-auto">{(route.requestCount24h / 1000).toFixed(0)}K req/24h</span>
             <span className="text-xs text-emerald-400">${route.avgCostPer1k.toFixed(2)}/1K</span>
-            <span className="text-xs text-indigo-400">{route.avgLatencyMs}ms avg</span>
+            <span className="text-xs text-primary">{route.avgLatencyMs}ms avg</span>
           </div>
           <p className="text-xs text-fg-muted mt-1 ml-5">{route.description}</p>
 
@@ -268,7 +268,7 @@ function RoutesTab() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                 <div>
                   <div className="text-fg-muted">Priority</div>
-                  <div className="text-indigo-400">{route.priority}</div>
+                  <div className="text-primary">{route.priority}</div>
                 </div>
                 <div>
                   <div className="text-fg-muted">Requests (24h)</div>
@@ -307,7 +307,7 @@ function ModelsTab() {
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(selected?.id === m.id ? null : m); } }}
           className={cn(
             "rounded-xl border p-4 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
-            selected?.id === m.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
+            selected?.id === m.id ? "border-primary bg-primary/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
           )}
         >
           <div className="flex items-center gap-3">
@@ -385,7 +385,7 @@ function EventsTab() {
             aria-pressed={filter === f}
             className={cn(
               "px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
-              filter === f ? "bg-indigo-600 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
+              filter === f ? "bg-primary text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
             )}
           >
             {f}
@@ -412,7 +412,7 @@ function EventsTab() {
               <tr key={ev.id} className="bg-surface-0 hover:bg-surface-1 transition-colors">
                 <td className="px-3 py-2 font-mono text-fg-muted">{ev.timestamp}</td>
                 <td className="px-3 py-2 text-fg-primary">{ev.routeName}</td>
-                <td className="px-3 py-2 text-indigo-400">{ev.selectedModel}</td>
+                <td className="px-3 py-2 text-primary">{ev.selectedModel}</td>
                 <td className="px-3 py-2 text-fg-muted max-w-xs truncate">{ev.reason}</td>
                 <td className="px-3 py-2 text-fg-secondary">{ev.inputTokens}/{ev.outputTokens}</td>
                 <td className="px-3 py-2 text-fg-primary">{ev.latencyMs}ms</td>
@@ -468,7 +468,7 @@ function AnalyticsTab() {
                 aria-label={`${r.name}: ${(r.requestCount24h / 1000).toFixed(0)}K requests`}
               >
                 <div
-                  className="h-2 rounded-full bg-indigo-500"
+                  className="h-2 rounded-full bg-primary"
                   style={{ width: (r.requestCount24h / (routeReqs[0]?.requestCount24h ?? 1) * 100) + "%" }}
                 />
               </div>
@@ -564,7 +564,7 @@ export default function AIPromptRouter({ isLoading = false }: { isLoading?: bool
     <>
       <a
         href="#aipr-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>
@@ -594,7 +594,7 @@ export default function AIPromptRouter({ isLoading = false }: { isLoading?: bool
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
                 tab === t
-                  ? "border-indigo-500 text-indigo-400"
+                  ? "border-primary text-primary"
                   : "border-transparent text-fg-secondary hover:text-fg-primary"
               )}
             >

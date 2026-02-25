@@ -86,7 +86,7 @@ export default function ModelSelector() {
       {[1, 2, 3].map(i => (
         <div 
           key={i} 
-          className={cn("w-1.5 h-1.5 rounded-full", i <= level ? "bg-violet-500" : "bg-[var(--color-surface-2)]")} 
+          className={cn("w-1.5 h-1.5 rounded-full", i <= level ? "bg-primary" : "bg-[var(--color-surface-2)]")} 
         />
       ))}
     </div>
@@ -101,13 +101,13 @@ export default function ModelSelector() {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-10 font-sans selection:bg-violet-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-10 font-sans selection:bg-primary/30">
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Model Library</h1>
           <p className="text-[var(--color-text-secondary)] mt-2 flex items-center gap-2">
-            <Activity size={16} className="text-violet-500" />
+            <Activity size={16} className="text-primary" />
             {MODELS.length} models available across {PROVIDERS.length - 1} providers
           </p>
         </div>
@@ -130,7 +130,7 @@ export default function ModelSelector() {
                 </div>
                 <span className={cn(
                   "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                  model.id === 'sonnet-4' ? "bg-violet-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
+                  model.id === 'sonnet-4' ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
                 )}>
                   {model.badge}
                 </span>
@@ -159,7 +159,7 @@ export default function ModelSelector() {
                 className={cn(
                   "mt-6 w-full py-2.5 rounded-xl font-semibold text-sm transition-all",
                   defaultModelId === model.id 
-                    ? "bg-violet-600 text-[var(--color-text-primary)] shadow-lg shadow-violet-900/40" 
+                    ? "bg-primary text-[var(--color-text-primary)] shadow-lg shadow-violet-900/40" 
                     : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
                 )}
               >
@@ -210,14 +210,14 @@ export default function ModelSelector() {
                 key={model.id}
                 className={cn(
                   "hover:bg-[var(--color-surface-2)]/30 transition-colors group",
-                  defaultModelId === model.id ? "bg-violet-600/5" : ""
+                  defaultModelId === model.id ? "bg-primary/5" : ""
                 )}
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <span className="font-bold text-[var(--color-text-primary)]">{model.name}</span>
                     {defaultModelId === model.id && (
-                      <span className="p-1 bg-violet-600/20 text-violet-400 rounded">
+                      <span className="p-1 bg-primary/20 text-primary rounded">
                         <Star size={10} fill="currentColor" />
                       </span>
                     )}
@@ -242,7 +242,7 @@ export default function ModelSelector() {
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-xs font-bold transition-all opacity-0 group-hover:opacity-100",
                       defaultModelId === model.id
-                        ? "bg-violet-600 text-[var(--color-text-primary)] opacity-100"
+                        ? "bg-primary text-[var(--color-text-primary)] opacity-100"
                         : "bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
                     )}
                   >

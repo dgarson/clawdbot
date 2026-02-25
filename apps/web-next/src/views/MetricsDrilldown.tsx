@@ -254,7 +254,7 @@ const CATEGORY_CONFIG: Record<MetricCategory, { color: string; bg: string; borde
   errors: { color: "text-rose-400", bg: "bg-rose-900/20", border: "border-rose-700/50" },
   cost: { color: "text-purple-400", bg: "bg-purple-900/20", border: "border-purple-700/50" },
   tokens: { color: "text-blue-400", bg: "bg-blue-900/20", border: "border-blue-700/50" },
-  sessions: { color: "text-indigo-400", bg: "bg-indigo-900/20", border: "border-indigo-700/50" },
+  sessions: { color: "text-primary", bg: "bg-indigo-900/20", border: "border-indigo-700/50" },
 };
 
 function formatValue(value: number, unit: string): string {
@@ -296,7 +296,7 @@ export default function MetricsDrilldown() {
                 key={g}
                 className={cn(
                   "px-2.5 py-1 rounded text-xs",
-                  g === "1h" ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  g === "1h" ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {g}
@@ -407,7 +407,7 @@ export default function MetricsDrilldown() {
                     onClick={() => setDimension(d)}
                     className={cn(
                       "px-2.5 py-1 rounded text-xs capitalize",
-                      dimension === d ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                      dimension === d ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
                     {d}

@@ -252,8 +252,8 @@ function WaveBarChart({ runA, runB }: WaveChartProps) {
         <line x1={PAD_L} x2={W - PAD_R} y1={PAD_T + chartH} y2={PAD_T + chartH} stroke="#52525b" strokeWidth={1} />
       </svg>
       <div className="flex items-center gap-4 mt-1">
-        <span className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]"><span className="w-2.5 h-2.5 rounded-sm bg-indigo-500 inline-block" />Run A</span>
-        <span className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]"><span className="w-2.5 h-2.5 rounded-sm bg-violet-400 inline-block" />Run B</span>
+        <span className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]"><span className="w-2.5 h-2.5 rounded-sm bg-primary inline-block" />Run A</span>
+        <span className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]"><span className="w-2.5 h-2.5 rounded-sm bg-primary inline-block" />Run B</span>
       </div>
     </div>
   );
@@ -293,7 +293,7 @@ export default function DiscoveryRunCompare() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
             <GitCompare className="w-5 h-5 text-[var(--color-text-primary)]" />
           </div>
           <div>
@@ -303,7 +303,7 @@ export default function DiscoveryRunCompare() {
         </div>
         <button
           onClick={() => toast({ message: "Diff export is coming soon.", type: "info" })}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm font-medium transition-colors"
         >
           <Download className="w-4 h-4" />
           Export Diff
@@ -313,12 +313,12 @@ export default function DiscoveryRunCompare() {
       {/* Run Selectors */}
       <div className="flex flex-wrap items-center gap-4 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl px-4 py-3">
         <div className="flex items-center gap-2">
-          <span className="w-5 h-5 rounded bg-indigo-600 text-[var(--color-text-primary)] text-xs flex items-center justify-center font-bold">A</span>
+          <span className="w-5 h-5 rounded bg-primary text-[var(--color-text-primary)] text-xs flex items-center justify-center font-bold">A</span>
           <RunSelect value={runAId} onChange={setRunAId} options={runOptions} />
         </div>
         <span className="text-[var(--color-text-muted)] text-lg font-light">vs</span>
         <div className="flex items-center gap-2">
-          <span className="w-5 h-5 rounded bg-violet-600 text-[var(--color-text-primary)] text-xs flex items-center justify-center font-bold">B</span>
+          <span className="w-5 h-5 rounded bg-primary text-[var(--color-text-primary)] text-xs flex items-center justify-center font-bold">B</span>
           <RunSelect value={runBId} onChange={setRunBId} options={runOptions} />
         </div>
       </div>

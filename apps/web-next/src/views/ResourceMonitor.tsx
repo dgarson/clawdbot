@@ -221,7 +221,7 @@ export default function ResourceMonitor() {
             className={cn(
               "text-left p-3 rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
               metric.kind === selectedKind
-                ? "bg-[var(--color-surface-2)] border-indigo-500/50"
+                ? "bg-[var(--color-surface-2)] border-primary/50"
                 : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)]"
             )}
             aria-pressed={metric.kind === selectedKind}
@@ -329,7 +329,7 @@ export default function ResourceMonitor() {
                     onClick={() => setProcSort(s)}
                     className={cn(
                       "px-2 py-0.5 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                      procSort === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
+                      procSort === s ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
                     )}
                   >
                     Sort by {s.toUpperCase()}

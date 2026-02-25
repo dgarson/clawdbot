@@ -18,7 +18,7 @@ interface CalendarEvent {
 }
 
 const kindColor = (k: EventKind) => {
-  if (k === "meeting")     {return "bg-indigo-500/20 border-indigo-500 text-indigo-300";}
+  if (k === "meeting")     {return "bg-primary/20 border-primary text-indigo-300";}
   if (k === "deploy")      {return "bg-emerald-500/20 border-emerald-500 text-emerald-300";}
   if (k === "review")      {return "bg-amber-500/20 border-amber-500 text-amber-300";}
   if (k === "sprint")      {return "bg-purple-500/20 border-purple-500 text-purple-300";}
@@ -28,7 +28,7 @@ const kindColor = (k: EventKind) => {
 };
 
 const kindDot = (k: EventKind) => {
-  if (k === "meeting")     {return "bg-indigo-500";}
+  if (k === "meeting")     {return "bg-primary";}
   if (k === "deploy")      {return "bg-emerald-500";}
   if (k === "review")      {return "bg-amber-500";}
   if (k === "sprint")      {return "bg-purple-500";}
@@ -171,7 +171,7 @@ export default function EventScheduler() {
                 className={cn(
                   "w-6 h-6 text-[10px] rounded mx-auto flex items-center justify-center",
                   !day && "opacity-0",
-                  day && isToday(day) && "bg-indigo-500 text-[var(--color-text-primary)] font-bold",
+                  day && isToday(day) && "bg-primary text-[var(--color-text-primary)] font-bold",
                   day && !isToday(day) && "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -185,7 +185,7 @@ export default function EventScheduler() {
         <div className="p-3">
           <button
             onClick={() => setShowNewEvent(true)}
-            className="w-full bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)] text-xs font-medium py-2 rounded transition-colors"
+            className="w-full bg-primary hover:bg-primary text-[var(--color-text-primary)] text-xs font-medium py-2 rounded transition-colors"
           >
             + New Event
           </button>
@@ -206,7 +206,7 @@ export default function EventScheduler() {
               >
                 <span className={cn("w-2 h-2 rounded-full flex-shrink-0", kindDot(k))} />
                 <span className="capitalize">{k}</span>
-                {filterKinds.has(k) && <span className="ml-auto text-indigo-400">✓</span>}
+                {filterKinds.has(k) && <span className="ml-auto text-primary">✓</span>}
               </button>
             ))}
           </div>
@@ -227,7 +227,7 @@ export default function EventScheduler() {
           <button onClick={nextMonth} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] px-2 py-1 rounded hover:bg-[var(--color-surface-2)]">›</button>
           <button
             onClick={() => setCurrentDate(new Date(TODAY))}
-            className="ml-2 text-xs text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded hover:bg-[var(--color-surface-2)]"
+            className="ml-2 text-xs text-primary hover:text-indigo-300 px-2 py-1 rounded hover:bg-[var(--color-surface-2)]"
           >
             Today
           </button>
@@ -239,7 +239,7 @@ export default function EventScheduler() {
                 onClick={() => setViewMode(v)}
                 className={cn(
                   "text-xs px-3 py-1.5 capitalize transition-colors",
-                  viewMode === v ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  viewMode === v ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {v}
@@ -267,14 +267,14 @@ export default function EventScheduler() {
                       className={cn(
                         "border-r border-b border-[var(--color-border)] p-1 min-h-24",
                         !day && "bg-[var(--color-surface-1)]/30",
-                        day && isToday(day) && "bg-indigo-500/5"
+                        day && isToday(day) && "bg-primary/5"
                       )}
                     >
                       {day && (
                         <>
                           <div className={cn(
                             "w-6 h-6 text-xs flex items-center justify-center rounded-full mb-1",
-                            isToday(day) ? "bg-indigo-500 text-[var(--color-text-primary)] font-bold" : "text-[var(--color-text-secondary)]"
+                            isToday(day) ? "bg-primary text-[var(--color-text-primary)] font-bold" : "text-[var(--color-text-secondary)]"
                           )}>
                             {day}
                           </div>
@@ -387,7 +387,7 @@ export default function EventScheduler() {
                     value={newEventTitle}
                     onChange={e => setNewEventTitle(e.target.value)}
                     placeholder="Event title..."
-                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-primary"
                   />
                 </div>
                 <div>
@@ -395,7 +395,7 @@ export default function EventScheduler() {
                   <select
                     value={newEventKind}
                     onChange={e => setNewEventKind(e.target.value as EventKind)}
-                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-primary"
                   >
                     {kinds.map(k => <option key={k} value={k} className="capitalize">{k}</option>)}
                   </select>
@@ -406,13 +406,13 @@ export default function EventScheduler() {
                     type="date"
                     value={newEventDate}
                     onChange={e => setNewEventDate(e.target.value)}
-                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-primary"
                   />
                 </div>
                 <button
                   onClick={createEvent}
                   disabled={!newEventTitle.trim()}
-                  className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-[var(--color-text-primary)] text-xs font-medium py-2 rounded"
+                  className="w-full bg-primary hover:bg-primary disabled:opacity-40 text-[var(--color-text-primary)] text-xs font-medium py-2 rounded"
                 >
                   Create Event
                 </button>

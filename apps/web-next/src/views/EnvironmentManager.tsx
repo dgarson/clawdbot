@@ -127,14 +127,14 @@ const SEED_VARS: EnvVar[] = [
 const TYPE_CONFIG: Record<EnvType, { label: string; color: string; badge: string }> = {
   string:  { label: "String",  color: "text-[var(--color-text-secondary)]",    badge: "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] border border-[var(--color-border)]" },
   secret:  { label: "Secret",  color: "text-amber-400",   badge: "bg-amber-500/10 text-amber-400 border border-amber-500/20" },
-  boolean: { label: "Boolean", color: "text-indigo-400",  badge: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" },
+  boolean: { label: "Boolean", color: "text-primary",  badge: "bg-primary/10 text-primary border border-primary/20" },
   number:  { label: "Number",  color: "text-emerald-400", badge: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" },
-  url:     { label: "URL",     color: "text-violet-400",  badge: "bg-violet-500/10 text-violet-400 border border-violet-500/20" },
+  url:     { label: "URL",     color: "text-primary",  badge: "bg-primary/10 text-primary border border-primary/20" },
 };
 
 const SCOPE_CONFIG: Record<EnvScope, { label: string; color: string }> = {
   global:    { label: "Global",    color: "text-[var(--color-text-secondary)]" },
-  agent:     { label: "Agent",     color: "text-indigo-400" },
+  agent:     { label: "Agent",     color: "text-primary" },
   workspace: { label: "Workspace", color: "text-emerald-400" },
 };
 
@@ -199,7 +199,7 @@ function EditModal({ envVar, onSave, onClose }: EditModalProps) {
                     aria-pressed={value === v}
                     className={cn(
                       "flex-1 py-2 text-sm font-medium rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                      value === v ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)]"
+                      value === v ? "bg-primary border-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)]"
                     )}
                   >
                     {v}
@@ -248,7 +248,7 @@ function EditModal({ envVar, onSave, onClose }: EditModalProps) {
         </div>
         <div className="flex gap-2 px-5 py-4 border-t border-[var(--color-border)]">
           {!envVar.isSystem ? (
-            <button onClick={handleSave} className="flex-1 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
+            <button onClick={handleSave} className="flex-1 py-2 text-sm font-medium rounded-lg bg-primary text-[var(--color-text-primary)] hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
               Save Changes
             </button>
           ) : (
@@ -290,7 +290,7 @@ function EnvRow({ envVar, agents, onEdit, onDelete }: EnvRowProps) {
           {envVar.required && <span className="text-xs text-rose-400">Required</span>}
           {envVar.isSystem && <span className="text-xs text-[var(--color-text-muted)]">System</span>}
           {agent && (
-            <span className="flex items-center gap-1 text-xs text-indigo-400">
+            <span className="flex items-center gap-1 text-xs text-primary">
               {agent.emoji} {agent.name}
             </span>
           )}
@@ -418,7 +418,7 @@ export default function EnvironmentManager() {
             </button>
             <button
               aria-label="Add new environment variable"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-[var(--color-text-primary)] hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
             >
               <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" d="M7 2v10M2 7h10" /></svg>
               New Variable
@@ -475,7 +475,7 @@ export default function EnvironmentManager() {
         </select>
 
         {(search || scopeFilter !== "all" || typeFilter !== "all" || agentFilter !== "all") && (
-          <button onClick={() => { setSearch(""); setScopeFilter("all"); setTypeFilter("all"); setAgentFilter("all"); }} aria-label="Clear filters" className="text-xs text-indigo-400 hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-1">
+          <button onClick={() => { setSearch(""); setScopeFilter("all"); setTypeFilter("all"); setAgentFilter("all"); }} aria-label="Clear filters" className="text-xs text-primary hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-1">
             Clear
           </button>
         )}

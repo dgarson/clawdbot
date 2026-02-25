@@ -80,7 +80,7 @@ const RETENTION: RetentionCohort[] = [
 
 const FUNNEL_METRICS: FunnelMetric[] = [
   { label: "Total Visitors", value: "48.2K", subValue: "This month", trend: "up", trendPct: 12, color: "text-[var(--color-text-primary)]" },
-  { label: "Sign-Up Rate", value: "20.0%", subValue: "9.6K users", trend: "up", trendPct: 8, color: "text-indigo-400" },
+  { label: "Sign-Up Rate", value: "20.0%", subValue: "9.6K users", trend: "up", trendPct: 8, color: "text-primary" },
   { label: "Activation Rate", value: "56.0%", subValue: "5.4K users", trend: "down", trendPct: 4, color: "text-amber-400" },
   { label: "Paid Conversion", value: "11.3%", subValue: "612 paying", trend: "up", trendPct: 22, color: "text-emerald-400" },
 ];
@@ -88,7 +88,7 @@ const FUNNEL_METRICS: FunnelMetric[] = [
 function stageBg(s: JourneyStage) {
   const m: Record<JourneyStage, string> = {
     awareness: "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]",
-    activation: "bg-indigo-500/10 text-indigo-400",
+    activation: "bg-primary/10 text-primary",
     engagement: "bg-cyan-500/10 text-cyan-400",
     retention: "bg-emerald-500/10 text-emerald-400",
     revenue: "bg-amber-500/10 text-amber-400",
@@ -100,7 +100,7 @@ function dropReasonBg(r: DropReason) {
   if (r === "friction") {return "bg-orange-500/10 text-orange-400";}
   if (r === "confusion") {return "bg-amber-500/10 text-amber-400";}
   if (r === "technical") {return "bg-rose-500/10 text-rose-400";}
-  if (r === "value-gap") {return "bg-indigo-500/10 text-indigo-400";}
+  if (r === "value-gap") {return "bg-primary/10 text-primary";}
   if (r === "competitor") {return "bg-red-500/10 text-red-400";}
   return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]";
 }
@@ -171,7 +171,7 @@ export default function UserJourneyAnalytics() {
               onClick={() => setTab(t)}
               className={cn(
                 "py-3 text-sm font-medium border-b-2 capitalize transition-colors",
-                tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                tab === t ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t}
@@ -212,7 +212,7 @@ export default function UserJourneyAnalytics() {
                           <div className="h-7 bg-[var(--color-surface-2)] rounded overflow-hidden">
                             <div
                               className={cn("h-full rounded flex items-center px-2",
-                                i === 0 ? "bg-indigo-600" : width > 60 ? "bg-indigo-600" : width > 30 ? "bg-indigo-700" : "bg-indigo-800"
+                                i === 0 ? "bg-primary" : width > 60 ? "bg-primary" : width > 30 ? "bg-indigo-700" : "bg-indigo-800"
                               )}
                               style={{ width: `${width}%` }}
                             >
@@ -358,7 +358,7 @@ export default function UserJourneyAnalytics() {
                       <div className="text-sm font-medium text-[var(--color-text-primary)]">{seg.name}</div>
                       <div className="text-xs text-[var(--color-text-muted)]">{seg.desc}</div>
                     </div>
-                    <div className="ml-auto text-xl font-bold text-indigo-400">{seg.count}</div>
+                    <div className="ml-auto text-xl font-bold text-primary">{seg.count}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="bg-[var(--color-surface-2)] rounded-lg p-3">
@@ -372,7 +372,7 @@ export default function UserJourneyAnalytics() {
                   </div>
                   <div className="mt-3">
                     <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: seg.retDay7 }} />
+                      <div className="h-full bg-primary rounded-full" style={{ width: seg.retDay7 }} />
                     </div>
                   </div>
                 </div>
@@ -388,7 +388,7 @@ export default function UserJourneyAnalytics() {
                     <div key={i} className="flex items-center gap-3">
                       <span className={cn("text-xs px-2 py-0.5 rounded w-24 text-center", dropReasonBg(reason))}>{reason}</span>
                       <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(steps.length / JOURNEY_STEPS.length) * 100}%` }} />
+                        <div className="h-full bg-primary rounded-full" style={{ width: `${(steps.length / JOURNEY_STEPS.length) * 100}%` }} />
                       </div>
                       <span className="text-xs text-[var(--color-text-muted)] w-16 text-right">{steps.length} step{steps.length > 1 ? "s" : ""}</span>
                     </div>

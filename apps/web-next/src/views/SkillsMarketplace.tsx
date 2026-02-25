@@ -58,7 +58,7 @@ export default function SkillsMarketplace() {
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold">Skills</h1>
           <div className="flex items-center gap-2">
-            <span className="bg-violet-600 text-[var(--color-text-primary)] text-xs px-2 py-0.5 rounded-full">
+            <span className="bg-primary text-[var(--color-text-primary)] text-xs px-2 py-0.5 rounded-full">
               {installedCount} installed
             </span>
             <span className="bg-[var(--color-surface-3)] text-[var(--color-text-primary)] text-xs px-2 py-0.5 rounded-full">
@@ -90,7 +90,7 @@ export default function SkillsMarketplace() {
             className={cn(
               'px-3 py-1.5 text-sm rounded-lg transition-colors',
               activeCategory === cat
-                ? 'bg-violet-600 text-[var(--color-text-primary)]'
+                ? 'bg-primary text-[var(--color-text-primary)]'
                 : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]'
             )}
           >
@@ -170,7 +170,7 @@ function SkillCard({ skill, isInstalled }: SkillCardProps) {
           {skill.category}
         </span>
         {skill.popular && (
-          <span className="text-xs text-violet-400">Popular</span>
+          <span className="text-xs text-primary">Popular</span>
         )}
         {skill.featured && (
           <span className="text-xs text-yellow-500">Featured</span>
@@ -203,7 +203,7 @@ function SkillCard({ skill, isInstalled }: SkillCardProps) {
           </button>
         </div>
       ) : (
-        <button className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-sm rounded-lg transition-colors">
+        <button className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm rounded-lg transition-colors">
           <Download className="w-3.5 h-3.5" />
           Install
         </button>

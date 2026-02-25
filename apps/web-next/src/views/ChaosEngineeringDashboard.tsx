@@ -425,7 +425,7 @@ const SCHEDULED_RUNS: ScheduledRun[] = [
 
 function statusColor(status: ExperimentStatus): string {
   switch (status) {
-    case "running":   return "text-indigo-400 bg-indigo-500/10 border-indigo-500/30";
+    case "running":   return "text-primary bg-primary/10 border-primary/30";
     case "paused":    return "text-amber-400 bg-amber-500/10 border-amber-500/30";
     case "completed": return "text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
     case "failed":    return "text-rose-400 bg-rose-500/10 border-rose-500/30";
@@ -507,7 +507,7 @@ export default function ChaosEngineeringDashboard() {
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               {ACTIVE_RUNS.length} active
             </span>
-            <button className="bg-indigo-600 hover:bg-indigo-500 transition-colors px-4 py-2 rounded-lg text-sm font-medium">
+            <button className="bg-primary hover:bg-primary transition-colors px-4 py-2 rounded-lg text-sm font-medium">
               + New Experiment
             </button>
           </div>
@@ -581,7 +581,7 @@ function ExperimentsTab({
             className={cn(
               "w-full text-left bg-[var(--color-surface-1)] border rounded-xl p-4 transition-all",
               selected?.id === exp.id
-                ? "border-indigo-500/50 ring-1 ring-indigo-500/20"
+                ? "border-primary/50 ring-1 ring-indigo-500/20"
                 : "border-[var(--color-border)] hover:border-[var(--color-border)]"
             )}
           >
@@ -695,7 +695,7 @@ function ExperimentsTab({
 
           {/* Actions */}
           <div className="flex gap-2 pt-1">
-            <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 transition-colors px-4 py-2.5 rounded-lg text-sm font-medium">
+            <button className="flex-1 bg-primary hover:bg-primary transition-colors px-4 py-2.5 rounded-lg text-sm font-medium">
               Run Experiment
             </button>
             <button className="px-4 py-2.5 rounded-lg text-sm font-medium bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] transition-colors text-[var(--color-text-primary)]">
@@ -738,7 +738,7 @@ function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="inline-block w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                  <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
                   <h3 className="font-semibold text-[var(--color-text-primary)]">{run.experimentName}</h3>
                 </div>
                 <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">{run.injectionType}</p>
@@ -766,7 +766,7 @@ function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
               </div>
               <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-500 rounded-full"
+                  className="h-full bg-primary rounded-full"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -835,7 +835,7 @@ function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
                         <div
                           className={cn(
                             "absolute inset-y-0 left-0 rounded",
-                            row.delta > 200 ? "bg-rose-500/60" : row.delta > 50 ? "bg-amber-500/60" : "bg-indigo-500/60"
+                            row.delta > 200 ? "bg-rose-500/60" : row.delta > 50 ? "bg-amber-500/60" : "bg-primary/60"
                           )}
                           style={{ width: `${currW}%` }}
                         />
@@ -852,7 +852,7 @@ function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
                   <span className="inline-block w-3 h-2.5 rounded bg-[var(--color-surface-3)]" /> Baseline
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-2.5 rounded bg-indigo-500/60" /> Current
+                  <span className="inline-block w-3 h-2.5 rounded bg-primary/60" /> Current
                 </span>
               </div>
             </div>
@@ -913,7 +913,7 @@ function FindingsTab({ findings }: { findings: Finding[] }) {
             className={cn(
               "px-3 py-1 rounded-full text-xs font-medium transition-colors capitalize",
               filter === f
-                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
             )}
           >
@@ -958,7 +958,7 @@ function FindingsTab({ findings }: { findings: Finding[] }) {
               </span>
               <span>
                 Experiment:{" "}
-                <span className="text-indigo-400 font-mono">{finding.linkedExperiment}</span>
+                <span className="text-primary font-mono">{finding.linkedExperiment}</span>
               </span>
             </div>
           </div>
@@ -983,7 +983,7 @@ function ScheduleTab({ runs }: { runs: ScheduledRun[] }) {
         <p className="text-sm text-[var(--color-text-secondary)]">
           Next <span className="text-[var(--color-text-primary)] font-medium">{runs.length}</span> scheduled experiments
         </p>
-        <button className="bg-indigo-600 hover:bg-indigo-500 transition-colors px-3 py-1.5 rounded-lg text-xs font-medium">
+        <button className="bg-primary hover:bg-primary transition-colors px-3 py-1.5 rounded-lg text-xs font-medium">
           + Schedule Experiment
         </button>
       </div>

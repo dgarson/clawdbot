@@ -162,7 +162,7 @@ const EXPERIMENTS: Experiment[] = [
 // ---------------------------------------------------------------------------
 
 const STATUS_STYLES: Record<Experiment["status"], string> = {
-  running: "bg-indigo-500/20 text-indigo-400 border border-indigo-500/40",
+  running: "bg-primary/20 text-primary border border-primary/40",
   completed: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40",
   paused: "bg-amber-500/20 text-amber-400 border border-amber-500/40",
   draft: "bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)] border border-[var(--color-surface-3)]",
@@ -241,7 +241,7 @@ export default function ExperimentDashboard() {
             <option value="paused">Paused</option>
             <option value="draft">Draft</option>
           </select>
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
+          <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
             + New Experiment
           </button>
         </div>
@@ -250,7 +250,7 @@ export default function ExperimentDashboard() {
       {/* Stats row */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Running", value: running, accent: "text-indigo-400" },
+          { label: "Running", value: running, accent: "text-primary" },
           { label: "Completed", value: completed, accent: "text-emerald-400" },
           { label: "Avg Uplift", value: `${avgUplift.toFixed(1)}%`, accent: "text-amber-400" },
           { label: "Significant Results", value: significantCount, accent: "text-emerald-400" },
@@ -295,7 +295,7 @@ export default function ExperimentDashboard() {
                 className={cn(
                   "w-full text-left bg-[var(--color-surface-1)] border rounded-lg p-4 transition-colors",
                   selectedId === exp.id
-                    ? "border-indigo-500"
+                    ? "border-primary"
                     : "border-[var(--color-border)] hover:border-[var(--color-border)]",
                 )}
               >
@@ -321,7 +321,7 @@ export default function ExperimentDashboard() {
                 {/* Progress bar */}
                 <div className="h-1.5 w-full bg-[var(--color-surface-2)] rounded-full overflow-hidden mb-2">
                   <div
-                    className="h-full bg-indigo-500 rounded-full transition-all"
+                    className="h-full bg-primary rounded-full transition-all"
                     style={{ width: `${(progress * 100).toFixed(1)}%` }}
                   />
                 </div>
@@ -496,7 +496,7 @@ export default function ExperimentDashboard() {
                                 ? "bg-[var(--color-surface-3)]"
                                 : isWinner
                                   ? "bg-emerald-500"
-                                  : "bg-indigo-500",
+                                  : "bg-primary",
                             )}
                             style={{ width: `${barPct.toFixed(1)}%` }}
                           />
@@ -579,12 +579,12 @@ export default function ExperimentDashboard() {
                   </>
                 )}
                 {selected.status === "paused" && (
-                  <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
+                  <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
                     Resume Experiment
                   </button>
                 )}
                 {selected.status === "draft" && (
-                  <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
+                  <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
                     Start Experiment
                   </button>
                 )}

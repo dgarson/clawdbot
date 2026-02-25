@@ -74,7 +74,7 @@ const routeStatusBadge: Record<RouteStatus, string> = {
   active:     "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
   deprecated: "bg-amber-500/20 text-amber-300 border border-amber-500/30",
   disabled:   "bg-surface-3/30 text-fg-secondary border border-tok-border/30",
-  beta:       "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
+  beta:       "bg-primary/20 text-indigo-300 border border-primary/30",
 };
 
 const authIcon: Record<AuthType, string> = {
@@ -303,7 +303,7 @@ export default function APIGatewayMonitor({ isLoading = false }: { isLoading?: b
       {/* WCAG 2.1 AA — Skip navigation */}
       <a
         href="#agmon-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>
@@ -350,7 +350,7 @@ export default function APIGatewayMonitor({ isLoading = false }: { isLoading?: b
               onClick={() => setTab(t.id)}
               className={cn(
                 "px-4 py-3 text-sm font-medium border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
-                tab === t.id ? "border-indigo-500 text-fg-primary" : "border-transparent text-fg-secondary hover:text-fg-primary"
+                tab === t.id ? "border-primary text-fg-primary" : "border-transparent text-fg-secondary hover:text-fg-primary"
               )}
             >
               {t.label}
@@ -492,7 +492,7 @@ export default function APIGatewayMonitor({ isLoading = false }: { isLoading?: b
                             <div
                               role="img"
                               aria-label={`${label} latency: ${value}ms (${Math.round((value / max) * 100)}% of max)`}
-                              className="bg-indigo-500 h-1.5 rounded-full"
+                              className="bg-primary h-1.5 rounded-full"
                               style={{ width: `${(value / max) * 100}%` }}
                             />
                           </div>
@@ -617,7 +617,7 @@ export default function APIGatewayMonitor({ isLoading = false }: { isLoading?: b
               <div className="bg-surface-1 rounded-lg p-6 mb-6">
                 <div className="flex items-center gap-4 mb-4 text-xs">
                   <span className="flex items-center gap-1.5">
-                    <span aria-hidden="true" className="w-2.5 h-2.5 rounded-sm bg-indigo-500" />
+                    <span aria-hidden="true" className="w-2.5 h-2.5 rounded-sm bg-primary" />
                     <span className="text-fg-secondary">Requests</span>
                   </span>
                   <span className="flex items-center gap-1.5">
@@ -634,7 +634,7 @@ export default function APIGatewayMonitor({ isLoading = false }: { isLoading?: b
                     {TRAFFIC.map(pt => (
                       <div key={pt.time} className="flex-1 flex flex-col items-center gap-0.5 h-full justify-end">
                         <div
-                          className="w-full bg-indigo-500/40 rounded-t relative"
+                          className="w-full bg-primary/40 rounded-t relative"
                           style={{ height: `${(pt.requests / maxRequests) * 100}%` }}
                         >
                           <div

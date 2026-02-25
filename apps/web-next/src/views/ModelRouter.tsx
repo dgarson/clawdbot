@@ -129,8 +129,8 @@ const STRATEGY_PRESETS: Record<RoutingStrategy, { title: string; desc: string; i
 
 const CONDITION_COLORS: Record<ConditionKind, string> = {
   "token-budget": "bg-sky-400/10 text-sky-400 border-sky-400/20",
-  "task-complexity": "bg-violet-400/10 text-violet-400 border-violet-400/20",
-  "agent": "bg-indigo-400/10 text-indigo-400 border-indigo-400/20",
+  "task-complexity": "bg-primary/10 text-primary border-primary/20",
+  "agent": "bg-primary/10 text-primary border-primary/20",
   "time-of-day": "bg-amber-400/10 text-amber-400 border-amber-400/20",
   "keyword": "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
 };
@@ -197,7 +197,7 @@ export default function ModelRouter() {
   const matchingRule = findMatchingRule();
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-primary/30">
       <div className="max-w-7xl mx-auto space-y-12">
 
         {/* Header */}
@@ -216,12 +216,12 @@ export default function ModelRouter() {
                 className={cn(
                   "p-5 rounded-xl border text-left transition-all duration-200 group",
                   strategy === key
-                    ? "bg-indigo-500/10 border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.15)]"
+                    ? "bg-primary/10 border-primary shadow-[0_0_20px_rgba(99,102,241,0.15)]"
                     : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-1)]/80"
                 )}
               >
                 <div className="text-2xl mb-3">{data.icon}</div>
-                <h3 className={cn("font-semibold mb-1", strategy === key ? "text-indigo-400" : "text-[var(--color-text-primary)]")}>
+                <h3 className={cn("font-semibold mb-1", strategy === key ? "text-primary" : "text-[var(--color-text-primary)]")}>
                   {data.title}
                 </h3>
                 <p className="text-sm text-[var(--color-text-muted)] group-hover:text-[var(--color-text-secondary)] transition-colors">
@@ -261,13 +261,13 @@ export default function ModelRouter() {
                         <div className="flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={(e) => { e.stopPropagation(); moveRule(rule.id, 'up'); }}
-                            className="p-1 hover:text-indigo-400 transition-colors"
+                            className="p-1 hover:text-primary transition-colors"
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); moveRule(rule.id, 'down'); }}
-                            className="p-1 hover:text-indigo-400 transition-colors"
+                            className="p-1 hover:text-primary transition-colors"
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                           </button>
@@ -316,7 +316,7 @@ export default function ModelRouter() {
                           onClick={(e) => { e.stopPropagation(); toggleRule(rule.id); }}
                           className={cn(
                             "relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
-                            rule.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
+                            rule.enabled ? "bg-primary" : "bg-[var(--color-surface-3)]"
                           )}
                         >
                           <span
@@ -338,7 +338,7 @@ export default function ModelRouter() {
                             <div>
                               <label className="text-xs font-bold uppercase text-[var(--color-text-muted)] mb-2 block">Description</label>
                               <textarea
-                                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg p-3 text-sm text-[var(--color-text-primary)] focus:border-indigo-500 outline-none h-24 resize-none"
+                                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg p-3 text-sm text-[var(--color-text-primary)] focus:border-primary outline-none h-24 resize-none"
                                 defaultValue={rule.description}
                               />
                             </div>
@@ -348,7 +348,7 @@ export default function ModelRouter() {
                                 {rule.conditions.map((c, ci) => (
                                   <div key={ci} className="flex items-center justify-between p-2 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg text-xs">
                                     <span className="text-[var(--color-text-secondary)] uppercase font-mono tracking-tight">{c.kind}</span>
-                                    <span className="text-[var(--color-text-primary)]">{c.op} <span className="text-indigo-400 font-bold">{c.value}</span></span>
+                                    <span className="text-[var(--color-text-primary)]">{c.op} <span className="text-primary font-bold">{c.value}</span></span>
                                   </div>
                                 ))}
                                 <button className="w-full py-2 border border-dashed border-[var(--color-border)] rounded-lg text-xs text-[var(--color-text-muted)] hover:border-[var(--color-border)] hover:text-[var(--color-text-secondary)] transition-all">
@@ -389,7 +389,7 @@ export default function ModelRouter() {
                 type="text"
                 value={testAgent}
                 onChange={(e) => setTestAgent(e.target.value)}
-                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-primary outline-none"
               />
             </div>
             <div className="space-y-2">
@@ -398,7 +398,7 @@ export default function ModelRouter() {
                 type="number"
                 value={testTokens}
                 onChange={(e) => setTestTokens(parseInt(e.target.value) || 0)}
-                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-primary outline-none"
               />
             </div>
             <div className="space-y-2">
@@ -420,7 +420,7 @@ export default function ModelRouter() {
                 max="23"
                 value={testTime}
                 onChange={(e) => setTestTime(parseInt(e.target.value) || 0)}
-                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-primary outline-none"
               />
             </div>
             <div className="space-y-2">
@@ -430,7 +430,7 @@ export default function ModelRouter() {
                 placeholder="Search prompt..."
                 value={testKeyword}
                 onChange={(e) => setTestKeyword(e.target.value)}
-                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm focus:border-primary outline-none"
               />
             </div>
           </div>
@@ -439,7 +439,7 @@ export default function ModelRouter() {
             <div className="mt-8 p-6 bg-[var(--color-surface-0)] rounded-xl border border-[var(--color-border)] flex items-center justify-between">
               <div className="space-y-1">
                 <div className="text-xs font-bold uppercase text-[var(--color-text-muted)]">Predicted Target</div>
-                <div className="text-2xl font-mono text-indigo-400">{matchingRule.targetModel}</div>
+                <div className="text-2xl font-mono text-primary">{matchingRule.targetModel}</div>
               </div>
               <div className="text-right">
                 <div className="text-xs text-[var(--color-text-muted)] mb-1">Triggered by Priority {matchingRule.priority}</div>

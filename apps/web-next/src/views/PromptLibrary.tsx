@@ -403,8 +403,8 @@ Tone: professional but human. Max 300 words.`,
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORY_CONFIG: Record<PromptCategory, { label: string; emoji: string; color: string }> = {
-  analysis:  { label: "Analysis",  emoji: "🔍", color: "text-indigo-400" },
-  writing:   { label: "Writing",   emoji: "✍️", color: "text-violet-400" },
+  analysis:  { label: "Analysis",  emoji: "🔍", color: "text-primary" },
+  writing:   { label: "Writing",   emoji: "✍️", color: "text-primary" },
   code:      { label: "Code",      emoji: "💻", color: "text-emerald-400" },
   research:  { label: "Research",  emoji: "📚", color: "text-amber-400" },
   agent:     { label: "Agent",     emoji: "🤖", color: "text-cyan-400" },
@@ -518,7 +518,7 @@ function UsePromptModal({ prompt, onClose }: UsePromptModalProps) {
 
         {/* Footer */}
         <div className="flex gap-2 px-5 py-4 border-t border-[var(--color-border)] flex-none">
-          <button onClick={handleCopy} className={cn("flex-1 py-2 text-sm font-medium rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors", copied ? "bg-emerald-600 text-[var(--color-text-primary)]" : "bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500")}>
+          <button onClick={handleCopy} className={cn("flex-1 py-2 text-sm font-medium rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors", copied ? "bg-emerald-600 text-[var(--color-text-primary)]" : "bg-primary text-[var(--color-text-primary)] hover:bg-primary")}>
             {copied ? "✓ Copied to clipboard" : "Copy Prompt"}
           </button>
           <button onClick={onClose} className="py-2 px-4 text-sm font-medium rounded-lg bg-[var(--color-surface-2)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
@@ -549,7 +549,7 @@ function PromptCard({ prompt, selected, onSelect, onFavorite, onUse }: PromptCar
       aria-selected={selected}
       className={cn(
         "flex flex-col rounded-xl border transition-colors cursor-pointer",
-        selected ? "bg-[var(--color-surface-1)] border-indigo-500/40 ring-1 ring-indigo-500/20" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)]"
+        selected ? "bg-[var(--color-surface-1)] border-primary/40 ring-1 ring-indigo-500/20" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)]"
       )}
       onClick={onSelect}
     >
@@ -598,7 +598,7 @@ function PromptCard({ prompt, selected, onSelect, onFavorite, onUse }: PromptCar
         <button
           onClick={(e) => { e.stopPropagation(); onUse(); }}
           aria-label={`Use prompt: ${prompt.title}`}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-[var(--color-text-primary)] hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
         >
           Use Prompt →
         </button>
@@ -673,7 +673,7 @@ export default function PromptLibrary() {
           </div>
           <button
             aria-label="Create new prompt"
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-primary text-[var(--color-text-primary)] hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
           >
             <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" d="M8 3v10M3 8h10" /></svg>
             New Prompt
@@ -682,7 +682,7 @@ export default function PromptLibrary() {
         <div className="flex items-center gap-4 mt-3 text-xs text-[var(--color-text-muted)]">
           <span><span className="text-[var(--color-text-primary)] font-semibold">{stats.total}</span> prompts</span>
           <span><span className="text-amber-400 font-semibold">{stats.favorites}</span> favorites</span>
-          <span><span className="text-indigo-400 font-semibold">{stats.custom}</span> custom</span>
+          <span><span className="text-primary font-semibold">{stats.custom}</span> custom</span>
         </div>
       </div>
 
@@ -731,13 +731,13 @@ export default function PromptLibrary() {
                 onClick={() => setCategoryFilter(cat)}
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                  categoryFilter === cat ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
+                  categoryFilter === cat ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
                 {isFav && "⭐"}
                 {cfg && cfg.emoji}
                 <span className="capitalize">{isAll ? "All" : isFav ? "Favorites" : cfg?.label}</span>
-                <span className={cn("px-1.5 py-0.5 rounded-full text-xs tabular-nums", categoryFilter === cat ? "bg-indigo-500" : "bg-[var(--color-surface-3)] text-[var(--color-text-muted)]")}>
+                <span className={cn("px-1.5 py-0.5 rounded-full text-xs tabular-nums", categoryFilter === cat ? "bg-primary" : "bg-[var(--color-surface-3)] text-[var(--color-text-muted)]")}>
                   {count}
                 </span>
               </button>

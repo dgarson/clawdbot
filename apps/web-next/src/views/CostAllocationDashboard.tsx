@@ -20,7 +20,7 @@ interface TeamCost {
 }
 
 const COST_BY_MODEL: CostEntry[] = [
-  { label: 'Claude Sonnet 4.6', amount: 284.50, pct: 38, trend: 12, color: 'bg-violet-500' },
+  { label: 'Claude Sonnet 4.6', amount: 284.50, pct: 38, trend: 12, color: 'bg-primary' },
   { label: 'Claude Opus 4.6', amount: 198.20, pct: 26, trend: 5, color: 'bg-purple-500' },
   { label: 'GPT-5.3 Codex', amount: 142.80, pct: 19, trend: -3, color: 'bg-blue-500' },
   { label: 'MiniMax M2.5', amount: 68.40, pct: 9, trend: 22, color: 'bg-emerald-500' },
@@ -60,7 +60,7 @@ function MiniBarChart({ data }: { data: number[] }) {
         return (
           <div
             key={i}
-            className={cn('flex-1 rounded-t-sm', isLast ? 'bg-violet-500' : 'bg-[var(--color-surface-3)]')}
+            className={cn('flex-1 rounded-t-sm', isLast ? 'bg-primary' : 'bg-[var(--color-surface-3)]')}
             style={{ height: `${h}%` }}
           />
         );
@@ -97,7 +97,7 @@ export default function CostAllocationDashboard() {
                   onClick={() => setPeriod(p)}
                   className={cn(
                     'px-3 py-1.5 text-xs font-medium rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500',
-                    period === p ? 'bg-violet-600 text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                    period === p ? 'bg-primary text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                   )}
                 >
                   {p}
@@ -116,7 +116,7 @@ export default function CostAllocationDashboard() {
           {[
             { label: 'Total Spend', value: `$${totalSpend.toFixed(2)}`, sub: `of $${totalBudget} budget`, icon: DollarSign, color: 'text-emerald-400' },
             { label: 'Budget Used', value: `${Math.round((totalSpend / totalBudget) * 100)}%`, sub: `$${(totalBudget - totalSpend).toFixed(2)} remaining`, icon: PieChart, color: 'text-blue-400' },
-            { label: 'Total Tokens', value: `${(totalTokens / 1_000_000).toFixed(1)}M`, sub: 'across all agents', icon: Bot, color: 'text-violet-400' },
+            { label: 'Total Tokens', value: `${(totalTokens / 1_000_000).toFixed(1)}M`, sub: 'across all agents', icon: Bot, color: 'text-primary' },
             { label: 'Avg/Session', value: `$${(totalSpend / 6680).toFixed(3)}`, sub: '6,680 sessions total', icon: Clock, color: 'text-amber-400' },
           ].map(({ label, value, sub, icon: Icon, color }) => (
             <div key={label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
@@ -171,7 +171,7 @@ export default function CostAllocationDashboard() {
             </div>
             <div className="mt-3 pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
               <span className="text-xs text-[var(--color-text-muted)]">Today's spend</span>
-              <span className="text-sm font-medium text-violet-400">${DAILY_SPEND[DAILY_SPEND.length - 1]}.40</span>
+              <span className="text-sm font-medium text-primary">${DAILY_SPEND[DAILY_SPEND.length - 1]}.40</span>
             </div>
           </div>
         </div>

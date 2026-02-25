@@ -56,8 +56,8 @@ const SEED_EDGES: GraphEdge[] = [
 ];
 
 const KIND_COLORS: Record<NodeKind, string> = {
-  agent: "bg-indigo-600 hover:bg-indigo-500",
-  model: "bg-violet-600 hover:bg-violet-500",
+  agent: "bg-primary hover:bg-primary",
+  model: "bg-primary hover:bg-primary",
   tool: "bg-emerald-600 hover:bg-emerald-500",
   service: "bg-sky-600 hover:bg-sky-500",
   storage: "bg-amber-600 hover:bg-amber-500",

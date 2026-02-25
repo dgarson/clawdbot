@@ -220,7 +220,7 @@ const keyStatusColor: Record<KeyStatus, string> = {
   active: "text-emerald-400",
   expired: "text-amber-400",
   revoked: "text-rose-400",
-  rotating: "text-indigo-400",
+  rotating: "text-primary",
 };
 
 const expiryWarning = (expiresAt: string | null): string | null => {
@@ -268,7 +268,7 @@ export default function ServiceAccountManager(): React.ReactElement {
               ⚠ {expiringSoon.length} key{expiringSoon.length > 1 ? "s" : ""} expiring soon
             </div>
           )}
-          <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
+          <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded-md transition-colors">
             + New Service Account
           </button>
         </div>
@@ -283,7 +283,7 @@ export default function ServiceAccountManager(): React.ReactElement {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
-                ? "text-indigo-400 border-indigo-500"
+                ? "text-primary border-primary"
                 : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -304,7 +304,7 @@ export default function ServiceAccountManager(): React.ReactElement {
                   onClick={() => setSelectedSA(sa)}
                   className={cn(
                     "w-full text-left px-4 py-4 border-b border-[var(--color-border)]/50 transition-colors",
-                    selectedSA.id === sa.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/40"
+                    selectedSA.id === sa.id ? "bg-primary/10" : "hover:bg-[var(--color-surface-2)]/40"
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -363,7 +363,7 @@ export default function ServiceAccountManager(): React.ReactElement {
               <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--color-border)]">
                   <div className="text-xs text-[var(--color-text-secondary)] font-semibold uppercase tracking-wider">API Keys</div>
-                  <button className="text-xs text-indigo-400 hover:text-indigo-300">+ Create Key</button>
+                  <button className="text-xs text-primary hover:text-indigo-300">+ Create Key</button>
                 </div>
                 <div className="divide-y divide-[var(--color-border)]">
                   {selectedSA.keys.map((key) => {
@@ -493,14 +493,14 @@ export default function ServiceAccountManager(): React.ReactElement {
                     <div className="flex items-center gap-2">
                       <select
                         defaultValue={sa.rotationPolicy}
-                        className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+                        className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
                       >
                         {(["30d", "60d", "90d", "180d", "never"] as const).map((p) => (
                           <option key={p} value={p}>{p}</option>
                         ))}
                       </select>
                     </div>
-                    <button className="px-3 py-1 text-xs bg-indigo-600/20 border border-indigo-600/40 text-indigo-300 rounded hover:bg-indigo-600/30 transition-colors">
+                    <button className="px-3 py-1 text-xs bg-primary/20 border border-primary/40 text-indigo-300 rounded hover:bg-primary/30 transition-colors">
                       Rotate Now
                     </button>
                   </div>

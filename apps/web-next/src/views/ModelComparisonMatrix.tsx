@@ -249,7 +249,7 @@ export default function ModelComparisonMatrix() {
 
                     <td className="p-4">
                       <div className={cn("text-sm", getCellColor('costOutput', model.costOutput))}>${model.costOutput.toFixed(3)}</div>
-                      <Sparkline value={model.costOutput} max={bounds.costOutput.max} colorClass="bg-indigo-500" />
+                      <Sparkline value={model.costOutput} max={bounds.costOutput.max} colorClass="bg-primary" />
                     </td>
 
                     <td className="p-4">
@@ -263,7 +263,7 @@ export default function ModelComparisonMatrix() {
 
                     <td className="p-4">
                       <div className={cn("text-sm", getCellColor('toolAccuracy', model.toolAccuracy))}>{model.toolAccuracy}%</div>
-                      <Sparkline value={model.toolAccuracy} max={100} colorClass="bg-violet-500" />
+                      <Sparkline value={model.toolAccuracy} max={100} colorClass="bg-primary" />
                     </td>
 
                     <td className="p-4 text-xs text-[var(--color-text-secondary)] italic">

@@ -47,7 +47,7 @@ const CATEGORY_LABELS: Record<CostCategory, string> = {
 };
 
 const CATEGORY_COLORS: Record<CostCategory, string> = {
-  "model-inference": "bg-indigo-500",
+  "model-inference": "bg-primary",
   storage: "bg-emerald-400",
   compute: "bg-amber-400",
   network: "bg-sky-400",
@@ -55,7 +55,7 @@ const CATEGORY_COLORS: Record<CostCategory, string> = {
 };
 
 const CATEGORY_TEXT_COLORS: Record<CostCategory, string> = {
-  "model-inference": "text-indigo-400",
+  "model-inference": "text-primary",
   storage: "text-emerald-400",
   compute: "text-amber-400",
   network: "text-sky-400",
@@ -427,7 +427,7 @@ export default function CostOptimizer() {
                         </span>
                         <div
                           className={cn(
-                            "w-full max-w-[40px] rounded-t bg-indigo-500 transition-all",
+                            "w-full max-w-[40px] rounded-t bg-primary transition-all",
                             total === 0 && "bg-[var(--color-surface-3)]"
                           )}
                           style={{
@@ -518,7 +518,7 @@ export default function CostOptimizer() {
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                     statusFilter === chip.value
-                      ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                   onClick={() => setStatusFilter(chip.value)}
@@ -536,7 +536,7 @@ export default function CostOptimizer() {
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                     effortFilter === chip.value
-                      ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                   onClick={() => setEffortFilter(chip.value)}
@@ -635,7 +635,7 @@ export default function CostOptimizer() {
                             <button
                               onClick={() => handleApply(opt.id)}
                               aria-label={`Apply optimization: ${opt.title}`}
-                              className="rounded-md bg-indigo-500 px-3 py-1.5 text-xs font-medium text-[var(--color-text-primary)] transition-colors hover:bg-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+                              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-[var(--color-text-primary)] transition-colors hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
                             >
                               Apply
                             </button>

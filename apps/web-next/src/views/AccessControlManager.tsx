@@ -165,7 +165,7 @@ const AUDIT_LOG: AuditEntry[] = [
 const RoleBadge = ({ role, className }: { role: RoleName; className?: string }) => {
   const colors: Record<RoleName, string> = {
     Admin: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-    Member: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    Member: "bg-primary/10 text-primary border-primary/20",
     Developer: "bg-blue-500/10 text-blue-400 border-blue-500/20",
     Viewer: "bg-surface-3/10 text-fg-secondary border-tok-border/20",
     Support: "bg-amber-500/10 text-amber-400 border-amber-500/20",
@@ -254,12 +254,12 @@ export default function AccessControlManager({ isLoading = false }: { isLoading?
       {/* WCAG 2.1 AA — Skip navigation */}
       <a
         href="#acmgr-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>
 
-      <div className="flex flex-col min-h-screen bg-surface-0 text-fg-primary font-sans selection:bg-indigo-500/30">
+      <div className="flex flex-col min-h-screen bg-surface-0 text-fg-primary font-sans selection:bg-primary/30">
         {/* Header */}
         <header className="px-3 sm:px-4 md:px-8 py-4 md:py-6 border-b border-tok-border bg-surface-0/50 backdrop-blur-md sticky top-0 z-20">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
@@ -271,7 +271,7 @@ export default function AccessControlManager({ isLoading = false }: { isLoading?
               <button className="px-4 py-2 bg-surface-1 hover:bg-surface-2 border border-tok-border rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
                 Export Log
               </button>
-              <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-fg-primary rounded-lg text-sm font-medium shadow-lg shadow-indigo-500/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+              <button className="px-4 py-2 bg-primary hover:bg-primary text-fg-primary rounded-lg text-sm font-medium shadow-lg shadow-indigo-500/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
                 Invite User
               </button>
             </div>
@@ -292,12 +292,12 @@ export default function AccessControlManager({ isLoading = false }: { isLoading?
                 }}
                 className={cn(
                   "pb-3 text-sm font-medium transition-all relative capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:rounded",
-                  activeTab === tab.id ? "text-indigo-400" : "text-fg-muted hover:text-fg-primary"
+                  activeTab === tab.id ? "text-primary" : "text-fg-muted hover:text-fg-primary"
                 )}
               >
                 {tab.label}
                 {activeTab === tab.id && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500" aria-hidden="true" />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" aria-hidden="true" />
                 )}
               </button>
             ))}
@@ -335,7 +335,7 @@ export default function AccessControlManager({ isLoading = false }: { isLoading?
                       className={cn(
                         "text-left p-6 rounded-xl border transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
                         selectedRole === role.id
-                          ? "bg-surface-1 border-indigo-500/50 ring-1 ring-indigo-500/20"
+                          ? "bg-surface-1 border-primary/50 ring-1 ring-indigo-500/20"
                           : "bg-surface-1 border-tok-border hover:border-tok-border"
                       )}
                     >
@@ -349,7 +349,7 @@ export default function AccessControlManager({ isLoading = false }: { isLoading?
                       </p>
                       <div className="flex items-center justify-between pt-4 border-t border-tok-border/50">
                         <span className="text-xs text-fg-muted font-medium">{role.permissions.length} Permissions</span>
-                        <span aria-hidden="true" className="text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span aria-hidden="true" className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                           View Details →
                         </span>
                       </div>
@@ -391,13 +391,13 @@ export default function AccessControlManager({ isLoading = false }: { isLoading?
                             return (
                               <div key={group} className="mb-6 last:mb-0">
                                 <div className="flex items-center gap-2 mb-3">
-                                  <span aria-hidden="true" className="w-1 h-4 bg-indigo-500 rounded-full" />
+                                  <span aria-hidden="true" className="w-1 h-4 bg-primary rounded-full" />
                                   <h5 className="text-sm font-semibold text-fg-primary">{group}</h5>
                                 </div>
                                 <div className="space-y-2">
                                   {groupPerms.map(perm => (
                                     <div key={perm.id} className="p-3 bg-surface-0 border border-tok-border/50 rounded-lg">
-                                      <div className="text-xs font-mono text-indigo-400 mb-1">{perm.name}</div>
+                                      <div className="text-xs font-mono text-primary mb-1">{perm.name}</div>
                                       <div className="text-xs text-fg-muted">{perm.description}</div>
                                     </div>
                                   ))}
@@ -444,7 +444,7 @@ export default function AccessControlManager({ isLoading = false }: { isLoading?
                       {PERMISSIONS.map((perm) => (
                         <tr key={perm.id} className="hover:bg-surface-0/50 transition-colors group">
                           <td className="px-6 py-4">
-                            <span className="font-mono text-sm text-indigo-400 font-medium">{perm.name}</span>
+                            <span className="font-mono text-sm text-primary font-medium">{perm.name}</span>
                           </td>
                           <td className="px-6 py-4">
                             <span className="text-sm text-fg-primary">{perm.group}</span>
@@ -520,7 +520,7 @@ export default function AccessControlManager({ isLoading = false }: { isLoading?
                                 aria-expanded={expandedUser === user.id}
                                 aria-controls={`permissions-${user.id}`}
                                 aria-label={`${expandedUser === user.id ? "Hide" : "View"} permissions for ${user.name}`}
-                                className="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors px-3 py-1 rounded-md hover:bg-indigo-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                                className="text-xs font-medium text-primary hover:text-indigo-300 transition-colors px-3 py-1 rounded-md hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                               >
                                 {expandedUser === user.id ? "Hide Permissions" : "View Permissions"}
                               </button>
@@ -537,7 +537,7 @@ export default function AccessControlManager({ isLoading = false }: { isLoading?
                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {PERMISSIONS.filter(p => ROLES.find(r => r.id === user.role)?.permissions.includes(p.id)).map(perm => (
                                       <div key={perm.id} className="p-3 bg-surface-1 border border-tok-border rounded-lg flex flex-col gap-1">
-                                        <span className="text-xs font-mono text-indigo-400">{perm.name}</span>
+                                        <span className="text-xs font-mono text-primary">{perm.name}</span>
                                         <span className="text-[10px] text-fg-muted leading-tight">{perm.description}</span>
                                       </div>
                                     ))}
@@ -609,7 +609,7 @@ export default function AccessControlManager({ isLoading = false }: { isLoading?
                                 entry.action.includes("Create") ? "text-emerald-400 bg-emerald-500/10" :
                                 entry.action.includes("Revoke") || entry.action.includes("Delete") ? "text-rose-400 bg-rose-500/10" :
                                 entry.action.includes("Lock") ? "text-amber-400 bg-amber-500/10" :
-                                "text-indigo-400 bg-indigo-500/10"
+                                "text-primary bg-primary/10"
                               )}>
                                 {entry.action}
                               </span>

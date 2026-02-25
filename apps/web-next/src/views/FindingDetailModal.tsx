@@ -541,7 +541,7 @@ export default function FindingDetailModal() {
       {/* ── Skip-to-content link (visible on focus) ─────────────────────── */}
       <a
         href="#finding-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-violet-600 focus:px-4 focus:py-2 focus:text-[var(--color-text-primary)] focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-[var(--color-text-primary)] focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none"
         onClick={handleSkipToContent}
         onKeyDown={handleSkipToContent as unknown as React.KeyboardEventHandler}
       >
@@ -647,7 +647,7 @@ export default function FindingDetailModal() {
             onClick={() => setEvidenceExpanded((v) => !v)}
           >
             <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-violet-400" aria-hidden="true" />
+              <Shield className="w-4 h-4 text-primary" aria-hidden="true" />
               <h2 id="evidence-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
                 Evidence
               </h2>
@@ -687,7 +687,7 @@ export default function FindingDetailModal() {
           className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] px-5 py-5"
         >
           <div className="flex items-center gap-2 mb-4">
-            <Link2 className="w-4 h-4 text-violet-400" aria-hidden="true" />
+            <Link2 className="w-4 h-4 text-primary" aria-hidden="true" />
             <h2 id="sources-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
               Sources
             </h2>
@@ -714,7 +714,7 @@ export default function FindingDetailModal() {
           className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] px-5 py-5"
         >
           <div className="flex items-center gap-2 mb-4">
-            <Zap className="w-4 h-4 text-violet-400" aria-hidden="true" />
+            <Zap className="w-4 h-4 text-primary" aria-hidden="true" />
             <h2 id="confidence-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
               Confidence
             </h2>
@@ -731,7 +731,7 @@ export default function FindingDetailModal() {
           className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] px-5 py-5"
         >
           <div className="flex items-center gap-2 mb-4">
-            <Bot className="w-4 h-4 text-violet-400" aria-hidden="true" />
+            <Bot className="w-4 h-4 text-primary" aria-hidden="true" />
             <h2 id="agents-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
               Agent Attribution
             </h2>
@@ -770,7 +770,7 @@ export default function FindingDetailModal() {
           {/* Summary always visible */}
           <div className="px-5 py-5">
             <div className="flex items-center gap-2 mb-3">
-              <CheckCircle2 className="w-4 h-4 text-violet-400" aria-hidden="true" />
+              <CheckCircle2 className="w-4 h-4 text-primary" aria-hidden="true" />
               <h2 id="remediation-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
                 Remediation
               </h2>
@@ -803,7 +803,7 @@ export default function FindingDetailModal() {
               aria-expanded={remediationExpanded}
               aria-controls="remediation-detail"
               onClick={() => setRemediationExpanded((v) => !v)}
-              className="inline-flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors focus-visible:outline-none focus-visible:underline"
+              className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-violet-300 transition-colors focus-visible:outline-none focus-visible:underline"
             >
               {remediationExpanded ? (
                 <>
@@ -852,7 +852,7 @@ export default function FindingDetailModal() {
                   ? 'bg-green-900/40 text-green-400 border border-green-800 cursor-default'
                   : resolving
                     ? 'bg-violet-700 text-[var(--color-text-primary)] opacity-70 cursor-wait focus-visible:ring-violet-500'
-                    : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] focus-visible:ring-violet-500'
+                    : 'bg-primary hover:bg-primary text-[var(--color-text-primary)] focus-visible:ring-violet-500'
               )}
             >
               {resolved ? (
@@ -884,7 +884,7 @@ export default function FindingDetailModal() {
           className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-1)] px-5 py-5"
         >
           <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="w-4 h-4 text-violet-400" aria-hidden="true" />
+            <AlertTriangle className="w-4 h-4 text-primary" aria-hidden="true" />
             <h2 id="similar-heading" className="text-sm font-semibold text-[var(--color-text-primary)]">
               Similar Findings
             </h2>

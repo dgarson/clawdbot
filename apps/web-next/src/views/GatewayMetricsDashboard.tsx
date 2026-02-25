@@ -143,7 +143,7 @@ function SparkBar({ values, max, label }: { values: number[]; max: number; label
       {values.map((v, i) => (
         <div
           key={i}
-          className="flex-1 bg-violet-500/60 rounded-sm transition-all"
+          className="flex-1 bg-primary/60 rounded-sm transition-all"
           style={{ height: `${Math.max(4, (v / max) * 100)}%` }}
         />
       ))}
@@ -251,7 +251,7 @@ export default function GatewayMetricsDashboard() {
       {/* Skip link — WCAG 2.4.1 */}
       <a
         href="#gateway-metrics-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
@@ -268,7 +268,7 @@ export default function GatewayMetricsDashboard() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
-                <Activity className="w-6 h-6 text-violet-400" aria-hidden="true" />
+                <Activity className="w-6 h-6 text-primary" aria-hidden="true" />
                 Gateway Metrics Dashboard
               </h1>
               <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">
@@ -281,7 +281,7 @@ export default function GatewayMetricsDashboard() {
                   type="checkbox"
                   checked={autoRefresh}
                   onChange={(e) => setAutoRefresh(e.target.checked)}
-                  className="rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] text-violet-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                  className="rounded border-[var(--color-surface-3)] bg-[var(--color-surface-2)] text-primary focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
                 />
                 Auto-refresh (15s)
               </label>
@@ -289,7 +289,7 @@ export default function GatewayMetricsDashboard() {
                 onClick={doRefresh}
                 disabled={refreshing}
                 aria-label={refreshing ? 'Refreshing metrics…' : 'Refresh metrics now'}
-                className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] rounded-lg font-medium text-sm disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary text-[var(--color-text-primary)] rounded-lg font-medium text-sm disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
               >
                 <RefreshCw className={cn('w-4 h-4', refreshing && 'animate-spin')} aria-hidden="true" />
                 Refresh
@@ -333,7 +333,7 @@ export default function GatewayMetricsDashboard() {
           {/* Real-time metrics */}
           <section aria-label="Real-time metrics" aria-live="polite">
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-              <BarChart2 className="w-5 h-5 text-violet-400" aria-hidden="true" />
+              <BarChart2 className="w-5 h-5 text-primary" aria-hidden="true" />
               Live Metrics
             </h2>
             <div className="grid grid-cols-4 gap-4">
@@ -381,7 +381,7 @@ export default function GatewayMetricsDashboard() {
           {/* Node table */}
           <section aria-label="Gateway node health table">
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-              <Server className="w-5 h-5 text-violet-400" aria-hidden="true" />
+              <Server className="w-5 h-5 text-primary" aria-hidden="true" />
               Node Health
             </h2>
             <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
@@ -530,7 +530,7 @@ export default function GatewayMetricsDashboard() {
           {/* Throughput trends summary */}
           <section aria-label="Throughput and latency trends">
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-violet-400" aria-hidden="true" />
+              <TrendingUp className="w-5 h-5 text-primary" aria-hidden="true" />
               Trend Summary (last 5 min)
             </h2>
             <div className="grid grid-cols-2 gap-4">
@@ -553,7 +553,7 @@ export default function GatewayMetricsDashboard() {
                 <div key={label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-                      <Icon className="w-4 h-4 text-violet-400" aria-hidden="true" />
+                      <Icon className="w-4 h-4 text-primary" aria-hidden="true" />
                       {label}
                     </h3>
                     <span className="text-xs text-[var(--color-text-muted)]">Peak: {peak} {unit}</span>

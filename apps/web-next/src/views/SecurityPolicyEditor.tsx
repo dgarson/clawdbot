@@ -472,7 +472,7 @@ const actionColor: Record<RuleAction, string> = {
   allow: "text-emerald-400",
   deny: "text-rose-400",
   alert: "text-amber-400",
-  "require-MFA": "text-indigo-400",
+  "require-MFA": "text-primary",
 };
 
 const enforcementEmoji: Record<EnforcementMode, string> = {
@@ -711,7 +711,7 @@ function PoliciesTab({
                       <button
                         type="button"
                         onClick={() => saveEdit(policy)}
-                        className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs text-[var(--color-text-primary)] hover:bg-indigo-500 transition-colors"
+                        className="rounded-md bg-primary px-3 py-1.5 text-xs text-[var(--color-text-primary)] hover:bg-primary transition-colors"
                       >
                         Save Changes
                       </button>
@@ -841,15 +841,15 @@ function RulesTab({
         <button
           type="button"
           onClick={() => setShowForm(!showForm)}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs text-[var(--color-text-primary)] hover:bg-indigo-500 transition-colors"
+          className="rounded-md bg-primary px-3 py-1.5 text-xs text-[var(--color-text-primary)] hover:bg-primary transition-colors"
         >
           {showForm ? "Cancel" : "➕ Add Rule"}
         </button>
       </div>
 
       {showForm && (
-        <div className="rounded-lg border border-indigo-500/30 bg-[var(--color-surface-1)] p-4 space-y-3">
-          <p className="text-sm font-medium text-indigo-400 mb-2">
+        <div className="rounded-lg border border-primary/30 bg-[var(--color-surface-1)] p-4 space-y-3">
+          <p className="text-sm font-medium text-primary mb-2">
             New Rule
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -999,7 +999,7 @@ function RulesTab({
             <button
               type="button"
               onClick={handleSubmit}
-              className="rounded-md bg-indigo-600 px-4 py-1.5 text-xs text-[var(--color-text-primary)] hover:bg-indigo-500 transition-colors"
+              className="rounded-md bg-primary px-4 py-1.5 text-xs text-[var(--color-text-primary)] hover:bg-primary transition-colors"
             >
               Create Rule
             </button>
@@ -1037,7 +1037,7 @@ function RulesTab({
                           ? "bg-rose-400/15 text-rose-400 border-rose-400/30"
                           : rule.action === "alert"
                           ? "bg-amber-400/15 text-amber-400 border-amber-400/30"
-                          : "bg-indigo-400/15 text-indigo-400 border-indigo-400/30"
+                          : "bg-primary/15 text-primary border-primary/30"
                       )}
                     >
                       {actionEmoji[rule.action]} {rule.action}
@@ -1155,7 +1155,7 @@ function EnforcementTab({
                 onClick={() =>
                   setPreviewId(isPreview ? null : policy.id)
                 }
-                className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                className="text-xs text-primary hover:text-indigo-300 transition-colors"
               >
                 {isPreview ? "Hide Impact" : "Preview Impact"}
               </button>
@@ -1171,7 +1171,7 @@ function EnforcementTab({
                     "flex-1 rounded-md border px-3 py-2 text-xs font-medium transition-colors",
                     policy.enforcementMode === mode
                       ? mode === "enforce"
-                        ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
+                        ? "border-primary bg-primary/20 text-indigo-300"
                         : mode === "warn"
                         ? "border-amber-500 bg-amber-500/20 text-amber-300"
                         : "border-[var(--color-surface-3)] bg-[var(--color-surface-3)]/50 text-[var(--color-text-primary)]"
@@ -1362,7 +1362,7 @@ export default function SecurityPolicyEditor() {
               className={cn(
                 "flex-1 rounded-md px-4 py-2.5 text-sm font-medium transition-colors",
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-sm"
+                  ? "bg-primary text-[var(--color-text-primary)] shadow-sm"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >

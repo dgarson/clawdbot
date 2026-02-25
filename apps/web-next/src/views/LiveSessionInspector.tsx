@@ -249,7 +249,7 @@ function SessionStatusBadge({ status }: { status: SessionStatus }) {
 
 function SessionTypeBadge({ type }: { type: SessionType }) {
   const styles: Record<SessionType, string> = {
-    main: 'bg-violet-500/15 text-violet-400',
+    main: 'bg-primary/15 text-primary',
     subagent: 'bg-sky-500/15 text-sky-400',
     cron: 'bg-orange-500/15 text-orange-400',
   };
@@ -265,7 +265,7 @@ function ToolBadge({ toolType, toolName }: { toolType: ToolType; toolName: strin
     exec: 'bg-amber-500/15 text-amber-400 border-amber-500/25',
     read: 'bg-sky-500/15 text-sky-400 border-sky-500/25',
     write: 'bg-sky-500/15 text-sky-400 border-sky-500/25',
-    sessions_spawn: 'bg-violet-500/15 text-violet-400 border-violet-500/25',
+    sessions_spawn: 'bg-primary/15 text-primary border-primary/25',
     message: 'bg-green-500/15 text-green-400 border-green-500/25',
     browser: 'bg-orange-500/15 text-orange-400 border-orange-500/25',
     other: 'bg-[var(--color-surface-3)]/50 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/25',
@@ -329,7 +329,7 @@ function TabButton({
       className={cn(
         'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-[2px]',
         active
-          ? 'text-violet-400 border-violet-400'
+          ? 'text-primary border-primary'
           : 'text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]',
       )}
     >
@@ -341,7 +341,7 @@ function TabButton({
 function ProgressBar({
   value,
   max,
-  color = 'bg-violet-500',
+  color = 'bg-primary',
   label,
 }: {
   value: number;
@@ -451,7 +451,7 @@ function TokenBudgetPanel({ session }: { session: SessionData }) {
   return (
     <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-4">
-        <Cpu className="w-4 h-4 text-violet-400" />
+        <Cpu className="w-4 h-4 text-primary" />
         <span className="text-sm font-semibold text-[var(--color-text-primary)]">Token Budget</span>
       </div>
       
@@ -466,7 +466,7 @@ function TokenBudgetPanel({ session }: { session: SessionData }) {
           value={session.tokenOutput}
           max={session.tokenOutputLimit}
           label="Output Tokens"
-          color="bg-violet-500"
+          color="bg-primary"
         />
         
         <div className="pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
@@ -592,7 +592,7 @@ function MemoryPanel({ entries }: { entries: MemoryEntry[] }) {
           <div key={idx} className="px-4 py-2 flex items-start gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-violet-400">{entry.key}</span>
+                <span className="text-xs font-mono text-primary">{entry.key}</span>
                 <span className="text-xs text-[var(--color-text-muted)] px-1 py-0.5 bg-[var(--color-surface-2)] rounded">{entry.source}</span>
               </div>
               <p className="text-xs text-[var(--color-text-secondary)] mt-0.5 font-mono truncate">{entry.value}</p>
@@ -754,7 +754,7 @@ function ControlStrip({
           value={messageInput}
           onChange={(e) => setMessageInput(e.target.value)}
           placeholder="Send message to session..."
-          className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500"
+          className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-primary"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && messageInput.trim()) {
               onSendMessage(messageInput.trim());
@@ -773,7 +773,7 @@ function ControlStrip({
           className={cn(
             'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
             messageInput.trim()
-              ? 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]'
+              ? 'bg-primary hover:bg-primary text-[var(--color-text-primary)]'
               : 'bg-[var(--color-surface-2)] text-[var(--color-text-muted)] cursor-not-allowed',
           )}
         >

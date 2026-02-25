@@ -70,7 +70,7 @@ const statusDot: Record<MigrationStatus, string> = {
 };
 
 const envBadge: Record<MigrationEnv, string> = {
-  development: "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
+  development: "bg-primary/20 text-indigo-300 border border-primary/30",
   staging:     "bg-amber-500/20 text-amber-300 border border-amber-500/30",
   production:  "bg-rose-500/20 text-rose-300 border border-rose-500/30",
 };
@@ -266,7 +266,7 @@ export default function DatabaseMigrationManager() {
               <span className="text-[var(--color-text-secondary)]">{MIGRATIONS.filter(m => m.status === "failed").length} failed</span>
             </span>
           </div>
-          <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
+          <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded text-sm font-medium transition-colors">
             Run Pending
           </button>
         </div>
@@ -280,7 +280,7 @@ export default function DatabaseMigrationManager() {
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize",
-              tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              tab === t ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t === "run" ? "Run Console" : t}
@@ -346,7 +346,7 @@ export default function DatabaseMigrationManager() {
                 </div>
               </div>
               {(selectedMig.status === "pending" || selectedMig.status === "failed") && (
-                <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
+                <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded text-sm font-medium transition-colors">
                   Run Up
                 </button>
               )}
@@ -403,7 +403,7 @@ export default function DatabaseMigrationManager() {
               <div className="flex items-center gap-2 mb-2">
                 <div className="text-sm font-medium text-[var(--color-text-primary)]">SQL</div>
                 <div className="flex rounded overflow-hidden border border-[var(--color-border)]">
-                  <button onClick={() => setSqlView("up")} className={cn("px-2 py-0.5 text-xs transition-colors", sqlView === "up" ? "bg-indigo-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}>UP</button>
+                  <button onClick={() => setSqlView("up")} className={cn("px-2 py-0.5 text-xs transition-colors", sqlView === "up" ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}>UP</button>
                   <button onClick={() => setSqlView("down")} className={cn("px-2 py-0.5 text-xs transition-colors", sqlView === "down" ? "bg-amber-600 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}>DOWN</button>
                 </div>
               </div>
@@ -433,7 +433,7 @@ export default function DatabaseMigrationManager() {
                   </div>
                 </div>
                 <div className="w-full bg-[var(--color-surface-2)] rounded-full h-1.5 mb-1">
-                  <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${(t.sizeBytes / maxTableSize) * 100}%` }} />
+                  <div className="bg-primary h-1.5 rounded-full" style={{ width: `${(t.sizeBytes / maxTableSize) * 100}%` }} />
                 </div>
                 <div className="text-xs text-[var(--color-text-muted)]">Last migration: {t.lastMigration}</div>
               </div>
@@ -490,7 +490,7 @@ export default function DatabaseMigrationManager() {
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-xs text-[var(--color-text-secondary)] mb-1.5">Target Environment</label>
-                <select className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500">
+                <select className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary">
                   <option value="development">Development</option>
                   <option value="staging">Staging</option>
                   <option value="production">Production</option>
@@ -498,7 +498,7 @@ export default function DatabaseMigrationManager() {
               </div>
               <div>
                 <label className="block text-xs text-[var(--color-text-secondary)] mb-1.5">Migration</label>
-                <select className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500">
+                <select className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary">
                   {MIGRATIONS.filter(m => m.status === "pending" || m.status === "failed").map(m => (
                     <option key={m.id} value={m.id}>{m.version} — {m.name}</option>
                   ))}
@@ -506,7 +506,7 @@ export default function DatabaseMigrationManager() {
               </div>
             </div>
             <div className="flex gap-3 mb-6">
-              <button className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
+              <button className="flex-1 py-2.5 bg-primary hover:bg-primary rounded text-sm font-medium transition-colors">
                 ▶ Run Up (Apply)
               </button>
               <button className="flex-1 py-2.5 bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 border border-amber-600/40 rounded text-sm font-medium transition-colors">

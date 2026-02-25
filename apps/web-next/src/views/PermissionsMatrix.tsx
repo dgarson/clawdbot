@@ -67,7 +67,7 @@ const ROLES: Role[] = [
     permissions: makePerms(...PERMISSIONS.map(p => p.id)),
   },
   {
-    id: "r2", name: "Admin", description: "Manage users, projects, billing", color: "bg-indigo-500",
+    id: "r2", name: "Admin", description: "Manage users, projects, billing", color: "bg-primary",
     userCount: 4, isSystem: true,
     permissions: makePerms(
       "users.read","users.create","users.update","users.delete",
@@ -176,7 +176,7 @@ export default function PermissionsMatrix() {
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Permissions Matrix</h1>
           <p className="text-[var(--color-text-secondary)] text-sm mt-0.5">Role-based access control — {ROLES.length} roles · {PERMISSIONS.length} permissions · {USERS.length} users</p>
         </div>
-        <button className="text-sm px-4 py-2 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600 transition-colors">
+        <button className="text-sm px-4 py-2 bg-primary text-[var(--color-text-primary)] rounded hover:bg-primary transition-colors">
           + New Role
         </button>
       </div>
@@ -190,7 +190,7 @@ export default function PermissionsMatrix() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
@@ -212,7 +212,7 @@ export default function PermissionsMatrix() {
                   className={cn(
                     "text-xs px-3 py-1 rounded border transition-colors capitalize",
                     filterCategory === cat
-                      ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300"
+                      ? "bg-primary/20 border-primary/50 text-indigo-300"
                       : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
@@ -282,7 +282,7 @@ export default function PermissionsMatrix() {
                 onClick={() => { setSelectedRole(role); setEditingRole(null); }}
                 className={cn(
                   "w-full bg-[var(--color-surface-1)] border rounded-lg p-4 text-left hover:border-[var(--color-surface-3)] transition-colors",
-                  selectedRole?.id === role.id ? "border-indigo-500/50" : "border-[var(--color-border)]"
+                  selectedRole?.id === role.id ? "border-primary/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className="flex items-center gap-2 mb-1">
@@ -311,7 +311,7 @@ export default function PermissionsMatrix() {
                   {!selectedRole.isSystem && (
                     <button
                       onClick={() => startEdit(selectedRole)}
-                      className="text-xs px-3 py-1.5 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 rounded hover:bg-indigo-500/30 transition-colors"
+                      className="text-xs px-3 py-1.5 bg-primary/20 border border-primary/30 text-indigo-300 rounded hover:bg-primary/30 transition-colors"
                     >
                       ✏️ Edit Permissions
                     </button>
@@ -327,7 +327,7 @@ export default function PermissionsMatrix() {
                   </div>
                   <div className="bg-[var(--color-surface-2)] rounded p-3">
                     <div className="text-xs text-[var(--color-text-secondary)]">Permissions granted</div>
-                    <div className="text-xl font-bold text-indigo-400 mt-1">{selectedRole.permissions.size}</div>
+                    <div className="text-xl font-bold text-primary mt-1">{selectedRole.permissions.size}</div>
                   </div>
                 </div>
 
@@ -367,7 +367,7 @@ export default function PermissionsMatrix() {
                     >Cancel</button>
                     <button
                       onClick={() => setEditingRole(null)}
-                      className="text-xs px-3 py-1.5 bg-indigo-500 text-[var(--color-text-primary)] rounded hover:bg-indigo-600"
+                      className="text-xs px-3 py-1.5 bg-primary text-[var(--color-text-primary)] rounded hover:bg-primary"
                     >Save Changes</button>
                   </div>
                 </div>
@@ -413,7 +413,7 @@ export default function PermissionsMatrix() {
               placeholder="Search users..."
               value={searchUser}
               onChange={e => setSearchUser(e.target.value)}
-              className="w-64 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+              className="w-64 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary"
             />
             <div className="text-xs text-[var(--color-text-secondary)]">{filteredUsers.length} users</div>
           </div>
@@ -439,7 +439,7 @@ export default function PermissionsMatrix() {
                     <tr key={user.id} className="hover:bg-[var(--color-surface-2)]/30 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-indigo-500/30 border border-indigo-500/40 flex items-center justify-center text-xs font-bold text-indigo-300">
+                          <div className="w-8 h-8 rounded-full bg-primary/30 border border-primary/40 flex items-center justify-center text-xs font-bold text-indigo-300">
                             {user.avatar}
                           </div>
                           <div>
@@ -460,7 +460,7 @@ export default function PermissionsMatrix() {
                         <div className="flex items-center gap-1.5">
                           <div className="w-24 bg-[var(--color-surface-2)] rounded-full h-1.5">
                             <div
-                              className="h-full bg-indigo-500 rounded-full"
+                              className="h-full bg-primary rounded-full"
                               style={{ width: `${(effectivePerms.size / PERMISSIONS.length) * 100}%` }}
                             />
                           </div>
@@ -477,7 +477,7 @@ export default function PermissionsMatrix() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Edit Roles</button>
+                        <button className="text-xs text-primary hover:text-indigo-300 transition-colors">Edit Roles</button>
                       </td>
                     </tr>
                   );
@@ -529,7 +529,7 @@ export default function PermissionsMatrix() {
                 </div>
                 <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 flex flex-col items-center justify-center">
                   <div className="text-xs text-[var(--color-text-secondary)] mb-1">Shared</div>
-                  <div className="text-2xl font-bold text-indigo-400">
+                  <div className="text-2xl font-bold text-primary">
                     {[...roleA.permissions].filter(p => roleB.permissions.has(p)).length}
                   </div>
                   <div className="text-xs text-[var(--color-text-secondary)]">in common</div>
@@ -574,7 +574,7 @@ export default function PermissionsMatrix() {
                         </div>
                         <div className="space-y-1 pl-2">
                           {bOnly.map(p => (
-                            <div key={p.id} className="text-xs bg-indigo-400/10 border border-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-mono">{p.action}</div>
+                            <div key={p.id} className="text-xs bg-primary/10 border border-primary/20 text-indigo-300 px-2 py-0.5 rounded font-mono">{p.action}</div>
                           ))}
                         </div>
                       </div>

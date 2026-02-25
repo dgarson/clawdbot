@@ -83,7 +83,7 @@ const SAVED_SESSIONS: PlaygroundSession[] = [
 
 const ROLE_STYLES: Record<MessageRole, string> = {
   system: "bg-amber-500/5 border-amber-500/20",
-  user: "bg-indigo-500/5 border-indigo-500/20",
+  user: "bg-primary/5 border-primary/20",
   assistant: "bg-[var(--color-surface-2)]/50 border-[var(--color-border)]/50",
 };
 
@@ -95,7 +95,7 @@ const ROLE_LABEL: Record<MessageRole, string> = {
 
 const ROLE_LABEL_COLOR: Record<MessageRole, string> = {
   system: "text-amber-400",
-  user: "text-indigo-400",
+  user: "text-primary",
   assistant: "text-[var(--color-text-secondary)]",
 };
 
@@ -225,7 +225,7 @@ export default function LLMPlayground() {
               onClick={() => setPanel(t)}
               className={cn(
                 "flex-1 py-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                panel === t ? "text-indigo-400 border-b-2 border-indigo-500" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+                panel === t ? "text-primary border-b-2 border-primary" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t === "sessions" ? "Sessions" : "Params"}
@@ -238,7 +238,7 @@ export default function LLMPlayground() {
             <div className="p-2">
               <button
                 onClick={newSession}
-                className="w-full px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                className="w-full px-3 py-2 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
               >
                 + New Session
               </button>
@@ -252,7 +252,7 @@ export default function LLMPlayground() {
                     onClick={() => loadSession(session)}
                     className={cn(
                       "w-full text-left px-3 py-2.5 hover:bg-[var(--color-surface-2)]/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                      session.id === activeSessionId && "bg-[var(--color-surface-2)] border-l-2 border-indigo-500"
+                      session.id === activeSessionId && "bg-[var(--color-surface-2)] border-l-2 border-primary"
                     )}
                   >
                     <div className="text-xs font-medium text-[var(--color-text-primary)] truncate">{session.name}</div>
@@ -410,9 +410,9 @@ export default function LLMPlayground() {
             <div className="rounded-lg border border-[var(--color-border)]/50 bg-[var(--color-surface-2)]/50 p-4">
               <div className="text-xs font-semibold mb-2 uppercase tracking-wide text-[var(--color-text-secondary)]">assistant</div>
               <div className="flex gap-1">
-                <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0ms]" />
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:300ms]" />
               </div>
             </div>
           )}
@@ -439,7 +439,7 @@ export default function LLMPlayground() {
             <button
               type="submit"
               disabled={!inputVal.trim() || isSimulating}
-              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors self-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              className="px-5 py-2 bg-primary hover:bg-primary disabled:opacity-40 disabled:cursor-not-allowed text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors self-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             >
               Send
             </button>

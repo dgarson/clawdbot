@@ -149,7 +149,7 @@ const PRS: PullRequest[] = [
 ];
 
 const KIND_CONFIG: Record<CommitKind, { color: string; bg: string; border: string }> = {
-  feat: { color: "text-indigo-400", bg: "bg-indigo-900/30", border: "border-indigo-700/50" },
+  feat: { color: "text-primary", bg: "bg-indigo-900/30", border: "border-indigo-700/50" },
   fix: { color: "text-rose-400", bg: "bg-rose-900/30", border: "border-rose-700/50" },
   refactor: { color: "text-purple-400", bg: "bg-purple-900/30", border: "border-purple-700/50" },
   docs: { color: "text-blue-400", bg: "bg-blue-900/30", border: "border-blue-700/50" },
@@ -197,7 +197,7 @@ export default function VersionControl() {
             <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Version Control</h1>
             <p className="text-sm text-[var(--color-text-secondary)] font-mono">dgarson/clawdbot · master</p>
           </div>
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm">
+          <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm">
             + New PR
           </button>
         </div>
@@ -226,7 +226,7 @@ export default function VersionControl() {
               onClick={() => setActiveTab(tab)}
               className={cn(
                 "px-4 py-2 text-sm capitalize border-b-2 -mb-px transition-colors",
-                activeTab === tab ? "border-indigo-500 text-[var(--color-text-primary)] font-medium" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+                activeTab === tab ? "border-primary text-[var(--color-text-primary)] font-medium" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {tab === "commits" ? `Commits (${COMMITS.length})` : tab === "branches" ? `Branches (${BRANCHES.length})` : `Pull Requests (${PRS.length})`}
@@ -259,7 +259,7 @@ export default function VersionControl() {
                       onClick={() => setSelectedCommit(isSelected ? null : commit)}
                       className={cn(
                         "w-full text-left px-4 py-3 rounded-lg border flex items-center gap-4 transition-all",
-                        isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-[var(--color-surface-1)]/50 border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
+                        isSelected ? "bg-indigo-900/20 border-primary/50" : "bg-[var(--color-surface-1)]/50 border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       {/* SHA */}
@@ -302,7 +302,7 @@ export default function VersionControl() {
                           <span className="text-[10px] bg-amber-900/30 text-amber-400 border border-amber-700/50 px-1.5 py-0.5 rounded flex-shrink-0">🔒 Protected</span>
                         )}
                         {branch.isMegabranch && (
-                          <span className="text-[10px] bg-indigo-900/30 text-indigo-400 border border-indigo-700/50 px-1.5 py-0.5 rounded flex-shrink-0">Megabranch</span>
+                          <span className="text-[10px] bg-indigo-900/30 text-primary border border-indigo-700/50 px-1.5 py-0.5 rounded flex-shrink-0">Megabranch</span>
                         )}
                       </div>
                       <div className="text-xs text-[var(--color-text-muted)]">
@@ -321,7 +321,7 @@ export default function VersionControl() {
                     <div className="flex gap-1 flex-shrink-0">
                       <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] px-2 py-1 rounded text-xs">Checkout</button>
                       {branch.name !== "master" && (
-                        <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-2 py-1 rounded text-xs">PR</button>
+                        <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-2 py-1 rounded text-xs">PR</button>
                       )}
                     </div>
                   </div>
@@ -341,7 +341,7 @@ export default function VersionControl() {
                     onClick={() => setSelectedPR(isSelected ? null : pr)}
                     className={cn(
                       "w-full text-left p-4 rounded-xl border transition-all",
-                      isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
+                      isSelected ? "bg-indigo-900/20 border-primary/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                     )}
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -386,7 +386,7 @@ export default function VersionControl() {
             <div className="space-y-3 text-sm">
               <div>
                 <div className="text-xs text-[var(--color-text-muted)] mb-1">SHA</div>
-                <div className="font-mono text-indigo-400">{selectedCommit.sha}</div>
+                <div className="font-mono text-primary">{selectedCommit.sha}</div>
               </div>
               <div>
                 <div className="text-xs text-[var(--color-text-muted)] mb-1">Message</div>
@@ -426,7 +426,7 @@ export default function VersionControl() {
               )}
               <div className="flex gap-2 pt-1">
                 <button className="flex-1 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] py-1.5 rounded text-xs">Browse files</button>
-                <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] py-1.5 rounded text-xs">Revert</button>
+                <button className="flex-1 bg-primary hover:bg-primary text-[var(--color-text-primary)] py-1.5 rounded text-xs">Revert</button>
               </div>
             </div>
           </div>

@@ -380,7 +380,7 @@ function SessionStatusBadge({ status }: { status: SessionStatus }) {
 
 function SessionTypeBadge({ type }: { type: SessionType }) {
   const styles: Record<SessionType, string> = {
-    main: 'bg-violet-500/15 text-violet-400',
+    main: 'bg-primary/15 text-primary',
     subagent: 'bg-sky-500/15 text-sky-400',
     cron: 'bg-orange-500/15 text-orange-400',
   };
@@ -396,7 +396,7 @@ function ToolBadge({ toolType, toolName }: { toolType: ToolType; toolName: strin
     exec: 'bg-amber-500/15 text-amber-400 border-amber-500/25',
     read: 'bg-sky-500/15 text-sky-400 border-sky-500/25',
     write: 'bg-sky-500/15 text-sky-400 border-sky-500/25',
-    sessions_spawn: 'bg-violet-500/15 text-violet-400 border-violet-500/25',
+    sessions_spawn: 'bg-primary/15 text-primary border-primary/25',
     message: 'bg-green-500/15 text-green-400 border-green-500/25',
     browser: 'bg-orange-500/15 text-orange-400 border-orange-500/25',
     other: 'bg-[var(--color-surface-3)]/50 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/25',
@@ -493,7 +493,7 @@ function LiveStatusBar({
         sub="Across all sessions"
         icon={Users}
         pulse
-        pulseColor="bg-violet-500"
+        pulseColor="bg-primary"
       />
       <StatCard
         label="Tokens / min"
@@ -517,7 +517,7 @@ function ActiveSessionsPanel({ sessions }: { sessions: ActiveSession[] }) {
       <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
         <div className="flex items-center gap-2">
           {/* WCAG fix: decorative header icon */}
-          <Activity aria-hidden="true" className="w-4 h-4 text-violet-400" />
+          <Activity aria-hidden="true" className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold text-[var(--color-text-primary)]">Active Sessions</span>
         </div>
         <span className="text-xs text-[var(--color-text-muted)]">{sessions.length} / 10</span>
@@ -664,12 +664,12 @@ function PendingApprovalsPanel({
     <section aria-label="Pending Approvals" className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl flex flex-col h-full">
       <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center gap-2">
         {/* WCAG fix: decorative header icon */}
-        <CheckCircle aria-hidden="true" className="w-4 h-4 text-violet-400" />
+        <CheckCircle aria-hidden="true" className="w-4 h-4 text-primary" />
         <span className="text-sm font-semibold text-[var(--color-text-primary)]">Pending Approvals</span>
         {approvals.length > 0 && (
           <span
             aria-label={`${approvals.length} pending`}
-            className="ml-1 px-1.5 py-0.5 rounded-full bg-violet-600 text-[var(--color-text-primary)] text-xs font-bold leading-none"
+            className="ml-1 px-1.5 py-0.5 rounded-full bg-primary text-[var(--color-text-primary)] text-xs font-bold leading-none"
           >
             {approvals.length}
           </span>
@@ -705,7 +705,7 @@ function PendingApprovalsPanel({
                   <button
                     onClick={() => onApprove(ap.id)}
                     aria-label={`Approve: ${ap.actionDescription}`}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:outline-none"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary text-[var(--color-text-primary)] text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:outline-none"
                   >
                     <Check aria-hidden="true" className="w-3.5 h-3.5" />
                     Approve
@@ -890,7 +890,7 @@ export default function MissionControlDashboard() {
           <div>
             <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
               {/* WCAG fix: decorative icon — heading text carries the label */}
-              <Radio aria-hidden="true" className="w-6 h-6 text-violet-400" />
+              <Radio aria-hidden="true" className="w-6 h-6 text-primary" />
               Mission Control
             </h1>
             <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Real-time operator hub — live system state</p>

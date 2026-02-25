@@ -267,7 +267,7 @@ export default function WhatsAppQrLogin({
                   <button
                     type="button"
                     onClick={startLogin}
-                    className="flex items-center gap-2 px-4 py-2 bg-violet-600 rounded-lg text-white text-sm font-medium hover:bg-violet-500 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary rounded-lg text-white text-sm font-medium hover:bg-primary transition-colors"
                   >
                     <RefreshCw className="w-4 h-4" />
                     Refresh QR
@@ -345,7 +345,7 @@ export default function WhatsAppQrLogin({
             <button
               type="button"
               onClick={startLogin}
-              className="flex items-center gap-2 px-4 py-2 bg-violet-600 rounded-lg text-white text-sm font-medium hover:bg-violet-500 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-primary rounded-lg text-white text-sm font-medium hover:bg-primary transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               Try Again

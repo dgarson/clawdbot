@@ -50,7 +50,7 @@ const ITEMS: RadarItem[] = [
 
 const RING_CONFIG: Record<Ring, { label: string; color: string; bg: string; desc: string }> = {
   adopt:  { label: "Adopt",  color: "text-emerald-400", bg: "bg-emerald-400/15 border-emerald-500/30", desc: "Recommended for new projects — proven and mature" },
-  trial:  { label: "Trial",  color: "text-indigo-300",  bg: "bg-indigo-400/15 border-indigo-500/30",   desc: "Worth pursuing — use on a non-critical project first" },
+  trial:  { label: "Trial",  color: "text-indigo-300",  bg: "bg-primary/15 border-primary/30",   desc: "Worth pursuing — use on a non-critical project first" },
   assess: { label: "Assess", color: "text-amber-400",   bg: "bg-amber-400/15 border-amber-500/30",     desc: "Worth exploring — but not yet ready for production" },
   hold:   { label: "Hold",   color: "text-rose-400",    bg: "bg-rose-400/15 border-rose-500/30",       desc: "Proceed with caution — avoid for new projects" },
 };
@@ -109,7 +109,7 @@ export default function TechRadar() {
               onClick={() => setActiveView(v)}
               className={cn(
                 "px-3 py-1.5 text-sm rounded-md capitalize transition-colors",
-                activeView === v ? "bg-indigo-500 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                activeView === v ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {v === "radar" ? "📡 Radar" : v === "list" ? "📋 List" : "⊞ Quadrant"}
@@ -121,7 +121,7 @@ export default function TechRadar() {
           placeholder="Search technologies..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          className="w-48 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-1.5 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+          className="w-48 bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-1.5 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary"
         />
         <select
           value={filterQuadrant}
@@ -158,7 +158,7 @@ export default function TechRadar() {
                         className={cn(
                           "absolute rounded-full border",
                           ring === "adopt"  ? "border-emerald-500/40" :
-                          ring === "trial"  ? "border-indigo-500/30" :
+                          ring === "trial"  ? "border-primary/30" :
                           ring === "assess" ? "border-amber-500/30" :
                                              "border-rose-500/25"
                         )}
@@ -227,7 +227,7 @@ export default function TechRadar() {
                         className={cn(
                           "absolute w-5 h-5 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-transform hover:scale-125",
                           item.ring === "adopt"  ? "bg-emerald-500 border-emerald-300 text-[var(--color-text-primary)]" :
-                          item.ring === "trial"  ? "bg-indigo-500 border-indigo-300 text-[var(--color-text-primary)]" :
+                          item.ring === "trial"  ? "bg-primary border-indigo-300 text-[var(--color-text-primary)]" :
                           item.ring === "assess" ? "bg-amber-500 border-amber-300 text-[var(--color-text-primary)]" :
                                                    "bg-[var(--color-surface-3)] border-[var(--color-surface-3)] text-[var(--color-text-primary)]",
                           item.isNew && "ring-2 ring-white/40"
@@ -260,7 +260,7 @@ export default function TechRadar() {
                   <span className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-2 py-0.5 rounded">
                     {QUADRANT_CONFIG[selectedItem.quadrant].emoji} {QUADRANT_CONFIG[selectedItem.quadrant].label.split(" ")[0]}
                   </span>
-                  {selectedItem.isNew && <span className="text-xs bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded">NEW</span>}
+                  {selectedItem.isNew && <span className="text-xs bg-primary/20 border border-primary/30 text-indigo-300 px-2 py-0.5 rounded">NEW</span>}
                 </div>
 
                 <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{selectedItem.description}</p>
@@ -310,7 +310,7 @@ export default function TechRadar() {
                   >
                     <span className={cn("w-2 h-2 rounded-full flex-shrink-0",
                       item.ring === "adopt"  ? "bg-emerald-500" :
-                      item.ring === "trial"  ? "bg-indigo-500" :
+                      item.ring === "trial"  ? "bg-primary" :
                       item.ring === "assess" ? "bg-amber-500"  : "bg-[var(--color-surface-3)]"
                     )} />
                     <span className="text-xs text-[var(--color-text-primary)]">{item.name}</span>
@@ -347,7 +347,7 @@ export default function TechRadar() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-[var(--color-text-primary)] font-medium">{item.name}</span>
-                      {item.isNew && <span className="text-xs bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 px-1.5 py-0.5 rounded">NEW</span>}
+                      {item.isNew && <span className="text-xs bg-primary/20 border border-primary/30 text-indigo-300 px-1.5 py-0.5 rounded">NEW</span>}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{QUADRANT_CONFIG[item.quadrant].emoji} {QUADRANT_CONFIG[item.quadrant].label}</td>
@@ -358,7 +358,7 @@ export default function TechRadar() {
                   </td>
                   <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{item.owner}</td>
                   <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{item.updatedAt}</td>
-                  <td className="px-4 py-3 text-right text-xs text-indigo-400 hover:text-indigo-300">View →</td>
+                  <td className="px-4 py-3 text-right text-xs text-primary hover:text-indigo-300">View →</td>
                 </tr>
               ))}
             </tbody>

@@ -260,7 +260,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
               className={cn(
                 "px-4 py-2 text-sm font-medium transition-all duration-150 border-b-2 -mb-px",
                 activeTab === tab
-                  ? "text-indigo-400 border-indigo-500"
+                  ? "text-primary border-primary"
                   : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
               )}
             >
@@ -377,7 +377,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
               <select
                 value={embeddingCollectionFilter}
                 onChange={(e) => setEmbeddingCollectionFilter(e.target.value)}
-                className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+                className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
               >
                 <option value="all">All Collections</option>
                 {sampleCollections.map((c) => (
@@ -387,7 +387,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
               <select
                 value={embeddingModelFilter}
                 onChange={(e) => setEmbeddingModelFilter(e.target.value)}
-                className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+                className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
               >
                 <option value="all">All Models</option>
                 {uniqueModels.map((m) => (
@@ -492,12 +492,12 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   placeholder="Enter your search query..."
-                  className="flex-1 min-w-[200px] bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-4 py-2 text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                  className="flex-1 min-w-[200px] bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-4 py-2 text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
                 />
                 <select
                   value={searchCollection}
                   onChange={(e) => setSearchCollection(e.target.value)}
-                  className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+                  className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
                 >
                   {sampleCollections.filter((c) => c.indexStatus === "ready").map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -506,7 +506,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                 <button
                   onClick={handleSearch}
                   disabled={!searchQuery.trim() || isSearching}
-                  className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-[var(--color-surface-3)] disabled:cursor-not-allowed text-[var(--color-text-primary)] px-6 py-2 rounded-lg font-medium transition-colors"
+                  className="bg-primary hover:bg-primary disabled:bg-[var(--color-surface-3)] disabled:cursor-not-allowed text-[var(--color-text-primary)] px-6 py-2 rounded-lg font-medium transition-colors"
                 >
                   {isSearching ? "Searching..." : "Search"}
                 </button>
@@ -539,7 +539,7 @@ export default function VectorDatabaseViewer(): React.ReactElement {
                             <div className="flex items-center gap-2">
                               <div className="w-16 h-2 bg-[var(--color-surface-2)] rounded overflow-hidden">
                                 <div
-                                  className="h-full bg-indigo-500"
+                                  className="h-full bg-primary"
                                   style={{ width: `${result.score * 100}%` }}
                                 />
                               </div>

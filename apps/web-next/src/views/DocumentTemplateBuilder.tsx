@@ -174,7 +174,7 @@ const TABS = ["Templates", "Builder", "Preview", "History"] as const;
 type Tab = typeof TABS[number];
 
 const categoryColor: Record<TemplateCategory, string> = {
-  contract: "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
+  contract: "text-primary bg-primary/10 border-primary/30",
   invoice: "text-amber-400 bg-amber-400/10 border-amber-400/30",
   report: "text-rose-400 bg-rose-400/10 border-rose-400/30",
   onboarding: "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
@@ -227,7 +227,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
           <h1 className="text-lg font-semibold">Document Template Builder</h1>
           <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">Create, fill, and export document templates with merge fields</p>
         </div>
-        <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
+        <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded-md transition-colors">
           + New Template
         </button>
       </div>
@@ -241,7 +241,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
-                ? "text-indigo-400 border-indigo-500"
+                ? "text-primary border-primary"
                 : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -263,7 +263,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                 placeholder="Search templates..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
               />
               <div className="flex gap-1">
                 {(["all", "contract", "invoice", "report", "onboarding", "notification"] as const).map((cat) => (
@@ -273,7 +273,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                     className={cn(
                       "px-2.5 py-1.5 text-xs rounded-md border transition-colors",
                       categoryFilter === cat
-                        ? "bg-indigo-600/20 border-indigo-500 text-indigo-300"
+                        ? "bg-primary/20 border-primary text-indigo-300"
                         : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                     )}
                   >
@@ -290,7 +290,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                   onClick={() => { setSelectedTemplate(tmpl); setFieldValues({}); setTab("Builder"); }}
                   className={cn(
                     "bg-[var(--color-surface-1)] border rounded-lg p-5 cursor-pointer transition-colors",
-                    selectedTemplate.id === tmpl.id ? "border-indigo-500/60" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                    selectedTemplate.id === tmpl.id ? "border-primary/60" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                   )}
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -314,7 +314,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={(e) => { e.stopPropagation(); setSelectedTemplate(tmpl); setFieldValues({}); setTab("Builder"); }}
-                      className="px-2.5 py-1 text-xs bg-indigo-600/20 border border-indigo-600/40 text-indigo-300 rounded hover:bg-indigo-600/30 transition-colors"
+                      className="px-2.5 py-1 text-xs bg-primary/20 border border-primary/40 text-indigo-300 rounded hover:bg-primary/30 transition-colors"
                     >
                       Fill & Generate
                     </button>
@@ -352,7 +352,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
               </div>
               <button
                 onClick={() => setTab("Templates")}
-                className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                className="text-xs text-primary hover:text-indigo-300 transition-colors"
               >
                 Change →
               </button>
@@ -372,7 +372,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                     <select
                       value={fieldValues[field.name] ?? field.defaultValue}
                       onChange={(e) => updateValue(field.name, e.target.value)}
-                      className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
                     >
                       {field.options.map((opt) => (
                         <option key={opt} value={opt}>{opt}</option>
@@ -387,7 +387,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                           className={cn(
                             "px-3 py-1 text-xs rounded border transition-colors",
                             (fieldValues[field.name] ?? field.defaultValue) === v
-                              ? "bg-indigo-600/20 border-indigo-500 text-indigo-300"
+                              ? "bg-primary/20 border-primary text-indigo-300"
                               : "border-[var(--color-border)] text-[var(--color-text-secondary)]"
                           )}
                         >
@@ -401,7 +401,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                       value={fieldValues[field.name] ?? field.defaultValue}
                       onChange={(e) => updateValue(field.name, e.target.value)}
                       placeholder={field.defaultValue || `Enter ${field.label.toLowerCase()}...`}
-                      className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
                     />
                   )}
                 </div>
@@ -416,7 +416,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                 className={cn(
                   "px-5 py-2 text-sm font-medium rounded-lg transition-colors",
                   requiredFilled
-                    ? "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
+                    ? "bg-primary hover:bg-primary text-[var(--color-text-primary)]"
                     : "bg-[var(--color-surface-3)] text-[var(--color-text-muted)] cursor-not-allowed"
                 )}
               >
@@ -444,7 +444,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                 >
                   ← Edit Fields
                 </button>
-                <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
+                <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded-md transition-colors">
                   Export as PDF
                 </button>
                 <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded-md transition-colors">
@@ -489,7 +489,7 @@ export default function DocumentTemplateBuilder(): React.ReactElement {
                   </div>
                 </div>
                 <div className="text-xs text-[var(--color-text-muted)]">{doc.generatedAt.slice(0, 16).replace("T", " ")}</div>
-                <button className="text-xs text-indigo-400 hover:text-indigo-300">Reopen</button>
+                <button className="text-xs text-primary hover:text-indigo-300">Reopen</button>
               </div>
             ))}
           </div>

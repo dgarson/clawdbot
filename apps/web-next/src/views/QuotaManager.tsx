@@ -175,9 +175,9 @@ function getUsageColor(percentage: number, threshold: number, hardLimit: boolean
 function getScopeBadgeColor(scope: QuotaScope): string {
   switch (scope) {
     case "agent":
-      return "bg-indigo-500/20 text-indigo-400 border-indigo-500/30";
+      return "bg-primary/20 text-primary border-primary/30";
     case "model":
-      return "bg-violet-500/20 text-violet-400 border-violet-500/30";
+      return "bg-primary/20 text-primary border-primary/30";
     case "global":
       return "bg-slate-500/20 text-slate-400 border-slate-500/30";
   }
@@ -282,7 +282,7 @@ export default function QuotaManager() {
                 className={cn(
                   "px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150",
                   periodFilter === period
-                    ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/30"
+                    ? "bg-primary/20 text-primary border-primary/30"
                     : "bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -310,7 +310,7 @@ export default function QuotaManager() {
                     className={cn(
                       "text-left p-4 rounded-lg border transition-all duration-150",
                       isSelected
-                        ? "bg-[var(--color-surface-2)]/50 border-indigo-500/50 shadow-lg shadow-indigo-500/5"
+                        ? "bg-[var(--color-surface-2)]/50 border-primary/50 shadow-lg shadow-indigo-500/5"
                         : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]/30"
                     )}
                   >
@@ -473,7 +473,7 @@ export default function QuotaManager() {
                               limit: Math.max(0, parseInt(e.target.value) || 0),
                             }))
                           }
-                          className="w-full px-3 py-2 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-md text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-indigo-500"
+                          className="w-full px-3 py-2 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-md text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-primary"
                         />
                       </div>
                       <div>
@@ -487,13 +487,13 @@ export default function QuotaManager() {
                               alertThreshold: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)),
                             }))
                           }
-                          className="w-full px-3 py-2 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-md text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-indigo-500"
+                          className="w-full px-3 py-2 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-md text-[var(--color-text-primary)] text-sm focus:outline-none focus:border-primary"
                         />
                       </div>
                       <div className="flex gap-2 pt-2">
                         <button
                           onClick={handleSave}
-                          className="flex-1 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)] text-sm font-medium rounded-md transition-colors"
+                          className="flex-1 px-4 py-2 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm font-medium rounded-md transition-colors"
                         >
                           Save
                         </button>

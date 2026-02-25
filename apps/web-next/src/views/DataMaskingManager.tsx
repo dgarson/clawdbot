@@ -152,7 +152,7 @@ function strategyBadge(s: MaskingStrategy) {
   const map: Record<MaskingStrategy, string> = {
     "full-redact": "bg-rose-500/10 text-rose-400",
     "partial-mask": "bg-amber-500/10 text-amber-400",
-    "tokenize": "bg-indigo-500/10 text-indigo-400",
+    "tokenize": "bg-primary/10 text-primary",
     "hash": "bg-purple-500/10 text-purple-400",
     "pseudonymize": "bg-blue-500/10 text-blue-400",
     "encrypt": "bg-emerald-500/10 text-emerald-400",
@@ -165,7 +165,7 @@ function sensitivityBadge(s: DataSensitivity) {
     phi: "bg-purple-500/10 text-purple-400",
     pci: "bg-orange-500/10 text-orange-400",
     financial: "bg-amber-500/10 text-amber-400",
-    confidential: "bg-indigo-500/10 text-indigo-400",
+    confidential: "bg-primary/10 text-primary",
     internal: "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)]",
   };
   return map[s];
@@ -177,7 +177,7 @@ function statusBadge(s: RuleStatus) {
 }
 function scanStatusBadge(s: ScanStatus) {
   if (s === "completed") {return "bg-emerald-400/10 text-emerald-400";}
-  if (s === "running") {return "bg-indigo-400/10 text-indigo-400";}
+  if (s === "running") {return "bg-primary/10 text-primary";}
   if (s === "failed") {return "bg-rose-400/10 text-rose-400";}
   return "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)]";
 }
@@ -229,7 +229,7 @@ export default function DataMaskingManager() {
         </div>
         <div className="flex gap-2">
           <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">Run Scan</button>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Rule</button>
+          <button className="px-3 py-1.5 text-sm bg-primary hover:bg-primary rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Rule</button>
         </div>
       </div>
 
@@ -245,7 +245,7 @@ export default function DataMaskingManager() {
         </div>
         <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
           <div className="text-xs text-[var(--color-text-muted)] mb-1">Total Executions</div>
-          <div className="text-2xl font-bold text-indigo-400">{(totalExecs / 1000000).toFixed(1)}M</div>
+          <div className="text-2xl font-bold text-primary">{(totalExecs / 1000000).toFixed(1)}M</div>
         </div>
         <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
           <div className="text-xs text-[var(--color-text-muted)] mb-1">Open Violations</div>
@@ -259,7 +259,7 @@ export default function DataMaskingManager() {
           <button
             key={t.id}
             onClick={() => { setTab(t.id); setSelectedRule(null); }}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             {t.label}
           </button>
@@ -436,7 +436,7 @@ export default function DataMaskingManager() {
                     <div className="text-[var(--color-text-muted)]">coverage</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-bold text-indigo-400">{job.rulesApplied}</div>
+                    <div className="text-lg font-bold text-primary">{job.rulesApplied}</div>
                     <div className="text-[var(--color-text-muted)]">rules applied</div>
                   </div>
                 </div>
@@ -459,12 +459,12 @@ export default function DataMaskingManager() {
                     <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", violationStatusBadge(v.status))}>{v.status}</span>
                   </div>
                   <div className="text-xs text-[var(--color-text-muted)]">Environment: {v.environment} · Discovered: {v.discoveredAt}</div>
-                  {v.ruleId && <div className="text-xs text-indigo-400 mt-0.5">Rule applicable: {v.ruleId}</div>}
+                  {v.ruleId && <div className="text-xs text-primary mt-0.5">Rule applicable: {v.ruleId}</div>}
                   {!v.ruleId && <div className="text-xs text-amber-400 mt-0.5">No masking rule assigned</div>}
                 </div>
                 {v.status === "open" && (
                   <div className="flex gap-2">
-                    <button className="px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Apply Rule</button>
+                    <button className="px-2 py-1 text-xs bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">Apply Rule</button>
                     <button className="px-2 py-1 text-xs bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)] rounded text-[var(--color-text-primary)] transition-colors">Accept</button>
                   </div>
                 )}

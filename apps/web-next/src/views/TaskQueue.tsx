@@ -147,7 +147,7 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
 
 const STATUS_COLORS: Record<TaskStatus, string> = {
   pending:   "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20",
-  running:   "text-indigo-400 bg-indigo-400/10 border-indigo-400/20",
+  running:   "text-primary bg-primary/10 border-primary/20",
   completed: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
   failed:    "text-rose-400 bg-rose-400/10 border-rose-400/20",
   cancelled: "text-[var(--color-text-muted)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/20",
@@ -205,7 +205,7 @@ function ProgressBar({ value }: { value: number }) {
   return (
     <div className="relative h-1 w-full rounded-full bg-[var(--color-surface-2)] overflow-hidden mt-2">
       <div
-        className="h-full rounded-full bg-indigo-500 transition-all"
+        className="h-full rounded-full bg-primary transition-all"
         style={{ width: `${value}%` }}
         role="progressbar"
         aria-valuenow={value}
@@ -270,7 +270,7 @@ function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
           {/* Status badge */}
           <span className={cn("inline-flex items-center text-xs px-2 py-0.5 rounded-full border shrink-0 w-24 justify-center", STATUS_COLORS[task.status])}>
             {task.status === "running" && (
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse mr-1" aria-hidden="true" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse mr-1" aria-hidden="true" />
             )}
             {STATUS_LABELS[task.status]}
           </span>
@@ -343,7 +343,7 @@ function TaskRow({ task, expanded, onToggle }: TaskRowProps) {
             {(task.status === "failed" || task.status === "cancelled") && (
               <button
                 className={cn(
-                  "text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] transition-colors",
+                  "text-xs px-3 py-1.5 rounded-lg bg-primary hover:bg-primary text-[var(--color-text-primary)] transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
                 )}
               >
@@ -452,7 +452,7 @@ export default function TaskQueue() {
           {/* Live stats */}
           <div className="flex items-center gap-5 text-xs">
             {[
-              { label: "Running", count: stats.running, color: "text-indigo-400" },
+              { label: "Running", count: stats.running, color: "text-primary" },
               { label: "Pending", count: stats.pending, color: "text-[var(--color-text-secondary)]" },
               { label: "Failed",  count: stats.failed,  color: "text-rose-400" },
               { label: "Done",    count: stats.completed, color: "text-emerald-400" },
@@ -491,7 +491,7 @@ export default function TaskQueue() {
                   "text-xs px-2.5 py-1 rounded-lg border transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   statusFilter === s.value
-                    ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                    ? "border-primary bg-indigo-950/40 text-indigo-300"
                     : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >

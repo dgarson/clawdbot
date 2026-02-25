@@ -41,7 +41,7 @@ const COLUMNS: ColumnDef[] = [
 const PRIORITY_COLORS: Record<Priority, string> = {
   P0: "bg-rose-500/20 text-rose-400 border-rose-500/40",
   P1: "bg-amber-500/20 text-amber-400 border-amber-500/40",
-  P2: "bg-indigo-500/20 text-indigo-400 border-indigo-500/40",
+  P2: "bg-primary/20 text-primary border-primary/40",
   P3: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]/40",
 }
 
@@ -168,7 +168,7 @@ export default function SprintBoard() {
           <div className="flex items-center gap-3 text-sm">
             <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-2 flex items-center gap-2">
               <span className="text-[var(--color-text-secondary)]">Days left</span>
-              <span className="font-bold text-indigo-400">{SPRINT_DAYS_REMAINING}</span>
+              <span className="font-bold text-primary">{SPRINT_DAYS_REMAINING}</span>
               <span className="text-[var(--color-text-muted)]">/ {SPRINT_DAYS_TOTAL}</span>
             </div>
           </div>
@@ -193,11 +193,11 @@ export default function SprintBoard() {
             <div className="flex items-center gap-2">
               <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                  className="h-full bg-primary rounded-full transition-all duration-500"
                   style={{ width: `${velocityPercent}%` }}
                 />
               </div>
-              <span className="text-sm font-bold text-indigo-400">{velocityPercent}%</span>
+              <span className="text-sm font-bold text-primary">{velocityPercent}%</span>
             </div>
           </div>
         </div>
@@ -212,7 +212,7 @@ export default function SprintBoard() {
               className={cn(
                 "w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all border",
                 filterAssignee === a
-                  ? "bg-indigo-500/20 border-indigo-500"
+                  ? "bg-primary/20 border-primary"
                   : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)]"
               )}
             >
@@ -242,7 +242,7 @@ export default function SprintBoard() {
               className={cn(
                 "px-2 py-1 rounded-md text-xs font-medium transition-all border",
                 filterLabel === l
-                  ? "bg-indigo-500/20 border-indigo-500 text-indigo-300"
+                  ? "bg-primary/20 border-primary text-indigo-300"
                   : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)]"
               )}
             >
@@ -294,7 +294,7 @@ export default function SprintBoard() {
                         className={cn(
                           "w-full text-left bg-[var(--color-surface-1)] border rounded-lg p-3 transition-all",
                           isExpanded
-                            ? "border-indigo-500/60 ring-1 ring-indigo-500/20"
+                            ? "border-primary/60 ring-1 ring-indigo-500/20"
                             : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                         )}
                       >
@@ -421,7 +421,7 @@ export default function SprintBoard() {
                                     moveTask(task.id, target.id)
                                     setExpandedTaskId(null)
                                   }}
-                                  className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium bg-[var(--color-surface-2)] hover:bg-indigo-500/20 hover:text-indigo-300 text-[var(--color-text-secondary)] rounded-md border border-[var(--color-border)] hover:border-indigo-500/40 transition-all"
+                                  className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium bg-[var(--color-surface-2)] hover:bg-primary/20 hover:text-indigo-300 text-[var(--color-text-secondary)] rounded-md border border-[var(--color-border)] hover:border-primary/40 transition-all"
                                 >
                                   <span>{target.emoji}</span>
                                   <span>{target.title}</span>

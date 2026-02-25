@@ -178,7 +178,7 @@ export default function StatusPageBuilder() {
             onClick={() => setActiveTab(tab)}
             className={cn(
               "px-6 py-3 text-sm font-medium transition-colors border-b-2 capitalize",
-              activeTab === tab ? "border-indigo-500 text-indigo-300" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              activeTab === tab ? "border-primary text-indigo-300" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {tab === "status" ? "🟢 Live Status" : tab === "incidents" ? `🔥 Incidents (${incidents.filter(i => !i.resolvedAt).length} open)` : "⚙️ Builder"}
@@ -364,7 +364,7 @@ export default function StatusPageBuilder() {
                       <select
                         value={editStatus}
                         onChange={e => setEditStatus(e.target.value as ComponentStatus)}
-                        className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-2 py-1 rounded focus:outline-none focus:border-indigo-500"
+                        className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-xs px-2 py-1 rounded focus:outline-none focus:border-primary"
                       >
                         <option value="operational">Operational</option>
                         <option value="degraded">Degraded Performance</option>
@@ -372,13 +372,13 @@ export default function StatusPageBuilder() {
                         <option value="major-outage">Major Outage</option>
                         <option value="maintenance">Maintenance</option>
                       </select>
-                      <button onClick={() => applyEdit(comp.id)} className="text-xs bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)] px-3 py-1 rounded">Save</button>
+                      <button onClick={() => applyEdit(comp.id)} className="text-xs bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1 rounded">Save</button>
                       <button onClick={() => setEditingComponentId(null)} className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">Cancel</button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-3">
                       <span className={cn("text-xs font-medium", statusText(comp.status))}>{statusLabel(comp.status)}</span>
-                      <button onClick={() => startEdit(comp)} className="text-xs text-[var(--color-text-muted)] hover:text-indigo-400 px-2 py-1 rounded hover:bg-[var(--color-surface-2)] transition-colors">Edit</button>
+                      <button onClick={() => startEdit(comp)} className="text-xs text-[var(--color-text-muted)] hover:text-primary px-2 py-1 rounded hover:bg-[var(--color-surface-2)] transition-colors">Edit</button>
                     </div>
                   )}
                 </div>

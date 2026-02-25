@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Workflow } from "lucide-react";
 import { cn } from "../lib/utils";
 import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { AlertFilterPillGroup } from "../components/alerts/AlertFilters";
+import { AlertRuleCard } from "../components/alerts/AlertRuleCard";
+import { AlertRuleGroupSection } from "../components/alerts/AlertRuleGroupSection";
+import { AlertSlideoutPanel } from "../components/alerts/AlertSlideoutPanel";
 
 type Category = "routing" | "escalation" | "rate-limit" | "access" | "notification";
 type Operator = "==" | "!=" | ">" | "<" | ">=" | "<=" | "contains" | "not_contains" | "in" | "not_in";
@@ -29,11 +33,19 @@ interface Rule {
 const CATEGORIES: Category[] = ["routing", "escalation", "rate-limit", "access", "notification"];
 
 const CATEGORY_COLORS: Record<Category, string> = {
-  routing: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+  routing: "bg-primary/20 text-primary border-primary/30",
   escalation: "bg-rose-500/20 text-rose-400 border-rose-500/30",
   "rate-limit": "bg-amber-500/20 text-amber-400 border-amber-500/30",
   access: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
   notification: "bg-sky-500/20 text-sky-400 border-sky-500/30",
+};
+
+const CATEGORY_GROUP_DECORATION: Record<Category, { surface: string; border: string; dot: string }> = {
+  routing: { surface: "bg-primary/5", border: "border-primary/25", dot: "bg-primary" },
+  escalation: { surface: "bg-rose-500/5", border: "border-rose-500/25", dot: "bg-rose-400" },
+  "rate-limit": { surface: "bg-amber-500/5", border: "border-amber-500/25", dot: "bg-amber-400" },
+  access: { surface: "bg-emerald-500/5", border: "border-emerald-500/25", dot: "bg-emerald-400" },
+  notification: { surface: "bg-sky-500/5", border: "border-sky-500/25", dot: "bg-sky-400" },
 };
 
 const OPERATOR_LABELS: Record<Operator, string> = {
@@ -55,10 +67,10 @@ const SEED_RULES: Rule[] = [
   { id: "r10", name: "Notify Quota Warning", description: "Warns account owners when their usage reaches 80% of their allocated quota.", category: "notification", priority: 4, enabled: true, conditions: [{ field: "quota_usage_pct", operator: ">=", value: "80" }, { field: "notification_sent", operator: "==", value: "false" }], action: "send quota warning email", matchCount: 289, lastMatched: "2026-02-21T20:30:00Z", matchHistory: [35, 42, 38, 45, 40, 48, 41] },
 ];
 
-function priorityColor(p: number): string {
-  if (p >= 9) {return "text-rose-400 bg-rose-500/15";}
-  if (p >= 7) {return "text-amber-400 bg-amber-500/15";}
-  if (p >= 4) {return "text-indigo-400 bg-indigo-500/15";}
+function priorityColor(priority: number): string {
+  if (priority >= 9) {return "text-rose-400 bg-rose-500/15";}
+  if (priority >= 7) {return "text-amber-400 bg-amber-500/15";}
+  if (priority >= 4) {return "text-primary bg-primary/15";}
   return "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/40";
 }
 
@@ -66,12 +78,12 @@ function evaluateCondition(cond: Condition, payload: Record<string, unknown>): b
   const raw = payload[cond.field];
   const val = cond.value;
   const stringValue = typeof raw === "string" ? raw : raw == null ? "null" : JSON.stringify(raw);
-  if (cond.operator === "==" ) {return stringValue === val;}
-  if (cond.operator === "!=" ) {return stringValue !== val;}
-  if (cond.operator === ">"  ) {return Number(raw) > Number(val);}
-  if (cond.operator === "<"  ) {return Number(raw) < Number(val);}
-  if (cond.operator === ">=" ) {return Number(raw) >= Number(val);}
-  if (cond.operator === "<=" ) {return Number(raw) <= Number(val);}
+  if (cond.operator === "==") {return stringValue === val;}
+  if (cond.operator === "!=") {return stringValue !== val;}
+  if (cond.operator === ">") {return Number(raw) > Number(val);}
+  if (cond.operator === "<") {return Number(raw) < Number(val);}
+  if (cond.operator === ">=") {return Number(raw) >= Number(val);}
+  if (cond.operator === "<=") {return Number(raw) <= Number(val);}
   if (cond.operator === "contains") {return stringValue.includes(val);}
   if (cond.operator === "not_contains") {return !stringValue.includes(val);}
   if (cond.operator === "in") {return val.split(",").includes(stringValue);}
@@ -82,26 +94,54 @@ function evaluateCondition(cond: Condition, payload: Record<string, unknown>): b
 export default function RuleEngine() {
   const [rules, setRules] = useState<Rule[]>(SEED_RULES);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<Category | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<Category | "all">("all");
   const [testerOpen, setTesterOpen] = useState(false);
   const [testPayload, setTestPayload] = useState('{\n  "cost_per_token": 0.02\n}');
   const [testResults, setTestResults] = useState<Map<string, boolean> | null>(null);
+  const [quickViewId, setQuickViewId] = useState<string | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Record<Category, boolean>>({
+    routing: true,
+    escalation: true,
+    "rate-limit": true,
+    access: true,
+    notification: true,
+  });
 
-  const filtered = categoryFilter ? rules.filter((r) => r.category === categoryFilter) : rules;
-  const selected = rules.find((r) => r.id === selectedId) ?? null;
+  const selected = rules.find((rule) => rule.id === selectedId) ?? null;
+  const quickView = rules.find((rule) => rule.id === quickViewId) ?? null;
 
-  const activeCount = rules.filter((r) => r.enabled).length;
-  const totalMatches = rules.reduce((s, r) => s + r.matchHistory.reduce((a, b) => a + b, 0), 0);
-  const categoryTotals = CATEGORIES.map((c) => ({ c, n: rules.filter((r) => r.category === c).length }));
-  const topCategory = categoryTotals.toSorted((a, b) => b.n - a.n)[0]?.c ?? "routing";
+  const filtered = useMemo(
+    () => categoryFilter === "all" ? rules : rules.filter((rule) => rule.category === categoryFilter),
+    [rules, categoryFilter]
+  );
+
+  const groupedRules = useMemo(() => {
+    const groups: Record<Category, Rule[]> = {
+      routing: [],
+      escalation: [],
+      "rate-limit": [],
+      access: [],
+      notification: [],
+    };
+    for (const rule of filtered) {
+      groups[rule.category].push(rule);
+    }
+    return groups;
+  }, [filtered]);
+
+  const activeCount = rules.filter((rule) => rule.enabled).length;
+  const totalMatches = rules.reduce((sum, rule) => sum + rule.matchHistory.reduce((a, b) => a + b, 0), 0);
+  const categoryTotals = CATEGORIES.map((category) => ({ category, count: rules.filter((rule) => rule.category === category).length }));
+  const topCategory = categoryTotals.toSorted((a, b) => b.count - a.count)[0]?.category ?? "routing";
 
   const toggleEnabled = (id: string) => {
-    setRules((prev) => prev.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)));
+    setRules((prev) => prev.map((rule) => (rule.id === id ? { ...rule, enabled: !rule.enabled } : rule)));
   };
 
   const deleteRule = (id: string) => {
-    setRules((prev) => prev.filter((r) => r.id !== id));
+    setRules((prev) => prev.filter((rule) => rule.id !== id));
     if (selectedId === id) {setSelectedId(null);}
+    if (quickViewId === id) {setQuickViewId(null);}
   };
 
   const runTest = () => {
@@ -109,8 +149,8 @@ export default function RuleEngine() {
     try {
       const payload = JSON.parse(testPayload) as Record<string, unknown>;
       const results = new Map<string, boolean>();
-      selected.conditions.forEach((c) => {
-        results.set(`${c.field} ${c.operator} ${c.value}`, evaluateCondition(c, payload));
+      selected.conditions.forEach((condition) => {
+        results.set(`${condition.field} ${condition.operator} ${condition.value}`, evaluateCondition(condition, payload));
       });
       setTestResults(results);
     } catch {
@@ -123,131 +163,137 @@ export default function RuleEngine() {
 
   return (
     <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-2xl font-bold tracking-tight">Rule Engine</h1>
-        <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
+        <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium">
           + New Rule
         </button>
       </div>
 
-      {/* Category filter chips */}
-      <div className="flex gap-2 mb-5 flex-wrap">
-        <button
-          onClick={() => setCategoryFilter(null)}
-          className={cn(
-            "px-3 py-1 rounded-full text-xs font-medium border transition-colors",
-            categoryFilter === null
-              ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
-              : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
-          )}
-        >
-          All
-        </button>
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setCategoryFilter(categoryFilter === cat ? null : cat)}
-            className={cn(
-              "px-3 py-1 rounded-full text-xs font-medium border transition-colors capitalize",
-              categoryFilter === cat
-                ? CATEGORY_COLORS[cat]
-                : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
-            )}
-          >
-            {cat}
-          </button>
-        ))}
+      <div className="mb-5">
+        <AlertFilterPillGroup
+          label="Category"
+          value={categoryFilter}
+          onChange={(next) => setCategoryFilter(next as Category | "all")}
+          options={[
+            { value: "all", label: "All" },
+            ...CATEGORIES.map((category) => ({ value: category, label: category })),
+          ]}
+        />
       </div>
 
-      {/* Stats bar */}
       <div className="grid grid-cols-4 gap-3 mb-5">
         {[
           { label: "Total Rules", value: String(rules.length) },
           { label: "Active", value: String(activeCount) },
           { label: "Top Category", value: topCategory },
           { label: "Matches (7d)", value: totalMatches.toLocaleString() },
-        ].map((s) => (
-          <div key={s.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-3">
-            <div className="text-[var(--color-text-muted)] text-xs mb-1">{s.label}</div>
-            <div className="text-lg font-semibold capitalize">{s.value}</div>
+        ].map((stat) => (
+          <div key={stat.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-3">
+            <div className="text-[var(--color-text-muted)] text-xs mb-1">{stat.label}</div>
+            <div className="text-lg font-semibold capitalize">{stat.value}</div>
           </div>
         ))}
       </div>
 
-      {/* Main layout */}
       <div className="flex gap-4">
-        {/* Rule list — left 55% */}
-        <div className="w-[55%] space-y-2 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
-          {filtered.map((rule) => (
-            <button
-              key={rule.id}
-              onClick={() => { setSelectedId(rule.id); setTestResults(null); }}
-              className={cn(
-                "w-full text-left bg-[var(--color-surface-1)] border rounded-lg px-4 py-3 transition-colors",
-                selectedId === rule.id
-                  ? "border-indigo-500 ring-1 ring-indigo-500/30"
-                  : "border-[var(--color-border)] hover:border-[var(--color-border)]"
-              )}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium text-sm">{rule.name}</span>
-                <div className="flex items-center gap-2">
-                  <span className={cn("text-xs px-2 py-0.5 rounded-full border capitalize", CATEGORY_COLORS[rule.category])}>
-                    {rule.category}
-                  </span>
-                  <span className={cn("text-xs px-2 py-0.5 rounded font-mono", priorityColor(rule.priority))}>
-                    P{rule.priority}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                {rule.conditions.slice(0, 2).map((c, i) => (
-                  <span key={i} className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] px-2 py-0.5 rounded">
-                    {c.field} {c.operator} {c.value}
-                  </span>
+        <div className="w-[55%] space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
+          {CATEGORIES.map((category) => {
+            const categoryRules = groupedRules[category];
+            if (categoryRules.length === 0) {return null;}
+            const style = CATEGORY_GROUP_DECORATION[category];
+            return (
+              <AlertRuleGroupSection
+                key={category}
+                title={category}
+                count={categoryRules.length}
+                activeCount={categoryRules.filter((rule) => rule.enabled).length}
+                expanded={expandedGroups[category]}
+                onToggle={() => setExpandedGroups((prev) => ({ ...prev, [category]: !prev[category] }))}
+                className={cn(style.surface, style.border)}
+                dotClassName={style.dot}
+              >
+                {categoryRules.map((rule) => (
+                  <AlertRuleCard
+                    key={rule.id}
+                    title={rule.name}
+                    titleBadges={(
+                      <>
+                        <span className={cn("text-xs px-2 py-0.5 rounded-full border capitalize", CATEGORY_COLORS[rule.category])}>
+                          {rule.category}
+                        </span>
+                        <span className={cn("text-xs px-2 py-0.5 rounded font-mono", priorityColor(rule.priority))}>
+                          P{rule.priority}
+                        </span>
+                        {!rule.enabled ? (
+                          <span className="text-[10px] px-2 py-0.5 rounded border border-tok-border text-fg-muted uppercase">disabled</span>
+                        ) : null}
+                      </>
+                    )}
+                    description={rule.description}
+                    targets={rule.conditions.slice(0, 3).map((condition) => `${condition.field} ${condition.operator} ${condition.value}`)}
+                    stats={[
+                      { label: "Matches", value: rule.matchCount.toLocaleString() },
+                      { label: "7d Peak", value: String(Math.max(...rule.matchHistory, 0)) },
+                    ]}
+                    className={cn(selectedId === rule.id ? "ring-1 ring-indigo-500/30 border-primary/40" : "")}
+                    onClick={() => {
+                      setSelectedId(rule.id);
+                      setTestResults(null);
+                    }}
+                    headerActions={(
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleEnabled(rule.id);
+                          }}
+                          className={cn(
+                            "rounded-md border px-2 py-1 text-[11px]",
+                            rule.enabled
+                              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                              : "border-tok-border bg-surface-2 text-fg-muted"
+                          )}
+                        >
+                          {rule.enabled ? "Enabled" : "Disabled"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setQuickViewId(rule.id);
+                          }}
+                          className="rounded-md border border-tok-border bg-surface-2 px-2 py-1 text-[11px] text-fg-secondary hover:text-fg-primary"
+                        >
+                          Quick view
+                        </button>
+                      </div>
+                    )}
+                    footerActions={
+                      rule.conditions.length > 3
+                        ? [<span key="more" className="text-[11px] text-fg-muted">+{rule.conditions.length - 3} more conditions</span>]
+                        : undefined
+                    }
+                  />
                 ))}
-                {rule.conditions.length > 2 && (
-                  <span className="text-xs text-[var(--color-text-muted)]">+{rule.conditions.length - 2} more</span>
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-[var(--color-text-muted)]">→ {rule.action}</span>
-                  <span className="text-xs text-[var(--color-text-muted)]">{rule.matchCount.toLocaleString()} matches</span>
-                </div>
-                <div
-                  role="switch"
-                  aria-checked={rule.enabled}
-                  onClick={(e) => { e.stopPropagation(); toggleEnabled(rule.id); }}
-                  className={cn(
-                    "w-8 h-4 rounded-full relative cursor-pointer transition-colors",
-                    rule.enabled ? "bg-emerald-500" : "bg-[var(--color-surface-3)]"
-                  )}
-                >
-                  <div className={cn(
-                    "absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform",
-                    rule.enabled ? "translate-x-4" : "translate-x-0.5"
-                  )} />
-                </div>
-              </div>
-            </button>
-          ))}
-          {filtered.length === 0 && (
+              </AlertRuleGroupSection>
+            );
+          })}
+
+          {filtered.length === 0 ? (
             <ContextualEmptyState
               icon={Workflow}
               title="No rules match this filter"
               description="Adjust your filter criteria or create a new rule to automate workflows."
               size="sm"
             />
-          )}
+          ) : null}
         </div>
 
-        {/* Detail panel — right 45% */}
         <div className="w-[45%] max-h-[calc(100vh-280px)] overflow-y-auto">
           {selected ? (
             <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5 space-y-5">
-              {/* Name + description */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <h2 className="text-lg font-semibold">{selected.name}</h2>
@@ -258,7 +304,6 @@ export default function RuleEngine() {
                 <p className="text-sm text-[var(--color-text-secondary)]">{selected.description}</p>
               </div>
 
-              {/* Conditions table */}
               <div>
                 <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Conditions</h3>
                 <div className="border border-[var(--color-border)] rounded overflow-hidden">
@@ -267,54 +312,43 @@ export default function RuleEngine() {
                     <div className="bg-[var(--color-surface-1)] px-3 py-2">Operator</div>
                     <div className="bg-[var(--color-surface-1)] px-3 py-2">Value</div>
                   </div>
-                  {selected.conditions.map((c, i) => (
-                    <div key={i} className="grid grid-cols-3 gap-px bg-[var(--color-surface-2)] text-sm">
-                      <div className="bg-[var(--color-surface-1)] px-3 py-2 font-mono text-indigo-400">{c.field}</div>
-                      <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[var(--color-text-primary)]">{OPERATOR_LABELS[c.operator]}</div>
-                      <div className="bg-[var(--color-surface-1)] px-3 py-2 font-mono text-amber-400">{c.value}</div>
+                  {selected.conditions.map((condition, index) => (
+                    <div key={index} className="grid grid-cols-3 gap-px bg-[var(--color-surface-2)] text-sm">
+                      <div className="bg-[var(--color-surface-1)] px-3 py-2 font-mono text-primary">{condition.field}</div>
+                      <div className="bg-[var(--color-surface-1)] px-3 py-2 text-[var(--color-text-primary)]">{OPERATOR_LABELS[condition.operator]}</div>
+                      <div className="bg-[var(--color-surface-1)] px-3 py-2 font-mono text-amber-400">{condition.value}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Action */}
               <div>
                 <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Action</h3>
                 <div className="flex items-center gap-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-3 py-2 text-sm">
-                  <span className="text-[var(--color-text-muted)]">→</span>
+                  <span className="text-[var(--color-text-muted)]">-&gt;</span>
                   <span className="text-emerald-400 font-medium">{selected.action}</span>
                 </div>
               </div>
 
-              {/* Match history bar chart */}
               <div>
-                <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
-                  Match History (7 days)
-                </h3>
+                <h3 className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Match History (7 days)</h3>
                 <div className="flex items-end gap-1.5 h-24 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded p-3">
-                  {selected.matchHistory.map((count, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                  {selected.matchHistory.map((count, index) => (
+                    <div key={index} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
                       <span className="text-[10px] text-[var(--color-text-muted)]">{count}</span>
-                      <div
-                        className="w-full bg-indigo-500 rounded-sm min-h-[2px] transition-all"
-                        style={{ height: `${(count / maxBar) * 100}%` }}
-                      />
-                      <span className="text-[10px] text-[var(--color-text-muted)]">{dayLabels[i]}</span>
+                      <div className="w-full bg-primary rounded-sm min-h-[2px] transition-all" style={{ height: `${(count / maxBar) * 100}%` }} />
+                      <span className="text-[10px] text-[var(--color-text-muted)]">{dayLabels[index]}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Priority + meta */}
               <div className="flex items-center gap-4 text-sm">
-                <span className={cn("px-2 py-0.5 rounded font-mono text-xs", priorityColor(selected.priority))}>
-                  Priority {selected.priority}
-                </span>
+                <span className={cn("px-2 py-0.5 rounded font-mono text-xs", priorityColor(selected.priority))}>Priority {selected.priority}</span>
                 <span className="text-[var(--color-text-muted)]">{selected.matchCount.toLocaleString()} total matches</span>
                 <span className="text-[var(--color-text-muted)] text-xs">Last: {new Date(selected.lastMatched).toLocaleString()}</span>
               </div>
 
-              {/* Action buttons */}
               <div className="flex items-center gap-2 pt-1">
                 <button
                   onClick={() => toggleEnabled(selected.id)}
@@ -327,9 +361,7 @@ export default function RuleEngine() {
                 >
                   {selected.enabled ? "Disable" : "Enable"}
                 </button>
-                <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm">
-                  Edit
-                </button>
+                <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm">Edit</button>
                 <button
                   onClick={() => deleteRule(selected.id)}
                   className="bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded text-sm"
@@ -338,33 +370,32 @@ export default function RuleEngine() {
                 </button>
               </div>
 
-              {/* Rule Tester — collapsible */}
               <div className="border-t border-[var(--color-border)] pt-4">
                 <button
                   onClick={() => setTesterOpen(!testerOpen)}
                   className="flex items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
                 >
                   <span className={cn("inline-block transition-transform text-xs", testerOpen && "rotate-90")}>
-                    ▶
+                    &gt;
                   </span>
                   Rule Tester
                 </button>
-                {testerOpen && (
+                {testerOpen ? (
                   <div className="mt-3 space-y-3">
                     <textarea
                       value={testPayload}
-                      onChange={(e) => setTestPayload(e.target.value)}
+                      onChange={(event) => setTestPayload(event.target.value)}
                       rows={5}
                       className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded px-3 py-2 text-sm font-mono resize-y"
                       placeholder='{"field": "value"}'
                     />
                     <button
                       onClick={runTest}
-                      className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium"
+                      className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm font-medium"
                     >
                       Test Rule
                     </button>
-                    {testResults && (
+                    {testResults ? (
                       <div className="space-y-1.5">
                         {Array.from(testResults.entries()).map(([key, pass]) => (
                           <div
@@ -376,24 +407,48 @@ export default function RuleEngine() {
                                 : "bg-rose-500/10 border-rose-500/20 text-rose-400"
                             )}
                           >
-                            <span className="font-bold">{pass ? "✓" : "✗"}</span>
+                            <span className="font-bold">{pass ? "yes" : "no"}</span>
                             <span className="font-mono text-xs">{key}</span>
                           </div>
                         ))}
                       </div>
-                    )}
+                    ) : null}
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
           ) : (
             <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-12 text-center">
-              <div className="text-[var(--color-text-muted)] text-3xl mb-3">⚙</div>
+              <div className="text-[var(--color-text-muted)] text-3xl mb-3">CFG</div>
               <div className="text-[var(--color-text-muted)] text-sm">Select a rule to view details</div>
             </div>
           )}
         </div>
       </div>
+
+      <AlertSlideoutPanel
+        open={quickView !== null}
+        onClose={() => setQuickViewId(null)}
+        title={quickView?.name ?? "Rule"}
+        subtitle={quickView ? `${quickView.category} · priority ${quickView.priority}` : undefined}
+      >
+        {quickView ? (
+          <div className="space-y-3 text-xs text-fg-secondary">
+            <p className="text-fg-primary">{quickView.description}</p>
+            <div className="rounded-lg border border-tok-border bg-surface-1 p-2">
+              <p className="text-[10px] uppercase tracking-wide text-fg-muted">Action</p>
+              <p className="mt-1 text-emerald-300">{quickView.action}</p>
+            </div>
+            <div className="space-y-1.5">
+              {quickView.conditions.map((condition, index) => (
+                <div key={`${condition.field}-${index}`} className="rounded-md border border-tok-border bg-surface-1 px-2 py-1 font-mono text-[11px]">
+                  {condition.field} {condition.operator} {condition.value}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </AlertSlideoutPanel>
     </div>
   );
 }

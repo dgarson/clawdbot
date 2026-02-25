@@ -302,7 +302,7 @@ const TOPICS: EventTopic[] = [
 const statusColor: Record<EventStatus, string> = {
   active: "text-emerald-400 bg-emerald-400/10",
   deprecated: "text-amber-400 bg-amber-400/10",
-  draft: "text-indigo-400 bg-indigo-400/10",
+  draft: "text-primary bg-primary/10",
 }
 
 const formatColor: Record<SchemaFormat, string> = {
@@ -367,7 +367,7 @@ export default function EventCatalogBrowser() {
           <h1 className="text-2xl font-bold">Event Catalog</h1>
           <p className="text-[var(--color-text-secondary)] text-sm mt-1">Browse and explore event-driven architecture schemas</p>
         </div>
-        <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm font-medium transition-colors">
+        <button className="px-4 py-2 bg-primary hover:bg-primary rounded-md text-sm font-medium transition-colors">
           + Register Event
         </button>
       </div>
@@ -381,7 +381,7 @@ export default function EventCatalogBrowser() {
         </div>
         <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="text-xs text-[var(--color-text-secondary)] mb-1">Messages / Day</div>
-          <div className="text-2xl font-bold text-indigo-400">{fmtNum(totalMessages)}</div>
+          <div className="text-2xl font-bold text-primary">{fmtNum(totalMessages)}</div>
           <div className="text-xs text-[var(--color-text-muted)]">across active events</div>
         </div>
         <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
@@ -405,7 +405,7 @@ export default function EventCatalogBrowser() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                ? "border-primary text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -494,7 +494,7 @@ export default function EventCatalogBrowser() {
                         <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Consumers</div>
                         <div className="space-y-1">
                           {t.consumers.map(c => (
-                            <div key={c} className="text-sm text-indigo-400 font-mono bg-indigo-400/5 px-2 py-1 rounded">
+                            <div key={c} className="text-sm text-primary font-mono bg-primary/5 px-2 py-1 rounded">
                               ↓ {c}
                             </div>
                           ))}
@@ -589,7 +589,7 @@ export default function EventCatalogBrowser() {
                 className={cn(
                   "w-full text-left px-2 py-1.5 rounded-md text-xs transition-colors",
                   selectedTopic === t.id
-                    ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                    ? "bg-primary/20 text-indigo-300 border border-primary/30"
                     : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
@@ -613,7 +613,7 @@ export default function EventCatalogBrowser() {
                         className={cn(
                           "px-3 py-1 text-sm rounded-md transition-colors font-mono",
                           selectedSchemaVersion === s.version
-                            ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                            ? "bg-primary text-[var(--color-text-primary)]"
                             : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                         )}
                       >
@@ -701,7 +701,7 @@ export default function EventCatalogBrowser() {
               <div className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-3 px-1">Events</div>
               <div className="space-y-2">
                 {TOPICS.map(t => (
-                  <div key={t.id} className="bg-indigo-400/5 border border-indigo-400/20 rounded-md px-3 py-2">
+                  <div key={t.id} className="bg-primary/5 border border-primary/20 rounded-md px-3 py-2">
                     <div className="font-mono text-xs text-indigo-300">{t.name}</div>
                     <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{fmtNum(t.messagesPerDay)}/day</div>
                   </div>
@@ -741,10 +741,10 @@ export default function EventCatalogBrowser() {
                       <span className="text-[var(--color-text-primary)] font-medium">{d.domain}</span>
                       <span className="text-xs text-[var(--color-text-muted)]">{d.topics} events</span>
                     </div>
-                    <span className="text-indigo-400 font-mono">{fmtNum(d.messagesPerDay)}/day</span>
+                    <span className="text-primary font-mono">{fmtNum(d.messagesPerDay)}/day</span>
                   </div>
                   <div className="w-full h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(d.messagesPerDay / maxMsgs) * 100}%` }} />
+                    <div className="h-full bg-primary rounded-full" style={{ width: `${(d.messagesPerDay / maxMsgs) * 100}%` }} />
                   </div>
                 </div>
               ))}
@@ -762,7 +762,7 @@ export default function EventCatalogBrowser() {
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">Deprecated</div>
             </div>
             <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-indigo-400">{TOPICS.flatMap(t => t.schemas).length}</div>
+              <div className="text-3xl font-bold text-primary">{TOPICS.flatMap(t => t.schemas).length}</div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">Schema Versions</div>
             </div>
           </div>

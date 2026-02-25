@@ -298,7 +298,7 @@ export default function ContextBrowser() {
           return (
             <div key={item.key} className="bg-[var(--color-surface-0)] rounded border border-[var(--color-border)]/60">
               <button onClick={() => toggleFile(item.key)} className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-[var(--color-surface-2)]/30 transition-colors">
-                <span className={cn("text-xs font-mono", item.accent ? "text-indigo-400" : "text-[var(--color-text-primary)]")}>{item.label}</span>
+                <span className={cn("text-xs font-mono", item.accent ? "text-primary" : "text-[var(--color-text-primary)]")}>{item.label}</span>
                 <span className="text-xs font-mono text-[var(--color-text-muted)]">{formatTokens(item.tokens)}</span>
               </button>
               {isOpen && (
@@ -321,9 +321,9 @@ export default function ContextBrowser() {
     const seg = session.segments
     const total = session.tokenCount || 1
     const parts: Array<{ label: string; tokens: number; color: string }> = [
-      { label: "System", tokens: seg.systemPrompt.sizeTokens, color: "bg-indigo-500" },
+      { label: "System", tokens: seg.systemPrompt.sizeTokens, color: "bg-primary" },
       { label: "Files", tokens: seg.projectFiles.reduce((a, f) => a + f.sizeTokens, 0), color: "bg-cyan-500" },
-      { label: "History", tokens: seg.conversationHistory.sizeTokens, color: "bg-violet-500" },
+      { label: "History", tokens: seg.conversationHistory.sizeTokens, color: "bg-primary" },
       { label: "Tools", tokens: seg.toolResults.reduce((a, t) => a + t.resultTokens, 0), color: "bg-amber-500" },
       { label: "Injected", tokens: seg.injectedContext.reduce((a, i) => a + i.sizeTokens, 0), color: "bg-emerald-500" },
     ]
@@ -378,7 +378,7 @@ export default function ContextBrowser() {
             placeholder="Search sessions or context..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500 transition-colors"
+            className="w-full px-3 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-primary transition-colors"
           />
         </div>
         <div className="flex-1 overflow-y-auto">
@@ -391,11 +391,11 @@ export default function ContextBrowser() {
                 onClick={() => setSelectedId(session.id)}
                 className={cn(
                   "w-full text-left px-4 py-3 border-b border-[var(--color-border)]/50 transition-colors",
-                  isSelected ? "bg-indigo-500/10 border-l-2 border-l-indigo-500" : "hover:bg-[var(--color-surface-1)]/80"
+                  isSelected ? "bg-primary/10 border-l-2 border-l-indigo-500" : "hover:bg-[var(--color-surface-1)]/80"
                 )}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className={cn("text-sm font-medium", isSelected ? "text-indigo-400" : "text-[var(--color-text-primary)]")}>
+                  <span className={cn("text-sm font-medium", isSelected ? "text-primary" : "text-[var(--color-text-primary)]")}>
                     {session.agentName}
                   </span>
                   <div className="flex items-center gap-1.5">
@@ -425,7 +425,7 @@ export default function ContextBrowser() {
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-1)] border border-[var(--color-border)] flex items-center justify-center mx-auto mb-4">
-                <div className="w-6 h-6 rounded bg-indigo-500/20 border border-indigo-500/40" />
+                <div className="w-6 h-6 rounded bg-primary/20 border border-primary/40" />
               </div>
               <p className="text-[var(--color-text-muted)] text-sm">Select a session to inspect its context window</p>
             </div>
@@ -440,7 +440,7 @@ export default function ContextBrowser() {
               </div>
               <button
                 onClick={handleTrimContext}
-                className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors"
+                className="px-4 py-2 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors"
               >
                 Trim Context
               </button>

@@ -294,7 +294,7 @@ export default function TestResultsDashboard() {
           <select
             value={selectedBranch}
             onChange={e => setSelectedBranch(e.target.value)}
-            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 outline-none focus:border-indigo-500 transition-colors"
+            className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 outline-none focus:border-primary transition-colors"
           >
             <option value="feat/horizon-admin">feat/horizon-admin</option>
             <option value="main">main</option>
@@ -313,7 +313,7 @@ export default function TestResultsDashboard() {
             { label: "Passed", value: String(latestRunMeta.passed), color: "text-emerald-400", icon: "✓" },
             { label: "Failed", value: String(latestRunMeta.failed), color: "text-rose-400", icon: "✗" },
             { label: "Skipped", value: String(latestRunMeta.skipped), color: "text-[var(--color-text-secondary)]", icon: "–" },
-            { label: "Duration", value: formatDuration(latestRunMeta.duration), color: "text-indigo-400", icon: "⏱" },
+            { label: "Duration", value: formatDuration(latestRunMeta.duration), color: "text-primary", icon: "⏱" },
           ].map(card => (
             <div key={card.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
               <div className="flex items-center gap-1.5 mb-2">
@@ -492,7 +492,7 @@ export default function TestResultsDashboard() {
                     {test.lastPass.slice(4, 10)}
                   </span>
                   <div className="col-span-2 flex justify-end">
-                    <span className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-indigo-400 rounded px-2 py-1 text-xs leading-tight text-right">
+                    <span className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-primary rounded px-2 py-1 text-xs leading-tight text-right">
                       {test.suggestedAction}
                     </span>
                   </div>
@@ -565,17 +565,17 @@ export default function TestResultsDashboard() {
 
               return (
                 <div key={b.build} className="flex-1 flex flex-col items-center justify-end h-full gap-1">
-                  <span className={cn("text-xs tabular-nums", isLatest ? "text-indigo-400 font-semibold" : "text-[var(--color-text-muted)]")}>
+                  <span className={cn("text-xs tabular-nums", isLatest ? "text-primary font-semibold" : "text-[var(--color-text-muted)]")}>
                     {b.coverage}%
                   </span>
                   <div
                     className={cn(
                       "w-full rounded-t transition-all",
-                      isLatest ? "bg-indigo-500" : "bg-indigo-500/30 hover:bg-indigo-500/50"
+                      isLatest ? "bg-primary" : "bg-primary/30 hover:bg-primary/50"
                     )}
                     style={{ height: `${barH}%` }}
                   />
-                  <span className={cn("text-xs truncate w-full text-center", isLatest ? "text-indigo-400" : "text-[var(--color-text-muted)]")}>
+                  <span className={cn("text-xs truncate w-full text-center", isLatest ? "text-primary" : "text-[var(--color-text-muted)]")}>
                     {b.build}
                   </span>
                 </div>
@@ -722,7 +722,7 @@ export default function TestResultsDashboard() {
                     onClick={() => toggleHistory(run.id)}
                     className="w-full grid grid-cols-12 px-4 py-3 text-xs hover:bg-[var(--color-surface-2)]/40 transition-colors text-left items-center"
                   >
-                    <span className="col-span-1 text-indigo-400 font-mono font-medium">{run.runId}</span>
+                    <span className="col-span-1 text-primary font-mono font-medium">{run.runId}</span>
                     <span className="col-span-3 text-[var(--color-text-primary)] truncate pr-2">{run.branch}</span>
                     <span className="col-span-1 font-mono text-[var(--color-text-muted)]">{run.commit}</span>
                     <span className="col-span-2 text-[var(--color-text-secondary)]">{run.started}</span>
@@ -797,7 +797,7 @@ export default function TestResultsDashboard() {
             className={cn(
               "relative flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors",
               activeTab === tab.id
-                ? "border-indigo-500 text-indigo-400"
+                ? "border-primary text-primary"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
             )}
           >
@@ -806,7 +806,7 @@ export default function TestResultsDashboard() {
               <span className={cn(
                 "text-xs px-1.5 py-0.5 rounded-full font-semibold",
                 activeTab === tab.id
-                  ? "bg-indigo-500/20 text-indigo-400"
+                  ? "bg-primary/20 text-primary"
                   : "bg-rose-400/15 text-rose-400"
               )}>
                 {tab.badge}

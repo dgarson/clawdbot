@@ -77,7 +77,7 @@ const frameworkBadge: Record<ModelFramework, string> = {
 };
 
 const stageBadge: Record<ModelVersion["stage"], string> = {
-  development: "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
+  development: "bg-primary/20 text-indigo-300 border border-primary/30",
   staging:     "bg-amber-500/20 text-amber-300 border border-amber-500/30",
   production:  "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
   archived:    "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)] border border-[var(--color-surface-3)]/30",
@@ -269,7 +269,7 @@ export default function MLExperimentTracker() {
             <span className="text-[var(--color-text-secondary)]">{EXPERIMENTS.filter(e => e.status === "running").length} running</span>
           </span>
           <span className="text-[var(--color-text-secondary)]">{completedExps.length} completed</span>
-          <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium transition-colors">
+          <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded text-sm font-medium transition-colors">
             + New Experiment
           </button>
         </div>
@@ -283,7 +283,7 @@ export default function MLExperimentTracker() {
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors capitalize",
-              tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              tab === t ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {t === "models" ? "Model Registry" : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -365,7 +365,7 @@ export default function MLExperimentTracker() {
                   {selectedExp.metrics.map(m => (
                     <div key={m.step} className="flex-1 flex gap-0.5 items-end h-full">
                       <div
-                        className="flex-1 bg-indigo-500 rounded-t"
+                        className="flex-1 bg-primary rounded-t"
                         style={{ height: `${Math.min((m.trainLoss / maxMetricLoss) * 100, 100)}%` }}
                         title={`Train: ${m.trainLoss}`}
                       />
@@ -378,7 +378,7 @@ export default function MLExperimentTracker() {
                   ))}
                 </div>
                 <div className="flex items-center gap-3 mt-2 text-xs">
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-indigo-500" /><span className="text-[var(--color-text-secondary)]">Train</span></span>
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-primary" /><span className="text-[var(--color-text-secondary)]">Train</span></span>
                   <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500/70" /><span className="text-[var(--color-text-secondary)]">Val</span></span>
                 </div>
               </div>
@@ -470,7 +470,7 @@ export default function MLExperimentTracker() {
             <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
               <span className="text-emerald-400">●</span> Production
               <span className="text-amber-400 ml-2">●</span> Staging
-              <span className="text-indigo-400 ml-2">●</span> Dev
+              <span className="text-primary ml-2">●</span> Dev
             </div>
           </div>
           <div className="space-y-3">
@@ -496,7 +496,7 @@ export default function MLExperimentTracker() {
                 </div>
                 <div className="flex gap-2">
                   <button className="text-xs px-2.5 py-1.5 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded border border-[var(--color-border)] transition-colors">Download</button>
-                  <button className="text-xs px-2.5 py-1.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 rounded transition-colors">Promote</button>
+                  <button className="text-xs px-2.5 py-1.5 bg-primary/30 hover:bg-primary/50 text-indigo-300 rounded transition-colors">Promote</button>
                 </div>
               </div>
             ))}

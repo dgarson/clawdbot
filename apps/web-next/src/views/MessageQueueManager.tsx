@@ -105,7 +105,7 @@ const IconButton = ({ children, onClick, title, className, disabled }: { childre
   </button>
 );
 
-const ProgressBar = ({ value, max, colorClass = "bg-indigo-500" }: { value: number, max: number, colorClass?: string }) => {
+const ProgressBar = ({ value, max, colorClass = "bg-primary" }: { value: number, max: number, colorClass?: string }) => {
   const percentage = Math.min(Math.round((value / max) * 100), 100);
   return (
     <div className="w-full bg-[var(--color-surface-2)] h-1.5 rounded-full overflow-hidden">
@@ -153,7 +153,7 @@ export default function MessageQueueManager() {
         className={cn(
           "px-4 py-3 text-sm font-medium transition-all border-b-2 outline-none",
           isActive 
-            ? "text-indigo-400 border-indigo-500 bg-indigo-500/5" 
+            ? "text-primary border-primary bg-primary/5" 
             : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/50"
         )}
       >
@@ -180,10 +180,10 @@ export default function MessageQueueManager() {
             <div className="w-px h-4 bg-[var(--color-surface-2)]"></div>
             <div className="flex items-center gap-2">
               <span className="text-[var(--color-text-secondary)]">Total Throughput:</span>
-              <span className="font-mono font-bold text-indigo-400">1.8k msg/s</span>
+              <span className="font-mono font-bold text-primary">1.8k msg/s</span>
             </div>
           </div>
-          <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded-lg text-sm font-medium transition-colors shadow-lg shadow-indigo-900/20">
+          <button className="px-4 py-2 bg-primary hover:bg-primary text-[var(--color-text-primary)] rounded-lg text-sm font-medium transition-colors shadow-lg shadow-indigo-900/20">
             + Create Queue
           </button>
         </div>
@@ -224,7 +224,7 @@ export default function MessageQueueManager() {
                   onClick={() => setExpandedQueueId(expandedQueueId === queue.id ? null : queue.id)}
                 >
                   <div className="col-span-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-[var(--color-surface-2)] flex items-center justify-center text-xs font-mono text-indigo-400">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-surface-2)] flex items-center justify-center text-xs font-mono text-primary">
                       {queue.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -242,7 +242,7 @@ export default function MessageQueueManager() {
                       <span className="text-[var(--color-text-primary)]">{queue.depth.toLocaleString()}</span>
                       <span className="text-[var(--color-text-muted)]">/ {queue.inFlight}</span>
                     </div>
-                    <ProgressBar value={queue.depth} max={10000} colorClass={queue.depth > 5000 ? "bg-rose-500" : "bg-indigo-500"} />
+                    <ProgressBar value={queue.depth} max={10000} colorClass={queue.depth > 5000 ? "bg-rose-500" : "bg-primary"} />
                   </div>
                   <div className="col-span-1 text-right font-mono text-sm text-[var(--color-text-primary)]">
                     {queue.consumers}
@@ -277,15 +277,15 @@ export default function MessageQueueManager() {
                       <div className="space-y-3">
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-[var(--color-text-secondary)]">Visibility Timeout</span>
-                          <span className="font-mono text-indigo-400">{queue.visibilityTimeout}s</span>
+                          <span className="font-mono text-primary">{queue.visibilityTimeout}s</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-[var(--color-text-secondary)]">Message Retention</span>
-                          <span className="font-mono text-indigo-400">{queue.retentionPeriod} days</span>
+                          <span className="font-mono text-primary">{queue.retentionPeriod} days</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-[var(--color-text-secondary)]">Delay Seconds</span>
-                          <span className="font-mono text-indigo-400">{queue.delaySeconds}s</span>
+                          <span className="font-mono text-primary">{queue.delaySeconds}s</span>
                         </div>
                       </div>
                     </div>
@@ -295,7 +295,7 @@ export default function MessageQueueManager() {
                         {[40, 65, 30, 85, 45, 90, 20, 55, 75, 60, 40, 35, 80, 95, 50, 60, 70, 45, 30, 55].map((h, i) => (
                           <div 
                             key={i} 
-                            className="flex-1 bg-indigo-500/30 border-t-2 border-indigo-400 hover:bg-indigo-400 transition-all rounded-t-sm" 
+                            className="flex-1 bg-primary/30 border-t-2 border-primary hover:bg-primary transition-all rounded-t-sm" 
                             style={{ height: `${h}%` }}
                             title={`Time ${i}: ${h} msg/s`}
                           />
@@ -335,7 +335,7 @@ export default function MessageQueueManager() {
                     <select 
                       value={selectedQueueId} 
                       onChange={(e) => setSelectedQueueId(e.target.value)}
-                      className="ml-2 bg-[var(--color-surface-2)] border-none text-xs rounded px-2 py-1 outline-none text-indigo-400 font-mono"
+                      className="ml-2 bg-[var(--color-surface-2)] border-none text-xs rounded px-2 py-1 outline-none text-primary font-mono"
                     >
                       {MOCK_QUEUES.map(q => <option key={q.id} value={q.id}>{q.name}</option>)}
                     </select>
@@ -350,13 +350,13 @@ export default function MessageQueueManager() {
                     <input 
                       type="text" 
                       placeholder="Search message ID or content..." 
-                      className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 transition-colors"
+                      className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs outline-none focus:border-primary transition-colors"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
                   <select 
-                    className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500"
+                    className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs outline-none focus:border-primary"
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
                   >
@@ -384,11 +384,11 @@ export default function MessageQueueManager() {
                         onClick={() => setSelectedMessage(msg)}
                         className={cn(
                           "group cursor-pointer transition-colors",
-                          selectedMessage?.id === msg.id ? "bg-indigo-500/10" : "hover:bg-[var(--color-surface-2)]/40"
+                          selectedMessage?.id === msg.id ? "bg-primary/10" : "hover:bg-[var(--color-surface-2)]/40"
                         )}
                       >
                         <td className="px-4 py-4">
-                          <div className="text-xs font-mono font-bold text-[var(--color-text-primary)] group-hover:text-indigo-400">
+                          <div className="text-xs font-mono font-bold text-[var(--color-text-primary)] group-hover:text-primary">
                             {msg.id}
                           </div>
                           <div className="text-[10px] text-[var(--color-text-muted)] mt-1">{msg.contentType}</div>
@@ -523,7 +523,7 @@ export default function MessageQueueManager() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
-                          <button className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 rounded text-[10px] font-bold uppercase transition-colors">
+                          <button className="px-3 py-1.5 bg-primary/20 hover:bg-primary/40 text-primary rounded text-[10px] font-bold uppercase transition-colors">
                             Retry
                           </button>
                           <button className="p-1.5 bg-[var(--color-surface-2)] hover:bg-rose-900/20 text-[var(--color-text-secondary)] hover:text-rose-400 rounded transition-colors border border-[var(--color-border)]">
@@ -553,7 +553,7 @@ export default function MessageQueueManager() {
                       <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Default Visibility Timeout</label>
                       <div className="flex items-center gap-4">
                         <input type="range" className="flex-1 accent-indigo-500" min="0" max="3600" defaultValue="30" />
-                        <span className="text-sm font-mono text-indigo-400 w-12 text-right">30s</span>
+                        <span className="text-sm font-mono text-primary w-12 text-right">30s</span>
                       </div>
                       <p className="text-[10px] text-[var(--color-text-muted)] italic">How long messages remain invisible after being consumed</p>
                     </div>
@@ -562,7 +562,7 @@ export default function MessageQueueManager() {
                       <label className="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Message Retention Period</label>
                       <div className="flex items-center gap-4">
                         <input type="range" className="flex-1 accent-indigo-500" min="1" max="14" defaultValue="4" />
-                        <span className="text-sm font-mono text-indigo-400 w-12 text-right">4d</span>
+                        <span className="text-sm font-mono text-primary w-12 text-right">4d</span>
                       </div>
                       <p className="text-[10px] text-[var(--color-text-muted)] italic">Number of days to keep messages in the queue</p>
                     </div>
@@ -574,7 +574,7 @@ export default function MessageQueueManager() {
                       <input 
                         type="number" 
                         defaultValue="10"
-                        className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500" 
+                        className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" 
                       />
                       <p className="text-[10px] text-[var(--color-text-muted)] italic">Maximum messages received per poll request</p>
                     </div>
@@ -584,7 +584,7 @@ export default function MessageQueueManager() {
                       <input 
                         type="number" 
                         defaultValue="256"
-                        className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500" 
+                        className="w-full bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" 
                       />
                       <p className="text-[10px] text-[var(--color-text-muted)] italic">Payload size limit before auto-rejection</p>
                     </div>
@@ -595,7 +595,7 @@ export default function MessageQueueManager() {
                   <button className="px-6 py-2 bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-sm font-bold transition-colors">
                     Discard Changes
                   </button>
-                  <button className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-bold transition-colors shadow-lg shadow-indigo-900/20">
+                  <button className="px-6 py-2 bg-primary hover:bg-primary rounded-lg text-sm font-bold transition-colors shadow-lg shadow-indigo-900/20">
                     Save Configuration
                   </button>
                 </div>
@@ -611,7 +611,7 @@ export default function MessageQueueManager() {
                       <div className="text-sm font-bold">Server-Side Encryption (SSE)</div>
                       <div className="text-xs text-[var(--color-text-muted)]">Encrypt message bodies using AES-256-GCM</div>
                     </div>
-                    <div className="w-10 h-5 bg-indigo-600 rounded-full relative cursor-pointer">
+                    <div className="w-10 h-5 bg-primary rounded-full relative cursor-pointer">
                       <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
                     </div>
                   </div>
@@ -620,14 +620,14 @@ export default function MessageQueueManager() {
                       <div className="text-sm font-bold">KMS Key Management</div>
                       <div className="text-xs text-[var(--color-text-muted)]">Use custom AWS/GCP KMS keys for rotation</div>
                     </div>
-                    <button className="text-xs font-bold text-indigo-400 hover:underline">Configure Keys</button>
+                    <button className="text-xs font-bold text-primary hover:underline">Configure Keys</button>
                   </div>
                 </div>
               </section>
             </div>
 
             <div className="col-span-4 space-y-6">
-              <section className="bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-6">
+              <section className="bg-primary/10 border border-primary/20 rounded-2xl p-6">
                 <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
                   ℹ️ System Health Status
                 </h3>

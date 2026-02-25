@@ -538,7 +538,7 @@ export default function AgentTopologyMap() {
         <nav aria-label="Topology toolbar" className="flex items-center gap-4 px-5 py-3 border-b border-[var(--color-border)] bg-[var(--color-surface-1)]/60 flex-wrap shrink-0">
           {/* Title */}
           <h1 className="text-base font-bold tracking-tight whitespace-nowrap">
-            Agent <span className="text-violet-400">Topology</span>
+            Agent <span className="text-primary">Topology</span>
           </h1>
 
           <div aria-hidden="true" className="w-px h-4 bg-[var(--color-surface-3)] hidden sm:block" />

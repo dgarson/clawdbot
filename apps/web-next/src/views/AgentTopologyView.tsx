@@ -349,7 +349,7 @@ export default function AgentTopologyView() {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Agent <span className="text-indigo-400">Topology</span></h1>
+          <h1 className="text-xl font-bold tracking-tight">Agent <span className="text-primary">Topology</span></h1>
           <p className="text-[var(--color-text-muted)] text-xs">Real-time agent network graph — {stats.total} agents</p>
         </div>
         <div className="flex items-center gap-6">
@@ -357,7 +357,7 @@ export default function AgentTopologyView() {
           {[
             { label: "Active", value: stats.active, color: "text-emerald-400" },
             { label: "Errors", value: stats.errored, color: "text-rose-400" },
-            { label: "Tokens", value: `${(stats.totalTokens / 1000).toFixed(1)}k`, color: "text-indigo-400" },
+            { label: "Tokens", value: `${(stats.totalTokens / 1000).toFixed(1)}k`, color: "text-primary" },
           ].map((s) => (
             <div key={s.label} className="flex flex-col items-center">
               <span className={cn("text-lg font-bold font-mono", s.color)}>{s.value}</span>
@@ -371,7 +371,7 @@ export default function AgentTopologyView() {
             className={cn(
               "px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all border",
               running
-                ? "bg-indigo-500/10 border-indigo-500 text-indigo-400 hover:bg-indigo-500/20"
+                ? "bg-primary/10 border-primary text-primary hover:bg-primary/20"
                 : "bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
             )}
           >
@@ -387,12 +387,12 @@ export default function AgentTopologyView() {
           placeholder="Search agents..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500 transition-colors w-40 placeholder-[var(--color-text-muted)]"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary transition-colors w-40 placeholder-[var(--color-text-muted)]"
         />
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value as AgentStatus | "all")}
-          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary transition-colors"
         >
           <option value="all">All Statuses</option>
           {(["active", "idle", "error", "spawning", "draining"] as AgentStatus[]).map((s) => (
@@ -402,7 +402,7 @@ export default function AgentTopologyView() {
         <select
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value as RoleType | "all")}
-          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary transition-colors"
         >
           <option value="all">All Roles</option>
           {(["orchestrator", "gateway", "monitor", "specialist", "worker"] as RoleType[]).map((r) => (
@@ -458,7 +458,7 @@ export default function AgentTopologyView() {
             <span className="text-sm font-medium">No agents match your filters</span>
             <button
               onClick={() => { setFilterStatus("all"); setFilterRole("all"); setSearchQuery(""); }}
-              className="text-xs text-indigo-400 hover:underline"
+              className="text-xs text-primary hover:underline"
             >
               Clear filters
             </button>

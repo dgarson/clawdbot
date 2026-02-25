@@ -32,8 +32,8 @@ const LEVEL_BG: Record<LogLevel, string> = {
 
 const SOURCE_COLORS: Record<LogSource, string> = {
   system: "text-[var(--color-text-muted)]",
-  agent: "text-indigo-400",
-  llm: "text-violet-400",
+  agent: "text-primary",
+  llm: "text-primary",
   tool: "text-emerald-400",
   webhook: "text-sky-400",
   cron: "text-amber-400",
@@ -203,7 +203,7 @@ export default function LogViewer() {
           aria-pressed={tail}
           className={cn(
             "px-2 py-0.5 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 font-sans",
-            tail ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
+            tail ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
           )}
         >
           {tail ? "↓ tailing" : "tail off"}
@@ -290,7 +290,7 @@ export default function LogViewer() {
                 {selectedLog.agent && (
                   <div>
                     <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Agent</div>
-                    <div className="text-xs text-indigo-400">{selectedLog.agent}</div>
+                    <div className="text-xs text-primary">{selectedLog.agent}</div>
                   </div>
                 )}
                 <div>

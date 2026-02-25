@@ -77,7 +77,7 @@ const typeIcon: Record<AnnouncementType, string> = {
 };
 
 const typeBadge: Record<AnnouncementType, string> = {
-  feature: "bg-indigo-500/10 border-indigo-500/30 text-indigo-400",
+  feature: "bg-primary/10 border-primary/30 text-primary",
   maintenance: "bg-amber-500/10 border-amber-500/30 text-amber-400",
   update: "bg-sky-500/10 border-sky-500/30 text-sky-400",
   deprecation: "bg-rose-500/10 border-rose-500/30 text-rose-400",
@@ -131,7 +131,7 @@ export default function AnnouncementCenter() {
           <h1 className="text-xl font-semibold tracking-tight">Announcement Center</h1>
           <p className="text-xs text-[var(--color-text-muted)] mt-0.5">In-app notifications, release notes, and product updates</p>
         </div>
-        <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
+        <button className="px-4 py-2 text-sm bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">
           + New Announcement
         </button>
       </div>
@@ -160,7 +160,7 @@ export default function AnnouncementCenter() {
             onClick={() => setTab(t.id)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              tab === t.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             <span>{t.emoji}</span>
@@ -256,7 +256,7 @@ export default function AnnouncementCenter() {
                       <div className="flex gap-2 shrink-0">
                         <button className="px-3 py-1.5 text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">Edit</button>
                         {selected.status === "draft" && (
-                          <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Publish</button>
+                          <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">Publish</button>
                         )}
                         {selected.status === "live" && (
                           <button className="px-3 py-1.5 text-xs bg-amber-500/20 border border-amber-500/40 rounded text-amber-400 hover:bg-amber-500/30 transition-colors">Expire Now</button>
@@ -269,7 +269,7 @@ export default function AnnouncementCenter() {
                       "rounded-lg border p-5",
                       selected.type === "deprecation" ? "bg-rose-500/5 border-rose-500/20" :
                       selected.type === "maintenance" ? "bg-amber-500/5 border-amber-500/20" :
-                      selected.type === "feature" ? "bg-indigo-500/5 border-indigo-500/20" :
+                      selected.type === "feature" ? "bg-primary/5 border-primary/20" :
                       "bg-[var(--color-surface-1)] border-[var(--color-border)]"
                     )}>
                       <div className="flex items-start gap-3">
@@ -278,7 +278,7 @@ export default function AnnouncementCenter() {
                           <div className="font-semibold text-sm text-[var(--color-text-primary)] mb-1">{selected.title}</div>
                           <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{selected.body}</p>
                           {selected.cta && (
-                            <button className="mt-3 px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">
+                            <button className="mt-3 px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">
                               {selected.cta} →
                             </button>
                           )}
@@ -340,11 +340,11 @@ export default function AnnouncementCenter() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Title</label>
-                <input type="text" placeholder="What are you announcing?" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500" />
+                <input type="text" placeholder="What are you announcing?" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">Body</label>
-                <textarea rows={4} placeholder="Describe the announcement in detail..." className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500 resize-none" />
+                <textarea rows={4} placeholder="Describe the announcement in detail..." className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-primary resize-none" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -370,11 +370,11 @@ export default function AnnouncementCenter() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">CTA Button (optional)</label>
-                  <input type="text" placeholder="e.g. Learn more" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500" />
+                  <input type="text" placeholder="e.g. Learn more" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-primary" />
                 </div>
                 <div>
                   <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">CTA URL (optional)</label>
-                  <input type="text" placeholder="/docs/new-feature" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500" />
+                  <input type="text" placeholder="/docs/new-feature" className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] outline-none focus:border-primary" />
                 </div>
               </div>
               <div>
@@ -395,7 +395,7 @@ export default function AnnouncementCenter() {
               </div>
               <div className="flex gap-3">
                 <button className="px-4 py-2 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">Save as Draft</button>
-                <button className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-[var(--color-text-primary)] transition-colors">Publish Now</button>
+                <button className="px-4 py-2 text-sm bg-primary hover:bg-primary rounded text-[var(--color-text-primary)] transition-colors">Publish Now</button>
                 <button className="px-4 py-2 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] transition-colors">Schedule</button>
               </div>
             </div>
@@ -443,7 +443,7 @@ export default function AnnouncementCenter() {
                     <div className="text-xs text-[var(--color-text-muted)]">{channel.reach} reach</div>
                     <div className={cn(
                       "w-9 h-5 rounded-full relative cursor-pointer transition-colors",
-                      channel.enabled ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
+                      channel.enabled ? "bg-primary" : "bg-[var(--color-surface-3)]"
                     )}>
                       <div className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform", channel.enabled ? "translate-x-4" : "translate-x-0.5")} />
                     </div>
@@ -465,7 +465,7 @@ export default function AnnouncementCenter() {
                   {[2341, 3102, 2891, 4231, 3891, 5123, 4712, 3892, 4521, 6012, 5823, 7234, 6891, 8012].map((v, i) => (
                     <div key={i} className="flex-1 flex flex-col justify-end gap-0.5">
                       <div
-                        className="bg-indigo-500/70 hover:bg-indigo-500 rounded-sm transition-colors cursor-pointer"
+                        className="bg-primary/70 hover:bg-primary rounded-sm transition-colors cursor-pointer"
                         style={{ height: `${(v / 8012) * 96}px` }}
                         title={v.toLocaleString()}
                       />

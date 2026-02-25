@@ -606,7 +606,7 @@ function TabBar({
           className={cn(
             "px-4 py-2.5 text-sm font-medium transition-colors rounded-t-lg",
             active === tab.id
-              ? "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] border-b-2 border-indigo-500"
+              ? "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] border-b-2 border-primary"
               : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-1)]/50"
           )}
         >
@@ -635,7 +635,7 @@ function Tag({ children, color }: { children: React.ReactNode; color?: string })
     <span
       className={cn(
         "inline-block text-xs px-2 py-0.5 rounded-full font-medium",
-        color ?? "bg-indigo-500/20 text-indigo-300"
+        color ?? "bg-primary/20 text-indigo-300"
       )}
     >
       {children}
@@ -666,7 +666,7 @@ function ModelsTab() {
               <button
                 key={model.id}
                 onClick={() => setSelectedModelId(model.id)}
-                className="w-full text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 hover:border-indigo-500/50 transition-colors group"
+                className="w-full text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 hover:border-primary/50 transition-colors group"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -710,7 +710,7 @@ function ModelDetail({ model, onBack }: { model: Model; onBack: () => void }) {
     <div>
       <button
         onClick={onBack}
-        className="text-indigo-400 hover:text-indigo-300 text-sm mb-4 inline-block transition-colors"
+        className="text-primary hover:text-indigo-300 text-sm mb-4 inline-block transition-colors"
       >
         ← Back to Models
       </button>
@@ -760,7 +760,7 @@ function ModelDetail({ model, onBack }: { model: Model; onBack: () => void }) {
                     <td className="px-4 py-2">
                       <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
                         <div
-                          className="bg-indigo-500 h-2 rounded-full transition-all"
+                          className="bg-primary h-2 rounded-full transition-all"
                           style={{ width: `${row.val * 100}%` }}
                         />
                       </div>
@@ -852,7 +852,7 @@ function ExperimentsTab() {
             className={cn(
               "bg-[var(--color-surface-1)] border rounded-xl p-4 transition-colors",
               isSelected(exp.id)
-                ? "border-indigo-500"
+                ? "border-primary"
                 : "border-[var(--color-border)] hover:border-[var(--color-border)]"
             )}
           >
@@ -874,7 +874,7 @@ function ExperimentsTab() {
                 className={cn(
                   "text-xs px-3 py-1 rounded-lg border transition-colors",
                   isSelected(exp.id)
-                    ? "bg-indigo-500/20 border-indigo-500 text-indigo-300"
+                    ? "bg-primary/20 border-primary text-indigo-300"
                     : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -972,7 +972,7 @@ function ComparePanel({
   }
 
   return (
-    <div className="bg-[var(--color-surface-1)] border border-indigo-500/30 rounded-xl p-5 mb-6">
+    <div className="bg-[var(--color-surface-1)] border border-primary/30 rounded-xl p-5 mb-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-indigo-300">⚖️ Side-by-Side Comparison</h3>
         <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xs transition-colors">
@@ -1088,7 +1088,7 @@ function LineageTab() {
                 <div key={entry.id} className="relative flex gap-4">
                   {/* timeline spine */}
                   <div className="flex flex-col items-center">
-                    <div className="w-3 h-3 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                    <div className="w-3 h-3 rounded-full bg-primary mt-1.5 shrink-0" />
                     {idx < entries.length - 1 && (
                       <div className="w-0.5 flex-1 bg-[var(--color-surface-3)]" />
                     )}
@@ -1104,7 +1104,7 @@ function LineageTab() {
                         <Tag color="bg-emerald-500/20 text-emerald-300">initial</Tag>
                       )}
                       {entry.deployedToProd && (
-                        <Tag color="bg-indigo-500/20 text-indigo-300">🚀 prod</Tag>
+                        <Tag color="bg-primary/20 text-indigo-300">🚀 prod</Tag>
                       )}
                     </div>
                     <p className="text-sm text-[var(--color-text-primary)] mb-2">{entry.changeNotes}</p>

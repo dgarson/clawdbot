@@ -42,6 +42,7 @@ import {
   loadOverview as loadOverviewInternal,
   setTab as setTabInternal,
   setTheme as setThemeInternal,
+  setThemeColor as setThemeColorInternal,
   onPopState as onPopStateInternal,
 } from "./app-settings.ts";
 import {
@@ -60,7 +61,7 @@ import type { SkillMessage } from "./controllers/skills.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
-import type { ResolvedTheme, ThemeMode } from "./theme.ts";
+import type { ResolvedTheme, ThemeMode, ThemeColor } from "./theme.ts";
 import type {
   AgentsListResult,
   AgentsFilesListResult,
@@ -119,6 +120,7 @@ export class OpenClawApp extends LitElement {
   @state() onboarding = resolveOnboardingMode();
   @state() connected = false;
   @state() theme: ThemeMode = this.settings.theme ?? "system";
+  @state() themeColor: ThemeColor = this.settings.themeColor ?? "original";
   @state() themeResolved: ResolvedTheme = "dark";
   @state() hello: GatewayHelloOk | null = null;
   @state() lastError: string | null = null;
@@ -434,6 +436,14 @@ export class OpenClawApp extends LitElement {
 
   setTheme(next: ThemeMode, context?: Parameters<typeof setThemeInternal>[2]) {
     setThemeInternal(this as unknown as Parameters<typeof setThemeInternal>[0], next, context);
+  }
+
+  setThemeColor(next: ThemeColor, context?: Parameters<typeof setThemeColorInternal>[2]) {
+    setThemeColorInternal(
+      this as unknown as Parameters<typeof setThemeColorInternal>[0],
+      next,
+      context,
+    );
   }
 
   async loadOverview() {

@@ -90,8 +90,8 @@ const DECISION_TYPE_META: Record<
 > = {
   "model-selection": {
     label: "Model Selection",
-    color: "text-violet-400",
-    bg: "bg-violet-500/15 ring-violet-500/25",
+    color: "text-primary",
+    bg: "bg-primary/15 ring-violet-500/25",
     icon: <Brain className="w-3.5 h-3.5" />,
   },
   "tool-choice": {
@@ -613,7 +613,7 @@ function DecisionCard({ decision, expanded, onToggle }: {
           {/* Outcome detail */}
           <div className="mt-4 px-3 py-2.5 rounded-lg bg-[var(--color-surface-2)]/40 border border-[var(--color-border)]/50">
             <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1 flex items-center gap-1.5">
-              <Target className="w-3.5 h-3.5 text-indigo-400" />
+              <Target className="w-3.5 h-3.5 text-primary" />
               Outcome
             </h4>
             <p className="text-sm text-[var(--color-text-primary)]">{decision.outcomeDetail}</p>
@@ -756,13 +756,13 @@ function SelfEvalCard({ report }: { report: SelfEvalReport }) {
           {/* Routing Recommendations */}
           <div>
             <h4 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
+              <GitBranch className="w-3.5 h-3.5 text-primary" />
               Routing Recommendations
             </h4>
             <ul className="space-y-1">
               {report.routingRecommendations.map((s, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-[var(--color-text-primary)]">
-                  <span className="text-indigo-400 mt-0.5 flex-none">&rarr;</span>
+                  <span className="text-primary mt-0.5 flex-none">&rarr;</span>
                   <span>{s}</span>
                 </li>
               ))}
@@ -809,8 +809,8 @@ function DistributionBar({
 // ─── Model color mapping ────────────────────────────────────────────────────
 
 const MODEL_COLORS: Record<string, string> = {
-  "claude-sonnet-4-6": "bg-violet-500",
-  "claude-opus-4-6": "bg-indigo-500",
+  "claude-sonnet-4-6": "bg-primary",
+  "claude-opus-4-6": "bg-primary",
   "gpt-4o-mini": "bg-emerald-500",
   "gpt-4o": "bg-sky-500",
   "minimax-m2.5": "bg-amber-500",
@@ -889,7 +889,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-              <Brain className="w-5 h-5 text-indigo-400" />
+              <Brain className="w-5 h-5 text-primary" />
               Decision Provenance & Self-Eval
             </h1>
             <p className="text-sm text-[var(--color-text-muted)] mt-0.5">
@@ -912,7 +912,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
@@ -967,7 +967,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                     className={cn(
                       "px-2 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                       timeRange === range
-                        ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                        ? "bg-primary text-[var(--color-text-primary)]"
                         : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                     )}
                   >
@@ -1066,7 +1066,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
               {/* Model distribution */}
               <div className="px-5 py-4 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)]">
                 <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                  <BarChart3 className="w-3.5 h-3.5 text-violet-400" />
+                  <BarChart3 className="w-3.5 h-3.5 text-primary" />
                   Model Selection Distribution
                 </h3>
                 <DistributionBar
@@ -1124,7 +1124,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
                         <tr key={i} className="hover:bg-[var(--color-surface-2)]/40 transition-colors">
                           <td className="px-4 py-2.5 font-medium text-[var(--color-text-primary)]">{rule.taskType}</td>
                           <td className="px-4 py-2.5">
-                            <span className="font-mono text-indigo-400">{rule.preferredModel}</span>
+                            <span className="font-mono text-primary">{rule.preferredModel}</span>
                           </td>
                           <td className="px-4 py-2.5">
                             <span className="font-mono text-[var(--color-text-secondary)]">{rule.fallback}</span>

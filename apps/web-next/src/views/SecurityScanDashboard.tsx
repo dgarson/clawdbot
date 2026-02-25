@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { cn } from "../lib/utils"
+import { AlertSelectFilterBar } from "../components/alerts/AlertFilters"
 
 type ScanSeverity = "critical" | "high" | "medium" | "low" | "info"
 type ScanType = "sast" | "dast" | "sca" | "container" | "iac" | "secrets"
@@ -92,7 +93,7 @@ const scanTypeLabel: Record<ScanType, string> = {
 }
 
 const scanStatusColor: Record<ScanStatus, string> = {
-  running: "text-indigo-400",
+  running: "text-primary",
   completed: "text-emerald-400",
   failed: "text-rose-400",
   scheduled: "text-[var(--color-text-secondary)]",
@@ -177,7 +178,7 @@ export default function SecurityScanDashboard() {
           <h1 className="text-2xl font-bold">Security Scan Dashboard</h1>
           <p className="text-[var(--color-text-secondary)] text-sm mt-1">SAST · DAST · SCA · Container · IaC · Secrets</p>
         </div>
-        <button className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-md text-sm font-medium transition-colors">
+        <button className="px-4 py-2 bg-primary hover:bg-primary rounded-md text-sm font-medium transition-colors">
           ▶ Run All Scans
         </button>
       </div>
@@ -215,7 +216,7 @@ export default function SecurityScanDashboard() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                ? "border-primary text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -228,30 +229,49 @@ export default function SecurityScanDashboard() {
       {tab === "findings" && (
         <div className="space-y-4">
           {/* Filters */}
-          <div className="flex gap-2 flex-wrap">
-            <select value={severityFilter} onChange={e => setSeverityFilter(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
-              <option value="all">All Severities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
-              <option value="all">All Types</option>
-              <option value="sast">SAST</option>
-              <option value="dast">DAST</option>
-              <option value="sca">SCA</option>
-              <option value="container">Container</option>
-              <option value="iac">IaC</option>
-              <option value="secrets">Secrets</option>
-            </select>
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)]">
-              <option value="all">All Statuses</option>
-              <option value="open">Open</option>
-              <option value="in-progress">In Progress</option>
-              <option value="resolved">Resolved</option>
-              <option value="accepted">Accepted</option>
-            </select>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <AlertSelectFilterBar
+              filters={[
+                {
+                  value: severityFilter,
+                  onChange: setSeverityFilter,
+                  ariaLabel: "Filter findings by severity",
+                  options: [
+                    { value: "all", label: "All Severities" },
+                    { value: "critical", label: "Critical" },
+                    { value: "high", label: "High" },
+                    { value: "medium", label: "Medium" },
+                    { value: "low", label: "Low" },
+                  ],
+                },
+                {
+                  value: typeFilter,
+                  onChange: setTypeFilter,
+                  ariaLabel: "Filter findings by type",
+                  options: [
+                    { value: "all", label: "All Types" },
+                    { value: "sast", label: "SAST" },
+                    { value: "dast", label: "DAST" },
+                    { value: "sca", label: "SCA" },
+                    { value: "container", label: "Container" },
+                    { value: "iac", label: "IaC" },
+                    { value: "secrets", label: "Secrets" },
+                  ],
+                },
+                {
+                  value: statusFilter,
+                  onChange: setStatusFilter,
+                  ariaLabel: "Filter findings by status",
+                  options: [
+                    { value: "all", label: "All Statuses" },
+                    { value: "open", label: "Open" },
+                    { value: "in-progress", label: "In Progress" },
+                    { value: "resolved", label: "Resolved" },
+                    { value: "accepted", label: "Accepted" },
+                  ],
+                },
+              ]}
+            />
             <span className="text-sm text-[var(--color-text-secondary)] self-center">{filteredFindings.length} findings</span>
           </div>
 
@@ -303,7 +323,7 @@ export default function SecurityScanDashboard() {
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-[var(--color-text-muted)]">First seen: {f.firstSeen}</span>
                       <div className="flex gap-2">
-                        <button className="px-3 py-1 text-xs bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-md transition-colors">
+                        <button className="px-3 py-1 text-xs bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors">
                           Assign to Me
                         </button>
                         <button className="px-3 py-1 text-xs bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20 rounded-md transition-colors">
@@ -412,7 +432,7 @@ export default function SecurityScanDashboard() {
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">Avg time to resolve critical</div>
             </div>
             <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-indigo-400">94%</div>
+              <div className="text-3xl font-bold text-primary">94%</div>
               <div className="text-sm text-[var(--color-text-secondary)] mt-1">Scan coverage of codebase</div>
             </div>
           </div>

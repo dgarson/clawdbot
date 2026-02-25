@@ -204,7 +204,7 @@ function RepositoriesTab() {
               </div>
               {r.tags.map((t) => (
                 <div key={t.tag} className="grid grid-cols-[1fr_1fr_2fr_1fr] gap-4 px-4 py-2.5 border-b border-[var(--color-border)]/50 last:border-0">
-                  <span className="text-indigo-400 text-sm font-mono">{t.tag}</span>
+                  <span className="text-primary text-sm font-mono">{t.tag}</span>
                   <span className="text-[var(--color-text-primary)] text-sm">{t.size}</span>
                   <span className="text-[var(--color-text-muted)] text-xs font-mono truncate">{t.digest}</span>
                   <span className="text-[var(--color-text-secondary)] text-sm">{t.pushedAt}</span>
@@ -231,7 +231,7 @@ function ImagesTab() {
         <select
           value={repoFilter}
           onChange={(e) => setRepoFilter(e.target.value)}
-          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-md px-3 py-1.5 outline-none focus:border-primary"
         >
           <option value="all">All repositories</option>
           {repoNames.map((n) => <option key={n} value={n}>{n}</option>)}
@@ -256,7 +256,7 @@ function ImagesTab() {
                 <span className="text-[var(--color-text-secondary)] text-sm">{img.created}</span>
                 <button
                   onClick={() => setLayerView(layerView === key ? null : key)}
-                  className="text-indigo-400 text-sm hover:text-indigo-300 text-left"
+                  className="text-primary text-sm hover:text-indigo-300 text-left"
                 >
                   {img.layers.length} layers
                 </button>
@@ -273,7 +273,7 @@ function ImagesTab() {
                           <span className="text-xs text-[var(--color-text-muted)] w-6 text-right">{idx}</span>
                           <div className="flex-1 h-5 bg-[var(--color-surface-2)] rounded overflow-hidden">
                             <div
-                              className="h-full bg-indigo-500/60 rounded"
+                              className="h-full bg-primary/60 rounded"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
@@ -335,7 +335,7 @@ function VulnerabilitiesTab() {
                   <span className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide">Affected Images</span>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {c.affectedImages.map((img) => (
-                      <span key={img} className="text-xs font-mono text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 px-2 py-0.5 rounded">{img}</span>
+                      <span key={img} className="text-xs font-mono text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded">{img}</span>
                     ))}
                   </div>
                 </div>
@@ -368,7 +368,7 @@ function SettingsTab() {
           <div className="space-y-1">
             <span className="text-[var(--color-text-primary)]">28.9 GB / 50 GB</span>
             <div className="w-full h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-              <div className="h-full bg-indigo-500 rounded-full" style={{ width: "57.8%" }} />
+              <div className="h-full bg-primary rounded-full" style={{ width: "57.8%" }} />
             </div>
             <span className="text-xs text-[var(--color-text-muted)]">57.8% used</span>
           </div>
@@ -437,7 +437,7 @@ export default function ContainerRegistry() {
               className={cn(
                 "px-4 py-2 text-sm font-medium transition-colors rounded-t-md border-b-2",
                 tab === t.key
-                  ? "text-indigo-400 border-indigo-500 bg-indigo-500/5"
+                  ? "text-primary border-primary bg-primary/5"
                   : "text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
               )}
             >

@@ -152,9 +152,9 @@ const CATEGORIES: BudgetCategory[] = [
 ];
 
 const SEGMENT_COLORS = [
-  "bg-indigo-500",
+  "bg-primary",
   "bg-sky-500",
-  "bg-violet-500",
+  "bg-primary",
   "bg-teal-500",
   "bg-pink-500",
   "bg-amber-500",
@@ -345,7 +345,7 @@ export default function BudgetTracker({ isLoading = false }: { isLoading?: boole
                     className={cn(
                       "px-3 py-1.5 text-sm font-medium transition-colors",
                       period === p
-                        ? "bg-indigo-600 text-fg-primary"
+                        ? "bg-primary text-fg-primary"
                         : "text-fg-secondary hover:text-fg-primary"
                     )}
                   >
@@ -353,7 +353,7 @@ export default function BudgetTracker({ isLoading = false }: { isLoading?: boole
                   </button>
                 ))}
               </div>
-              <button className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary px-3 py-1.5 rounded text-sm">
+              <button className="bg-primary hover:bg-primary text-fg-primary px-3 py-1.5 rounded text-sm">
                 Export
               </button>
             </div>
@@ -513,7 +513,7 @@ export default function BudgetTracker({ isLoading = false }: { isLoading?: boole
                   <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
                     <div className="flex items-end gap-0.5 h-32 w-full justify-center">
                       <div
-                        className="w-[40%] bg-indigo-500/40 rounded-t"
+                        className="w-[40%] bg-primary/40 rounded-t"
                         style={{ height: `${bH}%` }}
                         title={`Budget: ${fmt(m.budget)}`}
                       />
@@ -533,7 +533,7 @@ export default function BudgetTracker({ isLoading = false }: { isLoading?: boole
             </div>
             <div className="flex items-center gap-5 mt-3">
               <div className="flex items-center gap-1.5 text-xs text-fg-secondary">
-                <div className="w-2.5 h-2.5 rounded-sm bg-indigo-500/40" />
+                <div className="w-2.5 h-2.5 rounded-sm bg-primary/40" />
                 <span>Budget</span>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-fg-secondary">

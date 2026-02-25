@@ -179,7 +179,7 @@ function ChangeCard({ change, selected, onSelect }: ChangeCardProps) {
       className={cn(
         'w-full text-left p-4 border rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500',
         selected
-          ? 'border-violet-500 bg-violet-500/5'
+          ? 'border-primary bg-primary/5'
           : 'border-[var(--color-border)] bg-[var(--color-surface-1)]/50 hover:border-[var(--color-border)] hover:bg-[var(--color-surface-1)]'
       )}
     >
@@ -259,12 +259,12 @@ export default function ChangeManagementBoard() {
         <div className="p-4 border-b border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <GitBranch className="w-4 h-4 text-violet-400" />
+              <GitBranch className="w-4 h-4 text-primary" />
               <h1 className="text-sm font-semibold text-[var(--color-text-primary)]">Change Management</h1>
             </div>
             <button
               type="button"
-              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 bg-primary hover:bg-primary text-[var(--color-text-primary)] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
             >
               <Plus className="w-3 h-3" />
               New Change
@@ -305,7 +305,7 @@ export default function ChangeManagementBoard() {
                 className={cn(
                   'text-[10px] px-2 py-1 rounded-lg font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-violet-500',
                   statusFilter === s
-                    ? 'bg-violet-600 text-[var(--color-text-primary)]'
+                    ? 'bg-primary text-[var(--color-text-primary)]'
                     : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]'
                 )}
               >
@@ -403,7 +403,7 @@ export default function ChangeManagementBoard() {
                 {selected.approvals.map((approval) => (
                   <div key={approval.name} className="flex items-center justify-between p-3 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-violet-600/20 border border-violet-600/30 flex items-center justify-center text-xs font-medium text-violet-300">
+                      <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-xs font-medium text-violet-300">
                         {approval.name[0]}
                       </div>
                       <span className="text-sm text-[var(--color-text-primary)]">{approval.name}</span>
@@ -453,7 +453,7 @@ export default function ChangeManagementBoard() {
                 </button>
               )}
               {selected.status === 'in-progress' && (
-                <button type="button" className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+                <button type="button" className="flex-1 py-2.5 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
                   Mark Complete
                 </button>
               )}

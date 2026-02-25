@@ -83,14 +83,14 @@ const SESSIONS: ContextSession[] = [
 
 const ROLE_COLORS: Record<MessageRole, string> = {
   system: "bg-amber-500/10 border-amber-500/30 text-amber-400",
-  user: "bg-indigo-500/10 border-indigo-500/30 text-indigo-400",
+  user: "bg-primary/10 border-primary/30 text-primary",
   assistant: "bg-[var(--color-surface-2)]/60 border-[var(--color-border)] text-[var(--color-text-secondary)]",
   tool: "bg-emerald-500/5 border-emerald-500/20 text-emerald-400",
 };
 
 const BUCKET_COLORS: Record<TokenBucket, string> = {
   system: "bg-amber-500",
-  user: "bg-indigo-500",
+  user: "bg-primary",
   assistant: "bg-[var(--color-surface-3)]",
   tool: "bg-emerald-500",
   overhead: "bg-[var(--color-surface-3)]",
@@ -148,7 +148,7 @@ export default function ContextWindowViewer() {
                     onClick={() => setSelectedId(s.id)}
                     className={cn(
                       "w-full text-left px-4 py-3 hover:bg-[var(--color-surface-2)]/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                      s.id === selectedId && "bg-[var(--color-surface-2)] border-l-2 border-indigo-500"
+                      s.id === selectedId && "bg-[var(--color-surface-2)] border-l-2 border-primary"
                     )}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -195,7 +195,7 @@ export default function ContextWindowViewer() {
                   aria-pressed={showImportant}
                   className={cn(
                     "px-3 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                    showImportant ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                    showImportant ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   ★ Important only
@@ -260,7 +260,7 @@ export default function ContextWindowViewer() {
                   >
                     <div className="shrink-0 flex flex-col items-center gap-0.5 pt-0.5">
                       <span className="font-semibold capitalize">{msg.role}</span>
-                      {msg.important && <span className="text-indigo-400">★</span>}
+                      {msg.important && <span className="text-primary">★</span>}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[var(--color-text-primary)] font-mono leading-relaxed whitespace-pre-wrap">

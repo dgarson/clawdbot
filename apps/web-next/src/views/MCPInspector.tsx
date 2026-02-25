@@ -186,8 +186,8 @@ const KIND_STYLES: Record<ToolKind, string> = {
   read: "bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/20",
   write: "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20",
   exec: "bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20",
-  browser: "bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/20",
-  message: "bg-indigo-500/10 text-indigo-400 ring-1 ring-indigo-500/20",
+  browser: "bg-primary/10 text-primary ring-1 ring-violet-500/20",
+  message: "bg-primary/10 text-primary ring-1 ring-indigo-500/20",
   network: "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20",
   process: "bg-[var(--color-surface-3)]/10 text-[var(--color-text-secondary)] ring-1 ring-zinc-500/20",
   spawn: "bg-pink-500/10 text-pink-400 ring-1 ring-pink-500/20",
@@ -197,8 +197,8 @@ const PARAM_TYPE_COLORS: Record<ParamType, string> = {
   string: "text-emerald-400",
   number: "text-amber-400",
   boolean: "text-sky-400",
-  object: "text-violet-400",
-  array: "text-indigo-400",
+  object: "text-primary",
+  array: "text-primary",
 };
 
 export default function MCPInspector() {
@@ -225,7 +225,7 @@ export default function MCPInspector() {
             onClick={() => setKindFilter("all")}
             className={cn(
               "px-2.5 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-              kindFilter === "all" ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              kindFilter === "all" ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             All
@@ -236,7 +236,7 @@ export default function MCPInspector() {
               onClick={() => setKindFilter(k)}
               className={cn(
                 "px-2.5 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                kindFilter === k ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                kindFilter === k ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {k}
@@ -256,7 +256,7 @@ export default function MCPInspector() {
                 onClick={() => { setSelectedName(tool.name); setTab("schema"); }}
                 className={cn(
                   "w-full text-left px-4 py-3 hover:bg-[var(--color-surface-2)]/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                  tool.name === selectedName && "bg-[var(--color-surface-2)] border-l-2 border-indigo-500"
+                  tool.name === selectedName && "bg-[var(--color-surface-2)] border-l-2 border-primary"
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -321,7 +321,7 @@ export default function MCPInspector() {
                 onClick={() => setTab(t)}
                 className={cn(
                   "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-                  tab === t ? "border-indigo-500 text-indigo-400" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+                  tab === t ? "border-primary text-primary" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 {t === "schema" ? "Schema" : `History (${selected.invocations.length})`}
@@ -383,7 +383,7 @@ export default function MCPInspector() {
                         {inv.success ? "success" : "error"}
                       </span>
                       <span className="text-xs text-[var(--color-text-muted)]">{inv.ts}</span>
-                      <span className="text-xs text-indigo-400">{inv.agent}</span>
+                      <span className="text-xs text-primary">{inv.agent}</span>
                       <span className="text-xs text-[var(--color-text-muted)] ml-auto">{inv.durationMs}ms</span>
                     </div>
                     <div className="space-y-2">

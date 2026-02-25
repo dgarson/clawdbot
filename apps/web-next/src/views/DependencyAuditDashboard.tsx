@@ -136,7 +136,7 @@ export default function DependencyAuditDashboard() {
             <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Dependency Audit</h1>
             <p className="text-[var(--color-text-secondary)] text-sm mt-1">CVE scanning, outdated packages, and license compliance</p>
           </div>
-          <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition-colors">
+          <button className="px-4 py-2 rounded-lg bg-primary hover:bg-primary text-sm font-medium transition-colors">
             Run Audit
           </button>
         </div>
@@ -165,7 +165,7 @@ export default function DependencyAuditDashboard() {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
                 tab === t.id
-                  ? "border-indigo-500 text-[var(--color-text-primary)]"
+                  ? "border-primary text-[var(--color-text-primary)]"
                   : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -244,7 +244,7 @@ export default function DependencyAuditDashboard() {
                 <button
                   key={f}
                   onClick={() => { setStatusFilter(f === "all" ? "all" : f); setSelectedDep(null); }}
-                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", statusFilter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+                  className={cn("px-3 py-1.5 rounded-lg text-xs font-medium transition-colors", statusFilter === f ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
                 >
                   {f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>

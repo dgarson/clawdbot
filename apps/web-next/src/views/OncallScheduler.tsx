@@ -25,7 +25,7 @@ interface SwapTarget {
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const AGENTS: Agent[] = [
-  { name: "Luis", color: "#6366f1", bgClass: "bg-indigo-500", textClass: "text-indigo-400", borderClass: "border-indigo-500" },
+  { name: "Luis", color: "#6366f1", bgClass: "bg-primary", textClass: "text-primary", borderClass: "border-primary" },
   { name: "Xavier", color: "#f59e0b", bgClass: "bg-amber-500", textClass: "text-amber-400", borderClass: "border-amber-500" },
   { name: "Piper", color: "#ec4899", bgClass: "bg-pink-500", textClass: "text-pink-400", borderClass: "border-pink-500" },
   { name: "Quinn", color: "#10b981", bgClass: "bg-emerald-500", textClass: "text-emerald-400", borderClass: "border-emerald-500" },
@@ -168,7 +168,7 @@ export default function OncallScheduler() {
           <div className="text-sm font-medium text-[var(--color-text-primary)] min-w-[180px] text-center">
             {formatDate(viewMonday)} – {formatDate(addDays(viewMonday, 6))}
             {isCurrentWeek && (
-              <span className="ml-2 text-xs text-indigo-400 font-semibold">(This week)</span>
+              <span className="ml-2 text-xs text-primary font-semibold">(This week)</span>
             )}
           </div>
           <button
@@ -180,7 +180,7 @@ export default function OncallScheduler() {
           {!isCurrentWeek && (
             <button
               onClick={() => { setWeekOffset(0); setSwapTarget(null); }}
-              className="px-3 py-1.5 rounded-md bg-indigo-600 text-[var(--color-text-primary)] hover:bg-indigo-500 text-sm font-medium transition-colors"
+              className="px-3 py-1.5 rounded-md bg-primary text-[var(--color-text-primary)] hover:bg-primary text-sm font-medium transition-colors"
             >
               Today
             </button>
@@ -203,10 +203,10 @@ export default function OncallScheduler() {
                     key={name}
                     className={cn(
                       "p-3 text-center border-l border-[var(--color-border)]",
-                      isToday ? "bg-indigo-500/10" : ""
+                      isToday ? "bg-primary/10" : ""
                     )}
                   >
-                    <div className={cn("text-xs font-semibold uppercase", isToday ? "text-indigo-400" : "text-[var(--color-text-secondary)]")}>
+                    <div className={cn("text-xs font-semibold uppercase", isToday ? "text-primary" : "text-[var(--color-text-secondary)]")}>
                       {name}
                     </div>
                     <div className={cn("text-lg font-bold mt-0.5", isToday ? "text-indigo-300" : "text-[var(--color-text-primary)]")}>
@@ -244,9 +244,9 @@ export default function OncallScheduler() {
                       onClick={() => handleBlockClick(dayIdx, period)}
                       className={cn(
                         "border-l border-[var(--color-border)] p-2 min-h-[72px] transition-all text-left relative group",
-                        isToday ? "bg-indigo-500/5" : "bg-[var(--color-surface-1)]",
+                        isToday ? "bg-primary/5" : "bg-[var(--color-surface-1)]",
                         isSelected ? "ring-2 ring-indigo-500 ring-inset bg-[var(--color-surface-2)]" : "",
-                        isNow ? "bg-indigo-500/10" : "",
+                        isNow ? "bg-primary/10" : "",
                         "hover:bg-[var(--color-surface-2)]/80 cursor-pointer"
                       )}
                     >
@@ -422,7 +422,7 @@ export default function OncallScheduler() {
             </div>
             <div className="mt-3 h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
               <div
-                className="h-full rounded-full bg-indigo-500 transition-all"
+                className="h-full rounded-full bg-primary transition-all"
                 style={{ width: `${((today.getHours() % 12) / 12) * 100}%` }}
               />
             </div>
@@ -462,7 +462,7 @@ export default function OncallScheduler() {
                     </div>
                   </div>
                   {idx === 0 && (
-                    <span className="text-[10px] font-semibold text-indigo-400 uppercase">Primary</span>
+                    <span className="text-[10px] font-semibold text-primary uppercase">Primary</span>
                   )}
                 </div>
               ))}

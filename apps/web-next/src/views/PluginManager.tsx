@@ -208,7 +208,7 @@ export default function PluginManager() {
             className={cn(
               "w-full py-2 px-4 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
               activeTab === 'marketplace' 
-                ? "bg-indigo-600 text-[var(--color-text-primary)]" 
+                ? "bg-primary text-[var(--color-text-primary)]" 
                 : "bg-[var(--color-surface-1)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] border border-[var(--color-border)]"
             )}
           >
@@ -226,7 +226,7 @@ export default function PluginManager() {
               onClick={() => setActiveTab('installed')}
               className={cn(
                 "h-full px-1 border-b-2 transition-colors text-sm font-medium flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ring-offset-zinc-950",
-                activeTab === 'installed' ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+                activeTab === 'installed' ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               Installed
@@ -235,7 +235,7 @@ export default function PluginManager() {
               onClick={() => setActiveTab('marketplace')}
               className={cn(
                 "h-full px-1 border-b-2 transition-colors text-sm font-medium flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ring-offset-zinc-950",
-                activeTab === 'marketplace' ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+                activeTab === 'marketplace' ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               Marketplace
@@ -295,7 +295,7 @@ function InstalledTabView({ plugin }: { plugin: Plugin }) {
             </button>
           )}
           {plugin.id === 'prometheus-metrics' && (
-            <button className="px-4 py-2 bg-indigo-600 text-[var(--color-text-primary)] rounded-md text-sm font-bold hover:bg-indigo-500 transition-colors animate-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+            <button className="px-4 py-2 bg-primary text-[var(--color-text-primary)] rounded-md text-sm font-bold hover:bg-primary transition-colors animate-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
               Update Available
             </button>
           )}
@@ -327,13 +327,13 @@ function InstalledTabView({ plugin }: { plugin: Plugin }) {
         <div className="mb-8 p-6 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               <span className="font-bold text-[var(--color-text-primary)]">Updating to v2.3.1...</span>
             </div>
             <span className="text-[var(--color-text-muted)] text-sm">65% complete</span>
           </div>
           <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2 overflow-hidden">
-            <div className="bg-indigo-500 h-full w-[65%] rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(99,102,241,0.5)]" />
+            <div className="bg-primary h-full w-[65%] rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(99,102,241,0.5)]" />
           </div>
         </div>
       )}
@@ -437,7 +437,7 @@ function MarketplaceTabView({
                 <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
               </div>
             </div>
-            <h4 className="text-lg font-bold text-[var(--color-text-primary)] group-hover:text-indigo-400 transition-colors">{plugin.name}</h4>
+            <h4 className="text-lg font-bold text-[var(--color-text-primary)] group-hover:text-primary transition-colors">{plugin.name}</h4>
             <p className="text-xs text-[var(--color-text-muted)] mb-3 font-medium">by {plugin.author}</p>
             <p className="text-sm text-[var(--color-text-secondary)] line-clamp-2 mb-6 flex-1 leading-relaxed">{plugin.description}</p>
             
@@ -450,7 +450,7 @@ function MarketplaceTabView({
                 </div>
               ) : (
                 <button 
-                  className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-xs font-bold rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="px-3 py-1 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-xs font-bold rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   onClick={(e) => {
                     e.stopPropagation();
                     // Install logic
@@ -489,7 +489,7 @@ function MarketplaceModal({ plugin, onClose }: { plugin: MarketplacePlugin, onCl
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-16 h-16 bg-[var(--color-surface-1)] border-4 border-[var(--color-border)] rounded-2xl flex items-center justify-center shadow-lg">
-                  <span className="text-2xl font-bold text-indigo-500">{plugin.name.charAt(0)}</span>
+                  <span className="text-2xl font-bold text-primary">{plugin.name.charAt(0)}</span>
                 </div>
                 <div className="pt-8">
                   <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">{plugin.name}</h2>
@@ -519,7 +519,7 @@ function MarketplaceModal({ plugin, onClose }: { plugin: MarketplacePlugin, onCl
               <div className="p-4 bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] rounded-xl space-y-2">
                 {["identity:read", "workspace:write", "network:access"].map(perm => (
                   <div key={perm} className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                    <svg className="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     {perm}
                   </div>
                 ))}
@@ -533,7 +533,7 @@ function MarketplaceModal({ plugin, onClose }: { plugin: MarketplacePlugin, onCl
                   Plugin Installed
                 </button>
               ) : (
-                <button className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-indigo-500 ring-offset-2 ring-offset-zinc-950">
+                <button className="flex-1 py-3 bg-primary hover:bg-primary text-[var(--color-text-primary)] font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-indigo-500 ring-offset-2 ring-offset-zinc-950">
                   Install {plugin.name}
                 </button>
               )}
@@ -558,7 +558,7 @@ function StatusIndicator({ status, size = "md" }: { status: PluginStatus, size?:
     enabled: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.4)]",
     disabled: "bg-[var(--color-surface-3)]",
     error: "bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.4)]",
-    updating: "bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.4)]"
+    updating: "bg-primary animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.4)]"
   };
   const sizeClasses = size === "sm" ? "w-2 h-2" : "w-3 h-3";
   return <div className={cn("rounded-full", sizeClasses, colors[status])} />;
@@ -577,7 +577,7 @@ function StatusBadge({ status }: { status: PluginStatus }) {
     enabled: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20",
     disabled: "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border-[var(--color-border)]",
     error: "bg-rose-400/10 text-rose-400 border-rose-400/20",
-    updating: "bg-indigo-400/10 text-indigo-400 border-indigo-400/20"
+    updating: "bg-primary/10 text-primary border-primary/20"
   };
   return (
     <span className={cn("px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border", styles[status])}>
@@ -593,7 +593,7 @@ function FilterChip({ label, active, onClick }: { label: string, active: boolean
       className={cn(
         "px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border focus:outline-none focus:ring-2 focus:ring-indigo-500/50",
         active 
-          ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]" 
+          ? "bg-primary border-primary text-[var(--color-text-primary)]" 
           : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-border)] hover:text-[var(--color-text-primary)]"
       )}
     >

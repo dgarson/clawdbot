@@ -253,14 +253,14 @@ export default function OnboardingFlow() {
           </div>
           <p className="mt-2 text-sm text-[var(--color-text-secondary)]">Step {Math.min(stepIndex + 1, totalSteps)} of {totalSteps}</p>
           <div className="mt-3 h-2 w-full rounded-full bg-[var(--color-surface-2)]">
-            <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${progressPct}%` }} />
+            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progressPct}%` }} />
           </div>
         </header>
 
         <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-1)] p-6 md:p-8">
           {state.step === 'welcome' && (
             <div className="space-y-4">
-              {resumedFromStorage && <p className="rounded-xl bg-indigo-500/10 p-3 text-sm text-indigo-200">Welcome back — we saved your progress.</p>}
+              {resumedFromStorage && <p className="rounded-xl bg-primary/10 p-3 text-sm text-indigo-200">Welcome back — we saved your progress.</p>}
               <h2 className="text-3xl font-semibold">Welcome to OpenClaw</h2>
               <p className="text-[var(--color-text-primary)]">Setup takes about 3 minutes. OpenClaw runs locally so you stay in control of data, permissions, and automations.</p>
               <div className="rounded-xl border border-[var(--color-border)] p-4">
@@ -282,11 +282,11 @@ export default function OnboardingFlow() {
                 <p className="text-sm text-[var(--color-text-secondary)]">Pick the setup that matches how you work.</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <button type="button" onClick={() => setState(prev => ({ ...prev, gatewayMode: 'local' }))} className={cn('rounded-xl border p-4 text-left', state.gatewayMode === 'local' ? 'border-indigo-500 bg-indigo-500/10' : 'border-[var(--color-border)]')}>
+                <button type="button" onClick={() => setState(prev => ({ ...prev, gatewayMode: 'local' }))} className={cn('rounded-xl border p-4 text-left', state.gatewayMode === 'local' ? 'border-primary bg-primary/10' : 'border-[var(--color-border)]')}>
                   <p className="font-medium">This Mac (recommended)</p>
                   <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Best for first-time setup. OAuth and local app integrations work out of the box.</p>
                 </button>
-                <button type="button" onClick={() => setState(prev => ({ ...prev, gatewayMode: 'remote' }))} className={cn('rounded-xl border p-4 text-left', state.gatewayMode === 'remote' ? 'border-indigo-500 bg-indigo-500/10' : 'border-[var(--color-border)]')}>
+                <button type="button" onClick={() => setState(prev => ({ ...prev, gatewayMode: 'remote' }))} className={cn('rounded-xl border p-4 text-left', state.gatewayMode === 'remote' ? 'border-primary bg-primary/10' : 'border-[var(--color-border)]')}>
                   <p className="font-medium">Remote host</p>
                   <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Use SSH or tailnet when your Gateway runs elsewhere.</p>
                 </button>
@@ -355,7 +355,7 @@ export default function OnboardingFlow() {
                 )}
               </div>
               <div className="flex flex-wrap gap-3">
-                <button type="button" onClick={installCli} disabled={state.cliStatus === 'installing'} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500 disabled:opacity-50">
+                <button type="button" onClick={installCli} disabled={state.cliStatus === 'installing'} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium hover:bg-primary disabled:opacity-50">
                   {state.cliStatus === 'installing' ? 'Installing…' : 'Install with detected package manager'}
                 </button>
                 <button type="button" onClick={() => setState(prev => ({ ...prev, cliStatus: 'idle' }))} className="rounded-lg border border-[var(--color-surface-3)] px-4 py-2 text-sm">Skip for now</button>
@@ -371,7 +371,7 @@ export default function OnboardingFlow() {
               <p className="text-sm text-[var(--color-text-primary)]">Hey — I’m your OpenClaw assistant. Want to connect a channel, build an automation, or do a quick system check first?</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {SUGGESTED_PROMPTS.map(prompt => (
-                  <button key={prompt} type="button" onClick={() => setState(prev => ({ ...prev, selectedPrompt: prompt }))} className={cn('rounded-lg border p-3 text-left text-sm', state.selectedPrompt === prompt ? 'border-indigo-500 bg-indigo-500/10' : 'border-[var(--color-border)]')}>
+                  <button key={prompt} type="button" onClick={() => setState(prev => ({ ...prev, selectedPrompt: prompt }))} className={cn('rounded-lg border p-3 text-left text-sm', state.selectedPrompt === prompt ? 'border-primary bg-primary/10' : 'border-[var(--color-border)]')}>
                     {prompt}
                   </button>
                 ))}
@@ -391,7 +391,7 @@ export default function OnboardingFlow() {
               <h2 className="text-3xl font-semibold">{state.outcome === 'skipped' ? 'Setup skipped' : 'Setup complete'}</h2>
               <p className="text-[var(--color-text-primary)]">{state.outcome === 'skipped' ? 'You can run onboarding later from settings.' : 'Your OpenClaw workspace is ready.'}</p>
               <div className="flex flex-wrap items-center justify-center gap-3">
-                <button type="button" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500">Open dashboard</button>
+                <button type="button" className="rounded-lg bg-primary px-4 py-2 text-sm font-medium hover:bg-primary">Open dashboard</button>
                 <button type="button" className="rounded-lg border border-[var(--color-surface-3)] px-4 py-2 text-sm">Start chatting</button>
               </div>
             </div>
@@ -403,7 +403,7 @@ export default function OnboardingFlow() {
             <button type="button" onClick={goBack} disabled={state.step === 'welcome'} className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm disabled:opacity-40">
               <ChevronLeft className="h-4 w-4" />Back
             </button>
-            <button type="button" onClick={advance} disabled={!canContinue} className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500 disabled:opacity-40">
+            <button type="button" onClick={advance} disabled={!canContinue} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium hover:bg-primary disabled:opacity-40">
               {state.step === 'welcome' ? 'Get started' : state.step === 'chat' ? 'Finish setup' : 'Continue'}
               <ChevronRight className="h-4 w-4" />
             </button>

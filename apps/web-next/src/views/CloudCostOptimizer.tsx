@@ -533,8 +533,8 @@ const MONTHLY_SAVINGS: MonthlySavings[] = [
 ]
 
 const CATEGORY_SAVINGS: CategorySavings[] = [
-  { category: "Compute", implemented: 3960, potential: 5400, color: "bg-indigo-500" },
-  { category: "Database", implemented: 5820, potential: 12080, color: "bg-violet-500" },
+  { category: "Compute", implemented: 3960, potential: 5400, color: "bg-primary" },
+  { category: "Database", implemented: 5820, potential: 12080, color: "bg-primary" },
   { category: "Storage", implemented: 2840, potential: 6260, color: "bg-cyan-500" },
   { category: "Network", implemented: 256, potential: 389, color: "bg-emerald-500" },
 ]
@@ -821,7 +821,7 @@ function RecommendationsTab({ recommendations }: RecommendationsTabProps) {
         </div>
         <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
           <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Open Recommendations</p>
-          <p className="text-2xl font-bold text-indigo-400">{newCount} <span className="text-sm font-normal text-fg-secondary">new</span></p>
+          <p className="text-2xl font-bold text-primary">{newCount} <span className="text-sm font-normal text-fg-secondary">new</span></p>
         </div>
       </div>
 
@@ -834,7 +834,7 @@ function RecommendationsTab({ recommendations }: RecommendationsTabProps) {
             className={cn(
               "text-xs font-medium px-3 py-1.5 rounded-full border transition-colors",
               filterStatus === f.value
-                ? "bg-indigo-600 text-fg-primary border-indigo-500"
+                ? "bg-primary text-fg-primary border-primary"
                 : "bg-surface-1 text-fg-secondary border-tok-border hover:text-fg-primary hover:border-tok-border"
             )}
           >
@@ -1041,10 +1041,10 @@ function SavingsTrackerTab({ monthly, categories }: SavingsTrackerTabProps) {
         </div>
         <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
           <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Savings Realized</p>
-          <p className="text-2xl font-bold text-indigo-400">{pctRealized}%</p>
+          <p className="text-2xl font-bold text-primary">{pctRealized}%</p>
           <div className="mt-2 h-2 bg-surface-2 rounded-full overflow-hidden">
             <div
-              className="h-full bg-indigo-500 rounded-full"
+              className="h-full bg-primary rounded-full"
               style={{ width: pctRealized + "%" }}
             />
           </div>
@@ -1090,7 +1090,7 @@ function SavingsTrackerTab({ monthly, categories }: SavingsTrackerTabProps) {
                           height: Math.max(barHeightPx, 4) + "px",
                         }}
                       >
-                        <div className="w-full h-full bg-indigo-500 rounded-t-sm group relative">
+                        <div className="w-full h-full bg-primary rounded-t-sm group relative">
                           {/* Tooltip */}
                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:flex flex-col items-center z-10 pointer-events-none">
                             <div className="bg-surface-2 border border-tok-border rounded px-2 py-1 text-xs text-fg-primary whitespace-nowrap shadow-xl">
@@ -1292,7 +1292,7 @@ export default function CloudCostOptimizer() {
             </div>
             <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
               <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Savings Potential</p>
-              <p className="text-xl font-bold text-indigo-400">{fmtDollars(totalPotentialSavings)}<span className="text-sm font-normal text-fg-muted">/mo</span></p>
+              <p className="text-xl font-bold text-primary">{fmtDollars(totalPotentialSavings)}<span className="text-sm font-normal text-fg-muted">/mo</span></p>
             </div>
             <div className="bg-surface-1 border border-tok-border rounded-xl p-4">
               <p className="text-xs text-fg-muted uppercase tracking-wider mb-1">Savings Implemented</p>
@@ -1317,7 +1317,7 @@ export default function CloudCostOptimizer() {
                 className={cn(
                   "px-5 py-3.5 text-sm font-medium border-b-2 transition-colors",
                   activeTab === tab.id
-                    ? "border-indigo-500 text-indigo-400"
+                    ? "border-primary text-primary"
                     : "border-transparent text-fg-secondary hover:text-fg-primary hover:border-tok-border"
                 )}
               >

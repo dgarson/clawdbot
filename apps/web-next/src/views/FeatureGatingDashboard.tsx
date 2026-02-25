@@ -166,7 +166,7 @@ function statusBadge(s: GateStatus) {
 function typeBadge(t: GateType) {
   const colors: Record<GateType, string> = {
     boolean: "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]",
-    percentage: "bg-indigo-500/20 text-indigo-300",
+    percentage: "bg-primary/20 text-indigo-300",
     "user-list": "bg-blue-500/20 text-blue-300",
     segment: "bg-purple-500/20 text-purple-300",
     schedule: "bg-orange-500/20 text-orange-300",
@@ -227,7 +227,7 @@ export default function FeatureGatingDashboard() {
         </div>
         <div className="flex gap-2">
           <button className="px-3 py-1.5 text-sm bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] rounded-lg text-[var(--color-text-primary)] transition-colors">SDK Docs</button>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Gate</button>
+          <button className="px-3 py-1.5 text-sm bg-primary hover:bg-primary rounded-lg text-[var(--color-text-primary)] transition-colors">+ New Gate</button>
         </div>
       </div>
 
@@ -257,7 +257,7 @@ export default function FeatureGatingDashboard() {
           <button
             key={t.id}
             onClick={() => { setTab(t.id); setSelectedGate(null); }}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             {t.label}
           </button>
@@ -407,7 +407,7 @@ export default function FeatureGatingDashboard() {
                     <span className="text-[var(--color-text-primary)]">{selectedGate.rolloutPercent}%</span>
                   </div>
                   <div className="h-3 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${selectedGate.rolloutPercent}%` }} />
+                    <div className="h-full bg-primary rounded-full" style={{ width: `${selectedGate.rolloutPercent}%` }} />
                   </div>
                 </div>
               )}
@@ -437,7 +437,7 @@ export default function FeatureGatingDashboard() {
                             <div className="text-sm text-[var(--color-text-primary)]">{seg.name}</div>
                             <div className="text-xs text-[var(--color-text-muted)]">{seg.criteria}</div>
                           </div>
-                          <div className="text-sm text-indigo-400">{seg.size.toLocaleString()} users</div>
+                          <div className="text-sm text-primary">{seg.size.toLocaleString()} users</div>
                         </div>
                       ) : null;
                     })}
@@ -483,7 +483,7 @@ export default function FeatureGatingDashboard() {
                     <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{seg.criteria}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xl font-bold text-indigo-400">{seg.size.toLocaleString()}</div>
+                    <div className="text-xl font-bold text-primary">{seg.size.toLocaleString()}</div>
                     <div className="text-xs text-[var(--color-text-muted)]">users</div>
                   </div>
                 </div>
@@ -492,7 +492,7 @@ export default function FeatureGatingDashboard() {
                     <div className="text-xs text-[var(--color-text-muted)] mb-2">Used by {activeGates.length} gate{activeGates.length !== 1 ? "s" : ""}:</div>
                     <div className="flex flex-wrap gap-1">
                       {activeGates.map(g => (
-                        <span key={g.id} className="text-xs px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-mono">{g.key}</span>
+                        <span key={g.id} className="text-xs px-2 py-0.5 rounded bg-primary/10 text-indigo-300 font-mono">{g.key}</span>
                       ))}
                     </div>
                   </div>
@@ -546,7 +546,7 @@ export default function FeatureGatingDashboard() {
                       <span className="text-[var(--color-text-secondary)]">{g.evaluations.toLocaleString()}</span>
                     </div>
                     <div className="h-2 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${pct}%` }} />
+                      <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );
@@ -564,7 +564,7 @@ export default function FeatureGatingDashboard() {
               <div className="flex items-start justify-between mb-1">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-[var(--color-text-primary)]">{ev.gateName}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400">{ev.action}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">{ev.action}</span>
                 </div>
                 <span className="text-xs text-[var(--color-text-muted)]">{ev.timestamp}</span>
               </div>

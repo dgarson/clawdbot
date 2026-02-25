@@ -342,7 +342,7 @@ const AgentInbox: React.FC<{ isLoading?: boolean }> = ({ isLoading = false }) =>
     switch (p) {
       case 'urgent': return 'bg-rose-400';
       case 'high': return 'bg-rose-400/60';
-      case 'normal': return 'bg-indigo-500';
+      case 'normal': return 'bg-primary';
       case 'low': return 'bg-surface-3';
     }
   };
@@ -358,11 +358,11 @@ const AgentInbox: React.FC<{ isLoading?: boolean }> = ({ isLoading = false }) =>
 
   const getKindBadgeStyles = (k: InboxItemKind) => {
     switch (k) {
-      case 'task': return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+      case 'task': return 'bg-primary/10 text-primary border-primary/20';
       case 'mention': return 'bg-amber-400/10 text-amber-400 border-amber-400/20';
       case 'alert': return 'bg-rose-400/10 text-rose-400 border-rose-400/20';
       case 'review-request': return 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20';
-      case 'approval': return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+      case 'approval': return 'bg-primary/10 text-primary border-primary/20';
       case 'system': return 'bg-surface-2 text-fg-secondary border-tok-border';
     }
   };
@@ -374,7 +374,7 @@ const AgentInbox: React.FC<{ isLoading?: boolean }> = ({ isLoading = false }) =>
 
   const getAvatarColor = (name: string) => {
     const colors = [
-      'bg-indigo-500', 'bg-emerald-500', 'bg-rose-500', 'bg-amber-500', 
+      'bg-primary', 'bg-emerald-500', 'bg-rose-500', 'bg-amber-500', 
       'bg-purple-500', 'bg-cyan-500', 'bg-pink-500'
     ];
     if (name === 'system') {return 'bg-surface-3';}
@@ -389,7 +389,7 @@ const AgentInbox: React.FC<{ isLoading?: boolean }> = ({ isLoading = false }) =>
       {/* Skip link */}
       <a
         href="#inbox-list"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to inbox
       </a>
@@ -422,7 +422,7 @@ const AgentInbox: React.FC<{ isLoading?: boolean }> = ({ isLoading = false }) =>
                   {folder.count > 0 && (
                     <span className={cn(
                       "text-[10px] px-1.5 py-0.5 rounded-full font-medium",
-                      folder.id === 'unread' || folder.id === 'action-required' ? "bg-indigo-500 text-fg-primary" : "bg-surface-2 text-fg-muted"
+                      folder.id === 'unread' || folder.id === 'action-required' ? "bg-primary text-fg-primary" : "bg-surface-2 text-fg-muted"
                     )}>
                       {folder.count}
                     </span>
@@ -630,7 +630,7 @@ const AgentInbox: React.FC<{ isLoading?: boolean }> = ({ isLoading = false }) =>
                         key={idx}
                         className={cn(
                           "px-6 py-2 rounded-md text-sm font-semibold transition-all shadow-sm active:scale-95 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none",
-                          action.variant === 'primary' && "bg-indigo-500 hover:bg-indigo-600 text-fg-primary",
+                          action.variant === 'primary' && "bg-primary hover:bg-primary text-fg-primary",
                           action.variant === 'danger' && "bg-rose-500 hover:bg-rose-600 text-fg-primary",
                           action.variant === 'secondary' && "bg-surface-2 hover:bg-surface-3 text-fg-primary border border-tok-border"
                         )}

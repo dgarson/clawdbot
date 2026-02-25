@@ -154,7 +154,7 @@ function PillGroup<T extends string | number>({ options, value, onChange }: Pill
           className={cn(
             'px-3 py-1 rounded-lg text-xs font-medium transition-colors border',
             value === opt.value
-              ? 'bg-violet-600 border-violet-500 text-[var(--color-text-primary)]'
+              ? 'bg-primary border-primary text-[var(--color-text-primary)]'
               : 'bg-[var(--color-surface-2)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]',
           )}
         >
@@ -447,7 +447,7 @@ function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
                 className={cn(
                   'w-full text-left px-3 py-2.5 rounded-lg border transition-all',
                   selected
-                    ? 'bg-violet-950/60 border-violet-500 ring-1 ring-violet-500/30'
+                    ? 'bg-violet-950/60 border-primary ring-1 ring-violet-500/30'
                     : 'bg-[var(--color-surface-2)]/50 border-[var(--color-border)] hover:border-[var(--color-surface-3)]',
                 )}
               >
@@ -477,7 +477,7 @@ function SettingsPanel({ settings, onChange }: SettingsPanelProps) {
             max={10000}
             value={settings.budgetLine}
             onChange={(e) => patch('budgetLine', Math.max(1, Number(e.target.value)))}
-            className="w-20 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-violet-500 tabular-nums"
+            className="w-20 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2 py-1 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary tabular-nums"
           />
         </div>
       </div>
@@ -511,7 +511,7 @@ export default function CostForecastChart() {
         {/* ── Header ── */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
-            <CalendarDays className="w-5 h-5 text-violet-400" />
+            <CalendarDays className="w-5 h-5 text-primary" />
             <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Cost Forecast</h1>
           </div>
           <p className="text-sm text-[var(--color-text-secondary)]">

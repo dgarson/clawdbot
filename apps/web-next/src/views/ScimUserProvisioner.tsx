@@ -183,7 +183,7 @@ export default function ScimUserProvisioner(): React.ReactElement {
             <span className="text-amber-400">{outOfSyncCount} out-of-sync</span>
             <span className="text-[var(--color-text-secondary)]">{unmappedCount} unmapped</span>
           </div>
-          <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
+          <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded-md transition-colors">
             Sync Now
           </button>
         </div>
@@ -198,7 +198,7 @@ export default function ScimUserProvisioner(): React.ReactElement {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
-                ? "text-indigo-400 border-indigo-500"
+                ? "text-primary border-primary"
                 : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -219,7 +219,7 @@ export default function ScimUserProvisioner(): React.ReactElement {
                   placeholder="Search users..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded px-2.5 py-1.5 text-xs text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
                 />
                 <div className="flex flex-wrap gap-1">
                   {(["all", "active", "deprovisioned", "pending", "failed"] as const).map((s) => (
@@ -228,7 +228,7 @@ export default function ScimUserProvisioner(): React.ReactElement {
                       onClick={() => setStatusFilter(s)}
                       className={cn(
                         "px-1.5 py-0.5 text-[10px] rounded border transition-colors",
-                        statusFilter === s ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-surface-3)]"
+                        statusFilter === s ? "bg-primary/20 border-primary text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       {s}
@@ -243,7 +243,7 @@ export default function ScimUserProvisioner(): React.ReactElement {
                     onClick={() => setSelectedUser(u)}
                     className={cn(
                       "w-full text-left px-4 py-3 transition-colors",
-                      selectedUser.id === u.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/40"
+                      selectedUser.id === u.id ? "bg-primary/10" : "hover:bg-[var(--color-surface-2)]/40"
                     )}
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -327,14 +327,14 @@ export default function ScimUserProvisioner(): React.ReactElement {
                     <div className="text-xs text-[var(--color-text-secondary)]">{g.memberCount} members</div>
                     <div className="w-28 text-center">
                       {g.mappedRole
-                        ? <span className="text-xs px-2 py-0.5 rounded bg-indigo-600/10 border border-indigo-600/30 text-indigo-300">{g.mappedRole}</span>
+                        ? <span className="text-xs px-2 py-0.5 rounded bg-primary/10 border border-primary/30 text-indigo-300">{g.mappedRole}</span>
                         : <span className="text-xs text-[var(--color-text-muted)]">no role mapped</span>
                       }
                     </div>
                     <span className={cn("text-xs w-20 text-right", syncStatusColor[g.syncStatus])}>
                       {g.syncStatus.replace("_", " ")}
                     </span>
-                    <button className="text-[10px] text-indigo-400 hover:text-indigo-300">Map Role</button>
+                    <button className="text-[10px] text-primary hover:text-indigo-300">Map Role</button>
                   </div>
                 ))}
               </div>
@@ -389,7 +389,7 @@ export default function ScimUserProvisioner(): React.ReactElement {
                   <span className={cn("text-xs font-mono font-bold",
                     log.operation === "create" ? "text-emerald-400" :
                     log.operation === "deactivate" ? "text-rose-400" :
-                    log.operation === "full_sync" ? "text-indigo-400" : "text-amber-400"
+                    log.operation === "full_sync" ? "text-primary" : "text-amber-400"
                   )}>{log.operation.replace("_", " ")}</span>
                   <span className="text-xs text-[var(--color-text-primary)]">{log.entity}</span>
                   <span className={cn("text-xs ml-auto", log.status === "success" ? "text-emerald-400" : log.status === "failed" ? "text-rose-400" : "text-[var(--color-text-muted)]")}>

@@ -179,13 +179,13 @@ function kindIcon(kind: EventKind): string {
 function kindColor(kind: EventKind): string {
   switch (kind) {
     case "message":
-      return "text-indigo-400";
+      return "text-primary";
     case "tool-call":
       return "text-amber-400";
     case "tool-result":
       return "text-emerald-400";
     case "subagent-spawn":
-      return "text-indigo-400";
+      return "text-primary";
     case "subagent-done":
       return "text-emerald-400";
     case "system":
@@ -269,7 +269,7 @@ function EventRow({
       className={cn(
         "w-full text-left px-3 py-2.5 border-b border-[var(--color-border)]/50 transition-colors",
         "hover:bg-[var(--color-surface-2)]/40 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-inset",
-        isCurrent && "bg-indigo-500/15 border-l-2 border-l-indigo-500",
+        isCurrent && "bg-primary/15 border-l-2 border-l-indigo-500",
         !isCurrent && "border-l-2 border-l-transparent"
       )}
     >
@@ -535,7 +535,7 @@ export default function SessionReplay() {
           tabIndex={0}
         >
           <div
-            className="h-full bg-indigo-500 transition-all duration-150 group-hover:bg-indigo-400"
+            className="h-full bg-primary transition-all duration-150 group-hover:bg-primary"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -548,7 +548,7 @@ export default function SessionReplay() {
             onClick={togglePlay}
             className={cn(
               "flex items-center justify-center w-8 h-8 rounded-md transition-colors",
-              "bg-indigo-500 hover:bg-indigo-400 text-[var(--color-text-primary)]",
+              "bg-primary hover:bg-primary text-[var(--color-text-primary)]",
               "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
             )}
             aria-label={isPlaying ? "Pause" : "Play"}
@@ -595,7 +595,7 @@ export default function SessionReplay() {
                   "px-2 py-1 rounded text-xs font-mono transition-colors",
                   "focus:outline-none focus:ring-1 focus:ring-indigo-500",
                   s === speed
-                    ? "bg-indigo-500/20 text-indigo-400 font-semibold"
+                    ? "bg-primary/20 text-primary font-semibold"
                     : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >
@@ -623,7 +623,7 @@ export default function SessionReplay() {
                   "px-2.5 py-1 rounded-full text-xs transition-colors",
                   "focus:outline-none focus:ring-1 focus:ring-indigo-500",
                   chip.value === activeFilter
-                    ? "bg-indigo-500/20 text-indigo-400 font-semibold"
+                    ? "bg-primary/20 text-primary font-semibold"
                     : "bg-[var(--color-surface-2)]/60 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
                 )}
               >

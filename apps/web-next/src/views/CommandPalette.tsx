@@ -72,9 +72,9 @@ const RECENT_IDS = new Set(["nav-theme", "nav-builder", "act-run-cron"]);
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const KIND_COLORS: Record<CommandKind, string> = {
-  navigate: "text-indigo-400",
+  navigate: "text-primary",
   action:   "text-emerald-400",
-  agent:    "text-violet-400",
+  agent:    "text-primary",
   file:     "text-[var(--color-text-secondary)]",
   model:    "text-orange-400",
   setting:  "text-amber-400",
@@ -89,7 +89,7 @@ function highlight(text: string, query: string): React.ReactNode {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-indigo-500/30 text-indigo-200 rounded-sm px-0.5">{text.slice(idx, idx + query.length)}</mark>
+      <mark className="bg-primary/30 text-indigo-200 rounded-sm px-0.5">{text.slice(idx, idx + query.length)}</mark>
       {text.slice(idx + query.length)}
     </>
   );
@@ -112,7 +112,7 @@ function CommandItem({ command, active, query, onActivate }: CommandItemProps) {
       className={cn(
         "w-full text-left flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors",
         "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500 focus-visible:outline-none",
-        active ? "bg-indigo-600/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/60 hover:text-[var(--color-text-primary)]"
+        active ? "bg-primary/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]/60 hover:text-[var(--color-text-primary)]"
       )}
     >
       <span className="text-lg w-7 text-center shrink-0" aria-hidden="true">{command.emoji}</span>
@@ -352,9 +352,9 @@ export default function CommandPalette() {
         {/* Category summary */}
         <div className="mt-4 grid grid-cols-4 gap-2">
           {[
-            { label: "Navigation", count: COMMANDS.filter(c => c.kind === "navigate").length, color: "text-indigo-400" },
+            { label: "Navigation", count: COMMANDS.filter(c => c.kind === "navigate").length, color: "text-primary" },
             { label: "Actions",    count: COMMANDS.filter(c => c.kind === "action").length,   color: "text-emerald-400" },
-            { label: "Agents",     count: COMMANDS.filter(c => c.kind === "agent").length,    color: "text-violet-400" },
+            { label: "Agents",     count: COMMANDS.filter(c => c.kind === "agent").length,    color: "text-primary" },
             { label: "Models",     count: COMMANDS.filter(c => c.kind === "model").length,    color: "text-orange-400" },
           ].map(cat => (
             <div key={cat.label} className="rounded-xl bg-[var(--color-surface-1)] border border-[var(--color-border)] p-3 text-center">

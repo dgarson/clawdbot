@@ -339,7 +339,7 @@ export default function TeamDirectory() {
           className={cn(
             "flex flex-col items-center gap-1 p-3 rounded-xl border transition-all",
             selectedAgent?.id === agent.id
-              ? "bg-indigo-900/40 border-indigo-500"
+              ? "bg-indigo-900/40 border-primary"
               : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
           )}
           style={{ minWidth: 110 }}
@@ -399,7 +399,7 @@ export default function TeamDirectory() {
                 className={cn(
                   "px-3 py-1.5 rounded text-sm capitalize",
                   viewMode === m
-                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    ? "bg-primary text-[var(--color-text-primary)]"
                     : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -415,7 +415,7 @@ export default function TeamDirectory() {
             { label: "Active", value: activeCount, color: "text-emerald-400" },
             { label: "Busy", value: busyCount, color: "text-amber-400" },
             { label: "Idle", value: idleCount, color: "text-[var(--color-text-secondary)]" },
-            { label: "Tasks / Week", value: totalTasks, color: "text-indigo-400" },
+            { label: "Tasks / Week", value: totalTasks, color: "text-primary" },
             { label: "Avg Response", value: `${avgResponse}ms`, color: "text-blue-400" },
           ].map((s) => (
             <div key={s.label} className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
@@ -440,7 +440,7 @@ export default function TeamDirectory() {
                 onClick={() => setSquadFilter("all")}
                 className={cn(
                   "px-2.5 py-1 rounded text-xs",
-                  squadFilter === "all" ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                  squadFilter === "all" ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 All Squads
@@ -451,7 +451,7 @@ export default function TeamDirectory() {
                   onClick={() => setSquadFilter(s)}
                   className={cn(
                     "px-2.5 py-1 rounded text-xs",
-                    squadFilter === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                    squadFilter === s ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {SQUAD_LABELS[s]}
@@ -465,7 +465,7 @@ export default function TeamDirectory() {
                   onClick={() => setStatusFilter(st)}
                   className={cn(
                     "px-2.5 py-1 rounded text-xs capitalize",
-                    statusFilter === st ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                    statusFilter === st ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {st === "all" ? "All Status" : st}
@@ -499,7 +499,7 @@ export default function TeamDirectory() {
                     className={cn(
                       "text-left p-4 rounded-xl border transition-all",
                       isSelected
-                        ? "bg-indigo-900/30 border-indigo-500"
+                        ? "bg-indigo-900/30 border-primary"
                         : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                     )}
                   >
@@ -534,7 +534,7 @@ export default function TeamDirectory() {
                     <div className="grid grid-cols-2 gap-2 text-[11px]">
                       <div>
                         <span className="text-[var(--color-text-muted)]">Tasks/wk </span>
-                        <span className="text-indigo-400 font-medium">{agent.tasksThisWeek}</span>
+                        <span className="text-primary font-medium">{agent.tasksThisWeek}</span>
                       </div>
                       <div>
                         <span className="text-[var(--color-text-muted)]">Avg </span>
@@ -589,7 +589,7 @@ export default function TeamDirectory() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-[var(--color-text-muted)] font-mono text-xs">{agent.model.split("/")[1] ?? agent.model}</td>
-                        <td className="px-4 py-3 text-indigo-400 font-medium">{agent.tasksThisWeek}</td>
+                        <td className="px-4 py-3 text-primary font-medium">{agent.tasksThisWeek}</td>
                         <td className="px-4 py-3 text-blue-400">{agent.avgResponseMs}ms</td>
                         <td className="px-4 py-3 text-[var(--color-text-muted)]">{agent.joined}</td>
                       </tr>
@@ -636,11 +636,11 @@ export default function TeamDirectory() {
                 </div>
                 <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
                   <div className="text-[var(--color-text-muted)] text-xs mb-1">Channel</div>
-                  <div className="text-indigo-400 font-mono text-xs">{selectedAgent.channel}</div>
+                  <div className="text-primary font-mono text-xs">{selectedAgent.channel}</div>
                 </div>
                 <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
                   <div className="text-[var(--color-text-muted)] text-xs mb-1">Tasks/Week</div>
-                  <div className="text-indigo-400 font-bold">{selectedAgent.tasksThisWeek}</div>
+                  <div className="text-primary font-bold">{selectedAgent.tasksThisWeek}</div>
                 </div>
                 <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3">
                   <div className="text-[var(--color-text-muted)] text-xs mb-1">Avg Response</div>

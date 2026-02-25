@@ -105,7 +105,7 @@ const statusDot: Record<RuleStatus, string> = {
 };
 
 const directionBadge: Record<Direction, string> = {
-  inbound:  "bg-indigo-500/15 border-indigo-500/30 text-indigo-400",
+  inbound:  "bg-primary/15 border-primary/30 text-primary",
   outbound: "bg-purple-500/15 border-purple-500/30 text-purple-400",
 };
 
@@ -147,13 +147,13 @@ export default function NetworkFirewallRuleManager() {
                 <span className="text-xs text-amber-400">{reviewRules.length} rules need review</span>
               </div>
             )}
-            <button className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium transition-colors">+ New Rule</button>
+            <button className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary text-xs font-medium transition-colors">+ New Rule</button>
           </div>
         </div>
         {/* Stats */}
         <div className="flex gap-4 mt-3">
           {[
-            { label: "Inbound Rules", value: inboundRules.length, color: "text-indigo-400" },
+            { label: "Inbound Rules", value: inboundRules.length, color: "text-primary" },
             { label: "Outbound Rules", value: outboundRules.length, color: "text-purple-400" },
             { label: "Deny Rules", value: denyRules.length, color: "text-rose-400" },
             { label: "Total Hits Today", value: formatHits(RULES.reduce((s, r) => s + r.hitCount, 0)), color: "text-emerald-400" },
@@ -431,7 +431,7 @@ export default function NetworkFirewallRuleManager() {
                           ev.action.includes("CREATED") ? "bg-emerald-500/15 text-emerald-400" :
                           ev.action.includes("DISABLED") ? "bg-amber-500/15 text-amber-400" :
                           ev.action.includes("MODIFIED") ? "bg-sky-500/15 text-sky-400" :
-                          "bg-indigo-500/15 text-indigo-400"
+                          "bg-primary/15 text-primary"
                         )}>{ev.action}</span>
                         <span className="text-xs text-[var(--color-text-primary)] font-medium truncate">{ev.resource}</span>
                       </div>

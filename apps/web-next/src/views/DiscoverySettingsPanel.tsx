@@ -145,7 +145,7 @@ function Toggle({
       onClick={() => onChange(!checked)}
       className={cn(
         "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-800",
-        checked ? "bg-indigo-600" : "bg-[var(--color-surface-3)]"
+        checked ? "bg-primary" : "bg-[var(--color-surface-3)]"
       )}
       aria-pressed={checked}
       aria-label={label}
@@ -339,7 +339,7 @@ function ModelRoutingTable({
                     onChange={(e) =>
                       update(slot.id, { slotName: e.target.value })
                     }
-                    className="w-full bg-transparent border-b border-[var(--color-surface-3)] focus:border-indigo-500 text-[var(--color-text-primary)] text-sm px-1 py-0.5 outline-none"
+                    className="w-full bg-transparent border-b border-[var(--color-surface-3)] focus:border-primary text-[var(--color-text-primary)] text-sm px-1 py-0.5 outline-none"
                   />
                 </td>
                 <td className="px-2 py-1.5">
@@ -387,7 +387,7 @@ function ModelRoutingTable({
       <button
         type="button"
         onClick={addRow}
-        className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1"
+        className="text-xs text-primary hover:text-indigo-300 transition-colors flex items-center gap-1"
       >
         <span className="text-base leading-none">+</span> Add model slot
       </button>
@@ -475,7 +475,7 @@ export default function DiscoverySettingsPanel() {
             <button
               type="button"
               onClick={handleSave}
-              className="px-4 py-1.5 rounded-md text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-900"
+              className="px-4 py-1.5 rounded-md text-sm font-medium bg-primary hover:bg-primary text-[var(--color-text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-900"
             >
               Save
             </button>
@@ -664,7 +664,7 @@ export default function DiscoverySettingsPanel() {
 
         {/* ── Footer save strip ── */}
         {isDirty && (
-          <div className="flex items-center justify-between rounded-lg border border-indigo-500/30 bg-indigo-950/40 px-5 py-3">
+          <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-indigo-950/40 px-5 py-3">
             <p className="text-sm text-indigo-300">
               You have unsaved changes.
             </p>
@@ -679,7 +679,7 @@ export default function DiscoverySettingsPanel() {
               <button
                 type="button"
                 onClick={handleSave}
-                className="px-4 py-1.5 rounded-md text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] transition-colors"
+                className="px-4 py-1.5 rounded-md text-xs font-medium bg-primary hover:bg-primary text-[var(--color-text-primary)] transition-colors"
               >
                 Save changes
               </button>

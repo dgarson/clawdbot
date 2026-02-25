@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 interface SlideOverPanelProps {
   open: boolean;
@@ -29,7 +30,7 @@ export function SlideOverPanel({ open, title, onClose, children }: SlideOverPane
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50">
       <button className="absolute inset-0 bg-black/55" onClick={onClose} aria-label="Close detail panel" />
       <div
@@ -48,6 +49,7 @@ export function SlideOverPanel({ open, title, onClose, children }: SlideOverPane
         </div>
         <div className="space-y-3">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

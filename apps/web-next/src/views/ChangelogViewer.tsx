@@ -29,14 +29,14 @@ interface Release {
 const CHANGE_META: Record<ChangeType, { label: string; emoji: string; pillBg: string; pillText: string }> = {
   breaking:    { label: "Breaking Change", emoji: "🔥", pillBg: "bg-rose-500/20",    pillText: "text-rose-400" },
   feature:     { label: "New Feature",     emoji: "✨", pillBg: "bg-emerald-500/20", pillText: "text-emerald-400" },
-  improvement: { label: "Improvement",     emoji: "💎", pillBg: "bg-indigo-500/20",  pillText: "text-indigo-400" },
+  improvement: { label: "Improvement",     emoji: "💎", pillBg: "bg-primary/20",  pillText: "text-primary" },
   bugfix:      { label: "Bug Fix",         emoji: "🐛", pillBg: "bg-amber-500/20",   pillText: "text-amber-400" },
   deprecation: { label: "Deprecation",     emoji: "📦", pillBg: "bg-[var(--color-surface-3)]/20",    pillText: "text-fg-secondary" },
 };
 
 const RELEASE_TYPE_STYLES: Record<ReleaseType, { bg: string; text: string }> = {
   major: { bg: "bg-rose-500/20",    text: "text-rose-400" },
-  minor: { bg: "bg-indigo-500/20",  text: "text-indigo-400" },
+  minor: { bg: "bg-primary/20",  text: "text-primary" },
   patch: { bg: "bg-[var(--color-surface-3)]/20",    text: "text-fg-primary" },
 };
 
@@ -361,7 +361,7 @@ export default function ChangelogViewer({ isLoading = false }: { isLoading?: boo
               placeholder="Search releases..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-tok-border bg-surface-2 px-3 py-2 text-sm text-fg-primary placeholder-[var(--color-text-muted)] outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-tok-border bg-surface-2 px-3 py-2 text-sm text-fg-primary placeholder-[var(--color-text-muted)] outline-none focus:border-primary focus:ring-1 focus:ring-indigo-500"
             />
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -372,7 +372,7 @@ export default function ChangelogViewer({ isLoading = false }: { isLoading?: boo
                 className={cn(
                   "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                   filter === opt.value
-                    ? "bg-indigo-500 text-fg-primary"
+                    ? "bg-primary text-fg-primary"
                     : "bg-surface-2 text-fg-secondary hover:bg-surface-3 hover:text-fg-primary"
                 )}
               >
@@ -403,7 +403,7 @@ export default function ChangelogViewer({ isLoading = false }: { isLoading?: boo
                       className={cn(
                         "flex items-center justify-between rounded-lg px-3 py-2.5 text-left transition-colors",
                         isSelected
-                          ? "bg-indigo-500/10 text-fg-primary"
+                          ? "bg-primary/10 text-fg-primary"
                           : "text-fg-secondary hover:bg-surface-2 hover:text-fg-primary"
                       )}
                     >

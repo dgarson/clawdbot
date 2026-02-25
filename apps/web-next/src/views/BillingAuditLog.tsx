@@ -96,7 +96,7 @@ const TAX_RECORDS: TaxRecord[] = [
 function categoryBadge(c: EventCategory) {
   const map: Record<EventCategory, string> = {
     payment: "bg-emerald-500/10 text-emerald-400",
-    subscription: "bg-indigo-500/10 text-indigo-400",
+    subscription: "bg-primary/10 text-primary",
     invoice: "bg-blue-500/10 text-blue-400",
     refund: "bg-amber-500/10 text-amber-400",
     credit: "bg-purple-500/10 text-purple-400",
@@ -169,7 +169,7 @@ export default function BillingAuditLog() {
             <option value="pdf">Export PDF</option>
             <option value="json">Export JSON</option>
           </select>
-          <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[var(--color-text-primary)] transition-colors">Download</button>
+          <button className="px-3 py-1.5 text-sm bg-primary hover:bg-primary rounded-lg text-[var(--color-text-primary)] transition-colors">Download</button>
         </div>
       </div>
 
@@ -199,7 +199,7 @@ export default function BillingAuditLog() {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+            className={cn("px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px", tab === t.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
           >
             {t.label}
           </button>
@@ -345,7 +345,7 @@ export default function BillingAuditLog() {
                     <td className="px-4 py-3 text-xs text-[var(--color-text-primary)]">{tx.taxType}</td>
                     <td className="px-4 py-3 text-sm font-medium text-[var(--color-text-primary)]">${tx.amount.toFixed(2)}</td>
                     <td className="px-4 py-3">
-                      <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", tx.status === "filed" ? "bg-emerald-400/10 text-emerald-400" : tx.status === "pending" ? "bg-amber-400/10 text-amber-400" : "bg-indigo-400/10 text-indigo-400")}>{tx.status}</span>
+                      <span className={cn("text-xs px-2 py-0.5 rounded-full capitalize", tx.status === "filed" ? "bg-emerald-400/10 text-emerald-400" : tx.status === "pending" ? "bg-amber-400/10 text-amber-400" : "bg-primary/10 text-primary")}>{tx.status}</span>
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)]">{tx.filedAt ?? "—"}</td>
                   </tr>

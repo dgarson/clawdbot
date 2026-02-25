@@ -407,7 +407,7 @@ const DELIVERY_STYLES: Record<DeliveryStatus, string> = {
 
 const DIRECTION_STYLES: Record<WebhookDirection, string> = {
   inbound:
-    "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
+    "bg-primary/10 text-primary border border-primary/20",
   outbound:
     "bg-[var(--color-surface-3)]/50 text-[var(--color-text-primary)] border border-[var(--color-surface-3)]/40",
 };
@@ -747,8 +747,8 @@ function AddWebhookModal({ open, onClose, onAdd }: AddModalProps) {
               type="submit"
               disabled={!isValid}
               className={cn(
-                "rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] transition-colors",
-                "hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed",
+                "rounded-md bg-primary px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] transition-colors",
+                "hover:bg-primary disabled:opacity-40 disabled:cursor-not-allowed",
                 "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
               )}
             >
@@ -968,8 +968,8 @@ export default function WebhookManager() {
             onClick={() => setShowAddModal(true)}
             aria-label="Add webhook"
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-medium text-[var(--color-text-primary)]",
-              "hover:bg-indigo-500 transition-colors",
+              "inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-sm font-medium text-[var(--color-text-primary)]",
+              "hover:bg-primary transition-colors",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
             )}
           >
@@ -1030,8 +1030,8 @@ export default function WebhookManager() {
                   type="button"
                   onClick={() => setShowAddModal(true)}
                   className={cn(
-                    "mt-4 inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-[var(--color-text-primary)]",
-                    "hover:bg-indigo-500 transition-colors",
+                    "mt-4 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-[var(--color-text-primary)]",
+                    "hover:bg-primary transition-colors",
                     "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   )}
                 >

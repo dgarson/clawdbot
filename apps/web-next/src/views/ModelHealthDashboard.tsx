@@ -244,7 +244,7 @@ export default function ModelHealthDashboard() {
             { label: "Healthy", value: healthyCount, color: "text-emerald-400" },
             { label: "Degraded", value: degradedCount, color: "text-amber-400" },
             { label: "Down / Maintenance", value: downCount, color: "text-rose-400" },
-            { label: "Total Req/Min", value: totalRPM.toLocaleString(), color: "text-indigo-400" },
+            { label: "Total Req/Min", value: totalRPM.toLocaleString(), color: "text-primary" },
             { label: "Active Incidents", value: ENDPOINTS.reduce((s, e) => s + e.incidents.filter((i) => !i.resolvedAt).length, 0), color: "text-orange-400" },
           ].map((s) => (
             <div key={s.label} className="bg-[var(--color-surface-1)] rounded-lg p-3 border border-[var(--color-border)]">
@@ -262,7 +262,7 @@ export default function ModelHealthDashboard() {
               onClick={() => setFilterStatus(s as ModelStatus | "all")}
               className={cn(
                 "px-3 py-1 rounded text-xs capitalize",
-                filterStatus === s ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                filterStatus === s ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {s === "all" ? "All Providers" : s}
@@ -283,7 +283,7 @@ export default function ModelHealthDashboard() {
                 onClick={() => setSelectedEndpoint(endpoint)}
                 className={cn(
                   "w-full text-left p-3 rounded-xl border transition-all",
-                  isSelected ? "bg-indigo-900/20 border-indigo-600/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
+                  isSelected ? "bg-indigo-900/20 border-primary/50" : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                 )}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -306,7 +306,7 @@ export default function ModelHealthDashboard() {
                   </div>
                   <div>
                     <div className="text-[var(--color-text-muted)]">RPM</div>
-                    <div className="text-indigo-400">{endpoint.requestsPerMin}</div>
+                    <div className="text-primary">{endpoint.requestsPerMin}</div>
                   </div>
                   <div>
                     <div className="text-[var(--color-text-muted)]">Errors</div>
@@ -347,7 +347,7 @@ export default function ModelHealthDashboard() {
                 { label: "P95 Latency", value: ep.p95Ms > 0 ? `${ep.p95Ms}ms` : "—", color: "text-amber-400" },
                 { label: "P99 Latency", value: ep.p99Ms > 0 ? `${ep.p99Ms}ms` : "—", color: "text-orange-400" },
                 { label: "Error Rate", value: `${ep.errorRate}%`, color: ep.errorRate > 2 ? "text-rose-400" : "text-emerald-400" },
-                { label: "Req/Min", value: ep.requestsPerMin.toLocaleString(), color: "text-indigo-400" },
+                { label: "Req/Min", value: ep.requestsPerMin.toLocaleString(), color: "text-primary" },
                 { label: "Uptime", value: `${ep.uptimePct}%`, color: "text-emerald-400" },
                 { label: "Tokens/Sec", value: ep.tokensPerSec > 0 ? ep.tokensPerSec.toString() : "—", color: "text-blue-400" },
                 { label: "Context", value: `${(ep.contextWindow / 1000).toFixed(0)}K`, color: "text-purple-400" },
@@ -399,7 +399,7 @@ export default function ModelHealthDashboard() {
                       </div>
                       <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-indigo-500/60"
+                          className="h-full rounded-full bg-primary/60"
                           style={{ width: `${b.pct}%` }}
                         />
                       </div>

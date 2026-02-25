@@ -191,8 +191,8 @@ const KIND_LABELS: Record<MemoryKind, string> = {
 };
 
 const KIND_COLORS: Record<MemoryKind, string> = {
-  daily:    "text-indigo-400 bg-indigo-400/10 border-indigo-400/20",
-  longterm: "text-violet-400 bg-violet-400/10 border-violet-400/20",
+  daily:    "text-primary bg-primary/10 border-primary/20",
+  longterm: "text-primary bg-primary/10 border-primary/20",
   soul:     "text-amber-400 bg-amber-400/10 border-amber-400/20",
   context:  "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
   decision: "text-rose-400 bg-rose-400/10 border-rose-400/20",
@@ -330,7 +330,7 @@ export default function AgentMemoryViewer() {
                   "text-xs px-2 py-1 rounded border transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   kindFilter === k.value
-                    ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                    ? "border-primary bg-indigo-950/40 text-indigo-300"
                     : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                 )}
               >
@@ -345,7 +345,7 @@ export default function AgentMemoryViewer() {
               "mt-2 text-xs px-2 py-1 rounded border transition-colors w-full text-left",
               "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
               significantOnly
-                ? "border-indigo-500 bg-indigo-950/40 text-indigo-300"
+                ? "border-primary bg-indigo-950/40 text-indigo-300"
                 : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >

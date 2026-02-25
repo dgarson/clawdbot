@@ -404,12 +404,12 @@ function getEffortColor(effort: EffortLevel): string {
 function getProviderColor(provider: Provider): string {
   if (provider === "AWS") {return "text-amber-400 bg-amber-400/10";}
   if (provider === "GCP") {return "text-blue-400 bg-blue-400/10";}
-  return "text-indigo-400 bg-indigo-400/10";
+  return "text-primary bg-primary/10";
 }
 
 function getTypeColor(type: ResourceType): string {
   const map: Record<ResourceType, string> = {
-    Compute: "text-violet-400 bg-violet-400/10",
+    Compute: "text-primary bg-primary/10",
     Storage: "text-cyan-400 bg-cyan-400/10",
     Network: "text-sky-400 bg-sky-400/10",
     Database: "text-emerald-400 bg-emerald-400/10",
@@ -434,8 +434,8 @@ function getRecTypeLabel(type: RecommendationType): string {
 
 function getRecTypeColor(type: RecommendationType): string {
   const map: Record<RecommendationType, string> = {
-    rightsizing: "text-violet-400 bg-violet-400/10",
-    reserved: "text-indigo-400 bg-indigo-400/10",
+    rightsizing: "text-primary bg-primary/10",
+    reserved: "text-primary bg-primary/10",
     idle: "text-rose-400 bg-rose-400/10",
     storage: "text-cyan-400 bg-cyan-400/10",
     network: "text-sky-400 bg-sky-400/10",
@@ -503,7 +503,7 @@ function OverviewTab() {
   const topResources = [...RESOURCES].toSorted((a, b) => b.monthlyCost - a.monthlyCost).slice(0, 6);
 
   const summaryCards = [
-    { label: "Compute", value: totalCompute, color: "text-violet-400", bg: "bg-violet-400/10", pct: (totalCompute / grandTotal) * 100 },
+    { label: "Compute", value: totalCompute, color: "text-primary", bg: "bg-primary/10", pct: (totalCompute / grandTotal) * 100 },
     { label: "Database", value: totalDatabase, color: "text-emerald-400", bg: "bg-emerald-400/10", pct: (totalDatabase / grandTotal) * 100 },
     { label: "Network & CDN", value: totalNetwork, color: "text-sky-400", bg: "bg-sky-400/10", pct: (totalNetwork / grandTotal) * 100 },
     { label: "Storage", value: totalStorage, color: "text-cyan-400", bg: "bg-cyan-400/10", pct: (totalStorage / grandTotal) * 100 },
@@ -591,7 +591,7 @@ function OverviewTab() {
                   <div
                     className={cn(
                       "h-full rounded-full",
-                      p.name === "AWS" ? "bg-amber-400" : p.name === "GCP" ? "bg-blue-400" : "bg-indigo-400"
+                      p.name === "AWS" ? "bg-amber-400" : p.name === "GCP" ? "bg-blue-400" : "bg-primary"
                     )}
                     style={{ width: ((p.total / maxProvider) * 100) + "%" }}
                   />
@@ -635,7 +635,7 @@ function OverviewTab() {
               <div className="text-right shrink-0">
                 <div className="text-sm font-semibold text-[var(--color-text-primary)]">{formatCurrency(r.monthlyCost)}<span className="text-[var(--color-text-muted)] text-xs">/mo</span></div>
                 <div className="w-24 mt-1">
-                  <ProgressBar value={r.monthlyCost} max={topResources[0].monthlyCost} colorClass="bg-indigo-500" height="h-1" />
+                  <ProgressBar value={r.monthlyCost} max={topResources[0].monthlyCost} colorClass="bg-primary" height="h-1" />
                 </div>
               </div>
             </div>
@@ -678,13 +678,13 @@ function ResourcesTab() {
             placeholder="Search resources or tags…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
           />
           <div className="flex gap-2">
             <select
               value={filterProvider}
               onChange={(e) => setFilterProvider(e.target.value as Provider | "All")}
-              className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-2 py-1.5 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+              className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-2 py-1.5 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
             >
               <option value="All">All Providers</option>
               <option value="AWS">AWS</option>
@@ -694,7 +694,7 @@ function ResourcesTab() {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as ResourceType | "All")}
-              className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-2 py-1.5 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+              className="flex-1 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-2 py-1.5 text-xs text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
             >
               <option value="All">All Types</option>
               <option value="Compute">Compute</option>
@@ -718,7 +718,7 @@ function ResourcesTab() {
               className={cn(
                 "w-full text-left p-3 rounded-lg border transition-colors",
                 selectedId === r.id
-                  ? "bg-indigo-600/20 border-indigo-500/50"
+                  ? "bg-primary/20 border-primary/50"
                   : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)]"
               )}
             >
@@ -776,7 +776,7 @@ function ResourcesTab() {
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
                   <div className="w-full flex items-end" style={{ height: "96px" }}>
                     <div
-                      className={cn("w-full rounded-t transition-all duration-300", isLast ? "bg-indigo-500" : "bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)]")}
+                      className={cn("w-full rounded-t transition-all duration-300", isLast ? "bg-primary" : "bg-[var(--color-surface-3)] hover:bg-[var(--color-surface-3)]")}
                       style={{ height: heightPct + "%" }}
                       title={formatCurrency(cost)}
                     />
@@ -843,7 +843,7 @@ function BudgetsTab() {
               className={cn(
                 "w-full text-left p-3 rounded-lg border transition-colors",
                 selectedBudgetId === b.id
-                  ? "bg-indigo-600/20 border-indigo-500/50"
+                  ? "bg-primary/20 border-primary/50"
                   : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)]"
               )}
             >
@@ -986,7 +986,7 @@ function RecommendationsTab() {
         {[
           { label: "Active Recommendations", value: activeRecs.length, color: "text-[var(--color-text-primary)]" },
           { label: "Total Potential Savings", value: formatCurrency(activeRecs.reduce((s, r) => s + r.estimatedSavings, 0)) + "/mo", color: "text-emerald-400" },
-          { label: "Applied", value: appliedRecs.length, color: "text-indigo-400" },
+          { label: "Applied", value: appliedRecs.length, color: "text-primary" },
           { label: "Dismissed", value: dismissedRecs.length, color: "text-[var(--color-text-muted)]" },
         ].map((s) => (
           <Card key={s.label} className="p-3">
@@ -1001,7 +1001,7 @@ function RecommendationsTab() {
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value as RecommendationType | "All")}
-          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
         >
           <option value="All">All Types</option>
           <option value="rightsizing">Rightsizing</option>
@@ -1013,7 +1013,7 @@ function RecommendationsTab() {
         <select
           value={filterEffort}
           onChange={(e) => setFilterEffort(e.target.value as EffortLevel | "All")}
-          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500"
+          className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary"
         >
           <option value="All">All Effort Levels</option>
           <option value="low">Low Effort</option>
@@ -1060,7 +1060,7 @@ function RecommendationsTab() {
                   </button>
                   <button
                     onClick={() => applyRec(rec.id)}
-                    className="px-3 py-1.5 text-xs text-[var(--color-text-primary)] bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors font-medium"
+                    className="px-3 py-1.5 text-xs text-[var(--color-text-primary)] bg-primary hover:bg-primary rounded-md transition-colors font-medium"
                   >
                     Apply
                   </button>
@@ -1113,7 +1113,7 @@ function RecommendationsTab() {
                 </div>
                 <button
                   onClick={() => setRecs((prev) => prev.map((r) => (r.id === rec.id ? { ...r, dismissed: false } : r)))}
-                  className="text-xs text-indigo-400 hover:text-indigo-300"
+                  className="text-xs text-primary hover:text-indigo-300"
                 >
                   Restore
                 </button>
@@ -1173,7 +1173,7 @@ export default function InfrastructureCostManager() {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-md transition-colors",
               activeTab === tab.id
-                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >

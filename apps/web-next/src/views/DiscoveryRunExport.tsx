@@ -91,20 +91,20 @@ function FormatCard({ id, label, description, icon, preview, selected, onSelect 
         'relative w-full text-left rounded-xl border p-4 transition-all duration-150',
         'bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)]/80',
         selected
-          ? 'border-violet-500 ring-1 ring-violet-500/40'
+          ? 'border-primary ring-1 ring-violet-500/40'
           : 'border-[var(--color-border)] hover:border-[var(--color-border)]',
       )}
     >
       {/* Selected checkmark */}
       {selected && (
-        <span className="absolute top-3 right-3 flex items-center justify-center w-5 h-5 rounded-full bg-violet-600">
+        <span className="absolute top-3 right-3 flex items-center justify-center w-5 h-5 rounded-full bg-primary">
           <Check className="w-3 h-3 text-[var(--color-text-primary)]" />
         </span>
       )}
 
       {/* Header */}
       <div className="flex items-center gap-2 mb-1">
-        <span className={cn('text-[var(--color-text-secondary)]', selected && 'text-violet-400')}>{icon}</span>
+        <span className={cn('text-[var(--color-text-secondary)]', selected && 'text-primary')}>{icon}</span>
         <span className="font-semibold text-[var(--color-text-primary)] text-sm">{label}</span>
       </div>
       <p className="text-[var(--color-text-secondary)] text-xs mb-3">{description}</p>
@@ -145,7 +145,7 @@ function CheckboxOption({ id, label, checked, onChange, warning }: CheckboxOptio
           className={cn(
             'w-4 h-4 rounded border transition-colors',
             checked
-              ? 'bg-violet-600 border-violet-600'
+              ? 'bg-primary border-primary'
               : 'bg-[var(--color-surface-2)] border-[var(--color-border)] group-hover:border-[var(--color-surface-3)]',
           )}
         >
@@ -202,7 +202,7 @@ function ExportProgressBar({ state }: { state: ExportState }) {
 
   return (
     <div className="flex items-center gap-3 min-w-0 flex-1">
-      <Loader2 className="w-4 h-4 text-violet-400 animate-spin flex-shrink-0" />
+      <Loader2 className="w-4 h-4 text-primary animate-spin flex-shrink-0" />
       <div className="flex-1">
         <div className="flex justify-between text-xs text-[var(--color-text-secondary)] mb-1">
           <span>Preparing export…</span>
@@ -210,7 +210,7 @@ function ExportProgressBar({ state }: { state: ExportState }) {
         </div>
         <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
           <div
-            className="h-full bg-violet-600 rounded-full transition-all duration-75"
+            className="h-full bg-primary rounded-full transition-all duration-75"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -377,7 +377,7 @@ export default function DiscoveryRunExport() {
               'flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all',
               exportState === 'preparing'
                 ? 'bg-violet-800 text-violet-300 cursor-not-allowed'
-                : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]',
+                : 'bg-primary hover:bg-primary text-[var(--color-text-primary)]',
             )}
           >
             <Download className="w-4 h-4" />

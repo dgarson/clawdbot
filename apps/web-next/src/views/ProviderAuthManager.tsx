@@ -210,7 +210,7 @@ function ProviderGridCard({
               <h3 className="text-base font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
                 {provider.name}
                 {provider.popular && (
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-400 font-normal">
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-primary/20 text-primary font-normal">
                     Popular
                   </span>
                 )}
@@ -306,7 +306,7 @@ function ProviderGridCard({
                   disabled={savingKey || !(editingValue ?? '').trim()}
                   className={cn(
                     'flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all duration-200',
-                    'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]',
+                    'bg-primary hover:bg-primary text-[var(--color-text-primary)]',
                     'disabled:opacity-40 disabled:cursor-not-allowed',
                     'flex items-center justify-center gap-2'
                   )}
@@ -369,7 +369,7 @@ function ProviderGridCard({
                   ? 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30 border border-yellow-500/30'
                   : isError
                   ? 'bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-500/30'
-                  : 'bg-violet-600 text-[var(--color-text-primary)] hover:bg-violet-500 shadow-lg shadow-violet-900/30'
+                  : 'bg-primary text-[var(--color-text-primary)] hover:bg-primary shadow-lg shadow-violet-900/30'
               )}
             >
               {isExpired ? (
@@ -656,7 +656,7 @@ export default function ProviderAuthManager() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-3">
-              <Key className="w-7 h-7 text-violet-400" />
+              <Key className="w-7 h-7 text-primary" />
               Provider Authentication
             </h1>
             <p className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -692,7 +692,7 @@ export default function ProviderAuthManager() {
                   cy="18"
                 />
                 <circle
-                  className="text-violet-500 transition-all duration-1000"
+                  className="text-primary transition-all duration-1000"
                   strokeWidth="3"
                   strokeLinecap="round"
                   stroke="currentColor"
@@ -751,7 +751,7 @@ export default function ProviderAuthManager() {
         {loading && (
           <div className="flex items-center justify-center py-12">
             <div className="flex flex-col items-center gap-4">
-              <RefreshCw className="w-8 h-8 text-violet-500 animate-spin" />
+              <RefreshCw className="w-8 h-8 text-primary animate-spin" />
               <p className="text-sm text-[var(--color-text-secondary)]">Loading provider status...</p>
             </div>
           </div>
@@ -804,8 +804,8 @@ export default function ProviderAuthManager() {
 
         {/* Getting Started Hint */}
         {summaryStats.connected === 0 && !loading && (
-          <div className="bg-gradient-to-r from-violet-500/10 to-pink-500/10 border border-violet-500/30 rounded-2xl p-6 text-center">
-            <Sparkles className="w-10 h-10 text-violet-400 mx-auto mb-3" />
+          <div className="bg-gradient-to-r from-violet-500/10 to-pink-500/10 border border-primary/30 rounded-2xl p-6 text-center">
+            <Sparkles className="w-10 h-10 text-primary mx-auto mb-3" />
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
               Get Started with OpenClaw
             </h3>
@@ -819,7 +819,7 @@ export default function ProviderAuthManager() {
                 const anthropic = providers.find((p) => p.id === 'anthropic');
                 if (anthropic) {void handleConnect('anthropic');}
               }}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-violet-600 text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-violet-500 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-[var(--color-text-primary)] rounded-xl font-medium hover:bg-primary transition-colors"
             >
               <Brain className="w-4 h-4" />
               Connect Claude (Anthropic)

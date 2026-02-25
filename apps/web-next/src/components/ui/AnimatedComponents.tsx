@@ -529,7 +529,7 @@ export function ProviderCard({
               'flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-colors',
               status === 'expired'
                 ? 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30'
-                : 'bg-violet-600 text-white hover:bg-violet-500'
+                : 'bg-primary text-white hover:bg-primary'
             )}
           >
             {status === 'expired' ? 'Reconnect' : 'Connect'}

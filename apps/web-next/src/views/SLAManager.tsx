@@ -272,7 +272,7 @@ function priorityBadge(priority: Priority): { label: string; className: string }
     case "high":
       return { label: "High", className: "bg-amber-400/15 text-amber-400 border-amber-400/30" };
     case "medium":
-      return { label: "Medium", className: "bg-indigo-500/15 text-indigo-400 border-indigo-400/30" };
+      return { label: "Medium", className: "bg-primary/15 text-primary border-primary/30" };
     case "low":
       return { label: "Low", className: "bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)] border-[var(--color-surface-3)]" };
   }
@@ -287,7 +287,7 @@ function resolutionBadge(status: ResolutionStatus): { label: string; emoji: stri
     case "unresolved":
       return { label: "Unresolved", emoji: "❌", className: "bg-rose-400/15 text-rose-400 border-rose-400/30" };
     case "mitigated":
-      return { label: "Mitigated", emoji: "🛡️", className: "bg-indigo-500/15 text-indigo-400 border-indigo-400/30" };
+      return { label: "Mitigated", emoji: "🛡️", className: "bg-primary/15 text-primary border-primary/30" };
   }
 }
 
@@ -489,7 +489,7 @@ function DefinitionsTab({
     if (isEditing) {
       return (
         <input
-          className="bg-[var(--color-surface-2)] border border-indigo-500 rounded px-2 py-1 text-[var(--color-text-primary)] text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
+          className="bg-[var(--color-surface-2)] border border-primary rounded px-2 py-1 text-[var(--color-text-primary)] text-sm w-full outline-none focus:ring-1 focus:ring-indigo-500"
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
           onBlur={() => commitEdit(sla.id, field)}
@@ -503,7 +503,7 @@ function DefinitionsTab({
     }
     return (
       <span
-        className="cursor-pointer hover:text-indigo-400 transition-colors"
+        className="cursor-pointer hover:text-primary transition-colors"
         onClick={() => startEdit(sla.id, field, sla[field])}
         title="Click to edit"
       >
@@ -825,7 +825,7 @@ export default function SLAManager() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
                   activeTab === tab.key
-                    ? "border-indigo-500 text-indigo-400"
+                    ? "border-primary text-primary"
                     : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
                 )}
               >

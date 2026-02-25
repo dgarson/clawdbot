@@ -206,7 +206,7 @@ export default function DatabaseQueryAnalyzer() {
         depth > 0 && "ml-6 border-l-indigo-500/30"
       )}>
         <div className="flex flex-col">
-          <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">{node.operation}</span>
+          <span className="text-xs font-bold text-primary uppercase tracking-wider">{node.operation}</span>
           {node.table && <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{node.table}</span>}
         </div>
         <div className="flex-1" />
@@ -232,7 +232,7 @@ export default function DatabaseQueryAnalyzer() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">ClawDB <span className="text-indigo-500">Analyzer</span></h1>
+          <h1 className="text-2xl font-bold tracking-tight">ClawDB <span className="text-primary">Analyzer</span></h1>
           <p className="text-[var(--color-text-muted)] text-sm">Performance metrics and query optimization suite</p>
         </div>
         <div className="flex items-center gap-2 bg-[var(--color-surface-1)] p-1 rounded-lg border border-[var(--color-border)]">
@@ -242,7 +242,7 @@ export default function DatabaseQueryAnalyzer() {
               onClick={() => setActiveTab(tab)}
               className={cn(
                 "px-4 py-1.5 rounded-md text-xs font-medium capitalize transition-all",
-                activeTab === tab ? "bg-indigo-500 text-[var(--color-text-primary)] shadow-lg" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
+                activeTab === tab ? "bg-primary text-[var(--color-text-primary)] shadow-lg" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
               {tab}
@@ -261,7 +261,7 @@ export default function DatabaseQueryAnalyzer() {
                 <select 
                   value={dbFilter}
                   onChange={(e) => setDbFilter(e.target.value)}
-                  className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-3 py-1 text-xs outline-none focus:border-indigo-500 transition-colors"
+                  className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded px-3 py-1 text-xs outline-none focus:border-primary transition-colors"
                 >
                   <option value="ALL">All Databases</option>
                   {DATABASES.map(db => <option key={db} value={db}>{db}</option>)}
@@ -276,7 +276,7 @@ export default function DatabaseQueryAnalyzer() {
                     className={cn(
                       "flex flex-col gap-3 p-4 rounded-xl border transition-all text-left group",
                       selectedQuery?.id === q.id 
-                        ? "bg-indigo-500/10 border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.1)]" 
+                        ? "bg-primary/10 border-primary shadow-[0_0_20px_rgba(99,102,241,0.1)]" 
                         : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:border-[var(--color-border)]"
                     )}
                   >
@@ -285,7 +285,7 @@ export default function DatabaseQueryAnalyzer() {
                         <div className="flex items-center gap-2">
                           <span className={cn(
                             "text-[10px] font-bold px-1.5 py-0.5 rounded",
-                            q.type === "SELECT" ? "bg-indigo-500/20 text-indigo-400" :
+                            q.type === "SELECT" ? "bg-primary/20 text-primary" :
                             q.type === "INSERT" ? "bg-emerald-500/20 text-emerald-400" :
                             q.type === "UPDATE" ? "bg-amber-500/20 text-amber-400" : "bg-rose-500/20 text-rose-400"
                           )}>
@@ -343,7 +343,7 @@ export default function DatabaseQueryAnalyzer() {
                       {selectedQuery.sql.split(" ").map((word, i) => (
                         <span key={i} className={cn(
                           ["SELECT", "FROM", "WHERE", "JOIN", "ON", "GROUP", "BY", "ORDER", "LIMIT", "INSERT", "UPDATE", "DELETE", "SET", "VALUES", "AND", "OR"].includes(word.toUpperCase()) 
-                            ? "text-indigo-400 font-bold" 
+                            ? "text-primary font-bold" 
                             : "text-[var(--color-text-primary)]"
                         )}>
                           {word}{" "}
@@ -365,7 +365,7 @@ export default function DatabaseQueryAnalyzer() {
                           <div className="flex flex-col gap-2">
                             {selectedQuery.indexUsage.map((idx, i) => (
                               <div key={i} className="p-3 bg-[var(--color-surface-0)] rounded border border-[var(--color-border)]">
-                                <div className="text-xs font-mono text-indigo-400 font-bold mb-2">{idx.indexName}</div>
+                                <div className="text-xs font-mono text-primary font-bold mb-2">{idx.indexName}</div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div className="flex flex-col">
                                     <span className="text-[10px] text-[var(--color-text-muted)] uppercase">Scans</span>
@@ -428,7 +428,7 @@ export default function DatabaseQueryAnalyzer() {
                 </div>
                 <div className="flex gap-4">
                   {[
-                    { label: "Select", color: "bg-indigo-500" },
+                    { label: "Select", color: "bg-primary" },
                     { label: "Insert", color: "bg-emerald-400" },
                     { label: "Update", color: "bg-amber-400" },
                     { label: "Delete", color: "bg-rose-400" }
@@ -460,7 +460,7 @@ export default function DatabaseQueryAnalyzer() {
                         <div className="bg-rose-400 w-full" style={{ height: `${(t.delete / total) * 100}%` }} />
                         <div className="bg-amber-400 w-full" style={{ height: `${(t.update / total) * 100}%` }} />
                         <div className="bg-emerald-400 w-full" style={{ height: `${(t.insert / total) * 100}%` }} />
-                        <div className="bg-indigo-500 w-full flex-1" />
+                        <div className="bg-primary w-full flex-1" />
                       </div>
                       <div className="absolute bottom-[-24px] left-1/2 -translate-x-1/2 text-[9px] text-[var(--color-text-muted)] font-mono whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                         {t.hour}
@@ -470,7 +470,7 @@ export default function DatabaseQueryAnalyzer() {
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none min-w-[120px]">
                         <div className="text-[10px] font-bold text-[var(--color-text-secondary)] mb-1 border-b border-[var(--color-border)] pb-1">{t.hour}</div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
-                          <span className="text-indigo-400">SELECT</span><span className="text-right">{t.select.toLocaleString()}</span>
+                          <span className="text-primary">SELECT</span><span className="text-right">{t.select.toLocaleString()}</span>
                           <span className="text-emerald-400">INSERT</span><span className="text-right">{t.insert.toLocaleString()}</span>
                           <span className="text-amber-400">UPDATE</span><span className="text-right">{t.update.toLocaleString()}</span>
                           <span className="text-rose-400">DELETE</span><span className="text-right">{t.delete.toLocaleString()}</span>
@@ -523,7 +523,7 @@ export default function DatabaseQueryAnalyzer() {
                     <tr key={i} className="hover:bg-[var(--color-surface-2)]/30 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="text-sm font-bold group-hover:text-indigo-400 transition-colors">{table.name}</span>
+                          <span className="text-sm font-bold group-hover:text-primary transition-colors">{table.name}</span>
                           <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{table.database}</span>
                         </div>
                       </td>
@@ -608,7 +608,7 @@ export default function DatabaseQueryAnalyzer() {
                   <div className="flex items-center gap-4 bg-[var(--color-surface-0)] p-4 rounded-xl border border-[var(--color-border)]">
                     <div className="flex flex-col gap-1 flex-1">
                       <span className="text-[9px] text-[var(--color-text-muted)] uppercase font-bold">Blocked Query</span>
-                      <span className="text-xs font-mono text-indigo-400">{lock.blockedQueryId}</span>
+                      <span className="text-xs font-mono text-primary">{lock.blockedQueryId}</span>
                     </div>
                     <div className="text-[var(--color-text-muted)]">←</div>
                     <div className="flex flex-col gap-1 flex-1 text-right">
@@ -637,7 +637,7 @@ export default function DatabaseQueryAnalyzer() {
 
                 <div className="space-y-4">
                   {[
-                    { label: "RowShareLock", count: 1450, color: "bg-indigo-500" },
+                    { label: "RowShareLock", count: 1450, color: "bg-primary" },
                     { label: "ExclusiveLock", count: 120, color: "bg-amber-500" },
                     { label: "AccessExclusive", count: 12, color: "bg-rose-500" }
                   ].map(stat => (
@@ -651,8 +651,8 @@ export default function DatabaseQueryAnalyzer() {
                   ))}
                 </div>
 
-                <div className="mt-4 p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-xl">
-                  <h4 className="text-[10px] font-bold text-indigo-400 uppercase mb-2">Recommendation</h4>
+                <div className="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-xl">
+                  <h4 className="text-[10px] font-bold text-primary uppercase mb-2">Recommendation</h4>
                   <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed italic">
                     Detected high wait times on <span className="text-[var(--color-text-primary)] font-bold">production_main</span>. 
                     Consider breaking up long transactions in the user session cleanup worker.

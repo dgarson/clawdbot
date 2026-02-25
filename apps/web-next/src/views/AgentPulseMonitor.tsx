@@ -190,7 +190,7 @@ const MOCK_EVENTS: ActivityEvent[] = [
 
 const STATUS_CONFIG: Record<AgentStatus, { label: string; color: string; bg: string; pulse: boolean; dot: string }> = {
   active:   { label: "Active",   color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/30", pulse: true,  dot: "bg-emerald-400" },
-  busy:     { label: "Busy",     color: "text-violet-400",  bg: "bg-violet-500/10 border-violet-500/30",   pulse: true,  dot: "bg-violet-400" },
+  busy:     { label: "Busy",     color: "text-primary",  bg: "bg-primary/10 border-primary/30",   pulse: true,  dot: "bg-primary" },
   idle:     { label: "Idle",     color: "text-[var(--color-text-secondary)]",    bg: "bg-[var(--color-surface-2)]/50 border-[var(--color-border)]/30",       pulse: false, dot: "bg-[var(--color-surface-3)]" },
   sleeping: { label: "Sleeping", color: "text-blue-400",    bg: "bg-blue-500/10 border-blue-500/20",       pulse: false, dot: "bg-blue-400" },
   error:    { label: "Error",    color: "text-red-400",     bg: "bg-red-500/10 border-red-500/30",         pulse: true,  dot: "bg-red-400" },
@@ -201,7 +201,7 @@ const EVENT_ICONS: Record<ActivityEvent["type"], React.ReactNode> = {
   tool_call:  <Zap className="w-3 h-3 text-amber-400" aria-hidden="true" />,
   completion: <CheckCircle2 className="w-3 h-3 text-emerald-400" aria-hidden="true" />,
   error:      <AlertTriangle className="w-3 h-3 text-red-400" aria-hidden="true" />,
-  spawn:      <Radio className="w-3 h-3 text-violet-400" aria-hidden="true" />,
+  spawn:      <Radio className="w-3 h-3 text-primary" aria-hidden="true" />,
   heartbeat:  <Activity className="w-3 h-3 text-[var(--color-text-secondary)]" aria-hidden="true" />,
 };
 
@@ -268,7 +268,7 @@ function AgentCard({ agent, selected, onClick }: { agent: PulseAgent; selected: 
       className={cn(
         "w-full text-left rounded-xl border p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
         selected
-          ? "bg-violet-600/10 border-violet-500/50 shadow-lg shadow-violet-500/10"
+          ? "bg-primary/10 border-primary/50 shadow-lg shadow-violet-500/10"
           : cn("hover:border-[var(--color-border)]", cfg.bg),
       )}
     >
@@ -354,7 +354,7 @@ function AgentDetailPanel({ agent, allAgents }: { agent: PulseAgent; allAgents: 
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: "Tokens Used",    value: formatTokens(agent.tokensUsed),             icon: <TrendingUp className="w-4 h-4 text-violet-400" aria-hidden="true" /> },
+          { label: "Tokens Used",    value: formatTokens(agent.tokensUsed),             icon: <TrendingUp className="w-4 h-4 text-primary" aria-hidden="true" /> },
           { label: "Uptime",         value: formatUptime(agent.uptime),                  icon: <Clock className="w-4 h-4 text-emerald-400" aria-hidden="true" /> },
           { label: "Msg / min",      value: agent.messagesPerMin.toFixed(1),             icon: <MessageSquare className="w-4 h-4 text-blue-400" aria-hidden="true" /> },
           { label: "Error Rate",     value: `${(agent.errorRate * 100).toFixed(0)}%`,    icon: <AlertTriangle className="w-4 h-4 text-amber-400" aria-hidden="true" /> },
@@ -492,7 +492,7 @@ export default function AgentPulseMonitor() {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
-              <Activity className="w-5 h-5 text-violet-400" aria-hidden="true" />
+              <Activity className="w-5 h-5 text-primary" aria-hidden="true" />
               <h1 className="text-xl font-bold">Agent Pulse Monitor</h1>
               {liveMode && (
                 <span className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
@@ -534,7 +534,7 @@ export default function AgentPulseMonitor() {
               className={cn(
                 "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
                 liveMode
-                  ? "bg-violet-600/20 border-violet-500/40 text-violet-300 hover:bg-violet-600/30"
+                  ? "bg-primary/20 border-primary/40 text-violet-300 hover:bg-primary/30"
                   : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]",
               )}
             >

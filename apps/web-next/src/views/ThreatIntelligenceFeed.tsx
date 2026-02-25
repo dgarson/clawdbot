@@ -371,7 +371,7 @@ export default function ThreatIntelligenceFeed() {
                 placeholder="🔍 Search threats..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
               />
             </div>
 
@@ -382,7 +382,7 @@ export default function ThreatIntelligenceFeed() {
                   onClick={() => setSelectedThreat(selectedThreat?.id === threat.id ? null : threat)}
                   className={cn(
                     "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
-                    selectedThreat?.id === threat.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                    selectedThreat?.id === threat.id ? "border-primary" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -426,7 +426,7 @@ export default function ThreatIntelligenceFeed() {
                                 <span className="font-mono text-sm text-amber-300 flex-1">{ioc.value}</span>
                                 <div className="flex items-center gap-1.5">
                                   <div className="w-16 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${ioc.confidence}%` }} />
+                                    <div className="h-full bg-primary rounded-full" style={{ width: `${ioc.confidence}%` }} />
                                   </div>
                                   <span className="text-xs text-[var(--color-text-muted)]">{ioc.confidence}%</span>
                                 </div>
@@ -615,9 +615,9 @@ export default function ThreatIntelligenceFeed() {
               <input
                 type="text"
                 placeholder="Enter IP, domain, hash, URL, or email..."
-                className="flex-1 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] font-mono placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] font-mono placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
               />
-              <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors">
+              <button className="px-4 py-2 bg-primary hover:bg-primary rounded-lg text-sm font-medium transition-colors">
                 🔍 Search
               </button>
             </div>

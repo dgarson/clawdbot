@@ -167,7 +167,7 @@ export default function LogAggregatorView() {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search logs, trace IDs, messages..."
-            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary"
           />
           <div className="flex gap-1">
             {(["stream", "volume", "sources", "saved"] as const).map(t => (
@@ -219,7 +219,7 @@ export default function LogAggregatorView() {
                   <div className="flex items-start gap-3 px-4 py-2">
                     <span className="text-[var(--color-text-muted)] flex-none w-20">{log.timestamp}</span>
                     <span className={cn("flex-none px-1.5 py-0.5 rounded text-[9px] font-bold w-11 text-center", levelBadge[log.level])}>{log.level}</span>
-                    <span className="text-indigo-400 flex-none w-24 truncate">{log.source}</span>
+                    <span className="text-primary flex-none w-24 truncate">{log.source}</span>
                     <span className={cn("flex-1 min-w-0 truncate", levelColor[log.level])}>{log.message}</span>
                     <span className="text-[var(--color-text-muted)] flex-none">{log.traceId}</span>
                   </div>
@@ -230,12 +230,12 @@ export default function LogAggregatorView() {
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                           {Object.entries(log.fields).map(([k, v]) => (
                             <div key={k} className="flex items-center gap-2">
-                              <span className="text-indigo-400">{k}:</span>
+                              <span className="text-primary">{k}:</span>
                               <span className="text-[var(--color-text-primary)]">{String(v)}</span>
                             </div>
                           ))}
-                          <div className="flex items-center gap-2"><span className="text-indigo-400">trace_id:</span><span className="text-[var(--color-text-primary)]">{log.traceId}</span></div>
-                          <div className="flex items-center gap-2"><span className="text-indigo-400">span_id:</span><span className="text-[var(--color-text-primary)]">{log.spanId}</span></div>
+                          <div className="flex items-center gap-2"><span className="text-primary">trace_id:</span><span className="text-[var(--color-text-primary)]">{log.traceId}</span></div>
+                          <div className="flex items-center gap-2"><span className="text-primary">span_id:</span><span className="text-[var(--color-text-primary)]">{log.spanId}</span></div>
                         </div>
                       </div>
                     </div>
@@ -313,7 +313,7 @@ export default function LogAggregatorView() {
                     </div>
                   </div>
                   <div className="w-full bg-[var(--color-surface-2)] rounded-full h-1.5">
-                    <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: `${(ss.total / maxSourceTotal) * 100}%` }} />
+                    <div className="bg-primary h-1.5 rounded-full" style={{ width: `${(ss.total / maxSourceTotal) * 100}%` }} />
                   </div>
                   <div className="mt-1.5 w-full bg-[var(--color-surface-2)] rounded-full h-1">
                     <div className="bg-rose-500 h-1 rounded-full" style={{ width: `${ss.errorRate * 10}%` }} />
@@ -329,7 +329,7 @@ export default function LogAggregatorView() {
           <div className="overflow-y-auto h-full p-5">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-sm font-medium text-[var(--color-text-primary)]">Saved Searches</h2>
-              <button className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium transition-colors">Save Current</button>
+              <button className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary text-xs font-medium transition-colors">Save Current</button>
             </div>
             <div className="space-y-2">
               {SAVED_SEARCHES.map(ss => (
@@ -338,7 +338,7 @@ export default function LogAggregatorView() {
                     <span className="font-medium text-[var(--color-text-primary)] text-sm">{ss.name}</span>
                     <div className="flex gap-2">
                       <button onClick={() => setQuery(ss.query)}
-                        className="px-2.5 py-1 rounded text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 transition-colors">
+                        className="px-2.5 py-1 rounded text-xs bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 transition-colors">
                         Load
                       </button>
                       <button className="px-2.5 py-1 rounded text-xs bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-[var(--color-text-primary)] transition-colors">Delete</button>

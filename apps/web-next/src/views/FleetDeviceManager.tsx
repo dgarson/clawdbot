@@ -138,7 +138,7 @@ const statusColor: Record<DeviceStatus, string> = {
   online:       "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
   offline:      "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30",
   warning:      "text-amber-400 bg-amber-400/10 border-amber-400/30",
-  updating:     "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
+  updating:     "text-primary bg-primary/10 border-primary/30",
   provisioning: "text-blue-400 bg-blue-400/10 border-blue-400/30",
 };
 
@@ -152,7 +152,7 @@ const deviceTypeEmoji: Record<DeviceType, string> = {
 
 const updateTypeColor: Record<OTAUpdate["type"], string> = {
   security: "text-rose-400 bg-rose-400/10 border-rose-400/30",
-  feature:  "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
+  feature:  "text-primary bg-primary/10 border-primary/30",
   bugfix:   "text-amber-400 bg-amber-400/10 border-amber-400/30",
 };
 
@@ -187,7 +187,7 @@ export default function FleetDeviceManager(): React.ReactElement {
             <span className="text-amber-400">{warningCount} warning</span>
             <span className="text-[var(--color-text-secondary)]">{offlineCount} offline</span>
           </div>
-          <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
+          <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded-md transition-colors">
             + Provision Device
           </button>
         </div>
@@ -202,7 +202,7 @@ export default function FleetDeviceManager(): React.ReactElement {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
-                ? "text-indigo-400 border-indigo-500"
+                ? "text-primary border-primary"
                 : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -225,7 +225,7 @@ export default function FleetDeviceManager(): React.ReactElement {
                       onClick={() => setStatusFilter(s)}
                       className={cn(
                         "px-2 py-0.5 text-[10px] rounded border transition-colors",
-                        statusFilter === s ? "bg-indigo-600/20 border-indigo-500 text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
+                        statusFilter === s ? "bg-primary/20 border-primary text-indigo-300" : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       {s}
@@ -248,7 +248,7 @@ export default function FleetDeviceManager(): React.ReactElement {
                     onClick={() => setSelectedDevice(d)}
                     className={cn(
                       "w-full text-left px-4 py-3 transition-colors",
-                      selectedDevice.id === d.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/40"
+                      selectedDevice.id === d.id ? "bg-primary/10" : "hover:bg-[var(--color-surface-2)]/40"
                     )}
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -357,7 +357,7 @@ export default function FleetDeviceManager(): React.ReactElement {
                       <span className={cn("text-xs",
                         update.status === "completed" ? "text-emerald-400" :
                         update.status === "failed" ? "text-rose-400" :
-                        update.status === "in_progress" ? "text-indigo-400" : "text-[var(--color-text-secondary)]"
+                        update.status === "in_progress" ? "text-primary" : "text-[var(--color-text-secondary)]"
                       )}>{update.status.replace("_", " ")}</span>
                     </div>
                     <div className="text-xs text-[var(--color-text-muted)] mt-1">Released {update.releaseDate} · Groups: {update.deviceGroups.join(", ")}</div>
@@ -370,7 +370,7 @@ export default function FleetDeviceManager(): React.ReactElement {
                       <span>{update.completedDevices}/{update.totalDevices} devices</span>
                     </div>
                     <div className="h-2.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${update.progress}%` }} />
+                      <div className="h-full bg-primary rounded-full" style={{ width: `${update.progress}%` }} />
                     </div>
                   </div>
                 )}
@@ -403,7 +403,7 @@ export default function FleetDeviceManager(): React.ReactElement {
                     <h3 className="text-base font-semibold">{g.name}</h3>
                     <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">Firmware: v{g.firmware} · Auto-update: {g.autoUpdate ? "enabled" : "disabled"}</div>
                   </div>
-                  <button className="text-xs text-indigo-400 hover:text-indigo-300">Configure</button>
+                  <button className="text-xs text-primary hover:text-indigo-300">Configure</button>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex-1">

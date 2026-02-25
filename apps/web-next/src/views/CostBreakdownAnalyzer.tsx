@@ -414,7 +414,7 @@ const SAVINGS: SavingsRec[] = [
 const MONTHS = ["Sep", "Oct", "Nov", "Dec", "Jan", "Feb"];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Compute: "bg-indigo-500",
+  Compute: "bg-primary",
   Database: "bg-emerald-500",
   Storage: "bg-amber-500",
   Network: "bg-sky-500",
@@ -443,7 +443,7 @@ function pctChange(current: number, prev: number): { pct: number; down: boolean 
 
 // ─── Primitive Chart Components ───────────────────────────────────────────────
 
-function MiniBar({ values, color = "bg-indigo-500" }: { values: number[]; color?: string }) {
+function MiniBar({ values, color = "bg-primary" }: { values: number[]; color?: string }) {
   const max = Math.max(...values);
   return (
     <div className="flex items-end gap-px h-6">
@@ -458,7 +458,7 @@ function MiniBar({ values, color = "bg-indigo-500" }: { values: number[]; color?
   );
 }
 
-function HorizBar({ value, max, color = "bg-indigo-500" }: { value: number; max: number; color?: string }) {
+function HorizBar({ value, max, color = "bg-primary" }: { value: number; max: number; color?: string }) {
   const pct = Math.min(100, (value / max) * 100);
   return (
     <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden flex-1">
@@ -482,7 +482,7 @@ function VertBarChart({
       {data.map((v, i) => (
         <div key={i} className="flex flex-col items-center gap-1 flex-1 h-full justify-end">
           <div
-            className={cn("w-full rounded-t", colorFn ? colorFn(i) : "bg-indigo-500")}
+            className={cn("w-full rounded-t", colorFn ? colorFn(i) : "bg-primary")}
             style={{ height: `${Math.max(4, (v / max) * 96)}px` }}
           />
           <span className="text-xs text-[var(--color-text-muted)] shrink-0">{labels[i]}</span>
@@ -500,7 +500,7 @@ function DailyBarChart({ values }: { values: number[] }) {
         <div
           key={i}
           title={`Day ${i + 1}: $${v}`}
-          className="flex-1 rounded-t-sm bg-indigo-500 opacity-70 hover:opacity-100 transition-opacity cursor-default"
+          className="flex-1 rounded-t-sm bg-primary opacity-70 hover:opacity-100 transition-opacity cursor-default"
           style={{ height: `${Math.max(4, (v / max) * 76)}px` }}
         />
       ))}
@@ -584,7 +584,7 @@ function OverviewTab() {
         <VertBarChart
           data={monthlyTotals}
           labels={MONTHS}
-          colorFn={(i) => (i === MONTHS.length - 1 ? "bg-indigo-500" : "bg-indigo-900")}
+          colorFn={(i) => (i === MONTHS.length - 1 ? "bg-primary" : "bg-indigo-900")}
         />
         <div className="mt-4 flex flex-wrap gap-3 border-t border-[var(--color-border)] pt-4">
           {categories.map((cat) => (
@@ -609,7 +609,7 @@ function OverviewTab() {
                 <HorizBar
                   value={s.currentCost}
                   max={topFive[0].currentCost}
-                  color={CATEGORY_COLORS[s.category] ?? "bg-indigo-500"}
+                  color={CATEGORY_COLORS[s.category] ?? "bg-primary"}
                 />
                 <span className="text-sm font-semibold text-[var(--color-text-primary)] w-16 text-right shrink-0">
                   {fmtCurrency(s.currentCost)}
@@ -642,7 +642,7 @@ function ServicesTab() {
       <div className="space-y-5">
         <button
           onClick={() => setSelected(null)}
-          className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+          className="text-sm text-primary hover:text-indigo-300 transition-colors"
         >
           ← Back to services
         </button>
@@ -694,7 +694,7 @@ function ServicesTab() {
         placeholder="Filter by service or category..."
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 transition-colors"
+        className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary transition-colors"
       />
       <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl overflow-hidden">
         <div className="grid grid-cols-12 px-4 py-2.5 border-b border-[var(--color-border)] text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
@@ -729,7 +729,7 @@ function ServicesTab() {
                 ${s.costPerUnit.toFixed(4)}{s.unitLabel}
               </span>
               <div className="col-span-2 self-center flex justify-end">
-                <MiniBar values={s.trend} color={CATEGORY_COLORS[s.category] ?? "bg-indigo-500"} />
+                <MiniBar values={s.trend} color={CATEGORY_COLORS[s.category] ?? "bg-primary"} />
               </div>
             </button>
           );
@@ -757,7 +757,7 @@ function AnomaliesTab() {
   const actionColor: Record<string, string> = {
     terminate:   "text-rose-400",
     "right-size": "text-amber-400",
-    reserved:    "text-indigo-400",
+    reserved:    "text-primary",
   };
 
   return (
@@ -858,13 +858,13 @@ function SavingsTab() {
   };
 
   const typeAccent: Record<SavingsType, string> = {
-    reserved:    "text-indigo-400",
+    reserved:    "text-primary",
     rightsizing: "text-amber-400",
     idle:        "text-rose-400",
   };
 
   const typeActive: Record<SavingsType, string> = {
-    reserved:    "bg-indigo-600 text-[var(--color-text-primary)]",
+    reserved:    "bg-primary text-[var(--color-text-primary)]",
     rightsizing: "bg-amber-600 text-[var(--color-text-primary)]",
     idle:        "bg-rose-600 text-[var(--color-text-primary)]",
   };
@@ -904,7 +904,7 @@ function SavingsTab() {
             className={cn(
               "px-3 py-1.5 text-xs rounded-lg font-medium transition-colors capitalize",
               filter === opt
-                ? opt === "all" ? "bg-indigo-600 text-[var(--color-text-primary)]" : typeActive[opt]
+                ? opt === "all" ? "bg-primary text-[var(--color-text-primary)]" : typeActive[opt]
                 : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
             )}
           >
@@ -951,7 +951,7 @@ function SavingsTab() {
               </div>
             )}
 
-            <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-xs font-semibold py-2 rounded-lg transition-colors">
+            <button className="w-full bg-primary hover:bg-primary text-[var(--color-text-primary)] text-xs font-semibold py-2 rounded-lg transition-colors">
               Apply Recommendation
             </button>
           </div>
@@ -997,7 +997,7 @@ export default function CostBreakdownAnalyzer() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-1.5 py-2 px-2 text-sm font-medium rounded-lg transition-colors",
                 activeTab === t.id
-                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >

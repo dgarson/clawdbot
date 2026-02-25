@@ -608,7 +608,7 @@ function ProgressBar({ percentage, className }: { percentage: number; className?
   return (
     <div className={cn("w-full h-2 bg-surface-2 rounded-full overflow-hidden", className)}>
       <div
-        className="h-full bg-indigo-500 rounded-full transition-all duration-300"
+        className="h-full bg-primary rounded-full transition-all duration-300"
         style={{ width: `${percentage}%` }}
       />
     </div>
@@ -655,12 +655,12 @@ function FlagsTab() {
             placeholder="Search flags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-3 py-2 bg-surface-1 border border-tok-border rounded text-sm text-fg-primary placeholder-fg-muted focus:outline-none focus:border-indigo-500"
+            className="flex-1 px-3 py-2 bg-surface-1 border border-tok-border rounded text-sm text-fg-primary placeholder-fg-muted focus:outline-none focus:border-primary"
           />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as FlagStatus | "all")}
-            className="px-3 py-2 bg-surface-1 border border-tok-border rounded text-sm text-fg-primary focus:outline-none focus:border-indigo-500"
+            className="px-3 py-2 bg-surface-1 border border-tok-border rounded text-sm text-fg-primary focus:outline-none focus:border-primary"
           >
             <option value="all">All Status</option>
             <option value="enabled">Enabled</option>
@@ -684,7 +684,7 @@ function FlagsTab() {
                 onClick={() => setSelectedFlag(flag)}
                 className={cn(
                   "p-4 bg-surface-1 border rounded-lg cursor-pointer transition-all duration-150",
-                  selectedFlag?.id === flag.id ? "border-indigo-500" : "border-tok-border hover:border-tok-border"
+                  selectedFlag?.id === flag.id ? "border-primary" : "border-tok-border hover:border-tok-border"
                 )}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -750,7 +750,7 @@ function FlagsTab() {
                 {selectedFlag.targetingRules.map((rule, index) => (
                   <div key={index} className="flex items-center justify-between p-2 bg-surface-2 rounded">
                     <span className="text-sm text-fg-primary capitalize">{rule.segment}</span>
-                    <span className="text-sm text-indigo-400">{rule.percentage}%</span>
+                    <span className="text-sm text-primary">{rule.percentage}%</span>
                   </div>
                 ))}
               </div>
@@ -890,7 +890,7 @@ function ExperimentsTab() {
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-fg-muted">{variant.conversions} conversions</span>
-                  <span className="text-indigo-400 font-medium">{variant.conversionRate.toFixed(2)}%</span>
+                  <span className="text-primary font-medium">{variant.conversionRate.toFixed(2)}%</span>
                 </div>
               </div>
             ))}
@@ -912,7 +912,7 @@ function AuditTab() {
 
   const actionColors: Record<AuditEntry["action"], string> = {
     created: "text-emerald-400",
-    updated: "text-indigo-400",
+    updated: "text-primary",
     deleted: "text-rose-400",
     enabled: "text-emerald-400",
     disabled: "text-rose-400",
@@ -926,7 +926,7 @@ function AuditTab() {
         <select
           value={flagFilter}
           onChange={(e) => setFlagFilter(e.target.value)}
-          className="px-3 py-2 bg-surface-1 border border-tok-border rounded text-sm text-fg-primary focus:outline-none focus:border-indigo-500"
+          className="px-3 py-2 bg-surface-1 border border-tok-border rounded text-sm text-fg-primary focus:outline-none focus:border-primary"
         >
           <option value="all">All Flags</option>
           {uniqueFlagKeys.map((key) => (
@@ -1002,7 +1002,7 @@ export default function FeatureFlagManager() {
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-colors duration-150",
               activeTab === tab.id
-                ? "text-indigo-400 border-indigo-500"
+                ? "text-primary border-primary"
                 : "text-fg-muted border-transparent hover:text-fg-primary"
             )}
           >

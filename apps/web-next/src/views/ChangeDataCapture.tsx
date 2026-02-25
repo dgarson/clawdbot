@@ -188,13 +188,13 @@ const statusColor: Record<ConnectorStatus, string> = {
   running:      "text-emerald-400 bg-emerald-400/10 border-emerald-400/30",
   paused:       "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/10 border-[var(--color-surface-3)]/30",
   failed:       "text-rose-400 bg-rose-400/10 border-rose-400/30",
-  syncing:      "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
+  syncing:      "text-primary bg-primary/10 border-primary/30",
   initializing: "text-amber-400 bg-amber-400/10 border-amber-400/30",
 };
 
 const opColor: Record<EventType, string> = {
   INSERT:   "text-emerald-400 bg-emerald-400/10",
-  UPDATE:   "text-indigo-400 bg-indigo-400/10",
+  UPDATE:   "text-primary bg-primary/10",
   DELETE:   "text-rose-400 bg-rose-400/10",
   DDL:      "text-amber-400 bg-amber-400/10",
   TRUNCATE: "text-rose-500 bg-rose-500/10",
@@ -237,7 +237,7 @@ export default function ChangeDataCapture(): React.ReactElement {
           <div className="text-xs text-[var(--color-text-secondary)]">
             <span className="text-[var(--color-text-primary)] font-semibold">{totalEPS.toLocaleString()}</span> events/s
           </div>
-          <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
+          <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded-md transition-colors">
             + Connector
           </button>
         </div>
@@ -252,7 +252,7 @@ export default function ChangeDataCapture(): React.ReactElement {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
-                ? "text-indigo-400 border-indigo-500"
+                ? "text-primary border-primary"
                 : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -278,7 +278,7 @@ export default function ChangeDataCapture(): React.ReactElement {
                   onClick={() => setSelectedConnector(c)}
                   className={cn(
                     "w-full text-left px-4 py-4 border-b border-[var(--color-border)]/50 transition-colors",
-                    selectedConnector.id === c.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/40"
+                    selectedConnector.id === c.id ? "bg-primary/10" : "hover:bg-[var(--color-surface-2)]/40"
                   )}
                 >
                   <div className="flex items-center justify-between mb-1.5">
@@ -300,7 +300,7 @@ export default function ChangeDataCapture(): React.ReactElement {
                         <span>Snapshot</span><span>{c.snapshotProgress}%</span>
                       </div>
                       <div className="h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${c.snapshotProgress}%` }} />
+                        <div className="h-full bg-primary rounded-full" style={{ width: `${c.snapshotProgress}%` }} />
                       </div>
                     </div>
                   )}
@@ -328,10 +328,10 @@ export default function ChangeDataCapture(): React.ReactElement {
                     <button className="px-3 py-1.5 text-xs border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 rounded-md transition-colors">Pause</button>
                   )}
                   {selectedConnector.status === "paused" && (
-                    <button className="px-3 py-1.5 text-xs bg-indigo-600/20 border border-indigo-600/40 text-indigo-300 rounded-md transition-colors">Resume</button>
+                    <button className="px-3 py-1.5 text-xs bg-primary/20 border border-primary/40 text-indigo-300 rounded-md transition-colors">Resume</button>
                   )}
                   {selectedConnector.status === "failed" && (
-                    <button className="px-3 py-1.5 text-xs bg-indigo-600/20 border border-indigo-600/40 text-indigo-300 rounded-md transition-colors">Restart</button>
+                    <button className="px-3 py-1.5 text-xs bg-primary/20 border border-primary/40 text-indigo-300 rounded-md transition-colors">Restart</button>
                   )}
                 </div>
               </div>
@@ -378,7 +378,7 @@ export default function ChangeDataCapture(): React.ReactElement {
                     <span className="text-indigo-300">{selectedConnector.snapshotProgress}%</span>
                   </div>
                   <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${selectedConnector.snapshotProgress}%` }} />
+                    <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${selectedConnector.snapshotProgress}%` }} />
                   </div>
                 </div>
               )}
@@ -399,7 +399,7 @@ export default function ChangeDataCapture(): React.ReactElement {
                   className={cn(
                     "px-2 py-1 text-[10px] rounded border transition-colors",
                     eventFilter === op
-                      ? "bg-indigo-600/20 border-indigo-500 text-indigo-300"
+                      ? "bg-primary/20 border-primary text-indigo-300"
                       : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                   )}
                 >
@@ -478,7 +478,7 @@ export default function ChangeDataCapture(): React.ReactElement {
                       <div className="flex flex-col-reverse gap-0.5 w-full">
                         {[
                           { val: point.insertCount, color: "bg-emerald-500" },
-                          { val: point.updateCount, color: "bg-indigo-500" },
+                          { val: point.updateCount, color: "bg-primary" },
                           { val: point.deleteCount, color: "bg-rose-500" },
                         ].map((seg, si) => (
                           <div key={si} className={cn("w-full rounded-sm", seg.color)} style={{ height: Math.max(2, Math.round(seg.val * scale)) }} />
@@ -492,7 +492,7 @@ export default function ChangeDataCapture(): React.ReactElement {
               <div className="flex gap-4 mt-3">
                 {[
                   { label: "INSERT", color: "bg-emerald-500" },
-                  { label: "UPDATE", color: "bg-indigo-500" },
+                  { label: "UPDATE", color: "bg-primary" },
                   { label: "DELETE", color: "bg-rose-500" },
                 ].map((l) => (
                   <div key={l.label} className="flex items-center gap-1.5">
@@ -548,7 +548,7 @@ export default function ChangeDataCapture(): React.ReactElement {
                   <div className="text-xs text-[var(--color-text-muted)] mt-0.5">{s.desc}</div>
                 </div>
                 <div className="text-sm font-mono text-[var(--color-text-primary)] text-right">{s.value}</div>
-                <button className="text-xs text-indigo-400 hover:text-indigo-300 shrink-0">Edit</button>
+                <button className="text-xs text-primary hover:text-indigo-300 shrink-0">Edit</button>
               </div>
             ))}
           </div>

@@ -636,7 +636,7 @@ export default function WorkqueueDashboard() {
         {/* Active Workers Panel */}
         <div className="col-span-1 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 space-y-4">
           <h2 className="text-sm font-semibold flex items-center gap-2">
-            <Users className="w-4 h-4 text-violet-400" />
+            <Users className="w-4 h-4 text-primary" />
             Active Workers
             <span className="ml-auto text-xs text-[var(--color-text-muted)]">{workers.filter(w => w.currentJobId).length} / 5</span>
           </h2>
@@ -655,7 +655,7 @@ export default function WorkqueueDashboard() {
                       <span>{worker.progress}% · {formatDuration(worker.elapsedSeconds)}</span>
                     </div>
                     <div className="h-1 bg-[var(--color-surface-3)] rounded-full overflow-hidden">
-                      <div className="h-full bg-violet-500" style={{ width: `${worker.progress}%` }} />
+                      <div className="h-full bg-primary" style={{ width: `${worker.progress}%` }} />
                     </div>
                   </>
                 )}

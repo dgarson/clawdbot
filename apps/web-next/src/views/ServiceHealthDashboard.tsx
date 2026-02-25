@@ -290,13 +290,13 @@ function statusBadgeClass(s: ServiceStatus): string {
 function severityBadgeClass(s: IncidentSeverity): string {
   if (s === "critical") {return "bg-rose-400/10 text-rose-400 border border-rose-400/20";}
   if (s === "major") {return "bg-amber-400/10 text-amber-400 border border-amber-400/20";}
-  return "bg-indigo-400/10 text-indigo-400 border border-indigo-400/20";
+  return "bg-primary/10 text-primary border border-primary/20";
 }
 
 function incidentStatusTextColor(s: IncidentStatus): string {
   if (s === "investigating") {return "text-rose-400";}
   if (s === "identified") {return "text-amber-400";}
-  if (s === "monitoring") {return "text-indigo-400";}
+  if (s === "monitoring") {return "text-primary";}
   return "text-emerald-400";
 }
 
@@ -514,7 +514,7 @@ export default function ServiceHealthDashboard() {
         <div>
           <button
             onClick={() => setSelectedServiceId(null)}
-            className="text-sm text-indigo-400 hover:text-indigo-300 mb-5 transition-colors"
+            className="text-sm text-primary hover:text-indigo-300 mb-5 transition-colors"
           >
             ← Back to Services
           </button>
@@ -710,7 +710,7 @@ export default function ServiceHealthDashboard() {
                 className={cn(
                   "text-sm px-4 py-1.5 rounded-lg capitalize font-medium transition-colors",
                   incidentFilter === f
-                    ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                    ? "bg-primary text-[var(--color-text-primary)]"
                     : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]"
                 )}
               >

@@ -633,7 +633,7 @@ const DATA_DOMAINS: DataDomain[] = [
     qualityScore: 92,
     topContributors: ["Priya Nair", "Felix Grant", "Maya Osei"],
     recentActivity: ["ab_experiment_results updated", "product_feature_usage pipeline optimized"],
-    color: "bg-violet-500",
+    color: "bg-primary",
   },
   {
     id: "engineering",
@@ -981,7 +981,7 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
               className={cn(
                 "px-5 py-2.5 text-sm font-medium capitalize transition-colors border-b-2",
                 activeSection === s
-                  ? "text-indigo-400 border-indigo-500"
+                  ? "text-primary border-primary"
                   : "text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -1002,7 +1002,7 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
                     className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-[var(--color-surface-1)] border border-[var(--color-border)]"
                   >
                     <div className="flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-mono bg-indigo-950 text-indigo-400 border border-indigo-800 px-1.5 py-0.5 rounded">
+                      <span className="text-xs font-mono bg-indigo-950 text-primary border border-indigo-800 px-1.5 py-0.5 rounded">
                         {field.type}
                       </span>
                     </div>
@@ -1074,7 +1074,7 @@ function DatasetPanel({ dataset, onClose }: DatasetPanelProps) {
                 <div className="space-y-1.5">
                   {dataset.lineage.downstream.map((dst) => (
                     <div key={dst} className="flex items-center gap-2 px-3 py-2 bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg">
-                      <span className="text-indigo-400 text-xs">▼</span>
+                      <span className="text-primary text-xs">▼</span>
                       <span className="text-sm font-mono text-[var(--color-text-primary)]">{dst}</span>
                     </div>
                   ))}
@@ -1137,13 +1137,13 @@ function BrowseTab({ domainFilter, onClearDomainFilter }: BrowseTabProps) {
             placeholder="Search datasets, owners, tags…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary transition-colors"
           />
         </div>
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value as DatasetType | "")}
-          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary transition-colors"
         >
           <option value="">All Types</option>
           <option value="table">Table</option>
@@ -1154,7 +1154,7 @@ function BrowseTab({ domainFilter, onClearDomainFilter }: BrowseTabProps) {
         <select
           value={accessFilter}
           onChange={(e) => setAccessFilter(e.target.value as AccessLevel | "")}
-          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary transition-colors"
         >
           <option value="">All Access</option>
           <option value="public">Public</option>
@@ -1166,7 +1166,7 @@ function BrowseTab({ domainFilter, onClearDomainFilter }: BrowseTabProps) {
             <span>Domain: {domainFilter}</span>
             <button
               onClick={onClearDomainFilter}
-              className="text-indigo-500 hover:text-indigo-300 ml-1 transition-colors"
+              className="text-primary hover:text-indigo-300 ml-1 transition-colors"
             >
               ✕
             </button>
@@ -1181,7 +1181,7 @@ function BrowseTab({ domainFilter, onClearDomainFilter }: BrowseTabProps) {
           <button
             key={ds.id}
             onClick={() => setSelectedDataset(ds)}
-            className="w-full text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 hover:border-indigo-600 hover:bg-[var(--color-surface-1)]/80 transition-all group"
+            className="w-full text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4 hover:border-primary hover:bg-[var(--color-surface-1)]/80 transition-all group"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
@@ -1261,7 +1261,7 @@ function DomainsTab({ onSelectDomain }: DomainsTabProps) {
         <button
           key={domain.id}
           onClick={() => onSelectDomain(domain.id)}
-          className="text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 hover:border-indigo-600 transition-all group"
+          className="text-left bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-5 hover:border-primary transition-all group"
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
@@ -1311,7 +1311,7 @@ function DomainsTab({ onSelectDomain }: DomainsTabProps) {
             <ul className="space-y-1">
               {domain.recentActivity.slice(0, 2).map((activity) => (
                 <li key={activity} className="text-xs text-[var(--color-text-muted)] flex items-start gap-1.5">
-                  <span className="text-indigo-500 mt-0.5 flex-shrink-0">·</span>
+                  <span className="text-primary mt-0.5 flex-shrink-0">·</span>
                   {activity}
                 </li>
               ))}
@@ -1319,7 +1319,7 @@ function DomainsTab({ onSelectDomain }: DomainsTabProps) {
           </div>
 
           <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
-            <span className="text-xs text-indigo-500 group-hover:text-indigo-400 transition-colors">
+            <span className="text-xs text-primary group-hover:text-primary transition-colors">
               Browse {domain.datasetCount} datasets →
             </span>
           </div>
@@ -1361,13 +1361,13 @@ function GlossaryTab() {
             placeholder="Search terms, definitions, aliases…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary transition-colors"
           />
         </div>
         <select
           value={domainFilter}
           onChange={(e) => setDomainFilter(e.target.value as Domain | "")}
-          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary transition-colors"
         >
           <option value="">All Domains</option>
           {DATA_DOMAINS.map((d) => (
@@ -1377,7 +1377,7 @@ function GlossaryTab() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-indigo-500 transition-colors"
+          className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-primary transition-colors"
         >
           <option value="">All Categories</option>
           {categories.map((c) => (
@@ -1449,7 +1449,7 @@ function GlossaryTab() {
                       </h4>
                       <div className="space-y-1">
                         {term.relatedDatasets.map((ds) => (
-                          <span key={ds} className="block text-xs font-mono text-indigo-400 bg-indigo-950 border border-indigo-900 px-2 py-1 rounded">
+                          <span key={ds} className="block text-xs font-mono text-primary bg-indigo-950 border border-indigo-900 px-2 py-1 rounded">
                             {ds}
                           </span>
                         ))}
@@ -1582,7 +1582,7 @@ function QualityTab() {
                       <div
                         className={cn(
                           "w-full rounded-t transition-all",
-                          isLast ? "bg-indigo-500" : "bg-indigo-800 group-hover:bg-indigo-600"
+                          isLast ? "bg-primary" : "bg-indigo-800 group-hover:bg-primary"
                         )}
                         style={{ height: heightPct + "%" }}
                       />
@@ -1780,7 +1780,7 @@ export default function DataCatalog() {
               className={cn(
                 "flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors",
                 activeTab === tab.id
-                  ? "text-indigo-400 border-indigo-500"
+                  ? "text-primary border-primary"
                   : "text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
               )}
             >
@@ -1790,7 +1790,7 @@ export default function DataCatalog() {
                   className={cn(
                     "text-xs px-1.5 py-0.5 rounded-full font-normal",
                     activeTab === tab.id
-                      ? "bg-indigo-950 text-indigo-400"
+                      ? "bg-indigo-950 text-primary"
                       : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                   )}
                 >

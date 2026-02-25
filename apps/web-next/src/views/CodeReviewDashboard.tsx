@@ -46,7 +46,7 @@ interface ReviewMetric {
 const statusBadge: Record<PRStatus, string> = {
   open:          "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
   draft:         "bg-surface-3/40 text-fg-secondary border border-tok-border",
-  merged:        "bg-violet-500/20 text-violet-400 border border-violet-500/30",
+  merged:        "bg-primary/20 text-primary border border-primary/30",
   closed:        "bg-rose-500/20 text-rose-400 border border-rose-500/30",
   "needs-review":"bg-amber-500/20 text-amber-400 border border-amber-500/30",
 };
@@ -68,7 +68,7 @@ const sizeColor: Record<PRSize, string> = {
 
 const labelColor: Record<string, string> = {
   "bug":       "bg-rose-500/20 text-rose-400",
-  "feature":   "bg-indigo-500/20 text-indigo-400",
+  "feature":   "bg-primary/20 text-primary",
   "refactor":  "bg-sky-500/20 text-sky-400",
   "perf":      "bg-amber-500/20 text-amber-400",
   "security":  "bg-orange-500/20 text-orange-400",
@@ -348,7 +348,7 @@ export default function CodeReviewDashboard() {
             <h1 className="text-xl sm:text-2xl font-bold text-fg-primary">Code Review Dashboard</h1>
             <p className="text-fg-secondary text-sm mt-1">Pull requests, review queue, and team velocity</p>
           </div>
-          <button className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm font-medium transition-colors">
+          <button className="px-4 py-2 rounded-lg bg-primary hover:bg-primary text-sm font-medium transition-colors">
             + New PR
           </button>
         </div>
@@ -377,7 +377,7 @@ export default function CodeReviewDashboard() {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
                 tab === t.id
-                  ? "border-indigo-500 text-fg-primary"
+                  ? "border-primary text-fg-primary"
                   : "border-transparent text-fg-secondary hover:text-fg-primary"
               )}
             >
@@ -397,7 +397,7 @@ export default function CodeReviewDashboard() {
                   onClick={() => { setStatusFilter(f === "all" ? "all" : f); setSelectedPR(null); }}
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
-                    statusFilter === f ? "bg-indigo-600 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
+                    statusFilter === f ? "bg-primary text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
                   )}
                 >
                   {f === "all" ? "All" : f === "needs-review" ? "Needs Review" : f.charAt(0).toUpperCase() + f.slice(1)}
@@ -424,7 +424,7 @@ export default function CodeReviewDashboard() {
 
                 <div className="flex items-center gap-4 text-sm text-fg-secondary">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-fg-primary">{selectedPR.authorAvatar}</div>
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-fg-primary">{selectedPR.authorAvatar}</div>
                     <span>{selectedPR.author}</span>
                   </div>
                   <span className="text-fg-muted">{selectedPR.branch} → {selectedPR.base}</span>
@@ -589,7 +589,7 @@ export default function CodeReviewDashboard() {
                       <p className="text-xs text-fg-muted mt-0.5">#{pr.id} · {pr.repo} · by {pr.author} · {pr.updatedAt}</p>
                     </div>
                     {myDecision.decision === "pending" && (
-                      <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-medium flex-shrink-0 transition-colors">
+                      <button className="px-3 py-1.5 bg-primary hover:bg-primary rounded-lg text-xs font-medium flex-shrink-0 transition-colors">
                         Review
                       </button>
                     )}
@@ -616,12 +616,12 @@ export default function CodeReviewDashboard() {
                   <div key={d.day} className="flex-1 flex flex-col items-center gap-1">
                     <div className="flex gap-0.5 items-end w-full">
                       <div
-                        className="flex-1 bg-violet-500/70 rounded-t"
+                        className="flex-1 bg-primary/70 rounded-t"
                         style={{ height: `${(d.merged / maxVal) * 100}px` }}
                         title={`Merged: ${d.merged}`}
                       />
                       <div
-                        className="flex-1 bg-indigo-500/50 rounded-t"
+                        className="flex-1 bg-primary/50 rounded-t"
                         style={{ height: `${(d.opened / maxVal) * 100}px` }}
                         title={`Opened: ${d.opened}`}
                       />
@@ -631,8 +631,8 @@ export default function CodeReviewDashboard() {
                 ))}
               </div>
               <div className="flex gap-4 mt-2">
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-violet-500/70" /><span className="text-xs text-fg-secondary">Merged</span></div>
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-indigo-500/50" /><span className="text-xs text-fg-secondary">Opened</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-primary/70" /><span className="text-xs text-fg-secondary">Merged</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-primary/50" /><span className="text-xs text-fg-secondary">Opened</span></div>
               </div>
             </div>
 

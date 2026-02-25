@@ -64,7 +64,7 @@ const sampleChannels: Channel[] = [
 // Helper functions
 const getTypeColor = (type: ContentType): string => {
   switch (type) {
-    case "blog": return "bg-indigo-600 text-[var(--color-text-primary)]";
+    case "blog": return "bg-primary text-[var(--color-text-primary)]";
     case "social": return "bg-emerald-500 text-[var(--color-text-primary)]";
     case "email": return "bg-amber-500 text-[var(--color-text-primary)]";
     case "video": return "bg-blue-500 text-[var(--color-text-primary)]";
@@ -161,7 +161,7 @@ const TabButton: React.FC<TabButtonProps> = ({ active, onClick, children }) => (
     className={cn(
       "px-4 py-2 text-sm font-medium transition-all duration-150 border-b-2",
       active
-        ? "text-indigo-400 border-indigo-500"
+        ? "text-primary border-primary"
         : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
     )}
   >
@@ -256,7 +256,7 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ content, selectedDate, onSele
                     <>
                       <div className={cn(
                         "text-xs font-medium mb-1",
-                        isTodayDate ? "text-indigo-400" : "text-[var(--color-text-secondary)]"
+                        isTodayDate ? "text-primary" : "text-[var(--color-text-secondary)]"
                       )}>
                         {day.getDate()}
                       </div>
@@ -289,7 +289,7 @@ const CalendarTab: React.FC<CalendarTabProps> = ({ content, selectedDate, onSele
         {/* Legend */}
         <div className="flex gap-4 mt-4 text-xs">
           <div className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+            <span className="w-2 h-2 rounded-full bg-primary"></span>
             <span className="text-[var(--color-text-secondary)]">Blog</span>
           </div>
           <div className="flex items-center gap-1">
@@ -377,7 +377,7 @@ const QueueTab: React.FC = () => {
               className={cn(
                 "p-4 bg-[var(--color-surface-1)] rounded-lg border cursor-pointer transition-colors",
                 selectedItem?.id === item.id
-                  ? "border-indigo-500"
+                  ? "border-primary"
                   : "border-[var(--color-border)] hover:border-[var(--color-border)]"
               )}
             >
@@ -483,7 +483,7 @@ const AnalyticsTab: React.FC = () => {
   ];
   
   const typeColors: Record<ContentType, string> = {
-    blog: "bg-indigo-600",
+    blog: "bg-primary",
     social: "bg-emerald-500",
     email: "bg-amber-500",
     video: "bg-blue-500",
@@ -525,7 +525,7 @@ const AnalyticsTab: React.FC = () => {
             {postsByDay.map((item) => (
               <div key={item.day} className="flex-1 flex flex-col items-center">
                 <div
-                  className="w-full bg-indigo-600 rounded-t transition-all"
+                  className="w-full bg-primary rounded-t transition-all"
                   style={{ height: `${(item.count / maxDayCount) * 100}%` }}
                 ></div>
                 <span className="text-xs text-[var(--color-text-muted)] mt-2">{item.day}</span>

@@ -131,7 +131,7 @@ function gatewayStatusText(s: GatewayStatus): string {
 function methodColor(m: RouteMethod): string {
   const map: Record<RouteMethod, string> = {
     GET:    "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-    POST:   "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+    POST:   "bg-primary/20 text-primary border-primary/30",
     PUT:    "bg-amber-500/20 text-amber-400 border-amber-500/30",
     PATCH:  "bg-blue-500/20 text-blue-400 border-blue-500/30",
     DELETE: "bg-rose-500/20 text-rose-400 border-rose-500/30",
@@ -142,7 +142,7 @@ function methodColor(m: RouteMethod): string {
 
 function authColor(a: AuthType): string {
   const map: Record<AuthType, string> = {
-    jwt:      "text-indigo-400",
+    jwt:      "text-primary",
     "api-key": "text-amber-400",
     oauth2:   "text-blue-400",
     none:     "text-fg-muted",
@@ -157,7 +157,7 @@ function pluginTypeColor(t: Plugin["type"]): string {
     logging:   "bg-surface-3/20 text-fg-secondary border-tok-border/30",
     caching:   "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
     security:  "bg-blue-500/20 text-blue-400 border-blue-500/30",
-    traffic:   "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+    traffic:   "bg-primary/20 text-primary border-primary/30",
   };
   return map[t];
 }
@@ -187,7 +187,7 @@ function GatewaysTab() {
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(selected?.id === gw.id ? null : gw); } }}
           className={cn(
             "rounded-xl border p-4 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
-            selected?.id === gw.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
+            selected?.id === gw.id ? "border-primary bg-primary/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
           )}
         >
           <div className="flex items-center gap-3">
@@ -254,7 +254,7 @@ function RoutesTab() {
             aria-pressed={gwFilter === gw.id}
             className={cn(
               "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
-              gwFilter === gw.id ? "bg-indigo-600 text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
+              gwFilter === gw.id ? "bg-primary text-fg-primary" : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
             )}
           >
             {gw.name}
@@ -274,7 +274,7 @@ function RoutesTab() {
             className={cn(
               "rounded-xl border p-3 cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
               !route.enabled && "opacity-50",
-              selected?.id === route.id ? "border-indigo-500 bg-indigo-500/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
+              selected?.id === route.id ? "border-primary bg-primary/5" : "border-tok-border bg-surface-1 hover:border-tok-border"
             )}
           >
             <div className="flex items-center gap-3">
@@ -359,7 +359,7 @@ function TrafficTab() {
                   style={{ height: (m.requests / maxReq * 100) + "%" }}
                   title={`${m.hour}: ${m.requests.toLocaleString()} requests`}
                 >
-                  <div className="h-full bg-indigo-500" />
+                  <div className="h-full bg-primary" />
                 </div>
               </div>
               <span aria-hidden="true" className="text-xs text-fg-muted">{m.hour}</span>
@@ -382,7 +382,7 @@ function TrafficTab() {
                   role="img"
                   aria-label={`${r.path}: ${(r.requestCount24h / 1000).toFixed(0)}K requests`}
                 >
-                  <div className="h-1.5 rounded-full bg-indigo-500" style={{ width: (r.requestCount24h / totalReqs * 100) + "%" }} />
+                  <div className="h-1.5 rounded-full bg-primary" style={{ width: (r.requestCount24h / totalReqs * 100) + "%" }} />
                 </div>
                 <span className="text-xs text-fg-secondary w-16 text-right" aria-hidden="true">{(r.requestCount24h / 1000).toFixed(0)}K</span>
               </div>
@@ -465,7 +465,7 @@ export default function APIGatewayManager({ isLoading = false }: { isLoading?: b
     <>
       <a
         href="#agm-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>
@@ -488,7 +488,7 @@ export default function APIGatewayManager({ isLoading = false }: { isLoading?: b
           {[
             { label: "Active Gateways", value: activeGateways, color: "text-emerald-400" },
             { label: "Total Routes", value: routes.length, color: "text-fg-primary" },
-            { label: "Active Plugins", value: plugins.filter((p) => p.enabled).length, color: "text-indigo-400" },
+            { label: "Active Plugins", value: plugins.filter((p) => p.enabled).length, color: "text-primary" },
             { label: "Total RPS", value: totalRps.toFixed(0), color: "text-fg-primary" },
           ].map((kpi) => (
             <div key={kpi.label} className="rounded-xl border border-tok-border bg-surface-1 p-4">
@@ -509,7 +509,7 @@ export default function APIGatewayManager({ isLoading = false }: { isLoading?: b
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
                 tab === t
-                  ? "border-indigo-500 text-indigo-400"
+                  ? "border-primary text-primary"
                   : "border-transparent text-fg-secondary hover:text-fg-primary"
               )}
             >

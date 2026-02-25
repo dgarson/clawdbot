@@ -594,7 +594,7 @@ function EventTypeBadge({ eventType }: { eventType: EventType }) {
     logout: { label: "Logout", color: "text-[var(--color-text-secondary)] bg-[var(--color-surface-3)]/30 border-[var(--color-border)]/40" },
     block: { label: "Blocked", color: "text-rose-400 bg-rose-500/10 border-rose-500/20" },
     unblock: { label: "Unblocked", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-    trust: { label: "Trusted", color: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20" },
+    trust: { label: "Trusted", color: "text-primary bg-primary/10 border-primary/20" },
     revoke: { label: "Revoked", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
   }
   const cfg = configs[eventType]
@@ -611,7 +611,7 @@ function EventIcon({ eventType }: { eventType: EventType }) {
   if (eventType === "logout") {return <LogOutIcon className={cn(base, "text-[var(--color-text-secondary)]")} />}
   if (eventType === "block") {return <BanIcon className={cn(base, "text-rose-400")} />}
   if (eventType === "unblock") {return <ShieldCheckIcon className={cn(base, "text-emerald-400")} />}
-  if (eventType === "trust") {return <ShieldCheckIcon className={cn(base, "text-indigo-400")} />}
+  if (eventType === "trust") {return <ShieldCheckIcon className={cn(base, "text-primary")} />}
   return <XIcon className={cn(base, "text-amber-400")} />
 }
 
@@ -669,7 +669,7 @@ function DevicesTab() {
             className={cn(
               "px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors capitalize",
               trustFilter === f
-                ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                ? "bg-primary border-primary text-[var(--color-text-primary)]"
                 : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:border-[var(--color-border)]"
             )}
           >
@@ -689,7 +689,7 @@ function DevicesTab() {
               className={cn(
                 "w-full text-left bg-[var(--color-surface-1)] border rounded-xl p-3 transition-colors group",
                 selectedId === device.id
-                  ? "border-indigo-500 bg-[var(--color-surface-2)]"
+                  ? "border-primary bg-[var(--color-surface-2)]"
                   : "border-[var(--color-border)] hover:border-[var(--color-border)] hover:bg-[var(--color-surface-2)]"
               )}
             >
@@ -706,7 +706,7 @@ function DevicesTab() {
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{device.name}</span>
                     {device.isCurrentDevice && (
-                      <span className="flex-shrink-0 text-xs px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                      <span className="flex-shrink-0 text-xs px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
                         You
                       </span>
                     )}
@@ -740,7 +740,7 @@ function DevicesTab() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{selected.name}</h3>
                     {selected.isCurrentDevice && (
-                      <span className="text-xs px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                      <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
                         Current Device
                       </span>
                     )}
@@ -893,12 +893,12 @@ function SessionsTab() {
                 key={session.id}
                 className={cn(
                   "bg-[var(--color-surface-1)] border rounded-xl p-4 flex items-center gap-4",
-                  isCurrentDevice ? "border-indigo-500/50" : "border-[var(--color-border)]"
+                  isCurrentDevice ? "border-primary/50" : "border-[var(--color-border)]"
                 )}
               >
                 <div className={cn(
                   "flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center",
-                  isCurrentDevice ? "bg-indigo-500/10 text-indigo-400" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
+                  isCurrentDevice ? "bg-primary/10 text-primary" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
                 )}>
                   <DesktopIcon className="w-5 h-5" />
                 </div>
@@ -906,7 +906,7 @@ function SessionsTab() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-[var(--color-text-primary)]">{session.deviceName}</span>
                     {isCurrentDevice && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
                         This device
                       </span>
                     )}
@@ -1089,7 +1089,7 @@ function PoliciesTab() {
                       {policy.affectedDevices} of {policy.totalDevices} devices passing
                     </div>
                   </div>
-                  <button className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-xs font-medium transition-colors">
+                  <button className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary text-[var(--color-text-primary)] text-xs font-medium transition-colors">
                     Edit Policy
                   </button>
                 </div>
@@ -1149,7 +1149,7 @@ function AuditTab() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search events, devices, IPs..."
-            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg pl-9 pr-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg pl-9 pr-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary transition-colors"
           />
         </div>
 
@@ -1162,7 +1162,7 @@ function AuditTab() {
               className={cn(
                 "px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors",
                 typeFilter === et.value
-                  ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                  ? "bg-primary border-primary text-[var(--color-text-primary)]"
                   : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:border-[var(--color-border)]"
               )}
             >
@@ -1201,7 +1201,7 @@ function AuditTab() {
                     event.eventType === "login" ? "bg-emerald-500/10" :
                     event.eventType === "logout" ? "bg-[var(--color-surface-2)]" :
                     event.eventType === "block" ? "bg-rose-500/10" :
-                    event.eventType === "trust" ? "bg-indigo-500/10" :
+                    event.eventType === "trust" ? "bg-primary/10" :
                     event.eventType === "unblock" ? "bg-emerald-500/10" :
                     "bg-amber-500/10"
                   )}>
@@ -1259,8 +1259,8 @@ export default function UserDeviceManager() {
         {/* Page header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-              <ShieldCheckIcon className="w-4 h-4 text-indigo-400" />
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <ShieldCheckIcon className="w-4 h-4 text-primary" />
             </div>
             <h1 className="text-xl font-bold text-[var(--color-text-primary)]">Device Manager</h1>
           </div>
@@ -1278,7 +1278,7 @@ export default function UserDeviceManager() {
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-[var(--color-text-primary)] shadow-sm"
+                  ? "bg-primary text-[var(--color-text-primary)] shadow-sm"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
               )}
             >
@@ -1287,7 +1287,7 @@ export default function UserDeviceManager() {
                 <span className={cn(
                   "text-xs px-1.5 py-0.5 rounded-full font-mono",
                   activeTab === tab.id
-                    ? "bg-indigo-500/40 text-indigo-100"
+                    ? "bg-primary/40 text-indigo-100"
                     : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                 )}>
                   {tab.count}

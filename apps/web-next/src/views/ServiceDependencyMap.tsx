@@ -111,7 +111,7 @@ const statusDot: Record<ServiceStatus, string> = {
 };
 
 const depTypeBadge: Record<DepType, string> = {
-  sync:  "bg-indigo-500/15 text-indigo-400",
+  sync:  "bg-primary/15 text-primary",
   async: "bg-purple-500/15 text-purple-400",
   cache: "bg-amber-500/15 text-amber-400",
   db:    "bg-sky-500/15 text-sky-400",
@@ -121,7 +121,7 @@ const langColor: Record<string, string> = {
   Go: "text-sky-400",
   TypeScript: "text-blue-400",
   Python: "text-yellow-400",
-  SQL: "text-indigo-400",
+  SQL: "text-primary",
   Redis: "text-red-400",
   Erlang: "text-purple-400",
 };
@@ -473,7 +473,7 @@ export default function ServiceDependencyMap() {
                     {/* Blast radius bar */}
                     <div className="mt-3 w-full bg-[var(--color-surface-2)] rounded-full h-1">
                       <div
-                        className={cn("h-1 rounded-full", imp.criticalPath ? "bg-rose-500" : "bg-indigo-500")}
+                        className={cn("h-1 rounded-full", imp.criticalPath ? "bg-rose-500" : "bg-primary")}
                         style={{ width: `${Math.min(100, ((imp.upstreamCount + imp.downstreamCount) / 10) * 100)}%` }}
                       />
                     </div>

@@ -217,7 +217,7 @@ export default function ErrorBudgetTracker() {
               <button
                 key={w}
                 onClick={() => setBurnWindow(w)}
-                className={cn("text-xs px-3 py-1 transition-colors", burnWindow === w ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
+                className={cn("text-xs px-3 py-1 transition-colors", burnWindow === w ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]")}
               >
                 {w}
               </button>
@@ -268,7 +268,7 @@ export default function ErrorBudgetTracker() {
                   <tr
                     key={slo.id}
                     onClick={() => setSelectedSLOId(isSelected ? null : slo.id)}
-                    className={cn("cursor-pointer hover:bg-[var(--color-surface-1)] transition-colors", isSelected && "bg-indigo-500/5")}
+                    className={cn("cursor-pointer hover:bg-[var(--color-surface-1)] transition-colors", isSelected && "bg-primary/5")}
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">

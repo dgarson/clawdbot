@@ -96,7 +96,7 @@ export default function PricingCalculator() {
 
   const PLANS: { id: Plan; name: string; tagline: string; color: string }[] = [
     { id: "starter",    name: "Starter",    tagline: "For individuals & small projects",   color: "border-[var(--color-border)]" },
-    { id: "pro",        name: "Pro",        tagline: "For growing teams and startups",     color: "border-indigo-500" },
+    { id: "pro",        name: "Pro",        tagline: "For growing teams and startups",     color: "border-primary" },
     { id: "enterprise", name: "Enterprise", tagline: "For large teams with advanced needs",color: "border-amber-500" },
   ];
 
@@ -114,7 +114,7 @@ export default function PricingCalculator() {
               onClick={() => setBilling(b)}
               className={cn(
                 "px-4 py-1.5 text-sm rounded-md capitalize transition-colors",
-                billing === b ? "bg-indigo-500 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                billing === b ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {b} {b === "annual" && <span className="text-xs text-emerald-400 ml-1">-20%</span>}
@@ -131,7 +131,7 @@ export default function PricingCalculator() {
             onClick={() => setActiveTab(t.id)}
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
-              activeTab === t.id ? "bg-indigo-500 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
+              activeTab === t.id ? "bg-primary text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
             {t.label}
@@ -211,7 +211,7 @@ export default function PricingCalculator() {
                       key={addon.id}
                       className={cn(
                         "flex items-center gap-3 bg-[var(--color-surface-1)] border rounded-lg p-3.5 cursor-pointer transition-colors",
-                        checked ? "border-indigo-500/50 bg-indigo-500/5" : "border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
+                        checked ? "border-primary/50 bg-primary/5" : "border-[var(--color-border)] hover:border-[var(--color-surface-3)]"
                       )}
                     >
                       <input
@@ -290,7 +290,7 @@ export default function PricingCalculator() {
                   <div className="flex items-end justify-between">
                     <span className="text-[var(--color-text-primary)] font-semibold">Total</span>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-indigo-400">{fmt(total)}<span className="text-sm text-[var(--color-text-secondary)]">/mo</span></div>
+                      <div className="text-2xl font-bold text-primary">{fmt(total)}<span className="text-sm text-[var(--color-text-secondary)]">/mo</span></div>
                       {billing === "annual" && (
                         <div className="text-xs text-[var(--color-text-secondary)]">{fmt(annualTotal)} billed annually</div>
                       )}
@@ -299,7 +299,7 @@ export default function PricingCalculator() {
                 </div>
               </div>
 
-              <button className="w-full mt-5 py-2.5 bg-indigo-500 text-[var(--color-text-primary)] text-sm font-medium rounded hover:bg-indigo-600 transition-colors">
+              <button className="w-full mt-5 py-2.5 bg-primary text-[var(--color-text-primary)] text-sm font-medium rounded hover:bg-primary transition-colors">
                 Start Free Trial →
               </button>
               <button className="w-full mt-2 py-2.5 border border-[var(--color-border)] text-[var(--color-text-secondary)] text-sm rounded hover:bg-[var(--color-surface-2)] transition-colors">
@@ -323,7 +323,7 @@ export default function PricingCalculator() {
                 {PLANS.map(plan => (
                   <th key={plan.id} className="px-5 py-4 text-center">
                     <div className="text-[var(--color-text-primary)] font-semibold">{plan.name}</div>
-                    <div className="text-lg font-bold text-indigo-400 mt-0.5">
+                    <div className="text-lg font-bold text-primary mt-0.5">
                       {PLAN_BASE[plan.id] === 0 ? "Free" : fmt(PLAN_BASE[plan.id])}
                       {PLAN_BASE[plan.id] > 0 && <span className="text-xs font-normal text-[var(--color-text-secondary)]">/mo</span>}
                     </div>
@@ -354,7 +354,7 @@ export default function PricingCalculator() {
 
       {activeTab === "enterprise" && (
         <div className="max-w-2xl space-y-5">
-          <div className="bg-gradient-to-br from-indigo-500/10 to-zinc-900 border border-indigo-500/20 rounded-lg p-6">
+          <div className="bg-gradient-to-br from-indigo-500/10 to-zinc-900 border border-primary/20 rounded-lg p-6">
             <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">Enterprise Plan</h2>
             <p className="text-[var(--color-text-secondary)] text-sm">Custom pricing for large organizations with advanced security, compliance, and support requirements.</p>
           </div>
@@ -387,12 +387,12 @@ export default function PricingCalculator() {
                   <input
                     type="text"
                     placeholder={label}
-                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded px-3 py-2 placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-primary"
                   />
                 </div>
               ))}
             </div>
-            <button className="mt-4 w-full py-2.5 bg-indigo-500 text-[var(--color-text-primary)] text-sm font-medium rounded hover:bg-indigo-600 transition-colors">
+            <button className="mt-4 w-full py-2.5 bg-primary text-[var(--color-text-primary)] text-sm font-medium rounded hover:bg-primary transition-colors">
               Request Enterprise Demo
             </button>
           </div>

@@ -125,7 +125,7 @@ export default function TokenBudgetPlanner() {
               <option key={s.key} value={s.key}>{s.label}</option>
             ))}
           </select>
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm transition-colors">
+          <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-3 py-1.5 rounded text-sm transition-colors">
             Export
           </button>
         </div>
@@ -250,7 +250,7 @@ export default function TokenBudgetPlanner() {
       {/* ── Scenario Impact Panel ──────────────────────────────────────── */}
       {scenario !== "current" && (
         <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-5">
-          <h2 className="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">
             Scenario Impact: {SCENARIOS.find((s) => s.key === scenario)?.label}
           </h2>
           <div className="grid grid-cols-4 gap-3 text-sm">
@@ -317,8 +317,8 @@ export default function TokenBudgetPlanner() {
                     className={cn(
                       "w-full max-w-[48px] rounded-t transition-all",
                       month.isProjected
-                        ? "bg-indigo-500/40 border-2 border-dashed border-indigo-500"
-                        : "bg-indigo-500",
+                        ? "bg-primary/40 border-2 border-dashed border-primary"
+                        : "bg-primary",
                     )}
                     style={{ height: `${pct}%` }}
                   />
@@ -326,7 +326,7 @@ export default function TokenBudgetPlanner() {
                 <div className="text-xs text-[var(--color-text-muted)]">
                   {month.label}
                   {month.isProjected && (
-                    <span className="block text-[10px] text-indigo-400">proj.</span>
+                    <span className="block text-[10px] text-primary">proj.</span>
                   )}
                 </div>
               </div>
@@ -350,7 +350,7 @@ export default function TokenBudgetPlanner() {
           <span>At or over budget</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-5 border border-dashed border-indigo-500 bg-indigo-500/30 rounded-sm" />
+          <div className="w-2.5 h-5 border border-dashed border-primary bg-primary/30 rounded-sm" />
           <span>Projected</span>
         </div>
         <div className="flex items-center gap-1.5">

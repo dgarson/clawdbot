@@ -158,7 +158,7 @@ export function GatewayAuthModal({ authError, onConnect, onDismiss }: GatewayAut
           <button
             type="button"
             onClick={handleConnect}
-            className="flex-1 py-2 px-4 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="flex-1 py-2 px-4 bg-primary hover:bg-primary text-white text-sm font-medium rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
           >
             Connect
           </button>

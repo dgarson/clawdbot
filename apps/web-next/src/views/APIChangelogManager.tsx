@@ -70,7 +70,7 @@ const SUBSCRIBERS: Subscriber[] = [
 
 const changeTypeBadge: Record<ChangeType, string> = {
   breaking: "bg-rose-500/15 border-rose-500/40 text-rose-400",
-  feature: "bg-indigo-500/10 border-indigo-500/30 text-indigo-400",
+  feature: "bg-primary/10 border-primary/30 text-primary",
   fix: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
   deprecation: "bg-amber-500/10 border-amber-500/30 text-amber-400",
   security: "bg-purple-500/10 border-purple-500/30 text-purple-400",
@@ -216,7 +216,7 @@ export default function APIChangelogManager({ isLoading = false }: { isLoading?:
     <>
       <a
         href="#acm-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>
@@ -233,7 +233,7 @@ export default function APIChangelogManager({ isLoading = false }: { isLoading?:
                 <span className="text-xs text-amber-400 font-medium"><span aria-hidden="true">⚠️</span> {breakingAhead} clients on deprecated APIs</span>
               </div>
             )}
-            <button className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 rounded text-fg-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+            <button className="px-3 py-1.5 text-sm bg-primary hover:bg-primary rounded text-fg-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
               + New Change
             </button>
           </div>
@@ -266,7 +266,7 @@ export default function APIChangelogManager({ isLoading = false }: { isLoading?:
               onClick={() => setTab(t.id)}
               className={cn(
                 "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
-                tab === t.id ? "border-indigo-500 text-fg-primary" : "border-transparent text-fg-muted hover:text-fg-primary"
+                tab === t.id ? "border-primary text-fg-primary" : "border-transparent text-fg-muted hover:text-fg-primary"
               )}
             >
               <span aria-hidden="true">{t.emoji}</span>
@@ -421,7 +421,7 @@ export default function APIChangelogManager({ isLoading = false }: { isLoading?:
                       {selectedChange.status === "draft" && (
                         <button
                           aria-label={`Publish: ${selectedChange.title}`}
-                          className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded text-fg-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                          className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded text-fg-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                         >
                           Publish
                         </button>
@@ -569,7 +569,7 @@ export default function APIChangelogManager({ isLoading = false }: { isLoading?:
                       <span className="text-xs bg-surface-2 px-2 py-0.5 rounded font-mono text-fg-secondary">{sub.apiVersion}</span>
                       <span className={cn(
                         "text-xs px-2 py-0.5 rounded",
-                        sub.plan === "Enterprise" ? "bg-indigo-500/10 text-indigo-400" :
+                        sub.plan === "Enterprise" ? "bg-primary/10 text-primary" :
                         sub.plan === "Pro" ? "bg-sky-500/10 text-sky-400" : "bg-surface-3/30 text-fg-muted"
                       )}>{sub.plan}</span>
                     </div>

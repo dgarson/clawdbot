@@ -468,7 +468,7 @@ export default function PipelineMonitor() {
                         onClick={() => { setSelectedJob(job); setSelectedStep(null); }}
                         className={cn(
                           "bg-[var(--color-surface-1)] border rounded-lg p-3 cursor-pointer transition-colors",
-                          selectedJob?.id === job.id ? "border-indigo-600" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                          selectedJob?.id === job.id ? "border-primary" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                         )}
                       >
                         <div className="flex items-center gap-2 mb-1">

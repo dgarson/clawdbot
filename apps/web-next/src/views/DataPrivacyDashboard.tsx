@@ -264,7 +264,7 @@ const MONTHLY_STATS = [
 function statusColor(status: RequestStatus): string {
   switch (status) {
     case "completed": return "text-emerald-400 bg-emerald-400/10"
-    case "in-progress": return "text-indigo-400 bg-indigo-400/10"
+    case "in-progress": return "text-primary bg-primary/10"
     case "overdue": return "text-rose-400 bg-rose-400/10"
     default: return "text-amber-400 bg-amber-400/10"
   }
@@ -305,7 +305,7 @@ function TrendBar({ values }: { values: number[] }) {
       {values.map((v, i) => (
         <div key={i} className="flex flex-col items-center gap-0.5 flex-1">
           <div
-            className="w-full bg-indigo-500 rounded-sm opacity-80"
+            className="w-full bg-primary rounded-sm opacity-80"
             style={{ height: `${(v / max) * 100}%` }}
           />
           <span className="text-[var(--color-text-muted)] text-[9px]">{days[i]}</span>
@@ -399,7 +399,7 @@ function RequestsTab() {
                   </td>
                   <td className="px-4 py-3">
                     <Badge className={
-                      dsr.jurisdiction === "GDPR" ? "text-indigo-400 bg-indigo-400/10" :
+                      dsr.jurisdiction === "GDPR" ? "text-primary bg-primary/10" :
                       dsr.jurisdiction === "CCPA" ? "text-amber-400 bg-amber-400/10" :
                       "text-emerald-400 bg-emerald-400/10"
                     }>
@@ -635,7 +635,7 @@ function ReportsTab() {
           <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Last 90 days</div>
         </div>
         <div className="bg-[var(--color-surface-1)] rounded-lg border border-[var(--color-border)] p-5">
-          <div className="text-3xl font-bold text-indigo-400">18.4</div>
+          <div className="text-3xl font-bold text-primary">18.4</div>
           <div className="text-sm text-[var(--color-text-secondary)] mt-1">Avg Processing Days</div>
           <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Target: 30 days</div>
         </div>
@@ -672,7 +672,7 @@ function ReportsTab() {
             <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
               <span className="text-xs text-[var(--color-text-secondary)]">{m.volume}</span>
               <div
-                className="w-full bg-indigo-500 rounded-t-sm"
+                className="w-full bg-primary rounded-t-sm"
                 style={{ height: `${(m.volume / maxVol) * 120}px` }}
               />
               <span className="text-xs text-[var(--color-text-secondary)]">{m.month}</span>
@@ -696,7 +696,7 @@ function ReportsTab() {
                     <span className="text-[var(--color-text-secondary)]">{count} ({pct}%)</span>
                   </div>
                   <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${pct}%` }} />
+                    <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               )
@@ -709,7 +709,7 @@ function ReportsTab() {
             {(["completed", "in-progress", "pending", "overdue"] as RequestStatus[]).map((status) => {
               const count = MOCK_DSRS.filter((d) => d.status === status).length
               const pct = Math.round((count / MOCK_DSRS.length) * 100)
-              const color = status === "completed" ? "bg-emerald-500" : status === "in-progress" ? "bg-indigo-500" : status === "overdue" ? "bg-rose-500" : "bg-amber-500"
+              const color = status === "completed" ? "bg-emerald-500" : status === "in-progress" ? "bg-primary" : status === "overdue" ? "bg-rose-500" : "bg-amber-500"
               return (
                 <div key={status} className="space-y-1">
                   <div className="flex justify-between text-sm">
@@ -782,7 +782,7 @@ export default function DataPrivacyDashboard() {
             className={cn(
               "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
               activeTab === tab.id
-                ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >

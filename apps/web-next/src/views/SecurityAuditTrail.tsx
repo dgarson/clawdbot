@@ -708,7 +708,7 @@ function TabButton({ label, tabId, active, onClick, count }: TabButtonProps) {
       className={cn(
         "relative px-5 py-3 text-sm font-medium transition-colors duration-150 border-b-2",
         active
-          ? "text-[var(--color-text-primary)] border-indigo-500"
+          ? "text-[var(--color-text-primary)] border-primary"
           : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
       )}
     >
@@ -718,7 +718,7 @@ function TabButton({ label, tabId, active, onClick, count }: TabButtonProps) {
           className={cn(
             "ml-2 inline-flex items-center justify-center px-1.5 py-0.5 text-xs rounded-full",
             active
-              ? "bg-indigo-500/30 text-indigo-300"
+              ? "bg-primary/30 text-indigo-300"
               : "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
           )}
         >
@@ -811,7 +811,7 @@ function EventsTab({
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filters.severity === s
-                      ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
@@ -836,7 +836,7 @@ function EventsTab({
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filters.category === c
-                      ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
@@ -894,7 +894,7 @@ function EventsTab({
               className={cn(
                 "w-full text-left rounded-lg border px-4 py-3 transition-all duration-150",
                 selectedEvent?.id === event.id
-                  ? "bg-indigo-500/10 border-indigo-500/50"
+                  ? "bg-primary/10 border-primary/50"
                   : "bg-[var(--color-surface-1)] border-[var(--color-border)] hover:bg-[var(--color-surface-2)] hover:border-[var(--color-border)]"
               )}
             >
@@ -1363,7 +1363,7 @@ function ExportTab({ state, onChange }: ExportTabProps) {
                 className={cn(
                   "flex items-start gap-3 p-3 rounded-lg border text-left transition-colors",
                   state.format === fmt
-                    ? "bg-indigo-500/10 border-indigo-500/50"
+                    ? "bg-primary/10 border-primary/50"
                     : "bg-[var(--color-surface-2)]/30 border-[var(--color-border)]/50 hover:bg-[var(--color-surface-2)] hover:border-[var(--color-surface-3)]"
                 )}
               >
@@ -1372,7 +1372,7 @@ function ExportTab({ state, onChange }: ExportTabProps) {
                   className={cn(
                     "w-4 h-4 rounded-full border-2 mt-0.5 shrink-0 flex items-center justify-center",
                     state.format === fmt
-                      ? "border-indigo-500 bg-indigo-500"
+                      ? "border-primary bg-primary"
                       : "border-[var(--color-surface-3)]"
                   )}
                 >
@@ -1454,14 +1454,14 @@ function ExportTab({ state, onChange }: ExportTabProps) {
                 className={cn(
                   "flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left text-sm transition-colors",
                   state.preset === preset
-                    ? "bg-indigo-500/10 border-indigo-500/40 text-[var(--color-text-primary)]"
+                    ? "bg-primary/10 border-primary/40 text-[var(--color-text-primary)]"
                     : "bg-[var(--color-surface-2)]/30 border-[var(--color-border)]/50 text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
                 )}
               >
                 <span
                   className={cn(
                     "w-2 h-2 rounded-full shrink-0",
-                    state.preset === preset ? "bg-indigo-400" : "bg-[var(--color-surface-3)]"
+                    state.preset === preset ? "bg-primary" : "bg-[var(--color-surface-3)]"
                   )}
                 />
                 {preset}
@@ -1501,8 +1501,8 @@ function ExportTab({ state, onChange }: ExportTabProps) {
             className={cn(
               "w-full py-3 rounded-lg text-sm font-semibold transition-all duration-200",
               state.isExporting
-                ? "bg-indigo-600/40 text-indigo-300 cursor-not-allowed"
-                : "bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)]"
+                ? "bg-primary/40 text-indigo-300 cursor-not-allowed"
+                : "bg-primary hover:bg-primary text-[var(--color-text-primary)]"
             )}
           >
             {state.isExporting ? (
@@ -1627,7 +1627,7 @@ export default function SecurityAuditTrail() {
                 label: "Active Anomalies",
                 value: String(investigatingCount),
                 sub: "investigating",
-                color: "text-indigo-400",
+                color: "text-primary",
               },
             ] as Array<{
               label: string;

@@ -97,7 +97,7 @@ const INITIAL_RELATIONS: Relation[] = [
  */
 const Badge = ({ type, children }: { type: EntityType | "relation"; children: React.ReactNode }) => {
   const styles: Record<string, string> = {
-    person: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    person: "bg-primary/10 text-primary border-primary/20",
     organization: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     concept: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     event: "bg-blue-500/10 text-blue-400 border-blue-500/20",
@@ -190,7 +190,7 @@ const EntityDetail = ({
       <div className="mt-6 pt-4 border-t border-[var(--color-border)]">
         <button 
           onClick={() => onFocus(entity.id)}
-          className="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] rounded font-medium text-sm transition-colors"
+          className="w-full py-2 px-4 bg-primary hover:bg-primary text-[var(--color-text-primary)] rounded font-medium text-sm transition-colors"
         >
           Focus on {entity.name}
         </button>
@@ -274,7 +274,7 @@ export default function KnowledgeGraphViewer() {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-[var(--color-surface-0)] text-[var(--color-text-primary)] p-8 font-sans selection:bg-primary/30">
       <header className="mb-10">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Knowledge Graph</h1>
         <p className="text-[var(--color-text-muted)] max-w-2xl">
@@ -295,7 +295,7 @@ export default function KnowledgeGraphViewer() {
                   onClick={() => setFocusEntityId(null)}
                   className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-xs py-1 px-3 rounded-full border border-[var(--color-border)] flex items-center gap-2"
                 >
-                  <span className="text-indigo-400">↺</span> Reset Focus
+                  <span className="text-primary">↺</span> Reset Focus
                 </button>
               </div>
             )}
@@ -310,7 +310,7 @@ export default function KnowledgeGraphViewer() {
                     onClick={() => setSelectedEntityId(e.id)}
                     className={cn(
                       selectedEntityId === e.id && "ring-2 ring-indigo-500 border-transparent",
-                      focusEntityId === e.id && "bg-indigo-500/10 border-indigo-500/30"
+                      focusEntityId === e.id && "bg-primary/10 border-primary/30"
                     )}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -333,7 +333,7 @@ export default function KnowledgeGraphViewer() {
                     onClick={() => setSelectedEntityId(e.id)}
                     className={cn(
                       selectedEntityId === e.id && "ring-2 ring-indigo-500 border-transparent",
-                      focusEntityId === e.id && "bg-indigo-500/10 border-indigo-500/30"
+                      focusEntityId === e.id && "bg-primary/10 border-primary/30"
                     )}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -356,7 +356,7 @@ export default function KnowledgeGraphViewer() {
                     onClick={() => setSelectedEntityId(e.id)}
                     className={cn(
                       selectedEntityId === e.id && "ring-2 ring-indigo-500 border-transparent",
-                      focusEntityId === e.id && "bg-indigo-500/10 border-indigo-500/30"
+                      focusEntityId === e.id && "bg-primary/10 border-primary/30"
                     )}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -433,7 +433,7 @@ export default function KnowledgeGraphViewer() {
                       setActiveTab("graph");
                     }}
                   >
-                    <td className="px-6 py-4 font-medium text-[var(--color-text-primary)] group-hover:text-indigo-400">{e.name}</td>
+                    <td className="px-6 py-4 font-medium text-[var(--color-text-primary)] group-hover:text-primary">{e.name}</td>
                     <td className="px-6 py-4"><Badge type={e.type}>{e.type}</Badge></td>
                     <td className="px-6 py-4 text-[var(--color-text-secondary)] font-mono">{getConnections(e.id).length}</td>
                     <td className="px-6 py-4 text-[var(--color-text-muted)]">{e.firstSeen}</td>
@@ -526,7 +526,7 @@ export default function KnowledgeGraphViewer() {
                       className="group"
                     >
                       <div className="flex justify-between mb-1">
-                        <span className="text-[var(--color-text-primary)] font-medium group-hover:text-indigo-400 transition-colors">{e.name}</span>
+                        <span className="text-[var(--color-text-primary)] font-medium group-hover:text-primary transition-colors">{e.name}</span>
                         <Badge type={e.type}>{e.type}</Badge>
                       </div>
                       <p className="text-xs text-[var(--color-text-muted)] line-clamp-1">{e.description}</p>

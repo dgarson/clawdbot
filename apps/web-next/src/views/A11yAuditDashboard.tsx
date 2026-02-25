@@ -343,7 +343,7 @@ export default function A11yAuditDashboard({ isLoading = false }: { isLoading?: 
     <>
       <a
         href="#aad-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>
@@ -444,7 +444,7 @@ export default function A11yAuditDashboard({ isLoading = false }: { isLoading?: 
                           WCAG {level}
                         </span>
                         <div className="flex-1 bg-surface-2 rounded-full h-2" role="img" aria-label={`WCAG ${level}: ${WCAG_COUNTS[level]} issues`}>
-                          <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(WCAG_COUNTS[level] / VIOLATIONS.length) * 100}%` }} />
+                          <div className="h-full bg-primary rounded-full" style={{ width: `${(WCAG_COUNTS[level] / VIOLATIONS.length) * 100}%` }} />
                         </div>
                         <span className="text-xs text-fg-secondary w-4 text-right" aria-hidden="true">{WCAG_COUNTS[level]}</span>
                       </div>
@@ -538,7 +538,7 @@ export default function A11yAuditDashboard({ isLoading = false }: { isLoading?: 
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedViolation(selectedViolation?.id === v.id ? null : v); } }}
                     className={cn(
                       "bg-surface-1 border rounded-lg p-4 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500",
-                      selectedViolation?.id === v.id ? "border-indigo-600" : "border-tok-border hover:border-tok-border"
+                      selectedViolation?.id === v.id ? "border-primary" : "border-tok-border hover:border-tok-border"
                     )}
                   >
                     <div className="flex items-start gap-3 mb-2">
@@ -588,7 +588,7 @@ export default function A11yAuditDashboard({ isLoading = false }: { isLoading?: 
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`View WCAG guidance for ${v.ruleId} (opens in new tab)`}
-                          className="text-xs text-indigo-400 hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded"
+                          className="text-xs text-primary hover:text-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded"
                         >
                           📖 View WCAG guidance →
                         </a>
@@ -707,7 +707,7 @@ export default function A11yAuditDashboard({ isLoading = false }: { isLoading?: 
                           {rem.status !== "done" && (
                             <button
                               aria-label={`Mark ${v.ruleId} as done`}
-                              className="text-xs px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-fg-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                              className="text-xs px-3 py-1 rounded bg-primary hover:bg-primary text-fg-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                             >
                               Mark Done
                             </button>

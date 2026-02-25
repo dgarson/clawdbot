@@ -111,14 +111,14 @@ const DATA_SOURCES: DataSource[] = [
 
 function scoreColor(score: number): string {
   if (score >= 90) {return "bg-emerald-500"}
-  if (score >= 75) {return "bg-indigo-500"}
+  if (score >= 75) {return "bg-primary"}
   if (score >= 60) {return "bg-amber-500"}
   return "bg-red-500"
 }
 
 function scoreTextColor(score: number): string {
   if (score >= 90) {return "text-emerald-400"}
-  if (score >= 75) {return "text-indigo-400"}
+  if (score >= 75) {return "text-primary"}
   if (score >= 60) {return "text-amber-400"}
   return "text-red-400"
 }
@@ -172,7 +172,7 @@ function Sparkline({ trend }: { trend: TrendPoint[] }) {
         return (
           <div
             key={point.week}
-            className={cn("w-1.5 rounded-sm transition-all", isLast ? "bg-indigo-400" : "bg-[var(--color-surface-3)]")}
+            className={cn("w-1.5 rounded-sm transition-all", isLast ? "bg-primary" : "bg-[var(--color-surface-3)]")}
             style={{ height: `${h}px` }}
             title={`${point.week}: ${point.score}`}
           />
@@ -191,7 +191,7 @@ function GaugeDisplay({ score }: { score: number }) {
       <div className="relative w-32 h-32 flex items-center justify-center">
         <div className="absolute inset-0 rounded-full border-4 border-[var(--color-border)]" />
         <div
-          className={cn("absolute inset-0 rounded-full border-4 transition-all duration-700", score >= 90 ? "border-emerald-500" : score >= 75 ? "border-indigo-500" : score >= 60 ? "border-amber-500" : "border-red-500")}
+          className={cn("absolute inset-0 rounded-full border-4 transition-all duration-700", score >= 90 ? "border-emerald-500" : score >= 75 ? "border-primary" : score >= 60 ? "border-amber-500" : "border-red-500")}
           style={{
             clipPath: `polygon(50% 50%, 50% 0%, ${score >= 25 ? "100% 0%" : `${50 + (score / 25) * 50}% 0%`}${score >= 25 ? `, 100% ${score >= 50 ? "100%" : `${((score - 25) / 25) * 100}%`}` : ""}${score >= 50 ? `, ${score >= 75 ? "0%" : `${100 - ((score - 50) / 25) * 100}%`} 100%` : ""}${score >= 75 ? `, 0% ${100 - ((score - 75) / 25) * 100}%` : ""})`,
           }}
@@ -374,7 +374,7 @@ export default function DataQualityDashboard() {
                   className={cn(
                     "px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer",
                     activeFilter === tab.key
-                      ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                      ? "bg-primary/20 text-indigo-300 border border-primary/30"
                       : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] border border-transparent"
                   )}
                 >
@@ -404,7 +404,7 @@ export default function DataQualityDashboard() {
                       </div>
                       <p className="text-xs text-[var(--color-text-primary)] leading-relaxed">{check.description}</p>
                       <div className="flex items-start gap-1.5">
-                        <span className="text-[11px] text-indigo-400 font-medium shrink-0">Fix →</span>
+                        <span className="text-[11px] text-primary font-medium shrink-0">Fix →</span>
                         <span className="text-[11px] text-[var(--color-text-secondary)] leading-relaxed">{check.recommendedFix}</span>
                       </div>
                     </div>

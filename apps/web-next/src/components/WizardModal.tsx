@@ -42,9 +42,9 @@ function StepProgress({ current, total }: { current: number; total: number }) {
           className={cn(
             'h-1.5 rounded-full transition-all duration-300',
             i < current
-              ? 'w-6 bg-violet-500'
+              ? 'w-6 bg-primary'
               : i === current
-              ? 'w-6 bg-violet-600 animate-pulse'
+              ? 'w-6 bg-primary animate-pulse'
               : 'w-2 bg-[var(--color-surface-3)]'
           )}
         />
@@ -110,7 +110,7 @@ function TextStepRenderer({
         disabled={loading || (step.required && !value.trim())}
         className={cn(
           'w-full py-3 rounded-xl font-medium text-sm transition-all duration-200',
-          'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]',
+          'bg-primary hover:bg-primary text-[var(--color-text-primary)]',
           'disabled:opacity-40 disabled:cursor-not-allowed',
           'shadow-lg shadow-violet-900/30'
         )}
@@ -187,7 +187,7 @@ function SelectStepRenderer({
                 'w-full p-4 rounded-xl border text-left transition-all duration-200',
                 'flex items-start gap-3',
                 isSelected
-                  ? 'bg-violet-600/20 border-violet-500/50 shadow-lg shadow-violet-900/20'
+                  ? 'bg-primary/20 border-primary/50 shadow-lg shadow-violet-900/20'
                   : 'bg-[var(--color-surface-2)]/60 border-[var(--color-border)] hover:border-[var(--color-surface-3)] hover:bg-[var(--color-surface-2)]',
                 option.disabled && 'opacity-50 cursor-not-allowed'
               )}
@@ -197,7 +197,7 @@ function SelectStepRenderer({
                 className={cn(
                   'w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 transition-all duration-200',
                   isSelected
-                    ? 'border-violet-500 bg-violet-500'
+                    ? 'border-primary bg-primary'
                     : 'border-[var(--color-surface-3)]'
                 )}
               >
@@ -226,7 +226,7 @@ function SelectStepRenderer({
         disabled={loading || (step.multi ? (selected as string[]).length === 0 : !selected)}
         className={cn(
           'w-full py-3 rounded-xl font-medium text-sm transition-all duration-200 mt-6',
-          'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]',
+          'bg-primary hover:bg-primary text-[var(--color-text-primary)]',
           'disabled:opacity-40 disabled:cursor-not-allowed',
           'shadow-lg shadow-violet-900/30'
         )}
@@ -285,7 +285,7 @@ function ConfirmStepRenderer({
           disabled={loading}
           className={cn(
             'flex-1 py-3 rounded-xl font-medium text-sm transition-all duration-200',
-            'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]',
+            'bg-primary hover:bg-primary text-[var(--color-text-primary)]',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             'shadow-lg shadow-violet-900/30'
           )}
@@ -381,7 +381,7 @@ function NoteStepRenderer({
         disabled={loading}
         className={cn(
           'w-full py-3 rounded-xl font-medium text-sm transition-all duration-200',
-          'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)]',
+          'bg-primary hover:bg-primary text-[var(--color-text-primary)]',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           'shadow-lg shadow-violet-900/30'
         )}
@@ -412,7 +412,7 @@ function ProgressStepRenderer({
     <div className="flex flex-col items-center justify-center py-8 space-y-4">
       {step.indeterminate ? (
         <div className="relative">
-          <Loader2 className="w-12 h-12 text-violet-500 animate-spin" />
+          <Loader2 className="w-12 h-12 text-primary animate-spin" />
         </div>
       ) : (
         <div className="relative w-32 h-32">
@@ -427,7 +427,7 @@ function ProgressStepRenderer({
               cy="50"
             />
             <circle
-              className="text-violet-500 transition-all duration-500"
+              className="text-primary transition-all duration-500"
               strokeWidth="8"
               strokeLinecap="round"
               stroke="currentColor"
@@ -518,7 +518,7 @@ export default function WizardModal({
     if (!step) {
       return (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
       );
     }

@@ -512,21 +512,21 @@ const rootCauseMetrics: RootCauseMetric[] = [
 function severityColor(severity: Severity): string {
   if (severity === "P1") {return "text-rose-400"}
   if (severity === "P2") {return "text-amber-400"}
-  if (severity === "P3") {return "text-indigo-400"}
+  if (severity === "P3") {return "text-primary"}
   return "text-[var(--color-text-secondary)]"
 }
 
 function severityBadgeCn(severity: Severity): string {
   if (severity === "P1") {return "bg-rose-400/10 border border-rose-400/30 text-rose-400"}
   if (severity === "P2") {return "bg-amber-400/10 border border-amber-400/30 text-amber-400"}
-  if (severity === "P3") {return "bg-indigo-400/10 border border-indigo-400/30 text-indigo-400"}
+  if (severity === "P3") {return "bg-primary/10 border border-primary/30 text-primary"}
   return "bg-[var(--color-surface-3)]/30 border border-[var(--color-surface-3)] text-[var(--color-text-secondary)]"
 }
 
 function statusColor(status: IncidentStatus): string {
   if (status === "investigating") {return "text-rose-400"}
   if (status === "identified") {return "text-amber-400"}
-  if (status === "monitoring") {return "text-indigo-400"}
+  if (status === "monitoring") {return "text-primary"}
   return "text-emerald-400"
 }
 
@@ -541,7 +541,7 @@ function eventBorderCn(type: EventType): string {
 function eventBadgeCn(type: EventType): string {
   if (type === "detection") {return "bg-rose-400/10 text-rose-400"}
   if (type === "escalation") {return "bg-amber-400/10 text-amber-400"}
-  if (type === "mitigation") {return "bg-indigo-400/10 text-indigo-400"}
+  if (type === "mitigation") {return "bg-primary/10 text-primary"}
   if (type === "resolution") {return "bg-emerald-400/10 text-emerald-400"}
   return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
 }
@@ -608,7 +608,7 @@ function ActiveTab() {
             className={cn(
               "px-3 py-1 rounded-md text-sm font-medium transition-colors",
               severityFilter === sv
-                ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                ? "bg-primary text-[var(--color-text-primary)]"
                 : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)]"
             )}
           >
@@ -723,7 +723,7 @@ function TimelineTab() {
             className={cn(
               "w-full text-left p-3 rounded-lg border transition-colors",
               selectedId === inc.id
-                ? "bg-indigo-500/10 border-indigo-500/40 text-[var(--color-text-primary)]"
+                ? "bg-primary/10 border-primary/40 text-[var(--color-text-primary)]"
                 : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
             )}
           >
@@ -795,7 +795,7 @@ function TimelineTab() {
             />
             <button
               onClick={handleAdd}
-              className="px-4 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-[var(--color-text-primary)] text-sm rounded-md transition-colors shrink-0"
+              className="px-4 py-1.5 bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm rounded-md transition-colors shrink-0"
             >
               Add
             </button>
@@ -822,7 +822,7 @@ function HistoryTab() {
             <div key={d.week} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
               <span className="text-xs text-[var(--color-text-secondary)]">{d.count}</span>
               <div
-                className="w-full bg-indigo-500/70 hover:bg-indigo-400/70 transition-colors rounded-t-sm"
+                className="w-full bg-primary/70 hover:bg-primary/70 transition-colors rounded-t-sm"
                 style={{ height: `${(d.count / maxWeekly) * 80}px` }}
               />
               <span className="text-xs text-[var(--color-text-muted)] whitespace-nowrap" style={{ fontSize: "10px" }}>{d.week}</span>
@@ -899,7 +899,7 @@ function MetricsTab() {
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
-          { label: "Avg MTTR", value: "74m", sub: "mean time to resolve", accent: "text-indigo-400" },
+          { label: "Avg MTTR", value: "74m", sub: "mean time to resolve", accent: "text-primary" },
           { label: "Avg MTTD", value: "8m", sub: "mean time to detect", accent: "text-emerald-400" },
           { label: "P1s This Month", value: "2", sub: "February 2026", accent: "text-rose-400" },
           { label: "Avg / Week", value: "3.6", sub: "incidents per week (12w avg)", accent: "text-amber-400" },
@@ -919,7 +919,7 @@ function MetricsTab() {
           {[
             { label: "P1", cn: "bg-rose-400/70" },
             { label: "P2", cn: "bg-amber-400/70" },
-            { label: "P3", cn: "bg-indigo-400/70" },
+            { label: "P3", cn: "bg-primary/70" },
             { label: "P4", cn: "bg-[var(--color-surface-3)]" },
           ].map((leg) => (
             <span key={leg.label} className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
@@ -940,7 +940,7 @@ function MetricsTab() {
                   style={{ height: `${chartHeight}px` }}
                 >
                   {m.p4 > 0 && <div className="w-full bg-[var(--color-surface-3)] shrink-0" style={{ height: `${scale(m.p4)}px` }} />}
-                  {m.p3 > 0 && <div className="w-full bg-indigo-400/70 shrink-0" style={{ height: `${scale(m.p3)}px` }} />}
+                  {m.p3 > 0 && <div className="w-full bg-primary/70 shrink-0" style={{ height: `${scale(m.p3)}px` }} />}
                   {m.p2 > 0 && <div className="w-full bg-amber-400/70 shrink-0" style={{ height: `${scale(m.p2)}px` }} />}
                   {m.p1 > 0 && <div className="w-full bg-rose-400/70 shrink-0" style={{ height: `${scale(m.p1)}px` }} />}
                 </div>
@@ -977,7 +977,7 @@ function MetricsTab() {
                     <div className="flex items-center gap-2">
                       <div className="h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden" style={{ width: "72px" }}>
                         <div
-                          className="h-full bg-indigo-500 rounded-full"
+                          className="h-full bg-primary rounded-full"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -1037,7 +1037,7 @@ export default function IncidentTimeline() {
               className={cn(
                 "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
                 tab === t.id
-                  ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -1046,7 +1046,7 @@ export default function IncidentTimeline() {
                 <span
                   className={cn(
                     "text-xs px-1.5 py-0.5 rounded-full",
-                    tab === t.id ? "bg-indigo-400/40" : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
+                    tab === t.id ? "bg-primary/40" : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                   )}
                 >
                   {t.badge}

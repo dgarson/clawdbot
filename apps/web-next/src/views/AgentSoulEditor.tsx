@@ -93,7 +93,7 @@ export default function AgentSoulEditor({ agentName = 'Horizon', agentEmoji = 'ð
         <div className="p-4 border-b border-[var(--color-border)] flex items-center justify-between h-14">
           <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Workspace</span>
           {saveStatus !== 'idle' && (
-            <span className="text-[10px] text-violet-400 animate-pulse">
+            <span className="text-[10px] text-primary animate-pulse">
               {saveStatus === 'saving' ? 'Saving...' : 'Saved âœ“'}
             </span>
           )}
@@ -107,7 +107,7 @@ export default function AgentSoulEditor({ agentName = 'Horizon', agentEmoji = 'ð
               className={cn(
                 "w-full px-4 py-2 flex items-center gap-2 text-sm transition-colors relative",
                 selectedFile === file 
-                  ? "bg-violet-600/20 text-violet-400 border-r-2 border-violet-600" 
+                  ? "bg-primary/20 text-primary border-r-2 border-primary" 
                   : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -150,7 +150,7 @@ export default function AgentSoulEditor({ agentName = 'Horizon', agentEmoji = 'ð
               className={cn(
                 "px-4 py-1.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-all",
                 isModified 
-                  ? "bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] shadow-lg shadow-violet-900/20" 
+                  ? "bg-primary hover:bg-primary text-[var(--color-text-primary)] shadow-lg shadow-violet-900/20" 
                   : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] cursor-not-allowed"
               )}
             >

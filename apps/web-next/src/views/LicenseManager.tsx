@@ -225,7 +225,7 @@ export default function LicenseManager(): React.ReactElement {
             </div>
           )}
           <div className="text-xs text-[var(--color-text-secondary)]">Annual spend: <span className="text-[var(--color-text-primary)] font-semibold">{totalAnnualCost.toLocaleString()} USD</span></div>
-          <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
+          <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded-md transition-colors">
             + Add License
           </button>
         </div>
@@ -240,7 +240,7 @@ export default function LicenseManager(): React.ReactElement {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
-                ? "text-indigo-400 border-indigo-500"
+                ? "text-primary border-primary"
                 : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -262,7 +262,7 @@ export default function LicenseManager(): React.ReactElement {
                     onClick={() => setSelectedLicense(lic)}
                     className={cn(
                       "w-full text-left px-4 py-4 border-b border-[var(--color-border)]/50 transition-colors",
-                      selectedLicense.id === lic.id ? "bg-indigo-600/10" : "hover:bg-[var(--color-surface-2)]/40"
+                      selectedLicense.id === lic.id ? "bg-primary/10" : "hover:bg-[var(--color-surface-2)]/40"
                     )}
                   >
                     <div className="flex items-center justify-between mb-1.5">
@@ -273,7 +273,7 @@ export default function LicenseManager(): React.ReactElement {
                     <div className="flex items-center gap-2 mt-2">
                       <div className="flex-1 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                         <div
-                          className={cn("h-full rounded-full", lic.usedSeats / lic.seats > 0.9 ? "bg-amber-500" : "bg-indigo-500")}
+                          className={cn("h-full rounded-full", lic.usedSeats / lic.seats > 0.9 ? "bg-amber-500" : "bg-primary")}
                           style={{ width: `${Math.min(100, (lic.usedSeats / lic.seats) * 100)}%` }}
                         />
                       </div>
@@ -323,7 +323,7 @@ export default function LicenseManager(): React.ReactElement {
                 </div>
                 <div className="h-3 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div
-                    className={cn("h-full rounded-full", (selectedLicense.usedSeats / selectedLicense.seats) > 0.9 ? "bg-amber-500" : "bg-indigo-500")}
+                    className={cn("h-full rounded-full", (selectedLicense.usedSeats / selectedLicense.seats) > 0.9 ? "bg-amber-500" : "bg-primary")}
                     style={{ width: `${Math.min(100, (selectedLicense.usedSeats / selectedLicense.seats) * 100)}%` }}
                   />
                 </div>
@@ -360,7 +360,7 @@ export default function LicenseManager(): React.ReactElement {
             <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg overflow-hidden">
               <div className="px-5 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
                 <h3 className="text-sm font-medium">Seat Allocations</h3>
-                <button className="text-xs text-indigo-400 hover:text-indigo-300">+ Allocate Seat</button>
+                <button className="text-xs text-primary hover:text-indigo-300">+ Allocate Seat</button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -450,7 +450,7 @@ export default function LicenseManager(): React.ReactElement {
                       {days !== null ? (days > 0 ? `${days} days` : "Expired") : "—"}
                     </div>
                   </div>
-                  <button className="px-3 py-1.5 text-xs bg-indigo-600/20 border border-indigo-600/40 text-indigo-300 hover:bg-indigo-600/30 rounded-md transition-colors shrink-0">
+                  <button className="px-3 py-1.5 text-xs bg-primary/20 border border-primary/40 text-indigo-300 hover:bg-primary/30 rounded-md transition-colors shrink-0">
                     Renew
                   </button>
                 </div>

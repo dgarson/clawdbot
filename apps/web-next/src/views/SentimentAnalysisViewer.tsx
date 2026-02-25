@@ -289,7 +289,7 @@ export default function SentimentAnalysisViewer(): React.ReactElement {
         </div>
         <div className="flex items-center gap-3">
           <div className="text-xs text-[var(--color-text-muted)]">Last updated: 2 min ago</div>
-          <button className="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 rounded-md transition-colors">
+          <button className="px-3 py-1.5 text-xs bg-primary hover:bg-primary rounded-md transition-colors">
             Run Analysis
           </button>
         </div>
@@ -304,7 +304,7 @@ export default function SentimentAnalysisViewer(): React.ReactElement {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-t transition-colors border-b-2 -mb-px",
               tab === t
-                ? "text-indigo-400 border-indigo-500"
+                ? "text-primary border-primary"
                 : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -427,7 +427,7 @@ export default function SentimentAnalysisViewer(): React.ReactElement {
                     className={cn(
                       "px-2.5 py-1 text-xs rounded-md border transition-colors",
                       feedFilter === s
-                        ? "bg-indigo-600/20 border-indigo-500 text-indigo-300"
+                        ? "bg-primary/20 border-primary text-indigo-300"
                         : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                     )}
                   >
@@ -444,7 +444,7 @@ export default function SentimentAnalysisViewer(): React.ReactElement {
                     className={cn(
                       "px-2.5 py-1 text-xs rounded-md border transition-colors",
                       sourceFilter === s
-                        ? "bg-indigo-600/20 border-indigo-500 text-indigo-300"
+                        ? "bg-primary/20 border-primary text-indigo-300"
                         : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)]"
                     )}
                   >
@@ -463,7 +463,7 @@ export default function SentimentAnalysisViewer(): React.ReactElement {
                   onClick={() => setSelectedEntry(selectedEntry?.id === entry.id ? null : entry)}
                   className={cn(
                     "bg-[var(--color-surface-1)] border rounded-lg p-4 cursor-pointer transition-colors",
-                    selectedEntry?.id === entry.id ? "border-indigo-500/50" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
+                    selectedEntry?.id === entry.id ? "border-primary/50" : "border-[var(--color-border)] hover:border-[var(--color-border)]"
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -484,7 +484,7 @@ export default function SentimentAnalysisViewer(): React.ReactElement {
                       <div className="flex gap-2 flex-wrap">
                         <span className="text-xs text-[var(--color-text-secondary)]">Topics:</span>
                         {entry.topics.map(t => (
-                          <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-600/10 border border-indigo-600/30 text-indigo-300">{t}</span>
+                          <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 border border-primary/30 text-indigo-300">{t}</span>
                         ))}
                       </div>
                       <div className="grid grid-cols-3 gap-3 text-xs">

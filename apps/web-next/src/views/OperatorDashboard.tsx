@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { cn } from "../lib/utils";
+import { AlertFilterPillGroup } from "../components/alerts/AlertFilters";
 import {
   Activity,
   AlertTriangle,
@@ -409,7 +410,7 @@ const TOOL_TYPE_COLORS: Record<ToolType, { bar: string; text: string; label: str
   exec: { bar: "bg-amber-500", text: "text-amber-400", label: "Exec" },
   read: { bar: "bg-blue-500", text: "text-blue-400", label: "Read" },
   write: { bar: "bg-emerald-500", text: "text-emerald-400", label: "Write" },
-  message: { bar: "bg-violet-500", text: "text-violet-400", label: "Message" },
+  message: { bar: "bg-primary", text: "text-primary", label: "Message" },
   browser: { bar: "bg-cyan-500", text: "text-cyan-400", label: "Browser" },
 };
 
@@ -516,7 +517,7 @@ function ModelSpendChart({ data }: { data: { model: string; spend: number }[] })
             <span className="w-20 text-[var(--color-text-secondary)] truncate font-mono text-[11px]">{d.model}</span>
             <div className="flex-1 h-3 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
               <div
-                className="h-full bg-violet-500 rounded-full transition-all"
+                className="h-full bg-primary rounded-full transition-all"
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -576,7 +577,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
   const navCards: NavCard[] = useMemo(
     () => [
       { id: "logs", label: "Logs", stat: "2.4K entries", icon: <FileText className="w-4 h-4 text-[var(--color-text-secondary)]" /> },
-      { id: "sessions", label: "Sessions", stat: `${sessions.length} active`, icon: <Layers className="w-4 h-4 text-violet-400" /> },
+      { id: "sessions", label: "Sessions", stat: `${sessions.length} active`, icon: <Layers className="w-4 h-4 text-primary" /> },
       { id: "approvals", label: "Approvals", stat: "3 pending", icon: <CheckCircle2 className="w-4 h-4 text-amber-400" /> },
       { id: "alerts", label: "Alerts", stat: `${alerts.filter((a) => !a.acknowledged).length} unread`, icon: <Bell className="w-4 h-4 text-red-400" /> },
       { id: "budget", label: "Token Budget", stat: `${budgetPct.toFixed(0)}% used`, icon: <DollarSign className="w-4 h-4 text-emerald-400" /> },
@@ -743,7 +744,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
           {/* Left: Metrics */}
           <div className="flex items-center gap-1 flex-wrap">
             <div className="flex items-center gap-2 mr-3">
-              <Monitor className="w-5 h-5 text-violet-400" aria-hidden="true" />
+              <Monitor className="w-5 h-5 text-primary" aria-hidden="true" />
               <h1 className="text-sm font-bold tracking-tight whitespace-nowrap">Operator Command Center</h1>
             </div>
 
@@ -759,7 +760,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
                 icon={<Users className="w-3 h-3" />}
                 label="Agents"
                 value={String(activeAgents)}
-                colorClass="text-violet-400"
+                colorClass="text-primary"
               />
               <StatusPill
                 icon={<AlertTriangle className="w-3 h-3" />}
@@ -833,7 +834,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
 
       {/* ═══ Main Grid ═══ */}
       <div className="flex-1 min-h-0 overflow-auto p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full" style={{ gridAutoRows: "min-content" }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)] gap-4 h-full" style={{ gridAutoRows: "min-content" }}>
           {/* ─── Left Column, Top: Live Sessions Panel ─── */}
           <SectionCard
             title="Live Sessions"
@@ -846,7 +847,7 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
               </span>
             }
           >
-            <div className="overflow-auto max-h-[340px]">
+            <div className="overflow-x-auto">
               {/* Table header */}
               <div className="grid grid-cols-[minmax(100px,1.2fr)_80px_100px_100px_70px] gap-2 px-4 py-2 border-b border-[var(--color-border)] text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-semibold sticky top-0 bg-[var(--color-surface-1)]/95 z-10">
                 <span>Agent</span>
@@ -912,8 +913,8 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
             icon={<DollarSign className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />}
             className="lg:row-span-1"
           >
-            <div className="p-4 space-y-5 overflow-auto max-h-[340px]">
-              <div className="flex items-start gap-6">
+            <div className="p-3 space-y-4">
+              <div className="flex items-start gap-4">
                 {/* Gauge */}
                 <BudgetGauge spent={budgetSpent} total={budgetTotal} />
                 {/* Spend by model */}
@@ -924,12 +925,12 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
               </div>
 
               {/* Burn rate */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3 border border-[var(--color-border)]">
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-2.5 border border-[var(--color-border)]">
                   <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest mb-1">Tokens/min</div>
                   <div className={cn("text-lg font-bold font-mono select-none", tokenColorClass(tokensPerMin))}>{tokensPerMin.toLocaleString()}</div>
                 </div>
-                <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-3 border border-[var(--color-border)]">
+                <div className="bg-[var(--color-surface-2)]/50 rounded-lg p-2.5 border border-[var(--color-border)]">
                   <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest mb-1">$/hr</div>
                   <div className={cn("text-lg font-bold font-mono select-none", costColorClass(Number(dollarsPerHour)))}>${dollarsPerHour}</div>
                 </div>
@@ -1022,22 +1023,17 @@ export default function OperatorDashboard({ onNavigate }: OperatorDashboardProps
             icon={<Bell className="w-3.5 h-3.5 text-red-400" aria-hidden="true" />}
             className="lg:row-span-1"
             headerRight={
-              <div className="flex items-center gap-1">
-                {(["all", "errors", "warnings"] as const).map((f) => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setAlertFilter(f)}
-                    className={cn(
-                      "px-2 py-0.5 text-[10px] font-semibold rounded transition-all uppercase tracking-wider",
-                      alertFilter === f
-                        ? "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]"
-                        : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
-                    )}
-                  >
-                    {f}
-                  </button>
-                ))}
+              <div className="min-w-[260px]">
+                <AlertFilterPillGroup
+                  label="Feed"
+                  value={alertFilter}
+                  onChange={(next) => setAlertFilter(next as "all" | "errors" | "warnings")}
+                  options={[
+                    { value: "all", label: "All" },
+                    { value: "errors", label: "Errors" },
+                    { value: "warnings", label: "Warnings" },
+                  ]}
+                />
               </div>
             }
           >

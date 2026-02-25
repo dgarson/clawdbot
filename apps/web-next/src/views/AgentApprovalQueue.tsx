@@ -267,7 +267,7 @@ function isTimedOut(seconds: number): boolean {
 
 function SessionTypeBadge({ type }: { type: SessionType }) {
   const styles: Record<SessionType, string> = {
-    main: 'bg-violet-500/15 text-violet-400 border-violet-500/30',
+    main: 'bg-primary/15 text-primary border-primary/30',
     subagent: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
     cron: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
   };
@@ -306,7 +306,7 @@ function StatusBadge({ status }: { status: ApprovalStatus }) {
     pending: 'bg-amber-500/15 text-amber-400',
     approved: 'bg-green-500/15 text-green-400',
     denied: 'bg-red-500/15 text-red-400',
-    escalated: 'bg-violet-500/15 text-violet-400',
+    escalated: 'bg-primary/15 text-primary',
     timed_out: 'bg-surface-3/15 text-fg-secondary',
   };
   const icons: Record<ApprovalStatus, React.ElementType> = {
@@ -362,7 +362,7 @@ function ApprovalCard({
             checked={isSelected}
             onChange={() => onSelect(item.id)}
             aria-label={`Select ${item.agentName} — ${item.actionDescription}`}
-            className="mt-1 w-4 h-4 rounded bg-surface-2 border-tok-border text-violet-500 focus:ring-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            className="mt-1 w-4 h-4 rounded bg-surface-2 border-tok-border text-primary focus:ring-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
           />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
@@ -430,7 +430,7 @@ function ApprovalCard({
             <button
               onClick={() => onEscalate(item.id)}
               aria-label={`Escalate: ${item.agentName} — ${item.actionDescription}`}
-              className="p-2 bg-violet-500/20 text-violet-400 rounded-lg hover:bg-violet-500/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+              className="p-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
             >
               <ExternalLink aria-hidden="true" className="w-4 h-4" />
             </button>
@@ -710,7 +710,7 @@ export default function AgentApprovalQueue({ isLoading = false }: { isLoading?: 
       {/* WCAG 2.1 AA — Skip navigation */}
       <a
         href="#aaq-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-primary focus:text-[var(--color-text-primary)] focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>
@@ -724,7 +724,7 @@ export default function AgentApprovalQueue({ isLoading = false }: { isLoading?: 
               <span
                 role="status"
                 aria-live="polite"
-                className="px-2 py-1 rounded-full bg-violet-600 text-fg-primary text-sm font-bold leading-none"
+                className="px-2 py-1 rounded-full bg-primary text-fg-primary text-sm font-bold leading-none"
               >
                 {pendingCount} pending
               </span>

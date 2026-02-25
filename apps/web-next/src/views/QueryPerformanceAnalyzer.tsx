@@ -376,7 +376,7 @@ export default function QueryPerformanceAnalyzer() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                ? "border-primary text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -459,7 +459,7 @@ export default function QueryPerformanceAnalyzer() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => { setExplainQuery(q.id); setTab("explain") }}
-                        className="px-3 py-1.5 text-xs bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-md transition-colors"
+                        className="px-3 py-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors"
                       >
                         🔬 View EXPLAIN Plan
                       </button>
@@ -506,7 +506,7 @@ export default function QueryPerformanceAnalyzer() {
                   <div className="text-xs text-[var(--color-text-muted)]">speedup</div>
                   <div className="text-xs text-[var(--color-text-secondary)] mt-1">{idx.affectedQueries} queries</div>
                   {idx.status === "missing" && (
-                    <button className="mt-2 px-3 py-1 text-xs bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-md transition-colors">
+                    <button className="mt-2 px-3 py-1 text-xs bg-primary/10 text-primary hover:bg-primary/20 rounded-md transition-colors">
                       Create Index
                     </button>
                   )}
@@ -542,7 +542,7 @@ export default function QueryPerformanceAnalyzer() {
                   <div className="text-[var(--color-text-primary)]">{db.activeConnections}/{db.maxConnections}</div>
                   <div className="mt-1 w-full h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
-                      className={cn("h-full rounded-full", (db.activeConnections / db.maxConnections) > 0.8 ? "bg-rose-500" : "bg-indigo-500")}
+                      className={cn("h-full rounded-full", (db.activeConnections / db.maxConnections) > 0.8 ? "bg-rose-500" : "bg-primary")}
                       style={{ width: `${(db.activeConnections / db.maxConnections) * 100}%` }}
                     />
                   </div>
@@ -581,7 +581,7 @@ export default function QueryPerformanceAnalyzer() {
                 className={cn(
                   "px-3 py-1.5 text-xs rounded-md font-mono transition-colors",
                   explainQuery === q.id
-                    ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                    ? "bg-primary text-[var(--color-text-primary)]"
                     : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                 )}
               >

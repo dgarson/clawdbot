@@ -173,7 +173,7 @@ function ReviewItemCard({ item, onFix }: { item: ReviewItem; onFix: (id: string)
             <button
               type="button"
               onClick={() => onFix(item.id)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-violet-600/20 hover:bg-violet-600/30 text-violet-400 text-sm rounded-lg border border-violet-500/30 transition-all"
+              className="flex items-center gap-2 px-3 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary text-sm rounded-lg border border-primary/30 transition-all"
             >
               <Wand2 className="w-3.5 h-3.5" />
               Auto-fix this issue
@@ -224,7 +224,7 @@ export default function AgentConfigReview() {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)] flex items-center gap-3">
-            <Search className="w-6 h-6 text-violet-400" />
+            <Search className="w-6 h-6 text-primary" />
             Config Review
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
@@ -245,7 +245,7 @@ export default function AgentConfigReview() {
                   className={cn(
                     'flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all',
                     selectedAgentId === agent.id
-                      ? 'bg-violet-600/15 text-violet-300 border border-violet-500/50'
+                      ? 'bg-primary/15 text-violet-300 border border-primary/50'
                       : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] border border-[var(--color-border)]'
                   )}
                 >
@@ -264,7 +264,7 @@ export default function AgentConfigReview() {
               'flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all flex-shrink-0',
               reviewing
                 ? 'bg-[var(--color-surface-2)] text-[var(--color-text-muted)] cursor-not-allowed'
-                : 'bg-violet-600 hover:bg-violet-500 text-[var(--color-text-primary)] shadow-lg shadow-violet-900/30'
+                : 'bg-primary hover:bg-primary text-[var(--color-text-primary)] shadow-lg shadow-violet-900/30'
             )}
           >
             {reviewing ? (
@@ -278,13 +278,13 @@ export default function AgentConfigReview() {
         {/* Reviewing state */}
         {reviewing && (
           <div className="bg-[var(--color-surface-1)] rounded-2xl border border-[var(--color-border)] p-8 text-center mb-6">
-            <RefreshCw className="w-10 h-10 text-violet-400 animate-spin mx-auto mb-4" />
+            <RefreshCw className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">Analyzing {selectedAgent?.name}'s configuration...</h3>
             <p className="text-sm text-[var(--color-text-secondary)]">Checking SOUL.md, AGENTS.md, tool access, model selection, and more.</p>
             <div className="mt-4 flex justify-center gap-2">
               {['Checking files', 'Analyzing personality', 'Reviewing tools', 'Scoring'].map((step, i) => (
                 <div key={step} className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" style={{ animationDelay: `${i * 200}ms` }} />
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" style={{ animationDelay: `${i * 200}ms` }} />
                   <span className="text-xs text-[var(--color-text-muted)]">{step}</span>
                 </div>
               ))}
@@ -342,7 +342,7 @@ export default function AgentConfigReview() {
                       onClick={() => setFilterSeverity(f)}
                       className={cn(
                         'px-3 py-1 rounded-lg text-xs capitalize transition-all',
-                        filterSeverity === f ? 'bg-violet-600 text-[var(--color-text-primary)]' : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                        filterSeverity === f ? 'bg-primary text-[var(--color-text-primary)]' : 'bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                       )}
                     >
                       {f}
@@ -375,8 +375,8 @@ export default function AgentConfigReview() {
         {/* Empty state */}
         {!reviewResult && !reviewing && (
           <div className="bg-[var(--color-surface-1)]/50 rounded-2xl border border-[var(--color-border)] border-dashed p-16 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
-              <Wand2 className="w-8 h-8 text-violet-400" />
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Wand2 className="w-8 h-8 text-primary" />
             </div>
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">AI Config Review</h3>
             <p className="text-sm text-[var(--color-text-secondary)] max-w-md mx-auto mb-6">

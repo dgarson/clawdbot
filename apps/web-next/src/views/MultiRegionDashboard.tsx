@@ -176,7 +176,7 @@ const statusColor: Record<RegionStatus, string> = {
 }
 
 const failoverStatusColor: Record<FailoverStatus, string> = {
-  primary: "text-indigo-400",
+  primary: "text-primary",
   standby: "text-[var(--color-text-secondary)]",
   "active-failover": "text-amber-400",
 }
@@ -184,10 +184,10 @@ const failoverStatusColor: Record<FailoverStatus, string> = {
 const providerColor: Record<string, string> = {
   aws: "text-amber-400",
   gcp: "text-blue-400",
-  azure: "text-indigo-400",
+  azure: "text-primary",
 }
 
-const REGION_COLORS = ["bg-indigo-500", "bg-emerald-500", "bg-amber-500", "bg-blue-500", "bg-purple-500"]
+const REGION_COLORS = ["bg-primary", "bg-emerald-500", "bg-amber-500", "bg-blue-500", "bg-purple-500"]
 
 function fmtTime(iso: string): string {
   const d = new Date(iso)
@@ -242,7 +242,7 @@ export default function MultiRegionDashboard() {
         </div>
         <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
           <div className="text-xs text-[var(--color-text-secondary)] mb-1">Global RPS</div>
-          <div className="text-2xl font-bold text-indigo-400">{totalRPS.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-primary">{totalRPS.toLocaleString()}</div>
           <div className="text-xs text-[var(--color-text-muted)] mt-1">req/sec across all regions</div>
         </div>
         <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg p-4">
@@ -266,7 +266,7 @@ export default function MultiRegionDashboard() {
             className={cn(
               "px-4 py-2.5 text-sm font-medium rounded-t-md border-b-2 transition-colors",
               tab === t.id
-                ? "border-indigo-500 text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
+                ? "border-primary text-[var(--color-text-primary)] bg-[var(--color-surface-1)]"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -326,7 +326,7 @@ export default function MultiRegionDashboard() {
                     </div>
                     <div className="text-center">
                       <div className="text-xs text-[var(--color-text-muted)] mb-0.5">Traffic</div>
-                      <div className="text-indigo-400">{r.trafficWeight}%</div>
+                      <div className="text-primary">{r.trafficWeight}%</div>
                     </div>
                     <span className="text-[var(--color-text-muted)]">{selectedRegion === r.id ? "▲" : "▼"}</span>
                   </div>

@@ -88,7 +88,7 @@ const VOTE_BREAKDOWN: VoteBreakdown[] = [
 const statusBadge: Record<FeatureStatus, string> = {
   "submitted":    "bg-[var(--color-surface-3)]/50 border-[var(--color-surface-3)] text-[var(--color-text-secondary)]",
   "under-review": "bg-amber-500/15 border-amber-500/30 text-amber-400",
-  "planned":      "bg-indigo-500/15 border-indigo-500/30 text-indigo-400",
+  "planned":      "bg-primary/15 border-primary/30 text-primary",
   "in-progress":  "bg-sky-500/15 border-sky-500/30 text-sky-400",
   "shipped":      "bg-emerald-500/15 border-emerald-500/30 text-emerald-400",
   "declined":     "bg-rose-500/10 border-rose-500/20 text-rose-500",
@@ -145,13 +145,13 @@ export default function FeatureRequestBoard() {
             <h1 className="text-lg font-semibold text-[var(--color-text-primary)]">Feature Request Board</h1>
             <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">{FEATURES.length} requests · {totalVotes.toLocaleString()} total votes</p>
           </div>
-          <button className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium transition-colors">+ Submit Request</button>
+          <button className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary text-xs font-medium transition-colors">+ Submit Request</button>
         </div>
         {/* Stats */}
         <div className="flex gap-4 mt-3">
           {[
             { label: "In Progress", value: inProgress.length, color: "text-sky-400" },
-            { label: "Planned", value: planned.length, color: "text-indigo-400" },
+            { label: "Planned", value: planned.length, color: "text-primary" },
             { label: "Shipped", value: shipped.length, color: "text-emerald-400" },
             { label: "Total Votes", value: totalVotes.toLocaleString(), color: "text-[var(--color-text-primary)]" },
           ].map(s => (
@@ -202,7 +202,7 @@ export default function FeatureRequestBoard() {
                         <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{feat.title}</span>
                       </div>
                       <div className="flex items-center gap-1.5 flex-none">
-                        <span className="text-sm font-bold text-indigo-400">▲ {feat.votes.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-primary">▲ {feat.votes.toLocaleString()}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 mt-1.5 pl-6 flex-wrap">
@@ -243,7 +243,7 @@ export default function FeatureRequestBoard() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
                       <div className="text-xs text-[var(--color-text-muted)]">Upvotes</div>
-                      <div className="text-2xl font-bold text-indigo-400 mt-1">▲ {selected.votes.toLocaleString()}</div>
+                      <div className="text-2xl font-bold text-primary mt-1">▲ {selected.votes.toLocaleString()}</div>
                     </div>
                     {selected.customerCount > 0 && (
                       <div className="bg-[var(--color-surface-1)] rounded-xl p-4 border border-[var(--color-border)]">
@@ -274,7 +274,7 @@ export default function FeatureRequestBoard() {
                       <div className="text-xs font-medium text-[var(--color-text-secondary)]">Team Notes</div>
                       {selectedComments.map(c => (
                         <div key={c.id} className={cn("rounded-xl p-3 border text-xs",
-                          c.isTeam ? "bg-indigo-500/5 border-indigo-500/20" : "bg-[var(--color-surface-1)] border-[var(--color-border)]"
+                          c.isTeam ? "bg-primary/5 border-primary/20" : "bg-[var(--color-surface-1)] border-[var(--color-border)]"
                         )}>
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-semibold text-[var(--color-text-primary)]">{c.author}</span>
@@ -305,7 +305,7 @@ export default function FeatureRequestBoard() {
                       <span className={cn("px-2 py-1 rounded border text-xs font-medium",
                         rm.status === "in-progress" ? "bg-sky-500/15 border-sky-500/30 text-sky-400" :
                         rm.status === "shipped" ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400" :
-                        "bg-indigo-500/15 border-indigo-500/30 text-indigo-400"
+                        "bg-primary/15 border-primary/30 text-primary"
                       )}>{rm.status}</span>
                     </div>
                     {/* Progress bar */}
@@ -315,7 +315,7 @@ export default function FeatureRequestBoard() {
                         <span>{rm.percentDone}%</span>
                       </div>
                       <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
-                        <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${rm.percentDone}%` }} />
+                        <div className="bg-primary h-2 rounded-full" style={{ width: `${rm.percentDone}%` }} />
                       </div>
                     </div>
                     <div className="mt-3 space-y-1.5">
@@ -324,7 +324,7 @@ export default function FeatureRequestBoard() {
                           <span>{categoryIcon[f.category]}</span>
                           <span className="text-xs text-[var(--color-text-primary)]">{f.title}</span>
                           <span className={cn("ml-auto px-1.5 py-0.5 rounded border text-[10px]", statusBadge[f.status])}>{statusLabel[f.status]}</span>
-                          <span className="text-[10px] text-indigo-400">▲ {f.votes.toLocaleString()}</span>
+                          <span className="text-[10px] text-primary">▲ {f.votes.toLocaleString()}</span>
                         </div>
                       ))}
                     </div>
@@ -341,12 +341,12 @@ export default function FeatureRequestBoard() {
             <div className="space-y-2">
               {COMMENTS.map(c => (
                 <div key={c.id} className={cn("rounded-xl p-4 border text-sm",
-                  c.isTeam ? "bg-indigo-500/5 border-indigo-500/20" : "bg-[var(--color-surface-1)] border-[var(--color-border)]"
+                  c.isTeam ? "bg-primary/5 border-primary/20" : "bg-[var(--color-surface-1)] border-[var(--color-border)]"
                 )}>
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="font-semibold text-[var(--color-text-primary)]">{c.author}</span>
                     <span className={cn("px-1.5 py-0.5 rounded text-[10px]",
-                      c.isTeam ? "bg-indigo-500/20 text-indigo-400" : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
+                      c.isTeam ? "bg-primary/20 text-primary" : "bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                     )}>{c.role}</span>
                     <span className="text-[var(--color-text-muted)] text-xs ml-auto">{c.timestamp}</span>
                   </div>
@@ -374,12 +374,12 @@ export default function FeatureRequestBoard() {
                         <span className="text-[var(--color-text-primary)] capitalize">{vb.category}</span>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="text-indigo-400">▲ {vb.count.toLocaleString()} votes</span>
+                        <span className="text-primary">▲ {vb.count.toLocaleString()} votes</span>
                         <span className="text-emerald-400">${(vb.mrr / 1000).toFixed(0)}K MRR</span>
                       </div>
                     </div>
                     <div className="w-full bg-[var(--color-surface-2)] rounded-full h-2">
-                      <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${(vb.count / maxVotes) * 100}%` }} />
+                      <div className="bg-primary h-2 rounded-full" style={{ width: `${(vb.count / maxVotes) * 100}%` }} />
                     </div>
                   </div>
                 ))}
@@ -393,7 +393,7 @@ export default function FeatureRequestBoard() {
                     <span className="text-xs text-[var(--color-text-muted)] w-4">{idx + 1}.</span>
                     <span className="text-xs text-[var(--color-text-primary)] flex-1 truncate">{f.title}</span>
                     <span className="text-emerald-400 text-xs font-semibold">${(f.mrr / 1000).toFixed(0)}K</span>
-                    <span className="text-indigo-400 text-xs">▲{f.votes.toLocaleString()}</span>
+                    <span className="text-primary text-xs">▲{f.votes.toLocaleString()}</span>
                   </div>
                 ))}
               </div>

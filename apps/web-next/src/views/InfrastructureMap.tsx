@@ -81,8 +81,8 @@ const VOLUME_THICKNESS: Record<Connection["volume"], string> = {
 
 const VOLUME_COLOR: Record<Connection["volume"], string> = {
   low: "bg-[var(--color-surface-3)]",
-  medium: "bg-indigo-500/60",
-  high: "bg-indigo-400",
+  medium: "bg-primary/60",
+  high: "bg-primary",
 }
 
 const CARD_W = 200
@@ -114,7 +114,7 @@ function NodeCard({
       className={cn(
         "absolute flex flex-col gap-1 rounded-lg border px-3 py-2 text-left transition-all",
         "bg-[var(--color-surface-1)] hover:bg-[var(--color-surface-2)]/80 focus:outline-none",
-        selected ? "ring-2 ring-indigo-500 border-indigo-500" : cn("border-[var(--color-border)]", sc.border),
+        selected ? "ring-2 ring-indigo-500 border-primary" : cn("border-[var(--color-border)]", sc.border),
       )}
       style={{ width: CARD_W, height: CARD_H, left: node.x, top: node.y }}
     >
@@ -260,7 +260,7 @@ function DetailSidebar({ node, onClose }: { node: InfraNode; onClose: () => void
         <ul className="space-y-2">
           {node.events.map((evt, i) => (
             <li key={i} className="flex items-start gap-2 text-xs text-[var(--color-text-primary)]">
-              <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-indigo-500" />
+              <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-primary" />
               {evt}
             </li>
           ))}
@@ -312,11 +312,11 @@ export default function InfrastructureMap() {
             className={cn(
               "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition",
               autoRefresh
-                ? "border-indigo-500/50 bg-indigo-500/10 text-indigo-400"
+                ? "border-primary/50 bg-primary/10 text-primary"
                 : "border-[var(--color-border)] bg-[var(--color-surface-1)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",
             )}
           >
-            <span className={cn("h-1.5 w-1.5 rounded-full", autoRefresh ? "bg-indigo-500 animate-pulse" : "bg-[var(--color-surface-3)]")} />
+            <span className={cn("h-1.5 w-1.5 rounded-full", autoRefresh ? "bg-primary animate-pulse" : "bg-[var(--color-surface-3)]")} />
             {autoRefresh ? `Auto-refresh · ${lastUpdated}s ago` : "Auto-refresh off"}
           </button>
 
@@ -344,7 +344,7 @@ export default function InfrastructureMap() {
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium capitalize transition",
               filter === f
-                ? "border-indigo-500 bg-indigo-500/15 text-indigo-400"
+                ? "border-primary bg-primary/15 text-primary"
                 : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]",
             )}
           >

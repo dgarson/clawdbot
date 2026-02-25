@@ -247,7 +247,7 @@ const DiscoveryRunMonitor: React.FC = () => {
         {[
           { label: "Total Agents", value: "15", sub: "provisioned", color: "text-[var(--color-text-primary)]" },
           { label: "Total Waves", value: "3", sub: "10AM · 2PM · 7PM MST", color: "text-sky-400" },
-          { label: "Cron Jobs", value: "17", sub: "staggered", color: "text-violet-400" },
+          { label: "Cron Jobs", value: "17", sub: "staggered", color: "text-primary" },
           { label: "Findings", value: totalFindings.toString(), sub: "accumulated", color: "text-emerald-400" },
         ].map((stat) => (
           <div key={stat.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-xl p-4">
@@ -380,7 +380,7 @@ const DiscoveryRunMonitor: React.FC = () => {
                   </div>
                   <div className="h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-violet-500 rounded-full"
+                      className="h-full bg-primary rounded-full"
                       style={{ width: `${Math.min((agent.tokensUsed / agent.tokenLimit) * 100, 100)}%` }}
                     />
                   </div>

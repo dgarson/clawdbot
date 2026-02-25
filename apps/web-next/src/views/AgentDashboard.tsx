@@ -185,7 +185,6 @@ export default function AgentDashboard() {
 
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const greeting = now.getHours() < 12 ? 'Good morning' : now.getHours() < 18 ? 'Good afternoon' : 'Good evening';
 
   const activeAgents = MOCK_AGENTS.filter((a) => a.status === 'active').length;
   const totalAgents = MOCK_AGENTS.length;
@@ -267,7 +266,12 @@ export default function AgentDashboard() {
     <button
       key={id}
       onClick={() => setActiveSection(id)}
-      className={cn('rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors', activeSection === id ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border bg-secondary/20 text-muted-foreground hover:text-foreground')}
+      className={cn(
+        'rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
+        activeSection === id
+          ? 'border-violet-300/70 bg-primary text-white shadow-[0_0_0_1px_rgba(196,181,253,0.35)]'
+          : 'border-border bg-secondary/20 text-foreground/85 hover:text-foreground hover:bg-secondary/35'
+      )}
     >
       {label}
     </button>
@@ -280,15 +284,12 @@ export default function AgentDashboard() {
   const isCompact = viewDensity === 'compact';
 
   return (
-    <div className={isCompact ? 'space-y-3' : 'space-y-5'}>
-      <header className={cn('border border-border bg-card', isCompact ? 'rounded-lg p-3' : 'rounded-xl p-4 sm:p-5')}>
-        <div className={cn('flex sm:flex-row sm:items-center sm:justify-between', isCompact ? 'flex-row items-center gap-2' : 'flex-col gap-3')}>
-          <div>
-            <h1 className={cn('font-semibold text-foreground', isCompact ? 'text-base' : 'text-xl sm:text-2xl')}>{greeting} {isCompact ? '' : '👋'}</h1>
-            {!isCompact && <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{dateStr}</p>}
-          </div>
-          <div className={cn('flex items-center gap-2 rounded-lg border border-border bg-secondary/20', isCompact ? 'px-2 py-1' : 'px-3 py-2')}>
-            <span className={cn('text-muted-foreground', isCompact ? 'text-[10px]' : 'text-xs')}>Gateway</span>
+    <div className="space-y-5">
+      <header className="rounded-xl border border-border bg-card p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground sm:text-sm">{dateStr}</p>
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/20 px-3 py-2">
+            <span className="text-xs text-muted-foreground">Gateway</span>
             <StatusBadge variant={isConnected ? 'connected' : 'offline'} pulse={!isConnected} />
           </div>
         </div>
@@ -303,30 +304,32 @@ export default function AgentDashboard() {
         }
         action={<div className="flex flex-wrap gap-2">{sectionButton('overview', 'Overview')}{sectionButton('agents', 'Agents')}{sectionButton('activity', 'Activity')}</div>}
       >
-        <div className={cn('flex flex-wrap items-center', isCompact ? 'gap-1.5' : 'gap-2')}>
+        <div className="flex flex-wrap items-center gap-2">
           {(['operator', 'manager', 'builder'] as const).map((mode) => (
             <button
               key={mode}
               onClick={() => setFocusMode(mode)}
-              className={cn('rounded-lg border font-medium capitalize', isCompact ? 'px-2 py-1 text-[11px]' : 'px-3 py-2 text-xs', focusMode === mode ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border bg-secondary/20 text-muted-foreground')}
+              className={cn(
+                'rounded-lg border font-medium capitalize transition-colors',
+                'px-3 py-2 text-xs',
+                focusMode === mode
+                  ? 'border-violet-300/70 bg-primary text-white shadow-[0_0_0_1px_rgba(196,181,253,0.35)]'
+                  : 'border-border bg-secondary/20 text-foreground/85 hover:text-foreground hover:bg-secondary/35'
+              )}
             >
               {mode} lens
             </button>
           ))}
           <ViewDensityToggle value={viewDensity} onChange={setViewDensity} />
-          <button className={cn('rounded-lg border border-border bg-secondary/20 text-muted-foreground', isCompact ? 'px-2 py-1 text-[11px]' : 'px-3 py-2 text-xs')} onClick={() => setShowComparisons((v) => !v)}>
+          <button className="rounded-lg border border-border bg-secondary/20 px-3 py-2 text-xs text-foreground/85 hover:text-foreground hover:bg-secondary/35 transition-colors" onClick={() => setShowComparisons((v) => !v)}>
             {showComparisons ? 'Hide trends' : 'Show trends'}
           </button>
-          <button className={cn('ml-auto rounded-lg bg-primary font-medium text-primary-foreground', isCompact ? 'px-2 py-1 text-[11px]' : 'px-3 py-2 text-xs')} onClick={() => { setAgentWizardStep(1); setModal('new-agent'); }}>
+          <button className="ml-auto rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground" onClick={() => { setAgentWizardStep(1); setModal('new-agent'); }}>
             New Agent
           </button>
-          <button className={cn('rounded-lg border border-border bg-secondary/30 text-foreground', isCompact ? 'px-2 py-1 text-[11px]' : 'px-3 py-2 text-xs')} onClick={() => setModal('new-chat')}>New Chat</button>
-          {!isCompact && (
-            <>
-              <button className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground" onClick={() => { setScheduleWizardStep(1); setModal('new-schedule'); }}>New Schedule</button>
-              <button className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground" onClick={() => setModal('export')}>Export</button>
-            </>
-          )}
+          <button className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground" onClick={() => setModal('new-chat')}>New Chat</button>
+          <button className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground" onClick={() => { setScheduleWizardStep(1); setModal('new-schedule'); }}>New Schedule</button>
+          <button className="rounded-lg border border-border bg-secondary/30 px-3 py-2 text-xs text-foreground" onClick={() => setModal('export')}>Export</button>
         </div>
       </SurfaceSection>
 

@@ -251,7 +251,7 @@ const PRIORITIES: { value: TicketPriority; label: string }[] = [
 
 const TICKET_STATUSES: { value: TicketStatus; label: string; color: string }[] = [
   { value: "open", label: "Open", color: "bg-amber-400/20 text-amber-400" },
-  { value: "in-progress", label: "In Progress", color: "bg-indigo-500/20 text-indigo-400" },
+  { value: "in-progress", label: "In Progress", color: "bg-primary/20 text-primary" },
   { value: "resolved", label: "Resolved", color: "bg-emerald-400/20 text-emerald-400" },
   { value: "closed", label: "Closed", color: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]" }
 ];
@@ -269,7 +269,7 @@ function StatusBadge({ status }: { status: TicketStatus }) {
 function PriorityBadge({ priority }: { priority: TicketPriority }) {
   const colors: Record<TicketPriority, string> = {
     low: "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]",
-    medium: "bg-indigo-500/20 text-indigo-400",
+    medium: "bg-primary/20 text-primary",
     high: "bg-amber-400/20 text-amber-400",
     urgent: "bg-rose-400/20 text-rose-400"
   };
@@ -299,7 +299,7 @@ function CategoryChip({
         "px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-150",
         "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
         selected 
-          ? "bg-indigo-600 text-[var(--color-text-primary)]" 
+          ? "bg-primary text-[var(--color-text-primary)]" 
           : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)] hover:text-[var(--color-text-primary)]"
       )}
     >
@@ -487,7 +487,7 @@ function HelpCenterTab() {
             aria-label={`Read article: ${article.title}`}
           >
             <div className="flex items-start justify-between mb-2">
-              <span className="text-xs font-medium text-indigo-400 uppercase tracking-wide">
+              <span className="text-xs font-medium text-primary uppercase tracking-wide">
                 {article.category.replace("-", " ")}
               </span>
               <span className="text-xs text-[var(--color-text-muted)]">{article.views.toLocaleString()} views</span>
@@ -509,7 +509,7 @@ function HelpCenterTab() {
           <button
             type="button"
             onClick={() => { setSelectedCategory(null); setSearchQuery(""); }}
-            className="mt-4 text-indigo-400 hover:text-indigo-300 transition-colors"
+            className="mt-4 text-primary hover:text-indigo-300 transition-colors"
           >
             Clear filters
           </button>
@@ -566,7 +566,7 @@ function MyTicketsTab() {
           {selectedTicket.agentResponse && (
             <div>
               <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Agent Response</h3>
-              <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-md">
+              <div className="bg-primary/10 border border-primary/20 p-4 rounded-md">
                 <p className="text-[var(--color-text-primary)]">{selectedTicket.agentResponse}</p>
               </div>
             </div>
@@ -659,8 +659,8 @@ function NewTicketTab() {
             setDescription("");
           }}
           className={cn(
-            "px-4 py-2 bg-indigo-600 text-[var(--color-text-primary)] rounded-md",
-            "hover:bg-indigo-500 transition-colors duration-150",
+            "px-4 py-2 bg-primary text-[var(--color-text-primary)] rounded-md",
+            "hover:bg-primary transition-colors duration-150",
             "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
           )}
         >
@@ -766,8 +766,8 @@ function NewTicketTab() {
         type="submit"
         disabled={!title.trim() || !description.trim()}
         className={cn(
-          "w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-[var(--color-text-primary)] rounded-md font-medium",
-          "hover:bg-indigo-500 transition-colors duration-150",
+          "w-full sm:w-auto px-6 py-2.5 bg-primary text-[var(--color-text-primary)] rounded-md font-medium",
+          "hover:bg-primary transition-colors duration-150",
           "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
           "disabled:opacity-50 disabled:cursor-not-allowed"
         )}
@@ -811,7 +811,7 @@ export default function SupportCenter() {
                   "flex items-center gap-2 px-4 py-3 border-b-2 transition-colors duration-150",
                   "focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none",
                   activeTab === tab.id
-                    ? "border-indigo-500 text-[var(--color-text-primary)]"
+                    ? "border-primary text-[var(--color-text-primary)]"
                     : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]"
                 )}
               >

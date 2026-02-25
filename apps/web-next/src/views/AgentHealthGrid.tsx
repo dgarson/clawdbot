@@ -97,8 +97,8 @@ export default function AgentHealthGrid() {
   const getWaveColor = (wave: string) => {
     switch (wave) {
       case "W1": return "bg-blue-500/20 text-blue-400";
-      case "W2": return "bg-violet-500/20 text-violet-400";
-      case "W3": return "bg-indigo-500/20 text-indigo-400";
+      case "W2": return "bg-primary/20 text-primary";
+      case "W3": return "bg-primary/20 text-primary";
       default: return "bg-[var(--color-surface-3)]/20 text-[var(--color-text-secondary)]";
     }
   };
@@ -130,7 +130,7 @@ export default function AgentHealthGrid() {
         {/* Summary Bar */}
         <div className="grid grid-cols-4 gap-4 p-4 bg-[var(--color-surface-1)]/50 border border-[var(--color-border)] rounded-xl">
           <div className="text-center">
-            <div className="text-2xl font-bold text-indigo-400">{agents.length}</div>
+            <div className="text-2xl font-bold text-primary">{agents.length}</div>
             <div className="text-xs text-[var(--color-text-muted)] uppercase">Total Agents</div>
           </div>
           <div className="text-center">
@@ -156,7 +156,7 @@ export default function AgentHealthGrid() {
               className={cn(
                 "px-3 py-1 rounded-md text-sm font-medium transition-all border",
                 filter === f
-                  ? "bg-indigo-600 border-indigo-500 text-[var(--color-text-primary)]"
+                  ? "bg-primary border-primary text-[var(--color-text-primary)]"
                   : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-border)]"
               )}
             >
@@ -186,7 +186,7 @@ export default function AgentHealthGrid() {
               </div>
 
               <div className="flex justify-between items-end">
-                <div className="text-indigo-400">
+                <div className="text-primary">
                   <Sparkline data={agent.heartbeat} />
                 </div>
                 <div className="text-right">
@@ -211,7 +211,7 @@ export default function AgentHealthGrid() {
                 </div>
                 <div className="w-full h-1 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-indigo-500 transition-all duration-500"
+                    className="h-full bg-primary transition-all duration-500"
                     style={{ width: `${agent.progress}%` }}
                   />
                 </div>

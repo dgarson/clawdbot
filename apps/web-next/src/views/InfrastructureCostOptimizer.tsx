@@ -152,7 +152,7 @@ const categories: CostCategory[] = [
 
 function typeColor(t: ResourceType): string {
   const map: Record<ResourceType, string> = {
-    ec2:          "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+    ec2:          "bg-primary/20 text-primary border-primary/30",
     rds:          "bg-blue-500/20 text-blue-400 border-blue-500/30",
     lambda:       "bg-amber-500/20 text-amber-400 border-amber-500/30",
     s3:           "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
@@ -170,7 +170,7 @@ function wasteColor(reason: WasteReason | null): string {
     oversized:   "text-amber-400",
     unused:      "text-rose-400",
     rightsizing: "text-amber-400",
-    reserved:    "text-indigo-400",
+    reserved:    "text-primary",
     lifecycle:   "text-blue-400",
   };
   return map[reason];
@@ -259,7 +259,7 @@ function OpportunitiesTab() {
           key={op.id}
           className={cn(
             "rounded-xl border p-4 cursor-pointer transition-all",
-            selected?.id === op.id ? "border-indigo-500 bg-indigo-500/5" : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
+            selected?.id === op.id ? "border-primary bg-primary/5" : "border-[var(--color-border)] bg-[var(--color-surface-1)] hover:border-[var(--color-surface-3)]"
           )}
           onClick={() => setSelected(selected?.id === op.id ? null : op)}
         >
@@ -318,7 +318,7 @@ function ResourcesTab() {
             onClick={() => setFilter(f)}
             className={cn(
               "px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors",
-              filter === f ? "bg-indigo-600 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+              filter === f ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
             {f === "waste" ? "Waste Only" : "All Resources"}
@@ -349,7 +349,7 @@ function ResourcesTab() {
               <span className="text-xs text-[var(--color-text-secondary)] w-8 text-right">{res.utilization}%</span>
             </div>
             {res.recommendation && (
-              <div className="mt-2 text-xs text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 rounded px-3 py-1.5">
+              <div className="mt-2 text-xs text-indigo-300 bg-primary/10 border border-primary/20 rounded px-3 py-1.5">
                 💡 {res.recommendation} — save ${res.potentialSavings}/mo
               </div>
             )}
@@ -388,7 +388,7 @@ export default function InfrastructureCostOptimizer() {
             className={cn(
               "px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px",
               tab === t
-                ? "border-indigo-500 text-indigo-400"
+                ? "border-primary text-primary"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >

@@ -25,7 +25,7 @@ interface Optimization {
 }
 
 const CATEGORIES: { key: Category; label: string; color: string }[] = [
-  { key: "models", label: "Models (LLM API)", color: "bg-indigo-500" },
+  { key: "models", label: "Models (LLM API)", color: "bg-primary" },
   { key: "compute", label: "Compute", color: "bg-sky-500" },
   { key: "storage", label: "Storage", color: "bg-emerald-500" },
   { key: "network", label: "Network", color: "bg-amber-500" },
@@ -173,7 +173,7 @@ export default function CostForecast() {
               onClick={() => setShowProjections((p) => !p)}
               className={cn(
                 "w-9 h-5 rounded-full relative transition-colors",
-                showProjections ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
+                showProjections ? "bg-primary" : "bg-[var(--color-surface-3)]"
               )}
             >
               <span
@@ -239,7 +239,7 @@ export default function CostForecast() {
             <div
               className={cn(
                 "h-full rounded-full transition-all",
-                overBudget ? "bg-red-500" : budgetPercent >= 80 ? "bg-amber-500" : "bg-indigo-500"
+                overBudget ? "bg-red-500" : budgetPercent >= 80 ? "bg-amber-500" : "bg-primary"
               )}
               style={{ width: `${budgetPercent}%` }}
             />
@@ -264,7 +264,7 @@ export default function CostForecast() {
                     className={cn(
                       "text-xs px-3 py-1.5 rounded-full border transition-colors",
                       active
-                        ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
+                        ? "border-primary bg-primary/20 text-indigo-300"
                         : "border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-text-muted)]"
                     )}
                   >
@@ -294,7 +294,7 @@ export default function CostForecast() {
                   className={cn(
                     "text-xs px-3 py-1.5 rounded-md transition-colors",
                     scenario === s
-                      ? "bg-indigo-500 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >

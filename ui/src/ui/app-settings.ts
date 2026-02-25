@@ -31,13 +31,14 @@ import {
 } from "./navigation.ts";
 import { saveSettings, type UiSettings } from "./storage.ts";
 import { startThemeTransition, type ThemeTransitionContext } from "./theme-transition.ts";
-import { resolveTheme, type ResolvedTheme, type ThemeMode } from "./theme.ts";
+import { resolveTheme, type ResolvedTheme, type ThemeMode, type ThemeColor } from "./theme.ts";
 import type { AgentsListResult } from "./types.ts";
 
 type SettingsHost = {
   settings: UiSettings;
   password?: string;
   theme: ThemeMode;
+  themeColor: ThemeColor;
   themeResolved: ResolvedTheme;
   applySessionKey: string;
   sessionKey: string;
@@ -66,6 +67,12 @@ export function applySettings(host: SettingsHost, next: UiSettings) {
   if (next.theme !== host.theme) {
     host.theme = next.theme;
     applyResolvedTheme(host, resolveTheme(next.theme));
+  }
+  if (next.themeColor !== host.themeColor) {
+    host.themeColor = next.themeColor;
+    if (typeof document !== "undefined") {
+      document.documentElement.dataset.themeColor = next.themeColor;
+    }
   }
   host.applySessionKey = host.settings.lastActiveSessionKey;
 }
@@ -178,6 +185,26 @@ export function setTheme(host: SettingsHost, next: ThemeMode, context?: ThemeTra
   });
 }
 
+export function setThemeColor(
+  host: SettingsHost,
+  next: ThemeColor,
+  context?: ThemeTransitionContext,
+) {
+  const applyThemeColor = () => {
+    host.themeColor = next;
+    applySettings(host, { ...host.settings, themeColor: next });
+    if (typeof document !== "undefined") {
+      document.documentElement.dataset.themeColor = next;
+    }
+  };
+  startThemeTransition({
+    nextTheme: host.theme,
+    applyTheme: applyThemeColor,
+    context,
+    currentTheme: host.theme, // use current to avoid mode changes
+  });
+}
+
 export async function refreshActiveTab(host: SettingsHost) {
   if (host.tab === "overview") {
     await loadOverview(host);
@@ -260,6 +287,7 @@ export function inferBasePath() {
 
 export function syncThemeWithSettings(host: SettingsHost) {
   host.theme = host.settings.theme ?? "system";
+  host.themeColor = host.settings.themeColor ?? "original";
   applyResolvedTheme(host, resolveTheme(host.theme));
 }
 
@@ -270,6 +298,7 @@ export function applyResolvedTheme(host: SettingsHost, resolved: ResolvedTheme) 
   }
   const root = document.documentElement;
   root.dataset.theme = resolved;
+  root.dataset.themeColor = host.themeColor ?? "original";
   root.style.colorScheme = resolved;
 }
 

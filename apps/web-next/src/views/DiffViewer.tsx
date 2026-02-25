@@ -141,7 +141,7 @@ const DIFF_SETS: DiffSet[] = [
           {
             header: "@@ -184,3 +184,3 @@",
             lines: [
-              { type: "unchanged", leftNum: 183, rightNum: 183, content: `              className={cn("text-sm font-semibold", isSelected && "text-indigo-400")}` },
+              { type: "unchanged", leftNum: 183, rightNum: 183, content: `              className={cn("text-sm font-semibold", isSelected && "text-primary")}` },
               { type: "removed",   leftNum: 184, rightNum: null, content: `              style={isSelected ? { ringColor: "currentColor" } : {}}` },
               { type: "added",    leftNum: null, rightNum: 184, content: `              style={isSelected ? {} : {}}` },
               { type: "unchanged", leftNum: 185, rightNum: 185, content: `            >` },
@@ -212,7 +212,7 @@ export default function DiffViewer() {
                 onClick={() => { setSelectedSetId(ds.id); setSelectedFileId(ds.files[0]?.id ?? ""); }}
                 className={cn(
                   "w-full text-left p-2 rounded text-xs transition-colors",
-                  selectedSetId === ds.id ? "bg-indigo-500/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
+                  selectedSetId === ds.id ? "bg-primary/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 <div className="font-medium truncate">{ds.title}</div>
@@ -238,7 +238,7 @@ export default function DiffViewer() {
                 onClick={() => setSelectedFileId(file.id)}
                 className={cn(
                   "w-full text-left px-2 py-1.5 rounded text-xs transition-colors",
-                  selectedFileId === file.id ? "bg-indigo-500/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
+                  selectedFileId === file.id ? "bg-primary/20 text-[var(--color-text-primary)]" : "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
                 )}
               >
                 <div className={cn("font-mono truncate text-[10px]", langColor(file.language))}>
@@ -284,7 +284,7 @@ export default function DiffViewer() {
                   onClick={() => setMode(m)}
                   className={cn(
                     "text-xs px-3 py-1 transition-colors",
-                    mode === m ? "bg-indigo-500 text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                    mode === m ? "bg-primary text-[var(--color-text-primary)]" : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   )}
                 >
                   {m === "side-by-side" ? "⏮⏭" : "≡"}
@@ -294,7 +294,7 @@ export default function DiffViewer() {
 
             <button
               onClick={() => setShowWhitespace(v => !v)}
-              className={cn("text-xs px-3 py-1 rounded border transition-colors", showWhitespace ? "border-indigo-500 text-indigo-300 bg-indigo-500/10" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]")}
+              className={cn("text-xs px-3 py-1 rounded border transition-colors", showWhitespace ? "border-primary text-indigo-300 bg-primary/10" : "border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-surface-2)]")}
             >
               ¶ Space
             </button>
@@ -319,7 +319,7 @@ export default function DiffViewer() {
                     {/* Hunk header */}
                     <button
                       onClick={() => toggleHunk(hunkKey)}
-                      className="w-full text-left bg-indigo-500/10 border-y border-indigo-500/20 px-4 py-1.5 text-[10px] text-indigo-400 hover:bg-indigo-500/20 transition-colors flex items-center gap-2"
+                      className="w-full text-left bg-primary/10 border-y border-primary/20 px-4 py-1.5 text-[10px] text-primary hover:bg-primary/20 transition-colors flex items-center gap-2"
                     >
                       <span>{isCollapsed ? "▶" : "▼"}</span>
                       <span>{hunk.header}</span>

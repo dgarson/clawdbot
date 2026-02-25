@@ -134,7 +134,7 @@ const INITIAL_CAMPAIGNS: Campaign[] = [
 ];
 
 const TEMPLATES: Template[] = [
-  { id: "tm-1", name: "Clean Newsletter", category: "newsletter", color: "bg-indigo-500" },
+  { id: "tm-1", name: "Clean Newsletter", category: "newsletter", color: "bg-primary" },
   { id: "tm-2", name: "Bold Promotion", category: "promo", color: "bg-rose-500" },
   { id: "tm-3", name: "Minimal Welcome", category: "welcome", color: "bg-emerald-500" },
   { id: "tm-4", name: "Account Alert", category: "transactional", color: "bg-amber-500" },
@@ -154,7 +154,7 @@ const AUDIENCE_LISTS = [
 const StatusBadge = ({ status }: { status: CampaignStatus }) => {
   const styles: Record<CampaignStatus, string> = {
     draft: "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]",
-    scheduled: "bg-indigo-900/40 text-indigo-400 border border-indigo-500/30",
+    scheduled: "bg-indigo-900/40 text-primary border border-primary/30",
     sending: "bg-emerald-900/40 text-emerald-400 border border-emerald-500/30",
     sent: "bg-emerald-500/10 text-emerald-400",
     paused: "bg-amber-900/40 text-amber-400 border border-amber-500/30"
@@ -237,7 +237,7 @@ export default function EmailCampaignManager() {
         
         <button 
           onClick={() => setActiveTab("compose")}
-          className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-5 py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/10"
+          className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-5 py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/10"
         >
           <span>➕</span> Create New Campaign
         </button>
@@ -252,12 +252,12 @@ export default function EmailCampaignManager() {
               onClick={() => setActiveTab(tab)}
               className={cn(
                 "pb-4 text-sm font-medium transition-all relative capitalize",
-                activeTab === tab ? "text-indigo-400" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+                activeTab === tab ? "text-primary" : "text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {tab}
               {activeTab === tab && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500" />
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
               )}
             </button>
           ))}
@@ -306,7 +306,7 @@ export default function EmailCampaignManager() {
                       <span className="text-emerald-400">{cp.openRate}% <span className="text-[10px] uppercase text-[var(--color-text-muted)]">Open</span></span>
                     </div>
                     <div className="flex justify-end gap-3 text-sm">
-                      <span className="text-indigo-400">{cp.clickRate}% <span className="text-[10px] uppercase text-[var(--color-text-muted)]">Click</span></span>
+                      <span className="text-primary">{cp.clickRate}% <span className="text-[10px] uppercase text-[var(--color-text-muted)]">Click</span></span>
                     </div>
                   </div>
                   <div className="col-span-2 flex justify-end gap-2">
@@ -365,7 +365,7 @@ export default function EmailCampaignManager() {
                     <div className="flex justify-end mt-6 gap-3">
                       {cp.status === 'paused' && <button className="px-4 py-2 text-sm font-semibold bg-emerald-600 rounded-lg">Resume Campaign</button>}
                       {cp.status === 'sending' && <button className="px-4 py-2 text-sm font-semibold bg-amber-600 rounded-lg">Pause Campaign</button>}
-                      {cp.status === 'draft' && <button className="px-4 py-2 text-sm font-semibold bg-indigo-600 rounded-lg">Edit Details</button>}
+                      {cp.status === 'draft' && <button className="px-4 py-2 text-sm font-semibold bg-primary rounded-lg">Edit Details</button>}
                       <button className="px-4 py-2 text-sm font-semibold border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-2)] transition-colors">Download Full CSV Report</button>
                     </div>
                   </div>
@@ -457,7 +457,7 @@ export default function EmailCampaignManager() {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
+                <button className="flex-1 bg-primary hover:bg-primary text-[var(--color-text-primary)] font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/20 transition-all">
                   🚀 {composeSchedule === 'now' ? 'Send Campaign Now' : 'Schedule Campaign'}
                 </button>
                 <button className="px-6 py-3 border border-[var(--color-border)] hover:bg-[var(--color-surface-2)] rounded-xl font-bold transition-all">
@@ -480,7 +480,7 @@ export default function EmailCampaignManager() {
                   </div>
                   <div className="flex gap-2">
                     <button className="p-1.5 bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded text-xs">📱</button>
-                    <button className="p-1.5 bg-indigo-500/20 border border-indigo-500/40 rounded text-xs">💻</button>
+                    <button className="p-1.5 bg-primary/20 border border-primary/40 rounded text-xs">💻</button>
                   </div>
                 </div>
 
@@ -504,7 +504,7 @@ export default function EmailCampaignManager() {
 
                         <div className="bg-[var(--color-surface-1)] text-[var(--color-text-primary)] p-6 rounded-xl text-center space-y-4">
                           <p className="font-bold">Ready to take your UI to the next level?</p>
-                          <button className="bg-indigo-500 text-[var(--color-text-primary)] px-8 py-3 rounded-full font-bold text-sm">
+                          <button className="bg-primary text-[var(--color-text-primary)] px-8 py-3 rounded-full font-bold text-sm">
                             Go to Dashboard
                           </button>
                         </div>
@@ -517,7 +517,7 @@ export default function EmailCampaignManager() {
                       {/* Email Footer */}
                       <div className="pt-12 border-t border-[var(--color-border)] text-center space-y-4">
                         <div className="text-[10px] text-[var(--color-text-secondary)] uppercase font-bold tracking-widest">Horizon UI Dashboard • San Francisco, CA</div>
-                        <div className="text-[10px] text-indigo-500 font-bold hover:underline cursor-pointer">Unsubscribe from this list</div>
+                        <div className="text-[10px] text-primary font-bold hover:underline cursor-pointer">Unsubscribe from this list</div>
                       </div>
                    </div>
                 </div>
@@ -540,7 +540,7 @@ export default function EmailCampaignManager() {
               {TEMPLATES.map((tmpl) => (
                 <div 
                   key={tmpl.id}
-                  className="group bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl overflow-hidden hover:border-indigo-500/50 transition-all cursor-pointer"
+                  className="group bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-2xl overflow-hidden hover:border-primary/50 transition-all cursor-pointer"
                   onClick={() => setActiveTab("compose")}
                 >
                   <div className={cn("aspect-video relative overflow-hidden flex items-center justify-center", tmpl.color)}>
@@ -553,7 +553,7 @@ export default function EmailCampaignManager() {
                   </div>
                   <div className="p-5 flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-[var(--color-text-primary)] group-hover:text-indigo-400 transition-colors">{tmpl.name}</h3>
+                      <h3 className="font-bold text-[var(--color-text-primary)] group-hover:text-primary transition-colors">{tmpl.name}</h3>
                       <p className="text-xs text-[var(--color-text-muted)] uppercase font-bold tracking-wider mt-1">{tmpl.category}</p>
                     </div>
                     <button className="p-2 bg-[var(--color-surface-2)] rounded-lg text-xs opacity-0 group-hover:opacity-100 transition-opacity">
@@ -589,7 +589,7 @@ export default function EmailCampaignManager() {
               </div>
               <div className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-6 rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-xl text-xl">🖱️</div>
+                  <div className="p-3 bg-primary/10 text-primary rounded-xl text-xl">🖱️</div>
                   <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">+4.2%</span>
                 </div>
                 <div className="text-[var(--color-text-muted)] text-sm font-medium">Avg. Click-Through</div>
@@ -618,7 +618,7 @@ export default function EmailCampaignManager() {
                           {val}%
                         </div>
                         <div 
-                          className="w-full bg-indigo-500/20 group-hover:bg-indigo-500/40 border-t border-indigo-500 rounded-t-lg transition-all duration-500"
+                          className="w-full bg-primary/20 group-hover:bg-primary/40 border-t border-primary rounded-t-lg transition-all duration-500"
                           style={{ height: `${val * 2}px` }}
                         />
                       </div>
@@ -687,9 +687,9 @@ export default function EmailCampaignManager() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm font-bold text-indigo-400">{cp.clickRate}%</td>
+                        <td className="px-6 py-4 text-sm font-bold text-primary">{cp.clickRate}%</td>
                         <td className="px-6 py-4 text-right">
-                           <span className="bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded text-xs font-bold border border-indigo-500/20">A+ Performance</span>
+                           <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-bold border border-primary/20">A+ Performance</span>
                         </td>
                       </tr>
                     ))}

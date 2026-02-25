@@ -163,8 +163,8 @@ const MIGRATIONS: Migration[] = [
 
 const typeColor: Record<ColumnType, string> = {
   int: "text-sky-400", bigint: "text-sky-400", varchar: "text-emerald-400", text: "text-emerald-400",
-  bool: "text-amber-400", timestamp: "text-violet-400", uuid: "text-indigo-400",
-  jsonb: "text-orange-400", decimal: "text-sky-400", float: "text-sky-400", date: "text-violet-400", bytea: "text-[var(--color-text-secondary)]",
+  bool: "text-amber-400", timestamp: "text-primary", uuid: "text-primary",
+  jsonb: "text-orange-400", decimal: "text-sky-400", float: "text-sky-400", date: "text-primary", bytea: "text-[var(--color-text-secondary)]",
 };
 
 export default function DatabaseSchemaExplorer() {
@@ -222,7 +222,7 @@ export default function DatabaseSchemaExplorer() {
             onClick={() => setTab(t.id)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
-              tab === t.id ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+              tab === t.id ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             )}
           >
             <span>{t.emoji}</span>
@@ -282,7 +282,7 @@ export default function DatabaseSchemaExplorer() {
                     </thead>
                     <tbody>
                       {selectedTable.columns.map(col => (
-                        <tr key={col.name} className={cn("border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-1)]/30 transition-colors", col.primary && "bg-indigo-500/3")}>
+                        <tr key={col.name} className={cn("border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-1)]/30 transition-colors", col.primary && "bg-primary/3")}>
                           <td className="px-4 py-2.5">
                             <div className="flex items-center gap-1.5">
                               {col.primary && <span className="text-yellow-400 text-xs" title="Primary key">🔑</span>}
@@ -305,13 +305,13 @@ export default function DatabaseSchemaExplorer() {
                               {col.primary && <span className="px-1 py-0.5 bg-yellow-500/10 text-yellow-400 rounded text-xs">PK</span>}
                               {col.unique && !col.primary && <span className="px-1 py-0.5 bg-sky-500/10 text-sky-400 rounded text-xs">UQ</span>}
                               {col.indexed && !col.primary && <span className="px-1 py-0.5 bg-[var(--color-surface-3)]/40 text-[var(--color-text-secondary)] rounded text-xs">IDX</span>}
-                              {col.fk && <span className="px-1 py-0.5 bg-indigo-500/10 text-indigo-400 rounded text-xs">FK</span>}
+                              {col.fk && <span className="px-1 py-0.5 bg-primary/10 text-primary rounded text-xs">FK</span>}
                             </div>
                           </td>
                           <td className="px-4 py-2.5 text-[var(--color-text-muted)]">
                             {col.fk ? (
                               <button
-                                className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                                className="text-primary hover:text-indigo-300 transition-colors"
                                 onClick={() => {
                                   const t = TABLES.find(t => t.name === col.fk?.table);
                                   if (t) {setSelectedTable(t);}
@@ -366,7 +366,7 @@ export default function DatabaseSchemaExplorer() {
                   <div className="flex items-center gap-2 text-[var(--color-text-primary)]">
                     <span className="font-medium">{rel.from}</span>
                     <span className="text-[var(--color-text-muted)]">.</span>
-                    <span className="text-indigo-400">{rel.fromCol}</span>
+                    <span className="text-primary">{rel.fromCol}</span>
                   </div>
                   <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
                     <span>─── FK ──→</span>

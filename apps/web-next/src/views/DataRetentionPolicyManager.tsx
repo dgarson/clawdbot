@@ -239,7 +239,7 @@ const STORAGE_TREND: StorageTrend[] = [
 function scopeBg(s: PolicyScope) {
   if (s === "global") {return "bg-purple-500/10 text-purple-400";}
   if (s === "region") {return "bg-cyan-500/10 text-cyan-400";}
-  if (s === "tenant") {return "bg-indigo-500/10 text-indigo-400";}
+  if (s === "tenant") {return "bg-primary/10 text-primary";}
   return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]";
 }
 function categoryBg(c: DataCategory) {
@@ -247,7 +247,7 @@ function categoryBg(c: DataCategory) {
     pii: "bg-rose-500/10 text-rose-400",
     financial: "bg-emerald-500/10 text-emerald-400",
     logs: "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]",
-    analytics: "bg-indigo-500/10 text-indigo-400",
+    analytics: "bg-primary/10 text-primary",
     config: "bg-amber-500/10 text-amber-400",
     media: "bg-purple-500/10 text-purple-400",
     audit: "bg-orange-500/10 text-orange-400",
@@ -260,7 +260,7 @@ function statusBg(s: PolicyStatus) {
   return "bg-[var(--color-surface-3)] text-[var(--color-text-secondary)]";
 }
 function jobStatusBg(s: JobStatus) {
-  if (s === "running") {return "bg-indigo-400/10 text-indigo-400 animate-pulse";}
+  if (s === "running") {return "bg-primary/10 text-primary animate-pulse";}
   if (s === "completed") {return "bg-emerald-400/10 text-emerald-400";}
   if (s === "failed") {return "bg-rose-400/10 text-rose-400";}
   if (s === "scheduled") {return "bg-cyan-400/10 text-cyan-400";}
@@ -269,7 +269,7 @@ function jobStatusBg(s: JobStatus) {
 function methodBg(m: DeletionMethod) {
   if (m === "hard-delete") {return "bg-rose-500/10 text-rose-400";}
   if (m === "soft-delete") {return "bg-amber-500/10 text-amber-400";}
-  if (m === "anonymize") {return "bg-indigo-500/10 text-indigo-400";}
+  if (m === "anonymize") {return "bg-primary/10 text-primary";}
   return "bg-[var(--color-surface-3)] text-[var(--color-text-primary)]";
 }
 function fmtBytes(kb: number) {
@@ -313,7 +313,7 @@ export default function DataRetentionPolicyManager() {
         </div>
         <div className="flex items-center gap-2">
           {runningJobs > 0 && (
-            <span className="bg-indigo-500/10 text-indigo-400 text-xs px-2 py-1 rounded-full border border-indigo-500/30 animate-pulse">
+            <span className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full border border-primary/30 animate-pulse">
               {runningJobs} purge running
             </span>
           )}
@@ -322,7 +322,7 @@ export default function DataRetentionPolicyManager() {
               {failedJobs} job failed
             </span>
           )}
-          <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">
+          <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">
             + New Policy
           </button>
         </div>
@@ -332,7 +332,7 @@ export default function DataRetentionPolicyManager() {
       <div className="border-b border-[var(--color-border)] px-6 py-3 grid grid-cols-4 gap-4">
         {[
           { label: "Active Policies", value: activeCount, color: "text-emerald-400" },
-          { label: "Running Jobs", value: runningJobs, color: runningJobs > 0 ? "text-indigo-400" : "text-[var(--color-text-secondary)]" },
+          { label: "Running Jobs", value: runningJobs, color: runningJobs > 0 ? "text-primary" : "text-[var(--color-text-secondary)]" },
           { label: "Failed Jobs", value: failedJobs, color: failedJobs > 0 ? "text-rose-400" : "text-emerald-400" },
           { label: "Total Data Under Policy", value: fmtBytes(totalStorage), color: "text-[var(--color-text-primary)]" },
         ].map((s, i) => (
@@ -352,7 +352,7 @@ export default function DataRetentionPolicyManager() {
               onClick={() => setTab(t)}
               className={cn(
                 "py-3 text-sm font-medium border-b-2 capitalize transition-colors",
-                tab === t ? "border-indigo-500 text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+                tab === t ? "border-primary text-[var(--color-text-primary)]" : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
             >
               {t.replace("-", " ")}
@@ -453,7 +453,7 @@ export default function DataRetentionPolicyManager() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <button className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">Run Now</button>
+                      <button className="bg-primary hover:bg-primary text-[var(--color-text-primary)] text-sm px-3 py-1.5 rounded-lg transition-colors">Run Now</button>
                       <button className="bg-[var(--color-surface-2)] hover:bg-[var(--color-surface-3)] text-sm px-3 py-1.5 rounded-lg text-[var(--color-text-primary)] transition-colors">Edit</button>
                     </div>
                   </div>
@@ -479,7 +479,7 @@ export default function DataRetentionPolicyManager() {
                       <h3 className="text-sm font-medium text-[var(--color-text-primary)] mb-3">Compliance Frameworks</h3>
                       <div className="flex flex-wrap gap-2">
                         {selected.complianceFrameworks.map(f => (
-                          <span key={f} className="bg-indigo-500/10 text-indigo-400 text-xs px-2 py-1 rounded-lg border border-indigo-500/20">{f}</span>
+                          <span key={f} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-lg border border-primary/20">{f}</span>
                         ))}
                       </div>
                     </div>
@@ -548,7 +548,7 @@ export default function DataRetentionPolicyManager() {
                       <div className="text-xs text-[var(--color-text-muted)]">Triggered by {job.triggeredBy} · {job.scheduledAt}</div>
                     </div>
                     {job.status === "failed" && (
-                      <button className="text-xs bg-indigo-900/40 text-indigo-400 px-2 py-1 rounded hover:bg-indigo-900/60 transition-colors">Retry</button>
+                      <button className="text-xs bg-indigo-900/40 text-primary px-2 py-1 rounded hover:bg-indigo-900/60 transition-colors">Retry</button>
                     )}
                   </div>
 
@@ -576,7 +576,7 @@ export default function DataRetentionPolicyManager() {
                   {job.status === "running" && job.recordsScanned > 0 && (
                     <div className="mt-3">
                       <div className="h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full animate-pulse" style={{ width: `${(job.recordsDeleted / job.recordsScanned) * 100}%` }} />
+                        <div className="h-full bg-primary rounded-full animate-pulse" style={{ width: `${(job.recordsDeleted / job.recordsScanned) * 100}%` }} />
                       </div>
                       <div className="text-xs text-[var(--color-text-muted)] mt-1">{((job.recordsDeleted / job.recordsScanned) * 100).toFixed(1)}% complete</div>
                     </div>
@@ -601,7 +601,7 @@ export default function DataRetentionPolicyManager() {
                   return (
                     <div key={i} className="flex-1 flex flex-col items-center gap-1">
                       <div className="w-full flex flex-col-reverse rounded-sm overflow-hidden" style={{ height: "80px" }}>
-                        <div className="bg-indigo-500" style={{ height: `${logPct}%` }} />
+                        <div className="bg-primary" style={{ height: `${logPct}%` }} />
                         <div className="bg-purple-500" style={{ height: `${Math.min(mediaPct, 100 - logPct)}%` }} />
                       </div>
                       <span className="text-xs text-[var(--color-text-muted)]">{d.month}</span>
@@ -610,7 +610,7 @@ export default function DataRetentionPolicyManager() {
                 })}
               </div>
               <div className="flex gap-4 mt-2 text-xs text-[var(--color-text-muted)]">
-                <span><span className="inline-block w-2 h-2 bg-indigo-500 rounded-sm mr-1" />Logs</span>
+                <span><span className="inline-block w-2 h-2 bg-primary rounded-sm mr-1" />Logs</span>
                 <span><span className="inline-block w-2 h-2 bg-purple-500 rounded-sm mr-1" />Media</span>
               </div>
             </div>
@@ -624,7 +624,7 @@ export default function DataRetentionPolicyManager() {
                     <div key={p.id} className="flex items-center gap-3">
                       <div className="w-48 text-xs text-[var(--color-text-primary)] truncate">{p.name}</div>
                       <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(p.dataSize / maxSize) * 100}%` }} />
+                        <div className="h-full bg-primary rounded-full" style={{ width: `${(p.dataSize / maxSize) * 100}%` }} />
                       </div>
                       <div className="text-xs text-[var(--color-text-secondary)] w-16 text-right">{fmtBytes(p.dataSize)}</div>
                     </div>
@@ -668,7 +668,7 @@ export default function DataRetentionPolicyManager() {
                   {p.complianceFrameworks.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1">
                       {p.complianceFrameworks.map(f => (
-                        <span key={f} className="bg-indigo-500/10 text-indigo-400 text-xs px-1.5 py-0.5 rounded">{f}</span>
+                        <span key={f} className="bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded">{f}</span>
                       ))}
                     </div>
                   )}

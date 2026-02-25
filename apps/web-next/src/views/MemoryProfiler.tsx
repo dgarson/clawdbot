@@ -103,8 +103,8 @@ const FLAME_DATA: FlameBlock[][] = [
 ]
 
 const FLAME_COLORS: Record<FlameBlock["memClass"], string> = {
-  alloc: "bg-indigo-500",
-  retain: "bg-violet-500",
+  alloc: "bg-primary",
+  retain: "bg-primary",
   cache: "bg-cyan-500",
   mapped: "bg-amber-500",
   shared: "bg-emerald-500",
@@ -179,7 +179,7 @@ export default function MemoryProfiler() {
         </div>
         <button
           onClick={takeSnapshot}
-          className="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-sm font-medium transition-colors"
+          className="px-4 py-2 rounded-lg bg-primary hover:bg-primary text-sm font-medium transition-colors"
         >
           Take Snapshot
         </button>
@@ -200,7 +200,7 @@ export default function MemoryProfiler() {
                 <div
                   className={cn(
                     "w-full rounded-t transition-colors",
-                    hoveredBar === i ? "bg-indigo-400" : "bg-indigo-500/70"
+                    hoveredBar === i ? "bg-primary" : "bg-primary/70"
                   )}
                   style={{ height: `${(val / maxTimeline) * 100}%` }}
                 />
@@ -303,7 +303,7 @@ export default function MemoryProfiler() {
             className={cn(
               "px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors",
               sortKey === key
-                ? "bg-indigo-500/20 border-indigo-500/50 text-indigo-300"
+                ? "bg-primary/20 border-primary/50 text-indigo-300"
                 : "bg-[var(--color-surface-1)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
           >
@@ -368,8 +368,8 @@ export default function MemoryProfiler() {
                     const segVal = proc.heap[seg]
                     const segPct = proc.heapUsed > 0 ? (segVal / proc.heapUsed) * 100 : 0
                     const colors: Record<string, string> = {
-                      newSpace: "bg-indigo-500",
-                      oldSpace: "bg-violet-500",
+                      newSpace: "bg-primary",
+                      oldSpace: "bg-primary",
                       codeSpace: "bg-cyan-500",
                       mapSpace: "bg-amber-500",
                     }
@@ -400,8 +400,8 @@ export default function MemoryProfiler() {
                         const segPct =
                           proc.heapUsed > 0 ? (proc.heap[seg] / proc.heapUsed) * 100 : 0
                         const colors: Record<string, string> = {
-                          newSpace: "bg-indigo-500",
-                          oldSpace: "bg-violet-500",
+                          newSpace: "bg-primary",
+                          oldSpace: "bg-primary",
                           codeSpace: "bg-cyan-500",
                           mapSpace: "bg-amber-500",
                         }
@@ -475,7 +475,7 @@ export default function MemoryProfiler() {
                 className="flex items-center justify-between bg-[var(--color-surface-2)]/50 rounded-lg px-4 py-2.5 text-sm border border-[var(--color-border)]/40"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-indigo-400 font-mono text-xs">#{snap.id}</span>
+                  <span className="text-primary font-mono text-xs">#{snap.id}</span>
                   <span className="text-[var(--color-text-primary)]">{fmtTime(snap.timestamp)}</span>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">

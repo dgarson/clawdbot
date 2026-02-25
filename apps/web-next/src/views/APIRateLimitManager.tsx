@@ -734,7 +734,7 @@ function UtilizationBar({
       : pct >= 85
       ? "bg-amber-400"
       : pct >= 60
-      ? "bg-indigo-400"
+      ? "bg-primary"
       : "bg-emerald-400";
 
   return (
@@ -820,7 +820,7 @@ function TopConsumersChart({
             : utilPct >= 85
             ? "bg-amber-400"
             : utilPct >= 60
-            ? "bg-indigo-500"
+            ? "bg-primary"
             : "bg-emerald-500";
         return (
           <div key={c.id} className="flex items-center gap-3">
@@ -859,7 +859,7 @@ function Toggle({
       onClick={onToggle}
       className={cn(
         "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
-        enabled ? "bg-indigo-500" : "bg-[var(--color-surface-3)]"
+        enabled ? "bg-primary" : "bg-[var(--color-surface-3)]"
       )}
     >
       <span
@@ -939,7 +939,7 @@ function RuleDetailPanel({
             ].map((item) => (
               <div key={item.label} className="bg-[var(--color-surface-2)] rounded-xl p-4 text-center">
                 <div className="text-2xl font-bold text-[var(--color-text-primary)]">{item.value}</div>
-                <div className="text-xs text-indigo-400 font-medium mt-0.5">{item.label}</div>
+                <div className="text-xs text-primary font-medium mt-0.5">{item.label}</div>
                 <div className="text-xs text-[var(--color-text-muted)] mt-1">{item.sub}</div>
               </div>
             ))}
@@ -1034,13 +1034,13 @@ function OverviewTab({ rules, violations, consumers }: { rules: RateLimitRule[];
   ];
 
   const accentBorder: Record<string, string> = {
-    indigo: "border-indigo-500/40",
+    indigo: "border-primary/40",
     emerald: "border-emerald-500/40",
     rose: "border-rose-500/40",
     amber: "border-amber-500/40",
   };
   const accentText: Record<string, string> = {
-    indigo: "text-indigo-400",
+    indigo: "text-primary",
     emerald: "text-emerald-400",
     rose: "text-rose-400",
     amber: "text-amber-400",
@@ -1209,7 +1209,7 @@ function RulesTab({
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filterTier === t
-                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
@@ -1228,7 +1228,7 @@ function RulesTab({
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filterStatus === s
-                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
@@ -1247,7 +1247,7 @@ function RulesTab({
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filterScope === s
-                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
@@ -1309,7 +1309,7 @@ function RulesTab({
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-indigo-400 font-mono font-medium">
+                      <span className="text-primary font-mono font-medium">
                         {formatNumber(r.burstLimit)}
                       </span>
                     </td>
@@ -1440,7 +1440,7 @@ function ViolationsTab({ violations }: { violations: Violation[] }) {
               className={cn(
                 "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                 filterSeverity === s
-                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
               )}
             >
@@ -1639,7 +1639,7 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors",
                     filterTier === t
-                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
@@ -1658,7 +1658,7 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
                   className={cn(
                     "px-2.5 py-1 rounded text-xs font-medium transition-colors capitalize",
                     filterStatus === s
-                      ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                      ? "bg-primary text-[var(--color-text-primary)]"
                       : "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-3)]"
                   )}
                 >
@@ -1745,7 +1745,7 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
                     <div
                       className={cn(
                         "h-full rounded-full",
-                        burstPct >= 100 ? "bg-rose-500" : burstPct >= 85 ? "bg-amber-400" : "bg-indigo-500"
+                        burstPct >= 100 ? "bg-rose-500" : burstPct >= 85 ? "bg-amber-400" : "bg-primary"
                       )}
                       style={{ width: `${Math.min(burstPct, 100)}%` }}
                     />
@@ -1862,7 +1862,7 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
                         <code className="text-xs font-mono text-[var(--color-text-secondary)] w-40 shrink-0 truncate">{ep.endpoint}</code>
                         <div className="flex-1 h-5 bg-[var(--color-surface-2)] rounded overflow-hidden">
                           <div
-                            className={cn("h-full rounded transition-all", isOver ? "bg-rose-500" : "bg-indigo-500")}
+                            className={cn("h-full rounded transition-all", isOver ? "bg-rose-500" : "bg-primary")}
                             style={{ width: `${barPct}%` }}
                           />
                         </div>
@@ -1924,7 +1924,7 @@ export default function APIRateLimitManager() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
@@ -1973,7 +1973,7 @@ export default function APIRateLimitManager() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
                   activeTab === tab.id
-                    ? "border-indigo-500 text-indigo-400"
+                    ? "border-primary text-primary"
                     : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
                 )}
               >

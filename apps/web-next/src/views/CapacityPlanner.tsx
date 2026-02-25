@@ -351,7 +351,7 @@ export default function CapacityPlanner({ isLoading = false }: { isLoading?: boo
               onClick={() => setPeriod(p)}
               className={cn(
                 "px-3 py-1 rounded text-sm font-medium transition-colors",
-                period === p ? "bg-indigo-600 text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
+                period === p ? "bg-primary text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
               )}
             >
               {p}
@@ -369,7 +369,7 @@ export default function CapacityPlanner({ isLoading = false }: { isLoading?: boo
               { label: "At Risk", value: atRiskCount.toString(), sub: "< 20% headroom", color: atRiskCount > 0 ? "text-rose-400" : "text-emerald-400" },
               { label: "Healthy", value: healthyCount.toString(), sub: "resources", color: "text-emerald-400" },
               { label: "First Cap Hit", value: firstCapDays !== null ? `${firstCapDays}d` : "—", sub: "days until", color: firstCapDays !== null && firstCapDays < 60 ? "text-amber-400" : "text-fg-secondary" },
-              { label: "Actions Needed", value: actionCount.toString(), sub: "P0 + P1", color: actionCount > 0 ? "text-indigo-400" : "text-fg-secondary" },
+              { label: "Actions Needed", value: actionCount.toString(), sub: "P0 + P1", color: actionCount > 0 ? "text-primary" : "text-fg-secondary" },
             ].map((card) => (
               <div key={card.label} className="bg-surface-1 border border-tok-border rounded-lg p-4">
                 <div className="text-fg-muted text-xs font-medium uppercase tracking-wider mb-1">{card.label}</div>
@@ -413,7 +413,7 @@ export default function CapacityPlanner({ isLoading = false }: { isLoading?: boo
                       onClick={() => handleSelectRow(r.id)}
                       className={cn(
                         "border-b border-tok-border/50 cursor-pointer transition-colors",
-                        isSelected ? "bg-indigo-500/10" : "hover:bg-surface-2/50"
+                        isSelected ? "bg-primary/10" : "hover:bg-surface-2/50"
                       )}
                     >
                       <td className="px-4 py-3 font-medium">{r.name}</td>
@@ -479,7 +479,7 @@ export default function CapacityPlanner({ isLoading = false }: { isLoading?: boo
                         <div
                           className={cn(
                             "w-full rounded-t transition-all",
-                            isCurrent ? "bg-indigo-500" : isOverCap ? "bg-rose-500/70" : "bg-indigo-500/40"
+                            isCurrent ? "bg-primary" : isOverCap ? "bg-rose-500/70" : "bg-primary/40"
                           )}
                           style={{ height: `${heightPct}%` }}
                           title={`M${i + 1}: ${formatNumber(val)} ${selected.unit}`}
@@ -560,7 +560,7 @@ export default function CapacityPlanner({ isLoading = false }: { isLoading?: boo
                       {whatIfRate !== null && (
                         <div className="flex justify-between">
                           <span className="text-fg-muted">vs. baseline</span>
-                          <span className="text-indigo-400">
+                          <span className="text-primary">
                             {forecastCap !== null && selected.daysUntilCap !== null
                               ? `${forecastCap - selected.daysUntilCap > 0 ? "+" : ""}${forecastCap - selected.daysUntilCap}d`
                               : forecastCap === null && selected.daysUntilCap !== null
@@ -595,7 +595,7 @@ export default function CapacityPlanner({ isLoading = false }: { isLoading?: boo
                   key={rec.id}
                   className={cn(
                     "rounded p-3 border transition-colors cursor-pointer",
-                    selectedId === rec.resourceId ? "border-indigo-500/40 bg-indigo-500/5" : "border-tok-border bg-surface-2/30 hover:border-tok-border"
+                    selectedId === rec.resourceId ? "border-primary/40 bg-primary/5" : "border-tok-border bg-surface-2/30 hover:border-tok-border"
                   )}
                   onClick={() => {
                     setSelectedId(rec.resourceId);

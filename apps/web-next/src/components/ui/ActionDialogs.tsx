@@ -57,7 +57,7 @@ function DialogShell({
               "rounded-lg px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
               tone === "danger"
                 ? "bg-rose-600/90 text-white hover:bg-rose-500"
-                : "bg-violet-600 text-white hover:bg-violet-500"
+                : "bg-primary text-white hover:bg-primary"
             )}
           >
             {confirmLabel}
@@ -148,7 +148,7 @@ export function PromptDialog({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         autoFocus
-        className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-violet-500"
+        className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-primary"
       />
     </DialogShell>
   );

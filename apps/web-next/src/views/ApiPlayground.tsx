@@ -378,7 +378,7 @@ export function ApiPlayground({ isLoading = false }: { isLoading?: boolean }) {
                       className={cn(
                         'px-3 py-1.5 text-xs font-medium rounded transition-colors',
                         method === m
-                          ? 'bg-indigo-600 text-fg-primary'
+                          ? 'bg-primary text-fg-primary'
                           : 'text-fg-secondary hover:text-fg-primary hover:bg-surface-3',
                         'focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none'
                       )}
@@ -412,7 +412,7 @@ export function ApiPlayground({ isLoading = false }: { isLoading?: boolean }) {
                 <label className="text-xs font-medium text-fg-secondary">Headers</label>
                 <button
                   onClick={addHeader}
-                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors
+                  className="text-xs text-primary hover:text-indigo-300 transition-colors
                     focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded px-1"
                   aria-label="Add header"
                 >
@@ -482,7 +482,7 @@ export function ApiPlayground({ isLoading = false }: { isLoading?: boolean }) {
                 'w-full py-2.5 rounded-md font-medium text-sm transition-all',
                 loading
                   ? 'bg-surface-3 text-fg-muted cursor-not-allowed'
-                  : 'bg-indigo-600 text-fg-primary hover:bg-indigo-500 active:bg-indigo-700',
+                  : 'bg-primary text-fg-primary hover:bg-primary active:bg-indigo-700',
                 'focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none'
               )}
             >

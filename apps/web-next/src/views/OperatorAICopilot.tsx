@@ -87,7 +87,7 @@ const SUGGESTED_ACTIONS = [
 ];
 
 const ACTION_VARIANT_STYLES: Record<ActionButton["variant"], string> = {
-  primary: "bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 border-indigo-500/20",
+  primary: "bg-primary/15 text-primary hover:bg-primary/25 border-primary/20",
   secondary: "bg-[var(--color-surface-3)]/15 text-[var(--color-text-primary)] hover:bg-[var(--color-surface-3)]/25 border-[var(--color-surface-3)]/20",
   warning: "bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 border-amber-500/20",
   success: "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border-emerald-500/20",
@@ -305,14 +305,14 @@ function generateMockResponse(userMessage: string): MessageContent {
 function TypingIndicator() {
   return (
     <div className="flex items-start gap-3 px-4">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500/15 flex items-center justify-center">
-        <Bot className="w-4 h-4 text-indigo-400" />
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center">
+        <Bot className="w-4 h-4 text-primary" />
       </div>
       <div className="bg-[var(--color-surface-2)]/60 border border-[var(--color-border)]/50 rounded-2xl rounded-tl-sm px-4 py-3">
         <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+          <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+          <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+          <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
         </div>
       </div>
     </div>
@@ -405,12 +405,12 @@ function MessageBubble({
     return (
       <div className="flex justify-end px-4">
         <div className="flex items-start gap-3 max-w-[85%] flex-row-reverse">
-          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
             <User className="w-4 h-4 text-indigo-300" />
           </div>
-          <div className="bg-indigo-600/20 border border-indigo-500/20 rounded-2xl rounded-tr-sm px-4 py-2.5">
+          <div className="bg-primary/20 border border-primary/20 rounded-2xl rounded-tr-sm px-4 py-2.5">
             <p className="text-sm text-[var(--color-text-primary)] leading-relaxed">{content.text}</p>
-            <div className="text-[10px] text-indigo-400/50 mt-1.5 text-right">
+            <div className="text-[10px] text-primary/50 mt-1.5 text-right">
               {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </div>
           </div>
@@ -422,8 +422,8 @@ function MessageBubble({
   // Assistant message
   return (
     <div className="flex items-start gap-3 px-4 max-w-full">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500/15 flex items-center justify-center">
-        <Bot className="w-4 h-4 text-indigo-400" />
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center">
+        <Bot className="w-4 h-4 text-primary" />
       </div>
       <div className="flex-1 min-w-0 space-y-2">
         <div className="bg-[var(--color-surface-2)]/60 border border-[var(--color-border)]/50 rounded-2xl rounded-tl-sm px-4 py-3">
@@ -602,8 +602,8 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
           <div className="flex-shrink-0 border-b border-[var(--color-border)]/80">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/20 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-indigo-400" />
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-primary/20 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-primary" />
                 </div>
                 <div>
                   <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">AI Copilot</h2>
@@ -654,8 +654,8 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
             {/* Welcome message */}
             {messages.length === 0 && !isTyping && (
               <div className="flex flex-col items-center justify-center h-full text-center px-8">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/20 flex items-center justify-center mb-4">
-                  <Sparkles className="w-6 h-6 text-indigo-400" />
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-primary/20 flex items-center justify-center mb-4">
+                  <Sparkles className="w-6 h-6 text-primary" />
                 </div>
                 <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">AI Copilot Ready</h3>
                 <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
@@ -711,7 +711,7 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
                 className={cn(
                   "flex items-center gap-2 rounded-xl border transition-colors",
                   "bg-[var(--color-surface-2)]/40 border-[var(--color-border)]/50",
-                  "focus-within:border-indigo-500/40 focus-within:bg-[var(--color-surface-2)]/60"
+                  "focus-within:border-primary/40 focus-within:bg-[var(--color-surface-2)]/60"
                 )}
               >
                 <input
@@ -733,7 +733,7 @@ export default function OperatorAICopilot({ isOpen, onClose, onNavigate }: Opera
                   className={cn(
                     "flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center mr-1 transition-all",
                     inputValue.trim() && !isTyping
-                      ? "bg-indigo-500 text-[var(--color-text-primary)] hover:bg-indigo-400 shadow-lg shadow-indigo-500/20"
+                      ? "bg-primary text-[var(--color-text-primary)] hover:bg-primary shadow-lg shadow-indigo-500/20"
                       : "bg-[var(--color-surface-3)]/40 text-[var(--color-text-muted)] cursor-not-allowed"
                   )}
                 >

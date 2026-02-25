@@ -132,7 +132,7 @@ const JsonViewer: React.FC<{ data: unknown }> = ({ data }) => {
   const formatValue = (val: unknown) => {
     if (typeof val === 'string') {return <span className="text-emerald-400">"{val}"</span>;}
     if (typeof val === 'number') {return <span className="text-amber-400">{val}</span>;}
-    if (typeof val === 'boolean') {return <span className="text-indigo-400">{val.toString()}</span>;}
+    if (typeof val === 'boolean') {return <span className="text-primary">{val.toString()}</span>;}
     if (val === null) {return <span className="text-rose-400">null</span>;}
     return val;
   };
@@ -157,7 +157,7 @@ const JsonViewer: React.FC<{ data: unknown }> = ({ data }) => {
           
           let valElement: React.ReactNode = valRaw;
           if (valRaw === 'null') {valElement = <span className="text-rose-400">null</span>;}
-          else if (valRaw === 'true' || valRaw === 'false') {valElement = <span className="text-indigo-400">{valRaw}</span>;}
+          else if (valRaw === 'true' || valRaw === 'false') {valElement = <span className="text-primary">{valRaw}</span>;}
           else if (!isNaN(Number(valRaw)) && valRaw !== '') {valElement = <span className="text-amber-400">{valRaw}</span>;}
           else if (valRaw.startsWith('"')) {valElement = <span className="text-emerald-400">{valRaw}</span>;}
 
@@ -281,7 +281,7 @@ export default function DeveloperConsole() {
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-md transition-colors",
               activeTab === tab 
-                ? "bg-[var(--color-surface-2)] text-indigo-400" 
+                ? "bg-[var(--color-surface-2)] text-primary" 
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]"
             )}
           >
@@ -315,7 +315,7 @@ export default function DeveloperConsole() {
                   />
                   <button 
                     onClick={handleSendRequest}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-[var(--color-text-primary)] px-6 py-2 rounded text-sm font-bold transition-all shadow-lg active:scale-95"
+                    className="bg-primary hover:bg-primary text-[var(--color-text-primary)] px-6 py-2 rounded text-sm font-bold transition-all shadow-lg active:scale-95"
                   >
                     SEND
                   </button>
@@ -410,7 +410,7 @@ export default function DeveloperConsole() {
                       <div className="bg-[var(--color-surface-0)] border border-[var(--color-border)] rounded p-2">
                         {Object.entries(response.headers).map(([k, v]) => (
                           <div key={k} className="flex text-xs font-mono py-1 border-b border-[var(--color-border)] last:border-0">
-                            <span className="text-indigo-400 w-32 shrink-0">{k}:</span>
+                            <span className="text-primary w-32 shrink-0">{k}:</span>
                             <span className="text-[var(--color-text-secondary)] break-all">{v}</span>
                           </div>
                         ))}
@@ -430,13 +430,13 @@ export default function DeveloperConsole() {
                     <button
                       key={req.id}
                       onClick={() => restoreRequest(req)}
-                      className="w-full text-left p-2 rounded bg-[var(--color-surface-0)] border border-[var(--color-border)] hover:border-indigo-500 transition-colors group"
+                      className="w-full text-left p-2 rounded bg-[var(--color-surface-0)] border border-[var(--color-border)] hover:border-primary transition-colors group"
                     >
                       <div className="flex justify-between items-center mb-1">
                         <span className={cn(
                           "text-[10px] font-bold px-1 rounded",
                           req.method === 'GET' ? 'text-emerald-400 bg-emerald-400/10' :
-                          req.method === 'POST' ? 'text-indigo-400 bg-indigo-400/10' :
+                          req.method === 'POST' ? 'text-primary bg-primary/10' :
                           'text-amber-400 bg-amber-400/10'
                         )}>
                           {req.method}
@@ -501,7 +501,7 @@ export default function DeveloperConsole() {
                   <span className="text-[var(--color-text-muted)] shrink-0 select-none">[{log.timestamp}]</span>
                   <span className={cn(
                     "font-bold shrink-0 w-16",
-                    log.level === 'DEBUG' ? "text-indigo-400" :
+                    log.level === 'DEBUG' ? "text-primary" :
                     log.level === 'INFO' ? "text-emerald-400" :
                     log.level === 'WARN' ? "text-amber-400" :
                     "text-rose-400"
@@ -528,7 +528,7 @@ export default function DeveloperConsole() {
               {[
                 { label: 'Status', value: 'Connected', color: 'text-emerald-400' },
                 { label: 'Uptime', value: '4d 12h 05m', color: 'text-[var(--color-text-primary)]' },
-                { label: 'Active Sessions', value: '12', color: 'text-indigo-400' },
+                { label: 'Active Sessions', value: '12', color: 'text-primary' },
                 { label: 'Active Agents', value: '8', color: 'text-amber-400' },
               ].map(stat => (
                 <div key={stat.label} className="bg-[var(--color-surface-1)] border border-[var(--color-border)] p-4 rounded-lg shadow-xl">
@@ -563,7 +563,7 @@ export default function DeveloperConsole() {
                         <td className="py-2 text-center">
                           <span className={cn(
                             "px-1.5 py-0.5 rounded-sm font-bold text-[9px]",
-                            f.direction === 'in' ? "bg-indigo-900/30 text-indigo-400" : "bg-emerald-900/30 text-emerald-400"
+                            f.direction === 'in' ? "bg-indigo-900/30 text-primary" : "bg-emerald-900/30 text-emerald-400"
                           )}>
                             {f.direction.toUpperCase()}
                           </span>
@@ -592,7 +592,7 @@ export default function DeveloperConsole() {
                   {events.map(e => (
                     <div key={e.id} className="flex justify-between items-center text-xs">
                       <div className="flex items-center gap-2">
-                        <div className="w-1 h-4 bg-indigo-500/50 rounded-full" />
+                        <div className="w-1 h-4 bg-primary/50 rounded-full" />
                         <span className="font-mono text-[var(--color-text-primary)]">{e.type}</span>
                       </div>
                       <span className="text-[var(--color-text-muted)] font-mono">{e.timestamp}</span>
@@ -610,7 +610,7 @@ export default function DeveloperConsole() {
                       <span>42</span>
                     </div>
                     <div className="w-full bg-[var(--color-surface-2)] h-1 rounded-full overflow-hidden">
-                      <div className="bg-indigo-500 h-full" style={{ width: '42%' }} />
+                      <div className="bg-primary h-full" style={{ width: '42%' }} />
                     </div>
                   </div>
                   <div>

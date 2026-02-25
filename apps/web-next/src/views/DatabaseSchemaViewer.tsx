@@ -311,7 +311,7 @@ const Badge: React.FC<{
   children: React.ReactNode;
 }> = ({ variant, children }) => {
   const variantStyles = {
-    primary: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
+    primary: "bg-primary/20 text-primary border-primary/30",
     success: "bg-emerald-400/20 text-emerald-400 border-emerald-400/30",
     warning: "bg-amber-400/20 text-amber-400 border-amber-400/30",
     error: "bg-rose-400/20 text-rose-400 border-rose-400/30",
@@ -360,7 +360,7 @@ const TablesTab: React.FC = () => {
               className={cn(
                 "w-full text-left px-3 py-2 rounded-md text-sm transition-all duration-150",
                 selectedTable === t.name
-                  ? "bg-indigo-600 text-[var(--color-text-primary)]"
+                  ? "bg-primary text-[var(--color-text-primary)]"
                   : "text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]"
               )}
             >
@@ -443,7 +443,7 @@ const TablesTab: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               {/* Primary Keys */}
               <div className="bg-[var(--color-surface-0)]/50 rounded p-3">
-                <h4 className="text-xs font-medium text-indigo-400 mb-2">Primary Keys</h4>
+                <h4 className="text-xs font-medium text-primary mb-2">Primary Keys</h4>
                 <div className="flex flex-wrap gap-1">
                   {getPrimaryKeys(table).map((col) => (
                     <span key={col.name} className="text-xs text-[var(--color-text-primary)] font-mono">
@@ -597,7 +597,7 @@ const RelationshipsTab: React.FC = () => {
       {/* Legend */}
       <div className="absolute top-4 right-4 z-10 bg-[var(--color-surface-0)]/80 rounded p-2 text-xs">
         <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
-          <div className="w-3 h-0.5 bg-indigo-500/60"></div>
+          <div className="w-3 h-0.5 bg-primary/60"></div>
           <span>One-to-Many</span>
         </div>
         <div className="flex items-center gap-2 text-[var(--color-text-secondary)] mt-1">
@@ -699,7 +699,7 @@ const RelationshipsTab: React.FC = () => {
                 {table.columns.slice(0, 5).map((col) => (
                   <div key={col.name} className="flex items-center justify-between py-0.5">
                     <div className="flex items-center gap-1">
-                      {col.isPrimaryKey && <span className="text-indigo-400 text-xs">🔑</span>}
+                      {col.isPrimaryKey && <span className="text-primary text-xs">🔑</span>}
                       {col.isForeignKey && !col.isPrimaryKey && <span className="text-amber-400 text-xs">→</span>}
                       <span className="text-xs text-[var(--color-text-primary)] font-mono truncate max-w-24">
                         {col.name}
@@ -904,7 +904,7 @@ const SearchTab: React.FC = () => {
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search tables, columns, or types..."
-            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-3 text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+            className="w-full bg-[var(--color-surface-1)] border border-[var(--color-border)] rounded-lg px-4 py-3 text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-primary focus:ring-1 focus:ring-indigo-500 transition-colors"
           />
           {query && (
             <button
@@ -1010,7 +1010,7 @@ const DatabaseSchemaViewer: React.FC = () => {
               className={cn(
                 "px-4 py-2 text-sm font-medium border-b-2 transition-all duration-150",
                 activeTab === tab.id
-                  ? "text-indigo-400 border-indigo-500"
+                  ? "text-primary border-primary"
                   : "text-[var(--color-text-secondary)] border-transparent hover:text-[var(--color-text-primary)] hover:border-[var(--color-surface-3)]"
               )}
             >
