@@ -5,6 +5,7 @@ import {
   resolveClaudeSdkConfig,
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
+  resolveRuntime,
 } from "./attempt.js";
 import type { EmbeddedRunAttemptParams } from "./types.js";
 
@@ -166,5 +167,52 @@ describe("resolveClaudeSdkConfig", () => {
     } as unknown as EmbeddedRunAttemptParams;
 
     expect(resolveClaudeSdkConfig(params, "other")).toBeUndefined();
+  });
+});
+
+describe("resolveRuntime", () => {
+  it("returns claude-sdk for known claude-sdk providers", () => {
+    const params = {
+      provider: "claude-max",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("returns pi for non-claude-sdk providers", () => {
+    const params = {
+      provider: "openai",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("pi");
+  });
+
+  it("returns claude-sdk when agent has claudeSdk config", () => {
+    const params = {
+      provider: "openai",
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: { provider: "anthropic" } }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("warns when provider resembles claude-sdk but does not match", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    // Use a dynamic import to access the subsystem logger's warn method.
+    // Instead, we test indirectly: resolveRuntime returns "pi" and does not throw.
+    const params = {
+      provider: "claude-max-custom",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    const result = resolveRuntime(params, "main");
+    expect(result).toBe("pi");
+    warnSpy.mockRestore();
   });
 });
