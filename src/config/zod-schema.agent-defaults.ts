@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  ClaudeSdkConfigSchema,
   HeartbeatSchema,
   AgentSandboxSchema,
   AgentModelSchema,
@@ -160,6 +161,7 @@ export const AgentDefaultsSchema = z
       .strict()
       .optional(),
     sandbox: AgentSandboxSchema,
+    claudeSdk: ClaudeSdkConfigSchema,
   })
   .strict()
   .optional();
