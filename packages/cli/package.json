@@ -1,0 +1,19 @@
+{
+  "name": "@openclaw/cli",
+  "version": "0.1.0",
+  "description": "Developer CLI wrappers for OpenClaw SDK and local sandbox",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./bootstrap": "./src/bootstrap.ts",
+    "./run": "./src/run.ts"
+  },
+  "scripts": {
+    "test": "vitest run src/**/*.test.ts"
+  },
+  "dependencies": {
+    "@openclaw/sandbox": "workspace:*",
+    "@openclaw/sdk": "workspace:*"
+  }
+}

@@ -80,6 +80,56 @@ Check your Node version with `node --version` if you are unsure.
 If the Control UI loads, your Gateway is ready for use.
 </Check>
 
+## Local SDK + Sandbox dev quickstart
+
+From the repo root, you can validate the package stack quickly:
+
+```bash
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sdk', 'doctor']);"
+```
+
+```bash
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'verify', '--root', process.cwd()]);"
+```
+
+```bash
+node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'exec', '--root', process.cwd(), '--input', '{\"value\":\"hello-cli\"}']);"
+```
+
+For deterministic verification in both paths:
+
+- Local: `pnpm --dir packages/cli test` and `pnpm --dir packages/sandbox test`
+- CI-equivalent: `pnpm --dir packages/cli exec vitest run src/run.test.ts`
+
+This is the same flow used by package-level quickstart tests and keeps the three packages aligned for local runtime debugging.
+
+For a one-page scaffold + verify + exec workflow, see the [SDK + Sandbox development quickstart](/start/sdk-dev-sandbox).
+
+## Local development workflow
+
+- Scaffold new plugin templates quickly:
+
+  ```bash
+  node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['new', 'plugin', 'my-plugin', '--root', process.cwd()]);"
+  ```
+
+- Scaffold new agent templates quickly:
+
+  ```bash
+  node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['new', 'agent', 'my-agent', '--root', process.cwd(), '--description', 'agent workflow']);"
+  ```
+
+- Start sandbox with automatic reload during edits:
+
+  ```bash
+  node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'start', '--root', process.cwd(), '--watch']);"
+  ```
+
+- Tune reload debounce (optional):
+  ```bash
+  node --input-type=module -e "import { run } from '@openclaw/cli'; await run(['sandbox', 'start', '--root', process.cwd(), '--watch', '--watch-debounce-ms', '150']);"
+  ```
+
 ## Optional checks and extras
 
 <AccordionGroup>
