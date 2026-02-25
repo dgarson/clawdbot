@@ -6,6 +6,9 @@ describe("AgentRuntime interface", () => {
     const hints: AgentRuntimeHints = {
       allowSyntheticToolResults: true,
       enforceFinalTag: true,
+      managesOwnHistory: false,
+      supportsStreamFnWrapping: true,
+      sessionFile: "/tmp/test-session.jsonl",
     };
     const mock: AgentRuntime = {
       subscribe: () => () => {},
