@@ -121,6 +121,7 @@ import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types
 
 const CLAUDE_SDK_PROVIDERS = new Set(["claude-max"]);
 
+/** @internal Exported for testing only. */
 export function resolveClaudeSdkConfig(
   params: EmbeddedRunAttemptParams,
   agentId: string,
@@ -136,7 +137,11 @@ export function resolveClaudeSdkConfig(
   return raw;
 }
 
-function resolveRuntime(params: EmbeddedRunAttemptParams, agentId: string): "pi" | "claude-sdk" {
+/** @internal Exported for testing only. */
+export function resolveRuntime(
+  params: EmbeddedRunAttemptParams,
+  agentId: string,
+): "pi" | "claude-sdk" {
   if (CLAUDE_SDK_PROVIDERS.has(params.provider) || resolveClaudeSdkConfig(params, agentId)) {
     return "claude-sdk";
   }
