@@ -83,7 +83,9 @@ export function createAgentsListTool(opts?: {
   return {
     label: "Agents",
     name: "agents_list",
-    description: "List agent ids you can target with sessions_spawn (based on allowlists).",
+    description:
+      "List agent ids you can target with sessions_spawn (based on allowlists). " +
+      "Optionally pass model (provider or provider/model) to get capableForRequestedModel per agent for routing spawns.",
     parameters: AgentsListToolSchema,
     execute: async (_toolCallId, args) => {
       const cfg = loadConfig();
