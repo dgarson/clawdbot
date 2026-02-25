@@ -26,7 +26,7 @@ export function handleAutoCompactionStart(ctx: EmbeddedPiSubscribeContext) {
         {
           messageCount: ctx.params.session.messages?.length ?? 0,
           messages: ctx.params.session.messages,
-          sessionFile: ctx.params.session.sessionFile,
+          sessionFile: (ctx.params.session as { sessionFile?: string }).sessionFile,
         },
         {
           sessionKey: ctx.params.sessionKey,
