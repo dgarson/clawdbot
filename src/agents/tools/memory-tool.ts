@@ -152,14 +152,33 @@ function evaluateCostGuardrail(params: {
   model?: string;
   config?: OpenClawConfig;
 }): MemorySearchEvaluation["cost"] {
-  const provider = params.provider?.trim();
-  const model = params.model?.trim();
+  let provider = params.provider?.trim();
+  let model = params.model?.trim();
   const estimatedInputTokens = estimateQueryInputTokens(params.query);
-  const costConfig = resolveModelCostConfig({
+
+  let costConfig = resolveModelCostConfig({
     provider,
     model,
     config: params.config,
   });
+
+  if (!costConfig && params.config?.models?.providers) {
+    for (const [providerId, providerConfig] of Object.entries(params.config.models.providers)) {
+      const models = providerConfig?.models ?? [];
+      const preferred = model
+        ? models.find((entry) => entry.id === model && entry.cost)
+        : undefined;
+      const fallback = preferred ?? models.find((entry) => entry.cost);
+      if (!fallback) {
+        continue;
+      }
+      provider = provider ?? providerId;
+      model = fallback.id;
+      costConfig = fallback.cost;
+      break;
+    }
+  }
+
   const estimatedCostUsd = estimateUsageCost({
     usage: {
       input: estimatedInputTokens,
