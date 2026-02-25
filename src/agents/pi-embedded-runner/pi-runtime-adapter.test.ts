@@ -27,6 +27,9 @@ describe("PiRuntimeAdapter", () => {
       runtimeHints: {
         allowSyntheticToolResults: true,
         enforceFinalTag: true,
+        managesOwnHistory: false,
+        supportsStreamFnWrapping: true,
+        sessionFile: "/tmp/test.jsonl",
       },
     });
 

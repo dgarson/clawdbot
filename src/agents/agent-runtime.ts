@@ -6,6 +6,7 @@ export interface AgentRuntime {
   subscribe(handler: (evt: EmbeddedPiSubscribeEvent) => void): () => void;
   prompt(text: string, options?: { images?: ImageContent[] }): Promise<void>;
   steer(text: string): Promise<void>;
+  /** Cancel the current in-flight operation. Callers use `void runtime.abort()` — the returned Promise is intentionally fire-and-forget. */
   abort(): Promise<void>;
   abortCompaction(): void;
   dispose(): void;
@@ -22,4 +23,10 @@ export interface AgentRuntimeHints {
   allowSyntheticToolResults: boolean;
   /** Whether to enforce <final> tag extraction. */
   enforceFinalTag: boolean;
+  /** Whether this runtime manages its own message history (skip local sanitization/repair). */
+  managesOwnHistory: boolean;
+  /** Whether the runtime supports local streamFn wrapping (Pi-specific). */
+  supportsStreamFnWrapping: boolean;
+  /** Session file path for hook context (undefined for runtimes without local session files). */
+  sessionFile?: string;
 }

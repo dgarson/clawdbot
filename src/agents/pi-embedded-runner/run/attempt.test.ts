@@ -2,9 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../../../config/config.js";
 import {
   resolveAttemptFsWorkspaceOnly,
+  resolveClaudeSdkConfig,
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
 } from "./attempt.js";
+import type { EmbeddedRunAttemptParams } from "./types.js";
 
 describe("resolvePromptBuildHookResult", () => {
   function createLegacyOnlyHookRunner() {
@@ -101,5 +103,68 @@ describe("resolveAttemptFsWorkspaceOnly", () => {
         sessionAgentId: "main",
       }),
     ).toBe(false);
+  });
+});
+
+describe("resolveClaudeSdkConfig", () => {
+  it("returns undefined for empty claudeSdk object (no provider key)", () => {
+    const params = {
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: {} }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
+  it("returns config when claudeSdk has a provider key", () => {
+    const params = {
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: { provider: "claude-sdk" } }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({ provider: "claude-sdk" });
+  });
+
+  it("returns undefined when claudeSdk is explicitly false", () => {
+    const params = {
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: false }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
+  it("falls back to defaults.claudeSdk when agent has no override", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: { claudeSdk: { provider: "anthropic" } },
+          list: [{ id: "main" }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({ provider: "anthropic" });
+  });
+
+  it("returns undefined for empty defaults.claudeSdk (no provider key)", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: { claudeSdk: {} },
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "other")).toBeUndefined();
   });
 });

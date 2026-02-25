@@ -119,6 +119,35 @@ import { pruneProcessedHistoryImages } from "./history-image-prune.js";
 import { detectAndLoadPromptImages } from "./images.js";
 import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types.js";
 
+const CLAUDE_SDK_PROVIDERS = new Set(["claude-max"]);
+
+export function resolveClaudeSdkConfig(
+  params: EmbeddedRunAttemptParams,
+  agentId: string,
+): ClaudeSdkConfig | undefined {
+  const agentEntry = params.config?.agents?.list?.find((a) => a.id === agentId);
+  if (agentEntry?.claudeSdk === false) {
+    return undefined;
+  }
+  const raw = agentEntry?.claudeSdk || params.config?.agents?.defaults?.claudeSdk || undefined;
+  if (raw && typeof raw === "object" && !("provider" in raw)) {
+    return undefined;
+  }
+  return raw;
+}
+
+function resolveRuntime(params: EmbeddedRunAttemptParams, agentId: string): "pi" | "claude-sdk" {
+  if (CLAUDE_SDK_PROVIDERS.has(params.provider) || resolveClaudeSdkConfig(params, agentId)) {
+    return "claude-sdk";
+  }
+  if (/claude[-_]?max/i.test(params.provider) && !CLAUDE_SDK_PROVIDERS.has(params.provider)) {
+    log.warn(
+      `provider "${params.provider}" resembles a claude-sdk provider but did not match; falling back to Pi runtime`,
+    );
+  }
+  return "pi";
+}
+
 type PromptBuildHookRunner = {
   hasHooks: (hookName: "before_prompt_build" | "before_agent_start") => boolean;
   runBeforePromptBuild: (
@@ -547,7 +576,7 @@ export async function runEmbeddedAttempt(
 
     let sessionManager: ReturnType<typeof guardSessionManager> | undefined;
     let session: Awaited<ReturnType<typeof createAgentSession>>["session"] | undefined;
-    let activeSession: Awaited<ReturnType<typeof createAgentSession>>["session"] | undefined;
+    let piAgentForFlush: { waitForIdle?: () => Promise<void> } | undefined;
     let agentRuntime: AgentRuntime | null = null;
     let removeToolResultContextGuard: (() => void) | undefined;
     try {
@@ -642,12 +671,12 @@ export async function runEmbeddedAttempt(
 
       const allCustomTools = [...customTools, ...clientToolDefs];
 
-      if (params.provider === "claude-max") {
-        const rawCfg = params.config?.agents?.list?.find((a) => a.id === sessionAgentId)?.claudeSdk;
-        const agentCfg: ClaudeSdkConfig =
-          rawCfg != null && rawCfg !== false
-            ? rawCfg
-            : (params.config?.agents?.defaults?.claudeSdk ?? { provider: "claude-sdk" as const });
+      const runtimeKind = resolveRuntime(params, sessionAgentId);
+      if (runtimeKind === "claude-sdk") {
+        const claudeSdkConfig = resolveClaudeSdkConfig(params, sessionAgentId);
+        const agentCfg: ClaudeSdkConfig = claudeSdkConfig ?? {
+          provider: "claude-sdk" as const,
+        };
         agentRuntime = await prepareClaudeSdkSession(
           params,
           agentCfg,
@@ -676,16 +705,19 @@ export async function runEmbeddedAttempt(
         if (!session) {
           throw new Error("Embedded agent session missing");
         }
-        activeSession = session;
+        piAgentForFlush = session.agent;
         agentRuntime = createPiRuntimeAdapter({
-          session: activeSession,
+          session,
           runtimeHints: {
             allowSyntheticToolResults: transcriptPolicy.allowSyntheticToolResults,
             enforceFinalTag: params.enforceFinalTag ?? true,
+            managesOwnHistory: false,
+            supportsStreamFnWrapping: true,
+            sessionFile: params.sessionFile,
           },
         });
         removeToolResultContextGuard = installToolResultContextGuard({
-          agent: activeSession.agent,
+          agent: session.agent,
           contextWindowTokens: Math.max(
             1,
             Math.floor(
@@ -697,6 +729,8 @@ export async function runEmbeddedAttempt(
       if (!agentRuntime) {
         throw new Error("Embedded agent runtime missing");
       }
+      // Narrowed reference for closures that capture agentRuntime before TS can narrow it.
+      const activeRuntime: AgentRuntime = agentRuntime;
       const cacheTrace = createCacheTrace({
         cfg: params.config,
         env: process.env,
@@ -719,8 +753,15 @@ export async function runEmbeddedAttempt(
         workspaceDir: params.workspaceDir,
       });
 
+      // Record session:loaded for both Pi and SDK runtimes (diagnostic observability).
+      cacheTrace?.recordStage("session:loaded", {
+        messages: agentRuntime.messages,
+        system: systemPromptText,
+        note: "after session create",
+      });
+
       // Pi-specific: streamFn setup and wrapping does not apply to the claude-sdk runtime.
-      if (params.provider !== "claude-max" && activeSession) {
+      if (agentRuntime.runtimeHints.supportsStreamFnWrapping && session) {
         // Ollama native API: bypass SDK's streamSimple and use direct /api/chat calls
         // for reliable streaming + tool calling support (#11828).
         if (params.model.api === "ollama") {
@@ -731,14 +772,14 @@ export async function runEmbeddedAttempt(
           const providerBaseUrl =
             typeof providerConfig?.baseUrl === "string" ? providerConfig.baseUrl.trim() : "";
           const ollamaBaseUrl = modelBaseUrl || providerBaseUrl || OLLAMA_NATIVE_BASE_URL;
-          activeSession.agent.streamFn = createOllamaStreamFn(ollamaBaseUrl);
+          session.agent.streamFn = createOllamaStreamFn(ollamaBaseUrl);
         } else {
           // Force a stable streamFn reference so vitest can reliably mock @mariozechner/pi-ai.
-          activeSession.agent.streamFn = streamSimple;
+          session.agent.streamFn = streamSimple;
         }
 
         applyExtraParamsToAgent(
-          activeSession.agent,
+          session.agent,
           params.config,
           params.provider,
           params.modelId,
@@ -748,20 +789,15 @@ export async function runEmbeddedAttempt(
         );
 
         if (cacheTrace) {
-          cacheTrace.recordStage("session:loaded", {
-            messages: activeSession.messages,
-            system: systemPromptText,
-            note: "after session create",
-          });
-          activeSession.agent.streamFn = cacheTrace.wrapStreamFn(activeSession.agent.streamFn);
+          session.agent.streamFn = cacheTrace.wrapStreamFn(session.agent.streamFn);
         }
 
         // Copilot/Claude can reject persisted `thinking` blocks (e.g. thinkingSignature:"reasoning_text")
         // on *any* follow-up provider call (including tool continuations). Wrap the stream function
         // so every outbound request sees sanitized messages.
         if (transcriptPolicy.dropThinkingBlocks) {
-          const inner = activeSession.agent.streamFn;
-          activeSession.agent.streamFn = (model, context, options) => {
+          const inner = session.agent.streamFn;
+          session.agent.streamFn = (model, context, options) => {
             const ctx = context as unknown as { messages?: unknown };
             const messages = ctx?.messages;
             if (!Array.isArray(messages)) {
@@ -785,9 +821,9 @@ export async function runEmbeddedAttempt(
         // tool result cycles bypass that path. Wrap streamFn so every outbound request
         // sees sanitized tool call IDs.
         if (transcriptPolicy.sanitizeToolCallIds && transcriptPolicy.toolCallIdMode) {
-          const inner = activeSession.agent.streamFn;
+          const inner = session.agent.streamFn;
           const mode = transcriptPolicy.toolCallIdMode;
-          activeSession.agent.streamFn = (model, context, options) => {
+          session.agent.streamFn = (model, context, options) => {
             const ctx = context as unknown as { messages?: unknown };
             const messages = ctx?.messages;
             if (!Array.isArray(messages)) {
@@ -809,15 +845,13 @@ export async function runEmbeddedAttempt(
         }
 
         if (anthropicPayloadLogger) {
-          activeSession.agent.streamFn = anthropicPayloadLogger.wrapStreamFn(
-            activeSession.agent.streamFn,
-          );
+          session.agent.streamFn = anthropicPayloadLogger.wrapStreamFn(session.agent.streamFn);
         }
       }
 
       // Pi-specific: history sanitization uses the Pi agent's replaceMessages.
       // The claude-sdk runtime manages its own history via resume session IDs.
-      if (params.provider !== "claude-max" && activeSession) {
+      if (!agentRuntime.runtimeHints.managesOwnHistory && session) {
         try {
           const prior = await sanitizeSessionHistory({
             messages: agentRuntime.messages,
@@ -849,11 +883,11 @@ export async function runEmbeddedAttempt(
             : truncated;
           cacheTrace?.recordStage("session:limited", { messages: limited });
           if (limited.length > 0) {
-            activeSession.agent.replaceMessages(limited);
+            session.agent.replaceMessages(limited);
           }
         } catch (err) {
           await flushPendingToolResultsAfterIdle({
-            agent: activeSession.agent,
+            agent: piAgentForFlush,
             sessionManager,
           });
           agentRuntime.dispose();
@@ -887,7 +921,7 @@ export async function runEmbeddedAttempt(
         } else {
           runAbortController.abort(reason);
         }
-        void agentRuntime!.abort();
+        void activeRuntime.abort();
       };
       const abortable = <T>(promise: Promise<T>): Promise<T> => {
         const signal = runAbortController.signal;
@@ -932,7 +966,7 @@ export async function runEmbeddedAttempt(
         onPartialReply: params.onPartialReply,
         onAssistantMessageStart: params.onAssistantMessageStart,
         onAgentEvent: params.onAgentEvent,
-        enforceFinalTag: params.enforceFinalTag,
+        enforceFinalTag: agentRuntime.runtimeHints.enforceFinalTag,
         config: params.config,
         sessionKey: params.sessionKey ?? params.sessionId,
       });
@@ -954,9 +988,9 @@ export async function runEmbeddedAttempt(
 
       const queueHandle: EmbeddedPiQueueHandle = {
         queueMessage: async (text: string) => {
-          await agentRuntime!.steer(text);
+          await activeRuntime.steer(text);
         },
-        isStreaming: () => agentRuntime!.isStreaming,
+        isStreaming: () => activeRuntime.isStreaming,
         isCompacting: () => subscription.isCompacting(),
         abort: abortRun,
       };
@@ -975,7 +1009,7 @@ export async function runEmbeddedAttempt(
             shouldFlagCompactionTimeout({
               isTimeout: true,
               isCompactionPendingOrRetrying: subscription.isCompacting(),
-              isCompactionInFlight: agentRuntime!.isCompacting,
+              isCompactionInFlight: activeRuntime.isCompacting,
             })
           ) {
             timedOutDuringCompaction = true;
@@ -983,7 +1017,7 @@ export async function runEmbeddedAttempt(
           abortRun(true);
           if (!abortWarnTimer) {
             abortWarnTimer = setTimeout(() => {
-              if (!agentRuntime!.isStreaming) {
+              if (!activeRuntime.isStreaming) {
                 return;
               }
               if (!isProbeSession) {
@@ -1006,7 +1040,7 @@ export async function runEmbeddedAttempt(
           shouldFlagCompactionTimeout({
             isTimeout: timeout,
             isCompactionPendingOrRetrying: subscription.isCompacting(),
-            isCompactionInFlight: agentRuntime!.isCompacting,
+            isCompactionInFlight: activeRuntime.isCompacting,
           })
         ) {
           timedOutDuringCompaction = true;
@@ -1059,8 +1093,8 @@ export async function runEmbeddedAttempt(
             typeof hookResult?.systemPrompt === "string" ? hookResult.systemPrompt.trim() : "";
           if (legacySystemPrompt) {
             // Pi-specific: applySystemPromptOverrideToSession modifies the Pi agent's system prompt.
-            if (params.provider !== "claude-max" && activeSession) {
-              applySystemPromptOverrideToSession(activeSession, legacySystemPrompt);
+            if (!agentRuntime.runtimeHints.managesOwnHistory && session) {
+              applySystemPromptOverrideToSession(session, legacySystemPrompt);
             }
             systemPromptText = legacySystemPrompt;
             log.debug(`hooks: applied systemPrompt override (${legacySystemPrompt.length} chars)`);
@@ -1074,7 +1108,7 @@ export async function runEmbeddedAttempt(
         });
 
         // Pi-specific: repair orphaned trailing user messages so new prompts don't violate role ordering.
-        if (params.provider !== "claude-max" && activeSession) {
+        if (!agentRuntime.runtimeHints.managesOwnHistory && session) {
           const leafEntry = sessionManager.getLeafEntry();
           if (leafEntry?.type === "message" && leafEntry.message.role === "user") {
             if (leafEntry.parentId) {
@@ -1083,7 +1117,7 @@ export async function runEmbeddedAttempt(
               sessionManager.resetLeaf();
             }
             const sessionContext = sessionManager.buildSessionContext();
-            activeSession.agent.replaceMessages(sessionContext.messages);
+            session.agent.replaceMessages(sessionContext.messages);
             log.warn(
               `Removed orphaned user message to prevent consecutive user turns. ` +
                 `runId=${params.runId} sessionId=${params.sessionId}`,
@@ -1119,14 +1153,14 @@ export async function runEmbeddedAttempt(
 
           // Pi-specific: inject history images into their original message positions and
           // persist them via the Pi agent's replaceMessages.
-          if (params.provider !== "claude-max" && activeSession) {
+          if (!agentRuntime.runtimeHints.managesOwnHistory && session) {
             const didMutate = injectHistoryImagesIntoMessages(
-              activeSession.messages,
+              session.messages,
               imageResult.historyImagesByIndex,
             );
             if (didMutate) {
               // Persist message mutations (e.g., injected history images) so we don't re-scan/reload.
-              activeSession.agent.replaceMessages(activeSession.messages);
+              session.agent.replaceMessages(session.messages);
             }
           }
 
@@ -1409,11 +1443,11 @@ export async function runEmbeddedAttempt(
       // flushPendingToolResults() fires while tools are still executing, inserting
       // synthetic "missing tool result" errors and causing silent agent failures.
       // See: https://github.com/openclaw/openclaw/issues/8643
-      removeToolResultContextGuard?.();
-      // Pi-specific: flush pending tool results before dispose.
-      if (params.provider !== "claude-max") {
+      // Pi-specific: tear down context guard and flush pending tool results before dispose.
+      if (!agentRuntime?.runtimeHints.managesOwnHistory) {
+        removeToolResultContextGuard?.();
         await flushPendingToolResultsAfterIdle({
-          agent: session?.agent,
+          agent: piAgentForFlush,
           sessionManager,
         });
       }
