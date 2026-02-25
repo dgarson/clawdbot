@@ -17,6 +17,12 @@ export {
   type ReplayScenarioResult,
 } from "./runner.js";
 export {
+  ReplayInterceptor,
+  type ReplayInterceptorMode,
+  type ReplayInterceptorOptions,
+  type ReplayInterceptorExecuteInput,
+} from "./interceptor.js";
+export {
   REPLAY_EVENT_CATEGORIES,
   ReplayEventCategorySchema,
   ReplayEventInputSchema,
