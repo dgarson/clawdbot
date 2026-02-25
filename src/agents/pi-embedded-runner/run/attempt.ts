@@ -29,6 +29,7 @@ import { resolveUserPath } from "../../../utils.js";
 import { normalizeMessageChannel } from "../../../utils/message-channel.js";
 import { isReasoningTagProvider } from "../../../utils/provider-utils.js";
 import { resolveOpenClawAgentDir } from "../../agent-paths.js";
+import type { AgentRuntime } from "../../agent-runtime.js";
 import { resolveSessionAgentIds } from "../../agent-scope.js";
 import { createAnthropicPayloadLogger } from "../../anthropic-payload-log.js";
 import { makeBootstrapWarn, resolveBootstrapContextForRun } from "../../bootstrap-files.js";
@@ -918,7 +919,8 @@ export async function runEmbeddedAttempt(
       };
 
       const subscription = subscribeEmbeddedPiSession({
-        session: activeSession,
+        // TODO(Task 9): replace activeSession with agentRuntime after factory dispatch refactor
+        session: activeSession as unknown as AgentRuntime,
         runId: params.runId,
         hookRunner: getGlobalHookRunner() ?? undefined,
         verboseLevel: params.verboseLevel,
