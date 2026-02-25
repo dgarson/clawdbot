@@ -1,5 +1,13 @@
+export type SessionTranscriptMessageContext = {
+  role?: string;
+  content?: unknown;
+};
+
 type SessionTranscriptUpdate = {
   sessionFile: string;
+  sessionKey?: string;
+  agentId?: string;
+  message?: SessionTranscriptMessageContext;
 };
 
 type SessionTranscriptListener = (update: SessionTranscriptUpdate) => void;
@@ -13,12 +21,20 @@ export function onSessionTranscriptUpdate(listener: SessionTranscriptListener): 
   };
 }
 
-export function emitSessionTranscriptUpdate(sessionFile: string): void {
+export function emitSessionTranscriptUpdate(
+  sessionFile: string,
+  context?: Omit<SessionTranscriptUpdate, "sessionFile">,
+): void {
   const trimmed = sessionFile.trim();
   if (!trimmed) {
     return;
   }
-  const update = { sessionFile: trimmed };
+
+  const update: SessionTranscriptUpdate = { sessionFile: trimmed };
+  if (context) {
+    Object.assign(update, context);
+  }
+
   for (const listener of SESSION_TRANSCRIPT_LISTENERS) {
     listener(update);
   }

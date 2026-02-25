@@ -14,6 +14,7 @@ import { resolveChannelCapabilities } from "../../../config/channel-capabilities
 import type { ClaudeSdkConfig } from "../../../config/zod-schema.agent-runtime.js";
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
 import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
+import { startMemoryShadowWrite } from "../../../memory/architecture-shadow.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
 import type {
   PluginHookAgentContext,
@@ -350,6 +351,8 @@ export async function runEmbeddedAttempt(
           config: params.config,
         });
 
+    startMemoryShadowWrite(params.config);
+
     const skillsPrompt = resolveSkillsPromptForRun({
       skillsSnapshot: params.skillsSnapshot,
       entries: shouldLoadSkillEntries ? skillEntries : undefined,
@@ -666,6 +669,8 @@ export async function runEmbeddedAttempt(
       const { builtInTools, customTools } = splitSdkTools({
         tools,
         sandboxEnabled: !!sandbox?.enabled,
+        provider: params.provider,
+        model: params.modelId,
         sessionKey: params.sessionKey,
       });
 

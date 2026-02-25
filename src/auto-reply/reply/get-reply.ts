@@ -1,5 +1,6 @@
 import {
   resolveAgentDir,
+  resolveAgentReasoningDefault,
   resolveAgentWorkspaceDir,
   resolveSessionAgentId,
   resolveAgentReasoningDefault,
