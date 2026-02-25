@@ -37,7 +37,7 @@ describe("PiRuntimeAdapter", () => {
     adapter.replaceMessages([]);
     expect(mockSession.agent.replaceMessages).toHaveBeenCalledWith([]);
 
-    adapter.abort();
+    void adapter.abort();
     expect(mockSession.abort).toHaveBeenCalled();
   });
 });

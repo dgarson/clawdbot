@@ -11,7 +11,7 @@ describe("AgentRuntime interface", () => {
       subscribe: () => () => {},
       prompt: async () => {},
       steer: async () => {},
-      abort: () => {},
+      abort: async () => {},
       abortCompaction: () => {},
       dispose: () => {},
       replaceMessages: () => {},
