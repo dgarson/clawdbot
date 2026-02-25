@@ -116,11 +116,12 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             ? (consumeAdjustedParamsForToolCall(toolCallId) ?? executeParams)
             : executeParams;
 
-          // Call after_tool_call hook
+          // Call after_tool_call hook — may return a resultOverride to rewrite the result.
           const hookRunner = getGlobalHookRunner();
+          let finalResult = result;
           if (hookRunner?.hasHooks("after_tool_call")) {
             try {
-              await hookRunner.runAfterToolCall(
+              const afterHookResult = await hookRunner.runAfterToolCall(
                 {
                   toolName: name,
                   params: isPlainObject(afterParams) ? afterParams : {},
@@ -128,6 +129,12 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
                 },
                 { toolName: name },
               );
+              if (afterHookResult?.resultOverride !== undefined) {
+                finalResult = {
+                  content: [{ type: "text", text: afterHookResult.resultOverride }],
+                  details: afterHookResult.resultOverride,
+                };
+              }
             } catch (hookErr) {
               logDebug(
                 `after_tool_call hook failed: tool=${normalizedName} error=${String(hookErr)}`,
@@ -135,7 +142,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             }
           }
 
-          return result;
+          return finalResult;
         } catch (err) {
           if (signal?.aborted) {
             throw err;
@@ -162,11 +169,12 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             error: described.message,
           });
 
-          // Call after_tool_call hook for errors too
-          const hookRunner = getGlobalHookRunner();
-          if (hookRunner?.hasHooks("after_tool_call")) {
+          // Call after_tool_call hook for errors too — may rewrite the error result.
+          const hookRunnerErr = getGlobalHookRunner();
+          let finalErrorResult = errorResult;
+          if (hookRunnerErr?.hasHooks("after_tool_call")) {
             try {
-              await hookRunner.runAfterToolCall(
+              const afterHookErrResult = await hookRunnerErr.runAfterToolCall(
                 {
                   toolName: normalizedName,
                   params: isPlainObject(params) ? params : {},
@@ -174,6 +182,12 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
                 },
                 { toolName: normalizedName },
               );
+              if (afterHookErrResult?.resultOverride !== undefined) {
+                finalErrorResult = {
+                  content: [{ type: "text", text: afterHookErrResult.resultOverride }],
+                  details: afterHookErrResult.resultOverride,
+                };
+              }
             } catch (hookErr) {
               logDebug(
                 `after_tool_call hook failed: tool=${normalizedName} error=${String(hookErr)}`,
@@ -181,7 +195,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             }
           }
 
-          return errorResult;
+          return finalErrorResult;
         }
       },
     } satisfies ToolDefinition;

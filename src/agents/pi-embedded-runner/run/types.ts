@@ -5,6 +5,7 @@ import type { SessionSystemPromptReport } from "../../../config/sessions/types.j
 import type { PluginHookBeforeAgentStartResult } from "../../../plugins/types.js";
 import type { MessagingToolSend } from "../../pi-embedded-messaging.js";
 import type { AuthStorage, ModelRegistry } from "../../pi-model-discovery.js";
+import type { PluginPromptSection } from "../../system-prompt.js";
 import type { NormalizedUsage } from "../../usage.js";
 import type { RunEmbeddedPiAgentParams } from "./params.js";
 
@@ -21,6 +22,11 @@ export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   modelRegistry: ModelRegistry;
   thinkLevel: ThinkLevel;
   legacyBeforeAgentStartResult?: PluginHookBeforeAgentStartResult;
+  /** Routing metadata from before_model_resolve hook result, passed to llm_input/llm_output. */
+  routingMetadata?: Record<string, unknown>;
+  /** Pre-collected plugin prompt sections (P8). Appended after core prompt content. */
+  pluginSections?: PluginPromptSection[];
+  lineageId?: string;
 };
 
 export type EmbeddedRunAttemptResult = {

@@ -11,8 +11,12 @@ import type {
   PluginHookAfterToolCallEvent,
   PluginHookAgentContext,
   PluginHookAgentEndEvent,
+  PluginHookBeforeAgentRunEvent,
+  PluginHookBeforeAgentRunResult,
   PluginHookBeforeAgentStartEvent,
   PluginHookBeforeAgentStartResult,
+  PluginHookBeforeMessageRouteEvent,
+  PluginHookBeforeMessageRouteResult,
   PluginHookBeforeModelResolveEvent,
   PluginHookBeforeModelResolveResult,
   PluginHookBeforePromptBuildEvent,
@@ -49,6 +53,9 @@ import type {
   PluginHookToolResultPersistResult,
   PluginHookBeforeMessageWriteEvent,
   PluginHookBeforeMessageWriteResult,
+  PluginHookAfterToolCallResult,
+  PluginHookBeforeSubagentSpawnEvent,
+  PluginHookBeforeSubagentSpawnResult,
 } from "./types.js";
 
 // Re-export types for consumers
@@ -75,6 +82,9 @@ export type {
   PluginHookBeforeToolCallEvent,
   PluginHookBeforeToolCallResult,
   PluginHookAfterToolCallEvent,
+  PluginHookAfterToolCallResult,
+  PluginHookBeforeSubagentSpawnEvent,
+  PluginHookBeforeSubagentSpawnResult,
   PluginHookToolResultPersistContext,
   PluginHookToolResultPersistEvent,
   PluginHookToolResultPersistResult,
@@ -133,6 +143,33 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     // Keep the first defined override so higher-priority hooks win.
     modelOverride: acc?.modelOverride ?? next.modelOverride,
     providerOverride: acc?.providerOverride ?? next.providerOverride,
+    // Merge fallbacks: accumulate from all hooks, first-defined reason wins.
+    fallbacks: [...(acc?.fallbacks ?? []), ...(next.fallbacks ?? [])].filter(
+      (f): f is NonNullable<typeof f> => Boolean(f),
+    ),
+    reason: acc?.reason ?? next.reason,
+    // Shallow-merge routingMetadata from all hooks.
+    routingMetadata: { ...next.routingMetadata, ...acc?.routingMetadata },
+  });
+
+  const mergeBeforeAgentRun = (
+    acc: PluginHookBeforeAgentRunResult | undefined,
+    next: PluginHookBeforeAgentRunResult,
+  ): PluginHookBeforeAgentRunResult => ({
+    // Once any hook rejects, keep that rejection (first reject wins).
+    reject: acc?.reject ?? next.reject,
+    rejectReason: acc?.rejectReason ?? next.rejectReason,
+    rejectUserMessage: acc?.rejectUserMessage ?? next.rejectUserMessage,
+  });
+
+  const mergeBeforeMessageRoute = (
+    acc: PluginHookBeforeMessageRouteResult | undefined,
+    next: PluginHookBeforeMessageRouteResult,
+  ): PluginHookBeforeMessageRouteResult => ({
+    // First defined agentId/sessionKey wins; skip is sticky.
+    agentId: acc?.agentId ?? next.agentId,
+    sessionKey: acc?.sessionKey ?? next.sessionKey,
+    skip: acc?.skip ?? next.skip,
   });
 
   const mergeBeforePromptBuild = (
@@ -271,6 +308,63 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       event,
       ctx,
       mergeBeforeModelResolve,
+    );
+  }
+
+  /**
+   * Run before_message_route hook.
+   * Fires before agent binding resolution. Plugins can override the target
+   * agent/session or skip the message entirely (router agent pattern).
+   *
+   * This hook takes only an event argument (no agent context) because it fires
+   * before any agent has been selected.
+   */
+  async function runBeforeMessageRoute(
+    event: PluginHookBeforeMessageRouteEvent,
+  ): Promise<PluginHookBeforeMessageRouteResult | undefined> {
+    const hooks = getHooksForName(registry, "before_message_route");
+    if (hooks.length === 0) {
+      return undefined;
+    }
+
+    logger?.debug?.(`[hooks] running before_message_route (${hooks.length} handlers, sequential)`);
+
+    let result: PluginHookBeforeMessageRouteResult | undefined;
+
+    for (const hook of hooks) {
+      try {
+        const handlerResult = await (
+          hook.handler as (
+            event: PluginHookBeforeMessageRouteEvent,
+          ) => Promise<PluginHookBeforeMessageRouteResult>
+        )(event);
+
+        if (handlerResult !== undefined && handlerResult !== null) {
+          result =
+            result !== undefined ? mergeBeforeMessageRoute(result, handlerResult) : handlerResult;
+        }
+      } catch (err) {
+        handleHookError({ hookName: "before_message_route", pluginId: hook.pluginId, error: err });
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Run before_agent_run hook.
+   * Fires after model resolution, before the LLM call. Plugins can reject
+   * the run with a reason (budget enforcement, HITL gates, rate limiting).
+   */
+  async function runBeforeAgentRun(
+    event: PluginHookBeforeAgentRunEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<PluginHookBeforeAgentRunResult | undefined> {
+    return runModifyingHook<"before_agent_run", PluginHookBeforeAgentRunResult>(
+      "before_agent_run",
+      event,
+      ctx,
+      mergeBeforeAgentRun,
     );
   }
 
@@ -442,15 +536,60 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     );
   }
 
+  const mergeAfterToolCall = (
+    acc: PluginHookAfterToolCallResult | undefined,
+    next: PluginHookAfterToolCallResult,
+  ): PluginHookAfterToolCallResult => ({
+    // First non-empty resultOverride wins so higher-priority hooks take precedence.
+    resultOverride: acc?.resultOverride ?? next.resultOverride,
+  });
+
   /**
    * Run after_tool_call hook.
-   * Runs in parallel (fire-and-forget).
+   * Now modifying: handlers may return { resultOverride } to rewrite the tool
+   * result before the LLM sees it.
    */
   async function runAfterToolCall(
     event: PluginHookAfterToolCallEvent,
     ctx: PluginHookToolContext,
-  ): Promise<void> {
-    return runVoidHook("after_tool_call", event, ctx);
+  ): Promise<PluginHookAfterToolCallResult | undefined> {
+    return runModifyingHook<"after_tool_call", PluginHookAfterToolCallResult>(
+      "after_tool_call",
+      event,
+      ctx,
+      mergeAfterToolCall,
+    );
+  }
+
+  const mergeBeforeSubagentSpawn = (
+    acc: PluginHookBeforeSubagentSpawnResult | undefined,
+    next: PluginHookBeforeSubagentSpawnResult,
+  ): PluginHookBeforeSubagentSpawnResult => ({
+    // reject is sticky — once any hook rejects, the spawn is blocked.
+    reject: acc?.reject || next.reject,
+    rejectReason: acc?.rejectReason ?? next.rejectReason,
+    // First defined override wins (highest-priority hook).
+    agentIdOverride: acc?.agentIdOverride ?? next.agentIdOverride,
+    taskOverride: acc?.taskOverride ?? next.taskOverride,
+    // Deep-merge metadata from all hooks.
+    metadataOverride: { ...next.metadataOverride, ...acc?.metadataOverride },
+  });
+
+  /**
+   * Run before_subagent_spawn hook.
+   * Fires for every spawn, before any resources are allocated.
+   * Handlers may reject the spawn or override agent/task/metadata.
+   */
+  async function runBeforeSubagentSpawn(
+    event: PluginHookBeforeSubagentSpawnEvent,
+    ctx: PluginHookSubagentContext,
+  ): Promise<PluginHookBeforeSubagentSpawnResult | undefined> {
+    return runModifyingHook<"before_subagent_spawn", PluginHookBeforeSubagentSpawnResult>(
+      "before_subagent_spawn",
+      event,
+      ctx,
+      mergeBeforeSubagentSpawn,
+    );
   }
 
   /**
@@ -716,6 +855,8 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
   return {
     // Agent hooks
     runBeforeModelResolve,
+    runBeforeAgentRun,
+    runBeforeMessageRoute,
     runBeforePromptBuild,
     runBeforeAgentStart,
     runLlmInput,
@@ -737,6 +878,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     // Session hooks
     runSessionStart,
     runSessionEnd,
+    runBeforeSubagentSpawn,
     runSubagentSpawning,
     runSubagentDeliveryTarget,
     runSubagentSpawned,

@@ -703,6 +703,12 @@ export const AgentEntrySchema = z
       .optional(),
     sandbox: AgentSandboxSchema,
     tools: AgentToolsSchema,
+    /**
+     * Free-form plugin-defined metadata for this agent.
+     * Core ignores this field; plugins use it for team membership, role,
+     * budget groups, escalation paths, capability tags, etc.
+     */
+    metadata: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 

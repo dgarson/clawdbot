@@ -17,6 +17,7 @@ const SessionsSpawnToolSchema = Type.Object({
   thread: Type.Optional(Type.Boolean()),
   mode: optionalStringEnum(SUBAGENT_SPAWN_MODES),
   cleanup: optionalStringEnum(["delete", "keep"] as const),
+  isolated: Type.Optional(Type.Boolean()),
 });
 
 export function createSessionsSpawnTool(opts?: {
@@ -72,6 +73,7 @@ export function createSessionsSpawnTool(opts?: {
           thread,
           mode,
           cleanup,
+          isolated: params.isolated === true,
           expectsCompletionMessage: true,
         },
         {

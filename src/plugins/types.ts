@@ -15,6 +15,18 @@ import type { HookEntry } from "../hooks/types.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import type { PluginRuntime } from "./runtime/types.js";
+import type {
+  PluginHookBeforeAgentRunEvent,
+  PluginHookBeforeAgentRunResult,
+  PluginHookBeforeMessageRouteEvent,
+  PluginHookBeforeMessageRouteResult,
+} from "./types.hooks.primitives.js";
+import type {
+  PluginHookBeforeSubagentSpawnEvent,
+  PluginHookBeforeSubagentSpawnResult,
+} from "./types.hooks.subagent-spawn.js";
+import type { PluginHookAfterToolCallResult } from "./types.hooks.tool-mutation.js";
+import type { PromptSectionBuilder, PromptSectionOptions } from "./types.prompt-sections.js";
 
 export type { PluginRuntime } from "./runtime/types.js";
 export type { AnyAgentTool } from "../agents/tools/common.js";
@@ -242,6 +254,18 @@ export type OpenClawPluginModule =
   | OpenClawPluginDefinition
   | ((api: OpenClawPluginApi) => void | Promise<void>);
 
+// ============================================================================
+// Prompt Section Contributors (P8) — types live in types.prompt-sections.ts
+// ============================================================================
+
+export type {
+  PromptSectionContext,
+  PromptSectionBuilder,
+  PromptSectionSlot,
+  PromptSectionOptions,
+  PromptSectionRegistration,
+} from "./types.prompt-sections.js";
+
 export type OpenClawPluginApi = {
   id: string;
   name: string;
@@ -274,6 +298,23 @@ export type OpenClawPluginApi = {
    * Use this for simple state-toggling or status commands that don't need AI reasoning.
    */
   registerCommand: (command: OpenClawPluginCommandDefinition) => void;
+  /**
+   * Register a structured prompt section contributor (P8).
+   * Sections are appended after core system prompt content, ordered by priority (lower = earlier).
+   * An optional condition predicate can gate inclusion per-run.
+   *
+   * @example
+   * api.registerPromptSection(
+   *   "budget-status",
+   *   async (ctx) => `Current budget: ${remaining} tokens remaining.`,
+   *   { priority: 50, condition: (ctx) => ctx.agentId !== "router" }
+   * );
+   */
+  registerPromptSection: (
+    name: string,
+    builder: PromptSectionBuilder,
+    opts?: PromptSectionOptions,
+  ) => void;
   resolvePath: (input: string) => string;
   /** Register a lifecycle hook handler */
   on: <K extends PluginHookName>(
@@ -298,6 +339,8 @@ export type PluginDiagnostic = {
 
 export type PluginHookName =
   | "before_model_resolve"
+  | "before_agent_run"
+  | "before_message_route"
   | "before_prompt_build"
   | "before_agent_start"
   | "llm_input"
@@ -315,6 +358,7 @@ export type PluginHookName =
   | "before_message_write"
   | "session_start"
   | "session_end"
+  | "before_subagent_spawn"
   | "subagent_spawning"
   | "subagent_delivery_target"
   | "subagent_spawned"
@@ -335,6 +379,27 @@ export type PluginHookAgentContext = {
 export type PluginHookBeforeModelResolveEvent = {
   /** User prompt for this run. No session messages are available yet in this phase. */
   prompt: string;
+
+  // --- enriched context fields (P2b) ---
+  /** Free-form agent metadata from config (see AgentConfig.metadata). */
+  agentMetadata?: Record<string, unknown>;
+  /** Subagent spawn depth. 0 = top-level, 1+ = subagent. */
+  spawnDepth?: number;
+  /** True when this run is a subagent (spawnDepth > 0 or spawnedBy set). */
+  isSubagent?: boolean;
+  /** Session key of the parent agent that spawned this run, if any. */
+  parentSessionKey?: string;
+  /** Cumulative token count already used in this session (from session store). */
+  sessionTokensUsed?: number;
+  /** Number of turns (assistant messages) so far in this session. */
+  sessionTurnCount?: number;
+  /** Names of tools available in this run (resolved before model selection). */
+  toolsAvailable?: string[];
+  /**
+   * Execution lane for this run.
+   * E.g. "main", "subagent", "cron", "heartbeat", "hook".
+   */
+  lane?: string;
 };
 
 export type PluginHookBeforeModelResolveResult = {
@@ -342,7 +407,43 @@ export type PluginHookBeforeModelResolveResult = {
   modelOverride?: string;
   /** Override the provider for this agent run. E.g. "ollama" */
   providerOverride?: string;
+
+  // --- enriched result fields (P2b) ---
+  /**
+   * Ordered fallback model refs to try if the primary model fails.
+   * Each entry is a "provider/model" string or an object with provider + model.
+   * Merged with any fallbacks already configured for the agent.
+   */
+  fallbacks?: Array<string | { provider?: string; model: string }>;
+  /**
+   * Human-readable reason for this routing decision. Logged for observability.
+   * E.g. "budget-limit: downgraded from claude-opus to claude-haiku (80% depleted)"
+   */
+  reason?: string;
+  /**
+   * Arbitrary metadata about this routing decision.
+   * Passed through to `llm_input` and `llm_output` hooks as `routingMetadata`
+   * so cost-tracker and eval plugins can correlate routing choices with outcomes.
+   */
+  routingMetadata?: Record<string, unknown>;
 };
+
+// before_agent_run (P3) and before_message_route (P7) hook types live in types.hooks.primitives.ts
+export type {
+  PluginHookBeforeAgentRunEvent,
+  PluginHookBeforeAgentRunResult,
+  PluginHookBeforeMessageRouteEvent,
+  PluginHookBeforeMessageRouteResult,
+} from "./types.hooks.primitives.js";
+
+// after_tool_call result mutation (#1) lives in types.hooks.tool-mutation.ts
+export type { PluginHookAfterToolCallResult } from "./types.hooks.tool-mutation.js";
+
+// before_subagent_spawn (#4) lives in types.hooks.subagent-spawn.ts
+export type {
+  PluginHookBeforeSubagentSpawnEvent,
+  PluginHookBeforeSubagentSpawnResult,
+} from "./types.hooks.subagent-spawn.js";
 
 // before_prompt_build hook
 export type PluginHookBeforePromptBuildEvent = {
@@ -376,6 +477,8 @@ export type PluginHookLlmInputEvent = {
   prompt: string;
   historyMessages: unknown[];
   imagesCount: number;
+  /** Routing metadata from `before_model_resolve` result, if any plugin returned it. */
+  routingMetadata?: Record<string, unknown>;
 };
 
 // llm_output hook
@@ -393,6 +496,12 @@ export type PluginHookLlmOutputEvent = {
     cacheWrite?: number;
     total?: number;
   };
+  /** Routing metadata from `before_model_resolve` result, if any plugin returned it. */
+  routingMetadata?: Record<string, unknown>;
+  inputTokens?: number;
+  outputTokens?: number;
+  totalTokens?: number;
+  estimatedCostUsd?: number;
 };
 
 // agent_end hook
@@ -624,6 +733,8 @@ export type PluginHookSubagentSpawnedEvent = {
     threadId?: string | number;
   };
   threadRequested: boolean;
+  /** True when the subagent was spawned with isolated=true (fire-and-forget, no parent announcement). */
+  isolated?: boolean;
 };
 
 // subagent_ended hook
@@ -662,6 +773,16 @@ export type PluginHookHandlerMap = {
   ) =>
     | Promise<PluginHookBeforeModelResolveResult | void>
     | PluginHookBeforeModelResolveResult
+    | void;
+  before_agent_run: (
+    event: PluginHookBeforeAgentRunEvent,
+    ctx: PluginHookAgentContext,
+  ) => Promise<PluginHookBeforeAgentRunResult | void> | PluginHookBeforeAgentRunResult | void;
+  before_message_route: (
+    event: PluginHookBeforeMessageRouteEvent,
+  ) =>
+    | Promise<PluginHookBeforeMessageRouteResult | void>
+    | PluginHookBeforeMessageRouteResult
     | void;
   before_prompt_build: (
     event: PluginHookBeforePromptBuildEvent,
@@ -708,7 +829,7 @@ export type PluginHookHandlerMap = {
   after_tool_call: (
     event: PluginHookAfterToolCallEvent,
     ctx: PluginHookToolContext,
-  ) => Promise<void> | void;
+  ) => Promise<PluginHookAfterToolCallResult | void> | PluginHookAfterToolCallResult | void;
   tool_result_persist: (
     event: PluginHookToolResultPersistEvent,
     ctx: PluginHookToolResultPersistContext,
@@ -725,6 +846,13 @@ export type PluginHookHandlerMap = {
     event: PluginHookSessionEndEvent,
     ctx: PluginHookSessionContext,
   ) => Promise<void> | void;
+  before_subagent_spawn: (
+    event: PluginHookBeforeSubagentSpawnEvent,
+    ctx: PluginHookSubagentContext,
+  ) =>
+    | Promise<PluginHookBeforeSubagentSpawnResult | void>
+    | PluginHookBeforeSubagentSpawnResult
+    | void;
   subagent_spawning: (
     event: PluginHookSubagentSpawningEvent,
     ctx: PluginHookSubagentContext,

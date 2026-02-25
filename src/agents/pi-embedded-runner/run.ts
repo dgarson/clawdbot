@@ -3,11 +3,15 @@ import fs from "node:fs/promises";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import { resolveAgentModelFallbackValues } from "../../config/model-input.js";
 import { generateSecureToken } from "../../infra/secure-random.js";
-import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
-import type { PluginHookBeforeAgentStartResult } from "../../plugins/types.js";
+import { getGlobalHookRunner, getGlobalPluginRegistry } from "../../plugins/hook-runner-global.js";
+import type {
+  PluginHookBeforeAgentRunResult,
+  PluginHookBeforeAgentStartResult,
+} from "../../plugins/types.js";
 import { enqueueCommandInLane } from "../../process/command-queue.js";
 import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
+import { resolveAgentConfig } from "../agent-scope.js";
 import {
   isProfileInCooldown,
   markAuthProfileFailure,
@@ -48,6 +52,8 @@ import {
   pickFallbackThinkingLevel,
   type FailoverReason,
 } from "../pi-embedded-helpers.js";
+import { getSubagentDepthFromSessionStore } from "../subagent-depth.js";
+import { collectPluginPromptSections } from "../system-prompt.js";
 import { derivePromptTokens, normalizeUsage, type UsageLike } from "../usage.js";
 import { redactRunIdentifier, resolveRunWorkspaceDir } from "../workspace-run.js";
 import { compactEmbeddedPiSessionDirect } from "./compact.js";
@@ -240,7 +246,15 @@ export async function runEmbeddedPiAgent(
       //
       // Legacy compatibility: before_agent_start is also checked for override
       // fields if present. New hook takes precedence when both are set.
-      let modelResolveOverride: { providerOverride?: string; modelOverride?: string } | undefined;
+      let modelResolveOverride:
+        | {
+            providerOverride?: string;
+            modelOverride?: string;
+            fallbacks?: Array<string | { provider?: string; model: string }>;
+            reason?: string;
+            routingMetadata?: Record<string, unknown>;
+          }
+        | undefined;
       let legacyBeforeAgentStartResult: PluginHookBeforeAgentStartResult | undefined;
       const hookRunner = getGlobalHookRunner();
       const hookCtx = {
@@ -252,10 +266,32 @@ export async function runEmbeddedPiAgent(
       };
       if (hookRunner?.hasHooks("before_model_resolve")) {
         try {
+          // Enrich event with agent context for intelligent routing decisions (P2b).
+          const agentCfg = params.config
+            ? resolveAgentConfig(params.config, workspaceResolution.agentId)
+            : undefined;
+          const spawnDepth = getSubagentDepthFromSessionStore(params.sessionKey, {
+            cfg: params.config,
+          });
           modelResolveOverride = await hookRunner.runBeforeModelResolve(
-            { prompt: params.prompt },
+            {
+              prompt: params.prompt,
+              agentMetadata: agentCfg?.metadata,
+              spawnDepth,
+              isSubagent: Boolean(params.spawnedBy) || spawnDepth > 0,
+              parentSessionKey: params.spawnedBy ?? undefined,
+              lane: params.lane,
+              // P2b: sessionTokensUsed and sessionTurnCount require async session-store
+              // I/O that would slow down this critical path. Plugins needing these values
+              // should use the runtime.quota namespace or the llm_output hook instead.
+              // toolsAvailable is not populated because tools are resolved after model
+              // selection (tools depend on the resolved model/provider).
+            },
             hookCtx,
           );
+          if (modelResolveOverride?.reason) {
+            log.info(`[hooks] before_model_resolve reason: ${modelResolveOverride.reason}`);
+          }
         } catch (hookErr) {
           log.warn(`before_model_resolve hook failed: ${String(hookErr)}`);
         }
@@ -287,6 +323,27 @@ export async function runEmbeddedPiAgent(
         modelId = modelResolveOverride.modelOverride;
         log.info(`[hooks] model overridden to ${modelId}`);
       }
+
+      // Plugin-supplied fallback cascade. Each fallback is a string ("provider/model")
+      // or an object ({ provider?, model }). Normalized to { provider, model } pairs.
+      // Tried in order after the auth-profile rotation is exhausted, before
+      // throwing a FailoverError to the outer runWithModelFallback loop.
+      const pluginFallbacks: Array<{ provider: string; model: string }> = (
+        modelResolveOverride?.fallbacks ?? []
+      ).flatMap((fb) => {
+        if (!fb) {
+          return [];
+        }
+        if (typeof fb === "string") {
+          const parts = fb.trim().split("/");
+          if (parts.length >= 2) {
+            return [{ provider: parts[0], model: parts.slice(1).join("/") }];
+          }
+          return [{ provider, model: fb.trim() }];
+        }
+        return [{ provider: fb.provider ?? provider, model: fb.model }];
+      });
+      const triedPluginFallbacks = new Set<string>();
 
       const { model, error, authStorage, modelRegistry } = resolveModel(
         provider,
@@ -327,6 +384,45 @@ export async function runEmbeddedPiAgent(
           `Model context window too small (${ctxGuard.tokens} tokens). Minimum is ${CONTEXT_WINDOW_HARD_MIN_TOKENS}.`,
           { reason: "unknown", provider, model: modelId },
         );
+      }
+
+      // Fire before_agent_run hook: allows plugins to reject the run (budget, HITL, rate limit).
+      if (hookRunner?.hasHooks("before_agent_run")) {
+        let runGateResult: PluginHookBeforeAgentRunResult | undefined;
+        try {
+          runGateResult = await hookRunner.runBeforeAgentRun(
+            {
+              agentId: workspaceResolution.agentId,
+              sessionKey: params.sessionKey,
+              sessionId: params.sessionId,
+              prompt: params.prompt,
+              provider,
+              model: modelId,
+              routingMetadata: modelResolveOverride?.routingMetadata,
+            },
+            hookCtx,
+          );
+        } catch (hookErr) {
+          log.warn(`before_agent_run hook failed: ${String(hookErr)}`);
+        }
+        if (runGateResult?.reject) {
+          const rejectMsg =
+            runGateResult.rejectUserMessage ??
+            "This request was blocked by a gateway policy. Please try again later.";
+          if (runGateResult.rejectReason) {
+            log.warn(`[hooks] before_agent_run rejected: ${runGateResult.rejectReason}`);
+          }
+          return {
+            payloads: [{ text: rejectMsg, isError: true }],
+            meta: {
+              error: {
+                kind: "hook_rejected",
+                message: runGateResult.rejectReason ?? "rejected by hook",
+              },
+              durationMs: Date.now() - started,
+            },
+          };
+        }
       }
 
       const authStore = ensureAuthProfileStore(agentDir, { allowKeychainPrompt: false });
@@ -569,6 +665,31 @@ export async function runEmbeddedPiAgent(
           const prompt =
             provider === "anthropic" ? scrubAnthropicRefusalMagic(params.prompt) : params.prompt;
 
+          // Collect plugin prompt sections (P8) before building the system prompt.
+          const pluginSections = await (async () => {
+            const pluginRegistry = getGlobalPluginRegistry();
+            const sections = pluginRegistry?.promptSections;
+            if (!sections || sections.length === 0) {
+              return undefined;
+            }
+            const agentCfgForSections = params.config
+              ? resolveAgentConfig(params.config, workspaceResolution.agentId)
+              : undefined;
+            return collectPluginPromptSections(
+              {
+                agentId: workspaceResolution.agentId,
+                sessionKey: params.sessionKey ?? "",
+                agentMetadata: agentCfgForSections?.metadata,
+                spawnDepth: getSubagentDepthFromSessionStore(params.sessionKey, {
+                  cfg: params.config,
+                }),
+                isSubagent: Boolean(params.spawnedBy),
+                lane: params.lane,
+              },
+              sections,
+            );
+          })();
+
           const attempt = await runEmbeddedAttempt({
             sessionId: params.sessionId,
             sessionKey: params.sessionKey,
@@ -602,6 +723,8 @@ export async function runEmbeddedPiAgent(
             modelRegistry,
             agentId: workspaceResolution.agentId,
             legacyBeforeAgentStartResult,
+            routingMetadata: modelResolveOverride?.routingMetadata,
+            pluginSections,
             thinkLevel,
             verboseLevel: params.verboseLevel,
             reasoningLevel: params.reasoningLevel,
@@ -1006,6 +1129,24 @@ export async function runEmbeddedPiAgent(
 
             const rotated = await advanceAuthProfile();
             if (rotated) {
+              continue;
+            }
+
+            // Try plugin-supplied fallbacks before escalating to the outer loop.
+            const nextPluginFallback = pluginFallbacks.find((fb) => {
+              const key = `${fb.provider}/${fb.model}`;
+              return !triedPluginFallbacks.has(key);
+            });
+            if (nextPluginFallback) {
+              const key = `${nextPluginFallback.provider}/${nextPluginFallback.model}`;
+              triedPluginFallbacks.add(key);
+              log.info(
+                `[hooks] plugin fallback: switching to ${key} (attempt ${triedPluginFallbacks.size}/${pluginFallbacks.length})`,
+              );
+              provider = nextPluginFallback.provider;
+              modelId = nextPluginFallback.model;
+              // Reset the inner run loop so the next iteration re-resolves the model.
+              runLoopIterations = 0;
               continue;
             }
 

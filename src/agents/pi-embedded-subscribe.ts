@@ -560,6 +560,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     // Broadcast thinking event to WebSocket clients in real-time
     emitAgentEvent({
       runId: params.runId,
+      lineageId: params.lineageId,
       stream: "thinking",
       data: {
         text: formatted,

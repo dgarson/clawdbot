@@ -147,6 +147,40 @@ export type DiagnosticToolLoopEvent = DiagnosticBaseEvent & {
   pairedToolName?: string;
 };
 
+/** Plugin-emitted custom diagnostic event. */
+export type DiagnosticPluginEvent = DiagnosticBaseEvent & {
+  type: "plugin.event";
+  /** Plugin identifier that emitted the event. */
+  pluginId?: string;
+  /** Semantic event name within the plugin (e.g. "budget.warning", "score.computed"). */
+  eventType: string;
+  /** Arbitrary payload data. */
+  data: Record<string, unknown>;
+};
+
+/**
+ * Quality score emitted for a session — by an agent during a run (self-assessment),
+ * by an evaluator subagent, or by an async scoring plugin. Feeds the eval pipeline,
+ * OTel, and cost-optimization dashboards.
+ */
+export type DiagnosticSessionScoreEvent = DiagnosticBaseEvent & {
+  type: "session.score";
+  sessionId?: string;
+  agentId?: string;
+  /** Optional task or work-item identifier (e.g. GitHub issue, sprint task ID). */
+  taskId?: string;
+  /** Normalized quality score in the range 0.0–1.0. */
+  score: number;
+  /** Rubric dimension being scored (e.g. "tool_selection", "task_completion", "response_quality"). */
+  rubric: string;
+  /** Optional classification tags (e.g. ["correct", "efficient", "no_hallucination"]). */
+  tags?: string[];
+  /** Agent ID or plugin ID that produced this score. */
+  evaluatorId?: string;
+  /** Arbitrary additional context for the evaluator. */
+  data?: Record<string, unknown>;
+};
+
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
   | DiagnosticWebhookReceivedEvent
@@ -160,7 +194,9 @@ export type DiagnosticEventPayload =
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent
   | DiagnosticHeartbeatEvent
-  | DiagnosticToolLoopEvent;
+  | DiagnosticToolLoopEvent
+  | DiagnosticPluginEvent
+  | DiagnosticSessionScoreEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload
