@@ -383,6 +383,8 @@ export { stripAnsi } from "../terminal/ansi.js";
 export { missingTargetError } from "../infra/outbound/target-errors.js";
 export { registerLogTransport } from "../logging/logger.js";
 export type { LogTransport, LogTransportRecord } from "../logging/logger.js";
+export { emitAgentEvent, onAgentEvent } from "../infra/agent-events.js";
+export type { AgentEventPayload } from "../infra/agent-events.js";
 export {
   emitDiagnosticEvent,
   isDiagnosticsEnabled,

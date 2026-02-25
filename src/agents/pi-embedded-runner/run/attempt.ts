@@ -555,6 +555,7 @@ export async function runEmbeddedAttempt(
       userTimeFormat,
       contextFiles,
       memoryCitationsMode: params.config?.memory?.citations,
+      pluginSections: params.pluginSections,
     });
     const systemPromptReport = buildSystemPromptReport({
       source: "run",
@@ -920,6 +921,7 @@ export async function runEmbeddedAttempt(
       const subscription = subscribeEmbeddedPiSession({
         session: activeSession,
         runId: params.runId,
+        lineageId: params.lineageId,
         hookRunner: getGlobalHookRunner() ?? undefined,
         verboseLevel: params.verboseLevel,
         reasoningMode: params.reasoningLevel ?? "off",
@@ -1159,6 +1161,7 @@ export async function runEmbeddedAttempt(
                   prompt: effectivePrompt,
                   historyMessages: activeSession.messages,
                   imagesCount: imageResult.images.length,
+                  routingMetadata: params.routingMetadata,
                 },
                 {
                   agentId: hookAgentId,
@@ -1352,6 +1355,14 @@ export async function runEmbeddedAttempt(
               assistantTexts,
               lastAssistant,
               usage: getUsageTotals(),
+              routingMetadata: params.routingMetadata,
+              inputTokens: getUsageTotals()?.input,
+              outputTokens: getUsageTotals()?.output,
+              totalTokens: getUsageTotals()?.total,
+              // estimatedCostUsd is not available from upstream pi-ai types.
+              // Plugins can compute cost from inputTokens/outputTokens + model pricing
+              // via the llm_output hook.
+              estimatedCostUsd: undefined,
             },
             {
               agentId: hookAgentId,
