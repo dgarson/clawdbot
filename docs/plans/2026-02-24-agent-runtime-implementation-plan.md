@@ -2,9 +2,14 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Introduce a shared `AgentRuntime` interface so `attempt.ts` is runtime-agnostic, add `claude-code` as a first-class model provider with implicit auth, and port the Claude SDK runner module from `dgarson/fork`.
+**Goal:** Introduce a shared `AgentRuntime` interface so `attempt.ts` is runtime-agnostic, add `claude-max` as a first-class model provider with implicit auth, and port the Claude SDK runner module from `dgarson/fork`.
 
-**Architecture:** Thin adapter pattern — `PiRuntimeAdapter` wraps Pi's `AgentSession`, `ClaudeSdkSession` implements `AgentRuntime` natively. Runtime is inferred from the model provider (`claude-code` → Claude SDK) or `claudeSdk` config presence. Auth follows the `aws-sdk` pattern for implicit system-keychain credentials.
+**Architecture:** Thin adapter pattern — `PiRuntimeAdapter` wraps Pi's `AgentSession`, `ClaudeSdkSession` implements `AgentRuntime` natively. Runtime is inferred from the model provider (`claude-max` → `claude-sdk` internal runtime) or `claudeSdk` config presence. Auth follows the `aws-sdk` pattern for implicit system-keychain credentials.
+
+**Naming:**
+
+- `claude-max` — user-facing model provider name (e.g. `model: "claude-max/claude-sonnet-4-6"`). Always `system-keychain` auth, no exceptions.
+- `claude-sdk` — internal runtime mode, never exposed in config. Used in code as the runtime discriminator.
 
 **Tech Stack:** TypeScript (ESM), Zod schemas, Vitest, `@anthropic-ai/claude-agent-sdk`, `@mariozechner/pi-coding-agent`
 
@@ -107,13 +112,13 @@ scripts/committer "feat: add AgentRuntime interface and AgentRuntimeHints type" 
 
 ---
 
-## Task 2: Add `system-keychain` auth mode for `claude-code` provider
+## Task 2: Add `system-keychain` auth mode for `claude-max` provider
 
 **Files:**
 
 - Modify: `src/agents/model-auth.ts` — add `"system-keychain"` to `ModelAuthMode`, update `resolveModelAuthMode()` and `resolveApiKeyForProvider()`
 - Modify: `src/agents/pi-embedded-runner/run.ts` — expand the `aws-sdk` safety check to also allow `system-keychain`
-- Test: `src/agents/model-auth.test.ts` — add tests for `claude-code` provider auth resolution
+- Test: `src/agents/model-auth.test.ts` — add tests for `claude-max` provider auth resolution
 
 **Step 1: Write the failing test**
 
@@ -121,16 +126,16 @@ Add to `src/agents/model-auth.test.ts` (or create if missing):
 
 ```typescript
 describe("resolveModelAuthMode", () => {
-  it("returns system-keychain for claude-code provider", () => {
-    const mode = resolveModelAuthMode("claude-code");
+  it("returns system-keychain for claude-max provider", () => {
+    const mode = resolveModelAuthMode("claude-max");
     expect(mode).toBe("system-keychain");
   });
 });
 
 describe("resolveApiKeyForProvider", () => {
-  it("returns undefined apiKey with system-keychain mode for claude-code", async () => {
+  it("returns undefined apiKey with system-keychain mode for claude-max", async () => {
     const result = await resolveApiKeyForProvider({
-      provider: "claude-code",
+      provider: "claude-max",
       // no store, no config — implicit auth
     });
     expect(result.apiKey).toBeUndefined();
@@ -162,7 +167,7 @@ export type ModelAuthMode =
 
 **Step 4: Update `resolveModelAuthMode()`**
 
-Add an early return for `claude-code` provider:
+Add an early return for `claude-max` provider:
 
 ```typescript
 export function resolveModelAuthMode(
@@ -170,23 +175,24 @@ export function resolveModelAuthMode(
   cfg?: OpenClawConfig,
   store?: AuthProfileStore,
 ): ModelAuthMode | undefined {
-  // claude-code uses implicit auth from system keychain (~/.claude/ OAuth)
-  if (provider === "claude-code") return "system-keychain";
+  // claude-max always uses implicit auth from system keychain (~/.claude/ OAuth).
+  // There is NEVER a case where claude-max uses a different auth mode.
+  if (provider === "claude-max") return "system-keychain";
   // ... rest of existing logic
 }
 ```
 
 **Step 5: Update `resolveApiKeyForProvider()`**
 
-Add early return before profile/env lookups:
+Add early return before profile/env lookups. This is unconditional — `claude-max` never resolves an API key:
 
 ```typescript
 // At the top of resolveApiKeyForProvider(), after parameter extraction:
-if (provider === "claude-code") {
+if (provider === "claude-max") {
   return {
     apiKey: undefined,
     mode: "system-keychain" as const,
-    source: "Claude Code CLI (system keychain)",
+    source: "Claude Max (system keychain)",
   };
 }
 ```
@@ -219,39 +225,39 @@ Expected: PASS
 **Step 8: Commit**
 
 ```bash
-scripts/committer "feat: add system-keychain auth mode for claude-code provider" \
+scripts/committer "feat: add system-keychain auth mode for claude-max provider" \
   src/agents/model-auth.ts src/agents/model-auth.test.ts \
   src/agents/pi-embedded-runner/run.ts
 ```
 
 ---
 
-## Task 3: Add `claude-code` stub model and provider-driven runtime resolution
+## Task 3: Add `claude-max` stub model and provider-driven runtime resolution
 
 **Files:**
 
-- Create: `src/agents/claude-code-model.ts` — stub `Model<Api>` for `claude-code` provider
-- Create: `src/agents/claude-code-model.test.ts`
-- Modify: `src/agents/pi-embedded-runner/model.ts` — recognize `claude-code` in `resolveModel()`
+- Create: `src/agents/claude-max-model.ts` — stub `Model<Api>` for `claude-max` provider
+- Create: `src/agents/claude-max-model.test.ts`
+- Modify: `src/agents/pi-embedded-runner/model.ts` — recognize `claude-max` in `resolveModel()`
 
 **Step 1: Write the failing test**
 
 ```typescript
-// src/agents/claude-code-model.test.ts
+// src/agents/claude-max-model.test.ts
 import { describe, expect, it } from "vitest";
-import { createClaudeCodeStubModel } from "./claude-code-model.js";
+import { createClaudeMaxStubModel } from "./claude-max-model.js";
 
-describe("createClaudeCodeStubModel", () => {
+describe("createClaudeMaxStubModel", () => {
   it("returns a Model-like object with the given modelId", () => {
-    const model = createClaudeCodeStubModel("claude-sonnet-4-20250514");
-    expect(model.provider).toBe("claude-code");
+    const model = createClaudeMaxStubModel("claude-sonnet-4-20250514");
+    expect(model.provider).toBe("claude-max");
     expect(model.id).toBe("claude-sonnet-4-20250514");
     expect(model.contextWindow).toBeGreaterThan(0);
     expect(model.api).toBe("anthropic");
   });
 
   it("defaults context window to 200000", () => {
-    const model = createClaudeCodeStubModel("claude-opus-4-6");
+    const model = createClaudeMaxStubModel("claude-opus-4-6");
     expect(model.contextWindow).toBe(200_000);
   });
 });
@@ -259,7 +265,7 @@ describe("createClaudeCodeStubModel", () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `pnpm vitest run src/agents/claude-code-model.test.ts`
+Run: `pnpm vitest run src/agents/claude-max-model.test.ts`
 Expected: FAIL — module not found
 
 **Step 3: Implement the stub model factory**
@@ -267,19 +273,19 @@ Expected: FAIL — module not found
 Read `src/agents/pi-embedded-runner/model.ts` to understand the `Model<Api>` shape, then create:
 
 ```typescript
-// src/agents/claude-code-model.ts
+// src/agents/claude-max-model.ts
 import type { Api, Model } from "@mariozechner/pi-ai";
 
 const DEFAULT_CONTEXT_WINDOW = 200_000;
 
 /**
- * Creates a stub Model<Api> for the claude-code provider.
- * The Claude Code CLI subprocess handles actual model resolution;
+ * Creates a stub Model<Api> for the claude-max provider.
+ * The Claude SDK subprocess handles actual model resolution;
  * this stub carries the model ID and context window through the pipeline.
  */
-export function createClaudeCodeStubModel(modelId: string): Model<Api> {
+export function createClaudeMaxStubModel(modelId: string): Model<Api> {
   return {
-    provider: "claude-code",
+    provider: "claude-max",
     id: modelId,
     name: modelId,
     api: "anthropic" as Api,
@@ -299,13 +305,13 @@ Note: The exact `Model<Api>` shape must be verified by reading the type from `@m
 In `src/agents/pi-embedded-runner/model.ts`, add an early return:
 
 ```typescript
-import { createClaudeCodeStubModel } from "../../claude-code-model.js";
+import { createClaudeMaxStubModel } from "../../claude-max-model.js";
 
 export function resolveModel(provider, modelId, agentDir, cfg) {
-  // claude-code: subprocess handles model resolution; return stub
-  if (provider === "claude-code") {
+  // claude-max: subprocess handles model resolution; return stub
+  if (provider === "claude-max") {
     return {
-      model: createClaudeCodeStubModel(modelId),
+      model: createClaudeMaxStubModel(modelId),
       authStorage: /* create minimal auth storage */,
       modelRegistry: /* create minimal registry */,
     };
@@ -316,14 +322,14 @@ export function resolveModel(provider, modelId, agentDir, cfg) {
 
 **Step 5: Run tests**
 
-Run: `pnpm vitest run src/agents/claude-code-model.test.ts`
+Run: `pnpm vitest run src/agents/claude-max-model.test.ts`
 Expected: PASS
 
 **Step 6: Commit**
 
 ```bash
-scripts/committer "feat: add claude-code stub model for provider-driven runtime" \
-  src/agents/claude-code-model.ts src/agents/claude-code-model.test.ts \
+scripts/committer "feat: add claude-max stub model for provider-driven runtime" \
+  src/agents/claude-max-model.ts src/agents/claude-max-model.test.ts \
   src/agents/pi-embedded-runner/model.ts
 ```
 
@@ -355,7 +361,7 @@ const thinkingDefaultsField = {
 
 export const ClaudeSdkConfigSchema = z
   .discriminatedUnion("provider", [
-    z.object({ provider: z.literal("claude-code"), ...thinkingDefaultsField }).strict(),
+    z.object({ provider: z.literal("claude-sdk"), ...thinkingDefaultsField }).strict(),
     z.object({ provider: z.literal("anthropic"), ...thinkingDefaultsField }).strict(),
     z.object({ provider: z.literal("minimax"), ...thinkingDefaultsField }).strict(),
     z.object({ provider: z.literal("minimax-portal"), ...thinkingDefaultsField }).strict(),
@@ -762,7 +768,7 @@ import type { ClaudeSdkConfig } from "../../../config/zod-schema.agent-runtime.j
 import { createPiRuntimeAdapter } from "../pi-runtime-adapter.js";
 import { prepareClaudeSdkSession } from "../../claude-sdk-runner/prepare-session.js";
 
-const CLAUDE_SDK_PROVIDERS = new Set(["claude-code"]);
+const CLAUDE_SDK_PROVIDERS = new Set(["claude-max"]);
 
 function resolveClaudeSdkConfig(params: EmbeddedRunAttemptParams): ClaudeSdkConfig | undefined {
   const agentEntry = params.config?.agents?.list?.find((a) => a.id === params.agentId);
@@ -792,7 +798,7 @@ let agentRuntime: AgentRuntime;
 if (runtime === "claude-sdk") {
   const claudeSdkSession = await prepareClaudeSdkSession(
     params,
-    claudeSdkConfig ?? { provider: "claude-code" as const },
+    claudeSdkConfig ?? { provider: "claude-sdk" as const },
     sessionManager,
     resolvedWorkspace,
     agentDir,
@@ -881,26 +887,26 @@ scripts/committer "refactor: replace runtime branches in attempt.ts with AgentRu
 
 **Files:**
 
-- Modify: `src/agents/pi-embedded-runner/run.ts` — handle `claude-code` provider in model resolution and auth
+- Modify: `src/agents/pi-embedded-runner/run.ts` — handle `claude-max` provider in model resolution and auth
 - Modify: `src/agents/pi-embedded-runner/run/params.ts` — remove `runtime` field from params (if added)
 
-**Step 1: Add claude-code provider handling in `run.ts`**
+**Step 1: Add claude-max provider handling in `run.ts`**
 
-In the model resolution section, add early handling for `claude-code`:
+In the model resolution section, add early handling for `claude-max`:
 
 ```typescript
-import { createClaudeCodeStubModel } from "../../claude-code-model.js";
+import { createClaudeMaxStubModel } from "../../claude-max-model.js";
 
 // Before resolveModel() call:
 if (CLAUDE_SDK_PROVIDERS.has(provider)) {
-  model = createClaudeCodeStubModel(modelId);
+  model = createClaudeMaxStubModel(modelId);
   // Skip normal auth resolution — system-keychain mode
 }
 ```
 
 **Step 2: Handle `resolvedProviderAuth` passthrough**
 
-When runtime is `claude-sdk` with a non-`claude-code` SDK provider (e.g. `anthropic` via `claudeSdk.provider`), the resolved API key must be passed through to `prepareClaudeSdkSession`. Add `resolvedProviderAuth` to `EmbeddedRunAttemptParams`:
+When runtime is `claude-sdk` with a non-`claude-max` SDK provider (e.g. `anthropic` via `claudeSdk.provider`), the resolved API key must be passed through to `prepareClaudeSdkSession`. Add `resolvedProviderAuth` to `EmbeddedRunAttemptParams`:
 
 ```typescript
 // In run/types.ts (ported from fork):
@@ -920,7 +926,7 @@ Expected: PASS
 **Step 4: Commit**
 
 ```bash
-scripts/committer "feat: wire claude-code provider through run.ts model/auth resolution" \
+scripts/committer "feat: wire claude-max provider through run.ts model/auth resolution" \
   src/agents/pi-embedded-runner/run.ts \
   src/agents/pi-embedded-runner/run/params.ts
 ```
@@ -959,7 +965,7 @@ Task 1 (AgentRuntime interface)
     ↓
 Task 2 (system-keychain auth) ──────────┐
     ↓                                    │
-Task 3 (claude-code stub model) ─────── │
+Task 3 (claude-max stub model) ─────── │
     ↓                                    │
 Task 4 (config schema) ─────────────────┤
     ↓                                    │
