@@ -380,6 +380,21 @@ export type MemorySearchConfig = {
 };
 
 export type ToolsConfig = {
+  /**
+   * Tool approval configuration.
+   */
+  approval?: {
+    /**
+     * List of tool names that require human approval before execution.
+     */
+    required?: string[];
+    /**
+     * Channel to send approval requests to (e.g. "slack:#approvals", "discord:channel:123").
+     * Defaults to the agent's main channel if not specified.
+     */
+    channel?: string;
+  };
+
   /** Base tool profile applied before allow/deny lists. */
   profile?: ToolProfileId;
   allow?: string[];

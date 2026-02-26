@@ -1,0 +1,15 @@
+{
+  "name": "tool-approval-gate",
+  "version": "0.0.1",
+  "description": "Requires human approval for sensitive tool executions.",
+  "main": "index.ts",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      }
+    }
+  }
+}

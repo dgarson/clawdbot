@@ -21,6 +21,12 @@ import { createSubagentsTool } from "./tools/subagents-tool.js";
 import { createTtsTool } from "./tools/tts-tool.js";
 import { createWebFetchTool, createWebSearchTool } from "./tools/web-tools.js";
 import { resolveWorkspaceRoot } from "./workspace-dir.js";
+import {
+  createSlackInteractiveConfirmationTool,
+  createSlackInteractiveFormTool,
+  createSlackInteractiveQuestionTool,
+  createSlackRichMessageTool,
+} from "../slack/index.js";
 
 export function createOpenClawTools(options?: {
   sandboxBrowserBridgeUrl?: string;
@@ -167,6 +173,10 @@ export function createOpenClawTools(options?: {
     ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),
     ...(imageTool ? [imageTool] : []),
+    createSlackInteractiveConfirmationTool({ accountId: options?.agentAccountId }),
+    createSlackInteractiveQuestionTool({ accountId: options?.agentAccountId }),
+    createSlackInteractiveFormTool({ accountId: options?.agentAccountId }),
+    createSlackRichMessageTool({ accountId: options?.agentAccountId }),
   ];
 
   const pluginTools = resolvePluginTools({

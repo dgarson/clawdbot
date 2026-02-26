@@ -1,7 +1,7 @@
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
-import { readNumberParam, readStringParam } from "../agents/tools/common.js";
 import type { ChannelMessageActionContext } from "../channels/plugins/types.js";
-import { parseSlackBlocksInput } from "../slack/blocks-input.js";
+import { readNumberParam, readStringParam } from "../agents/tools/common.js";
+import { parseSlackBlocks } from "../slack/blocks/validation.js";
 
 type SlackActionInvoke = (
   action: Record<string, unknown>,
@@ -10,7 +10,7 @@ type SlackActionInvoke = (
 ) => Promise<AgentToolResult<unknown>>;
 
 function readSlackBlocksParam(actionParams: Record<string, unknown>) {
-  return parseSlackBlocksInput(actionParams.blocks) as Record<string, unknown>[] | undefined;
+  return parseSlackBlocks(actionParams.blocks) as unknown as Record<string, unknown>[] | undefined;
 }
 
 export async function handleSlackMessageAction(params: {

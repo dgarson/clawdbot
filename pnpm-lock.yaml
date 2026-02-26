@@ -808,6 +808,8 @@ importers:
         specifier: workspace:*
         version: link:../..
 
+  extensions/tool-approval-gate: {}
+
   extensions/twitch:
     dependencies:
       '@twurple/api':

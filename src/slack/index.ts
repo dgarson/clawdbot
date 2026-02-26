@@ -23,3 +23,12 @@ export { monitorSlackProvider } from "./monitor.js";
 export { probeSlack } from "./probe.js";
 export { sendMessageSlack } from "./send.js";
 export { resolveSlackAppToken, resolveSlackBotToken } from "./token.js";
+
+// Block Kit and Interactive Tools
+export * from "./blocks/index.js";
+export { askSlackConfirmation } from "./interactive/confirmation.js";
+export { createSlackInteractiveConfirmationTool } from "./tools/interactive-confirmation-tool.js";
+export { createSlackInteractiveFormTool } from "./tools/interactive-form-tool.js";
+export { createSlackInteractiveQuestionTool } from "./tools/interactive-question-tool.js";
+export { globalResponseStore, ResponseStore } from "./tools/response-store.js";
+export { createSlackRichMessageTool } from "./tools/rich-message-tool.js";

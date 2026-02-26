@@ -40,6 +40,7 @@ import {
 import { resolveAgentRoute } from "../../routing/resolve-route.js";
 import { createNonExitingRuntime, type RuntimeEnv } from "../../runtime.js";
 import { resolveDiscordComponentEntry, resolveDiscordModalEntry } from "../components-registry.js";
+import { globalDiscordResponseStore } from "../tools/response-store.js";
 import {
   createDiscordFormModal,
   formatDiscordComponentEventText,
@@ -937,6 +938,41 @@ async function handleDiscordComponentEvent(params: {
 
   const entry = resolveDiscordComponentEntry({ id: parsed.componentId, consume: false });
   if (!entry) {
+    // Check if this is a confirmation button managed by the response store
+    // Format: confirm_<id>_confirm or confirm_<id>_cancel
+    // We can extract the ID from the componentId (which is passed as 'style' hack or just part of the ID logic)
+    // Wait, earlier I decided to pass the ID via 'id' prop in DiscordComponentButtonSpec.
+    // Carbon uses that valid ID.
+    // So the componentId IS "confirm_..._confirm".
+
+    // Regex to match "confirm_<hex>_<action>"
+    const match = parsed.componentId.match(/^confirm_([0-9a-f]+)_(confirm|cancel)$/);
+    if (match) {
+      const confirmationId = match[1];
+      const action = match[2];
+
+      if (globalDiscordResponseStore.isPending(confirmationId)) {
+        const user = params.interaction.user;
+        if (!user) {
+          // Should not happen for component interactions usually, but safe to check
+          return;
+        }
+        await params.interaction.update({
+          content: `✅ ${action === "confirm" ? "Confirmed" : "Cancelled"} by <@${user.id}>`,
+          components: [],
+        });
+
+        globalDiscordResponseStore.recordResponse(confirmationId, {
+          answered: true,
+          selectedValues: [action],
+          userId: user.id,
+          userName: user.username,
+          timestamp: Date.now(),
+        });
+        return;
+      }
+    }
+
     try {
       await params.interaction.reply({
         content: "This component has expired.",
