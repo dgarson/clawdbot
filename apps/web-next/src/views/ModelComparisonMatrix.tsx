@@ -136,10 +136,10 @@ export default function ModelComparisonMatrix() {
 
   const filteredModels = useMemo(() => {
     let list = viewMode === 'discovery' ? MODELS.filter(m => m.isDiscovery) : [...MODELS];
-    return list.toSorted((a, b) => {
+    return list.slice().sort((a: ModelData, b: ModelData) => {
       const valA = a[sortKey];
       const valB = b[sortKey];
-      return sortOrder === 'asc' ? valA - valB : valB - valA;
+      return sortOrder === 'asc' ? (valA as number) - (valB as number) : (valB as number) - (valA as number);
     });
   }, [viewMode, sortKey, sortOrder]);
 
@@ -295,7 +295,7 @@ export default function ModelComparisonMatrix() {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {MODELS.toSorted((a, b) => a.costInput - b.costInput).map(model => (
+              {MODELS.slice().sort((a: ModelData, b: ModelData) => a.costInput - b.costInput).map((model: ModelData) => (
                 <div key={model.id} className="p-4 bg-gray-950/50 rounded-xl border border-gray-800 flex flex-col justify-between group hover:border-emerald-500/30 transition-colors">
                   <div className="text-xs text-gray-500 mb-2">{model.name}</div>
                   <div className="flex items-baseline gap-1">

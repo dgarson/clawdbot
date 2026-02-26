@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { Plug } from "lucide-react";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 type Category =
   | "communication"
@@ -34,14 +36,14 @@ interface Integration {
 
 const STATUS_COLOR: Record<Status, string> = {
   connected: "bg-emerald-400",
-  disconnected: "bg-zinc-500",
+  disconnected: "bg-surface-3",
   error: "bg-rose-400",
   pending: "bg-amber-400",
 };
 
 const STATUS_TEXT: Record<Status, string> = {
   connected: "text-emerald-400",
-  disconnected: "text-zinc-500",
+  disconnected: "text-fg-muted",
   error: "text-rose-400",
   pending: "text-amber-400",
 };
@@ -372,50 +374,50 @@ export default function IntegrationHub() {
     : null;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
             Integration Hub
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <p className="text-fg-secondary text-sm mt-1">
             Manage third-party services and data pipelines
           </p>
         </div>
-        <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+        <button className="bg-indigo-600 hover:bg-indigo-500 text-fg-primary px-4 py-2 rounded text-sm font-medium transition-colors">
           + Add Integration
         </button>
       </div>
 
       {/* Status Summary Bar */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3">
-          <div className="text-zinc-500 text-xs font-medium uppercase tracking-wider">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div className="bg-surface-1 border border-tok-border rounded-lg px-4 py-3">
+          <div className="text-fg-muted text-xs font-medium uppercase tracking-wider">
             Connected
           </div>
           <div className="text-2xl font-bold text-emerald-400 mt-1">
             {connectedCount}
           </div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3">
-          <div className="text-zinc-500 text-xs font-medium uppercase tracking-wider">
+        <div className="bg-surface-1 border border-tok-border rounded-lg px-4 py-3">
+          <div className="text-fg-muted text-xs font-medium uppercase tracking-wider">
             Errors
           </div>
           <div className="text-2xl font-bold text-rose-400 mt-1">
             {errorCount}
           </div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3">
-          <div className="text-zinc-500 text-xs font-medium uppercase tracking-wider">
+        <div className="bg-surface-1 border border-tok-border rounded-lg px-4 py-3">
+          <div className="text-fg-muted text-xs font-medium uppercase tracking-wider">
             Pending
           </div>
           <div className="text-2xl font-bold text-amber-400 mt-1">
             {pendingCount}
           </div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3">
-          <div className="text-zinc-500 text-xs font-medium uppercase tracking-wider">
+        <div className="bg-surface-1 border border-tok-border rounded-lg px-4 py-3">
+          <div className="text-fg-muted text-xs font-medium uppercase tracking-wider">
             Total Syncs
           </div>
           <div className="text-2xl font-bold text-indigo-400 mt-1">
@@ -431,7 +433,7 @@ export default function IntegrationHub() {
           placeholder="Search integrations…"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2 text-sm w-64 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
+          className="bg-surface-2 border border-tok-border text-fg-primary rounded px-3 py-2 text-sm w-64 placeholder:text-fg-muted focus:outline-none focus:border-indigo-500"
         />
         <div className="flex gap-1 overflow-x-auto">
           <button
@@ -439,8 +441,8 @@ export default function IntegrationHub() {
             className={cn(
               "px-3 py-1.5 rounded text-sm font-medium whitespace-nowrap transition-colors",
               activeCategory === "all"
-                ? "bg-indigo-600 text-white"
-                : "bg-zinc-800 text-zinc-400 hover:text-white",
+                ? "bg-indigo-600 text-fg-primary"
+                : "bg-surface-2 text-fg-secondary hover:text-fg-primary",
             )}
           >
             All ({INTEGRATIONS.length})
@@ -454,8 +456,8 @@ export default function IntegrationHub() {
                 className={cn(
                   "px-3 py-1.5 rounded text-sm font-medium whitespace-nowrap transition-colors",
                   activeCategory === cat
-                    ? "bg-indigo-600 text-white"
-                    : "bg-zinc-800 text-zinc-400 hover:text-white",
+                    ? "bg-indigo-600 text-fg-primary"
+                    : "bg-surface-2 text-fg-secondary hover:text-fg-primary",
                 )}
               >
                 {CATEGORY_LABEL[cat]} ({count})
@@ -481,17 +483,17 @@ export default function IntegrationHub() {
                 setSelectedId(selectedId === intg.id ? null : intg.id)
               }
               className={cn(
-                "bg-zinc-900 border rounded-lg p-4 text-left transition-all hover:border-zinc-600",
+                "bg-surface-1 border rounded-lg p-4 text-left transition-all hover:border-tok-border",
                 selectedId === intg.id
                   ? "border-indigo-500 ring-1 ring-indigo-500/30"
-                  : "border-zinc-800",
+                  : "border-tok-border",
               )}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{intg.emoji}</span>
                   <div>
-                    <div className="font-semibold text-white">{intg.name}</div>
+                    <div className="font-semibold text-fg-primary">{intg.name}</div>
                     <span
                       className={cn(
                         "inline-block text-[10px] font-medium px-1.5 py-0.5 rounded mt-1",
@@ -520,20 +522,20 @@ export default function IntegrationHub() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-zinc-500">
+              <div className="flex items-center justify-between text-xs text-fg-muted">
                 <span>Last sync: {formatRelativeTime(intg.lastSync)}</span>
                 <span>{intg.syncCount.toLocaleString()} syncs</span>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-end">
+              <div className="mt-3 pt-3 border-t border-tok-border flex justify-end">
                 <span
                   className={cn(
                     "px-3 py-1 rounded text-xs font-medium transition-colors",
                     intg.status === "error"
                       ? "bg-rose-500/15 text-rose-400 hover:bg-rose-500/25"
                       : intg.status === "connected"
-                        ? "bg-indigo-600 hover:bg-indigo-500 text-white"
-                        : "bg-zinc-700 hover:bg-zinc-600 text-white",
+                        ? "bg-indigo-600 hover:bg-indigo-500 text-fg-primary"
+                        : "bg-surface-3 hover:bg-surface-3 text-fg-primary",
                   )}
                 >
                   {actionLabel(intg.status)}
@@ -543,20 +545,25 @@ export default function IntegrationHub() {
           ))}
 
           {filtered.length === 0 && (
-            <div className="col-span-3 py-16 text-center text-zinc-500">
-              No integrations match your filters.
+            <div className="col-span-3">
+              <ContextualEmptyState
+                icon={Plug}
+                title="No integrations match"
+                description="Adjust the category or search filter to see available integrations."
+                size="sm"
+              />
             </div>
           )}
         </div>
 
         {/* Detail Panel */}
         {selected && (
-          <div className="w-96 shrink-0 bg-zinc-900 border border-zinc-800 rounded-lg p-5 self-start sticky top-6">
+          <div className="w-96 shrink-0 bg-surface-1 border border-tok-border rounded-lg p-5 self-start sticky top-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{selected.emoji}</span>
                 <div>
-                  <h2 className="text-lg font-bold text-white">
+                  <h2 className="text-lg font-bold text-fg-primary">
                     {selected.name}
                   </h2>
                   <span
@@ -571,7 +578,7 @@ export default function IntegrationHub() {
               </div>
               <button
                 onClick={() => setSelectedId(null)}
-                className="text-zinc-500 hover:text-white text-lg leading-none px-1"
+                className="text-fg-muted hover:text-fg-primary text-lg leading-none px-1"
               >
                 ✕
               </button>
@@ -592,43 +599,43 @@ export default function IntegrationHub() {
               >
                 {statusLabel(selected.status)}
               </span>
-              <span className="text-zinc-600 text-sm">·</span>
-              <span className="text-zinc-400 text-sm">
+              <span className="text-fg-muted text-sm">·</span>
+              <span className="text-fg-secondary text-sm">
                 {selected.syncCount.toLocaleString()} total syncs
               </span>
             </div>
 
             {/* Configuration */}
             <div className="mb-5">
-              <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+              <h3 className="text-xs font-semibold text-fg-secondary uppercase tracking-wider mb-3">
                 Configuration
               </h3>
               <div className="space-y-2.5">
                 <div>
-                  <label className="text-[11px] text-zinc-500 block mb-1">
+                  <label className="text-[11px] text-fg-muted block mb-1">
                     Webhook URL
                   </label>
-                  <div className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs text-zinc-300 font-mono truncate">
+                  <div className="bg-surface-2 border border-tok-border rounded px-3 py-2 text-xs text-fg-primary font-mono truncate">
                     {selected.webhookUrl}
                   </div>
                 </div>
                 <div>
-                  <label className="text-[11px] text-zinc-500 block mb-1">
+                  <label className="text-[11px] text-fg-muted block mb-1">
                     API Key
                   </label>
-                  <div className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-xs text-zinc-400 font-mono">
+                  <div className="bg-surface-2 border border-tok-border rounded px-3 py-2 text-xs text-fg-secondary font-mono">
                     {selected.apiKey}
                   </div>
                 </div>
                 <div>
-                  <label className="text-[11px] text-zinc-500 block mb-1">
+                  <label className="text-[11px] text-fg-muted block mb-1">
                     Scopes
                   </label>
                   <div className="flex flex-wrap gap-1.5">
                     {selected.scopes.map((scope) => (
                       <span
                         key={scope}
-                        className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-[10px] px-2 py-0.5 rounded font-mono"
+                        className="bg-surface-2 border border-tok-border text-fg-primary text-[10px] px-2 py-0.5 rounded font-mono"
                       >
                         {scope}
                       </span>
@@ -640,14 +647,14 @@ export default function IntegrationHub() {
 
             {/* Sync History */}
             <div className="mb-5">
-              <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+              <h3 className="text-xs font-semibold text-fg-secondary uppercase tracking-wider mb-3">
                 Sync History
               </h3>
               <div className="space-y-1.5">
                 {selected.syncHistory.map((entry, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between bg-zinc-800/60 rounded px-3 py-2"
+                    className="flex items-center justify-between bg-surface-2/60 rounded px-3 py-2"
                   >
                     <div className="flex items-center gap-2">
                       <div
@@ -660,12 +667,12 @@ export default function IntegrationHub() {
                               : "bg-rose-400",
                         )}
                       />
-                      <span className="text-xs text-zinc-400">
+                      <span className="text-xs text-fg-secondary">
                         {formatTimestamp(entry.timestamp)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-zinc-300 font-medium">
+                      <span className="text-xs text-fg-primary font-medium">
                         {entry.records.toLocaleString()} records
                       </span>
                       <span
@@ -684,7 +691,7 @@ export default function IntegrationHub() {
 
             {/* Sync Bar Chart */}
             <div className="mb-5">
-              <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+              <h3 className="text-xs font-semibold text-fg-secondary uppercase tracking-wider mb-3">
                 Records per Sync
               </h3>
               <div className="flex items-end gap-1.5 h-16">
@@ -724,7 +731,7 @@ export default function IntegrationHub() {
                   .map((_, i) => (
                     <div
                       key={i}
-                      className="flex-1 text-center text-[9px] text-zinc-600"
+                      className="flex-1 text-center text-[9px] text-fg-muted"
                     >
                       {i + 1}
                     </div>
@@ -735,24 +742,24 @@ export default function IntegrationHub() {
             {/* Action Buttons */}
             <div className="flex gap-2">
               {selected.status === "connected" && (
-                <button className="flex-1 bg-zinc-800 border border-zinc-700 hover:border-rose-500/50 text-rose-400 px-3 py-2 rounded text-sm font-medium transition-colors">
+                <button className="flex-1 bg-surface-2 border border-tok-border hover:border-rose-500/50 text-rose-400 px-3 py-2 rounded text-sm font-medium transition-colors">
                   Disconnect
                 </button>
               )}
               {selected.status === "error" && (
-                <button className="flex-1 bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded text-sm font-medium transition-colors">
+                <button className="flex-1 bg-rose-600 hover:bg-rose-500 text-fg-primary px-3 py-2 rounded text-sm font-medium transition-colors">
                   Reconnect
                 </button>
               )}
               {(selected.status === "disconnected" ||
                 selected.status === "pending") && (
-                <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded text-sm font-medium transition-colors">
+                <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-fg-primary px-3 py-2 rounded text-sm font-medium transition-colors">
                   {selected.status === "pending"
                     ? "Retry Connection"
                     : "Connect"}
                 </button>
               )}
-              <button className="flex-1 bg-zinc-800 border border-zinc-700 hover:border-zinc-600 text-white px-3 py-2 rounded text-sm font-medium transition-colors">
+              <button className="flex-1 bg-surface-2 border border-tok-border hover:border-tok-border text-fg-primary px-3 py-2 rounded text-sm font-medium transition-colors">
                 Edit Config
               </button>
             </div>

@@ -222,6 +222,16 @@ export type DiagnosticToolLoopEvent = DiagnosticBaseEvent & {
   pairedToolName?: string;
 };
 
+export type DiagnosticRouterFeedbackCapturedEvent = DiagnosticBaseEvent & {
+  type: "router.feedback.feedback_captured";
+  source: "implicit" | "reaction" | "api";
+  channelId: string;
+  feedbackId: string;
+  linkedDecisionId?: string;
+  needsReview: boolean;
+  reaction?: string;
+};
+
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
   | DiagnosticRuntimeWarningEvent
@@ -239,7 +249,8 @@ export type DiagnosticEventPayload =
   | DiagnosticRunAttemptEvent
   | DiagnosticModelFailoverAttemptEvent
   | DiagnosticHeartbeatEvent
-  | DiagnosticToolLoopEvent;
+  | DiagnosticToolLoopEvent
+  | DiagnosticRouterFeedbackCapturedEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload

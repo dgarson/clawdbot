@@ -1,3 +1,6 @@
+/* Horizon UI design tokens — imported first so CSS vars are defined before use */
+@import "./styles/tokens.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -21,14 +24,14 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(240 3.7% 25%);
+  background: var(--color-surface-3);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(240 3.7% 35%);
+  background: var(--color-text-muted);
 }
 
-/* Smooth transitions */
+/* Smooth transitions (for non-color properties like opacity/transform) */
 .transition-all {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);

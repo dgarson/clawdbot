@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { Server } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 // --- Types ---
 
@@ -161,7 +163,7 @@ function getPriorityColor(priority: Priority): string {
   switch (priority) {
     case "P0": return "text-rose-400 bg-rose-500/10 border-rose-500/30";
     case "P1": return "text-amber-400 bg-amber-500/10 border-amber-500/30";
-    case "P2": return "text-zinc-400 bg-zinc-500/10 border-zinc-500/30";
+    case "P2": return "text-fg-secondary bg-zinc-500/10 border-zinc-500/30";
   }
 }
 
@@ -181,7 +183,128 @@ function computeForecastWithRate(resource: Resource, adjustedRate: number): { da
 
 // --- Component ---
 
-export default function CapacityPlanner() {
+import { Skeleton } from '../components/Skeleton';
+
+function CapacityPlannerSkeleton() {
+  return (
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <Skeleton className="h-8 w-44" />
+        <Skeleton className="h-9 w-44 rounded" />
+      </div>
+
+      <div className="flex gap-6">
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
+          {/* Summary cards */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-surface-1 border border-tok-border rounded-lg p-4 space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            ))}
+          </div>
+
+          {/* Resource table */}
+          <div className="bg-surface-1 border border-tok-border rounded-lg overflow-hidden mb-6">
+            {/* Header row */}
+            <div className="flex gap-2 px-4 py-3 border-b border-tok-border">
+              {["Resource", "Current", "Capacity", "Usage %", "Headroom", "Trend", "Days to Cap", "Status"].map((_, i) => (
+                <Skeleton key={i} className="h-3 flex-1" />
+              ))}
+            </div>
+            {/* Data rows */}
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex gap-2 px-4 py-3 border-b border-tok-border last:border-b-0 items-center">
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-3 flex-1" />
+                <Skeleton className="h-3 flex-1" />
+                <div className="flex-1 flex items-center gap-2">
+                  <Skeleton className="flex-1 h-2 rounded-full" />
+                  <Skeleton className="h-3 w-8" />
+                </div>
+                <Skeleton className="h-3 flex-1" />
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-3 flex-1" />
+                <Skeleton className="h-5 flex-1 rounded" />
+              </div>
+            ))}
+          </div>
+
+          {/* Detail panel (forecast) */}
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-52" />
+              <Skeleton className="h-4 w-40" />
+            </div>
+            {/* Bar chart */}
+            <div className="flex items-end gap-1 h-40 w-full">
+              {[85,90,95,100,100,100,82,70,65,60,55,50].map((h, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                  <div className="w-full bg-secondary/70 rounded-t animate-pulse-soft" aria-hidden="true" style={{ height: `${h}%` }} />
+                  <Skeleton className="h-2 w-5" />
+                </div>
+              ))}
+            </div>
+            {/* Recs + what-if grid */}
+            <div className="grid grid-cols-2 gap-5 pt-2">
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-44" />
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="bg-surface-2/50 rounded p-3 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-8 rounded" />
+                      <Skeleton className="h-4 w-44" />
+                    </div>
+                    <Skeleton className="h-3 w-full" />
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-36" />
+                <div className="bg-surface-2/50 rounded p-4 space-y-3">
+                  <Skeleton className="h-3 w-48" />
+                  <Skeleton className="h-4 w-full rounded" />
+                  <div className="space-y-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="flex justify-between">
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recommendations sidebar */}
+        <div className="w-60 shrink-0">
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-4 sticky top-6 space-y-3">
+            <Skeleton className="h-3 w-44" />
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded p-3 border border-tok-border bg-surface-2/30 space-y-1.5">
+                <Skeleton className="h-5 w-8 rounded" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-4/5" />
+                <Skeleton className="h-3 w-3/5" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function CapacityPlanner({ isLoading = false }: { isLoading?: boolean }) {
+  if (isLoading) return <CapacityPlannerSkeleton />;
+
   const [period, setPeriod] = useState<PlanningPeriod>("12M");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [whatIfRate, setWhatIfRate] = useState<number | null>(null);
@@ -217,18 +340,18 @@ export default function CapacityPlanner() {
   const visibleMonths = Math.min(periodMonths, 12);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Capacity Planner</h1>
-        <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded p-1">
+        <div className="flex items-center gap-1 bg-surface-1 border border-tok-border rounded p-1">
           {(["3M", "6M", "12M", "24M"] as PlanningPeriod[]).map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
               className={cn(
                 "px-3 py-1 rounded text-sm font-medium transition-colors",
-                period === p ? "bg-indigo-600 text-white" : "text-zinc-400 hover:text-white"
+                period === p ? "bg-indigo-600 text-fg-primary" : "text-fg-secondary hover:text-fg-primary"
               )}
             >
               {p}
@@ -237,32 +360,42 @@ export default function CapacityPlanner() {
         </div>
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Summary cards */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 mb-6">
             {[
               { label: "At Risk", value: atRiskCount.toString(), sub: "< 20% headroom", color: atRiskCount > 0 ? "text-rose-400" : "text-emerald-400" },
               { label: "Healthy", value: healthyCount.toString(), sub: "resources", color: "text-emerald-400" },
-              { label: "First Cap Hit", value: firstCapDays !== null ? `${firstCapDays}d` : "—", sub: "days until", color: firstCapDays !== null && firstCapDays < 60 ? "text-amber-400" : "text-zinc-400" },
-              { label: "Actions Needed", value: actionCount.toString(), sub: "P0 + P1", color: actionCount > 0 ? "text-indigo-400" : "text-zinc-400" },
+              { label: "First Cap Hit", value: firstCapDays !== null ? `${firstCapDays}d` : "—", sub: "days until", color: firstCapDays !== null && firstCapDays < 60 ? "text-amber-400" : "text-fg-secondary" },
+              { label: "Actions Needed", value: actionCount.toString(), sub: "P0 + P1", color: actionCount > 0 ? "text-indigo-400" : "text-fg-secondary" },
             ].map((card) => (
-              <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-                <div className="text-zinc-500 text-xs font-medium uppercase tracking-wider mb-1">{card.label}</div>
+              <div key={card.label} className="bg-surface-1 border border-tok-border rounded-lg p-4">
+                <div className="text-fg-muted text-xs font-medium uppercase tracking-wider mb-1">{card.label}</div>
                 <div className={cn("text-2xl font-bold", card.color)}>{card.value}</div>
-                <div className="text-zinc-500 text-xs mt-0.5">{card.sub}</div>
+                <div className="text-fg-muted text-xs mt-0.5">{card.sub}</div>
               </div>
             ))}
           </div>
 
           {/* Resource table */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden mb-6">
+          <div className="bg-surface-1 border border-tok-border rounded-lg overflow-hidden mb-6">
+            {RESOURCES.length === 0 ? (
+              <div className="p-6">
+                <ContextualEmptyState
+                  icon={Server}
+                  title="No capacity data"
+                  description="Capacity metrics will populate once your infrastructure is connected and reporting."
+                />
+              </div>
+            ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
+                <tr className="border-b border-tok-border">
                   {["Resource", "Current", "Capacity", "Usage %", "Headroom", "Trend", "Days to Cap", "Status"].map((h) => (
-                    <th key={h} className="text-left text-zinc-500 text-xs font-medium uppercase tracking-wider px-4 py-3">
+                    <th key={h} className="text-left text-fg-muted text-xs font-medium uppercase tracking-wider px-4 py-3">
                       {h}
                     </th>
                   ))}
@@ -279,30 +412,30 @@ export default function CapacityPlanner() {
                       key={r.id}
                       onClick={() => handleSelectRow(r.id)}
                       className={cn(
-                        "border-b border-zinc-800/50 cursor-pointer transition-colors",
-                        isSelected ? "bg-indigo-500/10" : "hover:bg-zinc-800/50"
+                        "border-b border-tok-border/50 cursor-pointer transition-colors",
+                        isSelected ? "bg-indigo-500/10" : "hover:bg-surface-2/50"
                       )}
                     >
                       <td className="px-4 py-3 font-medium">{r.name}</td>
-                      <td className="px-4 py-3 text-zinc-400">{formatNumber(r.current)} <span className="text-zinc-600 text-xs">{r.unit}</span></td>
-                      <td className="px-4 py-3 text-zinc-400">{formatNumber(r.capacity)}</td>
+                      <td className="px-4 py-3 text-fg-secondary">{formatNumber(r.current)} <span className="text-fg-muted text-xs">{r.unit}</span></td>
+                      <td className="px-4 py-3 text-fg-secondary">{formatNumber(r.capacity)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-20 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                          <div className="w-20 h-2 bg-surface-2 rounded-full overflow-hidden">
                             <div className={cn("h-full rounded-full", getBarColor(usage))} style={{ width: `${Math.min(usage, 100)}%` }} />
                           </div>
-                          <span className="text-zinc-400 text-xs w-8">{usage}%</span>
+                          <span className="text-fg-secondary text-xs w-8">{usage}%</span>
                         </div>
                       </td>
                       <td className={cn("px-4 py-3 text-xs font-medium", headroom < 20 ? "text-rose-400" : headroom < 30 ? "text-amber-400" : "text-emerald-400")}>
                         {headroom}%
                       </td>
                       <td className="px-4 py-3">
-                        <span className={cn("text-sm", r.trend === "growing" ? "text-amber-400" : r.trend === "declining" ? "text-emerald-400" : "text-zinc-500")}>
-                          {getTrendArrow(r.growthRatePercent)} <span className="text-xs text-zinc-500">{r.growthRatePercent > 0 ? "+" : ""}{r.growthRatePercent}%</span>
+                        <span className={cn("text-sm", r.trend === "growing" ? "text-amber-400" : r.trend === "declining" ? "text-emerald-400" : "text-fg-muted")}>
+                          {getTrendArrow(r.growthRatePercent)} <span className="text-xs text-fg-muted">{r.growthRatePercent > 0 ? "+" : ""}{r.growthRatePercent}%</span>
                         </span>
                       </td>
-                      <td className={cn("px-4 py-3 text-sm", r.daysUntilCap !== null && r.daysUntilCap < 60 ? "text-rose-400 font-medium" : "text-zinc-400")}>
+                      <td className={cn("px-4 py-3 text-sm", r.daysUntilCap !== null && r.daysUntilCap < 60 ? "text-rose-400 font-medium" : "text-fg-secondary")}>
                         {r.daysUntilCap !== null ? `${r.daysUntilCap}d` : "—"}
                       </td>
                       <td className="px-4 py-3">
@@ -315,14 +448,16 @@ export default function CapacityPlanner() {
                 })}
               </tbody>
             </table>
+            </div>
+            )}
           </div>
 
           {/* Detail panel */}
           {selected && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+            <div className="bg-surface-1 border border-tok-border rounded-lg p-5">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">{selected.name} — Forecast</h2>
-                <span className="text-zinc-500 text-sm">
+                <span className="text-fg-muted text-sm">
                   {visibleMonths}-month projection
                   {forecastCap !== null && (
                     <span className="ml-2 text-amber-400">· cap in {forecastCap}d</span>
@@ -349,7 +484,7 @@ export default function CapacityPlanner() {
                           style={{ height: `${heightPct}%` }}
                           title={`M${i + 1}: ${formatNumber(val)} ${selected.unit}`}
                         />
-                        <span className="text-zinc-600 text-[10px]">M{i + 1}</span>
+                        <span className="text-fg-muted text-[10px]">M{i + 1}</span>
                         {/* Capacity line marker on first bar */}
                         {i === 0 && (
                           <div
@@ -362,40 +497,40 @@ export default function CapacityPlanner() {
                   })}
                 </div>
                 <div className="flex justify-between mt-1">
-                  <span className="text-zinc-600 text-[10px]">Current: {formatNumber(selected.current)}</span>
-                  <span className="text-zinc-600 text-[10px]">Capacity: {formatNumber(selected.capacity)} {selected.unit}</span>
+                  <span className="text-fg-muted text-[10px]">Current: {formatNumber(selected.current)}</span>
+                  <span className="text-fg-muted text-[10px]">Capacity: {formatNumber(selected.capacity)} {selected.unit}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Recommendations for selected resource */}
                 <div>
-                  <h3 className="text-sm font-medium text-zinc-400 mb-3">Recommended Actions</h3>
+                  <h3 className="text-sm font-medium text-fg-secondary mb-3">Recommended Actions</h3>
                   {selectedRecs.length > 0 ? (
                     <ul className="space-y-2">
                       {selectedRecs.map((rec) => (
-                        <li key={rec.id} className="bg-zinc-800/50 rounded p-3">
+                        <li key={rec.id} className="bg-surface-2/50 rounded p-3">
                           <div className="flex items-center gap-2 mb-1">
                             <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded border", getPriorityColor(rec.priority))}>
                               {rec.priority}
                             </span>
                             <span className="text-sm font-medium">{rec.title}</span>
                           </div>
-                          <div className="text-zinc-500 text-xs">{rec.impact}</div>
+                          <div className="text-fg-muted text-xs">{rec.impact}</div>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-zinc-600 text-sm">No specific actions for this resource.</p>
+                    <p className="text-fg-muted text-sm">No specific actions for this resource.</p>
                   )}
                 </div>
 
                 {/* What-if scenario */}
                 <div>
-                  <h3 className="text-sm font-medium text-zinc-400 mb-3">What-If Scenario</h3>
-                  <div className="bg-zinc-800/50 rounded p-4">
-                    <label className="block text-xs text-zinc-500 mb-2">
-                      Adjust monthly growth rate: <span className="text-white font-medium">{effectiveRate > 0 ? "+" : ""}{effectiveRate}%</span>
+                  <h3 className="text-sm font-medium text-fg-secondary mb-3">What-If Scenario</h3>
+                  <div className="bg-surface-2/50 rounded p-4">
+                    <label className="block text-xs text-fg-muted mb-2">
+                      Adjust monthly growth rate: <span className="text-fg-primary font-medium">{effectiveRate > 0 ? "+" : ""}{effectiveRate}%</span>
                     </label>
                     <input
                       type="range"
@@ -406,25 +541,25 @@ export default function CapacityPlanner() {
                       onChange={(e) => setWhatIfRate(parseInt(e.target.value, 10))}
                       className="w-full accent-indigo-500"
                     />
-                    <div className="flex justify-between text-[10px] text-zinc-600 mt-1">
+                    <div className="flex justify-between text-[10px] text-fg-muted mt-1">
                       <span>-20%</span>
                       <span>0%</span>
                       <span>+30%</span>
                     </div>
                     <div className="mt-4 space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-zinc-500">Original growth</span>
-                        <span className="text-zinc-400">{selected.growthRatePercent > 0 ? "+" : ""}{selected.growthRatePercent}%/mo</span>
+                        <span className="text-fg-muted">Original growth</span>
+                        <span className="text-fg-secondary">{selected.growthRatePercent > 0 ? "+" : ""}{selected.growthRatePercent}%/mo</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-zinc-500">Projected cap hit</span>
+                        <span className="text-fg-muted">Projected cap hit</span>
                         <span className={cn(forecastCap !== null && forecastCap < 90 ? "text-rose-400" : "text-emerald-400")}>
                           {forecastCap !== null ? `${forecastCap} days` : "Not projected"}
                         </span>
                       </div>
                       {whatIfRate !== null && (
                         <div className="flex justify-between">
-                          <span className="text-zinc-500">vs. baseline</span>
+                          <span className="text-fg-muted">vs. baseline</span>
                           <span className="text-indigo-400">
                             {forecastCap !== null && selected.daysUntilCap !== null
                               ? `${forecastCap - selected.daysUntilCap > 0 ? "+" : ""}${forecastCap - selected.daysUntilCap}d`
@@ -438,7 +573,7 @@ export default function CapacityPlanner() {
                     {whatIfRate !== null && (
                       <button
                         onClick={() => setWhatIfRate(null)}
-                        className="mt-3 text-xs text-zinc-500 hover:text-zinc-300 underline"
+                        className="mt-3 text-xs text-fg-muted hover:text-fg-primary underline"
                       >
                         Reset to baseline
                       </button>
@@ -451,16 +586,16 @@ export default function CapacityPlanner() {
         </div>
 
         {/* Right sidebar — Recommendations */}
-        <div className="w-60 shrink-0">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 sticky top-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500 mb-4">All Recommendations</h2>
+        <div className="w-full lg:w-60 shrink-0">
+          <div className="bg-surface-1 border border-tok-border rounded-lg p-4 sticky top-6">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-fg-muted mb-4">All Recommendations</h2>
             <div className="space-y-3">
               {RECOMMENDATIONS.map((rec) => (
                 <div
                   key={rec.id}
                   className={cn(
                     "rounded p-3 border transition-colors cursor-pointer",
-                    selectedId === rec.resourceId ? "border-indigo-500/40 bg-indigo-500/5" : "border-zinc-800 bg-zinc-800/30 hover:border-zinc-700"
+                    selectedId === rec.resourceId ? "border-indigo-500/40 bg-indigo-500/5" : "border-tok-border bg-surface-2/30 hover:border-tok-border"
                   )}
                   onClick={() => {
                     setSelectedId(rec.resourceId);
@@ -472,9 +607,9 @@ export default function CapacityPlanner() {
                       {rec.priority}
                     </span>
                   </div>
-                  <div className="text-xs font-medium text-white leading-snug mb-1">{rec.title}</div>
-                  <div className="text-[10px] text-zinc-500 leading-snug mb-1">{rec.impact}</div>
-                  <div className="text-[10px] text-zinc-600">Effort: {rec.effort}</div>
+                  <div className="text-xs font-medium text-fg-primary leading-snug mb-1">{rec.title}</div>
+                  <div className="text-[10px] text-fg-muted leading-snug mb-1">{rec.impact}</div>
+                  <div className="text-[10px] text-fg-muted">Effort: {rec.effort}</div>
                 </div>
               ))}
             </div>

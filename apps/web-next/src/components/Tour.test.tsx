@@ -20,7 +20,7 @@ describe('Tour Step Types', () => {
   });
 
   it('should allow optional placement', () => {
-    const step = {
+    const step: { id: string; target: string; title: string; content: string; placement?: string } = {
       id: 'step-1',
       target: '#element',
       title: 'Test Step',

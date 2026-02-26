@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { Rocket } from "lucide-react";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 interface DeployStep {
   name: string;
@@ -99,7 +101,7 @@ const DEPLOYMENTS: Deployment[] = [
 const ENV_COLORS: Record<string, string> = {
   production: "bg-rose-400/15 text-rose-400 border-rose-500/30",
   staging:    "bg-amber-400/15 text-amber-400 border-amber-500/30",
-  dev:        "bg-zinc-700 text-zinc-400 border-zinc-600",
+  dev:        "bg-surface-3 text-fg-secondary border-tok-border",
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -107,7 +109,7 @@ const STATUS_STYLES: Record<string, string> = {
   in_progress: "bg-indigo-400/15 text-indigo-300 border-indigo-500/30",
   failed:      "bg-rose-400/15 text-rose-400 border-rose-500/30",
   rolled_back: "bg-amber-400/15 text-amber-400 border-amber-500/30",
-  scheduled:   "bg-zinc-700 text-zinc-400 border-zinc-600",
+  scheduled:   "bg-surface-3 text-fg-secondary border-tok-border",
 };
 
 const STEP_STATUS_ICON: Record<string, string> = {
@@ -121,9 +123,9 @@ const STEP_STATUS_ICON: Record<string, string> = {
 const STEP_STATUS_COLOR: Record<string, string> = {
   done:    "text-emerald-400",
   running: "text-indigo-300",
-  pending: "text-zinc-600",
+  pending: "text-fg-muted",
   failed:  "text-rose-400",
-  skipped: "text-zinc-600",
+  skipped: "text-fg-muted",
 };
 
 type Tab = "timeline" | "services" | "environments" | "settings";
@@ -157,35 +159,35 @@ export default function DeploymentTracker() {
   }));
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-surface-0 text-fg-primary p-3 sm:p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Deployment Tracker</h1>
-          <p className="text-zinc-400 text-sm mt-0.5">Track releases across environments and services</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-fg-primary">Deployment Tracker</h1>
+          <p className="text-fg-secondary text-sm mt-0.5">Track releases across environments and services</p>
         </div>
-        <button className="text-sm px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors">
+        <button className="text-sm px-4 py-2 bg-indigo-500 text-fg-primary rounded hover:bg-indigo-600 transition-colors">
           🚀 New Deployment
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Deployments Today",  value: DEPLOYMENTS.filter(d=>d.startTime.startsWith("2026-02-22")).length, color: "text-indigo-400" },
           { label: "Success Rate",       value: `${Math.round((DEPLOYMENTS.filter(d=>d.status==="success").length/DEPLOYMENTS.length)*100)}%`, color: "text-emerald-400" },
-          { label: "Avg Deploy Time",    value: fmtDuration(Math.round(DEPLOYMENTS.filter(d=>d.duration).reduce((s,d)=>s+(d.duration??0),0)/DEPLOYMENTS.filter(d=>d.duration).length)), color: "text-white" },
+          { label: "Avg Deploy Time",    value: fmtDuration(Math.round(DEPLOYMENTS.filter(d=>d.duration).reduce((s,d)=>s+(d.duration??0),0)/DEPLOYMENTS.filter(d=>d.duration).length)), color: "text-fg-primary" },
           { label: "Failed",             value: DEPLOYMENTS.filter(d=>d.status==="failed"||d.status==="rolled_back").length, color: "text-rose-400" },
         ].map(card => (
-          <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-            <div className="text-xs text-zinc-400 mb-1">{card.label}</div>
+          <div key={card.label} className="bg-surface-1 border border-tok-border rounded-lg p-4">
+            <div className="text-xs text-fg-secondary mb-1">{card.label}</div>
             <div className={cn("text-2xl font-bold", card.color)}>{card.value}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-zinc-900 p-1 rounded-lg border border-zinc-800 w-fit">
+      <div className="flex gap-1 mb-6 bg-surface-1 p-1 rounded-lg border border-tok-border w-fit">
         {TABS.map(t => (
           <button
             key={t.id}
@@ -193,8 +195,8 @@ export default function DeploymentTracker() {
             className={cn(
               "px-4 py-2 text-sm rounded-md transition-colors",
               activeTab === t.id
-                ? "bg-indigo-500 text-white"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                ? "bg-indigo-500 text-fg-primary"
+                : "text-fg-secondary hover:text-fg-primary hover:bg-surface-2"
             )}
           >
             {t.emoji} {t.label}
@@ -204,14 +206,14 @@ export default function DeploymentTracker() {
 
       {/* Timeline */}
       {activeTab === "timeline" && (
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {/* Filters + list */}
           <div className="col-span-2 space-y-3">
             <div className="flex gap-2">
               <select
                 value={filterEnv}
                 onChange={e => setFilterEnv(e.target.value)}
-                className="bg-zinc-800 border border-zinc-700 text-white text-xs rounded px-2 py-1.5 focus:outline-none"
+                className="bg-surface-2 border border-tok-border text-fg-primary text-xs rounded px-2 py-1.5 focus:outline-none"
               >
                 <option value="all">All Envs</option>
                 <option value="production">Production</option>
@@ -221,7 +223,7 @@ export default function DeploymentTracker() {
               <select
                 value={filterStatus}
                 onChange={e => setFilterStatus(e.target.value)}
-                className="bg-zinc-800 border border-zinc-700 text-white text-xs rounded px-2 py-1.5 focus:outline-none"
+                className="bg-surface-2 border border-tok-border text-fg-primary text-xs rounded px-2 py-1.5 focus:outline-none"
               >
                 <option value="all">All Status</option>
                 <option value="success">Success</option>
@@ -232,25 +234,33 @@ export default function DeploymentTracker() {
               </select>
             </div>
 
+            {filteredDeployments.length === 0 && (
+              <ContextualEmptyState
+                icon={Rocket}
+                title="No deployments found"
+                description="No deployments match the selected filters. Try adjusting environment or status."
+                size="sm"
+              />
+            )}
             {filteredDeployments.map(dep => (
               <button
                 key={dep.id}
                 onClick={() => setSelectedDeployment(dep)}
                 className={cn(
-                  "w-full bg-zinc-900 border rounded-lg p-4 text-left hover:border-zinc-600 transition-colors",
-                  selectedDeployment?.id === dep.id ? "border-indigo-500/50" : "border-zinc-800"
+                  "w-full bg-surface-1 border rounded-lg p-4 text-left hover:border-tok-border transition-colors",
+                  selectedDeployment?.id === dep.id ? "border-indigo-500/50" : "border-tok-border"
                 )}
               >
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <div className="text-sm font-medium text-white">{dep.service}</div>
-                    <div className="text-xs text-zinc-400 font-mono">{dep.version} · {dep.commit}</div>
+                    <div className="text-sm font-medium text-fg-primary">{dep.service}</div>
+                    <div className="text-xs text-fg-secondary font-mono">{dep.version} · {dep.commit}</div>
                   </div>
                   <span className={cn("text-xs px-2 py-0.5 rounded border", STATUS_STYLES[dep.status])}>
                     {dep.status.replace("_"," ")}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-zinc-500">
+                <div className="flex items-center gap-2 text-xs text-fg-muted">
                   <span className={cn("px-1.5 py-0.5 rounded border text-xs", ENV_COLORS[dep.environment])}>{dep.environment}</span>
                   <span>{dep.deployer}</span>
                   {dep.duration && <span className="ml-auto">{fmtDuration(dep.duration)}</span>}
@@ -262,18 +272,18 @@ export default function DeploymentTracker() {
           {/* Detail */}
           <div className="col-span-3">
             {selectedDeployment ? (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-5">
+              <div className="bg-surface-1 border border-tok-border rounded-lg p-5 space-y-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-base font-semibold text-white">{selectedDeployment.service} {selectedDeployment.version}</h3>
-                    <div className="text-xs text-zinc-400 mt-0.5 font-mono">{selectedDeployment.branch} · {selectedDeployment.commit}</div>
+                    <h3 className="text-base font-semibold text-fg-primary">{selectedDeployment.service} {selectedDeployment.version}</h3>
+                    <div className="text-xs text-fg-secondary mt-0.5 font-mono">{selectedDeployment.branch} · {selectedDeployment.commit}</div>
                   </div>
                   <span className={cn("text-sm px-3 py-1 rounded border", STATUS_STYLES[selectedDeployment.status])}>
                     {selectedDeployment.status.replace("_"," ")}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
                   {[
                     ["Environment", selectedDeployment.environment],
                     ["Deployed by", selectedDeployment.deployer],
@@ -282,9 +292,9 @@ export default function DeploymentTracker() {
                     ["Previous",    selectedDeployment.previousVersion ?? "—"],
                     ["Branch",      selectedDeployment.branch],
                   ].map(([k,v]) => (
-                    <div key={k} className="bg-zinc-800 rounded p-2">
-                      <div className="text-zinc-500">{k}</div>
-                      <div className="text-zinc-300 mt-0.5 truncate">{v}</div>
+                    <div key={k} className="bg-surface-2 rounded p-2">
+                      <div className="text-fg-muted">{k}</div>
+                      <div className="text-fg-primary mt-0.5 truncate">{v}</div>
                     </div>
                   ))}
                 </div>
@@ -297,20 +307,20 @@ export default function DeploymentTracker() {
 
                 {/* Steps */}
                 <div>
-                  <div className="text-xs font-medium text-zinc-400 mb-3">Deploy Steps</div>
+                  <div className="text-xs font-medium text-fg-secondary mb-3">Deploy Steps</div>
                   <div className="space-y-2">
                     {selectedDeployment.steps.map((step, i) => (
                       <div key={i} className={cn(
-                        "bg-zinc-800 rounded-lg p-3",
+                        "bg-surface-2 rounded-lg p-3",
                         step.status === "failed" && "border border-rose-500/30"
                       )}>
                         <div className="flex items-center gap-2">
                           <span className={cn("text-sm font-mono", STEP_STATUS_COLOR[step.status])}>
                             {STEP_STATUS_ICON[step.status]}
                           </span>
-                          <span className="text-sm text-white flex-1">{step.name}</span>
+                          <span className="text-sm text-fg-primary flex-1">{step.name}</span>
                           {step.duration && (
-                            <span className="text-xs text-zinc-500">{step.duration}s</span>
+                            <span className="text-xs text-fg-muted">{step.duration}s</span>
                           )}
                           {step.status === "running" && (
                             <span className="text-xs text-indigo-300 animate-pulse">running...</span>
@@ -319,7 +329,7 @@ export default function DeploymentTracker() {
                         {step.log && (
                           <pre className={cn(
                             "mt-2 text-xs font-mono rounded p-2 overflow-x-auto whitespace-pre-wrap text-xs leading-relaxed",
-                            step.status === "failed" ? "bg-rose-900/30 text-rose-200" : "bg-zinc-700 text-zinc-300"
+                            step.status === "failed" ? "bg-rose-900/30 text-rose-200" : "bg-surface-3 text-fg-primary"
                           )}>{step.log}</pre>
                         )}
                       </div>
@@ -328,7 +338,7 @@ export default function DeploymentTracker() {
                 </div>
 
                 {(selectedDeployment.status === "failed" || selectedDeployment.status === "in_progress") && (
-                  <div className="flex gap-2 pt-2 border-t border-zinc-800">
+                  <div className="flex gap-2 pt-2 border-t border-tok-border">
                     {selectedDeployment.status === "failed" && selectedDeployment.previousVersion && (
                       <button className="text-xs px-3 py-2 bg-amber-500/20 border border-amber-500/30 text-amber-300 rounded hover:bg-amber-500/30 transition-colors">
                         🔄 Rollback to {selectedDeployment.previousVersion}
@@ -346,7 +356,7 @@ export default function DeploymentTracker() {
                 )}
               </div>
             ) : (
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-10 text-center text-zinc-500 text-sm">
+              <div className="bg-surface-1 border border-tok-border rounded-lg p-10 text-center text-fg-muted text-sm">
                 Select a deployment to view details and step logs
               </div>
             )}
@@ -356,28 +366,28 @@ export default function DeploymentTracker() {
 
       {/* Services */}
       {activeTab === "services" && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {services.map(svc => {
             const svcDeps = DEPLOYMENTS.filter(d => d.service === svc);
             const latest = svcDeps.toSorted((a,b) => b.startTime.localeCompare(a.startTime))[0];
             const successRate = Math.round((svcDeps.filter(d=>d.status==="success").length / svcDeps.length) * 100);
             return (
-              <div key={svc} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <div key={svc} className="bg-surface-1 border border-tok-border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-white">{svc}</h3>
+                  <h3 className="text-sm font-semibold text-fg-primary">{svc}</h3>
                   <span className={cn("text-xs px-2 py-0.5 rounded border", STATUS_STYLES[latest.status])}>
                     {latest.status.replace("_"," ")}
                   </span>
                 </div>
                 <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between"><span className="text-zinc-400">Latest</span><span className="text-zinc-300">{latest.version}</span></div>
-                  <div className="flex justify-between"><span className="text-zinc-400">Environment</span>
+                  <div className="flex justify-between"><span className="text-fg-secondary">Latest</span><span className="text-fg-primary">{latest.version}</span></div>
+                  <div className="flex justify-between"><span className="text-fg-secondary">Environment</span>
                     <span className={cn("px-1.5 py-0.5 rounded border text-xs", ENV_COLORS[latest.environment])}>{latest.environment}</span>
                   </div>
-                  <div className="flex justify-between"><span className="text-zinc-400">Success Rate</span>
+                  <div className="flex justify-between"><span className="text-fg-secondary">Success Rate</span>
                     <span className={cn(successRate >= 80 ? "text-emerald-400" : "text-rose-400")}>{successRate}%</span>
                   </div>
-                  <div className="flex justify-between"><span className="text-zinc-400">Total Deploys</span><span className="text-zinc-300">{svcDeps.length}</span></div>
+                  <div className="flex justify-between"><span className="text-fg-secondary">Total Deploys</span><span className="text-fg-primary">{svcDeps.length}</span></div>
                 </div>
               </div>
             );
@@ -389,27 +399,27 @@ export default function DeploymentTracker() {
       {activeTab === "environments" && (
         <div className="space-y-4">
           {envSummary.map(({ env, recent, count }) => recent && (
-            <div key={env} className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+            <div key={env} className="bg-surface-1 border border-tok-border rounded-lg p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <span className={cn("text-sm px-3 py-1 rounded border capitalize font-semibold", ENV_COLORS[env])}>{env}</span>
-                  <span className="text-sm text-zinc-400">{count} deployment{count !== 1 ? "s" : ""}</span>
+                  <span className="text-sm text-fg-secondary">{count} deployment{count !== 1 ? "s" : ""}</span>
                 </div>
                 <span className={cn("text-xs px-2 py-0.5 rounded border", STATUS_STYLES[recent.status])}>
                   Latest: {recent.status.replace("_"," ")}
                 </span>
               </div>
 
-              <div className="grid grid-cols-4 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                 {[
                   ["Service",  recent.service],
                   ["Version",  recent.version],
                   ["Deployer", recent.deployer],
                   ["Time",     new Date(recent.startTime).toLocaleTimeString()],
                 ].map(([k,v]) => (
-                  <div key={k} className="bg-zinc-800 rounded p-2">
-                    <div className="text-zinc-500">{k}</div>
-                    <div className="text-zinc-300 mt-0.5">{v}</div>
+                  <div key={k} className="bg-surface-2 rounded p-2">
+                    <div className="text-fg-muted">{k}</div>
+                    <div className="text-fg-primary mt-0.5">{v}</div>
                   </div>
                 ))}
               </div>
@@ -430,17 +440,17 @@ export default function DeploymentTracker() {
             { label: "Health check timeout (s)",     value: "60",        type: "number" },
           ].map(f => (
             <div key={f.label}>
-              <label className="block text-xs text-zinc-400 mb-1.5">{f.label}</label>
+              <label className="block text-xs text-fg-secondary mb-1.5">{f.label}</label>
               {f.type === "select" ? (
-                <select className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 focus:outline-none">
+                <select className="w-full bg-surface-2 border border-tok-border text-fg-primary text-sm rounded px-3 py-2 focus:outline-none">
                   {f.opts?.map(o => <option key={o} selected={o === f.value}>{o}</option>)}
                 </select>
               ) : (
-                <input type={f.type} defaultValue={f.value} className="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500" />
+                <input type={f.type} defaultValue={f.value} className="w-full bg-surface-2 border border-tok-border text-fg-primary text-sm rounded px-3 py-2 focus:outline-none focus:border-indigo-500" />
               )}
             </div>
           ))}
-          <button className="px-4 py-2 bg-indigo-500 text-white text-sm rounded hover:bg-indigo-600 transition-colors">Save Settings</button>
+          <button className="px-4 py-2 bg-indigo-500 text-fg-primary text-sm rounded hover:bg-indigo-600 transition-colors">Save Settings</button>
         </div>
       )}
     </div>

@@ -208,7 +208,7 @@ export default function LicenseManager(): React.ReactElement {
 
   const renewalsSorted = [...LICENSES]
     .filter(l => l.expiresAt && l.status !== "expired")
-    .toSorted((a, b) => new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime());
+    .toSorted((a, b) => new Date(a.expiresAt!).getTime() - new Date(b.expiresAt!).getTime());
 
   return (
     <div className="h-full flex flex-col bg-zinc-950 text-white overflow-hidden">

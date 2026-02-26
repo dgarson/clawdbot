@@ -212,6 +212,7 @@ export interface WorkqDatabaseApi {
   get(issueRef: string, staleThresholdHours?: number): WorkItem | null;
   getLog(issueRef: string, limit?: number): WorkLogEntry[];
   findStaleActiveItems(staleAfterMinutes: number): SweepCandidate[];
+  findSentinelAgentRows(): WorkItem[];
   autoReleaseBySession(input: { sessionKey: string; actorId: string; reason: string }): {
     releasedIssueRefs: string[];
   };

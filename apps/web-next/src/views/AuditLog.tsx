@@ -1,5 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
+import { FileSearch } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -273,7 +276,7 @@ const CATEGORY_LABELS: Record<EventCategory, string> = {
 const ACTOR_KIND_LABELS: Record<AuditEvent["actorKind"], { label: string; color: string }> = {
   agent:  { label: "Agent",  color: "text-indigo-300" },
   user:   { label: "User",   color: "text-emerald-300" },
-  system: { label: "System", color: "text-zinc-400" },
+  system: { label: "System", color: "text-fg-secondary" },
   api:    { label: "API",    color: "text-amber-300" },
 };
 
@@ -351,7 +354,7 @@ function SeverityBadge({ severity }: SeverityBadgeProps) {
 interface CategoryBadgeProps { category: EventCategory; }
 function CategoryBadge({ category }: CategoryBadgeProps) {
   return (
-    <span className="inline-flex items-center px-1.5 py-0.5 text-xs font-mono font-medium rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+    <span className="inline-flex items-center px-1.5 py-0.5 text-xs font-mono font-medium rounded bg-surface-2 text-fg-secondary border border-tok-border">
       {CATEGORY_LABELS[category]}
     </span>
   );
@@ -381,22 +384,22 @@ function DetailPanel({ event, onClose }: DetailPanelProps) {
   const result = RESULT_CONFIG[event.result];
 
   return (
-    <div className="flex flex-col h-full bg-zinc-900 border-l border-zinc-800">
+    <div className="flex flex-col h-full bg-surface-1 border-l border-tok-border">
       {/* Header */}
-      <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-zinc-800">
+      <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-tok-border">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <SeverityBadge severity={event.severity} />
             <CategoryBadge category={event.category} />
           </div>
-          <p className="mt-2 text-sm font-semibold text-white leading-snug">{event.detail}</p>
-          <p className="mt-1 text-xs text-zinc-500 font-mono">{event.action}</p>
+          <p className="mt-2 text-sm font-semibold text-fg-primary leading-snug">{event.detail}</p>
+          <p className="mt-1 text-xs text-fg-muted font-mono">{event.action}</p>
         </div>
         <button
           ref={closeRef}
           onClick={onClose}
           aria-label="Close detail panel"
-          className="flex-none p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+          className="flex-none p-1.5 rounded-md text-fg-secondary hover:text-fg-primary hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
         >
           <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" d="M4 4l8 8M12 4l-8 8" />
@@ -405,8 +408,8 @@ function DetailPanel({ event, onClose }: DetailPanelProps) {
       </div>
 
       {/* Meta grid */}
-      <div className="px-5 py-4 border-b border-zinc-800">
-        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Event Details</h3>
+      <div className="px-5 py-4 border-b border-tok-border">
+        <h3 className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-3">Event Details</h3>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
           {[
             { label: "Event ID",   value: event.id,           mono: true },
@@ -419,8 +422,8 @@ function DetailPanel({ event, onClose }: DetailPanelProps) {
             ...(event.ip ? [{ label: "IP Address", value: event.ip, mono: true }] : []),
           ].map(({ label, value, mono, color }) => (
             <div key={label}>
-              <dt className="text-xs text-zinc-500">{label}</dt>
-              <dd className={cn("mt-0.5 text-xs break-all", mono ? "font-mono text-zinc-200" : "font-medium", color ?? "text-zinc-200")}>
+              <dt className="text-xs text-fg-muted">{label}</dt>
+              <dd className={cn("mt-0.5 text-xs break-all", mono ? "font-mono text-fg-primary" : "font-medium", color ?? "text-fg-primary")}>
                 {value}
               </dd>
             </div>
@@ -431,12 +434,12 @@ function DetailPanel({ event, onClose }: DetailPanelProps) {
       {/* Metadata */}
       {event.meta && Object.keys(event.meta).length > 0 && (
         <div className="px-5 py-4">
-          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Metadata</h3>
-          <div className="rounded-lg bg-zinc-950 border border-zinc-800 divide-y divide-zinc-800">
+          <h3 className="text-xs font-semibold text-fg-muted uppercase tracking-wider mb-3">Metadata</h3>
+          <div className="rounded-lg bg-surface-0 border border-tok-border divide-y divide-tok-border">
             {Object.entries(event.meta).map(([k, v]) => (
               <div key={k} className="flex items-center px-3 py-2 gap-3">
                 <span className="text-xs font-mono text-indigo-400 flex-none">{k}</span>
-                <span className="text-xs font-mono text-zinc-300 truncate">{v}</span>
+                <span className="text-xs font-mono text-fg-secondary truncate">{v}</span>
               </div>
             ))}
           </div>
@@ -448,7 +451,64 @@ function DetailPanel({ event, onClose }: DetailPanelProps) {
 
 // ─── Main View ────────────────────────────────────────────────────────────────
 
-export default function AuditLog() {
+function AuditLogSkeleton() {
+  return (
+    <div className="flex flex-col md:flex-row h-full bg-surface-0 text-fg-primary overflow-hidden">
+      {/* Left: filter + list */}
+      <div className="md:w-[480px] flex-shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-tok-border overflow-hidden">
+        {/* Header bar */}
+        <div className="p-4 border-b border-tok-border flex items-center justify-between">
+          <Skeleton variant="text" className="h-5 w-20" />
+          <div className="flex gap-2">
+            <Skeleton variant="rect" className="h-7 w-16 rounded" />
+            <Skeleton variant="rect" className="h-7 w-16 rounded" />
+          </div>
+        </div>
+        {/* Filters */}
+        <div className="px-3 py-2 border-b border-tok-border space-y-2">
+          <Skeleton variant="rect" className="h-8 w-full rounded-lg" />
+          <div className="flex gap-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} variant="rect" className="h-6 w-16 rounded" />
+            ))}
+          </div>
+        </div>
+        {/* Log rows */}
+        <div className="flex-1 divide-y divide-tok-border overflow-hidden">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="px-4 py-3 flex items-start gap-3">
+              <Skeleton variant="circle" className="w-2 h-2 mt-1.5 shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Skeleton variant="rect" className="h-4 w-14 rounded" />
+                  <Skeleton variant="text" className="h-3.5 w-32" />
+                  <div className="ml-auto">
+                    <Skeleton variant="text" className="h-3 w-16" />
+                  </div>
+                </div>
+                <Skeleton variant="text" className="h-3 w-3/4" />
+                <div className="flex gap-2">
+                  <Skeleton variant="text" className="h-3 w-20" />
+                  <Skeleton variant="text" className="h-3 w-24" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Right: detail */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="text-center space-y-3">
+          <Skeleton variant="circle" className="w-12 h-12 mx-auto" />
+          <Skeleton variant="text" className="h-4 w-32 mx-auto" />
+          <Skeleton variant="text" className="h-3 w-48 mx-auto" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AuditLog({ isLoading = false }: { isLoading?: boolean }) {
   const [events] = useState<AuditEvent[]>(SEED_EVENTS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -505,21 +565,23 @@ export default function AuditLog() {
     failures: filtered.filter((e) => e.result === "failure").length,
   };
 
+  if (isLoading) return <AuditLogSkeleton />;
+
   return (
-    <div className="flex flex-col h-full bg-zinc-950">
+    <div className="flex flex-col h-full bg-surface-0">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex-none px-3 sm:px-4 md:px-6 py-4 border-b border-tok-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-lg font-semibold text-white">Audit Log</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">
+            <h1 className="text-lg font-semibold text-fg-primary">Audit Log</h1>
+            <p className="text-sm text-fg-muted mt-0.5">
               Complete record of all system events, API calls, and configuration changes
             </p>
           </div>
           <button
             onClick={handleExport}
             aria-label="Export filtered audit log as CSV"
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-zinc-800 text-zinc-200 hover:bg-zinc-700 hover:text-white border border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-surface-2 text-fg-primary hover:bg-surface-3 hover:text-fg-primary border border-tok-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors"
           >
             <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8 2v8m0 0l-2.5-2.5M8 10l2.5-2.5M3 13h10" />
@@ -531,24 +593,24 @@ export default function AuditLog() {
         {/* Stats strip */}
         <div className="flex items-center gap-4 mt-4 flex-wrap">
           {[
-            { label: "Total", value: stats.total, color: "text-white" },
-            { label: "Errors", value: stats.errors, color: stats.errors > 0 ? "text-rose-400" : "text-zinc-500" },
-            { label: "Warnings", value: stats.warnings, color: stats.warnings > 0 ? "text-amber-400" : "text-zinc-500" },
-            { label: "Failures", value: stats.failures, color: stats.failures > 0 ? "text-rose-400" : "text-zinc-500" },
+            { label: "Total", value: stats.total, color: "text-fg-primary" },
+            { label: "Errors", value: stats.errors, color: stats.errors > 0 ? "text-rose-400" : "text-fg-muted" },
+            { label: "Warnings", value: stats.warnings, color: stats.warnings > 0 ? "text-amber-400" : "text-fg-muted" },
+            { label: "Failures", value: stats.failures, color: stats.failures > 0 ? "text-rose-400" : "text-fg-muted" },
           ].map(({ label, value, color }) => (
             <div key={label} className="flex items-center gap-1.5">
               <span className={cn("text-sm font-semibold tabular-nums", color)}>{value}</span>
-              <span className="text-xs text-zinc-500">{label}</span>
+              <span className="text-xs text-fg-muted">{label}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex-none px-6 py-3 border-b border-zinc-800 flex items-center gap-3 flex-wrap">
+      <div className="flex-none px-3 sm:px-4 md:px-6 py-3 border-b border-tok-border flex items-center gap-3 flex-wrap">
         {/* Search */}
         <div className="relative flex-1 min-w-48 max-w-sm">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500 pointer-events-none" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-fg-muted pointer-events-none" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <circle cx="7" cy="7" r="4.5" /><path strokeLinecap="round" d="M10.5 10.5l3 3" />
           </svg>
           <input
@@ -558,7 +620,7 @@ export default function AuditLog() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search events… (⌘F)"
             aria-label="Search audit events"
-            className="w-full pl-8 pr-3 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full pl-8 pr-3 py-1.5 text-sm bg-surface-1 border border-tok-border rounded-lg text-fg-primary placeholder:text-fg-muted focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
         </div>
 
@@ -567,7 +629,7 @@ export default function AuditLog() {
           value={severityFilter}
           onChange={(e) => setSeverityFilter(e.target.value as EventSeverity | "all")}
           aria-label="Filter by severity"
-          className="py-1.5 pl-2 pr-6 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
+          className="py-1.5 pl-2 pr-6 text-sm bg-surface-1 border border-tok-border rounded-lg text-fg-primary focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
         >
           <option value="all">All Severity</option>
           {(["info", "success", "warning", "error"] as EventSeverity[]).map((s) => (
@@ -580,7 +642,7 @@ export default function AuditLog() {
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value as EventCategory | "all")}
           aria-label="Filter by category"
-          className="py-1.5 pl-2 pr-6 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
+          className="py-1.5 pl-2 pr-6 text-sm bg-surface-1 border border-tok-border rounded-lg text-fg-primary focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
         >
           <option value="all">All Categories</option>
           {(Object.keys(CATEGORY_LABELS) as EventCategory[]).map((c) => (
@@ -593,7 +655,7 @@ export default function AuditLog() {
           value={resultFilter}
           onChange={(e) => setResultFilter(e.target.value as AuditEvent["result"] | "all")}
           aria-label="Filter by result"
-          className="py-1.5 pl-2 pr-6 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
+          className="py-1.5 pl-2 pr-6 text-sm bg-surface-1 border border-tok-border rounded-lg text-fg-primary focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
         >
           <option value="all">All Results</option>
           <option value="success">Success</option>
@@ -606,7 +668,7 @@ export default function AuditLog() {
           value={actorKindFilter}
           onChange={(e) => setActorKindFilter(e.target.value as AuditEvent["actorKind"] | "all")}
           aria-label="Filter by actor type"
-          className="py-1.5 pl-2 pr-6 text-sm bg-zinc-900 border border-zinc-700 rounded-lg text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
+          className="py-1.5 pl-2 pr-6 text-sm bg-surface-1 border border-tok-border rounded-lg text-fg-primary focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
         >
           <option value="all">All Actors</option>
           <option value="agent">Agent</option>
@@ -637,11 +699,11 @@ export default function AuditLog() {
           className={cn("flex flex-col overflow-y-auto", selectedEvent ? "w-1/2" : "w-full")}
         >
           {filtered.length === 0 && (
-            <div className="flex flex-col items-center justify-center gap-3 py-20 text-center px-8">
-              <span className="text-4xl">🔍</span>
-              <p className="text-sm font-medium text-zinc-300">No events match your filters</p>
-              <p className="text-xs text-zinc-600">Try adjusting your search or clearing filters</p>
-            </div>
+            <ContextualEmptyState
+              icon={FileSearch}
+              title="Nothing in the log yet"
+              description="Audit events appear as agents act. Try adjusting your search or clearing filters."
+            />
           )}
 
           {filtered.map((event) => {
@@ -657,9 +719,9 @@ export default function AuditLog() {
                 aria-selected={isSelected}
                 onClick={() => handleSelect(event.id)}
                 className={cn(
-                  "flex items-start gap-3 w-full text-left px-5 py-3 border-b border-zinc-800/70 transition-colors group",
-                  "hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                  isSelected && "bg-zinc-900 ring-1 ring-inset ring-indigo-500/40"
+                  "flex items-start gap-3 w-full text-left px-5 py-3 border-b border-tok-border/70 transition-colors group",
+                  "hover:bg-surface-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
+                  isSelected && "bg-surface-1 ring-1 ring-inset ring-indigo-500/40"
                 )}
               >
                 {/* Severity dot */}
@@ -670,18 +732,18 @@ export default function AuditLog() {
                 {/* Main content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-mono text-zinc-500">{fmt(event.timestamp)}</span>
+                    <span className="text-xs font-mono text-fg-muted">{fmt(event.timestamp)}</span>
                     <CategoryBadge category={event.category} />
                     <span className={cn("text-xs font-mono", actor.color)}>{event.actor}</span>
                     <span className={cn("text-xs font-medium", result.color)}>{result.label}</span>
                   </div>
-                  <p className="mt-0.5 text-sm text-zinc-200 leading-snug truncate">{event.detail}</p>
-                  <p className="mt-0.5 text-xs font-mono text-zinc-600">{event.action} → {event.resource}</p>
+                  <p className="mt-0.5 text-sm text-fg-primary leading-snug truncate">{event.detail}</p>
+                  <p className="mt-0.5 text-xs font-mono text-fg-muted">{event.action} → {event.resource}</p>
                 </div>
 
                 {/* Right: rel time + duration */}
                 <div className="flex-none text-right">
-                  <p className="text-xs text-zinc-600">{relTime(event.timestamp)}</p>
+                  <p className="text-xs text-fg-muted">{relTime(event.timestamp)}</p>
                   {event.duration !== undefined && (
                     <p className="text-xs text-zinc-700 mt-0.5">{event.duration.toLocaleString()}ms</p>
                   )}
