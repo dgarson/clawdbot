@@ -121,5 +121,6 @@ apps/web/.next/cache/
 **/.settings/
 **/.gradle/
 
-# Synthing
+# Syncthing
 **/.stfolder/
+apps/web-next/screenshots/

@@ -3,13 +3,15 @@ import type { OpenClawConfig } from "../../config/config.js";
 import { loadSessionStore, resolveStorePath } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
 import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
-import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
+import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
 import {
   logMessageProcessed,
   logMessageQueued,
   logSessionStateChange,
 } from "../../logging/diagnostic.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
+import { getRouterFeedbackLoopStore } from "../../routing/feedback-loop-store.js";
+import { parseImplicitFeedback } from "../../routing/feedback-loop.js";
 import { maybeApplyTtsToPayload, normalizeTtsAutoMode, resolveTtsConfig } from "../../tts/tts.js";
 import { getReplyFromConfig } from "../reply.js";
 import type { FinalizedMsgContext } from "../templating.js";
@@ -165,6 +167,34 @@ export async function dispatchReplyFromConfig(params: {
           : "";
   const channelId = (ctx.OriginatingChannel ?? ctx.Surface ?? ctx.Provider ?? "").toLowerCase();
   const conversationId = ctx.OriginatingTo ?? ctx.To ?? ctx.From ?? undefined;
+
+  // Capture implicit correction feedback from inbound messages so the router
+  // feedback loop is integrated in the live message pipeline (outside dashboard UI).
+  if (channelId === "slack" && content.trim().length > 0) {
+    const implicit = parseImplicitFeedback(content);
+    if (implicit.expectedAction || implicit.expectedTier) {
+      const store = getRouterFeedbackLoopStore();
+      const feedback = store.captureFeedback({
+        source: "implicit",
+        actorId: ctx.SenderId,
+        channelId,
+        conversationId,
+        threadId: ctx.MessageThreadId ? String(ctx.MessageThreadId) : undefined,
+        feedbackMessageId: messageIdForHook,
+        expectedTier: implicit.expectedTier,
+        expectedAction: implicit.expectedAction,
+        freeText: content,
+      });
+      emitDiagnosticEvent({
+        type: "router.feedback.feedback_captured",
+        source: "implicit",
+        channelId,
+        feedbackId: feedback.feedbackId,
+        linkedDecisionId: feedback.linkedDecisionId,
+        needsReview: feedback.needsReview,
+      });
+    }
+  }
 
   // Trigger plugin hooks (fire-and-forget)
   if (hookRunner?.hasHooks("message_received")) {
