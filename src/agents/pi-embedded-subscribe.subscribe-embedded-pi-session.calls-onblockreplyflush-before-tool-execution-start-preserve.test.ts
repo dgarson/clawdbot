@@ -13,7 +13,6 @@ describe("subscribeEmbeddedPiSession", () => {
     const onBlockReply = vi.fn();
 
     subscribeEmbeddedPiSession({
-      enforceFinalTag: false,
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run-flush-test",
       onBlockReply,
@@ -58,7 +57,6 @@ describe("subscribeEmbeddedPiSession", () => {
     const onBlockReplyFlush = vi.fn();
 
     subscribeEmbeddedPiSession({
-      enforceFinalTag: false,
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run-flush-buffer",
       onBlockReply,

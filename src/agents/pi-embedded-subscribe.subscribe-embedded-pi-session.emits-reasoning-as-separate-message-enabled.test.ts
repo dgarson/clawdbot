@@ -12,7 +12,6 @@ describe("subscribeEmbeddedPiSession", () => {
     const onBlockReply = vi.fn();
 
     subscribeEmbeddedPiSession({
-      enforceFinalTag: false,
       session,
       runId: "run",
       onBlockReply,
