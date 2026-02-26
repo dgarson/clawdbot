@@ -30,7 +30,7 @@ import { resolveUserPath } from "../../../utils.js";
 import { normalizeMessageChannel } from "../../../utils/message-channel.js";
 import { isReasoningTagProvider } from "../../../utils/provider-utils.js";
 import { resolveOpenClawAgentDir } from "../../agent-paths.js";
-import type { AgentRuntime } from "../../agent-runtime.js";
+import type { AgentRuntimeSession } from "../../agent-runtime.js";
 import { resolveSessionAgentIds } from "../../agent-scope.js";
 import { createAnthropicPayloadLogger } from "../../anthropic-payload-log.js";
 import { makeBootstrapWarn, resolveBootstrapContextForRun } from "../../bootstrap-files.js";
@@ -131,11 +131,20 @@ export function resolveClaudeSdkConfig(
   if (agentEntry?.claudeSdk === false) {
     return undefined;
   }
-  const raw = agentEntry?.claudeSdk || params.config?.agents?.defaults?.claudeSdk || undefined;
-  if (raw && typeof raw === "object" && !("provider" in raw)) {
+  const defaultsCfg = params.config?.agents?.defaults?.claudeSdk;
+  if (!agentEntry?.claudeSdk || typeof agentEntry.claudeSdk !== "object") {
+    if (defaultsCfg && typeof defaultsCfg === "object" && !("provider" in defaultsCfg)) {
+      return undefined;
+    }
+    return defaultsCfg;
+  }
+  const merged = defaultsCfg
+    ? { ...defaultsCfg, ...agentEntry.claudeSdk }
+    : { ...agentEntry.claudeSdk };
+  if (!("provider" in merged)) {
     return undefined;
   }
-  return raw;
+  return merged as ClaudeSdkConfig;
 }
 
 /** @internal Exported for testing only. */
@@ -630,7 +639,7 @@ export async function runEmbeddedAttempt(
     let sessionManager: ReturnType<typeof guardSessionManager> | undefined;
     let session: Awaited<ReturnType<typeof createAgentSession>>["session"] | undefined;
     let piAgentForFlush: { waitForIdle?: () => Promise<void> } | undefined;
-    let agentRuntime: AgentRuntime | null = null;
+    let agentRuntime: AgentRuntimeSession | null = null;
     let removeToolResultContextGuard: (() => void) | undefined;
     try {
       await repairSessionFileIfNeeded({
@@ -784,7 +793,7 @@ export async function runEmbeddedAttempt(
         throw new Error("Embedded agent runtime missing");
       }
       // Narrowed reference for closures that capture agentRuntime before TS can narrow it.
-      const activeRuntime: AgentRuntime = agentRuntime;
+      const activeRuntime: AgentRuntimeSession = agentRuntime;
       const cacheTrace = createCacheTrace({
         cfg: params.config,
         env: process.env,

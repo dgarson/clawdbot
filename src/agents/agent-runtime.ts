@@ -2,7 +2,7 @@ import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import type { EmbeddedPiSubscribeEvent } from "./pi-embedded-subscribe.handlers.types.js";
 
-export interface AgentRuntime {
+export interface AgentRuntimeSession {
   subscribe(handler: (evt: EmbeddedPiSubscribeEvent) => void): () => void;
   prompt(text: string, options?: { images?: ImageContent[] }): Promise<void>;
 

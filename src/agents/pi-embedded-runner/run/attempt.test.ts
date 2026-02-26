@@ -216,6 +216,51 @@ describe("resolveClaudeSdkConfig", () => {
     expect(resolveClaudeSdkConfig(params, "main")).toEqual({ provider: "anthropic" });
   });
 
+  it("merges defaults.claudeSdk and agent claudeSdk with agent fields taking precedence", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: { claudeSdk: { provider: "anthropic", thinkingDefault: "low" } },
+          list: [{ id: "main", claudeSdk: { provider: "zai" } }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({
+      provider: "zai",
+      thinkingDefault: "low",
+    });
+  });
+
+  it("keeps defaults fields when agent claudeSdk is an empty object", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: { claudeSdk: { provider: "anthropic", thinkingDefault: "medium" } },
+          list: [{ id: "main", claudeSdk: {} }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({
+      provider: "anthropic",
+      thinkingDefault: "medium",
+    });
+  });
+
+  it("honors explicit agent false even when defaults.claudeSdk is set", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: { claudeSdk: { provider: "anthropic", thinkingDefault: "medium" } },
+          list: [{ id: "main", claudeSdk: false }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
   it("returns undefined for empty defaults.claudeSdk (no provider key)", () => {
     const params = {
       config: {

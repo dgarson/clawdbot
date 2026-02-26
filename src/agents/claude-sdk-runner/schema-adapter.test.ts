@@ -11,8 +11,8 @@
 import { Type } from "@sinclair/typebox";
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
-import { stringEnum, optionalStringEnum } from "../../schema/typebox.js";
-import { typeboxPropertyToZod, typeboxToZod } from "../schema-adapter.js";
+import { stringEnum, optionalStringEnum } from "../schema/typebox.js";
+import { typeboxPropertyToZod, typeboxToZod } from "./schema-adapter.js";
 
 describe("typeboxPropertyToZod", () => {
   it("converts Type.String() to z.string()", () => {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { buildProviderEnv } from "../provider-env.js";
+import { buildProviderEnv } from "./provider-env.js";
 
 describe("buildProviderEnv", () => {
   beforeEach(() => {

@@ -37,22 +37,35 @@ import type {
 
 // ---------------------------------------------------------------------------
 // ThinkLevel → maxThinkingTokens mapping
-// From implementation-plan.md Section 5.3 and pr-21168-analysis.md Section 3
+// OpenClaw runtime targets:
+// - Default/basic thinking: ~4k tokens
+// - Medium/deep thinking: ~10k tokens
+// - Highest/extended thinking (ultrathink): ~40k tokens
 // ---------------------------------------------------------------------------
 
 function resolveThinkingTokenBudget(thinkLevel?: string): number | null {
-  switch (thinkLevel) {
-    case "low":
-      return 1024;
-    case "medium":
-      return 4096;
-    case "high":
-      return 16384;
-    case "max":
-      return 32768;
+  const level = thinkLevel?.toLowerCase();
+  switch (level) {
+    case "off":
     case "none":
+      return null;
+    case "minimal":
+    case "low":
+    case "basic":
+      return 4000;
+    case "medium":
+    case "deep":
+    case "think-hard":
+      return 10000;
+    case "high":
+    case "xhigh":
+    case "max":
+    case "highest":
+    case "ultrathink":
+    case "extended":
+      return 40000;
     default:
-      return null; // "none" or undefined → disabled
+      return null;
   }
 }
 
@@ -105,29 +118,8 @@ function buildQueryOptions(
     "openclaw-tools": toolServer,
   };
 
-  // For claude-sdk and anthropic providers (or when no provider is set), the
-  // subprocess is the Anthropic Claude CLI. Only Anthropic model IDs are valid
-  // there, and OpenClaw's configured model may be from a different provider
-  // (e.g. MiniMax, Grok). Omit the model entirely so the subprocess uses its
-  // own default. For third-party providers (minimax, minimax-portal, zai,
-  // openrouter, custom) the model is meaningful and is forwarded.
-  // For claude-sdk/anthropic providers, only pass the model if it's an
-  // Anthropic model ID (starts with "claude-"). When the gateway's default
-  // model belongs to another provider (e.g. "MiniMax-M2.5"), omit it so the
-  // subprocess falls back to its own default rather than sending a 404.
-  // Third-party providers (minimax, minimax-portal, zai, openrouter, custom)
-  // always forward the model unchanged.
-  const sdkProvider = params.claudeSdkConfig?.provider ?? "claude-sdk";
-  const isAnthropicProvider = sdkProvider === "claude-sdk" || sdkProvider === "anthropic";
-  const resolvedModel =
-    isAnthropicProvider && !params.modelId.startsWith("claude-") ? undefined : params.modelId;
-  if (isAnthropicProvider && resolvedModel === undefined) {
-    log.debug(
-      `claude-sdk: omitting incompatible model "${params.modelId}" for provider "${sdkProvider}" (using subprocess default)`,
-    );
-  }
   const queryOptions: Record<string, unknown> = {
-    ...(resolvedModel !== undefined && { model: resolvedModel }),
+    model: params.modelId,
     mcpServers,
     permissionMode: "bypassPermissions",
     allowDangerouslySkipPermissions: true,
@@ -173,7 +165,6 @@ function buildQueryOptions(
   // non-Anthropic providers. Returns undefined for claude-code/anthropic (no override).
   const providerEnv = buildProviderEnv(
     params.claudeSdkConfig ?? { provider: "claude-sdk" as const },
-    params.resolvedProviderAuth?.apiKey,
   );
   if (providerEnv !== undefined) {
     queryOptions["env"] = providerEnv;
