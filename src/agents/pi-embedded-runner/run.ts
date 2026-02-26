@@ -25,11 +25,8 @@ import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../defa
 import { FailoverError, resolveFailoverStatus } from "../failover-error.js";
 import {
   ensureAuthProfileStore,
-  getApiKeyForModel,
-  resolveAuthProfileOrder,
   type ResolvedProviderAuth,
 } from "../model-auth.js";
-import { normalizeProviderId } from "../model-selection.js";
 import { ensureOpenClawModelsJson } from "../models-config.js";
 import {
   formatBillingErrorMessage,
@@ -46,7 +43,6 @@ import {
   isRateLimitAssistantError,
   isTimeoutErrorMessage,
   pickFallbackThinkingLevel,
-  type FailoverReason,
 } from "../pi-embedded-helpers.js";
 import { derivePromptTokens, normalizeUsage, type UsageLike } from "../usage.js";
 import { redactRunIdentifier, resolveRunWorkspaceDir } from "../workspace-run.js";
@@ -55,8 +51,10 @@ import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
 import { resolveModel } from "./model.js";
 import { runEmbeddedAttempt } from "./run/attempt.js";
+import { createRunAuthProfileFailoverController } from "./run/auth-profile-failover.js";
 import type { RunEmbeddedPiAgentParams } from "./run/params.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
+import { resolveClaudeSdkConfig } from "../claude-sdk-runner/prepare-session.js";
 import {
   truncateOversizedToolResultsInSession,
   sessionLikelyHasOversizedToolResults,
@@ -333,38 +331,38 @@ export async function runEmbeddedPiAgent(
       }
 
       const authStore = ensureAuthProfileStore(agentDir, { allowKeychainPrompt: false });
+      const claudeSdkConfig = resolveClaudeSdkConfig(
+        {
+          ...params,
+          provider,
+          modelId,
+          model,
+          authStorage,
+          modelRegistry,
+          thinkLevel: params.thinkLevel ?? "off",
+        } as never,
+        workspaceResolution.agentId,
+      );
       const preferredProfileId = params.authProfileId?.trim();
-      let lockedProfileId = params.authProfileIdSource === "user" ? preferredProfileId : undefined;
-      if (lockedProfileId) {
-        const lockedProfile = authStore.profiles[lockedProfileId];
-        if (
-          !lockedProfile ||
-          normalizeProviderId(lockedProfile.provider) !== normalizeProviderId(provider)
-        ) {
-          lockedProfileId = undefined;
-        }
-      }
-      const profileOrder = resolveAuthProfileOrder({
-        cfg: params.config,
-        store: authStore,
+      const authResolution = await createClaudeSdkAuthResolutionState({
         provider,
-        preferredProfile: preferredProfileId,
+        cfg: params.config,
+        claudeSdkConfig,
+        authStore,
+        agentDir,
+        preferredProfileId,
+        authProfileIdSource: params.authProfileIdSource,
       });
-      if (lockedProfileId && !profileOrder.includes(lockedProfileId)) {
-        throw new Error(`Auth profile "${lockedProfileId}" is not configured for ${provider}.`);
-      }
-      const profileCandidates = lockedProfileId
-        ? [lockedProfileId]
-        : profileOrder.length > 0
-          ? profileOrder
-          : [undefined];
-      let profileIndex = 0;
 
       const initialThinkLevel = params.thinkLevel ?? "off";
       let thinkLevel = initialThinkLevel;
       const attemptedThinking = new Set<ThinkLevel>();
       let apiKeyInfo: ApiKeyInfo | null = null;
       let lastProfileId: string | undefined;
+      const resolveAuthLookupModel = () =>
+        authResolution.authProvider === model.provider
+          ? model
+          : { ...model, provider: authResolution.authProvider };
 
       const resolveAuthProfileFailoverReason = (params: {
         allInCooldown: boolean;
@@ -372,7 +370,9 @@ export async function runEmbeddedPiAgent(
         profileIds?: Array<string | undefined>;
       }): FailoverReason => {
         if (params.allInCooldown) {
-          const profileIds = (params.profileIds ?? profileCandidates).filter(
+          const profileIds = (
+            params.profileIds ?? authResolution.profileCandidates.map((candidate) => candidate.profileId)
+          ).filter(
             (id): id is string => typeof id === "string" && id.length > 0,
           );
           return (
@@ -391,7 +391,7 @@ export async function runEmbeddedPiAgent(
         message?: string;
         error?: unknown;
       }): never => {
-        const fallbackMessage = `No available auth profile for ${provider} (all in cooldown or unavailable).`;
+        const fallbackMessage = `No available auth profile for ${authResolution.authProvider} (all in cooldown or unavailable).`;
         const message =
           params.message?.trim() ||
           (params.error ? describeUnknownError(params.error).trim() : "") ||
@@ -399,12 +399,12 @@ export async function runEmbeddedPiAgent(
         const reason = resolveAuthProfileFailoverReason({
           allInCooldown: params.allInCooldown,
           message,
-          profileIds: profileCandidates,
+          profileIds: authResolution.profileCandidates.map((candidate) => candidate.profileId),
         });
         if (fallbackConfigured) {
           throw new FailoverError(message, {
             reason,
-            provider,
+            provider: authResolution.authProvider,
             model: modelId,
             status: resolveFailoverStatus(reason),
             cause: params.error,
@@ -416,90 +416,124 @@ export async function runEmbeddedPiAgent(
         throw new Error(message);
       };
 
-      const resolveApiKeyForCandidate = async (candidate?: string) => {
+      const resolveApiKeyForCandidate = async (candidate?: AuthProfileCandidate) => {
         return getApiKeyForModel({
-          model,
+          model: resolveAuthLookupModel(),
           cfg: params.config,
-          profileId: candidate,
+          profileId: candidate?.resolveProfileId,
           store: authStore,
           agentDir,
         });
       };
 
-      const applyApiKeyInfo = async (candidate?: string): Promise<void> => {
+      const applyApiKeyInfo = async (candidate?: AuthProfileCandidate): Promise<void> => {
         apiKeyInfo = await resolveApiKeyForCandidate(candidate);
-        const resolvedProfileId = apiKeyInfo.profileId ?? candidate;
+        const resolvedProfileId =
+          apiKeyInfo.profileId ?? candidate?.profileId ?? candidate?.resolveProfileId;
         if (!apiKeyInfo.apiKey) {
           if (apiKeyInfo.mode !== "aws-sdk" && apiKeyInfo.mode !== "system-keychain") {
             throw new Error(
-              `No API key resolved for provider "${model.provider}" (auth mode: ${apiKeyInfo.mode}).`,
+              `No API key resolved for provider "${authResolution.authProvider}" (auth mode: ${apiKeyInfo.mode}).`,
             );
           }
           lastProfileId = resolvedProfileId;
           return;
         }
-        if (model.provider === "github-copilot") {
+        if (authResolution.authProvider === "github-copilot") {
           const { resolveCopilotApiToken } =
             await import("../../providers/github-copilot-token.js");
           const copilotToken = await resolveCopilotApiToken({
             githubToken: apiKeyInfo.apiKey,
           });
-          authStorage.setRuntimeApiKey(model.provider, copilotToken.token);
+          authStorage.setRuntimeApiKey(authResolution.authProvider, copilotToken.token);
         } else {
-          authStorage.setRuntimeApiKey(model.provider, apiKeyInfo.apiKey);
+          authStorage.setRuntimeApiKey(authResolution.authProvider, apiKeyInfo.apiKey);
         }
-        lastProfileId = apiKeyInfo.profileId;
+        lastProfileId = apiKeyInfo.profileId ?? candidate?.profileId;
       };
 
-      const advanceAuthProfile = async (): Promise<boolean> => {
-        if (lockedProfileId) {
-          return false;
-        }
-        let nextIndex = profileIndex + 1;
-        while (nextIndex < profileCandidates.length) {
-          const candidate = profileCandidates[nextIndex];
-          if (candidate && isProfileInCooldown(authStore, candidate)) {
-            nextIndex += 1;
+      const initializeCurrentAuthCandidate = async (): Promise<boolean> => {
+        while (authResolution.profileIndex < authResolution.profileCandidates.length) {
+          const candidate = authResolution.profileCandidates[authResolution.profileIndex];
+          const candidateProfileId = candidate?.profileId;
+          if (
+            candidateProfileId &&
+            candidateProfileId !== authResolution.lockedProfileId &&
+            isProfileInCooldown(authStore, candidateProfileId)
+          ) {
+            authResolution.advanceProfileIndex();
             continue;
           }
           try {
             await applyApiKeyInfo(candidate);
-            profileIndex = nextIndex;
-            thinkLevel = initialThinkLevel;
-            attemptedThinking.clear();
             return true;
           } catch (err) {
-            if (candidate && candidate === lockedProfileId) {
+            if (candidateProfileId && candidateProfileId === authResolution.lockedProfileId) {
               throw err;
             }
-            nextIndex += 1;
+            authResolution.advanceProfileIndex();
           }
         }
         return false;
       };
 
-      try {
-        while (profileIndex < profileCandidates.length) {
-          const candidate = profileCandidates[profileIndex];
-          if (
-            candidate &&
-            candidate !== lockedProfileId &&
-            isProfileInCooldown(authStore, candidate)
-          ) {
-            profileIndex += 1;
+      const advanceAuthProfile = async (): Promise<boolean> => {
+        authResolution.advanceProfileIndex();
+        if (await initializeCurrentAuthCandidate()) {
+          thinkLevel = initialThinkLevel;
+          attemptedThinking.clear();
+          return true;
+        }
+        while (authResolution.runtimeOverride === "claude-sdk") {
+          if (await authResolution.moveToNextClaudeSdkProvider()) {
+            if (await initializeCurrentAuthCandidate()) {
+              thinkLevel = initialThinkLevel;
+              attemptedThinking.clear();
+              return true;
+            }
             continue;
           }
-          await applyApiKeyInfo(profileCandidates[profileIndex]);
+          if (await authResolution.fallBackToPiRuntime()) {
+            log.warn(
+              `[claude-sdk] all claude-sdk providers unavailable/cooling down; switching to pi runtime for ${provider}/${modelId}`,
+            );
+            if (await initializeCurrentAuthCandidate()) {
+              thinkLevel = initialThinkLevel;
+              attemptedThinking.clear();
+              return true;
+            }
+          }
           break;
         }
-        if (profileIndex >= profileCandidates.length) {
+        return false;
+      };
+
+      try {
+        let initialized = await initializeCurrentAuthCandidate();
+        while (!initialized && authResolution.runtimeOverride === "claude-sdk") {
+          if (await authResolution.moveToNextClaudeSdkProvider()) {
+            initialized = await initializeCurrentAuthCandidate();
+            continue;
+          }
+          if (await authResolution.fallBackToPiRuntime()) {
+            log.warn(
+              `[claude-sdk-runtime-fallback] all claude-sdk providers unavailable/cooling down; switching to pi runtime for ${provider}/${modelId}`,
+            );
+            initialized = await initializeCurrentAuthCandidate();
+            break;
+          }
+          break;
+        }
+        if (!initialized) {
           throwAuthProfileFailover({ allInCooldown: true });
         }
       } catch (err) {
         if (err instanceof FailoverError) {
           throw err;
         }
-        if (profileCandidates[profileIndex] === lockedProfileId) {
+        const activeCandidateProfileId =
+          authResolution.profileCandidates[authResolution.profileIndex]?.profileId;
+        if (activeCandidateProfileId && activeCandidateProfileId === authResolution.lockedProfileId) {
           throwAuthProfileFailover({ allInCooldown: false, error: err });
         }
         const advanced = await advanceAuthProfile();
@@ -509,7 +543,9 @@ export async function runEmbeddedPiAgent(
       }
 
       const MAX_OVERFLOW_COMPACTION_ATTEMPTS = 3;
-      const MAX_RUN_LOOP_ITERATIONS = resolveMaxRunRetryIterations(profileCandidates.length);
+      const MAX_RUN_LOOP_ITERATIONS = resolveMaxRunRetryIterations(
+        authResolution.profileCandidates.length,
+      );
       let overflowCompactionAttempts = 0;
       let toolResultTruncationAttempted = false;
       const usageAccumulator = createUsageAccumulator();
@@ -601,6 +637,9 @@ export async function runEmbeddedPiAgent(
             provider,
             modelId,
             model,
+            runtimeOverride: authResolution.runtimeOverride,
+            claudeSdkProviderOverride: authResolution.claudeSdkProviderOverride,
+            resolvedProviderAuth: apiKeyInfo ?? undefined,
             authStorage,
             modelRegistry,
             agentId: workspaceResolution.agentId,
@@ -1119,9 +1158,11 @@ export async function runEmbeddedPiAgent(
             `embedded run done: runId=${params.runId} sessionId=${params.sessionId} durationMs=${Date.now() - started} aborted=${aborted}`,
           );
           if (lastProfileId) {
+            const successfulProfileProvider =
+              authStore.profiles[lastProfileId]?.provider ?? authResolution.authProvider;
             await markAuthProfileGood({
               store: authStore,
-              provider,
+              provider: successfulProfileProvider,
               profileId: lastProfileId,
               agentDir: params.agentDir,
             });

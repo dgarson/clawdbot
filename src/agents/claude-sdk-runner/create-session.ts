@@ -188,10 +188,11 @@ function buildQueryOptions(
     queryOptions.resume = state.claudeSdkSessionId;
   }
 
-  // Provider env: sets ANTHROPIC_BASE_URL, API key, timeout, and model vars for
-  // non-Anthropic providers. Returns undefined for claude-code/anthropic (no override).
+  // Provider env: sets Anthropic-compatible endpoint/auth/model env for
+  // non-Anthropic providers. Returns undefined for anthropic without resolved key.
   const providerEnv = buildProviderEnv(
     params.claudeSdkConfig ?? { provider: "claude-sdk" as const },
+    params.resolvedProviderAuth,
   );
   if (providerEnv !== undefined) {
     queryOptions["env"] = providerEnv;
