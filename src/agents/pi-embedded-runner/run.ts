@@ -9,12 +9,11 @@ import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js"
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
 import { hasConfiguredModelFallbacks } from "../agent-scope.js";
 import {
-  isProfileInCooldown,
   markAuthProfileFailure,
   markAuthProfileGood,
   markAuthProfileUsed,
-  resolveProfilesUnavailableReason,
 } from "../auth-profiles.js";
+import { resolveClaudeSdkConfig } from "../claude-sdk-runner/prepare-session.js";
 import {
   CONTEXT_WINDOW_HARD_MIN_TOKENS,
   CONTEXT_WINDOW_WARN_BELOW_TOKENS,
@@ -23,10 +22,7 @@ import {
 } from "../context-window-guard.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../defaults.js";
 import { FailoverError, resolveFailoverStatus } from "../failover-error.js";
-import {
-  ensureAuthProfileStore,
-  type ResolvedProviderAuth,
-} from "../model-auth.js";
+import { ensureAuthProfileStore } from "../model-auth.js";
 import { ensureOpenClawModelsJson } from "../models-config.js";
 import {
   formatBillingErrorMessage,
@@ -54,15 +50,12 @@ import { runEmbeddedAttempt } from "./run/attempt.js";
 import { createRunAuthProfileFailoverController } from "./run/auth-profile-failover.js";
 import type { RunEmbeddedPiAgentParams } from "./run/params.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
-import { resolveClaudeSdkConfig } from "../claude-sdk-runner/prepare-session.js";
 import {
   truncateOversizedToolResultsInSession,
   sessionLikelyHasOversizedToolResults,
 } from "./tool-result-truncation.js";
 import type { EmbeddedPiAgentMeta, EmbeddedPiRunResult } from "./types.js";
 import { describeUnknownError } from "./utils.js";
-
-type ApiKeyInfo = ResolvedProviderAuth;
 
 // Avoid Anthropic's refusal test token poisoning session transcripts.
 const ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL = "ANTHROPIC_MAGIC_STRING_TRIGGER_REFUSAL";
@@ -344,203 +337,32 @@ export async function runEmbeddedPiAgent(
         workspaceResolution.agentId,
       );
       const preferredProfileId = params.authProfileId?.trim();
-      const authResolution = await createClaudeSdkAuthResolutionState({
-        provider,
-        cfg: params.config,
-        claudeSdkConfig,
-        authStore,
-        agentDir,
-        preferredProfileId,
-        authProfileIdSource: params.authProfileIdSource,
-      });
-
       const initialThinkLevel = params.thinkLevel ?? "off";
       let thinkLevel = initialThinkLevel;
       const attemptedThinking = new Set<ThinkLevel>();
-      let apiKeyInfo: ApiKeyInfo | null = null;
-      let lastProfileId: string | undefined;
-      const resolveAuthLookupModel = () =>
-        authResolution.authProvider === model.provider
-          ? model
-          : { ...model, provider: authResolution.authProvider };
-
-      const resolveAuthProfileFailoverReason = (params: {
-        allInCooldown: boolean;
-        message: string;
-        profileIds?: Array<string | undefined>;
-      }): FailoverReason => {
-        if (params.allInCooldown) {
-          const profileIds = (
-            params.profileIds ?? authResolution.profileCandidates.map((candidate) => candidate.profileId)
-          ).filter(
-            (id): id is string => typeof id === "string" && id.length > 0,
-          );
-          return (
-            resolveProfilesUnavailableReason({
-              store: authStore,
-              profileIds,
-            }) ?? "rate_limit"
-          );
-        }
-        const classified = classifyFailoverReason(params.message);
-        return classified ?? "auth";
-      };
-
-      const throwAuthProfileFailover = (params: {
-        allInCooldown: boolean;
-        message?: string;
-        error?: unknown;
-      }): never => {
-        const fallbackMessage = `No available auth profile for ${authResolution.authProvider} (all in cooldown or unavailable).`;
-        const message =
-          params.message?.trim() ||
-          (params.error ? describeUnknownError(params.error).trim() : "") ||
-          fallbackMessage;
-        const reason = resolveAuthProfileFailoverReason({
-          allInCooldown: params.allInCooldown,
-          message,
-          profileIds: authResolution.profileCandidates.map((candidate) => candidate.profileId),
-        });
-        if (fallbackConfigured) {
-          throw new FailoverError(message, {
-            reason,
-            provider: authResolution.authProvider,
-            model: modelId,
-            status: resolveFailoverStatus(reason),
-            cause: params.error,
-          });
-        }
-        if (params.error instanceof Error) {
-          throw params.error;
-        }
-        throw new Error(message);
-      };
-
-      const resolveApiKeyForCandidate = async (candidate?: AuthProfileCandidate) => {
-        return getApiKeyForModel({
-          model: resolveAuthLookupModel(),
-          cfg: params.config,
-          profileId: candidate?.resolveProfileId,
-          store: authStore,
-          agentDir,
-        });
-      };
-
-      const applyApiKeyInfo = async (candidate?: AuthProfileCandidate): Promise<void> => {
-        apiKeyInfo = await resolveApiKeyForCandidate(candidate);
-        const resolvedProfileId =
-          apiKeyInfo.profileId ?? candidate?.profileId ?? candidate?.resolveProfileId;
-        if (!apiKeyInfo.apiKey) {
-          if (apiKeyInfo.mode !== "aws-sdk" && apiKeyInfo.mode !== "system-keychain") {
-            throw new Error(
-              `No API key resolved for provider "${authResolution.authProvider}" (auth mode: ${apiKeyInfo.mode}).`,
-            );
-          }
-          lastProfileId = resolvedProfileId;
-          return;
-        }
-        if (authResolution.authProvider === "github-copilot") {
-          const { resolveCopilotApiToken } =
-            await import("../../providers/github-copilot-token.js");
-          const copilotToken = await resolveCopilotApiToken({
-            githubToken: apiKeyInfo.apiKey,
-          });
-          authStorage.setRuntimeApiKey(authResolution.authProvider, copilotToken.token);
-        } else {
-          authStorage.setRuntimeApiKey(authResolution.authProvider, apiKeyInfo.apiKey);
-        }
-        lastProfileId = apiKeyInfo.profileId ?? candidate?.profileId;
-      };
-
-      const initializeCurrentAuthCandidate = async (): Promise<boolean> => {
-        while (authResolution.profileIndex < authResolution.profileCandidates.length) {
-          const candidate = authResolution.profileCandidates[authResolution.profileIndex];
-          const candidateProfileId = candidate?.profileId;
-          if (
-            candidateProfileId &&
-            candidateProfileId !== authResolution.lockedProfileId &&
-            isProfileInCooldown(authStore, candidateProfileId)
-          ) {
-            authResolution.advanceProfileIndex();
-            continue;
-          }
-          try {
-            await applyApiKeyInfo(candidate);
-            return true;
-          } catch (err) {
-            if (candidateProfileId && candidateProfileId === authResolution.lockedProfileId) {
-              throw err;
-            }
-            authResolution.advanceProfileIndex();
-          }
-        }
-        return false;
-      };
-
-      const advanceAuthProfile = async (): Promise<boolean> => {
-        authResolution.advanceProfileIndex();
-        if (await initializeCurrentAuthCandidate()) {
+      const authController = await createRunAuthProfileFailoverController({
+        provider,
+        modelId,
+        model,
+        cfg: params.config,
+        agentDir,
+        authStore,
+        authStorage,
+        fallbackConfigured,
+        claudeSdkConfig,
+        preferredProfileId,
+        authProfileIdSource: params.authProfileIdSource,
+        onAuthRotationSuccess: () => {
           thinkLevel = initialThinkLevel;
           attemptedThinking.clear();
-          return true;
-        }
-        while (authResolution.runtimeOverride === "claude-sdk") {
-          if (await authResolution.moveToNextClaudeSdkProvider()) {
-            if (await initializeCurrentAuthCandidate()) {
-              thinkLevel = initialThinkLevel;
-              attemptedThinking.clear();
-              return true;
-            }
-            continue;
-          }
-          if (await authResolution.fallBackToPiRuntime()) {
-            log.warn(
-              `[claude-sdk] all claude-sdk providers unavailable/cooling down; switching to pi runtime for ${provider}/${modelId}`,
-            );
-            if (await initializeCurrentAuthCandidate()) {
-              thinkLevel = initialThinkLevel;
-              attemptedThinking.clear();
-              return true;
-            }
-          }
-          break;
-        }
-        return false;
-      };
-
-      try {
-        let initialized = await initializeCurrentAuthCandidate();
-        while (!initialized && authResolution.runtimeOverride === "claude-sdk") {
-          if (await authResolution.moveToNextClaudeSdkProvider()) {
-            initialized = await initializeCurrentAuthCandidate();
-            continue;
-          }
-          if (await authResolution.fallBackToPiRuntime()) {
-            log.warn(
-              `[claude-sdk-runtime-fallback] all claude-sdk providers unavailable/cooling down; switching to pi runtime for ${provider}/${modelId}`,
-            );
-            initialized = await initializeCurrentAuthCandidate();
-            break;
-          }
-          break;
-        }
-        if (!initialized) {
-          throwAuthProfileFailover({ allInCooldown: true });
-        }
-      } catch (err) {
-        if (err instanceof FailoverError) {
-          throw err;
-        }
-        const activeCandidateProfileId =
-          authResolution.profileCandidates[authResolution.profileIndex]?.profileId;
-        if (activeCandidateProfileId && activeCandidateProfileId === authResolution.lockedProfileId) {
-          throwAuthProfileFailover({ allInCooldown: false, error: err });
-        }
-        const advanced = await advanceAuthProfile();
-        if (!advanced) {
-          throwAuthProfileFailover({ allInCooldown: false, error: err });
-        }
-      }
+        },
+        onClaudeSdkToPiFallback: () => {
+          log.warn(
+            `[claude-sdk-runtime-fallback] all claude-sdk providers unavailable/cooling down; switching to pi runtime for ${provider}/${modelId}`,
+          );
+        },
+      });
+      const authResolution = authController.authResolution;
 
       const MAX_OVERFLOW_COMPACTION_ATTEMPTS = 3;
       const MAX_RUN_LOOP_ITERATIONS = resolveMaxRunRetryIterations(
@@ -639,7 +461,7 @@ export async function runEmbeddedPiAgent(
             model,
             runtimeOverride: authResolution.runtimeOverride,
             claudeSdkProviderOverride: authResolution.claudeSdkProviderOverride,
-            resolvedProviderAuth: apiKeyInfo ?? undefined,
+            resolvedProviderAuth: authController.apiKeyInfo ?? undefined,
             authStorage,
             modelRegistry,
             agentId: workspaceResolution.agentId,
@@ -776,7 +598,7 @@ export async function runEmbeddedPiAgent(
                 messageChannel: params.messageChannel,
                 messageProvider: params.messageProvider,
                 agentAccountId: params.agentAccountId,
-                authProfileId: lastProfileId,
+                authProfileId: authController.lastProfileId,
                 sessionFile: params.sessionFile,
                 workspaceDir: resolvedWorkspace,
                 agentDir,
@@ -945,13 +767,13 @@ export async function runEmbeddedPiAgent(
             }
             const promptFailoverReason = classifyFailoverReason(errorText);
             await maybeMarkAuthProfileFailure({
-              profileId: lastProfileId,
+              profileId: authController.lastProfileId,
               reason: promptFailoverReason,
             });
             if (
               isFailoverErrorMessage(errorText) &&
               promptFailoverReason !== "timeout" &&
-              (await advanceAuthProfile())
+              (await authController.advanceAuthProfile())
             ) {
               continue;
             }
@@ -973,7 +795,7 @@ export async function runEmbeddedPiAgent(
                 reason: promptFailoverReason ?? "unknown",
                 provider,
                 model: modelId,
-                profileId: lastProfileId,
+                profileId: authController.lastProfileId,
                 status: resolveFailoverStatus(promptFailoverReason ?? "unknown"),
               });
             }
@@ -1000,7 +822,7 @@ export async function runEmbeddedPiAgent(
           const cloudCodeAssistFormatError = attempt.cloudCodeAssistFormatError;
           const imageDimensionError = parseImageDimensionError(lastAssistant?.errorMessage ?? "");
 
-          if (imageDimensionError && lastProfileId) {
+          if (imageDimensionError && authController.lastProfileId) {
             const details = [
               imageDimensionError.messageIndex !== undefined
                 ? `message=${imageDimensionError.messageIndex}`
@@ -1015,7 +837,7 @@ export async function runEmbeddedPiAgent(
               .filter(Boolean)
               .join(" ");
             log.warn(
-              `Profile ${lastProfileId} rejected image payload${details ? ` (${details})` : ""}.`,
+              `Profile ${authController.lastProfileId} rejected image payload${details ? ` (${details})` : ""}.`,
             );
           }
 
@@ -1025,7 +847,7 @@ export async function runEmbeddedPiAgent(
             (!aborted && failoverFailure) || (timedOut && !timedOutDuringCompaction);
 
           if (shouldRotate) {
-            if (lastProfileId) {
+            if (authController.lastProfileId) {
               const reason =
                 timedOut || assistantFailoverReason === "timeout"
                   ? "timeout"
@@ -1034,20 +856,22 @@ export async function runEmbeddedPiAgent(
               // not an auth issue. Marking the profile would poison fallback models
               // on the same provider (e.g. gpt-5.3 timeout blocks gpt-5.2).
               await maybeMarkAuthProfileFailure({
-                profileId: lastProfileId,
+                profileId: authController.lastProfileId,
                 reason,
               });
               if (timedOut && !isProbeSession) {
-                log.warn(`Profile ${lastProfileId} timed out. Trying next account...`);
+                log.warn(
+                  `Profile ${authController.lastProfileId} timed out. Trying next account...`,
+                );
               }
               if (cloudCodeAssistFormatError) {
                 log.warn(
-                  `Profile ${lastProfileId} hit Cloud Code Assist format error. Tool calls will be sanitized on retry.`,
+                  `Profile ${authController.lastProfileId} hit Cloud Code Assist format error. Tool calls will be sanitized on retry.`,
                 );
               }
             }
 
-            const rotated = await advanceAuthProfile();
+            const rotated = await authController.advanceAuthProfile();
             if (rotated) {
               continue;
             }
@@ -1083,7 +907,7 @@ export async function runEmbeddedPiAgent(
                 reason: assistantFailoverReason ?? "unknown",
                 provider: activeErrorContext.provider,
                 model: activeErrorContext.model,
-                profileId: lastProfileId,
+                profileId: authController.lastProfileId,
                 status,
               });
             }
@@ -1157,18 +981,19 @@ export async function runEmbeddedPiAgent(
           log.debug(
             `embedded run done: runId=${params.runId} sessionId=${params.sessionId} durationMs=${Date.now() - started} aborted=${aborted}`,
           );
-          if (lastProfileId) {
+          if (authController.lastProfileId) {
             const successfulProfileProvider =
-              authStore.profiles[lastProfileId]?.provider ?? authResolution.authProvider;
+              authStore.profiles[authController.lastProfileId]?.provider ??
+              authResolution.authProvider;
             await markAuthProfileGood({
               store: authStore,
               provider: successfulProfileProvider,
-              profileId: lastProfileId,
+              profileId: authController.lastProfileId,
               agentDir: params.agentDir,
             });
             await markAuthProfileUsed({
               store: authStore,
-              profileId: lastProfileId,
+              profileId: authController.lastProfileId,
               agentDir: params.agentDir,
             });
           }

@@ -578,7 +578,7 @@ describe("session lifecycle — messages state", () => {
       provider: "anthropic",
       api: "anthropic-messages",
       model: "claude-sonnet-test",
-      stopReason: "end_turn",
+      stopReason: "stop",
     });
   });
 });
@@ -686,6 +686,103 @@ describe("session lifecycle — provider env wiring", () => {
     } finally {
       process.env.ANTHROPIC_API_KEY = prevApiKey;
       process.env.ANTHROPIC_AUTH_TOKEN = prevAuthToken;
+    }
+  });
+
+  it("uses process CLAUDE_CONFIG_DIR when config does not override it", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const prevConfigDir = process.env.CLAUDE_CONFIG_DIR;
+    process.env.CLAUDE_CONFIG_DIR = "/tmp/from-process-env";
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        claudeSdkConfig: { provider: "claude-sdk" },
+      }),
+    );
+
+    try {
+      await session.prompt("Hello");
+
+      const call = queryMock.mock.calls[0];
+      const options = call[0].options as Record<string, unknown>;
+      const env = options["env"] as Record<string, string>;
+      expect(env["CLAUDE_CONFIG_DIR"]).toBe("/tmp/from-process-env");
+    } finally {
+      if (prevConfigDir === undefined) {
+        delete process.env.CLAUDE_CONFIG_DIR;
+      } else {
+        process.env.CLAUDE_CONFIG_DIR = prevConfigDir;
+      }
+    }
+  });
+
+  it("uses claudeSdk.configDir over process CLAUDE_CONFIG_DIR", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const prevConfigDir = process.env.CLAUDE_CONFIG_DIR;
+    process.env.CLAUDE_CONFIG_DIR = "/tmp/from-process-env";
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        claudeSdkConfig: {
+          provider: "claude-sdk",
+          configDir: "/tmp/from-agent-config",
+        },
+      }),
+    );
+
+    try {
+      await session.prompt("Hello");
+
+      const call = queryMock.mock.calls[0];
+      const options = call[0].options as Record<string, unknown>;
+      const env = options["env"] as Record<string, string>;
+      expect(env["CLAUDE_CONFIG_DIR"]).toBe("/tmp/from-agent-config");
+    } finally {
+      if (prevConfigDir === undefined) {
+        delete process.env.CLAUDE_CONFIG_DIR;
+      } else {
+        process.env.CLAUDE_CONFIG_DIR = prevConfigDir;
+      }
+    }
+  });
+
+  it("sets CLAUDE_CONFIG_DIR for anthropic when only claudeSdk.configDir is provided", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const prevConfigDir = process.env.CLAUDE_CONFIG_DIR;
+    delete process.env.CLAUDE_CONFIG_DIR;
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        claudeSdkConfig: {
+          provider: "anthropic",
+          configDir: "/tmp/from-agent-config",
+        },
+      }),
+    );
+
+    try {
+      await session.prompt("Hello");
+
+      const call = queryMock.mock.calls[0];
+      const options = call[0].options as Record<string, unknown>;
+      const env = options["env"] as Record<string, string>;
+      expect(env).toBeDefined();
+      expect(env["CLAUDE_CONFIG_DIR"]).toBe("/tmp/from-agent-config");
+    } finally {
+      if (prevConfigDir === undefined) {
+        delete process.env.CLAUDE_CONFIG_DIR;
+      } else {
+        process.env.CLAUDE_CONFIG_DIR = prevConfigDir;
+      }
     }
   });
 

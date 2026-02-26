@@ -18,11 +18,33 @@ import { sensitive } from "./zod-schema.sensitive.js";
 const thinkingDefaultsField = {
   thinkingDefault: z.enum(["none", "low", "medium", "high"]).optional(),
   /**
+   * Optional Claude SDK base directory override. When set, this value is
+   * propagated to the Claude subprocess as CLAUDE_CONFIG_DIR.
+   */
+  configDir: z.string().trim().min(1).optional(),
+  /**
    * Optional provider IDs that should route through the Claude SDK runtime.
    * If omitted, runtime defaults apply (currently system-keychain providers).
    */
   supportedProviders: z.array(z.string().min(1)).optional(),
 } as const;
+
+const ClaudeSdkCustomProviderSchema = z
+  .object({
+    provider: z.literal("custom"),
+    baseUrl: z.string().url(),
+    authProfileId: z.string().min(1),
+    authHeaderName: z
+      .string()
+      .trim()
+      .regex(/^[A-Z_][A-Z0-9_]*$/)
+      .optional(),
+    anthropicDefaultHaikuModel: z.string().min(1),
+    anthropicDefaultSonnetModel: z.string().min(1),
+    anthropicDefaultOpusModel: z.string().min(1),
+    ...thinkingDefaultsField,
+  })
+  .strict();
 
 export const ClaudeSdkConfigSchema = z
   .discriminatedUnion("provider", [
@@ -32,14 +54,7 @@ export const ClaudeSdkConfigSchema = z
     z.object({ provider: z.literal("minimax-portal"), ...thinkingDefaultsField }).strict(),
     z.object({ provider: z.literal("zai"), ...thinkingDefaultsField }).strict(),
     z.object({ provider: z.literal("openrouter"), ...thinkingDefaultsField }).strict(),
-    z
-      .object({
-        provider: z.literal("custom"),
-        baseUrl: z.string().url(),
-        apiKey: z.string().optional().register(sensitive),
-        ...thinkingDefaultsField,
-      })
-      .strict(),
+    ClaudeSdkCustomProviderSchema,
   ])
   .optional();
 

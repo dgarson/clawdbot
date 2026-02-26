@@ -137,6 +137,8 @@ export type SdkMessage =
   | SdkCompactBoundaryMessage
   | Record<string, unknown>;
 
+type PiStopReason = "stop" | "length" | "toolUse" | "error" | "aborted";
+
 // ---------------------------------------------------------------------------
 // Main translation function
 // ---------------------------------------------------------------------------
@@ -609,7 +611,7 @@ function buildAgentMessage(
   messageId: string,
   state: Pick<ClaudeSdkEventAdapterState, "transcriptProvider" | "transcriptApi">,
 ): unknown {
-  const stopReason = sdkMessage.stop_reason ?? sdkMessage.stopReason;
+  const stopReason = normalizeStopReason(sdkMessage.stop_reason ?? sdkMessage.stopReason);
   return {
     role: sdkMessage.role,
     content,
@@ -621,6 +623,59 @@ function buildAgentMessage(
     stopReason,
     errorMessage: sdkMessage.errorMessage,
   };
+}
+
+function normalizeStopReason(value: unknown, fallback?: PiStopReason): PiStopReason | undefined {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) {
+    return fallback;
+  }
+  switch (normalized) {
+    case "stop":
+    case "end_turn":
+    case "endturn":
+    case "stop_sequence":
+    case "stopsequence":
+      return "stop";
+    case "length":
+    case "max_tokens":
+    case "max_token":
+    case "max_output_tokens":
+      return "length";
+    case "tooluse":
+    case "tool_use":
+    case "toolcall":
+    case "tool_call":
+    case "tool_calls":
+      return "toolUse";
+    case "error":
+      return "error";
+    case "aborted":
+    case "abort":
+    case "cancelled":
+    case "canceled":
+    case "interrupted":
+      return "aborted";
+    default:
+      return fallback;
+  }
+}
+
+function toTokenCount(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return 0;
+  }
+  return value;
+}
+
+function calculateUsageCost(tokens: number, ratePerMillion?: number): number {
+  if (typeof ratePerMillion !== "number" || !Number.isFinite(ratePerMillion)) {
+    return 0;
+  }
+  return (tokens * ratePerMillion) / 1_000_000;
 }
 
 // ---------------------------------------------------------------------------
@@ -866,21 +921,18 @@ function persistAssistantMessage(
           cache_creation_input_tokens?: number;
         }
       | undefined;
-    const inputTokens = sdkUsage?.input_tokens ?? 0;
-    const outputTokens = sdkUsage?.output_tokens ?? 0;
-    const cacheReadTokens = sdkUsage?.cache_read_input_tokens ?? 0;
-    const cacheWriteTokens = sdkUsage?.cache_creation_input_tokens ?? 0;
-    const usageCost = state.modelCost
-      ? {
-          input: (inputTokens * state.modelCost.input) / 1_000_000,
-          output: (outputTokens * state.modelCost.output) / 1_000_000,
-          cacheRead: (cacheReadTokens * state.modelCost.cacheRead) / 1_000_000,
-          cacheWrite: (cacheWriteTokens * state.modelCost.cacheWrite) / 1_000_000,
-        }
-      : undefined;
-    const usageCostTotal = usageCost
-      ? usageCost.input + usageCost.output + usageCost.cacheRead + usageCost.cacheWrite
-      : undefined;
+    const inputTokens = toTokenCount(sdkUsage?.input_tokens);
+    const outputTokens = toTokenCount(sdkUsage?.output_tokens);
+    const cacheReadTokens = toTokenCount(sdkUsage?.cache_read_input_tokens);
+    const cacheWriteTokens = toTokenCount(sdkUsage?.cache_creation_input_tokens);
+    const usageCost = {
+      input: calculateUsageCost(inputTokens, state.modelCost?.input),
+      output: calculateUsageCost(outputTokens, state.modelCost?.output),
+      cacheRead: calculateUsageCost(cacheReadTokens, state.modelCost?.cacheRead),
+      cacheWrite: calculateUsageCost(cacheWriteTokens, state.modelCost?.cacheWrite),
+    };
+    const usageCostTotal =
+      usageCost.input + usageCost.output + usageCost.cacheRead + usageCost.cacheWrite;
 
     const piMessage = {
       role: "assistant" as const,
@@ -888,24 +940,20 @@ function persistAssistantMessage(
       api: state.transcriptApi,
       provider: state.transcriptProvider,
       model: sdkMessage.message.model ?? "",
-      stopReason: sdkMessage.message.stop_reason ?? "end_turn",
+      stopReason: normalizeStopReason(sdkMessage.message.stop_reason, "stop"),
       usage: {
         input: inputTokens,
         output: outputTokens,
         cacheRead: cacheReadTokens,
         cacheWrite: cacheWriteTokens,
         totalTokens: inputTokens + outputTokens + cacheReadTokens + cacheWriteTokens,
-        ...(usageCost
-          ? {
-              cost: {
-                input: usageCost.input,
-                output: usageCost.output,
-                cacheRead: usageCost.cacheRead,
-                cacheWrite: usageCost.cacheWrite,
-                total: usageCostTotal,
-              },
-            }
-          : {}),
+        cost: {
+          input: usageCost.input,
+          output: usageCost.output,
+          cacheRead: usageCost.cacheRead,
+          cacheWrite: usageCost.cacheWrite,
+          total: usageCostTotal,
+        },
       },
       timestamp: Date.now(),
     };

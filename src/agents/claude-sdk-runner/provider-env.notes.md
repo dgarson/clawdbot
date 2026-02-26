@@ -18,7 +18,7 @@ subprocess launches in OpenClaw.
 - `anthropic`:
   - Injects `ANTHROPIC_API_KEY` from auth resolver.
   - Removes proxy endpoint vars (`ANTHROPIC_BASE_URL` and `API_TIMEOUT_MS`).
-- Non-Anthropic providers (`minimax`, `minimax-portal`, `zai`, `openrouter`, `custom`):
+- Non-Anthropic providers (`minimax`, `minimax-portal`, `zai`, `openrouter`):
   - Set `ANTHROPIC_BASE_URL`.
   - Set `API_TIMEOUT_MS=3000000`.
   - Inject credential as `ANTHROPIC_AUTH_TOKEN`.
@@ -28,6 +28,24 @@ subprocess launches in OpenClaw.
     - `ANTHROPIC_DEFAULT_OPUS_MODEL`
     - `ANTHROPIC_MODEL`
     - `ANTHROPIC_SMALL_FAST_MODEL`
+- `custom`:
+  - Requires explicit `baseUrl`.
+  - Requires `authProfileId` (OpenClaw auth-profile reference).
+  - Optional `authHeaderName` sets which env/header key receives the resolved credential.
+  - `authHeaderName` defaults to `ANTHROPIC_AUTH_TOKEN`.
+  - Requires all three explicit model mappings:
+    - `anthropicDefaultHaikuModel`
+    - `anthropicDefaultSonnetModel`
+    - `anthropicDefaultOpusModel`
+  - Never uses provider/model defaults or inherited model alias defaults.
+  - Exports:
+    - `ANTHROPIC_BASE_URL`
+    - one auth env key from `authHeaderName` (default `ANTHROPIC_AUTH_TOKEN`)
+    - `ANTHROPIC_DEFAULT_HAIKU_MODEL`
+    - `ANTHROPIC_DEFAULT_SONNET_MODEL`
+    - `ANTHROPIC_DEFAULT_OPUS_MODEL`
+    - `ANTHROPIC_MODEL` (from explicit sonnet mapping)
+    - `ANTHROPIC_SMALL_FAST_MODEL` (from explicit haiku mapping)
 
 ## OpenRouter Caveat
 
@@ -53,4 +71,5 @@ config or explicit env override), and avoid silently enabling outbound
 telemetry for existing users.
 
 Reference:
+
 - https://code.claude.com/docs/en/monitoring-usage

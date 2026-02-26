@@ -37,11 +37,7 @@ const CLAUDE_CODE_TRAFFIC_GUARDRAILS = {
   CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
 } as const;
 
-function resolveEnvOverride(
-  env: Record<string, string>,
-  key: string,
-  fallback: string,
-): string {
+function resolveEnvOverride(env: Record<string, string>, key: string, fallback: string): string {
   const value = env[key]?.trim();
   return value ? value : fallback;
 }
@@ -149,8 +145,12 @@ export function buildProviderEnv(
   }
 
   if (provider === "custom") {
-    // config.apiKey is the escape hatch for providers without an OpenClaw auth profile
-    const apiKey = config.apiKey ?? resolvedApiKey;
+    if (!resolvedApiKey) {
+      throw new Error(
+        "[claude-sdk] custom provider requires API credentials from claudeSdk.authProfileId",
+      );
+    }
+    const authHeaderName = config.authHeaderName?.trim() || "ANTHROPIC_AUTH_TOKEN";
     const inherited = parentEnv();
     // Scrub inherited Anthropic credentials so they do not leak to a third-party endpoint.
     scrubInheritedAnthropicEnv(inherited);
@@ -158,10 +158,13 @@ export function buildProviderEnv(
       ...inherited,
       ANTHROPIC_BASE_URL: config.baseUrl,
       API_TIMEOUT_MS: PROVIDER_TIMEOUT_MS,
+      [DEFAULT_HAIKU_MODEL_ENV]: config.anthropicDefaultHaikuModel,
+      [DEFAULT_SONNET_MODEL_ENV]: config.anthropicDefaultSonnetModel,
+      [DEFAULT_OPUS_MODEL_ENV]: config.anthropicDefaultOpusModel,
+      ANTHROPIC_MODEL: config.anthropicDefaultSonnetModel,
+      ANTHROPIC_SMALL_FAST_MODEL: config.anthropicDefaultHaikuModel,
     };
-    if (apiKey) {
-      env["ANTHROPIC_AUTH_TOKEN"] = apiKey;
-    }
+    env[authHeaderName] = resolvedApiKey;
     applyClaudeCodeTrafficGuardrails(env);
     return env;
   }

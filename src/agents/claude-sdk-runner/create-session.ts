@@ -19,6 +19,7 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { resolveClaudeSubprocessEnv } from "./config.js";
 import { mapSdkError } from "./error-mapping.js";
 import { translateSdkMessageToEvents } from "./event-adapter.js";
 import { createClaudeSdkMcpToolServer } from "./mcp-tool-server.js";
@@ -194,8 +195,13 @@ function buildQueryOptions(
     params.claudeSdkConfig ?? { provider: "claude-sdk" as const },
     params.resolvedProviderAuth,
   );
-  if (providerEnv !== undefined) {
-    queryOptions["env"] = providerEnv;
+
+  const resolvedSubprocessEnv = resolveClaudeSubprocessEnv({
+    providerEnv,
+    claudeSdkConfig: params.claudeSdkConfig,
+  });
+  if (resolvedSubprocessEnv) {
+    queryOptions["env"] = resolvedSubprocessEnv;
   }
 
   const customSpawn =
