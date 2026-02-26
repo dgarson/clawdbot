@@ -16,7 +16,7 @@ vi.mock("../auth-profiles.js", () => ({
   saveAuthProfileStore: mocks.saveAuthProfileStore,
 }));
 
-import { createClaudeSdkAuthResolutionState } from "./claude-sdk-auth-resolution.js";
+import { createClaudeSdkAuthResolutionState } from "./auth-resolution.js";
 
 describe("createClaudeSdkAuthResolutionState", () => {
   beforeEach(() => {
@@ -112,5 +112,58 @@ describe("createClaudeSdkAuthResolutionState", () => {
     expect(state.runtimeOverride).toBe("pi");
     expect(state.authProvider).toBe("claude-pro");
     expect(state.claudeSdkProviderOverride).toBeUndefined();
+  });
+
+  it("uses claudeSdk.custom.authProfileId as locked candidate for custom provider", async () => {
+    mocks.upsertAuthProfileWithLock.mockResolvedValue({
+      profiles: {
+        "claude-pro:system-keychain": {
+          type: "token",
+          provider: "claude-pro",
+          token: "system-keychain",
+        },
+        "custom-profile": {
+          type: "token",
+          provider: "zai",
+          token: "sk-custom",
+        },
+      },
+    });
+    const authStore = {
+      profiles: {
+        "custom-profile": {
+          type: "token",
+          provider: "zai",
+          token: "sk-custom",
+        },
+      },
+    } as never;
+    const state = await createClaudeSdkAuthResolutionState({
+      provider: "claude-pro",
+      cfg: {},
+      claudeSdkConfig: {
+        provider: "custom",
+        authProfileId: "custom-profile",
+        anthropicDefaultHaikuModel: "custom-haiku",
+        anthropicDefaultSonnetModel: "custom-sonnet",
+        anthropicDefaultOpusModel: "custom-opus",
+        baseUrl: "https://gateway.example/v1",
+        supportedProviders: ["claude-pro"],
+      } as never,
+      authStore,
+      agentDir: "/tmp/agent",
+      preferredProfileId: undefined,
+      authProfileIdSource: undefined,
+    });
+
+    const moved = await state.moveToNextClaudeSdkProvider();
+    expect(moved).toBe(true);
+    expect(state.runtimeOverride).toBe("claude-sdk");
+    expect(state.authProvider).toBe("custom");
+    expect(state.claudeSdkProviderOverride).toBe("custom");
+    expect(state.lockedProfileId).toBe("custom-profile");
+    expect(state.profileCandidates).toEqual([
+      { profileId: "custom-profile", resolveProfileId: "custom-profile" },
+    ]);
   });
 });

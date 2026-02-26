@@ -31,9 +31,16 @@ export function resolveClaudeSdkConfig(
   }
   const resolved = merged as ClaudeSdkConfig;
   if (params.claudeSdkProviderOverride?.trim()) {
+    const overriddenProvider =
+      params.claudeSdkProviderOverride.trim() as ClaudeSdkConfig["provider"];
+    if (overriddenProvider === "custom") {
+      return resolved.provider === "custom" ? resolved : undefined;
+    }
     return {
-      ...resolved,
-      provider: params.claudeSdkProviderOverride.trim() as ClaudeSdkConfig["provider"],
+      provider: overriddenProvider,
+      thinkingDefault: resolved.thinkingDefault,
+      configDir: resolved.configDir,
+      supportedProviders: resolved.supportedProviders,
     };
   }
   return resolved;

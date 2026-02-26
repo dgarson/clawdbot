@@ -161,8 +161,16 @@ describe("resolveClaudeSdkConfig", () => {
     const params = {
       config: {
         agents: {
-          defaults: { claudeSdk: { provider: "anthropic", thinkingDefault: "low" } },
-          list: [{ id: "main", claudeSdk: { provider: "zai" } }],
+          defaults: {
+            claudeSdk: {
+              provider: "anthropic",
+              thinkingDefault: "low",
+              configDir: "/tmp/default-claude-dir",
+            },
+          },
+          list: [
+            { id: "main", claudeSdk: { provider: "zai", configDir: "/tmp/agent-claude-dir" } },
+          ],
         },
       },
     } as unknown as EmbeddedRunAttemptParams;
@@ -170,6 +178,7 @@ describe("resolveClaudeSdkConfig", () => {
     expect(resolveClaudeSdkConfig(params, "main")).toEqual({
       provider: "zai",
       thinkingDefault: "low",
+      configDir: "/tmp/agent-claude-dir",
     });
   });
 
@@ -177,7 +186,13 @@ describe("resolveClaudeSdkConfig", () => {
     const params = {
       config: {
         agents: {
-          defaults: { claudeSdk: { provider: "anthropic", thinkingDefault: "medium" } },
+          defaults: {
+            claudeSdk: {
+              provider: "anthropic",
+              thinkingDefault: "medium",
+              configDir: "/tmp/default-claude-dir",
+            },
+          },
           list: [{ id: "main", claudeSdk: {} }],
         },
       },
@@ -186,6 +201,7 @@ describe("resolveClaudeSdkConfig", () => {
     expect(resolveClaudeSdkConfig(params, "main")).toEqual({
       provider: "anthropic",
       thinkingDefault: "medium",
+      configDir: "/tmp/default-claude-dir",
     });
   });
 
@@ -212,6 +228,70 @@ describe("resolveClaudeSdkConfig", () => {
     } as unknown as EmbeddedRunAttemptParams;
 
     expect(resolveClaudeSdkConfig(params, "other")).toBeUndefined();
+  });
+
+  it("returns custom claudeSdk config with required explicit fields", () => {
+    const params = {
+      config: {
+        agents: {
+          list: [
+            {
+              id: "main",
+              claudeSdk: {
+                provider: "custom",
+                baseUrl: "https://gateway.example/v1",
+                authProfileId: "custom-profile",
+                anthropicDefaultHaikuModel: "custom-haiku",
+                anthropicDefaultSonnetModel: "custom-sonnet",
+                anthropicDefaultOpusModel: "custom-opus",
+              },
+            },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({
+      provider: "custom",
+      baseUrl: "https://gateway.example/v1",
+      authProfileId: "custom-profile",
+      anthropicDefaultHaikuModel: "custom-haiku",
+      anthropicDefaultSonnetModel: "custom-sonnet",
+      anthropicDefaultOpusModel: "custom-opus",
+    });
+  });
+
+  it("drops custom-only fields when overriding custom config to non-custom provider", () => {
+    const params = {
+      claudeSdkProviderOverride: "zai",
+      config: {
+        agents: {
+          list: [
+            {
+              id: "main",
+              claudeSdk: {
+                provider: "custom",
+                baseUrl: "https://gateway.example/v1",
+                authProfileId: "custom-profile",
+                thinkingDefault: "low",
+                configDir: "/tmp/custom-claude-dir",
+                supportedProviders: ["claude-pro", "zai"],
+                anthropicDefaultHaikuModel: "custom-haiku",
+                anthropicDefaultSonnetModel: "custom-sonnet",
+                anthropicDefaultOpusModel: "custom-opus",
+              },
+            },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({
+      provider: "zai",
+      thinkingDefault: "low",
+      configDir: "/tmp/custom-claude-dir",
+      supportedProviders: ["claude-pro", "zai"],
+    });
   });
 });
 

@@ -89,31 +89,85 @@ describe("buildProviderEnv", () => {
     expect(env!["ANTHROPIC_API_KEY"]).toBe("");
   });
 
-  it("custom: uses config.apiKey preferring it over resolvedApiKey", () => {
+  it("custom: defaults auth header to ANTHROPIC_AUTH_TOKEN and requires explicit model env mappings", () => {
+    vi.stubEnv("ANTHROPIC_DEFAULT_HAIKU_MODEL", "env-haiku");
+    vi.stubEnv("ANTHROPIC_DEFAULT_SONNET_MODEL", "env-sonnet");
+    vi.stubEnv("ANTHROPIC_DEFAULT_OPUS_MODEL", "env-opus");
     const env = buildProviderEnv(
-      { provider: "custom", baseUrl: "https://my.gateway/v1", apiKey: "sk-config" },
-      resolvedAuth("sk-auth-fallback"),
+      {
+        provider: "custom",
+        baseUrl: "https://my.gateway/v1",
+        authProfileId: "custom-profile",
+        anthropicDefaultHaikuModel: "custom-haiku",
+        anthropicDefaultSonnetModel: "custom-sonnet",
+        anthropicDefaultOpusModel: "custom-opus",
+      },
+      resolvedAuth("sk-custom-api"),
     );
     expect(env!["ANTHROPIC_BASE_URL"]).toBe("https://my.gateway/v1");
-    expect(env!["ANTHROPIC_AUTH_TOKEN"]).toBe("sk-config");
+    expect(env!["ANTHROPIC_AUTH_TOKEN"]).toBe("sk-custom-api");
     expect(env!["ANTHROPIC_API_KEY"]).toBeUndefined();
-    expect(env!["API_TIMEOUT_MS"]).toBe("3000000");
-    expect(env!["ANTHROPIC_DEFAULT_HAIKU_MODEL"]).toBeUndefined();
+    expect(env!["ANTHROPIC_DEFAULT_HAIKU_MODEL"]).toBe("custom-haiku");
+    expect(env!["ANTHROPIC_DEFAULT_SONNET_MODEL"]).toBe("custom-sonnet");
+    expect(env!["ANTHROPIC_DEFAULT_OPUS_MODEL"]).toBe("custom-opus");
+    expect(env!["ANTHROPIC_MODEL"]).toBe("custom-sonnet");
+    expect(env!["ANTHROPIC_SMALL_FAST_MODEL"]).toBe("custom-haiku");
     expectTrafficGuardrails(env);
   });
 
-  it("custom: falls back to resolvedApiKey when no config.apiKey", () => {
+  it("custom: supports authHeaderName override", () => {
     const env = buildProviderEnv(
-      { provider: "custom", baseUrl: "https://my.gateway/v1" },
-      resolvedAuth("sk-auth-fallback"),
+      {
+        provider: "custom",
+        baseUrl: "https://my.gateway/v1",
+        authProfileId: "custom-profile",
+        authHeaderName: "ANTHROPIC_API_KEY",
+        anthropicDefaultHaikuModel: "custom-haiku",
+        anthropicDefaultSonnetModel: "custom-sonnet",
+        anthropicDefaultOpusModel: "custom-opus",
+      },
+      resolvedAuth("sk-custom-auth-token"),
     );
-    expect(env!["ANTHROPIC_AUTH_TOKEN"]).toBe("sk-auth-fallback");
+    expect(env!["ANTHROPIC_API_KEY"]).toBe("sk-custom-auth-token");
+    expect(env!["ANTHROPIC_AUTH_TOKEN"]).toBeUndefined();
   });
 
-  it("custom without apiKey or resolvedApiKey: omits ANTHROPIC_AUTH_TOKEN", () => {
-    const env = buildProviderEnv({ provider: "custom", baseUrl: "https://my.gateway/v1" });
-    expect(env!["ANTHROPIC_BASE_URL"]).toBe("https://my.gateway/v1");
-    expect("ANTHROPIC_AUTH_TOKEN" in env!).toBe(false);
+  it("custom: ignores inherited model alias env vars and uses explicit values", () => {
+    vi.stubEnv("ANTHROPIC_DEFAULT_HAIKU_MODEL", "env-haiku");
+    vi.stubEnv("ANTHROPIC_DEFAULT_SONNET_MODEL", "env-sonnet");
+    vi.stubEnv("ANTHROPIC_DEFAULT_OPUS_MODEL", "env-opus");
+    const env = buildProviderEnv(
+      {
+        provider: "custom",
+        baseUrl: "https://my.gateway/v1",
+        authProfileId: "custom-profile",
+        anthropicDefaultHaikuModel: "custom-haiku",
+        anthropicDefaultSonnetModel: "custom-sonnet",
+        anthropicDefaultOpusModel: "custom-opus",
+      },
+      resolvedAuth("sk-custom-auth-token"),
+    );
+    expect(env!["ANTHROPIC_DEFAULT_HAIKU_MODEL"]).toBe("custom-haiku");
+    expect(env!["ANTHROPIC_DEFAULT_SONNET_MODEL"]).toBe("custom-sonnet");
+    expect(env!["ANTHROPIC_DEFAULT_OPUS_MODEL"]).toBe("custom-opus");
+  });
+
+  it("custom: strips inherited anthropic auth env vars", () => {
+    vi.stubEnv("ANTHROPIC_AUTH_TOKEN", "tok-anthropic-secret");
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-secret");
+    const env = buildProviderEnv(
+      {
+        provider: "custom",
+        baseUrl: "https://my.gateway/v1",
+        authProfileId: "custom-profile",
+        anthropicDefaultHaikuModel: "custom-haiku",
+        anthropicDefaultSonnetModel: "custom-sonnet",
+        anthropicDefaultOpusModel: "custom-opus",
+      },
+      resolvedAuth("sk-custom-auth-token"),
+    );
+    expect(env!["ANTHROPIC_AUTH_TOKEN"]).toBe("sk-custom-auth-token");
+    expect(env!["ANTHROPIC_API_KEY"]).toBeUndefined();
   });
 
   it("inherits process.env for non-passthrough providers", () => {
@@ -132,17 +186,6 @@ describe("buildProviderEnv", () => {
     expect(env!["ANTHROPIC_API_KEY"]).toBeUndefined();
     expect(env!["ANTHROPIC_OAUTH_TOKEN"]).toBeUndefined();
     expect(env!["ANTHROPIC_BASE_URL"]).toBe("https://api.minimax.io/anthropic");
-  });
-
-  it("scrubs ANTHROPIC_AUTH_TOKEN and ANTHROPIC_BASE_URL for custom provider", () => {
-    vi.stubEnv("ANTHROPIC_AUTH_TOKEN", "tok-anthropic-secret");
-    vi.stubEnv("ANTHROPIC_BASE_URL", "https://some-proxy.example.com");
-    const env = buildProviderEnv(
-      { provider: "custom", baseUrl: "https://my.gateway/v1" },
-      resolvedAuth("sk-custom"),
-    );
-    expect(env!["ANTHROPIC_AUTH_TOKEN"]).toBe("sk-custom");
-    expect(env!["ANTHROPIC_BASE_URL"]).toBe("https://my.gateway/v1"); // overwritten by our value
   });
 
   it("allows model override env vars to replace provider defaults", () => {
@@ -174,5 +217,21 @@ describe("buildProviderEnv", () => {
     const env = buildProviderEnv({ provider: "anthropic" }, resolvedAuth("sk-ant-resolved"));
     expect(env!["ANTHROPIC_OAUTH_TOKEN"]).toBeUndefined();
     expect(env!["ANTHROPIC_API_KEY"]).toBe("sk-ant-resolved");
+  });
+
+  it("custom: throws if auth profile does not resolve credentials", () => {
+    expect(() =>
+      buildProviderEnv(
+        {
+          provider: "custom",
+          baseUrl: "https://my.gateway/v1",
+          authProfileId: "custom-profile",
+          anthropicDefaultHaikuModel: "custom-haiku",
+          anthropicDefaultSonnetModel: "custom-sonnet",
+          anthropicDefaultOpusModel: "custom-opus",
+        },
+        { source: "profile:custom-profile", mode: "api-key" },
+      ),
+    ).toThrow("[claude-sdk] custom provider requires API credentials from claudeSdk.authProfileId");
   });
 });

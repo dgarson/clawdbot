@@ -1741,6 +1741,7 @@ describe("event translation -- JSONL persistence", () => {
           role: "assistant",
           content: [{ type: "text", text: "Hello" }],
           usage: { input_tokens: 100, output_tokens: 50 },
+          stop_reason: "end_turn",
         },
       } as never,
       state,
@@ -1750,9 +1751,42 @@ describe("event translation -- JSONL persistence", () => {
     const persisted = appendMessage.mock.calls[0][0];
     expect(persisted.role).toBe("assistant");
     expect(persisted.api).toBe("anthropic-messages");
+    expect(persisted.stopReason).toBe("stop");
     expect(persisted.usage.input).toBe(100);
     expect(persisted.usage.output).toBe(50);
     expect(persisted.usage.totalTokens).toBe(150);
+    expect(persisted.usage.cost).toEqual({
+      input: 0,
+      output: 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+      total: 0,
+    });
+  });
+
+  it("normalizes stopReason values to Pi-compatible enums", () => {
+    const appendMessage = vi.fn();
+    const state = makeState({
+      sessionManager: { appendMessage },
+    });
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "tool call pending" }],
+          stop_reason: "tool_use",
+        },
+      } as never,
+      state,
+    );
+
+    const persisted = appendMessage.mock.calls[0][0];
+    expect(persisted.stopReason).toBe("toolUse");
+    const runtimeAssistant = state.messages[state.messages.length - 1] as { stopReason?: string };
+    expect(runtimeAssistant.stopReason).toBe("toolUse");
   });
 
   it("uses configured transcript provider/api metadata for persistence", () => {

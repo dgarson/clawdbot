@@ -29,6 +29,36 @@ If you want implementation details and reviewer checklists, see
 5. MCP tool execution consumes queued tool_use IDs and emits start/update/end events.
 6. Tool results are appended to runtime mirror and persisted to transcript.
 
+## Runtime selection and failover
+
+OpenClaw can run a turn in either Claude SDK runtime or Pi runtime.
+
+- System keychain providers (for example `claude-pro` / `claude-max`) start in Claude SDK runtime.
+- `agents.defaults.claudeSdk.supportedProviders` can add non-keychain provider IDs (for example `zai`, `minimax`) as Claude SDK candidates.
+- Within Claude SDK runtime, OpenClaw rotates auth profiles first, then Claude SDK provider candidates.
+- If all Claude SDK candidates are unavailable or cooling down, OpenClaw automatically falls back to Pi runtime for the same turn.
+
+This keeps session continuity while preserving the broader Pi failover path.
+
+Example:
+
+```json5
+{
+  agents: {
+    defaults: {
+      claudeSdk: {
+        provider: "zai",
+        supportedProviders: ["claude-pro", "zai", "minimax"],
+      },
+      model: {
+        primary: "claude-pro/claude-sonnet-4-5",
+        fallbacks: ["zai/GLM-4.7", "minimax/MiniMax-M2.5"],
+      },
+    },
+  },
+}
+```
+
 ## Parity map
 
 | Area                   | Behavior                                                                                      |

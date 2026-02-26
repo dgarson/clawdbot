@@ -2,22 +2,16 @@ import type { Api, Model } from "@mariozechner/pi-ai";
 import type { OpenClawConfig } from "../../../config/config.js";
 import type { ClaudeSdkConfig } from "../../../config/zod-schema.agent-runtime.js";
 import type { AuthProfileStore } from "../../auth-profiles.js";
-import {
-  isProfileInCooldown,
-  resolveProfilesUnavailableReason,
-} from "../../auth-profiles.js";
-import { FailoverError, resolveFailoverStatus } from "../../failover-error.js";
-import { getApiKeyForModel, type ResolvedProviderAuth } from "../../model-auth.js";
-import {
-  classifyFailoverReason,
-  type FailoverReason,
-} from "../../pi-embedded-helpers.js";
-import type { AuthStorage } from "../../pi-model-discovery.js";
+import { isProfileInCooldown, resolveProfilesUnavailableReason } from "../../auth-profiles.js";
 import {
   createClaudeSdkAuthResolutionState,
   type ClaudeSdkAuthResolutionState,
   type AuthProfileCandidate,
-} from "../../claude-sdk-runner/claude-sdk-auth-resolution.js";
+} from "../../claude-sdk-runner/auth-resolution.js";
+import { FailoverError, resolveFailoverStatus } from "../../failover-error.js";
+import { getApiKeyForModel, type ResolvedProviderAuth } from "../../model-auth.js";
+import { classifyFailoverReason, type FailoverReason } from "../../pi-embedded-helpers.js";
+import type { AuthStorage } from "../../pi-model-discovery.js";
 import { describeUnknownError } from "../utils.js";
 
 type CreateRunAuthProfileFailoverControllerParams = {
@@ -74,6 +68,10 @@ export async function createRunAuthProfileFailoverController(
       const profileIds = (
         args.profileIds ?? authResolution.profileCandidates.map((candidate) => candidate.profileId)
       ).filter((id): id is string => typeof id === "string" && id.length > 0);
+      if (profileIds.length === 0) {
+        const classified = classifyFailoverReason(args.message);
+        return classified ?? "auth";
+      }
       return (
         resolveProfilesUnavailableReason({
           store: params.authStore,
@@ -176,6 +174,10 @@ export async function createRunAuthProfileFailoverController(
   };
 
   const advanceAuthProfile = async (): Promise<boolean> => {
+    // User-pinned profiles are locked and should never rotate within the run loop.
+    if (authResolution.lockedProfileId) {
+      return false;
+    }
     authResolution.advanceProfileIndex();
     if (await initializeCurrentAuthCandidate()) {
       params.onAuthRotationSuccess?.();
@@ -222,8 +224,8 @@ export async function createRunAuthProfileFailoverController(
     if (error instanceof FailoverError) {
       throw error;
     }
-    const activeCandidateProfileId = authResolution.profileCandidates[authResolution.profileIndex]
-      ?.profileId;
+    const activeCandidateProfileId =
+      authResolution.profileCandidates[authResolution.profileIndex]?.profileId;
     if (activeCandidateProfileId && activeCandidateProfileId === authResolution.lockedProfileId) {
       throwAuthProfileFailover({ allInCooldown: false, error });
     }

@@ -5,10 +5,7 @@ import {
   upsertAuthProfileWithLock,
   type AuthProfileStore,
 } from "../auth-profiles.js";
-import {
-  resolveAuthProfileOrder,
-  SYSTEM_KEYCHAIN_PROVIDERS,
-} from "../model-auth.js";
+import { resolveAuthProfileOrder, SYSTEM_KEYCHAIN_PROVIDERS } from "../model-auth.js";
 import { normalizeProviderId } from "../model-selection.js";
 
 export type AuthProfileCandidate = {
@@ -53,7 +50,7 @@ async function ensureSyntheticSystemKeychainProfile(
   authStore: AuthProfileStore,
   providerId: string,
   agentDir: string | undefined,
-): string {
+): Promise<string> {
   const syntheticProfileId = `${providerId}:${SYNTHETIC_SYSTEM_KEYCHAIN_PROFILE_SUFFIX}`;
   const credential = {
     type: "token" as const,
@@ -81,11 +78,26 @@ async function buildProfileCandidatesForProvider(params: {
   providerId: string;
   authStore: AuthProfileStore;
   cfg: OpenClawConfig | undefined;
+  claudeSdkConfig: ClaudeSdkConfig | undefined;
   preferredProfileId: string | undefined;
   authProfileIdSource: string | undefined;
   agentDir: string | undefined;
 }): Promise<{ lockedProfileId?: string; candidates: AuthProfileCandidate[] }> {
-  const { providerId, authStore, cfg, preferredProfileId, authProfileIdSource } = params;
+  const { providerId, authStore, cfg, claudeSdkConfig, preferredProfileId, authProfileIdSource } =
+    params;
+  if (providerId === "custom" && claudeSdkConfig?.provider === "custom") {
+    const customProfileId = claudeSdkConfig.authProfileId.trim();
+    if (!authStore.profiles[customProfileId]) {
+      throw new Error(
+        `Auth profile "${customProfileId}" (claudeSdk.custom.authProfileId) is not configured.`,
+      );
+    }
+    return {
+      lockedProfileId: customProfileId,
+      candidates: [{ profileId: customProfileId, resolveProfileId: customProfileId }],
+    };
+  }
+
   let lockedProfileId = authProfileIdSource === "user" ? preferredProfileId : undefined;
   if (lockedProfileId) {
     const lockedProfile = authStore.profiles[lockedProfileId];
@@ -153,9 +165,7 @@ function resolveClaudeSdkProviderCandidates(params: {
     return [];
   }
   const configuredPrimaryProvider =
-    params.claudeSdkConfig &&
-    params.claudeSdkConfig.provider !== "claude-sdk" &&
-    params.claudeSdkConfig.provider !== "custom"
+    params.claudeSdkConfig && params.claudeSdkConfig.provider !== "claude-sdk"
       ? params.claudeSdkConfig.provider
       : undefined;
   const orderedProviders = providerIsSystemKeychain
@@ -204,8 +214,9 @@ export async function createClaudeSdkAuthResolutionState(params: {
   });
 
   let claudeSdkProviderIndex = claudeSdkProviderCandidates.length > 0 ? 0 : -1;
-  let runtimeOverride: AuthResolutionRuntime = claudeSdkProviderIndex >= 0 ? "claude-sdk" : undefined;
-  let authProvider = claudeSdkProviderIndex >= 0 ? claudeSdkProviderCandidates[0]! : params.provider;
+  let runtimeOverride: AuthResolutionRuntime =
+    claudeSdkProviderIndex >= 0 ? "claude-sdk" : undefined;
+  let authProvider = claudeSdkProviderIndex >= 0 ? claudeSdkProviderCandidates[0] : params.provider;
   let claudeSdkProviderOverride = resolveClaudeSdkProviderOverride(runtimeOverride, authProvider);
   let lockedProfileId: string | undefined;
   let profileCandidates: AuthProfileCandidate[] = [];
@@ -222,6 +233,7 @@ export async function createClaudeSdkAuthResolutionState(params: {
       providerId,
       authStore: params.authStore,
       cfg: params.cfg,
+      claudeSdkConfig: params.claudeSdkConfig,
       agentDir: params.agentDir,
       preferredProfileId: params.preferredProfileId,
       authProfileIdSource: params.authProfileIdSource,
@@ -267,7 +279,7 @@ export async function createClaudeSdkAuthResolutionState(params: {
         return false;
       }
       claudeSdkProviderIndex = nextIndex;
-      await setActiveAuthProvider(claudeSdkProviderCandidates[nextIndex]!, "claude-sdk");
+      await setActiveAuthProvider(claudeSdkProviderCandidates[nextIndex], "claude-sdk");
       return true;
     },
     async fallBackToPiRuntime() {
