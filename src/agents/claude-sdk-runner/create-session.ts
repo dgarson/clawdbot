@@ -105,6 +105,33 @@ function resolveTranscriptMetadata(provider?: string): {
   };
 }
 
+/**
+ * Translate a full Anthropic model ID to the short alias the Claude CLI subprocess
+ * understands. The CLI's `--model` flag accepts `opus`, `sonnet`, and `haiku` as
+ * stable aliases that always resolve to the latest available version of that tier.
+ *
+ * Passing the full versioned ID (e.g. `claude-opus-4-6`) causes the CLI to silently
+ * fall back to its own default when it doesn't recognise the version string, which
+ * produces the wrong model and triggers a spurious fallback notice in OpenClaw.
+ *
+ * OpenClaw keeps the full `claude-*` ID for routing, fallback detection, and
+ * user-facing display — only the value sent to the subprocess is aliased.
+ */
+function resolveClaudeSdkModelAlias(modelId: string): string {
+  const lower = modelId.toLowerCase();
+  if (lower.includes("opus")) {
+    return "opus";
+  }
+  if (lower.includes("sonnet")) {
+    return "sonnet";
+  }
+  if (lower.includes("haiku")) {
+    return "haiku";
+  }
+  // Unknown model — pass through and let the CLI reject it explicitly.
+  return modelId;
+}
+
 function buildQueryOptions(
   params: ClaudeSdkSessionParams,
   state: ClaudeSdkEventAdapterState,
@@ -119,7 +146,7 @@ function buildQueryOptions(
   };
 
   const queryOptions: Record<string, unknown> = {
-    model: params.modelId,
+    model: resolveClaudeSdkModelAlias(params.modelId),
     mcpServers,
     permissionMode: "bypassPermissions",
     allowDangerouslySkipPermissions: true,

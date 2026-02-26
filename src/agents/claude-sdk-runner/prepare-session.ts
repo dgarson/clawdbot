@@ -53,8 +53,9 @@ export async function prepareClaudeSdkSession(
   allCustomTools: ClaudeSdkCompatibleTool[],
 ): Promise<ClaudeSdkSession> {
   // 1. Validate model ID — must use full Anthropic name (claude-* prefix).
-  // Short aliases like "sonnet" or "opus" are not accepted; use the full model
-  // ID (e.g. "claude-sonnet-4-5") to avoid silently hitting the subprocess default.
+  // Full IDs (e.g. "claude-opus-4-6") are required here for routing and display;
+  // create-session.ts translates them to CLI aliases (opus/sonnet/haiku) internally
+  // before passing to the subprocess, since the CLI doesn't recognise versioned IDs.
   if (!params.modelId.startsWith("claude-")) {
     throw new Error(
       `claude-sdk runtime requires a full Anthropic model ID (must start with "claude-"). ` +

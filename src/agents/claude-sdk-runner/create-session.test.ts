@@ -701,23 +701,26 @@ describe("session lifecycle — provider env wiring", () => {
     expect(options["model"]).toBe("MiniMax-M2.5");
   });
 
-  it("keeps claude model ids for claude-sdk provider", async () => {
+  it("translates claude model ids to CLI aliases for the subprocess", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
 
     const createSession = await importCreateSession();
-    const session = await createSession(
-      makeParams({
-        modelId: "claude-sonnet-4-6",
-        claudeSdkConfig: { provider: "claude-sdk" },
-      }),
-    );
 
-    await session.prompt("Hello");
-
-    const call = queryMock.mock.calls[0];
-    const options = call[0].options as Record<string, unknown>;
-    expect(options["model"]).toBe("claude-sonnet-4-6");
+    for (const [modelId, expectedAlias] of [
+      ["claude-sonnet-4-6", "sonnet"],
+      ["claude-opus-4-6", "opus"],
+      ["claude-haiku-4-5", "haiku"],
+    ] as const) {
+      vi.clearAllMocks();
+      queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+      const session = await createSession(
+        makeParams({ modelId, claudeSdkConfig: { provider: "claude-sdk" } }),
+      );
+      await session.prompt("Hello");
+      const options = queryMock.mock.calls[0][0].options as Record<string, unknown>;
+      expect(options["model"]).toBe(expectedAlias);
+    }
   });
 });
 
