@@ -20,6 +20,12 @@ import { normalizeProviderId } from "./model-selection.js";
 
 export { ensureAuthProfileStore, resolveAuthProfileOrder } from "./auth-profiles.js";
 
+/**
+ * Providers that authenticate via implicit system keychain (e.g. ~/.claude/ OAuth)
+ * and bypass the conventional API-key / profile auth flow entirely.
+ */
+export const SYSTEM_KEYCHAIN_PROVIDERS = new Set(["claude-pro"]);
+
 const AWS_BEARER_ENV = "AWS_BEARER_TOKEN_BEDROCK";
 const AWS_ACCESS_KEY_ENV = "AWS_ACCESS_KEY_ID";
 const AWS_SECRET_KEY_ENV = "AWS_SECRET_ACCESS_KEY";
@@ -142,13 +148,13 @@ export async function resolveApiKeyForProvider(params: {
 }): Promise<ResolvedProviderAuth> {
   const { provider, cfg, profileId, preferredProfile } = params;
 
-  // claude-max always uses implicit auth from the system keychain (~/.claude/ OAuth).
-  // There is never a case where claude-max uses a different auth mode.
-  if (provider === "claude-max") {
+  // System-keychain providers use implicit auth (e.g. ~/.claude/ OAuth) and
+  // never go through the conventional API-key / profile resolution flow.
+  if (SYSTEM_KEYCHAIN_PROVIDERS.has(provider)) {
     return {
       apiKey: undefined,
       mode: "system-keychain" as const,
-      source: "Claude Max (system keychain)",
+      source: "Claude Pro (system keychain)",
     };
   }
 
@@ -359,9 +365,9 @@ export function resolveModelAuthMode(
     return undefined;
   }
 
-  // claude-max always uses implicit auth from system keychain (~/.claude/ OAuth).
-  // There is NEVER a case where claude-max uses a different auth mode.
-  if (resolved === "claude-max") {
+  // System-keychain providers use implicit auth (e.g. ~/.claude/ OAuth) and
+  // never use a different auth mode.
+  if (SYSTEM_KEYCHAIN_PROVIDERS.has(resolved)) {
     return "system-keychain";
   }
 

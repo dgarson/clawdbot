@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../../../config/config.js";
+import { resolveClaudeSdkConfig } from "../../claude-sdk-runner/prepare-session.js";
 import {
   resolveAttemptFsWorkspaceOnly,
-  resolveClaudeSdkConfig,
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
   resolveRuntime,
@@ -218,7 +218,7 @@ describe("resolveClaudeSdkConfig", () => {
 describe("resolveRuntime", () => {
   it("returns claude-sdk for known claude-sdk providers", () => {
     const params = {
-      provider: "claude-max",
+      provider: "claude-pro",
       config: {},
     } as unknown as EmbeddedRunAttemptParams;
 
@@ -252,7 +252,7 @@ describe("resolveRuntime", () => {
     // Use a dynamic import to access the subsystem logger's warn method.
     // Instead, we test indirectly: resolveRuntime returns "pi" and does not throw.
     const params = {
-      provider: "claude-max-custom",
+      provider: "claude-pro-custom",
       config: {},
     } as unknown as EmbeddedRunAttemptParams;
 

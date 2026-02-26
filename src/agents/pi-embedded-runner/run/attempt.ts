@@ -32,12 +32,16 @@ import type { AgentRuntimeSession } from "../../agent-runtime.js";
 import { resolveSessionAgentIds } from "../../agent-scope.js";
 import { createAnthropicPayloadLogger } from "../../anthropic-payload-log.js";
 import { makeBootstrapWarn, resolveBootstrapContextForRun } from "../../bootstrap-files.js";
-import { createCacheTrace } from "../../cache-trace.js";
+import { createCacheTrace, type CacheTrace } from "../../cache-trace.js";
 import {
   listChannelSupportedActions,
   resolveChannelMessageToolHints,
 } from "../../channel-tools.js";
-import { prepareClaudeSdkSession } from "../../claude-sdk-runner/prepare-session.js";
+import {
+  CLAUDE_SDK_PROVIDERS,
+  prepareClaudeSdkSession,
+  resolveClaudeSdkConfig,
+} from "../../claude-sdk-runner/prepare-session.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../../defaults.js";
 import { resolveOpenClawDocsPath } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
@@ -119,33 +123,6 @@ import { pruneProcessedHistoryImages } from "./history-image-prune.js";
 import { detectAndLoadPromptImages } from "./images.js";
 import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types.js";
 
-const CLAUDE_SDK_PROVIDERS = new Set(["claude-max"]);
-
-/** @internal Exported for testing only. */
-export function resolveClaudeSdkConfig(
-  params: EmbeddedRunAttemptParams,
-  agentId: string,
-): ClaudeSdkConfig | undefined {
-  const agentEntry = params.config?.agents?.list?.find((a) => a.id === agentId);
-  if (agentEntry?.claudeSdk === false) {
-    return undefined;
-  }
-  const defaultsCfg = params.config?.agents?.defaults?.claudeSdk;
-  if (!agentEntry?.claudeSdk || typeof agentEntry.claudeSdk !== "object") {
-    if (defaultsCfg && typeof defaultsCfg === "object" && !("provider" in defaultsCfg)) {
-      return undefined;
-    }
-    return defaultsCfg;
-  }
-  const merged = defaultsCfg
-    ? { ...defaultsCfg, ...agentEntry.claudeSdk }
-    : { ...agentEntry.claudeSdk };
-  if (!("provider" in merged)) {
-    return undefined;
-  }
-  return merged as ClaudeSdkConfig;
-}
-
 /** @internal Exported for testing only. */
 export function resolveRuntime(
   params: EmbeddedRunAttemptParams,
@@ -154,7 +131,7 @@ export function resolveRuntime(
   if (CLAUDE_SDK_PROVIDERS.has(params.provider) || resolveClaudeSdkConfig(params, agentId)) {
     return "claude-sdk";
   }
-  if (/claude[-_]?max/i.test(params.provider) && !CLAUDE_SDK_PROVIDERS.has(params.provider)) {
+  if (/claude[-_]?pro/i.test(params.provider) && !CLAUDE_SDK_PROVIDERS.has(params.provider)) {
     log.warn(
       `provider "${params.provider}" resembles a claude-sdk provider but did not match; falling back to Pi runtime`,
     );
@@ -591,7 +568,8 @@ export async function runEmbeddedAttempt(
     let sessionManager: ReturnType<typeof guardSessionManager> | undefined;
     let session: Awaited<ReturnType<typeof createAgentSession>>["session"] | undefined;
     let piAgentForFlush: { waitForIdle?: () => Promise<void> } | undefined;
-    let agentRuntime: AgentRuntimeSession | null = null;
+    let agentSession: AgentRuntimeSession | null = null;
+    let cacheTrace: CacheTrace | null = null;
     let removeToolResultContextGuard: (() => void) | undefined;
     try {
       await repairSessionFileIfNeeded({
@@ -692,7 +670,7 @@ export async function runEmbeddedAttempt(
         const agentCfg: ClaudeSdkConfig = claudeSdkConfig ?? {
           provider: "claude-sdk" as const,
         };
-        agentRuntime = await prepareClaudeSdkSession(
+        agentSession = await prepareClaudeSdkSession(
           params,
           agentCfg,
           sessionManager,
@@ -702,6 +680,22 @@ export async function runEmbeddedAttempt(
           builtInTools,
           allCustomTools,
         );
+        cacheTrace = createCacheTrace({
+          cfg: params.config,
+          env: process.env,
+          runId: params.runId,
+          sessionId: agentSession.sessionId,
+          sessionKey: params.sessionKey,
+          provider: params.provider,
+          modelId: params.modelId,
+          modelApi: params.model.api,
+          workspaceDir: params.workspaceDir,
+        });
+        cacheTrace?.recordStage("session:loaded", {
+          messages: agentSession.messages,
+          system: systemPromptText,
+          note: "after session create",
+        });
       } else {
         ({ session } = await createAgentSession({
           cwd: resolvedWorkspace,
@@ -721,7 +715,7 @@ export async function runEmbeddedAttempt(
           throw new Error("Embedded agent session missing");
         }
         piAgentForFlush = session.agent;
-        agentRuntime = createPiRuntimeAdapter({
+        agentSession = createPiRuntimeAdapter({
           session,
           runtimeHints: {
             allowSyntheticToolResults: transcriptPolicy.allowSyntheticToolResults,
@@ -740,43 +734,24 @@ export async function runEmbeddedAttempt(
             ),
           ),
         });
-      }
-      if (!agentRuntime) {
-        throw new Error("Embedded agent runtime missing");
-      }
-      // Narrowed reference for closures that capture agentRuntime before TS can narrow it.
-      const activeRuntime: AgentRuntimeSession = agentRuntime;
-      const cacheTrace = createCacheTrace({
-        cfg: params.config,
-        env: process.env,
-        runId: params.runId,
-        sessionId: agentRuntime.sessionId,
-        sessionKey: params.sessionKey,
-        provider: params.provider,
-        modelId: params.modelId,
-        modelApi: params.model.api,
-        workspaceDir: params.workspaceDir,
-      });
-      const anthropicPayloadLogger = createAnthropicPayloadLogger({
-        env: process.env,
-        runId: params.runId,
-        sessionId: agentRuntime.sessionId,
-        sessionKey: params.sessionKey,
-        provider: params.provider,
-        modelId: params.modelId,
-        modelApi: params.model.api,
-        workspaceDir: params.workspaceDir,
-      });
+        cacheTrace = createCacheTrace({
+          cfg: params.config,
+          env: process.env,
+          runId: params.runId,
+          sessionId: agentSession.sessionId,
+          sessionKey: params.sessionKey,
+          provider: params.provider,
+          modelId: params.modelId,
+          modelApi: params.model.api,
+          workspaceDir: params.workspaceDir,
+        });
+        cacheTrace?.recordStage("session:loaded", {
+          messages: agentSession.messages,
+          system: systemPromptText,
+          note: "after session create",
+        });
 
-      // Record session:loaded for both Pi and SDK runtimes (diagnostic observability).
-      cacheTrace?.recordStage("session:loaded", {
-        messages: agentRuntime.messages,
-        system: systemPromptText,
-        note: "after session create",
-      });
-
-      // Pi-specific: streamFn setup and wrapping does not apply to the claude-sdk runtime.
-      if (agentRuntime.runtimeHints.supportsStreamFnWrapping && session) {
+        // Pi-specific: streamFn setup and wrapping.
         // Ollama native API: bypass SDK's streamSimple and use direct /api/chat calls
         // for reliable streaming + tool calling support (#11828).
         if (params.model.api === "ollama") {
@@ -858,18 +833,33 @@ export async function runEmbeddedAttempt(
             return inner(model, nextContext as typeof context, options);
           };
         }
-
-        if (anthropicPayloadLogger) {
-          session.agent.streamFn = anthropicPayloadLogger.wrapStreamFn(session.agent.streamFn);
-        }
+      }
+      if (!agentSession) {
+        throw new Error("Embedded agent session missing");
+      }
+      // Narrowed reference for closures that capture agentSession before TS can narrow it.
+      const activeRuntime: AgentRuntimeSession = agentSession;
+      const anthropicPayloadLogger = createAnthropicPayloadLogger({
+        env: process.env,
+        runId: params.runId,
+        sessionId: agentSession.sessionId,
+        sessionKey: params.sessionKey,
+        provider: params.provider,
+        modelId: params.modelId,
+        modelApi: params.model.api,
+        workspaceDir: params.workspaceDir,
+      });
+      // Pi-specific: wrap streamFn with payload logger.
+      if (session && anthropicPayloadLogger) {
+        session.agent.streamFn = anthropicPayloadLogger.wrapStreamFn(session.agent.streamFn);
       }
 
       // Pi-specific: history sanitization uses the Pi agent's replaceMessages.
       // The claude-sdk runtime manages its own history via resume session IDs.
-      if (!agentRuntime.runtimeHints.managesOwnHistory && session) {
+      if (!agentSession.runtimeHints.managesOwnHistory && session) {
         try {
           const prior = await sanitizeSessionHistory({
-            messages: agentRuntime.messages,
+            messages: agentSession.messages,
             modelApi: params.model.api,
             modelId: params.modelId,
             provider: params.provider,
@@ -905,7 +895,7 @@ export async function runEmbeddedAttempt(
             agent: piAgentForFlush,
             sessionManager,
           });
-          agentRuntime.dispose();
+          agentSession.dispose();
           throw err;
         }
       }
@@ -963,7 +953,7 @@ export async function runEmbeddedAttempt(
       };
 
       const subscription = subscribeEmbeddedPiSession({
-        session: agentRuntime,
+        session: agentSession,
         runId: params.runId,
         hookRunner: getGlobalHookRunner() ?? undefined,
         verboseLevel: params.verboseLevel,
@@ -981,7 +971,7 @@ export async function runEmbeddedAttempt(
         onPartialReply: params.onPartialReply,
         onAssistantMessageStart: params.onAssistantMessageStart,
         onAgentEvent: params.onAgentEvent,
-        enforceFinalTag: agentRuntime.runtimeHints.enforceFinalTag,
+        enforceFinalTag: agentSession.runtimeHints.enforceFinalTag,
         config: params.config,
         sessionKey: params.sessionKey ?? params.sessionId,
       });
@@ -1047,7 +1037,7 @@ export async function runEmbeddedAttempt(
       );
 
       let messagesSnapshot: AgentMessage[] = [];
-      let sessionIdUsed = agentRuntime.sessionId;
+      let sessionIdUsed = agentSession.sessionId;
       const onAbort = () => {
         const reason = params.abortSignal ? getAbortReason(params.abortSignal) : undefined;
         const timeout = reason ? isTimeoutError(reason) : false;
@@ -1092,7 +1082,7 @@ export async function runEmbeddedAttempt(
         };
         const hookResult = await resolvePromptBuildHookResult({
           prompt: params.prompt,
-          messages: agentRuntime.messages,
+          messages: agentSession.messages,
           hookCtx,
           hookRunner,
           legacyBeforeAgentStartResult: params.legacyBeforeAgentStartResult,
@@ -1108,9 +1098,9 @@ export async function runEmbeddedAttempt(
             typeof hookResult?.systemPrompt === "string" ? hookResult.systemPrompt.trim() : "";
           if (legacySystemPrompt) {
             // Apply system prompt override from hooks.
-            if (agentRuntime.setSystemPrompt) {
-              agentRuntime.setSystemPrompt(legacySystemPrompt);
-            } else if (!agentRuntime.runtimeHints.managesOwnHistory && session) {
+            if (agentSession.setSystemPrompt) {
+              agentSession.setSystemPrompt(legacySystemPrompt);
+            } else if (!agentSession.runtimeHints.managesOwnHistory && session) {
               applySystemPromptOverrideToSession(session, legacySystemPrompt);
             }
             systemPromptText = legacySystemPrompt;
@@ -1121,11 +1111,11 @@ export async function runEmbeddedAttempt(
         log.debug(`embedded run prompt start: runId=${params.runId} sessionId=${params.sessionId}`);
         cacheTrace?.recordStage("prompt:before", {
           prompt: effectivePrompt,
-          messages: agentRuntime.messages,
+          messages: agentSession.messages,
         });
 
         // Pi-specific: repair orphaned trailing user messages so new prompts don't violate role ordering.
-        if (!agentRuntime.runtimeHints.managesOwnHistory && session) {
+        if (!agentSession.runtimeHints.managesOwnHistory && session) {
           const leafEntry = sessionManager.getLeafEntry();
           if (leafEntry?.type === "message" && leafEntry.message.role === "user") {
             if (leafEntry.parentId) {
@@ -1157,7 +1147,7 @@ export async function runEmbeddedAttempt(
             workspaceDir: effectiveWorkspace,
             model: params.model,
             existingImages: params.images,
-            historyMessages: agentRuntime.messages,
+            historyMessages: agentSession.messages,
             maxBytes: MAX_IMAGE_BYTES,
             maxDimensionPx: resolveImageSanitizationLimits(params.config).maxDimensionPx,
             workspaceOnly: effectiveFsWorkspaceOnly,
@@ -1170,7 +1160,7 @@ export async function runEmbeddedAttempt(
 
           // Pi-specific: inject history images into their original message positions and
           // persist them via the Pi agent's replaceMessages.
-          if (!agentRuntime.runtimeHints.managesOwnHistory && session) {
+          if (!agentSession.runtimeHints.managesOwnHistory && session) {
             const didMutate = injectHistoryImagesIntoMessages(
               session.messages,
               imageResult.historyImagesByIndex,
@@ -1183,16 +1173,16 @@ export async function runEmbeddedAttempt(
 
           cacheTrace?.recordStage("prompt:images", {
             prompt: effectivePrompt,
-            messages: agentRuntime.messages,
+            messages: agentSession.messages,
             note: `images: prompt=${imageResult.images.length} history=${imageResult.historyImagesByIndex.size}`,
           });
 
           // Diagnostic: log context sizes before prompt to help debug early overflow errors.
           if (log.isEnabled("debug")) {
-            const msgCount = agentRuntime.messages.length;
+            const msgCount = agentSession.messages.length;
             const systemLen = systemPromptText?.length ?? 0;
             const promptLen = effectivePrompt.length;
-            const sessionSummary = summarizeSessionContext(agentRuntime.messages);
+            const sessionSummary = summarizeSessionContext(agentSession.messages);
             log.debug(
               `[context-diag] pre-prompt: sessionKey=${params.sessionKey ?? params.sessionId} ` +
                 `messages=${msgCount} roleCounts=${sessionSummary.roleCounts} ` +
@@ -1215,7 +1205,7 @@ export async function runEmbeddedAttempt(
                   model: params.modelId,
                   systemPrompt: systemPromptText,
                   prompt: effectivePrompt,
-                  historyMessages: agentRuntime.messages,
+                  historyMessages: agentSession.messages,
                   imagesCount: imageResult.images.length,
                 },
                 {
@@ -1234,9 +1224,9 @@ export async function runEmbeddedAttempt(
           // Only pass images option if there are actually images to pass
           // This avoids potential issues with models that don't expect the images parameter
           if (imageResult.images.length > 0) {
-            await abortable(agentRuntime.prompt(effectivePrompt, { images: imageResult.images }));
+            await abortable(agentSession.prompt(effectivePrompt, { images: imageResult.images }));
           } else {
-            await abortable(agentRuntime.prompt(effectivePrompt));
+            await abortable(agentSession.prompt(effectivePrompt));
           }
         } catch (err) {
           promptError = err;
@@ -1250,12 +1240,12 @@ export async function runEmbeddedAttempt(
         // Capture snapshot before compaction wait so we have complete messages if timeout occurs
         // Check compaction state before and after to avoid race condition where compaction starts during capture
         // Use session state (not subscription) for snapshot decisions - need instantaneous compaction status
-        const wasCompactingBefore = agentRuntime.isCompacting;
-        const snapshot = agentRuntime.messages.slice();
-        const wasCompactingAfter = agentRuntime.isCompacting;
+        const wasCompactingBefore = agentSession.isCompacting;
+        const snapshot = agentSession.messages.slice();
+        const wasCompactingAfter = agentSession.isCompacting;
         // Only trust snapshot if compaction wasn't running before or after capture
         const preCompactionSnapshot = wasCompactingBefore || wasCompactingAfter ? null : snapshot;
-        const preCompactionSessionId = agentRuntime.sessionId;
+        const preCompactionSessionId = agentSession.sessionId;
 
         try {
           await abortable(waitForCompactionRetry());
@@ -1302,8 +1292,8 @@ export async function runEmbeddedAttempt(
           timedOutDuringCompaction,
           preCompactionSnapshot,
           preCompactionSessionId,
-          currentSnapshot: agentRuntime.messages.slice(),
-          currentSessionId: agentRuntime.sessionId,
+          currentSnapshot: agentSession.messages.slice(),
+          currentSessionId: agentSession.sessionId,
         });
         if (timedOutDuringCompaction) {
           if (!isProbeSession) {
@@ -1461,7 +1451,7 @@ export async function runEmbeddedAttempt(
       // synthetic "missing tool result" errors and causing silent agent failures.
       // See: https://github.com/openclaw/openclaw/issues/8643
       // Pi-specific: tear down context guard.
-      if (!agentRuntime?.runtimeHints.managesOwnHistory) {
+      if (!agentSession?.runtimeHints.managesOwnHistory) {
         removeToolResultContextGuard?.();
       }
 
@@ -1471,7 +1461,7 @@ export async function runEmbeddedAttempt(
         agent: piAgentForFlush,
         sessionManager,
       });
-      agentRuntime?.dispose();
+      agentSession?.dispose();
       await sessionLock.release();
     }
   } finally {
