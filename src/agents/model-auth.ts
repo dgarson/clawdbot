@@ -365,8 +365,7 @@ export function resolveModelAuthMode(
     return undefined;
   }
 
-  // System-keychain providers use implicit auth (e.g. ~/.claude/ OAuth) and
-  // never use a different auth mode.
+  // System-keychain providers use implicit auth (e.g. Mac OS Keychain for Claude Subscription)
   if (SYSTEM_KEYCHAIN_PROVIDERS.has(resolved)) {
     return "system-keychain";
   }

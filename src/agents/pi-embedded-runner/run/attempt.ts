@@ -833,30 +833,9 @@ export async function runEmbeddedAttempt(
             return inner(model, nextContext as typeof context, options);
           };
         }
-      }
-      if (!agentSession) {
-        throw new Error("Embedded agent session missing");
-      }
-      // Narrowed reference for closures that capture agentSession before TS can narrow it.
-      const activeRuntime: AgentRuntimeSession = agentSession;
-      const anthropicPayloadLogger = createAnthropicPayloadLogger({
-        env: process.env,
-        runId: params.runId,
-        sessionId: agentSession.sessionId,
-        sessionKey: params.sessionKey,
-        provider: params.provider,
-        modelId: params.modelId,
-        modelApi: params.model.api,
-        workspaceDir: params.workspaceDir,
-      });
-      // Pi-specific: wrap streamFn with payload logger.
-      if (session && anthropicPayloadLogger) {
-        session.agent.streamFn = anthropicPayloadLogger.wrapStreamFn(session.agent.streamFn);
-      }
 
-      // Pi-specific: history sanitization uses the Pi agent's replaceMessages.
-      // The claude-sdk runtime manages its own history via resume session IDs.
-      if (!agentSession.runtimeHints.managesOwnHistory && session) {
+        // Pi-specific: history sanitization uses the Pi agent's replaceMessages.
+        // The claude-sdk runtime manages its own history via resume session IDs.
         try {
           const prior = await sanitizeSessionHistory({
             messages: agentSession.messages,
@@ -898,6 +877,25 @@ export async function runEmbeddedAttempt(
           agentSession.dispose();
           throw err;
         }
+      }
+      if (!agentSession) {
+        throw new Error("Embedded agent session missing");
+      }
+      // Narrowed reference for closures that capture agentSession before TS can narrow it.
+      const activeRuntime: AgentRuntimeSession = agentSession;
+      const anthropicPayloadLogger = createAnthropicPayloadLogger({
+        env: process.env,
+        runId: params.runId,
+        sessionId: agentSession.sessionId,
+        sessionKey: params.sessionKey,
+        provider: params.provider,
+        modelId: params.modelId,
+        modelApi: params.model.api,
+        workspaceDir: params.workspaceDir,
+      });
+      // Pi-specific: wrap streamFn with payload logger.
+      if (session && anthropicPayloadLogger) {
+        session.agent.streamFn = anthropicPayloadLogger.wrapStreamFn(session.agent.streamFn);
       }
 
       let aborted = Boolean(params.abortSignal?.aborted);
@@ -1115,7 +1113,7 @@ export async function runEmbeddedAttempt(
         });
 
         // Pi-specific: repair orphaned trailing user messages so new prompts don't violate role ordering.
-        if (!agentSession.runtimeHints.managesOwnHistory && session) {
+        if (session) {
           const leafEntry = sessionManager.getLeafEntry();
           if (leafEntry?.type === "message" && leafEntry.message.role === "user") {
             if (leafEntry.parentId) {
@@ -1160,7 +1158,7 @@ export async function runEmbeddedAttempt(
 
           // Pi-specific: inject history images into their original message positions and
           // persist them via the Pi agent's replaceMessages.
-          if (!agentSession.runtimeHints.managesOwnHistory && session) {
+          if (session) {
             const didMutate = injectHistoryImagesIntoMessages(
               session.messages,
               imageResult.historyImagesByIndex,
