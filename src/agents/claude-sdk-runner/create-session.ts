@@ -224,34 +224,19 @@ export async function createClaudeSdkSession(
     streamingInProgress: false,
     sessionManager: params.sessionManager,
     enableClaudeWebSearch: false,
+    providerId: params.claudeSdkConfig?.provider ?? "claude-sdk",
+    apiId: "claude-sdk",
   };
 
   // Build in-process MCP tool server from OpenClaw tools (already wrapped with
   // before_tool_call hooks, abort signal propagation, and loop detection upstream)
   const allTools = [...params.tools, ...params.customTools];
-  // Tool IDs to exclude from MCP and replace with Claude Code's built-in WebSearch.
-  // Includes both "web_search" (search) and "web_fetch" (URL fetch) native OpenClaw tools,
-  // with their "builtin:" prefixed variants.
-  const NATIVE_WEB_TOOL_IDS = new Set([
-    "web_search",
-    "builtin:web_search",
-    "web_fetch",
-    "builtin:web_fetch",
-  ]);
-  let enableClaudeWebSearch = false;
-
-  const mcpTools = allTools.filter((t) => {
-    if (NATIVE_WEB_TOOL_IDS.has(t.name)) {
-      enableClaudeWebSearch = true;
-      return false; // Remove from MCP tools — replaced by Claude Code's built-in WebSearch
-    }
-    return true;
-  });
-
-  state.enableClaudeWebSearch = enableClaudeWebSearch;
+  // Keep all tools behind OpenClaw's MCP bridge for uniform hook/telemetry behavior
+  // with Pi runtime (before_tool_call hooks, policy enforcement, and tool events).
+  state.enableClaudeWebSearch = false;
 
   const toolServer = createClaudeSdkMcpToolServer({
-    tools: mcpTools,
+    tools: allTools,
     emitEvent: (evt) => {
       for (const subscriber of state.subscribers) {
         subscriber(evt);
@@ -305,79 +290,43 @@ export async function createClaudeSdkSession(
       }
 
       try {
-        // Persist the user message to JSONL on first iteration only.
-        // Steer-resumed iterations should not double-persist.
-        let userMessagePersisted = false;
-
-        // Outer loop: supports interrupt-and-resume for mid-loop steer injection.
-        // When steer() is called while query() is running, we interrupt the current
-        // query at the next message yield and resume with the steer text as a new
-        // user turn. This gives near-parity with Pi's mid-loop steer behavior.
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-          if (!userMessagePersisted && state.sessionManager?.appendMessage) {
-            try {
-              state.sessionManager.appendMessage({
-                role: "user",
-                content: effectivePrompt,
-                timestamp: Date.now(),
-              });
-            } catch {
-              // Non-fatal — user message persistence failed
-            }
-            userMessagePersisted = true;
-          }
-
-          const queryOptions = buildQueryOptions(params, state, toolServer);
-          const queryInstance = query({ prompt: effectivePrompt, options: queryOptions as never });
-
-          // Wire abort signal to queryInstance.interrupt() so cancellation works
-          // even when blocked on generator.next().
-          const onAbort = () => {
-            const qi = queryInstance as { interrupt?: () => Promise<void> };
-            if (typeof qi.interrupt === "function") {
-              qi.interrupt().catch(() => {});
-            }
-          };
-          signal.addEventListener("abort", onAbort, { once: true });
-
-          let interruptedForSteer = false;
+        if (state.sessionManager?.appendMessage) {
           try {
-            for await (const message of queryInstance) {
-              if (signal.aborted) {
-                break;
-              }
-              translateSdkMessageToEvents(message as never, state);
+            state.sessionManager.appendMessage({
+              role: "user",
+              content: effectivePrompt,
+              timestamp: Date.now(),
+            });
+          } catch {
+            // Non-fatal — user message persistence failed
+          }
+        }
 
-              // Check for pending steer between SDK message yields.
-              // If steer text was queued (e.g., by queueEmbeddedPiMessage),
-              // interrupt the current query so we can resume with the steer
-              // text as the next user message. This gives mid-loop injection.
-              if (state.pendingSteer.length > 0 && !signal.aborted) {
-                const qi = queryInstance as { interrupt?: () => Promise<void> };
-                if (typeof qi.interrupt === "function") {
-                  await qi.interrupt();
-                }
-                interruptedForSteer = true;
-                break;
-              }
+        const queryOptions = buildQueryOptions(params, state, toolServer);
+        const queryInstance = query({
+          prompt: effectivePrompt,
+          options: queryOptions as never,
+        });
+
+        // Wire abort signal to queryInstance.interrupt() so cancellation works
+        // even when blocked on generator.next().
+        const onAbort = () => {
+          const qi = queryInstance as { interrupt?: () => Promise<void> };
+          if (typeof qi.interrupt === "function") {
+            qi.interrupt().catch(() => {});
+          }
+        };
+        signal.addEventListener("abort", onAbort, { once: true });
+
+        try {
+          for await (const message of queryInstance) {
+            if (signal.aborted) {
+              break;
             }
-          } finally {
-            signal.removeEventListener("abort", onAbort);
+            translateSdkMessageToEvents(message as never, state);
           }
-
-          if (!interruptedForSteer || signal.aborted) {
-            // Normal completion or abort — exit the outer loop
-            break;
-          }
-
-          // Interrupted for steer: drain steer queue and resume with steer text
-          // as the new prompt. The server-side session already has the conversation
-          // context (including the interrupted response), so resume continues
-          // naturally with the injected user message.
-          const pendingSteer = state.pendingSteer.splice(0).join("\n");
-          effectivePrompt = pendingSteer;
-          userMessagePersisted = false; // allow steer prompt to be persisted
+        } finally {
+          signal.removeEventListener("abort", onAbort);
         }
 
         // After the query loop: throw if the SDK returned an error result message.
@@ -415,12 +364,9 @@ export async function createClaudeSdkSession(
     // steer — queues text to be prepended to the next prompt
     // -------------------------------------------------------------------------
     async steer(text) {
-      // KNOWN LIMITATION: In Pi, steer() injects text into the current agentic
-      // loop (between tool-call rounds). In Claude SDK, the agentic loop is opaque
-      // inside query() — we can't inject mid-loop. Steer text is queued and
-      // prepended to the next prompt() call. This means steer messages are
-      // delivered on the next turn, not mid-generation. This is acceptable for POC
-      // since the message is not lost, just delayed to the next turn.
+      // Steer text is queued and prepended to the next prompt() call.
+      // We intentionally do not interrupt an active SDK query to avoid partial
+      // turn/session fragmentation.
       state.pendingSteer.push(text);
     },
 
@@ -500,7 +446,7 @@ export async function createClaudeSdkSession(
       enforceFinalTag: false,
       managesOwnHistory: true,
       supportsStreamFnWrapping: false,
-      sessionFile: undefined,
+      sessionFile: params.sessionFile,
     } satisfies AgentRuntimeHints,
   };
 

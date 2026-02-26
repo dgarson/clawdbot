@@ -13,7 +13,11 @@ export async function prepareClaudeSdkSession(
   sessionManager: {
     appendCustomEntry?: (key: string, value: unknown) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getEntries?: () => Array<{ type: string; customType?: string; data?: unknown }>;
+    getEntries?: () => Array<{
+      type: string;
+      customType?: string;
+      data?: unknown;
+    }>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     appendMessage?: (message: any) => string;
   },
@@ -52,19 +56,14 @@ export async function prepareClaudeSdkSession(
     agentDir,
     sessionId: params.sessionId,
     modelId: params.modelId,
+    sessionFile: params.sessionFile,
     tools: builtInTools,
     customTools: allCustomTools,
     systemPrompt: systemPromptText,
-    // Explicit user directive (anything other than the "off" default) takes precedence
-    // over the config-level thinkingDefault. If no directive was given, the config acts
-    // as the agent-level default, falling back to the runtime "off" if unset.
-    // TODO: explicit user "off" is indistinguishable from the default "off", so
-    // thinkingDefault can override an explicit user choice. Proper fix requires
-    // threading `thinkLevelExplicit` from message parsing.
-    thinkLevel:
-      params.thinkLevel !== "off"
-        ? params.thinkLevel
-        : (claudeSdkConfig.thinkingDefault ?? claudeSdkConfig.thinkingLevel ?? params.thinkLevel),
+    // Explicit user directive always wins, including explicit "off".
+    thinkLevel: params.thinkLevelExplicit
+      ? params.thinkLevel
+      : (claudeSdkConfig.thinkingDefault ?? claudeSdkConfig.thinkingLevel ?? params.thinkLevel),
     extraParams: params.streamParams as Record<string, unknown> | undefined,
     sessionManager,
     claudeSdkResumeSessionId,

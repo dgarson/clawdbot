@@ -11,7 +11,14 @@ import type { RunEmbeddedPiAgentParams } from "./params.js";
 
 type EmbeddedRunAttemptBase = Omit<
   RunEmbeddedPiAgentParams,
-  "provider" | "model" | "authProfileId" | "authProfileIdSource" | "thinkLevel" | "lane" | "enqueue"
+  | "provider"
+  | "model"
+  | "authProfileId"
+  | "authProfileIdSource"
+  | "thinkLevel"
+  | "thinkLevelExplicit"
+  | "lane"
+  | "enqueue"
 >;
 
 export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
@@ -21,6 +28,7 @@ export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   authStorage: AuthStorage;
   modelRegistry: ModelRegistry;
   thinkLevel: ThinkLevel;
+  thinkLevelExplicit?: boolean;
   legacyBeforeAgentStartResult?: PluginHookBeforeAgentStartResult;
   /** Resolved auth for the claude-sdk runtime (non-claude-max SDK providers). */
   resolvedProviderAuth?: ResolvedProviderAuth;

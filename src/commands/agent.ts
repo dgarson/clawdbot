@@ -173,6 +173,7 @@ function runAgentAttempt(params: {
     authProfileId,
     authProfileIdSource: authProfileId ? params.sessionEntry?.authProfileOverrideSource : undefined,
     thinkLevel: params.resolvedThinkLevel,
+    thinkLevelExplicit: Boolean(params.opts.thinking || params.opts.thinkingOnce),
     verboseLevel: params.resolvedVerboseLevel,
     timeoutMs: params.timeoutMs,
     runId: params.runId,
@@ -419,7 +420,11 @@ export async function agentCommand(
         ) {
           const { updated } = applyModelOverrideToSessionEntry({
             entry,
-            selection: { provider: defaultProvider, model: defaultModel, isDefault: true },
+            selection: {
+              provider: defaultProvider,
+              model: defaultModel,
+              isDefault: true,
+            },
           });
           if (updated) {
             await persistSessionEntry({
