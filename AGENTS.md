@@ -252,3 +252,31 @@
   - `node --import tsx scripts/release-check.ts`
   - `pnpm release:check`
   - `pnpm test:install:smoke` or `OPENCLAW_INSTALL_SMOKE_SKIP_NONROOT=1 pnpm test:install:smoke` for non-root smoke path.
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+OpenClaw is a single-user personal AI assistant gateway. The primary service is the **Gateway** (WebSocket + HTTP control plane). No external databases are needed — state is SQLite/filesystem at `~/.openclaw/`.
+
+### Running the gateway in dev mode
+
+- `pnpm gateway:dev` starts the gateway on `ws://127.0.0.1:19001` with `OPENCLAW_SKIP_CHANNELS=1` (no channel connections needed for core dev).
+- First run auto-generates a dev config at `~/.openclaw-dev/openclaw.json` and an auth token.
+- Before first gateway start, run `pnpm openclaw config set gateway.mode local` to unblock startup.
+
+### Key commands (see AGENTS.md "Build, Test, and Development Commands" for full list)
+
+- **Install:** `pnpm install`
+- **Build:** `pnpm build`
+- **Lint/format/typecheck:** `pnpm check` (format via `pnpm format:check`, lint via `pnpm lint`, typecheck via `pnpm tsgo`)
+- **Tests:** `pnpm test` — on memory-constrained hosts, use `OPENCLAW_TEST_PROFILE=low OPENCLAW_TEST_SERIAL_GATEWAY=1 pnpm test` or run via `npx vitest run --config vitest.unit.config.ts --maxWorkers=2` to avoid OOM.
+- **Dev CLI:** `pnpm openclaw <command>`
+- **Doctor:** `pnpm openclaw doctor` — quick health check of local config/state
+
+### Gotchas discovered during setup
+
+- `pnpm tsgo` (native TS preview) may report TS2742 errors in test utility files — these are pre-existing and do not block build or tests.
+- The default `pnpm test` (via `scripts/test-parallel.mjs`) can OOM on VMs with <8GB RAM. Use `npx vitest run --config vitest.unit.config.ts --maxWorkers=2` as a safe fallback.
+- `pnpm openclaw --version` may trigger a rebuild if `dist/` is stale; this is expected (the `run-node.mjs` script auto-detects stale builds).
+- The `@discordjs/opus` optional dependency build may be skipped with a warning — this is harmless and only needed for Discord voice features.
