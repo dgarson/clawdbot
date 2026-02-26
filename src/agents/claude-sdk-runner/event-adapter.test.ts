@@ -10,8 +10,8 @@
  */
 
 import { describe, it, expect, vi } from "vitest";
-import { translateSdkMessageToEvents } from "../event-adapter.js";
-import type { ClaudeSdkEventAdapterState } from "../types.js";
+import { translateSdkMessageToEvents } from "./event-adapter.js";
+import type { ClaudeSdkEventAdapterState } from "./types.js";
 
 // ---------------------------------------------------------------------------
 // Test helpers

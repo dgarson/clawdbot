@@ -55,8 +55,8 @@ vi.mock("@anthropic-ai/claude-agent-sdk", () => {
 // Import after mock setup
 // ---------------------------------------------------------------------------
 
-import type { EmbeddedPiSubscribeEvent } from "../../pi-embedded-subscribe.handlers.types.js";
-import { createClaudeSdkMcpToolServer } from "../mcp-tool-server.js";
+import type { EmbeddedPiSubscribeEvent } from "../pi-embedded-subscribe.handlers.types.js";
+import { createClaudeSdkMcpToolServer } from "./mcp-tool-server.js";
 
 // ---------------------------------------------------------------------------
 // Test helpers

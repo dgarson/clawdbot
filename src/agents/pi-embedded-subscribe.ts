@@ -33,7 +33,7 @@ export type {
 
 /**
  * Subscribes to agent session events for both Pi and Claude SDK runtimes.
- * Despite the "Pi" name, this function accepts any {@link AgentRuntime} via
+ * Despite the "Pi" name, this function accepts any {@link AgentRuntimeSession} via
  * `params.session`. Renaming is deferred to avoid churn across call sites.
  */
 export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionParams) {
