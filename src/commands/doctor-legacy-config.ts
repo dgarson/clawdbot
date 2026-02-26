@@ -43,7 +43,7 @@ export function normalizeLegacyConfigValues(cfg: OpenClawConfig): {
     // Idempotency guard: only migrate when the legacy key is explicitly present on `dm`.
     // This avoids re-triggering on computed/inherited/fallback values that are not persisted.
     const hasLegacyDmPolicy = dm ? Object.prototype.hasOwnProperty.call(dm, "policy") : false;
-    const legacyDmPolicy = hasLegacyDmPolicy && dm ? dm.policy : undefined;
+    const legacyDmPolicy = hasLegacyDmPolicy ? dm?.policy : undefined;
     if (topDmPolicy === undefined && hasLegacyDmPolicy) {
       updated = { ...updated, dmPolicy: legacyDmPolicy };
       changed = true;
@@ -64,7 +64,7 @@ export function normalizeLegacyConfigValues(cfg: OpenClawConfig): {
 
     const topAllowFrom = updated.allowFrom;
     const hasLegacyAllowFrom = dm ? Object.prototype.hasOwnProperty.call(dm, "allowFrom") : false;
-    const legacyAllowFrom = hasLegacyAllowFrom && dm ? dm.allowFrom : undefined;
+    const legacyAllowFrom = hasLegacyAllowFrom ? dm?.allowFrom : undefined;
     if (topAllowFrom === undefined && hasLegacyAllowFrom) {
       updated = { ...updated, allowFrom: legacyAllowFrom };
       changed = true;

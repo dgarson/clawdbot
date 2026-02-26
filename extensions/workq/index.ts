@@ -4,15 +4,19 @@ import { registerWorkqCli } from "./src/cli.js";
 import { WorkqDatabase } from "./src/database.js";
 import { runWorkqSweep } from "./src/sweep.js";
 import { registerWorkqTools } from "./src/tools.js";
-import type {
-  ClaimInput,
-  DoneInput,
-  FilesInput,
-  FilesMode,
-  LogInput,
-  QueryFilters,
-  ReleaseInput,
-  StatusInput,
+import {
+  WORK_ITEM_PRIORITIES,
+  WORK_ITEM_STATUSES,
+  type ClaimInput,
+  type DoneInput,
+  type FilesInput,
+  type FilesMode,
+  type LogInput,
+  type QueryFilters,
+  type ReleaseInput,
+  type StatusInput,
+  type WorkItemPriority,
+  type WorkItemStatus,
 } from "./src/types.js";
 
 // Process-level DB registry so multiple loadOpenClawPlugins calls (per-workspaceDir)
@@ -84,12 +88,20 @@ function asStringArray(value: unknown): string[] {
   return [...new Set(values)];
 }
 
-function asStringOrList(value: unknown): string | string[] | undefined {
+function asEnumOrList<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+): T | T[] | undefined {
+  const allowedSet = new Set<T>(allowed);
   if (Array.isArray(value)) {
-    const list = asStringArray(value);
-    return list.length ? list : undefined;
+    const values = asStringArray(value).filter((entry): entry is T => allowedSet.has(entry as T));
+    return values.length > 0 ? values : undefined;
   }
-  return asString(value);
+  const single = asString(value);
+  if (!single) {
+    return undefined;
+  }
+  return allowedSet.has(single as T) ? (single as T) : undefined;
 }
 
 function asErrorPayload(error: unknown): { error: string } {
@@ -170,8 +182,8 @@ export default function register(api: OpenClawPluginApi) {
       const payload: QueryFilters = {
         squad: asString(input.squad),
         agentId: asString(input.agent_id),
-        status: asStringOrList(input.status) as QueryFilters["status"],
-        priority: asStringOrList(input.priority) as QueryFilters["priority"],
+        status: asEnumOrList<WorkItemStatus>(input.status, WORK_ITEM_STATUSES),
+        priority: asEnumOrList<WorkItemPriority>(input.priority, WORK_ITEM_PRIORITIES),
         scope: asString(input.scope),
         issueRef: asString(input.issue_ref),
         activeOnly: asBoolean(input.active_only),
@@ -288,17 +300,6 @@ export default function register(api: OpenClawPluginApi) {
 
   const runScheduledSweep = () => {
     try {
-      // Health check: sentinel agent_id rows should never appear after startup repair,
-      // but if any somehow exist (e.g., DB written by an older process), warn loudly
-      // so they can be investigated. The startup repair will clear them on next open.
-      const sentinelRows = db.findSentinelAgentRows();
-      if (sentinelRows.length > 0) {
-        api.logger.warn(
-          `[workq] health-check: found ${sentinelRows.length} active item(s) with sentinel agent_id — ` +
-            `these will be repaired on next DB open: ${sentinelRows.map((r) => r.issueRef).join(", ")}`,
-        );
-      }
-
       const result = runWorkqSweep(db, {
         staleAfterMinutes: sweepStaleAfterMinutes,
         autoDone: sweepAutoDone,

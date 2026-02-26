@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkqDatabase } from "./database.js";
 import { registerWorkqTools } from "./tools.js";
-import type { WorkItem, WorkqDatabaseApi } from "./types.js";
+import type { ClaimResult, FilesResult, WorkItem, WorkqDatabaseApi } from "./types.js";
 
 type ToolDef = {
   name: string;
@@ -29,13 +29,13 @@ afterEach(() => {
   tempDirs.clear();
 });
 
-function makeApiCapture(db: unknown, staleThresholdHours = 24) {
+function makeApiCapture(db: WorkqDatabaseApi, staleThresholdHours = 24) {
   const registerTool = vi.fn();
   const api = {
     registerTool,
   } as unknown as { registerTool: typeof registerTool };
 
-  registerWorkqTools(api as never, db as WorkqDatabaseApi, staleThresholdHours);
+  registerWorkqTools(api as never, db, staleThresholdHours);
 
   const [factory, options] = registerTool.mock.calls[0] as [
     (ctx: { agentId?: string | null }) => ToolDef[],
@@ -98,18 +98,18 @@ function makeItem(issueRef: string, agentId: string): WorkItem {
 
 describe("registerWorkqTools", () => {
   it("registers all 8 tool names as optional", () => {
-    const db = {
+    const db: WorkqDatabaseApi = {
       claim: vi.fn(),
       release: vi.fn(),
       status: vi.fn(),
       query: vi.fn(() => ({ items: [], total: 0 })),
-      files: vi.fn(() => ({ mode: "check", conflicts: [], hasConflicts: false })),
+      files: vi.fn((): FilesResult => ({ mode: "check", conflicts: [], hasConflicts: false })),
       log: vi.fn(),
       done: vi.fn(),
       get: vi.fn(() => null),
+      getById: vi.fn(() => null),
       getLog: vi.fn(() => []),
       findStaleActiveItems: vi.fn(() => []),
-      findSentinelAgentRows: vi.fn(() => []),
       autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
       systemMoveToInReview: vi.fn(),
       systemMarkDone: vi.fn(),
@@ -148,24 +148,26 @@ describe("registerWorkqTools", () => {
   });
 
   it("binds ownership to ctx.agentId and ignores spoofed params", async () => {
-    const db = {
-      claim: vi.fn(() => ({
-        status: "conflict",
-        issueRef: "ISS-AGENT",
-        claimedBy: "owner",
-        claimedAt: "2026-01-01 00:00:00",
-        currentStatus: "claimed",
-      })),
+    const db: WorkqDatabaseApi = {
+      claim: vi.fn(
+        (): ClaimResult => ({
+          status: "conflict",
+          issueRef: "ISS-AGENT",
+          claimedBy: "owner",
+          claimedAt: "2026-01-01 00:00:00",
+          currentStatus: "claimed",
+        }),
+      ),
       release: vi.fn(),
       status: vi.fn(),
       query: vi.fn(() => ({ items: [], total: 0 })),
-      files: vi.fn(() => ({ mode: "check", conflicts: [], hasConflicts: false })),
+      files: vi.fn((): FilesResult => ({ mode: "check", conflicts: [], hasConflicts: false })),
       log: vi.fn(),
       done: vi.fn(),
       get: vi.fn(() => null),
+      getById: vi.fn(() => null),
       getLog: vi.fn(() => []),
       findStaleActiveItems: vi.fn(() => []),
-      findSentinelAgentRows: vi.fn(() => []),
       autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
       systemMoveToInReview: vi.fn(),
       systemMarkDone: vi.fn(),
@@ -190,24 +192,26 @@ describe("registerWorkqTools", () => {
   });
 
   it("returns claim conflict payload with expected shape", async () => {
-    const db = {
-      claim: vi.fn(() => ({
-        status: "conflict",
-        issueRef: "ISS-CONFLICT",
-        claimedBy: "agent-1",
-        claimedAt: "2026-01-01 00:00:00",
-        currentStatus: "in-progress",
-      })),
+    const db: WorkqDatabaseApi = {
+      claim: vi.fn(
+        (): ClaimResult => ({
+          status: "conflict",
+          issueRef: "ISS-CONFLICT",
+          claimedBy: "agent-1",
+          claimedAt: "2026-01-01 00:00:00",
+          currentStatus: "in-progress",
+        }),
+      ),
       release: vi.fn(),
       status: vi.fn(),
       query: vi.fn(() => ({ items: [], total: 0 })),
-      files: vi.fn(() => ({ mode: "check", conflicts: [], hasConflicts: false })),
+      files: vi.fn((): FilesResult => ({ mode: "check", conflicts: [], hasConflicts: false })),
       log: vi.fn(),
       done: vi.fn(),
       get: vi.fn(() => null),
+      getById: vi.fn(() => null),
       getLog: vi.fn(() => []),
       findStaleActiveItems: vi.fn(() => []),
-      findSentinelAgentRows: vi.fn(() => []),
       autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
       systemMoveToInReview: vi.fn(),
       systemMarkDone: vi.fn(),
@@ -231,12 +235,12 @@ describe("registerWorkqTools", () => {
   });
 
   it("covers files modes at tool layer (check/set/add/remove)", async () => {
-    const db = {
+    const db: WorkqDatabaseApi = {
       claim: vi.fn(),
       release: vi.fn(),
       status: vi.fn(),
       query: vi.fn(() => ({ items: [], total: 0 })),
-      files: vi.fn((input) => {
+      files: vi.fn((input): FilesResult => {
         if (input.mode === "check") {
           return {
             mode: "check",
@@ -286,9 +290,9 @@ describe("registerWorkqTools", () => {
       log: vi.fn(),
       done: vi.fn(),
       get: vi.fn(() => makeItem("ISS-FILES", "ctx-agent")),
+      getById: vi.fn(() => null),
       getLog: vi.fn(() => []),
       findStaleActiveItems: vi.fn(() => []),
-      findSentinelAgentRows: vi.fn(() => []),
       autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
       systemMoveToInReview: vi.fn(),
       systemMarkDone: vi.fn(),

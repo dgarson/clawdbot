@@ -114,3 +114,9 @@ export type IssueQuery = {
   assignedAgent?: AgentCapabilityProfile;
   limit?: number;
 };
+
+export type ReviewerAssignment = {
+  kind: "agent" | "model";
+  id: string;
+  label?: string;
+};

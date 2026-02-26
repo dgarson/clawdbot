@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { Command } from "commander";
 import type { AuthProfileCredential, OAuthCredential } from "../agents/auth-profiles/types.js";
+import type { PromptContributor } from "../agents/prompt-contributors/types.js";
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import type { ChannelDock } from "../channels/dock.js";
@@ -273,6 +274,14 @@ export type OpenClawPluginApi = {
    * Use this for simple state-toggling or status commands that don't need AI reasoning.
    */
   registerCommand: (command: OpenClawPluginCommandDefinition) => void;
+  /**
+   * Register a prompt contributor that provides a section of the agent system prompt.
+   *
+   * Contributors with no tags are always included (universal).
+   * Contributors with tags are included when their tags match the session classification.
+   * See ContributorTag for the available tag dimensions.
+   */
+  registerPromptContributor?: (contributor: PromptContributor) => void;
   resolvePath: (input: string) => string;
   /** Register a lifecycle hook handler */
   on: <K extends PluginHookName>(

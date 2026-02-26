@@ -37,63 +37,6 @@ export type DiagnosticUsageEvent = DiagnosticBaseEvent & {
   durationMs?: number;
 };
 
-export type DiagnosticRuntimeWarningEvent = DiagnosticBaseEvent & {
-  type: "runtime.warning";
-  runtime: string;
-  source: string;
-  level: "warning" | "error";
-  sessionKey?: string;
-  sessionId?: string;
-  provider?: string;
-  model?: string;
-  code?: string;
-  message: string;
-  details?: string;
-};
-
-export type DiagnosticTtsUsageEvent = DiagnosticBaseEvent & {
-  type: "tts.usage";
-  source: string;
-  mode: "media" | "telephony";
-  sessionKey?: string;
-  sessionId?: string;
-  channel?: string;
-  provider?: string;
-  model?: string;
-  textLength: number;
-  success: boolean;
-  summarized?: boolean;
-  latencyMs?: number;
-  outputFormat?: string;
-  sampleRate?: number;
-  voiceCompatible?: boolean;
-  attempts?: number;
-  fallbackUsed?: boolean;
-  error?: string;
-};
-
-export type DiagnosticApiUsageEvent = DiagnosticBaseEvent & {
-  type: "api.usage";
-  source: string;
-  apiKind: "tts" | "tts.summary";
-  sessionKey?: string;
-  sessionId?: string;
-  channel?: string;
-  provider: string;
-  model?: string;
-  requestCount: number;
-  inputChars?: number;
-  success: boolean;
-  latencyMs?: number;
-  usage?: {
-    input?: number;
-    output?: number;
-    cacheRead?: number;
-    cacheWrite?: number;
-    total?: number;
-  };
-  error?: string;
-};
 export type DiagnosticWebhookReceivedEvent = DiagnosticBaseEvent & {
   type: "webhook.received";
   channel: string;
@@ -179,24 +122,6 @@ export type DiagnosticRunAttemptEvent = DiagnosticBaseEvent & {
   attempt: number;
 };
 
-export type DiagnosticModelFailoverAttemptEvent = DiagnosticBaseEvent & {
-  type: "model.failover.attempt";
-  sessionKey?: string;
-  sessionId?: string;
-  runId?: string;
-  attempt: number;
-  total?: number;
-  target: {
-    provider: string;
-    model: string;
-  };
-  outcome: "failed" | "skipped" | "selected";
-  reason?: string;
-  status?: number;
-  code?: string;
-  error?: string;
-};
-
 export type DiagnosticHeartbeatEvent = DiagnosticBaseEvent & {
   type: "diagnostic.heartbeat";
   webhooks: {
@@ -207,6 +132,42 @@ export type DiagnosticHeartbeatEvent = DiagnosticBaseEvent & {
   active: number;
   waiting: number;
   queued: number;
+};
+
+export type DiagnosticPromptBuildEvent = DiagnosticBaseEvent & {
+  type: "prompt.build";
+  stage: "contributors" | "final";
+  sessionKey?: string;
+  channel?: string;
+  classification?: {
+    topic: string;
+    complexity: string;
+    domain: string[];
+    flags: string[];
+  };
+  details: {
+    contributorCount?: number;
+    selectedContributorIds?: string[];
+    assembledChars?: number;
+    contributors?: Array<{
+      id: string;
+      source: "builtin" | "plugin" | "config" | "workspace";
+      priority: number;
+      selected: boolean;
+      reason:
+        | "included"
+        | "tag-miss"
+        | "shouldContribute-veto"
+        | "shouldContribute-error"
+        | "contribute-error"
+        | "empty-section";
+      sectionChars?: number;
+      error?: string;
+    }>;
+    finalPromptChars?: number;
+    promptMode?: "full" | "minimal" | "none";
+    tools?: string[];
+  };
 };
 
 export type DiagnosticToolLoopEvent = DiagnosticBaseEvent & {
@@ -234,9 +195,6 @@ export type DiagnosticRouterFeedbackCapturedEvent = DiagnosticBaseEvent & {
 
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
-  | DiagnosticRuntimeWarningEvent
-  | DiagnosticTtsUsageEvent
-  | DiagnosticApiUsageEvent
   | DiagnosticWebhookReceivedEvent
   | DiagnosticWebhookProcessedEvent
   | DiagnosticWebhookErrorEvent
@@ -247,9 +205,9 @@ export type DiagnosticEventPayload =
   | DiagnosticLaneEnqueueEvent
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent
-  | DiagnosticModelFailoverAttemptEvent
   | DiagnosticHeartbeatEvent
   | DiagnosticToolLoopEvent
+  | DiagnosticPromptBuildEvent
   | DiagnosticRouterFeedbackCapturedEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event

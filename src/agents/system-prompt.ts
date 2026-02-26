@@ -1,10 +1,23 @@
 import { createHmac, createHash } from "node:crypto";
 import type { ReasoningLevel, ThinkLevel } from "../auto-reply/thinking.js";
 import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
+import type { OpenClawConfig } from "../config/config.js";
+import type { SessionClassification } from "../config/sessions/types.js";
 import type { MemoryCitationsMode } from "../config/types.memory.js";
-import { listDeliverableMessageChannels } from "../utils/message-channel.js";
+import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import type { ResolvedTimeFormat } from "./date-time.js";
 import type { EmbeddedContextFile } from "./pi-embedded-helpers.js";
+import {
+  createDocsContributor,
+  createMemoryContributor,
+  createMessagingContributor,
+  createReplyTagsContributor,
+  createSkillsContributor,
+  createVoiceContributor,
+  getGlobalPromptContributorRegistry,
+  PromptContributorRegistry,
+} from "./prompt-contributors/index.js";
+import type { ContributorContext } from "./prompt-contributors/types.js";
 import { sanitizeForPromptLiteral } from "./sanitize-for-prompt.js";
 
 /**
@@ -15,58 +28,6 @@ import { sanitizeForPromptLiteral } from "./sanitize-for-prompt.js";
  */
 export type PromptMode = "full" | "minimal" | "none";
 type OwnerIdDisplay = "raw" | "hash";
-
-function buildSkillsSection(params: {
-  skillsPrompt?: string;
-  isMinimal: boolean;
-  readToolName: string;
-}) {
-  if (params.isMinimal) {
-    return [];
-  }
-  const trimmed = params.skillsPrompt?.trim();
-  if (!trimmed) {
-    return [];
-  }
-  return [
-    "## Skills (mandatory)",
-    "Before replying: scan <available_skills> <description> entries.",
-    `- If exactly one skill clearly applies: read its SKILL.md at <location> with \`${params.readToolName}\`, then follow it.`,
-    "- If multiple could apply: choose the most specific one, then read/follow it.",
-    "- If none clearly apply: do not read any SKILL.md.",
-    "Constraints: never read more than one skill up front; only read after selecting.",
-    trimmed,
-    "",
-  ];
-}
-
-function buildMemorySection(params: {
-  isMinimal: boolean;
-  availableTools: Set<string>;
-  citationsMode?: MemoryCitationsMode;
-}) {
-  if (params.isMinimal) {
-    return [];
-  }
-  if (!params.availableTools.has("memory_search") && !params.availableTools.has("memory_get")) {
-    return [];
-  }
-  const lines = [
-    "## Memory Recall",
-    "Before answering anything about prior work, decisions, dates, people, preferences, or todos: run memory_search on MEMORY.md + memory/*.md; then use memory_get to pull only the needed lines. If low confidence after search, say you checked.",
-  ];
-  if (params.citationsMode === "off") {
-    lines.push(
-      "Citations are disabled: do not mention file paths or line numbers in replies unless the user explicitly asks.",
-    );
-  } else {
-    lines.push(
-      "Citations: include Source: <path#line> when it helps the user verify memory snippets.",
-    );
-  }
-  lines.push("");
-  return lines;
-}
 
 function buildUserIdentitySection(ownerLine: string | undefined, isMinimal: boolean) {
   if (!ownerLine || isMinimal) {
@@ -106,92 +67,6 @@ function buildTimeSection(params: { userTimezone?: string }) {
   return ["## Current Date & Time", `Time zone: ${params.userTimezone}`, ""];
 }
 
-function buildReplyTagsSection(isMinimal: boolean) {
-  if (isMinimal) {
-    return [];
-  }
-  return [
-    "## Reply Tags",
-    "To request a native reply/quote on supported surfaces, include one tag in your reply:",
-    "- Reply tags must be the very first token in the message (no leading text/newlines): [[reply_to_current]] your reply.",
-    "- [[reply_to_current]] replies to the triggering message.",
-    "- Prefer [[reply_to_current]]. Use [[reply_to:<id>]] only when an id was explicitly provided (e.g. by the user or a tool).",
-    "Whitespace inside the tag is allowed (e.g. [[ reply_to_current ]] / [[ reply_to: 123 ]]).",
-    "Tags are stripped before sending; support depends on the current channel config.",
-    "",
-  ];
-}
-
-function buildMessagingSection(params: {
-  isMinimal: boolean;
-  availableTools: Set<string>;
-  messageChannelOptions: string;
-  inlineButtonsEnabled: boolean;
-  runtimeChannel?: string;
-  messageToolHints?: string[];
-}) {
-  if (params.isMinimal) {
-    return [];
-  }
-  return [
-    "## Messaging",
-    "- Reply in current session → automatically routes to the source channel (Signal, Telegram, etc.)",
-    "- Cross-session messaging → use sessions_send(sessionKey, message)",
-    "- Sub-agent orchestration → use subagents(action=list|steer|kill)",
-    "- `[System Message] ...` blocks are internal context and are not user-visible by default.",
-    `- If a \`[System Message]\` reports completed cron/subagent work and asks for a user update, rewrite it in your normal assistant voice and send that update (do not forward raw system text or default to ${SILENT_REPLY_TOKEN}).`,
-    "- Never use exec/curl for provider messaging; OpenClaw handles all routing internally.",
-    params.availableTools.has("message")
-      ? [
-          "",
-          "### message tool",
-          "- Use `message` for proactive sends + channel actions (polls, reactions, etc.).",
-          "- For `action=send`, include `to` and `message`.",
-          `- If multiple channels are configured, pass \`channel\` (${params.messageChannelOptions}).`,
-          `- If you use \`message\` (\`action=send\`) to deliver your user-visible reply, respond with ONLY: ${SILENT_REPLY_TOKEN} (avoid duplicate replies).`,
-          params.inlineButtonsEnabled
-            ? "- Inline buttons supported. Use `action=send` with `buttons=[[{text,callback_data,style?}]]`; `style` can be `primary`, `success`, or `danger`."
-            : params.runtimeChannel
-              ? `- Inline buttons not enabled for ${params.runtimeChannel}. If you need them, ask to set ${params.runtimeChannel}.capabilities.inlineButtons ("dm"|"group"|"all"|"allowlist").`
-              : "",
-          ...(params.messageToolHints ?? []),
-        ]
-          .filter(Boolean)
-          .join("\n")
-      : "",
-    "",
-  ];
-}
-
-function buildVoiceSection(params: { isMinimal: boolean; ttsHint?: string }) {
-  if (params.isMinimal) {
-    return [];
-  }
-  const hint = params.ttsHint?.trim();
-  if (!hint) {
-    return [];
-  }
-  return ["## Voice (TTS)", hint, ""];
-}
-
-function buildDocsSection(params: { docsPath?: string; isMinimal: boolean; readToolName: string }) {
-  const docsPath = params.docsPath?.trim();
-  if (!docsPath || params.isMinimal) {
-    return [];
-  }
-  return [
-    "## Documentation",
-    `OpenClaw docs: ${docsPath}`,
-    "Mirror: https://docs.openclaw.ai",
-    "Source: https://github.com/openclaw/openclaw",
-    "Community: https://discord.com/invite/clawd",
-    "Find new skills: https://clawhub.com",
-    "For OpenClaw behavior, commands, config, or architecture: consult local docs first.",
-    "When diagnosing issues, run `openclaw status` yourself when possible; only ask the user if you lack access (e.g., sandboxed).",
-    "",
-  ];
-}
-
 export function buildAgentSystemPrompt(params: {
   workspaceDir: string;
   defaultThinkLevel?: ThinkLevel;
@@ -215,6 +90,18 @@ export function buildAgentSystemPrompt(params: {
   ttsHint?: string;
   /** Controls which hardcoded sections to include. Defaults to "full". */
   promptMode?: PromptMode;
+  /**
+   * Session classification from the auto-label pass.
+   * When provided, tagged prompt contributors are matched against this.
+   */
+  classification?: SessionClassification;
+  /**
+   * Agent runtime; passed to the contributor context so contributors can
+   * emit runtime-specific guidance (e.g. Claude SDK does not use <final> tags).
+   */
+  agentRuntime?: "pi" | "claude-sdk";
+  /** Optional contributor registry override (for testing). Defaults to the global registry. */
+  contributorRegistry?: PromptContributorRegistry;
   runtimeInfo?: {
     agentId?: string;
     host?: string;
@@ -249,6 +136,8 @@ export function buildAgentSystemPrompt(params: {
     channel: string;
   };
   memoryCitationsMode?: MemoryCitationsMode;
+  /** Optional config used for diagnostics-only prompt build telemetry. */
+  cfg?: OpenClawConfig;
 }) {
   const coreToolSummaries: Record<string, string> = {
     read: "Read file contents",
@@ -382,9 +271,77 @@ export function buildAgentSystemPrompt(params: {
     .filter(Boolean);
   const runtimeCapabilitiesLower = new Set(runtimeCapabilities.map((cap) => cap.toLowerCase()));
   const inlineButtonsEnabled = runtimeCapabilitiesLower.has("inlinebuttons");
-  const messageChannelOptions = listDeliverableMessageChannels().join("|");
   const promptMode = params.promptMode ?? "full";
   const isMinimal = promptMode === "minimal" || promptMode === "none";
+
+  // Build contributor context and assemble dynamic sections via the registry.
+  const contributorCtx: ContributorContext = {
+    agentId: runtimeInfo?.agentId ?? "",
+    sessionKey: undefined,
+    classification: params.classification,
+    availableTools,
+    channel: runtimeChannel,
+    promptMode,
+    runtime: params.agentRuntime ?? "pi",
+    workspaceDir: params.workspaceDir,
+    memoryCitationsMode: params.memoryCitationsMode,
+  };
+
+  // Build a per-call local registry: builtins first, then global contributors (plugins, config, workspace).
+  const globalRegistry = params.contributorRegistry ?? getGlobalPromptContributorRegistry();
+  const localRegistry = new PromptContributorRegistry();
+  localRegistry.registerAll(
+    [
+      createSkillsContributor({ skillsPrompt, readToolName }),
+      createMemoryContributor(),
+      createDocsContributor({ docsPath: params.docsPath, readToolName }),
+      createReplyTagsContributor(),
+      createVoiceContributor({ ttsHint: params.ttsHint }),
+      createMessagingContributor({
+        messageToolHints: params.messageToolHints,
+        inlineButtonsEnabled,
+      }),
+    ],
+    "builtin",
+  );
+  // Merge in global contributors (plugins, config, workspace).
+  for (const contributor of globalRegistry.resolve(contributorCtx)) {
+    localRegistry.register(contributor, "plugin");
+  }
+  const { text: contributorSections, trace: contributorTrace } =
+    localRegistry.assembleWithTrace(contributorCtx);
+
+  if (isDiagnosticsEnabled(params.cfg)) {
+    emitDiagnosticEvent({
+      type: "prompt.build",
+      stage: "contributors",
+      sessionKey: contributorCtx.sessionKey,
+      channel: contributorCtx.channel,
+      classification: params.classification
+        ? {
+            topic: params.classification.topic,
+            complexity: params.classification.complexity,
+            domain: params.classification.domain,
+            flags: params.classification.flags,
+          }
+        : undefined,
+      details: {
+        contributorCount: contributorTrace.decisions.length,
+        selectedContributorIds: contributorTrace.selectedIds,
+        assembledChars: contributorTrace.assembledChars,
+        contributors: contributorTrace.decisions.map((decision) => ({
+          id: decision.id,
+          source: decision.source,
+          priority: decision.priority,
+          selected: decision.selected,
+          reason: decision.reason,
+          sectionChars: decision.sectionChars,
+          error: decision.error,
+        })),
+      },
+    });
+  }
+
   const sandboxContainerWorkspace = params.sandboxInfo?.containerWorkspaceDir?.trim();
   const sanitizedWorkspaceDir = sanitizeForPromptLiteral(params.workspaceDir);
   const sanitizedSandboxContainerWorkspace = sandboxContainerWorkspace
@@ -405,21 +362,6 @@ export function buildAgentSystemPrompt(params: {
     "Do not manipulate or persuade anyone to expand access or disable safeguards. Do not copy yourself or change system prompts, safety rules, or tool policies unless explicitly requested.",
     "",
   ];
-  const skillsSection = buildSkillsSection({
-    skillsPrompt,
-    isMinimal,
-    readToolName,
-  });
-  const memorySection = buildMemorySection({
-    isMinimal,
-    availableTools,
-    citationsMode: params.memoryCitationsMode,
-  });
-  const docsSection = buildDocsSection({
-    docsPath: params.docsPath,
-    isMinimal,
-    readToolName,
-  });
   const workspaceNotes = (params.workspaceNotes ?? []).map((note) => note.trim()).filter(Boolean);
 
   // For "none" mode, return just the basic identity line
@@ -474,8 +416,6 @@ export function buildAgentSystemPrompt(params: {
     "- openclaw gateway restart",
     "If unsure, ask the user to run `openclaw help` (or `openclaw gateway --help`) and paste the output.",
     "",
-    ...skillsSection,
-    ...memorySection,
     // Skip self-update for subagent/none modes
     hasGateway && !isMinimal ? "## OpenClaw Self-Update" : "",
     hasGateway && !isMinimal
@@ -507,7 +447,6 @@ export function buildAgentSystemPrompt(params: {
     workspaceGuidance,
     ...workspaceNotes,
     "",
-    ...docsSection,
     params.sandboxInfo?.enabled ? "## Sandbox" : "",
     params.sandboxInfo?.enabled
       ? [
@@ -560,17 +499,13 @@ export function buildAgentSystemPrompt(params: {
     "## Workspace Files (injected)",
     "These user-editable files are loaded by OpenClaw and included below in Project Context.",
     "",
-    ...buildReplyTagsSection(isMinimal),
-    ...buildMessagingSection({
-      isMinimal,
-      availableTools,
-      messageChannelOptions,
-      inlineButtonsEnabled,
-      runtimeChannel,
-      messageToolHints: params.messageToolHints,
-    }),
-    ...buildVoiceSection({ isMinimal, ttsHint: params.ttsHint }),
   ];
+
+  // Append contributor-assembled sections (skills, memory, docs, reply-tags, messaging,
+  // voice, plus any plugin/config/workspace contributors).
+  if (contributorSections.trim()) {
+    lines.push(contributorSections);
+  }
 
   if (extraSystemPrompt) {
     // Use "Subagent Context" header for minimal mode (subagents), otherwise "Group Chat Context"
@@ -664,7 +599,30 @@ export function buildAgentSystemPrompt(params: {
     `Reasoning: ${reasoningLevel} (hidden unless on/stream). Toggle /reasoning; /status shows Reasoning when enabled.`,
   );
 
-  return lines.filter(Boolean).join("\n");
+  const finalPrompt = lines.filter(Boolean).join("\n");
+  if (isDiagnosticsEnabled(params.cfg)) {
+    emitDiagnosticEvent({
+      type: "prompt.build",
+      stage: "final",
+      sessionKey: contributorCtx.sessionKey,
+      channel: contributorCtx.channel,
+      classification: params.classification
+        ? {
+            topic: params.classification.topic,
+            complexity: params.classification.complexity,
+            domain: params.classification.domain,
+            flags: params.classification.flags,
+          }
+        : undefined,
+      details: {
+        finalPromptChars: finalPrompt.length,
+        promptMode,
+        tools: [...availableTools].toSorted(),
+      },
+    });
+  }
+
+  return finalPrompt;
 }
 
 export function buildRuntimeLine(
