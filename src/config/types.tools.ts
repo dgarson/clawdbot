@@ -1,4 +1,5 @@
 import type { ChatType } from "../channels/chat-type.js";
+import type { SafeBinProfileFixture } from "../infra/exec-safe-bin-policy.js";
 import type { AgentElevatedAllowFromConfig, SessionSendPolicyAction } from "./types.base.js";
 
 export type MediaUnderstandingScopeMatch = {
@@ -28,7 +29,22 @@ export type MediaUnderstandingAttachmentsConfig = {
   prefer?: "first" | "last" | "path" | "url";
 };
 
-export type MediaUnderstandingModelConfig = {
+type MediaProviderRequestConfig = {
+  /** Optional provider-specific query params (merged into requests). */
+  providerOptions?: Record<string, Record<string, string | number | boolean>>;
+  /** @deprecated Use providerOptions.deepgram instead. */
+  deepgram?: {
+    detectLanguage?: boolean;
+    punctuate?: boolean;
+    smartFormat?: boolean;
+  };
+  /** Optional base URL override for provider requests. */
+  baseUrl?: string;
+  /** Optional headers merged into provider requests. */
+  headers?: Record<string, string>;
+};
+
+export type MediaUnderstandingModelConfig = MediaProviderRequestConfig & {
   /** provider API id (e.g. openai, google). */
   provider?: string;
   /** Model id for provider-based understanding. */
@@ -51,25 +67,13 @@ export type MediaUnderstandingModelConfig = {
   timeoutSeconds?: number;
   /** Optional language hint for audio transcription. */
   language?: string;
-  /** Optional provider-specific query params (merged into requests). */
-  providerOptions?: Record<string, Record<string, string | number | boolean>>;
-  /** @deprecated Use providerOptions.deepgram instead. */
-  deepgram?: {
-    detectLanguage?: boolean;
-    punctuate?: boolean;
-    smartFormat?: boolean;
-  };
-  /** Optional base URL override for provider requests. */
-  baseUrl?: string;
-  /** Optional headers merged into provider requests. */
-  headers?: Record<string, string>;
   /** Auth profile id to use for this provider. */
   profile?: string;
   /** Preferred profile id if multiple are available. */
   preferredProfile?: string;
 };
 
-export type MediaUnderstandingConfig = {
+export type MediaUnderstandingConfig = MediaProviderRequestConfig & {
   /** Enable media understanding when models are configured. */
   enabled?: boolean;
   /** Optional scope gating for understanding. */
@@ -84,18 +88,6 @@ export type MediaUnderstandingConfig = {
   timeoutSeconds?: number;
   /** Default language hint (audio). */
   language?: string;
-  /** Optional provider-specific query params (merged into requests). */
-  providerOptions?: Record<string, Record<string, string | number | boolean>>;
-  /** @deprecated Use providerOptions.deepgram instead. */
-  deepgram?: {
-    detectLanguage?: boolean;
-    punctuate?: boolean;
-    smartFormat?: boolean;
-  };
-  /** Optional base URL override for provider requests. */
-  baseUrl?: string;
-  /** Optional headers merged into provider requests. */
-  headers?: Record<string, string>;
   /** Attachment selection policy. */
   attachments?: MediaUnderstandingAttachmentsConfig;
   /** Ordered model list (fallbacks in order). */
@@ -187,7 +179,7 @@ export type GroupToolPolicyConfig = {
 export type GroupToolPolicyBySenderConfig = Record<string, GroupToolPolicyConfig>;
 
 export type ExecToolConfig = {
-  /** Exec host routing (default: sandbox). */
+  /** Exec host routing (default: sandbox with sandbox runtime, otherwise gateway). */
   host?: "sandbox" | "gateway" | "node";
   /** Exec security mode (default: deny). */
   security?: "deny" | "allowlist" | "full";
@@ -199,6 +191,8 @@ export type ExecToolConfig = {
   pathPrepend?: string[];
   /** Safe stdin-only binaries that can run without allowlist entries. */
   safeBins?: string[];
+  /** Optional custom safe-bin profiles for entries in tools.exec.safeBins. */
+  safeBinProfiles?: Record<string, SafeBinProfileFixture>;
   /** Default time (ms) before an exec command auto-backgrounds. */
   backgroundMs?: number;
   /** Default timeout (seconds) before auto-killing exec commands. */
@@ -524,6 +518,8 @@ export type ToolsConfig = {
      * - "all": any session (cross-agent still requires tools.agentToAgent)
      */
     visibility?: SessionsToolsVisibility;
+    /** Default timeout in seconds for sessions_send when the agent does not pass timeoutSeconds explicitly (default: 120). Set to 0 for fire-and-forget. */
+    sendTimeoutSeconds?: number;
   };
   /** Elevated exec permissions for the host machine. */
   elevated?: {
@@ -544,6 +540,8 @@ export type ToolsConfig = {
     model?: string | { primary?: string; fallbacks?: string[] };
     tools?: {
       allow?: string[];
+      /** Additional allowlist entries merged into allow and/or default sub-agent denylist. */
+      alsoAllow?: string[];
       deny?: string[];
     };
   };

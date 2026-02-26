@@ -1,22 +1,10 @@
 import type { ChatType } from "../channels/chat-type.js";
 import type { AgentDefaultsConfig } from "./types.agent-defaults.js";
+import type { AgentModelConfig, AgentSandboxConfig } from "./types.agents-shared.js";
 import type { HumanDelayConfig, IdentityConfig } from "./types.base.js";
 import type { GroupChatConfig } from "./types.messages.js";
-import type {
-  SandboxBrowserSettings,
-  SandboxDockerSettings,
-  SandboxPruneSettings,
-} from "./types.sandbox.js";
 import type { AgentToolsConfig, MemorySearchConfig } from "./types.tools.js";
-
-export type AgentModelConfig =
-  | string
-  | {
-      /** Primary model (provider/model). */
-      primary?: string;
-      /** Per-agent model fallbacks (provider/model). */
-      fallbacks?: string[];
-    };
+import type { ClaudeSdkConfig } from "./zod-schema.agent-runtime.js";
 
 export type AgentConfig = {
   id: string;
@@ -38,31 +26,18 @@ export type AgentConfig = {
     /** Allow spawning sub-agents under other agent ids. Use "*" to allow any. */
     allowAgents?: string[];
     /** Per-agent default model for spawned sub-agents (string or {primary,fallbacks}). */
-    model?: string | { primary?: string; fallbacks?: string[] };
+    model?: AgentModelConfig;
+    thinking?: string;
   };
-  sandbox?: {
-    mode?: "off" | "non-main" | "all";
-    /** Agent workspace access inside the sandbox. */
-    workspaceAccess?: "none" | "ro" | "rw";
-    /**
-     * Session tools visibility for sandboxed sessions.
-     * - "spawned": only allow session tools to target sessions spawned from this session (default)
-     * - "all": allow session tools to target any session
-     */
-    sessionToolsVisibility?: "spawned" | "all";
-    /** Container/workspace scope for sandbox isolation. */
-    scope?: "session" | "agent" | "shared";
-    /** Legacy alias for scope ("session" when true, "shared" when false). */
-    perSession?: boolean;
-    workspaceRoot?: string;
-    /** Docker-specific sandbox overrides for this agent. */
-    docker?: SandboxDockerSettings;
-    /** Optional sandboxed browser overrides for this agent. */
-    browser?: SandboxBrowserSettings;
-    /** Auto-prune overrides for this agent. */
-    prune?: SandboxPruneSettings;
-  };
+  /** Default thinking level when no /think directive is present for this agent. */
+  thinkingDefault?: AgentDefaultsConfig["thinkingDefault"];
+  /** Optional per-agent sandbox overrides. */
+  sandbox?: AgentSandboxConfig;
   tools?: AgentToolsConfig;
+  /** Agent runtime: "pi" (default) or "claude-sdk". */
+  runtime?: "pi" | "claude-sdk";
+  /** Claude Agent SDK provider config (used when runtime is "claude-sdk"). */
+  claudeSdk?: ClaudeSdkConfig;
 };
 
 export type AgentsConfig = {
@@ -72,6 +47,7 @@ export type AgentsConfig = {
 
 export type AgentBinding = {
   agentId: string;
+  comment?: string;
   match: {
     channel: string;
     accountId?: string;

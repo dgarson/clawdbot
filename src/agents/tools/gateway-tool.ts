@@ -1,4 +1,5 @@
 import { Type } from "@sinclair/typebox";
+import { isRestartEnabled } from "../../config/commands.js";
 import type { OpenClawConfig } from "../../config/config.js";
 import { resolveConfigSnapshotHash } from "../../config/io.js";
 import { extractDeliveryInfo } from "../../config/sessions.js";
@@ -8,9 +9,12 @@ import {
   writeRestartSentinel,
 } from "../../infra/restart-sentinel.js";
 import { scheduleGatewaySigusr1Restart } from "../../infra/restart.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { stringEnum } from "../schema/typebox.js";
 import { type AnyAgentTool, jsonResult, readStringParam } from "./common.js";
-import { callGatewayTool } from "./gateway.js";
+import { callGatewayTool, readGatewayCallOptions } from "./gateway.js";
+
+const log = createSubsystemLogger("gateway-tool");
 
 const DEFAULT_UPDATE_TIMEOUT_MS = 20 * 60_000;
 
@@ -40,21 +44,56 @@ const GATEWAY_ACTIONS = [
 // because Claude API on Vertex AI rejects nested anyOf schemas as invalid JSON Schema.
 // The discriminator (action) determines which properties are relevant; runtime validates.
 const GatewayToolSchema = Type.Object({
-  action: stringEnum(GATEWAY_ACTIONS),
+  action: stringEnum(GATEWAY_ACTIONS, {
+    description:
+      "'restart', 'config.get', 'config.schema', 'config.apply' (full replace), 'config.patch' (merge), 'update.run'.",
+  }),
   // restart
-  delayMs: Type.Optional(Type.Number()),
-  reason: Type.Optional(Type.String()),
+  delayMs: Type.Optional(
+    Type.Number({
+      description: "Delay before restart in milliseconds (action='restart').",
+    }),
+  ),
+  reason: Type.Optional(
+    Type.String({
+      description: "Human-readable restart reason for logs (action='restart').",
+    }),
+  ),
   // config.get, config.schema, config.apply, update.run
-  gatewayUrl: Type.Optional(Type.String()),
-  gatewayToken: Type.Optional(Type.String()),
-  timeoutMs: Type.Optional(Type.Number()),
+  gatewayUrl: Type.Optional(Type.String({ description: "Custom gateway URL override." })),
+  gatewayToken: Type.Optional(Type.String({ description: "Custom gateway auth token override." })),
+  timeoutMs: Type.Optional(
+    Type.Number({ description: "Request timeout in milliseconds (default: 30000)." }),
+  ),
   // config.apply, config.patch
-  raw: Type.Optional(Type.String()),
-  baseHash: Type.Optional(Type.String()),
+  raw: Type.Optional(
+    Type.String({
+      description:
+        "Full config as YAML string (action='config.apply'/'config.patch'; must be valid OpenClaw config).",
+    }),
+  ),
+  baseHash: Type.Optional(
+    Type.String({
+      description:
+        "SHA256 hash of current config for conflict detection (action='config.apply'/'config.patch').",
+    }),
+  ),
   // config.apply, config.patch, update.run
-  sessionKey: Type.Optional(Type.String()),
-  note: Type.Optional(Type.String()),
-  restartDelayMs: Type.Optional(Type.Number()),
+  sessionKey: Type.Optional(
+    Type.String({
+      description: "Session key for routing completion notification after restart/update.",
+    }),
+  ),
+  note: Type.Optional(
+    Type.String({
+      description: "Message delivered to user after restart/update completes.",
+    }),
+  ),
+  restartDelayMs: Type.Optional(
+    Type.Number({
+      description: "Delay before automatic restart after config apply/update in milliseconds.",
+    }),
+  ),
 });
 // NOTE: We intentionally avoid top-level `allOf`/`anyOf`/`oneOf` conditionals here:
 // - OpenAI rejects tool schemas that include these keywords at the *top-level*.
@@ -68,6 +107,7 @@ export function createGatewayTool(opts?: {
   return {
     label: "Gateway",
     name: "gateway",
+    ownerOnly: true,
     description:
       "Restart, apply config, or update the gateway in-place (SIGUSR1). Use config.patch for safe partial config updates (merges with existing). Use config.apply only when replacing entire config. Both trigger restart after writing. Always pass a human-readable completion message via the `note` parameter so the system can deliver it to the user after restart.",
     parameters: GatewayToolSchema,
@@ -75,8 +115,8 @@ export function createGatewayTool(opts?: {
       const params = args as Record<string, unknown>;
       const action = readStringParam(params, "action", { required: true });
       if (action === "restart") {
-        if (opts?.config?.commands?.restart !== true) {
-          throw new Error("Gateway restart is disabled. Set commands.restart=true to enable.");
+        if (!isRestartEnabled(opts?.config)) {
+          throw new Error("Gateway restart is disabled (commands.restart=false).");
         }
         const sessionKey =
           typeof params.sessionKey === "string" && params.sessionKey.trim()
@@ -114,7 +154,7 @@ export function createGatewayTool(opts?: {
         } catch {
           // ignore: sentinel is best-effort
         }
-        console.info(
+        log.info(
           `gateway tool: restart requested (delayMs=${delayMs ?? "default"}, reason=${reason ?? "none"})`,
         );
         const scheduled = scheduleGatewaySigusr1Restart({
@@ -124,19 +164,7 @@ export function createGatewayTool(opts?: {
         return jsonResult(scheduled);
       }
 
-      const gatewayUrl =
-        typeof params.gatewayUrl === "string" && params.gatewayUrl.trim()
-          ? params.gatewayUrl.trim()
-          : undefined;
-      const gatewayToken =
-        typeof params.gatewayToken === "string" && params.gatewayToken.trim()
-          ? params.gatewayToken.trim()
-          : undefined;
-      const timeoutMs =
-        typeof params.timeoutMs === "number" && Number.isFinite(params.timeoutMs)
-          ? Math.max(1, Math.floor(params.timeoutMs))
-          : undefined;
-      const gatewayOpts = { gatewayUrl, gatewayToken, timeoutMs };
+      const gatewayOpts = readGatewayCallOptions(params);
 
       const resolveGatewayWriteMeta = (): {
         sessionKey: string | undefined;
@@ -209,15 +237,16 @@ export function createGatewayTool(opts?: {
       }
       if (action === "update.run") {
         const { sessionKey, note, restartDelayMs } = resolveGatewayWriteMeta();
+        const updateTimeoutMs = gatewayOpts.timeoutMs ?? DEFAULT_UPDATE_TIMEOUT_MS;
         const updateGatewayOpts = {
           ...gatewayOpts,
-          timeoutMs: timeoutMs ?? DEFAULT_UPDATE_TIMEOUT_MS,
+          timeoutMs: updateTimeoutMs,
         };
         const result = await callGatewayTool("update.run", updateGatewayOpts, {
           sessionKey,
           note,
           restartDelayMs,
-          timeoutMs: timeoutMs ?? DEFAULT_UPDATE_TIMEOUT_MS,
+          timeoutMs: updateTimeoutMs,
         });
         return jsonResult({ ok: true, result });
       }

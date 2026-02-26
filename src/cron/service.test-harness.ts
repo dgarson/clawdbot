@@ -5,6 +5,8 @@ import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest";
 import type { MockFn } from "../test-utils/vitest-mock-fn.js";
 import type { CronEvent } from "./service.js";
 import { CronService } from "./service.js";
+import { createCronServiceState } from "./service/state.js";
+import type { CronJob } from "./types.js";
 
 export type NoopLogger = {
   debug: MockFn;
@@ -47,6 +49,22 @@ export function createCronStoreHarness(options?: { prefix?: string }) {
   }
 
   return { makeStorePath };
+}
+
+export async function writeCronStoreSnapshot(params: { storePath: string; jobs: CronJob[] }) {
+  await fs.mkdir(path.dirname(params.storePath), { recursive: true });
+  await fs.writeFile(
+    params.storePath,
+    JSON.stringify(
+      {
+        version: 1,
+        jobs: params.jobs,
+      },
+      null,
+      2,
+    ),
+    "utf-8",
+  );
 }
 
 export function installCronTestHooks(options: {
@@ -110,4 +128,27 @@ export function createStartedCronServiceWithFinishedBarrier(params: {
     onEvent: finished.onEvent,
   });
   return { cron, enqueueSystemEvent, requestHeartbeatNow, finished };
+}
+
+export function createRunningCronServiceState(params: {
+  storePath: string;
+  log: ReturnType<typeof createNoopLogger>;
+  nowMs: () => number;
+  jobs: CronJob[];
+}) {
+  const state = createCronServiceState({
+    cronEnabled: true,
+    storePath: params.storePath,
+    log: params.log,
+    nowMs: params.nowMs,
+    enqueueSystemEvent: vi.fn(),
+    requestHeartbeatNow: vi.fn(),
+    runIsolatedAgentJob: vi.fn().mockResolvedValue({ status: "ok", summary: "ok" }),
+  });
+  state.running = true;
+  state.store = {
+    version: 1,
+    jobs: params.jobs,
+  };
+  return state;
 }

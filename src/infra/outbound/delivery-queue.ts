@@ -1,9 +1,9 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import type { ReplyPayload } from "../../auto-reply/types.js";
 import type { OpenClawConfig } from "../../config/config.js";
 import { resolveStateDir } from "../../config/paths.js";
+import { generateSecureUuid } from "../secure-random.js";
 import type { OutboundChannel } from "./targets.js";
 
 const QUEUE_DIRNAME = "delivery-queue";
@@ -25,9 +25,7 @@ type DeliveryMirrorPayload = {
   mediaUrls?: string[];
 };
 
-export interface QueuedDelivery {
-  id: string;
-  enqueuedAt: number;
+type QueuedDeliveryPayload = {
   channel: Exclude<OutboundChannel, "none">;
   to: string;
   accountId?: string;
@@ -43,6 +41,11 @@ export interface QueuedDelivery {
   gifPlayback?: boolean;
   silent?: boolean;
   mirror?: DeliveryMirrorPayload;
+};
+
+export interface QueuedDelivery extends QueuedDeliveryPayload {
+  id: string;
+  enqueuedAt: number;
   retryCount: number;
   lastError?: string;
 }
@@ -65,25 +68,14 @@ export async function ensureQueueDir(stateDir?: string): Promise<string> {
 }
 
 /** Persist a delivery entry to disk before attempting send. Returns the entry ID. */
-type QueuedDeliveryParams = {
-  channel: Exclude<OutboundChannel, "none">;
-  to: string;
-  accountId?: string;
-  payloads: ReplyPayload[];
-  threadId?: string | number | null;
-  replyToId?: string | null;
-  bestEffort?: boolean;
-  gifPlayback?: boolean;
-  silent?: boolean;
-  mirror?: DeliveryMirrorPayload;
-};
+type QueuedDeliveryParams = QueuedDeliveryPayload;
 
 export async function enqueueDelivery(
   params: QueuedDeliveryParams,
   stateDir?: string,
 ): Promise<string> {
   const queueDir = await ensureQueueDir(stateDir);
-  const id = crypto.randomUUID();
+  const id = generateSecureUuid();
   const entry: QueuedDelivery = {
     id,
     enqueuedAt: Date.now(),

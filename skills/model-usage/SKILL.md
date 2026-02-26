@@ -13,7 +13,7 @@ metadata:
             {
               "id": "brew-cask",
               "kind": "brew",
-              "cask": "steipete/tap/codexbar",
+              "formula": "steipete/tap/codexbar",
               "bins": ["codexbar"],
               "label": "Install CodexBar (brew cask)",
             },
@@ -54,9 +54,9 @@ python {baseDir}/scripts/model_usage.py --provider claude --mode all --format js
 - File or stdin:
 
 ```bash
-codexbar cost --provider codex --format json > /tmp/cost.json
-python {baseDir}/scripts/model_usage.py --input /tmp/cost.json --mode all
-cat /tmp/cost.json | python {baseDir}/scripts/model_usage.py --input - --mode current
+codexbar cost --provider codex --format json > /tmp/openclaw/cost.json
+python {baseDir}/scripts/model_usage.py --input /tmp/openclaw/cost.json --mode all
+cat /tmp/openclaw/cost.json | python {baseDir}/scripts/model_usage.py --input - --mode current
 ```
 
 ## Output

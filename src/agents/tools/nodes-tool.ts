@@ -6,6 +6,7 @@ import {
   cameraTempPath,
   parseCameraClipPayload,
   parseCameraSnapPayload,
+  writeCameraClipPayloadToFile,
   writeBase64ToFile,
   writeUrlToFile,
 } from "../../cli/nodes-camera.js";
@@ -47,42 +48,140 @@ const NOTIFY_DELIVERIES = ["system", "overlay", "auto"] as const;
 const CAMERA_FACING = ["front", "back", "both"] as const;
 const LOCATION_ACCURACY = ["coarse", "balanced", "precise"] as const;
 
+function isPairingRequiredMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  return lower.includes("pairing required") || lower.includes("not_paired");
+}
+
+function extractPairingRequestId(message: string): string | null {
+  const match = message.match(/\(requestId:\s*([^)]+)\)/i);
+  if (!match) {
+    return null;
+  }
+  const value = (match[1] ?? "").trim();
+  return value.length > 0 ? value : null;
+}
+
 // Flattened schema: runtime validates per-action requirements.
 const NodesToolSchema = Type.Object({
-  action: stringEnum(NODES_TOOL_ACTIONS),
-  gatewayUrl: Type.Optional(Type.String()),
-  gatewayToken: Type.Optional(Type.String()),
-  timeoutMs: Type.Optional(Type.Number()),
-  node: Type.Optional(Type.String()),
-  requestId: Type.Optional(Type.String()),
+  action: stringEnum(NODES_TOOL_ACTIONS, {
+    description:
+      "'status', 'describe', 'pending', 'approve'/'reject' (pairing), 'notify', 'camera_snap', 'camera_clip', 'camera_list', 'screen_record', 'location_get', 'run' (shell), 'invoke' (gateway).",
+  }),
+  gatewayUrl: Type.Optional(Type.String({ description: "Custom gateway URL override." })),
+  gatewayToken: Type.Optional(Type.String({ description: "Custom gateway auth token override." })),
+  timeoutMs: Type.Optional(
+    Type.Number({ description: "Request timeout in milliseconds (default: 30000)." }),
+  ),
+  node: Type.Optional(
+    Type.String({
+      description:
+        "Node ID or name to target (use 'status' or 'describe' to list available nodes).",
+    }),
+  ),
+  requestId: Type.Optional(
+    Type.String({
+      description: "Pairing/approval request ID (action='approve'/'reject').",
+    }),
+  ),
   // notify
-  title: Type.Optional(Type.String()),
-  body: Type.Optional(Type.String()),
-  sound: Type.Optional(Type.String()),
-  priority: optionalStringEnum(NOTIFY_PRIORITIES),
-  delivery: optionalStringEnum(NOTIFY_DELIVERIES),
+  title: Type.Optional(Type.String({ description: "Notification title (action='notify')." })),
+  body: Type.Optional(Type.String({ description: "Notification body text (action='notify')." })),
+  sound: Type.Optional(
+    Type.String({
+      description: "Notification sound name (action='notify'; platform-specific).",
+    }),
+  ),
+  priority: optionalStringEnum(NOTIFY_PRIORITIES, {
+    description:
+      "Notification priority: 'passive' (silent), 'active' (vibrate), 'timeSensitive' (action='notify').",
+  }),
+  delivery: optionalStringEnum(NOTIFY_DELIVERIES, {
+    description: "Notification delivery mode: 'system', 'overlay', 'auto' (action='notify').",
+  }),
   // camera_snap / camera_clip
   facing: optionalStringEnum(CAMERA_FACING, {
     description: "camera_snap: front/back/both; camera_clip: front/back only.",
   }),
-  maxWidth: Type.Optional(Type.Number()),
-  quality: Type.Optional(Type.Number()),
-  delayMs: Type.Optional(Type.Number()),
-  deviceId: Type.Optional(Type.String()),
-  duration: Type.Optional(Type.String()),
-  durationMs: Type.Optional(Type.Number()),
-  includeAudio: Type.Optional(Type.Boolean()),
+  maxWidth: Type.Optional(
+    Type.Number({
+      description: "Max image width in pixels; aspect ratio preserved (camera/screen actions).",
+    }),
+  ),
+  quality: Type.Optional(
+    Type.Number({
+      description: "Image quality 0-100, default 90 (camera/screen actions).",
+    }),
+  ),
+  delayMs: Type.Optional(
+    Type.Number({
+      description:
+        "Delay before capture in milliseconds (allows focus adjustment; camera actions).",
+    }),
+  ),
+  deviceId: Type.Optional(
+    Type.String({
+      description: "Camera device ID when multiple cameras are available.",
+    }),
+  ),
+  duration: Type.Optional(
+    Type.String({
+      description: "Clip duration string (e.g. '5s', '30s'; action='camera_clip').",
+    }),
+  ),
+  durationMs: Type.Optional(
+    Type.Number({
+      description:
+        "Clip duration in milliseconds (action='camera_clip'; alternative to 'duration').",
+    }),
+  ),
+  includeAudio: Type.Optional(
+    Type.Boolean({
+      description: "If true, include audio in recording (action='camera_clip'/'screen_record').",
+    }),
+  ),
   // screen_record
-  fps: Type.Optional(Type.Number()),
-  screenIndex: Type.Optional(Type.Number()),
-  outPath: Type.Optional(Type.String()),
+  fps: Type.Optional(
+    Type.Number({
+      description:
+        "Frames per second for screen recording (typical: 30 or 60; action='screen_record').",
+    }),
+  ),
+  screenIndex: Type.Optional(
+    Type.Number({
+      description: "Display/screen index to record (0=primary; action='screen_record').",
+    }),
+  ),
+  outPath: Type.Optional(
+    Type.String({
+      description: "Output file path for screen recording (action='screen_record').",
+    }),
+  ),
   // location_get
-  maxAgeMs: Type.Optional(Type.Number()),
-  locationTimeoutMs: Type.Optional(Type.Number()),
-  desiredAccuracy: optionalStringEnum(LOCATION_ACCURACY),
+  maxAgeMs: Type.Optional(
+    Type.Number({
+      description:
+        "Max age of cached location data to accept in ms (0=any age; action='location_get').",
+    }),
+  ),
+  locationTimeoutMs: Type.Optional(
+    Type.Number({
+      description: "Timeout for location acquisition in ms (action='location_get').",
+    }),
+  ),
+  desiredAccuracy: optionalStringEnum(LOCATION_ACCURACY, {
+    description:
+      "Location accuracy: 'coarse' (low power), 'balanced', 'precise' (action='location_get').",
+  }),
   // run
-  command: Type.Optional(Type.Array(Type.String())),
-  cwd: Type.Optional(Type.String()),
+  command: Type.Optional(
+    Type.Array(Type.String(), {
+      description: "Shell command as array (e.g. ['echo', 'hello world']; action='run').",
+    }),
+  ),
+  cwd: Type.Optional(
+    Type.String({ description: "Working directory for shell command (action='run')." }),
+  ),
   env: Type.Optional(Type.Array(Type.String())),
   commandTimeoutMs: Type.Optional(Type.Number()),
   invokeTimeoutMs: Type.Optional(Type.Number()),
@@ -300,16 +399,10 @@ export function createNodesTool(options?: {
               idempotencyKey: crypto.randomUUID(),
             });
             const payload = parseCameraClipPayload(raw?.payload);
-            const filePath = cameraTempPath({
-              kind: "clip",
+            const filePath = await writeCameraClipPayloadToFile({
+              payload,
               facing,
-              ext: payload.format,
             });
-            if (payload.url) {
-              await writeUrlToFile(filePath, payload.url);
-            } else if (payload.base64) {
-              await writeBase64ToFile(filePath, payload.base64);
-            }
             return {
               content: [{ type: "text", text: `FILE:${filePath}` }],
               details: {
@@ -549,7 +642,14 @@ export function createNodesTool(options?: {
             ? gatewayOpts.gatewayUrl.trim()
             : "default";
         const agentLabel = agentId ?? "unknown";
-        const message = err instanceof Error ? err.message : String(err);
+        let message = err instanceof Error ? err.message : String(err);
+        if (action === "invoke" && isPairingRequiredMessage(message)) {
+          const requestId = extractPairingRequestId(message);
+          const approveHint = requestId
+            ? `Approve pairing request ${requestId} and retry.`
+            : "Approve the pending pairing request and retry.";
+          message = `pairing required before node invoke. ${approveHint}`;
+        }
         throw new Error(
           `agent=${agentLabel} node=${nodeLabel} gateway=${gatewayLabel} action=${action}: ${message}`,
           { cause: err },

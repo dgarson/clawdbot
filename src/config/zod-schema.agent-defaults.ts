@@ -4,6 +4,7 @@ import {
   AgentSandboxSchema,
   AgentModelSchema,
   MemorySearchSchema,
+  ClaudeSdkConfigSchema,
 } from "./zod-schema.agent-runtime.js";
 import {
   BlockStreamingChunkSchema,
@@ -91,6 +92,8 @@ export const AgentDefaultsSchema = z
     compaction: z
       .object({
         mode: z.union([z.literal("default"), z.literal("safeguard")]).optional(),
+        reserveTokens: z.number().int().nonnegative().optional(),
+        keepRecentTokens: z.number().int().positive().optional(),
         reserveTokensFloor: z.number().int().nonnegative().optional(),
         maxHistoryShare: z.number().min(0.1).max(0.9).optional(),
         memoryFlush: z
@@ -166,6 +169,17 @@ export const AgentDefaultsSchema = z
       .strict()
       .optional(),
     sandbox: AgentSandboxSchema,
+    runtime: z.enum(["pi", "claude-sdk"]).optional(),
+    claudeSdk: ClaudeSdkConfigSchema,
+    sessionLabels: z
+      .object({
+        enabled: z.boolean().optional(),
+        model: z.string().optional(),
+        maxLength: z.number().int().min(1).max(79).optional(),
+        prompt: z.string().optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .optional();

@@ -45,4 +45,4 @@ Track the order
 
 Debug / safe testing
 
-- Use a throwaway config: `ordercli --config /tmp/ordercli.json ...`
+- Use a throwaway config: `ordercli --config /tmp/openclaw/ordercli.json ...`

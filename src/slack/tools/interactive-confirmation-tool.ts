@@ -4,14 +4,9 @@
  */
 
 import { Type } from "@sinclair/typebox";
-import crypto from "node:crypto";
 import type { AnyAgentTool } from "../../agents/tools/common.js";
 import { jsonResult } from "../../agents/tools/common.js";
-import { globalHandlerRegistry } from "../blocks/interactive.js";
-import { confirmation } from "../blocks/patterns.js";
 import { askSlackConfirmation } from "../interactive/confirmation.js";
-import { sendMessageSlack } from "../send.js";
-import { globalResponseStore } from "./response-store.js";
 
 const InteractiveConfirmationInput = Type.Object({
   to: Type.String({
