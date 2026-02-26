@@ -33,6 +33,7 @@ export type ClaudeSdkSessionParams = {
   tools: ClaudeSdkCompatibleTool[];
   customTools: ClaudeSdkCompatibleTool[];
   systemPrompt: string;
+  sessionFile?: string;
   thinkLevel?: string;
   extraParams?: Record<string, unknown>;
   /** Additional MCP servers to expose to the Claude Agent SDK alongside the
@@ -49,7 +50,11 @@ export type ClaudeSdkSessionParams = {
   sessionManager?: {
     appendCustomEntry?: (key: string, value: unknown) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getEntries?: () => Array<{ type: string; customType?: string; data?: unknown }>;
+    getEntries?: () => Array<{
+      type: string;
+      customType?: string;
+      data?: unknown;
+    }>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     appendMessage?: (message: any) => string;
   };
@@ -101,12 +106,18 @@ export type ClaudeSdkEventAdapterState = {
   sessionManager?: {
     appendCustomEntry?: (key: string, value: unknown) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getEntries?: () => Array<{ type: string; customType?: string; data?: unknown }>;
+    getEntries?: () => Array<{
+      type: string;
+      customType?: string;
+      data?: unknown;
+    }>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     appendMessage?: (message: any) => string;
   };
   /** Whether to enable Claude Code built-in web search tool. */
   enableClaudeWebSearch?: boolean;
+  providerId: string;
+  apiId: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -115,7 +126,7 @@ export type ClaudeSdkEventAdapterState = {
 
 export type ClaudeSdkMcpToolServerParams = {
   tools: ClaudeSdkCompatibleTool[];
-  emitEvent: (evt: EmbeddedPiSubscribeEvent) => void;
+  emitEvent: (evt: EmbeddedPiSubscribeEvent) => void | Promise<void>;
   getAbortSignal: () => AbortSignal | undefined;
   sessionManager?: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

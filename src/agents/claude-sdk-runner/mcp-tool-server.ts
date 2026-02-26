@@ -14,6 +14,7 @@
 
 import { createSdkMcpServer, tool } from "@anthropic-ai/claude-agent-sdk";
 import type { TSchema } from "@sinclair/typebox";
+import { truncateUtf16Safe } from "../../utils.js";
 import { typeboxToZod } from "./schema-adapter.js";
 import type { ClaudeSdkMcpToolServerParams } from "./types.js";
 
@@ -30,24 +31,72 @@ type McpToolResult = {
   isError?: boolean;
 };
 
+const TOOL_RESULT_STRING_MAX_CHARS = 120_000;
+
+function truncateDeepStrings(value: unknown): unknown {
+  if (typeof value === "string") {
+    if (value.length <= TOOL_RESULT_STRING_MAX_CHARS) {
+      return value;
+    }
+    return `${truncateUtf16Safe(value, TOOL_RESULT_STRING_MAX_CHARS)}\n…(truncated)…`;
+  }
+  if (Array.isArray(value)) {
+    return value.map((entry) => truncateDeepStrings(entry));
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, entry]) => [
+        key,
+        truncateDeepStrings(entry),
+      ]),
+    );
+  }
+  return value;
+}
+
 /**
  * Formats an OpenClaw tool result into MCP-protocol format.
  * Handles text, image (mediaUrls), and object results.
  */
+function buildPersistedToolResultContent(result: unknown): Array<{ type: "text"; text: string }> {
+  const normalized = truncateDeepStrings(result);
+  if (typeof normalized === "string") {
+    return [{ type: "text", text: normalized }];
+  }
+  if (normalized && typeof normalized === "object") {
+    const content = (normalized as { content?: unknown }).content;
+    if (Array.isArray(content) && content.length > 0) {
+      return content.map((entry) => {
+        if (entry && typeof entry === "object" && (entry as { type?: unknown }).type === "text") {
+          const text = (entry as { text?: unknown }).text;
+          return {
+            type: "text",
+            text: typeof text === "string" ? text : JSON.stringify(entry),
+          };
+        }
+        return { type: "text", text: JSON.stringify(entry) };
+      });
+    }
+  }
+  return [{ type: "text", text: JSON.stringify(normalized) }];
+}
+
 function formatToolResultForMcp(result: unknown): McpToolResult {
+  const normalized = truncateDeepStrings(result);
+
   // String result → text
-  if (typeof result === "string") {
-    return { content: [{ type: "text", text: result }] };
+  if (typeof normalized === "string") {
+    return { content: [{ type: "text", text: normalized }] };
   }
 
   // Object with AgentToolResult shape (content array)
   if (
-    result &&
-    typeof result === "object" &&
-    Array.isArray((result as { content?: unknown }).content)
+    normalized &&
+    typeof normalized === "object" &&
+    Array.isArray((normalized as { content?: unknown }).content)
   ) {
     const items = (
-      result as {
+      normalized as {
         content: Array<{
           type?: string;
           text?: string;
@@ -74,12 +123,14 @@ function formatToolResultForMcp(result: unknown): McpToolResult {
         content.push({ type: "text", text: item.text ?? JSON.stringify(item) });
       }
     }
-    return { content: content.length > 0 ? content : [{ type: "text", text: "" }] };
+    return {
+      content: content.length > 0 ? content : [{ type: "text", text: "" }],
+    };
   }
 
   // Object with mediaUrls → image content blocks
-  if (result && typeof result === "object") {
-    const obj = result as { text?: string; mediaUrls?: string[] };
+  if (normalized && typeof normalized === "object") {
+    const obj = normalized as { text?: string; mediaUrls?: string[] };
     if (Array.isArray(obj.mediaUrls) && obj.mediaUrls.length > 0) {
       const content: McpContent[] = [];
       if (obj.text) {
@@ -94,12 +145,14 @@ function formatToolResultForMcp(result: unknown): McpToolResult {
           content.push({ type: "image", data: url, mimeType: "image/png" });
         }
       }
-      return { content: content.length > 0 ? content : [{ type: "text", text: obj.text ?? "" }] };
+      return {
+        content: content.length > 0 ? content : [{ type: "text", text: obj.text ?? "" }],
+      };
     }
   }
 
   // Fallback: JSON serialize
-  return { content: [{ type: "text", text: JSON.stringify(result) }] };
+  return { content: [{ type: "text", text: JSON.stringify(normalized) }] };
 }
 
 // ---------------------------------------------------------------------------
@@ -139,7 +192,7 @@ export function createClaudeSdkMcpToolServer(
 
         // Emit tool_execution_start BEFORE calling .execute()
         // Fields match the Pi AgentEvent type: toolCallId, toolName, args
-        emitEvent({
+        await emitEvent({
           type: "tool_execution_start",
           toolName: openClawTool.name,
           toolCallId,
@@ -154,7 +207,7 @@ export function createClaudeSdkMcpToolServer(
             // Emit tool_execution_update for any progress notifications.
             // Spread update payload first, then override type/toolCallId/toolName so
             // a payload with its own `type` field cannot corrupt the event type.
-            emitEvent({
+            void emitEvent({
               ...(update && typeof update === "object" ? update : {}),
               type: "tool_execution_update",
               toolCallId,
@@ -164,7 +217,7 @@ export function createClaudeSdkMcpToolServer(
 
           // Emit tool_execution_end with result.
           // Fields match the Pi AgentEvent type: toolCallId, toolName, result, isError
-          emitEvent({
+          await emitEvent({
             type: "tool_execution_end",
             toolCallId,
             toolName: openClawTool.name,
@@ -172,20 +225,14 @@ export function createClaudeSdkMcpToolServer(
             isError: false,
           } as never);
 
-          const mcpResult = formatToolResultForMcp(result);
-
-          // Persist toolResult to session transcript so the session-tool-result-guard
-          // does not insert synthetic "missing tool result" error messages.
+          // Persist raw tool result first so transcript continuity survives
+          // MCP result formatting failures.
           try {
             params.sessionManager?.appendMessage?.({
               role: "toolResult",
               toolCallId,
               toolName: openClawTool.name,
-              content: mcpResult.content.map((block) =>
-                block.type === "text"
-                  ? { type: "text", text: block.text }
-                  : { type: "text", text: JSON.stringify(block) },
-              ),
+              content: buildPersistedToolResultContent(result),
               isError: false,
               timestamp: Date.now(),
             });
@@ -193,12 +240,13 @@ export function createClaudeSdkMcpToolServer(
             // Non-fatal — toolResult persistence failure
           }
 
+          const mcpResult = formatToolResultForMcp(result);
           return mcpResult;
         } catch (err) {
           const errorText = err instanceof Error ? err.message : String(err);
 
           // Emit tool_execution_end with error (isError: true, result is the error message string)
-          emitEvent({
+          await emitEvent({
             type: "tool_execution_end",
             toolCallId,
             toolName: openClawTool.name,
