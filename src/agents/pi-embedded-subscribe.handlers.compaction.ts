@@ -8,7 +8,6 @@ export function handleAutoCompactionStart(
   evt?: AgentEvent & { pre_tokens?: number; trigger?: string },
 ) {
   ctx.state.compactionInFlight = true;
-  ctx.incrementCompactionCount();
   ctx.ensureCompactionPromise();
   ctx.log.debug(`embedded run compaction start: runId=${ctx.params.runId}`);
 
@@ -42,12 +41,16 @@ export function handleAutoCompactionStart(
       .runBeforeCompaction(
         {
           messageCount: ctx.params.session.messages?.length ?? 0,
+          messages: ctx.params.session.messages,
+          sessionFile: ctx.params.session.sessionFile,
           // tokenCount is populated from the claude-sdk compact_metadata.pre_tokens
           // when available, giving hooks accurate pre-compaction context size.
           // For Pi compaction this field is omitted (Pi surfaces message count instead).
           ...(preTokens != null ? { tokenCount: preTokens } : {}),
         },
-        {},
+        {
+          sessionKey: ctx.params.sessionKey,
+        },
       )
       .catch((err) => {
         ctx.log.warn(`before_compaction hook failed: ${String(err)}`);
@@ -61,6 +64,9 @@ export function handleAutoCompactionEnd(
 ) {
   ctx.state.compactionInFlight = false;
   const willRetry = Boolean(evt.willRetry);
+  if (!willRetry) {
+    ctx.incrementCompactionCount?.();
+  }
   if (willRetry) {
     ctx.noteCompactionRetry();
     ctx.resetForCompactionRetry();

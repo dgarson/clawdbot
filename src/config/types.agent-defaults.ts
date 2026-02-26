@@ -119,10 +119,10 @@ export type CliBackendConfig = {
 };
 
 export type AgentDefaultsConfig = {
-  /** Primary model and fallbacks (provider/model). */
-  model?: AgentModelListConfig;
-  /** Optional image-capable model and fallbacks (provider/model). */
-  imageModel?: AgentModelListConfig;
+  /** Primary model and fallbacks (provider/model). Accepts string or {primary,fallbacks}. */
+  model?: AgentModelConfig;
+  /** Optional image-capable model and fallbacks (provider/model). Accepts string or {primary,fallbacks}. */
+  imageModel?: AgentModelConfig;
   /** Model catalog with optional aliases (full provider/model keys). */
   models?: Record<string, AgentModelEntryConfig>;
   /** Agent working directory (preferred). Used as the default cwd for agent runs. */
@@ -256,6 +256,10 @@ export type AgentDefaultsConfig = {
     model?: AgentModelConfig;
     /** Default thinking level for spawned sub-agents (e.g. "off", "low", "medium", "high"). */
     thinking?: string;
+    /** Default run timeout in seconds for spawned sub-agents (0 = no timeout). */
+    runTimeoutSeconds?: number;
+    /** Gateway timeout in ms for sub-agent announce delivery calls (default: 60000). */
+    announceTimeoutMs?: number;
   };
   /** Opt-in: generate a short LLM label for new sessions after the first message. */
   sessionLabels?: SessionLabelsConfig;

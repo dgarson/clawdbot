@@ -78,6 +78,7 @@ import {
   resolveControlUiAuthPolicy,
   shouldSkipControlUiPairing,
 } from "./connect-policy.js";
+import { isUnauthorizedRoleError, UnauthorizedFloodGuard } from "./unauthorized-flood-guard.js";
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
@@ -205,6 +206,7 @@ export function attachGatewayWsMessageHandler(params: {
   }
 
   const isWebchatConnect = (p: ConnectParams | null | undefined) => isWebchatClient(p?.client);
+  const unauthorizedFloodGuard = new UnauthorizedFloodGuard();
 
   socket.on("message", async (data) => {
     if (isClosed()) {
@@ -347,6 +349,8 @@ export function attachGatewayWsMessageHandler(params: {
             requestHost,
             origin: requestOrigin,
             allowedOrigins: configSnapshot.gateway?.controlUi?.allowedOrigins,
+            allowHostHeaderOriginFallback:
+              configSnapshot.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true,
           });
           if (!originCheck.ok) {
             const errorMessage =
@@ -619,7 +623,7 @@ export function attachGatewayWsMessageHandler(params: {
               deviceId: device.id,
               publicKey: devicePublicKey,
               ...clientAccessMetadata,
-              silent: isLocalClient && reason === "not-paired",
+              silent: isLocalClient && (reason === "not-paired" || reason === "scope-upgrade"),
             });
             const context = buildRequestContext();
             if (pairing.request.silent === true) {
@@ -926,6 +930,33 @@ export function attachGatewayWsMessageHandler(params: {
         // Destructure session/cached from meta so they don't appear as raw fields.
         const { cached: _cached, sessionId, ...restMeta } = meta ?? {};
         const sessionLabel = formatSessionIdForLog(sessionId);
+        const unauthorizedRoleError = isUnauthorizedRoleError(error);
+        let logMeta = restMeta;
+        if (unauthorizedRoleError) {
+          const unauthorizedDecision = unauthorizedFloodGuard.registerUnauthorized();
+          if (unauthorizedDecision.suppressedSinceLastLog > 0) {
+            logMeta = {
+              ...logMeta,
+              suppressedUnauthorizedResponses: unauthorizedDecision.suppressedSinceLastLog,
+            };
+          }
+          if (!unauthorizedDecision.shouldLog) {
+            return;
+          }
+          if (unauthorizedDecision.shouldClose) {
+            setCloseCause("repeated-unauthorized-requests", {
+              unauthorizedCount: unauthorizedDecision.count,
+              method: req.method,
+            });
+            queueMicrotask(() => close(1008, "repeated unauthorized calls"));
+          }
+          logMeta = {
+            ...logMeta,
+            unauthorizedCount: unauthorizedDecision.count,
+          };
+        } else {
+          unauthorizedFloodGuard.reset();
+        }
         const errorFields = error
           ? sessionLabel
             ? { errorCode: error.code, session: `${sessionLabel}: ${error.message}` }
@@ -937,7 +968,7 @@ export function attachGatewayWsMessageHandler(params: {
           ok,
           method: req.method,
           ...errorFields,
-          ...restMeta,
+          ...logMeta,
         });
       };
 

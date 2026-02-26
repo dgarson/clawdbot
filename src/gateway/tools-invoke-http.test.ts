@@ -5,6 +5,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 const TEST_GATEWAY_TOKEN = "test-gateway-token-1234567890";
 
 let cfg: Record<string, unknown> = {};
+let lastCreateOpenClawToolsContext: Record<string, unknown> | undefined;
 
 // Perf: keep this suite pure unit. Mock heavyweight config/session modules.
 vi.mock("../config/config.js", () => ({
@@ -78,7 +79,13 @@ vi.mock("../agents/openclaw-tools.js", () => {
     {
       name: "sessions_spawn",
       parameters: { type: "object", properties: {} },
-      execute: async () => ({ ok: true }),
+      execute: async () => ({
+        ok: true,
+        route: {
+          agentTo: lastCreateOpenClawToolsContext?.agentTo,
+          agentThreadId: lastCreateOpenClawToolsContext?.agentThreadId,
+        },
+      }),
     },
     {
       name: "sessions_send",
@@ -119,11 +126,16 @@ vi.mock("../agents/openclaw-tools.js", () => {
   ];
 
   return {
-    createOpenClawTools: () => tools,
+    createOpenClawTools: (ctx: Record<string, unknown>) => {
+      lastCreateOpenClawToolsContext = ctx;
+      return tools;
+    },
   };
 });
 
 const { handleToolsInvokeHttpRequest } = await import("./tools-invoke-http.js");
+const { resetGatewayHttpToolCircuitBreakers } =
+  await import("./tool-reliability/circuit-breaker.js");
 
 let pluginHttpHandlers: Array<(req: IncomingMessage, res: ServerResponse) => Promise<boolean>> = [];
 
@@ -174,8 +186,18 @@ afterAll(async () => {
 beforeEach(() => {
   delete process.env.OPENCLAW_GATEWAY_TOKEN;
   delete process.env.OPENCLAW_GATEWAY_PASSWORD;
+  delete process.env.OPENCLAW_TOOL_RELIABILITY_CB_ENABLED;
+  delete process.env.OPENCLAW_TOOL_RELIABILITY_CB_WINDOW_MS;
+  delete process.env.OPENCLAW_TOOL_RELIABILITY_CB_MIN_CALLS;
+  delete process.env.OPENCLAW_TOOL_RELIABILITY_CB_FAILURE_RATE;
+  delete process.env.OPENCLAW_TOOL_RELIABILITY_CB_CONSECUTIVE_FAILURES;
+  delete process.env.OPENCLAW_TOOL_RELIABILITY_CB_OPEN_MS;
+  delete process.env.OPENCLAW_TOOL_RELIABILITY_CB_HALF_OPEN_PROBES;
+  delete process.env.OPENCLAW_TOOL_RELIABILITY_CB_HALF_OPEN_SUCCESS_RATE;
+  resetGatewayHttpToolCircuitBreakers();
   pluginHttpHandlers = [];
   cfg = {};
+  lastCreateOpenClawToolsContext = undefined;
 });
 
 const resolveGatewayToken = (): string => TEST_GATEWAY_TOKEN;
@@ -365,6 +387,35 @@ describe("POST /tools/invoke", () => {
     expect(body.error.type).toBe("not_found");
   });
 
+  it("propagates message target/thread headers into tools context for sessions_spawn", async () => {
+    cfg = {
+      ...cfg,
+      agents: {
+        list: [{ id: "main", default: true, tools: { allow: ["sessions_spawn"] } }],
+      },
+      gateway: { tools: { allow: ["sessions_spawn"] } },
+    };
+
+    const res = await invokeTool({
+      port: sharedPort,
+      headers: {
+        ...gatewayAuthHeaders(),
+        "x-openclaw-message-to": "channel:24514",
+        "x-openclaw-thread-id": "thread-24514",
+      },
+      tool: "sessions_spawn",
+      sessionKey: "main",
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.result?.route).toEqual({
+      agentTo: "channel:24514",
+      agentThreadId: "thread-24514",
+    });
+  });
+
   it("denies sessions_send via HTTP gateway", async () => {
     cfg = {
       ...cfg,
@@ -505,5 +556,46 @@ describe("POST /tools/invoke", () => {
     expect(crashBody.ok).toBe(false);
     expect(crashBody.error?.type).toBe("tool_error");
     expect(crashBody.error?.message).toBe("tool execution failed");
+  });
+
+  it("returns 503 when the HTTP tool circuit opens after repeated execution failures", async () => {
+    process.env.OPENCLAW_TOOL_RELIABILITY_CB_ENABLED = "1";
+    process.env.OPENCLAW_TOOL_RELIABILITY_CB_MIN_CALLS = "2";
+    process.env.OPENCLAW_TOOL_RELIABILITY_CB_FAILURE_RATE = "1";
+    process.env.OPENCLAW_TOOL_RELIABILITY_CB_CONSECUTIVE_FAILURES = "2";
+    process.env.OPENCLAW_TOOL_RELIABILITY_CB_OPEN_MS = "60000";
+
+    cfg = {
+      ...cfg,
+      agents: {
+        list: [{ id: "main", default: true, tools: { allow: ["tools_invoke_test"] } }],
+      },
+    };
+
+    const first = await invokeToolAuthed({
+      tool: "tools_invoke_test",
+      args: { mode: "crash" },
+      sessionKey: "main",
+    });
+    expect(first.status).toBe(500);
+
+    const second = await invokeToolAuthed({
+      tool: "tools_invoke_test",
+      args: { mode: "crash" },
+      sessionKey: "main",
+    });
+    expect(second.status).toBe(500);
+
+    const third = await invokeToolAuthed({
+      tool: "tools_invoke_test",
+      args: { mode: "crash" },
+      sessionKey: "main",
+    });
+    expect(third.status).toBe(503);
+
+    const thirdBody = await third.json();
+    expect(thirdBody.ok).toBe(false);
+    expect(thirdBody.error?.type).toBe("tool_error");
+    expect(String(thirdBody.error?.message ?? "")).toContain("circuit open");
   });
 });
