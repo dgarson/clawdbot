@@ -26,6 +26,7 @@ export { resolveSlackAppToken, resolveSlackBotToken } from "./token.js";
 
 // Block Kit and Interactive Tools
 export * from "./blocks/index.js";
+export { askSlackConfirmation } from "./interactive/confirmation.js";
 export { createSlackInteractiveConfirmationTool } from "./tools/interactive-confirmation-tool.js";
 export { createSlackInteractiveFormTool } from "./tools/interactive-form-tool.js";
 export { createSlackInteractiveQuestionTool } from "./tools/interactive-question-tool.js";

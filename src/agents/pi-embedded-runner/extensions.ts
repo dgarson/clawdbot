@@ -95,9 +95,10 @@ export function buildEmbeddedExtensionPaths(params: {
     paths.push(resolvePiExtensionPath("compaction-safeguard"));
   }
   const pruning = buildContextPruningExtension(params);
-  if (pruning.additionalExtensionPaths) {
-    paths.push(...pruning.additionalExtensionPaths);
-  }
+
+
+
+
   return paths;
 }
 
