@@ -11,6 +11,7 @@ import {
 import { callGateway } from "../gateway/call.js";
 import { createBoundDeliveryRouter } from "../infra/outbound/bound-delivery-router.js";
 import type { ConversationRef } from "../infra/outbound/session-binding-service.js";
+import { resolveOutboundTarget } from "../infra/outbound/targets.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { normalizeAccountId, normalizeMainKey } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
@@ -41,6 +42,7 @@ import { sanitizeTextContent, extractAssistantText } from "./tools/sessions-help
 const FAST_TEST_MODE = process.env.OPENCLAW_TEST_FAST === "1";
 const FAST_TEST_RETRY_INTERVAL_MS = 8;
 const FAST_TEST_REPLY_CHANGE_WAIT_MS = 20;
+const INTERNAL_HEARTBEAT_SENDER_SENTINEL = "heartbeat";
 
 type ToolResultMessage = {
   role?: unknown;
@@ -481,6 +483,22 @@ async function sendAnnounce(item: AnnounceQueueItem) {
   const requesterDepth = getSubagentDepthFromSessionStore(item.sessionKey);
   const requesterIsSubagent = requesterDepth >= 1;
   const origin = item.origin;
+
+  // TODO dgarson: validate this logic is alright
+  const resolvedDelivery =
+    requesterIsSubagent || !origin
+      ? { deliver: false as const }
+      : resolveAnnounceDeliveryTarget(origin);
+  if (
+    !requesterIsSubagent &&
+    origin?.channel &&
+    isDeliverableMessageChannel(origin.channel) &&
+    !resolvedDelivery.deliver
+  ) {
+    defaultRuntime.log(
+      `[warn] Subagent queued announce delivery disabled for ${item.sessionKey}: unresolved ${origin.channel} target; injecting into session`,
+    );
+  }
   const threadId =
     origin?.threadId != null && origin.threadId !== "" ? String(origin.threadId) : undefined;
   // Share one announce identity across direct and queued delivery paths so
@@ -497,15 +515,65 @@ async function sendAnnounce(item: AnnounceQueueItem) {
     params: {
       sessionKey: item.sessionKey,
       message: item.prompt,
-      channel: requesterIsSubagent ? undefined : origin?.channel,
-      accountId: requesterIsSubagent ? undefined : origin?.accountId,
-      to: requesterIsSubagent ? undefined : origin?.to,
-      threadId: requesterIsSubagent ? undefined : threadId,
-      deliver: !requesterIsSubagent,
+      channel: resolvedDelivery.deliver ? resolvedDelivery.channel : undefined,
+      accountId: resolvedDelivery.deliver ? resolvedDelivery.accountId : undefined,
+      to: resolvedDelivery.deliver ? resolvedDelivery.to : undefined,
+      threadId: resolvedDelivery.deliver ? threadId : undefined,
+      deliver: resolvedDelivery.deliver,
       idempotencyKey,
     },
     timeoutMs: 15_000,
   });
+}
+
+function resolveAnnounceDeliveryTarget(origin: DeliveryContext): {
+  deliver: boolean;
+  channel?: string;
+  accountId?: string;
+  to?: string;
+} {
+  if (!origin.channel || !isDeliverableMessageChannel(origin.channel)) {
+    return { deliver: false };
+  }
+  const to = normalizeDeliverableTo(origin.to);
+  const mode = to ? "explicit" : "implicit";
+  const resolvedTarget = resolveOutboundTarget({
+    channel: origin.channel,
+    to,
+    cfg: loadConfig(),
+    accountId: origin.accountId,
+    mode,
+  });
+  if (!resolvedTarget.ok) {
+    return { deliver: false };
+  }
+  return {
+    deliver: true,
+    channel: origin.channel,
+    accountId: origin.accountId,
+    to: resolvedTarget.to,
+  };
+}
+
+function normalizeDeliverableTo(raw: unknown): string | undefined {
+  if (typeof raw !== "string") {
+    return undefined;
+  }
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  // Treat malformed Slack-style channel markers as absent targets so normal
+  // fallback target resolution can run (implicit/default-to/session-bound).
+  if (/^channel\s*:?\s*$/i.test(trimmed)) {
+    return undefined;
+  }
+  // Heartbeat internals may use the synthetic sender value "heartbeat" to
+  // represent "no concrete recipient". Never treat it as a real target.
+  if (trimmed.toLowerCase() === INTERNAL_HEARTBEAT_SENDER_SENTINEL) {
+    return undefined;
+  }
+  return trimmed;
 }
 
 function resolveRequesterStoreKey(
@@ -651,10 +719,19 @@ async function sendSubagentAnnounceDirectly(params: {
       completionChannelRaw && isDeliverableMessageChannel(completionChannelRaw)
         ? completionChannelRaw
         : "";
-    const completionTo =
-      typeof completionDirectOrigin?.to === "string" ? completionDirectOrigin.to.trim() : "";
+    const completionTo = normalizeDeliverableTo(completionDirectOrigin?.to);
+    const completionResolvedTarget =
+      !params.requesterIsSubagent && completionChannel
+        ? resolveOutboundTarget({
+            channel: completionChannel,
+            to: completionTo,
+            cfg,
+            accountId: completionDirectOrigin?.accountId,
+            mode: completionTo ? "explicit" : "implicit",
+          })
+        : undefined;
     const hasCompletionDirectTarget =
-      !params.requesterIsSubagent && Boolean(completionChannel) && Boolean(completionTo);
+      !params.requesterIsSubagent && Boolean(completionChannel) && completionResolvedTarget?.ok;
 
     if (
       params.expectsCompletionMessage &&
@@ -692,7 +769,7 @@ async function sendSubagentAnnounceDirectly(params: {
           method: "send",
           params: {
             channel: completionChannel,
-            to: completionTo,
+            to: completionResolvedTarget.to,
             accountId: completionDirectOrigin?.accountId,
             threadId: completionThreadId,
             sessionKey: canonicalRequesterSessionKey,
@@ -714,16 +791,28 @@ async function sendSubagentAnnounceDirectly(params: {
       directOrigin?.threadId != null && directOrigin.threadId !== ""
         ? String(directOrigin.threadId)
         : undefined;
+    // Only request outbound delivery when the requester session has a valid
+    // deliverable channel. Sessions without one (e.g. cron jobs with
+    // delivery.mode="none") have no external target, so passing deliver=true
+    // causes the gateway to fall back to the "heartbeat" sentinel and attempt
+    // a bogus Slack send. Instead, inject as a session message (deliver=false)
+    // and let the session — or its cron runner — handle any external delivery.
+    const directChannel = directOrigin?.channel;
+    const hasDeliverableChannel =
+      !params.requesterIsSubagent &&
+      directChannel != null &&
+      isDeliverableMessageChannel(directChannel);
+    const directTo = normalizeDeliverableTo(directOrigin?.to);
     await callGateway({
       method: "agent",
       params: {
         sessionKey: canonicalRequesterSessionKey,
         message: params.triggerMessage,
-        deliver: !params.requesterIsSubagent,
-        channel: params.requesterIsSubagent ? undefined : directOrigin?.channel,
-        accountId: params.requesterIsSubagent ? undefined : directOrigin?.accountId,
-        to: params.requesterIsSubagent ? undefined : directOrigin?.to,
-        threadId: params.requesterIsSubagent ? undefined : threadId,
+        deliver: hasDeliverableChannel,
+        channel: hasDeliverableChannel ? directChannel : undefined,
+        accountId: hasDeliverableChannel ? directOrigin?.accountId : undefined,
+        to: hasDeliverableChannel ? directTo : undefined,
+        threadId: hasDeliverableChannel ? threadId : undefined,
         idempotencyKey: params.directIdempotencyKey,
       },
       expectFinal: true,

@@ -112,6 +112,7 @@ export type SessionEntry = {
   lastThreadId?: string | number;
   skillsSnapshot?: SessionSkillSnapshot;
   systemPromptReport?: SessionSystemPromptReport;
+  modelSelectionTrace?: SessionModelSelectionTrace;
 };
 
 export function mergeSessionEntry(
@@ -244,6 +245,42 @@ export type SessionSystemPromptReport = {
       schemaChars: number;
       propertiesCount?: number | null;
     }>;
+  };
+};
+
+export type SessionModelSelectionTraceStep = {
+  source: "config.default" | "agent.primary" | "session.override" | "allowlist.guard" | "final";
+  applied: boolean;
+  provider?: string;
+  model?: string;
+  detail?: string;
+};
+
+export type SessionModelSelectionTraceAttempt = {
+  attempt: number;
+  provider: string;
+  model: string;
+  outcome: "failed" | "skipped" | "selected";
+  reason?: string;
+  status?: number;
+  code?: string;
+  error?: string;
+  at: number;
+};
+
+export type SessionModelSelectionTrace = {
+  version: 1;
+  runId?: string;
+  generatedAt: number;
+  agentId?: string;
+  sessionKey?: string;
+  selected: { provider: string; model: string };
+  active?: { provider: string; model: string };
+  steps: SessionModelSelectionTraceStep[];
+  fallback?: {
+    enabled: boolean;
+    configured?: string[];
+    attempts?: SessionModelSelectionTraceAttempt[];
   };
 };
 

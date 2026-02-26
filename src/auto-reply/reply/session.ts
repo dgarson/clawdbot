@@ -38,6 +38,7 @@ import { normalizeInboundTextNewlines } from "./inbound-text.js";
 import { stripMentions, stripStructuralPrefixes } from "./mentions.js";
 
 const log = createSubsystemLogger("session-init");
+const INTERNAL_HEARTBEAT_SENDER_SENTINEL = "heartbeat";
 
 export type SessionInitResult = {
   sessionCtx: TemplateContext;
@@ -268,7 +269,16 @@ export async function initSessionState(params: {
   const baseEntry = !isNewSession && freshEntry ? entry : undefined;
   // Track the originating channel/to for announce routing (subagent announce-back).
   const lastChannelRaw = (ctx.OriginatingChannel as string | undefined) || baseEntry?.lastChannel;
-  const lastToRaw = ctx.OriginatingTo || ctx.To || baseEntry?.lastTo;
+  const originatingToRaw =
+    typeof ctx.OriginatingTo === "string" ? ctx.OriginatingTo.trim() : undefined;
+  const toRaw = typeof ctx.To === "string" ? ctx.To.trim() : undefined;
+  const providerRaw = typeof ctx.Provider === "string" ? ctx.Provider.trim().toLowerCase() : "";
+  const isHeartbeatSyntheticContext =
+    (providerRaw === "heartbeat" || providerRaw === "cron-event" || providerRaw === "exec-event") &&
+    !originatingToRaw &&
+    toRaw?.toLowerCase() === INTERNAL_HEARTBEAT_SENDER_SENTINEL;
+  const lastToRaw =
+    originatingToRaw || (isHeartbeatSyntheticContext ? undefined : toRaw) || baseEntry?.lastTo;
   const lastAccountIdRaw = ctx.AccountId || baseEntry?.lastAccountId;
   // Only fall back to persisted threadId for thread sessions.  Non-thread
   // sessions (e.g. DM without topics) must not inherit a stale threadId from a

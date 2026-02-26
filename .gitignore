@@ -1,5 +1,5 @@
-.worktrees/
 worktrees/
+.worktrees/
 **/.env
 **/.env.local
 apps/web/.next
@@ -113,3 +113,5 @@ apps/ios/LocalSigning.xcconfig
 dist/protocol.schema.json
 .ant-colony/
 apps/web/.next/cache/
+
+apps/web-next/screenshots/

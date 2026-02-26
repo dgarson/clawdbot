@@ -49,6 +49,7 @@ function createDbMock() {
     getById: vi.fn(() => null),
     getLog: vi.fn(() => []),
     findStaleActiveItems: vi.fn(() => []),
+    findSentinelAgentRows: vi.fn(() => []),
     autoReleaseBySession: vi.fn(() => ({ releasedIssueRefs: [] })),
     systemMoveToInReview: vi.fn(),
     systemMarkDone: vi.fn(),
@@ -296,10 +297,9 @@ describe("registerWorkqCli", () => {
       mode: "set",
       conflicts: [],
       hasConflicts: false,
-      files: ["src/cli.ts", "src/types.ts"],
       added: ["src/types.ts"],
       removed: [],
-    });
+    } as never);
 
     await run(set.program, [
       "workq",

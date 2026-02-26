@@ -312,7 +312,7 @@ export async function runEmbeddedAttempt(
   const runAbortController = new AbortController();
 
   log.debug(
-    `embedded run start: runId=${params.runId} sessionId=${params.sessionId} provider=${params.provider} model=${params.modelId} thinking=${params.thinkLevel} messageChannel=${params.messageChannel ?? params.messageProvider ?? "unknown"}${params.trigger ? ` trigger=${params.trigger}` : ""}`,
+    `embedded run start: provider=${params.provider} model=${params.modelId} thinking=${params.thinkLevel} messageChannel=${params.messageChannel ?? params.messageProvider ?? "unknown"}${params.messageTo ? ` target=${params.messageTo}` : ""} sessionId=${params.sessionId} runId=${params.runId}${params.trigger ? ` trigger=${params.trigger}` : ""}`,
   );
 
   const runtime = resolveAgentRuntime(params);
@@ -793,6 +793,23 @@ export async function runEmbeddedAttempt(
           params.thinkLevel,
         );
 
+        // Inject X-OpenClaw-Session-Id and X-OpenClaw-Agent-Id headers for cost attribution.
+        // This enables Robert's analytics to attribute API costs to specific sessions.
+        if (params.sessionKey || params.agentId) {
+          const sessionIdHeader = params.sessionKey ?? params.sessionId;
+          const agentIdHeader = params.agentId;
+          const inner = activeSession.agent.streamFn;
+          activeSession.agent.streamFn = (model, context, options) =>
+            inner(model, context, {
+              ...options,
+              headers: {
+                ...options?.headers,
+                ...(sessionIdHeader && { "X-OpenClaw-Session-Id": sessionIdHeader }),
+                ...(agentIdHeader && { "X-OpenClaw-Agent-Id": agentIdHeader }),
+              },
+            });
+        }
+
         if (cacheTrace) {
           cacheTrace.recordStage("session:loaded", {
             messages: activeSession.messages,
@@ -958,6 +975,9 @@ export async function runEmbeddedAttempt(
       const subscription = subscribeEmbeddedPiSession({
         session: activeSession,
         runId: params.runId,
+        provider: params.provider,
+        model: params.modelId,
+        runtime: params.provider,
         hookRunner: getGlobalHookRunner() ?? undefined,
         verboseLevel: params.verboseLevel,
         reasoningMode: params.reasoningLevel ?? "off",
@@ -991,6 +1011,8 @@ export async function runEmbeddedAttempt(
         getMessagingToolSentMediaUrls,
         getMessagingToolSentTargets,
         getSuccessfulCronAdds,
+        getToolDiagnosticExtraInfos,
+        getToolDiagnosticDebugInfos,
         didSendViaMessagingTool,
         getLastToolError,
         getUsageTotals,
@@ -1344,6 +1366,9 @@ export async function runEmbeddedAttempt(
                 success: !aborted && !promptError,
                 error: promptError ? describeUnknownError(promptError) : undefined,
                 durationMs: Date.now() - promptStartedAt,
+                tokens: getUsageTotals()?.total,
+                turns: assistantTexts.length,
+                toolCalls: toolMetas.length,
               },
               {
                 agentId: hookAgentId,
@@ -1436,6 +1461,8 @@ export async function runEmbeddedAttempt(
         messagingToolSentMediaUrls: getMessagingToolSentMediaUrls(),
         messagingToolSentTargets: getMessagingToolSentTargets(),
         successfulCronAdds: getSuccessfulCronAdds(),
+        toolDiagnosticExtraInfos: getToolDiagnosticExtraInfos(),
+        toolDiagnosticDebugInfos: getToolDiagnosticDebugInfos(),
         cloudCodeAssistFormatError: Boolean(
           lastAssistant?.errorMessage && isCloudCodeAssistFormatError(lastAssistant.errorMessage),
         ),

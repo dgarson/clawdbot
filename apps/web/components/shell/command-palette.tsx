@@ -4,7 +4,6 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useUiStore } from "@/lib/stores/ui";
-import { useGatewayStore } from "@/lib/stores/gateway";
 import { useProficiency, useProficiencyStore } from "@/lib/stores/proficiency";
 import { cn } from "@/lib/utils/cn";
 import {

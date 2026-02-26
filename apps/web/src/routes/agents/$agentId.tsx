@@ -15,7 +15,6 @@ import {
   AgentChatTab,
   AgentConfigureTab,
   AgentActivityTab,
-  AgentVisualConfigurator,
   NewSessionDialog,
 } from "@/components/domain/agents";
 import type { ConfigureSubTab } from "@/components/domain/agents/AgentConfigureTab";

@@ -211,7 +211,7 @@ export const agentHandlers: GatewayRequestHandlers = {
     const cached = context.dedupe.get(`agent:${idem}`);
     if (cached) {
       respond(cached.ok, cached.payload, cached.error, {
-        cached: true,
+        sessionId: request.sessionKey ?? request.sessionId,
       });
       return;
     }

@@ -8,18 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ComplexityGate } from "@/components/adaptive/complexity-gate";
 import { AdaptiveLabel } from "@/components/adaptive/adaptive-label";
-import { GuidedTooltip } from "@/components/adaptive/guided-tooltip";
-import type { AgentsListResult, AgentIdentityResult } from "@/lib/gateway/types";
+import type { AgentIdentityResult } from "@/lib/gateway/types";
 import {
   Bot,
   Plus,
   Search,
   Grid3X3,
   List,
-  MoreVertical,
-  Settings2,
   MessageSquare,
-  Trash2,
   FileText,
 } from "lucide-react";
 

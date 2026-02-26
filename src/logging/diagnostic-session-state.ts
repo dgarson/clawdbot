@@ -6,6 +6,8 @@ export type SessionState = {
   lastActivity: number;
   state: SessionStateValue;
   queueDepth: number;
+  /** Timestamp when the session last transitioned into "processing" state. */
+  processingStartedAt?: number;
   toolCallHistory?: ToolCallRecord[];
   toolLoopWarningBuckets?: Map<string, number>;
   commandPollCounts?: Map<string, { count: number; lastPollAt: number }>;

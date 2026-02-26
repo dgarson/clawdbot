@@ -47,6 +47,9 @@ import {
   resolveSessionFilePathOptions,
   resolveSessionTranscriptPath,
   type SessionEntry,
+  type SessionModelSelectionTrace,
+  type SessionModelSelectionTraceAttempt,
+  type SessionModelSelectionTraceStep,
   updateSessionStore,
 } from "../config/sessions.js";
 import {
@@ -54,6 +57,7 @@ import {
   emitAgentEvent,
   registerAgentRunContext,
 } from "../infra/agent-events.js";
+import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { getRemoteSkillEligibility } from "../infra/skills-remote.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { defaultRuntime, type RuntimeEnv } from "../runtime.js";
@@ -86,6 +90,95 @@ function resolveFallbackRetryPrompt(params: { body: string; isFallbackRetry: boo
     return params.body;
   }
   return "Continue where you left off. The previous model attempt failed or timed out.";
+}
+
+function extractFailoverErrorDetails(error: unknown): {
+  message: string;
+  reason?: string;
+  status?: number;
+  code?: string;
+} {
+  const base =
+    error instanceof Error
+      ? { message: error.message, name: error.name }
+      : typeof error === "string"
+        ? { message: error, name: "" }
+        : { message: String(error), name: "" };
+  if (!error || typeof error !== "object") {
+    return { message: base.message };
+  }
+  const err = error as Record<string, unknown>;
+  const reason = typeof err.reason === "string" ? err.reason : undefined;
+  const status = typeof err.status === "number" ? err.status : undefined;
+  const code = typeof err.code === "string" ? err.code : undefined;
+  const message =
+    typeof err.message === "string" && err.message.trim().length > 0 ? err.message : base.message;
+  return { message, reason, status, code };
+}
+
+function isCooldownSkipAttempt(attempt: { error: string; reason?: string }): boolean {
+  return (
+    attempt.reason === "rate_limit" &&
+    attempt.error.toLowerCase().includes("in cooldown (all profiles unavailable)")
+  );
+}
+
+function buildSelectionTrace(params: {
+  runId: string;
+  generatedAt: number;
+  agentId: string;
+  sessionKey?: string;
+  selected: { provider: string; model: string };
+  steps: SessionModelSelectionTraceStep[];
+  fallbackConfigured?: string[];
+}): SessionModelSelectionTrace {
+  return {
+    version: 1,
+    runId: params.runId,
+    generatedAt: params.generatedAt,
+    agentId: params.agentId,
+    sessionKey: params.sessionKey,
+    selected: params.selected,
+    steps: params.steps,
+    fallback: {
+      enabled: (params.fallbackConfigured?.length ?? 0) > 0,
+      configured: params.fallbackConfigured,
+    },
+  };
+}
+
+function buildFallbackAttemptsForTrace(params: {
+  attempts: Array<{
+    provider: string;
+    model: string;
+    error: string;
+    reason?: string;
+    status?: number;
+    code?: string;
+  }>;
+  fallbackProvider: string;
+  fallbackModel: string;
+}): SessionModelSelectionTraceAttempt[] {
+  const now = Date.now();
+  const mapped: SessionModelSelectionTraceAttempt[] = params.attempts.map((attempt, index) => ({
+    attempt: index + 1,
+    provider: attempt.provider,
+    model: attempt.model,
+    outcome: isCooldownSkipAttempt(attempt) ? "skipped" : "failed",
+    reason: attempt.reason,
+    status: attempt.status,
+    code: attempt.code,
+    error: attempt.error,
+    at: now,
+  }));
+  mapped.push({
+    attempt: mapped.length + 1,
+    provider: params.fallbackProvider,
+    model: params.fallbackModel,
+    outcome: "selected",
+    at: now,
+  });
+  return mapped;
 }
 
 function runAgentAttempt(params: {
@@ -396,6 +489,14 @@ export async function agentCommand(
     );
     let provider = defaultProvider;
     let model = defaultModel;
+    let storedOverrideResolution:
+      | {
+          provider: string;
+          model: string;
+          allowed: boolean;
+          key: string;
+        }
+      | undefined;
     const hasAllowlist = agentCfg?.models && Object.keys(agentCfg.models).length > 0;
     const hasStoredOverride = Boolean(
       sessionEntry?.modelOverride || sessionEntry?.providerOverride,
@@ -451,15 +552,78 @@ export async function agentCommand(
       const candidateProvider = storedProviderOverride || defaultProvider;
       const normalizedStored = normalizeModelRef(candidateProvider, storedModelOverride);
       const key = modelKey(normalizedStored.provider, normalizedStored.model);
-      if (
+      const allowed =
         isCliProvider(normalizedStored.provider, cfg) ||
         allowedModelKeys.size === 0 ||
-        allowedModelKeys.has(key)
-      ) {
+        allowedModelKeys.has(key);
+      storedOverrideResolution = {
+        provider: normalizedStored.provider,
+        model: normalizedStored.model,
+        allowed,
+        key,
+      };
+      if (allowed) {
         provider = normalizedStored.provider;
         model = normalizedStored.model;
       }
     }
+    const selectionSteps: SessionModelSelectionTraceStep[] = [
+      {
+        source: "config.default",
+        applied: true,
+        provider: defaultProvider,
+        model: defaultModel,
+        detail: "Configured default model.",
+      },
+      {
+        source: "agent.primary",
+        applied: Boolean(agentModelPrimary),
+        detail: agentModelPrimary
+          ? `Agent primary override: ${agentModelPrimary}.`
+          : "No per-agent primary override.",
+      },
+      {
+        source: "session.override",
+        applied: Boolean(storedOverrideResolution?.allowed),
+        provider: storedOverrideResolution?.provider,
+        model: storedOverrideResolution?.model,
+        detail: storedOverrideResolution
+          ? storedOverrideResolution.allowed
+            ? `Applied session override ${storedOverrideResolution.key}.`
+            : `Ignored disallowed session override ${storedOverrideResolution.key}.`
+          : storedModelOverride
+            ? "Session override was present but could not be normalized."
+            : "No session model override.",
+      },
+      {
+        source: "allowlist.guard",
+        applied: Boolean(hasAllowlist),
+        detail: hasAllowlist
+          ? `Allowlist active (${allowedModelKeys.size} entries).`
+          : "No model allowlist configured.",
+      },
+      {
+        source: "final",
+        applied: true,
+        provider,
+        model,
+        detail: `Selected ${provider}/${model}.`,
+      },
+    ];
+    const effectiveFallbacksOverride = resolveEffectiveModelFallbacks({
+      cfg,
+      agentId: sessionAgentId,
+      hasSessionModelOverride: Boolean(storedModelOverride),
+    });
+    let modelSelectionTrace = buildSelectionTrace({
+      runId,
+      generatedAt: Date.now(),
+      agentId: sessionAgentId,
+      sessionKey,
+      selected: { provider, model },
+      steps: selectionSteps,
+      fallbackConfigured: effectiveFallbacksOverride,
+    });
     if (sessionEntry) {
       const authProfileId = sessionEntry.authProfileOverride;
       if (authProfileId) {
@@ -510,6 +674,23 @@ export async function agentCommand(
         });
       }
     }
+    if (sessionStore && sessionKey) {
+      const entry = sessionStore[sessionKey] ??
+        sessionEntry ?? { sessionId, updatedAt: Date.now() };
+      const next: SessionEntry = {
+        ...entry,
+        sessionId,
+        updatedAt: Date.now(),
+        modelSelectionTrace,
+      };
+      await persistSessionEntry({
+        sessionStore,
+        sessionKey,
+        storePath,
+        entry: next,
+      });
+      sessionEntry = next;
+    }
     const sessionPathOpts = resolveSessionFilePathOptions({
       agentId: sessionAgentId,
       storePath,
@@ -540,6 +721,7 @@ export async function agentCommand(
 
     const startedAt = Date.now();
     let lifecycleEnded = false;
+    const diagnosticsEnabled = isDiagnosticsEnabled(cfg);
 
     let result: Awaited<ReturnType<typeof runEmbeddedPiAgent>>;
     let fallbackProvider = provider;
@@ -551,13 +733,6 @@ export async function agentCommand(
         opts.replyChannel ?? opts.channel,
       );
       const spawnedBy = opts.spawnedBy ?? sessionEntry?.spawnedBy;
-      // Keep fallback candidate resolution centralized so session model overrides,
-      // per-agent overrides, and default fallbacks stay consistent across callers.
-      const effectiveFallbacksOverride = resolveEffectiveModelFallbacks({
-        cfg,
-        agentId: sessionAgentId,
-        hasSessionModelOverride: Boolean(storedModelOverride),
-      });
 
       // Track model fallback attempts so retries on an existing session don't
       // re-inject the original prompt as a duplicate user message.
@@ -606,10 +781,86 @@ export async function agentCommand(
             },
           });
         },
+        onError: ({ provider: failedProvider, model: failedModel, error, attempt, total }) => {
+          const details = extractFailoverErrorDetails(error);
+          if (!diagnosticsEnabled) {
+            return;
+          }
+          emitDiagnosticEvent({
+            type: "model.failover.attempt",
+            sessionKey,
+            sessionId,
+            runId,
+            attempt,
+            total,
+            target: { provider: failedProvider, model: failedModel },
+            outcome: "failed",
+            reason: details.reason,
+            status: details.status,
+            code: details.code,
+            error: details.message,
+          });
+        },
       });
       result = fallbackResult.result;
       fallbackProvider = fallbackResult.provider;
       fallbackModel = fallbackResult.model;
+      if (diagnosticsEnabled) {
+        for (let i = 0; i < fallbackResult.attempts.length; i += 1) {
+          const attempt = fallbackResult.attempts[i];
+          if (!isCooldownSkipAttempt(attempt)) {
+            continue;
+          }
+          emitDiagnosticEvent({
+            type: "model.failover.attempt",
+            sessionKey,
+            sessionId,
+            runId,
+            attempt: i + 1,
+            total: fallbackResult.attempts.length + 1,
+            target: { provider: attempt.provider, model: attempt.model },
+            outcome: "skipped",
+            reason: attempt.reason,
+            status: attempt.status,
+            code: attempt.code,
+            error: attempt.error,
+          });
+        }
+        emitDiagnosticEvent({
+          type: "model.failover.attempt",
+          sessionKey,
+          sessionId,
+          runId,
+          attempt: fallbackResult.attempts.length + 1,
+          total: fallbackResult.attempts.length + 1,
+          target: { provider: fallbackProvider, model: fallbackModel },
+          outcome: "selected",
+        });
+      }
+      modelSelectionTrace = {
+        ...modelSelectionTrace,
+        active: { provider: fallbackProvider, model: fallbackModel },
+        fallback: {
+          enabled: modelSelectionTrace.fallback?.enabled ?? false,
+          configured: modelSelectionTrace.fallback?.configured,
+          attempts: buildFallbackAttemptsForTrace({
+            attempts: fallbackResult.attempts,
+            fallbackProvider,
+            fallbackModel,
+          }),
+        },
+      };
+      if (sessionStore && sessionKey) {
+        const entry = sessionStore[sessionKey] ??
+          sessionEntry ?? { sessionId, updatedAt: Date.now() };
+        sessionStore[sessionKey] = {
+          ...entry,
+          sessionId,
+          updatedAt: Date.now(),
+          modelSelectionTrace,
+        };
+        sessionEntry = sessionStore[sessionKey];
+      }
       if (!lifecycleEnded) {
         emitAgentEvent({
           runId,

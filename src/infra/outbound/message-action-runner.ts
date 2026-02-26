@@ -13,6 +13,7 @@ import type {
   ChannelThreadingToolContext,
 } from "../../channels/plugins/types.js";
 import type { OpenClawConfig } from "../../config/config.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import {
   isDeliverableMessageChannel,
   normalizeMessageChannel,
@@ -102,6 +103,9 @@ export type RunMessageActionParams = {
   sandboxRoot?: string;
   dryRun?: boolean;
   abortSignal?: AbortSignal;
+  modelProvider?: string;
+  modelId?: string;
+  warn?: (message: string) => void;
 };
 
 export type MessageActionRunResult =
@@ -280,6 +284,56 @@ type ResolvedActionContext = {
   resolvedTarget?: ResolvedMessagingTarget;
   abortSignal?: AbortSignal;
 };
+
+function trimField(value: string | null | undefined, max = 80): string | undefined {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  return trimmed.length > max ? `${trimmed.slice(0, max)}...` : trimmed;
+}
+
+function resolveRepairActorLabel(params: {
+  input: RunMessageActionParams;
+  args: Record<string, unknown>;
+}): string {
+  const agentId = trimField(params.input.agentId);
+  if (agentId) {
+    return `actor=agent:${agentId}`;
+  }
+  const sessionKey = trimField(params.input.sessionKey);
+  if (sessionKey) {
+    return `actor=session:${sessionKey}`;
+  }
+  const senderId = trimField(params.input.requesterSenderId);
+  if (senderId) {
+    return `actor=sender:${senderId}`;
+  }
+  const contextProvider = normalizeMessageChannel(params.input.toolContext?.currentChannelProvider);
+  const contextChannelId = trimField(params.input.toolContext?.currentChannelId);
+  if (contextProvider && contextChannelId) {
+    return `actor=context:${contextProvider}:${contextChannelId}`;
+  }
+  if (contextProvider) {
+    return `actor=context:${contextProvider}`;
+  }
+  const explicitProvider = normalizeMessageChannel(
+    typeof params.args.channel === "string" ? params.args.channel : undefined,
+  );
+  if (explicitProvider) {
+    return `actor=provider:${explicitProvider}`;
+  }
+  const clientDisplay = trimField(params.input.gateway?.clientDisplayName);
+  if (clientDisplay) {
+    return `actor=client:${clientDisplay}`;
+  }
+  const clientName = trimField(params.input.gateway?.clientName);
+  if (clientName) {
+    return `actor=client:${clientName}`;
+  }
+  return "actor=system";
+}
+
 function resolveGateway(input: RunMessageActionParams): MessageActionRunnerGateway | undefined {
   if (!input.gateway) {
     return undefined;
@@ -292,6 +346,153 @@ function resolveGateway(input: RunMessageActionParams): MessageActionRunnerGatew
     clientDisplayName: input.gateway.clientDisplayName,
     mode: input.gateway.mode,
   };
+}
+
+function hasLegacyTargetFields(params: Record<string, unknown>): boolean {
+  return (
+    (typeof params.to === "string" && params.to.trim().length > 0) ||
+    (typeof params.channelId === "string" && params.channelId.trim().length > 0)
+  );
+}
+
+function readExplicitTarget(params: Record<string, unknown>): string {
+  return typeof params.target === "string" ? params.target.trim() : "";
+}
+
+function looksLikeSlackId(value: string): boolean {
+  return /^[CUWGD][A-Z0-9]{8,}$/i.test(value.trim());
+}
+
+function looksLikeDestinationHint(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+  return (
+    /^[@#]/.test(trimmed) ||
+    /^(channel|group|user|conversation|chat|thread):/i.test(trimmed) ||
+    /^\+?\d{6,}$/.test(trimmed) ||
+    trimmed.includes("@thread") ||
+    trimmed.includes("-")
+  );
+}
+
+async function repairMisplacedChannelTarget(params: {
+  cfg: OpenClawConfig;
+  action: ChannelMessageActionName;
+  args: Record<string, unknown>;
+  toolContext?: ChannelThreadingToolContext;
+  onWarn?: (message: string) => void;
+  actorLabel?: string;
+  modelLabel?: string;
+}) {
+  if (!actionRequiresTarget(params.action)) {
+    return;
+  }
+  const channelHint = typeof params.args.channel === "string" ? params.args.channel.trim() : "";
+  if (!channelHint) {
+    return;
+  }
+  const normalizedChannelHint = normalizeMessageChannel(channelHint);
+  if (normalizedChannelHint && isDeliverableMessageChannel(normalizedChannelHint)) {
+    return;
+  }
+  const targetHint = readExplicitTarget(params.args);
+  const normalizedTargetHint = normalizeMessageChannel(targetHint);
+  const isKnownTargetProvider =
+    normalizedTargetHint !== undefined && isDeliverableMessageChannel(normalizedTargetHint);
+  const warnContext = [params.actorLabel, params.modelLabel].filter(Boolean).join(" ");
+
+  // Guarded swapped-field repair:
+  // channel carries destination, target carries provider id (for example channel="C123..." target="slack")
+  if (
+    targetHint &&
+    isKnownTargetProvider &&
+    (looksLikeSlackId(channelHint) || looksLikeDestinationHint(channelHint))
+  ) {
+    const repairedTarget =
+      normalizedTargetHint === "slack" && looksLikeSlackId(channelHint)
+        ? channelHint.toUpperCase()
+        : channelHint;
+    params.args.target = repairedTarget;
+    params.args.channel = normalizedTargetHint;
+    params.onWarn?.(
+      [
+        "tools: repaired swapped message routing fields",
+        `action=${params.action}`,
+        `channel=${channelHint}`,
+        `target=${targetHint}`,
+        `repairedChannel=${normalizedTargetHint}`,
+        `repairedTarget=${repairedTarget}`,
+        warnContext,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
+    return;
+  }
+
+  if (targetHint || hasLegacyTargetFields(params.args)) {
+    return;
+  }
+
+  // Bare Slack IDs (C/U/W/G/D + 8+ alphanumeric) are a strong signal the agent put
+  // a Slack channel/user ID in the channel (provider) field. Move it to target and
+  // pin the channel to "slack" so the send path can resolve it normally.
+  if (looksLikeSlackId(channelHint)) {
+    const repairedTarget = channelHint.toUpperCase();
+    params.args.target = repairedTarget;
+    params.args.channel = "slack";
+    params.onWarn?.(
+      [
+        "tools: repaired misplaced message channel provider",
+        `action=${params.action}`,
+        `channel=${channelHint}`,
+        `repairedChannel=slack`,
+        `repairedTarget=${repairedTarget}`,
+        warnContext,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
+    return;
+  }
+  if (!looksLikeDestinationHint(channelHint)) {
+    return;
+  }
+
+  const inferredFromContext = normalizeMessageChannel(params.toolContext?.currentChannelProvider);
+  const contextChannel =
+    inferredFromContext && isDeliverableMessageChannel(inferredFromContext)
+      ? inferredFromContext
+      : undefined;
+
+  let fallbackChannel: string | undefined = contextChannel;
+  if (!fallbackChannel) {
+    try {
+      fallbackChannel = (await resolveMessageChannelSelection({ cfg: params.cfg })).channel;
+    } catch {
+      fallbackChannel = undefined;
+    }
+  }
+  if (!fallbackChannel) {
+    return;
+  }
+
+  params.args.target = channelHint;
+  params.args.channel = fallbackChannel;
+  params.onWarn?.(
+    [
+      "tools: repaired misplaced message channel provider",
+      `action=${params.action}`,
+      `channel=${channelHint}`,
+      `repairedChannel=${fallbackChannel}`,
+      `repairedTarget=${channelHint}`,
+      warnContext,
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
 }
 
 async function handleBroadcastAction(
@@ -703,14 +904,23 @@ export async function runMessageAction(
   parseComponentsParam(params);
 
   const action = input.action;
+  const warn =
+    input.warn ??
+    ((message: string) => {
+      createSubsystemLogger("tools").warn(message);
+    });
+  const actorLabel = resolveRepairActorLabel({ input, args: params });
+  const modelLabel = [input.modelProvider?.trim(), input.modelId?.trim()]
+    .filter(Boolean)
+    .join("/")
+    .trim();
+  const modelInfo = modelLabel ? `model=${modelLabel}` : undefined;
   if (action === "broadcast") {
     return handleBroadcastAction(input, params);
   }
 
-  const explicitTarget = typeof params.target === "string" ? params.target.trim() : "";
-  const hasLegacyTarget =
-    (typeof params.to === "string" && params.to.trim().length > 0) ||
-    (typeof params.channelId === "string" && params.channelId.trim().length > 0);
+  const explicitTarget = readExplicitTarget(params);
+  const hasLegacyTarget = hasLegacyTargetFields(params);
   if (explicitTarget && hasLegacyTarget) {
     delete params.to;
     delete params.channelId;
@@ -726,7 +936,11 @@ export async function runMessageAction(
       params.target = inferredTarget;
     }
   }
-  if (!explicitTarget && actionRequiresTarget(action) && hasLegacyTarget) {
+  if (
+    !readExplicitTarget(params) &&
+    actionRequiresTarget(action) &&
+    hasLegacyTargetFields(params)
+  ) {
     const legacyTo = typeof params.to === "string" ? params.to.trim() : "";
     const legacyChannelId = typeof params.channelId === "string" ? params.channelId.trim() : "";
     const legacyTarget = legacyTo || legacyChannelId;
@@ -743,6 +957,15 @@ export async function runMessageAction(
       params.channel = inferredChannel;
     }
   }
+  await repairMisplacedChannelTarget({
+    cfg,
+    action,
+    args: params,
+    toolContext: input.toolContext,
+    onWarn: warn,
+    actorLabel,
+    modelLabel: modelInfo,
+  });
 
   applyTargetToParams({ action, args: params });
   if (actionRequiresTarget(action)) {

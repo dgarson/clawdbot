@@ -182,6 +182,135 @@ describe("runMessageAction context isolation", () => {
     expect(result.kind).toBe("send");
   });
 
+  it("repairs misplaced destination names provided as channel when context provider is known", async () => {
+    const result = await runDrySend({
+      cfg: slackConfig,
+      actionParams: {
+        channel: "cb-inbox",
+        message: "hi",
+      },
+      toolContext: { currentChannelProvider: "slack" },
+    });
+
+    expect(result.kind).toBe("send");
+    if (result.kind !== "send") {
+      throw new Error("expected send result");
+    }
+    expect(result.channel).toBe("slack");
+    expect(result.to).toBe("cb-inbox");
+  });
+
+  it("repairs misplaced destination names using single configured provider fallback", async () => {
+    const result = await runDrySend({
+      cfg: slackConfig,
+      actionParams: {
+        channel: "ops-alerts",
+        message: "hi",
+      },
+    });
+
+    expect(result.kind).toBe("send");
+    if (result.kind !== "send") {
+      throw new Error("expected send result");
+    }
+    expect(result.channel).toBe("slack");
+    expect(result.to).toBe("ops-alerts");
+  });
+
+  it("repairs swapped channel/target fields and emits actor+model warning", async () => {
+    const warn = vi.fn();
+    const result = await runMessageAction({
+      cfg: slackConfig,
+      action: "send",
+      params: {
+        channel: "C0AAQJBCU0N",
+        target: "slack",
+        message: "hi",
+      },
+      dryRun: true,
+      agentId: "main",
+      sessionKey: "agent:main:slack:channel:C0AAQJBCU0N",
+      modelProvider: "openai",
+      modelId: "gpt-5",
+      warn,
+    });
+
+    expect(result.kind).toBe("send");
+    if (result.kind !== "send") {
+      throw new Error("expected send result");
+    }
+    expect(result.channel).toBe("slack");
+    expect(result.to.toUpperCase()).toContain("C0AAQJBCU0N");
+    expect(warn).toHaveBeenCalledTimes(1);
+    const warningText = String(warn.mock.calls[0]?.[0] ?? "");
+    expect(warningText).toContain("repaired swapped message routing fields");
+    expect(warningText).toContain("actor=agent:main");
+    expect(warningText).toContain("model=openai/gpt-5");
+  });
+
+  it("warns on misplaced channel provider repair", async () => {
+    const warn = vi.fn();
+    const result = await runMessageAction({
+      cfg: slackConfig,
+      action: "send",
+      params: {
+        channel: "ops-alerts",
+        message: "hi",
+      },
+      dryRun: true,
+      warn,
+    });
+
+    expect(result.kind).toBe("send");
+    if (result.kind !== "send") {
+      throw new Error("expected send result");
+    }
+    expect(warn).toHaveBeenCalledTimes(1);
+    const warningText = String(warn.mock.calls[0]?.[0] ?? "");
+    expect(warningText).toContain("repaired misplaced message channel provider");
+  });
+
+  it("uses context fallback for repair actor label", async () => {
+    const warn = vi.fn();
+    await runMessageAction({
+      cfg: slackConfig,
+      action: "send",
+      params: {
+        channel: "ops-alerts",
+        message: "hi",
+      },
+      dryRun: true,
+      toolContext: {
+        currentChannelProvider: "slack",
+      },
+      warn,
+    });
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    const warningText = String(warn.mock.calls[0]?.[0] ?? "");
+    expect(warningText).toContain("actor=context:slack");
+    expect(warningText).not.toContain("actor=unknown");
+  });
+
+  it("uses non-unknown fallback actor label when no context exists", async () => {
+    const warn = vi.fn();
+    await runMessageAction({
+      cfg: slackConfig,
+      action: "send",
+      params: {
+        channel: "C0AAQJBCU0N",
+        message: "hi",
+      },
+      dryRun: true,
+      warn,
+    });
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    const warningText = String(warn.mock.calls[0]?.[0] ?? "");
+    expect(warningText).toContain("actor=");
+    expect(warningText).not.toContain("actor=unknown");
+  });
+
   it("allows media-only send when target matches current channel", async () => {
     const result = await runDrySend({
       cfg: slackConfig,

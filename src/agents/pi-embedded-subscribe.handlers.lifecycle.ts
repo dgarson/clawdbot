@@ -9,8 +9,21 @@ export {
   handleAutoCompactionStart,
 } from "./pi-embedded-subscribe.handlers.compaction.js";
 
+function formatLifecycleContext(ctx: EmbeddedPiSubscribeContext): string {
+  const details = [
+    `provider=${ctx.params.provider ?? "unknown"}`,
+    `model=${ctx.params.model ?? "unknown"}`,
+  ];
+  if (ctx.params.runtime === "claude-sdk") {
+    details.push(`runtime=${ctx.params.runtime}`);
+  }
+  return details.join(" ");
+}
+
 export function handleAgentStart(ctx: EmbeddedPiSubscribeContext) {
-  ctx.log.debug(`embedded run agent start: runId=${ctx.params.runId}`);
+  ctx.log.debug(
+    `embedded run agent start: runId=${ctx.params.runId} ${formatLifecycleContext(ctx)}`,
+  );
   emitAgentEvent({
     runId: ctx.params.runId,
     stream: "lifecycle",
@@ -28,6 +41,10 @@ export function handleAgentStart(ctx: EmbeddedPiSubscribeContext) {
 export function handleAgentEnd(ctx: EmbeddedPiSubscribeContext) {
   const lastAssistant = ctx.state.lastAssistant;
   const isError = isAssistantMessage(lastAssistant) && lastAssistant.stopReason === "error";
+
+  ctx.log.debug(
+    `embedded run agent end: runId=${ctx.params.runId} isError=${isError} ${formatLifecycleContext(ctx)}`,
+  );
 
   if (isError && lastAssistant) {
     const friendlyError = formatAssistantErrorText(lastAssistant, {

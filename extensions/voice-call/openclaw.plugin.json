@@ -146,6 +146,14 @@
       "label": "Call Log Store Path",
       "advanced": true
     },
+    "responseAgentId": {
+      "label": "Response Agent ID",
+      "advanced": true
+    },
+    "asyncAgentId": {
+      "label": "Async Agent ID",
+      "advanced": true
+    },
     "responseModel": {
       "label": "Response Model",
       "advanced": true
@@ -542,6 +550,12 @@
         }
       },
       "store": {
+        "type": "string"
+      },
+      "responseAgentId": {
+        "type": "string"
+      },
+      "asyncAgentId": {
         "type": "string"
       },
       "responseModel": {

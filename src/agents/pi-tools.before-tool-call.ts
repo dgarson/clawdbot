@@ -68,7 +68,9 @@ async function recordLoopOutcome(args: {
       config: args.ctx.loopDetection,
     });
   } catch (err) {
-    log.warn(`tool loop outcome tracking failed: tool=${args.toolName} error=${String(err)}`);
+    log.warn(
+      `[${args.ctx?.sessionKey ?? "?"}] tool loop outcome tracking failed: tool=${args.toolName} error=${String(err)}`,
+    );
   }
 }
 
@@ -173,7 +175,9 @@ export async function runBeforeToolCallHook(args: {
     }
   } catch (err) {
     const toolCallId = args.toolCallId ? ` toolCallId=${args.toolCallId}` : "";
-    log.warn(`before_tool_call hook failed: tool=${toolName}${toolCallId} error=${String(err)}`);
+    log.warn(
+      `[${args.ctx?.sessionKey ?? "?"}] before_tool_call hook failed: tool=${toolName}${toolCallId} error=${String(err)}`,
+    );
   }
 
   return { blocked: false, params };

@@ -43,7 +43,44 @@ export function formatExecCommand(argv: string[]): string {
 }
 
 export function extractShellCommandFromArgv(argv: string[]): string | null {
-  return extractShellWrapperCommand(argv).command;
+  const token0 = argv[0]?.trim();
+  if (!token0) {
+    return null;
+  }
+
+  const base0 = basenameLower(token0);
+
+  // POSIX-style shells: sh -lc "<cmd>"
+  if (
+    base0 === "sh" ||
+    base0 === "bash" ||
+    base0 === "zsh" ||
+    base0 === "dash" ||
+    base0 === "ksh"
+  ) {
+    const flag = argv[1]?.trim();
+    if (flag !== "-lc" && flag !== "-c") {
+      return null;
+    }
+    const cmd = argv[2];
+    return typeof cmd === "string" ? cmd : null;
+  }
+
+  // Windows cmd.exe: cmd.exe /d /s /c "<cmd>"
+  // All args after /c are the shell command (cmd.exe joins them with spaces).
+  if (base0 === "cmd.exe" || base0 === "cmd") {
+    const idx = argv.findIndex((item) => String(item).trim().toLowerCase() === "/c");
+    if (idx === -1) {
+      return null;
+    }
+    const rest = argv.slice(idx + 1);
+    if (rest.length === 0) {
+      return null;
+    }
+    return rest.join(" ");
+  }
+
+  return null;
 }
 
 export function validateSystemRunCommandConsistency(params: {

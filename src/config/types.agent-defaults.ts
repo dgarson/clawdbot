@@ -163,6 +163,8 @@ export type AgentDefaultsConfig = {
   memorySearch?: MemorySearchConfig;
   /** Default thinking level when no /think directive is present. */
   thinkingDefault?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh";
+  /** Default reasoning visibility when no /reasoning directive is present. */
+  reasoningDefault?: "off" | "on" | "stream";
   /** Default verbose level when no /verbose directive is present. */
   verboseDefault?: "off" | "on" | "full";
   /** Default elevated level when no /elevated directive is present. */
@@ -248,6 +250,8 @@ export type AgentDefaultsConfig = {
     maxChildrenPerAgent?: number;
     /** Auto-archive sub-agent sessions after N minutes (default: 60). */
     archiveAfterMinutes?: number;
+    /** Default timeout in seconds for spawned sub-agents. 0 or omitted = unlimited. */
+    timeoutSeconds?: number;
     /** Default model selection for spawned sub-agents (string or {primary,fallbacks}). */
     model?: AgentModelConfig;
     /** Default thinking level for spawned sub-agents (e.g. "off", "low", "medium", "high"). */

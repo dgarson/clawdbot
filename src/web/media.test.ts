@@ -7,7 +7,6 @@ import { resolveStateDir } from "../config/paths.js";
 import { sendVoiceMessageDiscord } from "../discord/send.js";
 import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
 import { optimizeImageToPng } from "../media/image-ops.js";
-import { mockPinnedHostnameResolution } from "../test-helpers/ssrf.js";
 import { captureEnv } from "../test-utils/env.js";
 import {
   LocalMediaAccessError,
@@ -126,7 +125,14 @@ describe("web media loading", () => {
   });
 
   beforeAll(() => {
-    mockPinnedHostnameResolution();
+    const realResolvePinnedHostnameWithPolicy = ssrf.resolvePinnedHostnameWithPolicy;
+    vi.spyOn(ssrf, "resolvePinnedHostnameWithPolicy").mockImplementation((hostname, params) => {
+      const mockLookup = () => Promise.resolve([{ address: "93.184.216.34", family: 4 }]);
+      return realResolvePinnedHostnameWithPolicy(hostname, {
+        ...params,
+        lookupFn: mockLookup,
+      });
+    });
   });
 
   it("strips MEDIA: prefix before reading local file (including whitespace variants)", async () => {

@@ -541,6 +541,7 @@ function WorkstreamDAGInner({
 
   // Handle right-click on pane (not on node) - close menu and prevent browser menu
   const handlePaneContextMenu = useCallback(
+    // eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
     (event: MouseEvent | React.MouseEvent) => {
       event.preventDefault();
       // Close the custom menu when right-clicking elsewhere

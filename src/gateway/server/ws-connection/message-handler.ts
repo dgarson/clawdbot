@@ -83,6 +83,21 @@ type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
 const DEVICE_SIGNATURE_SKEW_MS = 2 * 60 * 1000;
 
+function formatSessionIdForLog(sessionId: unknown): string | undefined {
+  if (typeof sessionId === "string") {
+    const trimmed = sessionId.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  if (
+    typeof sessionId === "number" ||
+    typeof sessionId === "bigint" ||
+    typeof sessionId === "boolean"
+  ) {
+    return String(sessionId);
+  }
+  return undefined;
+}
+
 export function attachGatewayWsMessageHandler(params: {
   socket: WebSocket;
   upgradeReq: IncomingMessage;
@@ -908,14 +923,21 @@ export function attachGatewayWsMessageHandler(params: {
         meta?: Record<string, unknown>,
       ) => {
         send({ type: "res", id: req.id, ok, payload, error });
+        // Destructure session/cached from meta so they don't appear as raw fields.
+        const { cached: _cached, sessionId, ...restMeta } = meta ?? {};
+        const sessionLabel = formatSessionIdForLog(sessionId);
+        const errorFields = error
+          ? sessionLabel
+            ? { errorCode: error.code, session: `${sessionLabel}: ${error.message}` }
+            : { errorCode: error.code, errorMessage: error.message }
+          : { errorCode: undefined as string | undefined };
         logWs("out", "res", {
           connId,
           id: req.id,
           ok,
           method: req.method,
-          errorCode: error?.code,
-          errorMessage: error?.message,
-          ...meta,
+          ...errorFields,
+          ...restMeta,
         });
       };
 

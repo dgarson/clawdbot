@@ -42,7 +42,9 @@ function TabsList({
   className,
   variant = "default",
   ...props
+// eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
 }: React.ComponentProps<typeof TabsPrimitive.List> &
+  // eslint-disable-next-line typescript-eslint/no-redundant-type-constituents
   VariantProps<typeof tabsListVariants>) {
   return (
     <TabsPrimitive.List

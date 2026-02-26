@@ -133,7 +133,7 @@ describe("LocalMarkdownIssueTrackerProvider", () => {
 
     const reference: TicketReference = {
       id: "alpha",
-      kind: "ticket",
+      kind: "ticket" as const,
       title: "Alpha",
       uri: "ticket://alpha",
       metadata: { severity: "high", order: 1 },

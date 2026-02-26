@@ -22,6 +22,7 @@ describe("parseSlackTarget", () => {
     const cases = [
       { input: "channel:C123", id: "C123", normalized: "channel:c123" },
       { input: "#C999", id: "C999", normalized: "channel:c999" },
+      { input: "#cb-activity", id: "cb-activity", normalized: "channel:cb-activity" },
     ] as const;
     for (const testCase of cases) {
       expect(parseSlackTarget(testCase.input), testCase.input).toMatchObject({
@@ -35,7 +36,10 @@ describe("parseSlackTarget", () => {
   it("rejects invalid @ and # targets", () => {
     const cases = [
       { input: "@bob-1", expectedMessage: /Slack DMs require a user id/ },
-      { input: "#general-1", expectedMessage: /Slack channels require a channel id/ },
+      {
+        input: "#general channel",
+        expectedMessage: /Slack channels require a channel id or channel name/,
+      },
     ] as const;
     for (const testCase of cases) {
       expect(() => parseSlackTarget(testCase.input), testCase.input).toThrow(
