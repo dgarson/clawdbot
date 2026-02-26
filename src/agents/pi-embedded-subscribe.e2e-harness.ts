@@ -31,8 +31,7 @@ export function createStubSessionHarness(): {
 }
 
 export function createSubscribedSessionHarness(
-  params: Omit<Parameters<SubscribeEmbeddedPiSession>[0], "session" | "enforceFinalTag"> & {
-    enforceFinalTag?: boolean;
+  params: Omit<Parameters<SubscribeEmbeddedPiSession>[0], "session"> & {
     sessionExtras?: Partial<PiSession>;
   },
 ): {
@@ -44,7 +43,6 @@ export function createSubscribedSessionHarness(
   const { session, emit } = createStubSessionHarness();
   const mergedSession = Object.assign(session, sessionExtras ?? {});
   const subscription = subscribeEmbeddedPiSession({
-    enforceFinalTag: false,
     ...subscribeParams,
     session: mergedSession,
   });

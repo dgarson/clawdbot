@@ -21,7 +21,6 @@ describe("subscribeEmbeddedPiSession", () => {
     const onAgentEvent = vi.fn();
 
     subscribeEmbeddedPiSession({
-      enforceFinalTag: false,
       session,
       runId: options?.runId ?? "run",
       onAgentEvent,
@@ -34,7 +33,6 @@ describe("subscribeEmbeddedPiSession", () => {
   function createToolErrorHarness(runId: string) {
     const { session, emit } = createStubSessionHarness();
     const subscription = subscribeEmbeddedPiSession({
-      enforceFinalTag: false,
       session,
       runId,
       sessionKey: "test-session",
@@ -99,7 +97,6 @@ describe("subscribeEmbeddedPiSession", () => {
       const onBlockReply = vi.fn();
 
       subscribeEmbeddedPiSession({
-        enforceFinalTag: false,
         session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
         runId: "run",
         onReasoningStream,
@@ -166,7 +163,6 @@ describe("subscribeEmbeddedPiSession", () => {
       const onBlockReply = vi.fn();
 
       subscribeEmbeddedPiSession({
-        enforceFinalTag: false,
         session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
         runId: "run",
         onBlockReply,
@@ -232,7 +228,6 @@ describe("subscribeEmbeddedPiSession", () => {
     const onReasoningEnd = vi.fn();
 
     subscribeEmbeddedPiSession({
-      enforceFinalTag: false,
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
       reasoningMode: "stream",
@@ -282,7 +277,6 @@ describe("subscribeEmbeddedPiSession", () => {
     const onReasoningEnd = vi.fn();
 
     subscribeEmbeddedPiSession({
-      enforceFinalTag: false,
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
       reasoningMode: "stream",
@@ -352,7 +346,6 @@ describe("subscribeEmbeddedPiSession", () => {
     const onAgentEvent = vi.fn();
 
     subscribeEmbeddedPiSession({
-      enforceFinalTag: false,
       session,
       runId: "run",
       onAgentEvent,

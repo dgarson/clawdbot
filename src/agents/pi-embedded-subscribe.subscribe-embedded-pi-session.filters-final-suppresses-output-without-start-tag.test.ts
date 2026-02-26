@@ -57,7 +57,6 @@ describe("subscribeEmbeddedPiSession", () => {
     const onPartialReply = vi.fn();
 
     subscribeEmbeddedPiSession({
-      enforceFinalTag: false,
       session,
       runId: "run",
       onPartialReply,
@@ -74,7 +73,6 @@ describe("subscribeEmbeddedPiSession", () => {
     const onBlockReply = vi.fn();
 
     subscribeEmbeddedPiSession({
-      enforceFinalTag: false,
       session,
       runId: "run",
       onBlockReply,

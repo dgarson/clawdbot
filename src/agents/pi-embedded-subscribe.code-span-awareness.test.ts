@@ -11,7 +11,6 @@ describe("subscribeEmbeddedPiSession thinking tag code span awareness", () => {
     const onPartialReply = vi.fn();
 
     subscribeEmbeddedPiSession({
-      enforceFinalTag: false,
       session,
       runId: "run",
       onPartialReply,
