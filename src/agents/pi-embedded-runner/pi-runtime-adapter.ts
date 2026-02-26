@@ -35,6 +35,11 @@ export function createPiRuntimeAdapter(params: PiRuntimeAdapterParams): AgentRun
     abortCompaction: () => session.abortCompaction(),
     dispose: () => session.dispose(),
     replaceMessages: (messages) => session.agent.replaceMessages(messages),
+    setSystemPrompt: (text) => {
+      // Best-effort overlay for Pi sessions, though Attempt.ts handles it explicitly anyway.
+      // @ts-expect-error private field access
+      session.agent._systemPrompt = text;
+    },
     get isStreaming() {
       return session.isStreaming;
     },

@@ -23,8 +23,13 @@ function makeState(overrides?: Partial<ClaudeSdkEventAdapterState>): ClaudeSdkEv
     streaming: false,
     compacting: false,
     abortController: null,
+    systemPrompt: "You are helpful.",
     pendingSteer: [],
+    pendingToolUses: [],
+    toolNameByUseId: new Map(),
     messages: [],
+    messageIdCounter: 0,
+    streamingMessageId: null,
     claudeSdkSessionId: undefined,
     sdkResultError: undefined,
     lastStderr: undefined,
@@ -32,6 +37,9 @@ function makeState(overrides?: Partial<ClaudeSdkEventAdapterState>): ClaudeSdkEv
     streamingPartialMessage: null,
     streamingInProgress: false,
     sessionManager: undefined,
+    transcriptProvider: "anthropic",
+    transcriptApi: "anthropic-messages",
+    modelCost: undefined,
     ...overrides,
   };
 }
@@ -858,6 +866,24 @@ describe("event translation — compaction events", () => {
     expect(startEvt.pre_tokens).toBe(endEvt.pre_tokens);
     expect(startEvt.trigger).toBe(endEvt.trigger);
   });
+
+  it("uses willRetry from compact boundary payload when present", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "compact_boundary",
+        session_id: "sess_retry",
+        compact_metadata: { trigger: "auto", pre_tokens: 12345, will_retry: true },
+      } as never,
+      state,
+    );
+
+    const endEvt = events.find((e) => e.type === "auto_compaction_end");
+    expect(endEvt?.willRetry).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -891,6 +917,45 @@ describe("event translation -- stream_event handling", () => {
     };
     expect(startEvt?.message?.role).toBe("assistant");
     expect(state.streamingInProgress).toBe(true);
+  });
+
+  it("message_delta usage merges with message_start usage", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: {
+            role: "assistant",
+            content: [],
+            usage: { input_tokens: 1000, cache_read_input_tokens: 100 },
+            model: "claude-sonnet-4-5-20250514",
+          },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_delta",
+          delta: { stop_reason: "end_turn" },
+          usage: { output_tokens: 200 },
+        },
+      } as never,
+      state,
+    );
+
+    const usage = state.streamingPartialMessage?.usage as
+      | { input_tokens?: number; output_tokens?: number; cache_read_input_tokens?: number }
+      | undefined;
+    expect(usage?.input_tokens).toBe(1000);
+    expect(usage?.cache_read_input_tokens).toBe(100);
+    expect(usage?.output_tokens).toBe(200);
   });
 
   it("content_block_start (text) records block type", () => {
@@ -1500,6 +1565,161 @@ describe("event translation -- streaming + complete message dedup", () => {
 
     expect(state.streamingInProgress).toBe(false);
   });
+
+  it("keeps one stable message id across non-streaming message lifecycle events", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "hello" }],
+        },
+      } as never,
+      state,
+    );
+
+    const ids = events
+      .filter(
+        (evt) =>
+          evt.type === "message_start" ||
+          evt.type === "message_update" ||
+          evt.type === "message_end",
+      )
+      .map((evt) => (evt.message as { id?: string } | undefined)?.id)
+      .filter((id): id is string => typeof id === "string");
+
+    expect(new Set(ids).size).toBe(1);
+  });
+
+  it("keeps one stable message id across streaming message lifecycle events", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: { role: "assistant", content: [], model: "test" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "content_block_start",
+          index: 0,
+          content_block: { type: "text" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "content_block_delta",
+          index: 0,
+          delta: { type: "text_delta", text: "Hello" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "content_block_stop", index: 0 } } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "message_stop" } } as never,
+      state,
+    );
+
+    const ids = events
+      .filter(
+        (evt) =>
+          evt.type === "message_start" ||
+          evt.type === "message_update" ||
+          evt.type === "message_end",
+      )
+      .map((evt) => (evt.message as { id?: string } | undefined)?.id)
+      .filter((id): id is string => typeof id === "string");
+
+    expect(new Set(ids).size).toBe(1);
+  });
+
+  it("collects assistant tool_use ids in stable queue order for pairing", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "call_1", name: "read_file", input: { path: "/a" } }],
+        },
+      } as never,
+      state,
+    );
+
+    expect(state.pendingToolUses).toEqual([
+      { id: "call_1", name: "read_file", input: { path: "/a" } },
+    ]);
+    expect(state.toolNameByUseId.get("call_1")).toBe("read_file");
+  });
+
+  it("translates SDK tool_progress to tool_execution_update", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "tool_progress",
+        tool_use_id: "call_1",
+        tool_name: "read_file",
+        parent_tool_use_id: null,
+        elapsed_time_seconds: 1.2,
+      } as never,
+      state,
+    );
+
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: "tool_execution_update",
+        toolName: "read_file",
+        toolCallId: "call_1",
+      }),
+    );
+  });
+
+  it("translates SDK tool_use_summary to tool_execution_update for preceding tool IDs", () => {
+    const state = makeState({
+      toolNameByUseId: new Map([["call_1", "read_file"]]),
+    });
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "tool_use_summary",
+        summary: "Read completed",
+        preceding_tool_use_ids: ["call_1"],
+      } as never,
+      state,
+    );
+
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        type: "tool_execution_update",
+        toolName: "read_file",
+        toolCallId: "call_1",
+      }),
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1533,6 +1753,69 @@ describe("event translation -- JSONL persistence", () => {
     expect(persisted.usage.input).toBe(100);
     expect(persisted.usage.output).toBe(50);
     expect(persisted.usage.totalTokens).toBe(150);
+  });
+
+  it("uses configured transcript provider/api metadata for persistence", () => {
+    const appendMessage = vi.fn();
+    const state = makeState({
+      sessionManager: { appendMessage },
+      transcriptProvider: "openrouter",
+      transcriptApi: "claude-sdk",
+    });
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Hello" }],
+        },
+      } as never,
+      state,
+    );
+
+    const persisted = appendMessage.mock.calls[0][0];
+    expect(persisted.provider).toBe("openrouter");
+    expect(persisted.api).toBe("claude-sdk");
+  });
+
+  it("persists usage.cost when model pricing is available", () => {
+    const appendMessage = vi.fn();
+    const state = makeState({
+      sessionManager: { appendMessage },
+      modelCost: {
+        input: 3,
+        output: 15,
+        cacheRead: 0.3,
+        cacheWrite: 3.75,
+      },
+    });
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Hello" }],
+          usage: {
+            input_tokens: 1000,
+            output_tokens: 200,
+            cache_read_input_tokens: 50,
+            cache_creation_input_tokens: 25,
+          },
+        },
+      } as never,
+      state,
+    );
+
+    const persisted = appendMessage.mock.calls[0][0];
+    expect(persisted.usage.cost.input).toBeCloseTo(0.003, 12);
+    expect(persisted.usage.cost.output).toBeCloseTo(0.003, 12);
+    expect(persisted.usage.cost.cacheRead).toBeCloseTo(0.000015, 12);
+    expect(persisted.usage.cost.cacheWrite).toBeCloseTo(0.00009375, 12);
+    expect(persisted.usage.cost.total).toBeCloseTo(0.00610875, 12);
   });
 
   it("maps tool_use blocks to toolCall format in persisted content", () => {

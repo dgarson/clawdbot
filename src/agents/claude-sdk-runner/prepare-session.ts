@@ -51,10 +51,12 @@ export async function prepareClaudeSdkSession(
     workspaceDir: resolvedWorkspace,
     agentDir,
     sessionId: params.sessionId,
+    sessionFile: params.sessionFile,
     modelId: params.modelId,
     tools: builtInTools,
     customTools: allCustomTools,
     systemPrompt: systemPromptText,
+    modelCost: params.model.cost,
     // Explicit user directive (anything other than the "off" default) takes precedence
     // over the config-level thinkingDefault. If no directive was given, the config acts
     // as the agent-level default, falling back to the runtime "off" if unset.
