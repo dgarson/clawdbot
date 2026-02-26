@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { AgentRuntime, AgentRuntimeHints } from "./agent-runtime.js";
+import type { AgentRuntimeSession, AgentRuntimeHints } from "./agent-runtime.js";
 
-describe("AgentRuntime interface", () => {
+describe("AgentRuntimeSession interface", () => {
   it("can be satisfied by a minimal mock object", () => {
     const hints: AgentRuntimeHints = {
       allowSyntheticToolResults: true,
@@ -10,7 +10,7 @@ describe("AgentRuntime interface", () => {
       supportsStreamFnWrapping: true,
       sessionFile: "/tmp/test-session.jsonl",
     };
-    const mock: AgentRuntime = {
+    const mock: AgentRuntimeSession = {
       subscribe: () => () => {},
       prompt: async () => {},
       steer: async () => {},

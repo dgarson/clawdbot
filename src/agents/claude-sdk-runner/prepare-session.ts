@@ -23,15 +23,13 @@ export async function prepareClaudeSdkSession(
   builtInTools: ClaudeSdkCompatibleTool[],
   allCustomTools: ClaudeSdkCompatibleTool[],
 ): Promise<ClaudeSdkSession> {
-  // 1. Credential validation (moved from the early check in attempt.ts)
-  const provider = claudeSdkConfig.provider;
-  const hasInlineKey =
-    provider === "custom" && "apiKey" in claudeSdkConfig && !!claudeSdkConfig.apiKey;
-  if (provider !== "claude-sdk" && !hasInlineKey && !params.resolvedProviderAuth?.apiKey) {
+  // 1. Validate model ID — must use full Anthropic name (claude-* prefix).
+  // Short aliases like "sonnet" or "opus" are not accepted; use the full model
+  // ID (e.g. "claude-sonnet-4-5") to avoid silently hitting the subprocess default.
+  if (!params.modelId.startsWith("claude-")) {
     throw new Error(
-      `claude-sdk runtime requires auth credentials for provider "${provider}". ` +
-        `Configure authentication via \`openclaw login\`, or for custom providers ` +
-        `set \`claudeSdk.apiKey\` in your config.`,
+      `claude-sdk runtime requires a full Anthropic model ID (must start with "claude-"). ` +
+        `Got: "${params.modelId}". Use the full model name, e.g. "claude-sonnet-4-5".`,
     );
   }
 
@@ -71,6 +69,5 @@ export async function prepareClaudeSdkSession(
     sessionManager,
     claudeSdkResumeSessionId,
     claudeSdkConfig,
-    resolvedProviderAuth: params.resolvedProviderAuth,
   });
 }

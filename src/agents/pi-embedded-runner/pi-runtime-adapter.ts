@@ -1,6 +1,6 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
-import type { AgentRuntime, AgentRuntimeHints } from "../agent-runtime.js";
+import type { AgentRuntimeSession, AgentRuntimeHints } from "../agent-runtime.js";
 import type { EmbeddedPiSubscribeEvent } from "../pi-embedded-subscribe.handlers.types.js";
 
 type PiAgentSession = {
@@ -25,7 +25,7 @@ export type PiRuntimeAdapterParams = {
   runtimeHints: AgentRuntimeHints;
 };
 
-export function createPiRuntimeAdapter(params: PiRuntimeAdapterParams): AgentRuntime {
+export function createPiRuntimeAdapter(params: PiRuntimeAdapterParams): AgentRuntimeSession {
   const { session, runtimeHints } = params;
   return {
     subscribe: (handler) => session.subscribe(handler),

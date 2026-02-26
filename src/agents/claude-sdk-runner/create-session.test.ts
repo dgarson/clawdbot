@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import type { ClaudeSdkSessionParams } from "../types.js";
+import type { ClaudeSdkSessionParams } from "./types.js";
 
 // ---------------------------------------------------------------------------
 // Mock the Agent SDK query() function
@@ -40,7 +40,7 @@ vi.mock("@anthropic-ai/claude-agent-sdk", () => {
 // ---------------------------------------------------------------------------
 
 async function importCreateSession() {
-  const mod = await import("../create-session.js");
+  const mod = await import("./create-session.js");
   return mod.createClaudeSdkSession;
 }
 
@@ -250,6 +250,51 @@ describe("session lifecycle — session creation and resume", () => {
     // Should call query with resume = "sess_prev_999"
     const firstCall = queryMock.mock.calls[0];
     expect(firstCall[0].options?.resume).toBe("sess_prev_999");
+  });
+});
+
+describe("session lifecycle — thinking token budget mapping", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("maps low/basic thinking to ~4k tokens", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ thinkLevel: "low" }));
+
+    await session.prompt("Hello");
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].options?.maxThinkingTokens).toBe(4000);
+  });
+
+  it("maps medium/deep thinking to ~10k tokens", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ thinkLevel: "medium" }));
+
+    await session.prompt("Hello");
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].options?.maxThinkingTokens).toBe(10000);
+  });
+
+  it("maps highest/extended thinking to ~40k tokens", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ thinkLevel: "xhigh" }));
+
+    await session.prompt("Hello");
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].options?.maxThinkingTokens).toBe(40000);
   });
 });
 
@@ -592,7 +637,6 @@ describe("session lifecycle — provider env wiring", () => {
     const session = await createSession(
       makeParams({
         claudeSdkConfig: { provider: "zai" },
-        resolvedProviderAuth: { apiKey: "sk-zai-test", source: "test", mode: "api-key" },
       }),
     );
 
@@ -603,7 +647,7 @@ describe("session lifecycle — provider env wiring", () => {
     const env = options["env"] as Record<string, string>;
     expect(env).toBeDefined();
     expect(env["ANTHROPIC_BASE_URL"]).toContain("z.ai");
-    expect(env["ANTHROPIC_API_KEY"]).toBe("sk-zai-test");
+    expect(env["ANTHROPIC_API_KEY"]).toBeUndefined();
     expect(env["ANTHROPIC_HAIKU_MODEL"]).toBe("GLM-4.7");
   });
 
@@ -638,7 +682,7 @@ describe("session lifecycle — provider env wiring", () => {
     }
   });
 
-  it("omits non-claude model ids for claude-sdk provider so SDK uses its own default model", async () => {
+  it("forwards non-claude model ids for claude-sdk provider", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
 
@@ -654,7 +698,7 @@ describe("session lifecycle — provider env wiring", () => {
 
     const call = queryMock.mock.calls[0];
     const options = call[0].options as Record<string, unknown>;
-    expect(options["model"]).toBeUndefined();
+    expect(options["model"]).toBe("MiniMax-M2.5");
   });
 
   it("keeps claude model ids for claude-sdk provider", async () => {

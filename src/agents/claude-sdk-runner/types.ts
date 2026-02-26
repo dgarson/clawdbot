@@ -1,8 +1,7 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ClaudeSdkConfig } from "../../config/zod-schema.agent-runtime.js";
 import type { ModelCostConfig } from "../../utils/usage-format.js";
-import type { AgentRuntime, AgentRuntimeHints } from "../agent-runtime.js";
-import type { ResolvedProviderAuth } from "../model-auth.js";
+import type { AgentRuntimeSession, AgentRuntimeHints } from "../agent-runtime.js";
 import type { EmbeddedPiSubscribeEvent } from "../pi-embedded-subscribe.handlers.types.js";
 
 // ---------------------------------------------------------------------------
@@ -46,8 +45,6 @@ export type ClaudeSdkSessionParams = {
   claudeSdkResumeSessionId?: string;
   /** Resolved claudeSdk provider config from agents config. Defaults to claude-sdk. */
   claudeSdkConfig?: ClaudeSdkConfig;
-  /** Full auth object resolved via OpenClaw auth profiles (authStorage.getApiKey()). */
-  resolvedProviderAuth?: ResolvedProviderAuth;
   /** SessionManager instance for persisting the claude SDK session ID and messages. */
   sessionManager?: {
     appendCustomEntry?: (key: string, value: unknown) => void;
@@ -62,7 +59,7 @@ export type ClaudeSdkSessionParams = {
 // Session interface — duck-typed to match Pi's AgentSession surface
 // ---------------------------------------------------------------------------
 
-export type ClaudeSdkSession = AgentRuntime & {
+export type ClaudeSdkSession = AgentRuntimeSession & {
   /** Claude Agent SDK server-side session ID, set after first prompt. */
   readonly claudeSdkSessionId: string | undefined;
 };

@@ -18,9 +18,9 @@ import {
   isTimeoutErrorMessage,
   isLikelyContextOverflowError,
   isFailoverErrorMessage,
-} from "../../pi-embedded-helpers/errors.js";
-import { isRunnerAbortError } from "../../pi-embedded-runner/abort.js";
-import { mapSdkError } from "../error-mapping.js";
+} from "../pi-embedded-helpers/errors.js";
+import { isRunnerAbortError } from "../pi-embedded-runner/abort.js";
+import { mapSdkError } from "./error-mapping.js";
 
 // ---------------------------------------------------------------------------
 // Helpers: create mock SDK errors by name

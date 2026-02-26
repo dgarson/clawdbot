@@ -2,7 +2,7 @@ import { EventEmitter } from "node:events";
 import { PassThrough } from "node:stream";
 import type { SpawnedProcess } from "@anthropic-ai/claude-agent-sdk";
 import { describe, expect, it, vi } from "vitest";
-import { createClaudeSdkSpawnWithStdoutTailLogging } from "../spawn-stdout-logging.js";
+import { createClaudeSdkSpawnWithStdoutTailLogging } from "./spawn-stdout-logging.js";
 
 type FakeSpawnedProcess = SpawnedProcess & {
   pushStdout: (text: string) => void;

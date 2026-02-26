@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import type { AgentRuntime } from "../../agents/agent-runtime.js";
+import type { AgentRuntimeSession } from "../../agents/agent-runtime.js";
 
 describe("PiRuntimeAdapter", () => {
-  it("implements AgentRuntime interface", async () => {
+  it("implements AgentRuntimeSession interface", async () => {
     const { createPiRuntimeAdapter } = await import("./pi-runtime-adapter.js");
 
     const mockSession = {
@@ -22,7 +22,7 @@ describe("PiRuntimeAdapter", () => {
       },
     };
 
-    const adapter: AgentRuntime = createPiRuntimeAdapter({
+    const adapter: AgentRuntimeSession = createPiRuntimeAdapter({
       session: mockSession as never,
       runtimeHints: {
         allowSyntheticToolResults: true,
