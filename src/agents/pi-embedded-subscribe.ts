@@ -31,11 +31,6 @@ export type {
   ToolResultFormat,
 } from "./pi-embedded-subscribe.types.js";
 
-/**
- * Subscribes to agent session events for both Pi and Claude SDK runtimes.
- * Despite the "Pi" name, this function accepts any {@link AgentRuntimeSession} via
- * `params.session`. Renaming is deferred to avoid churn across call sites.
- */
 export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionParams) {
   const reasoningMode = params.reasoningMode ?? "off";
   const toolResultFormat = params.toolResultFormat ?? "markdown";

@@ -1,7 +1,36 @@
 import type { ClaudeSdkConfig } from "../../config/zod-schema.agent-runtime.js";
 import type { EmbeddedRunAttemptParams } from "../pi-embedded-runner/run/types.js";
-import { createClaudeSdkSession } from "./index.js";
+import { createClaudeSdkSession } from "./create-session.js";
 import type { ClaudeSdkCompatibleTool, ClaudeSdkSession } from "./types.js";
+
+const CLAUDE_SDK_PROVIDERS = new Set(["claude-pro"]);
+
+/** @internal Exported for testing only. */
+export function resolveClaudeSdkConfig(
+  params: EmbeddedRunAttemptParams,
+  agentId: string,
+): ClaudeSdkConfig | undefined {
+  const agentEntry = params.config?.agents?.list?.find((a) => a.id === agentId);
+  if (agentEntry?.claudeSdk === false) {
+    return undefined;
+  }
+  const defaultsCfg = params.config?.agents?.defaults?.claudeSdk;
+  if (!agentEntry?.claudeSdk || typeof agentEntry.claudeSdk !== "object") {
+    if (defaultsCfg && typeof defaultsCfg === "object" && !("provider" in defaultsCfg)) {
+      return undefined;
+    }
+    return defaultsCfg;
+  }
+  const merged = defaultsCfg
+    ? { ...defaultsCfg, ...agentEntry.claudeSdk }
+    : { ...agentEntry.claudeSdk };
+  if (!("provider" in merged)) {
+    return undefined;
+  }
+  return merged as ClaudeSdkConfig;
+}
+
+export { CLAUDE_SDK_PROVIDERS };
 
 /**
  * Validates credentials and creates a ClaudeSdk session from attempt params.

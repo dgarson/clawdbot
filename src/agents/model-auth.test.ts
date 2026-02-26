@@ -43,8 +43,8 @@ describe("resolveAwsSdkEnvVarName", () => {
 });
 
 describe("resolveModelAuthMode", () => {
-  it("returns system-keychain for claude-max provider", () => {
-    const mode = resolveModelAuthMode("claude-max");
+  it("returns system-keychain for claude-pro provider", () => {
+    const mode = resolveModelAuthMode("claude-pro");
     expect(mode).toBe("system-keychain");
   });
 
@@ -102,9 +102,9 @@ describe("resolveModelAuthMode", () => {
 });
 
 describe("resolveApiKeyForProvider", () => {
-  it("returns undefined apiKey with system-keychain mode for claude-max", async () => {
+  it("returns undefined apiKey with system-keychain mode for claude-pro", async () => {
     const result = await resolveApiKeyForProvider({
-      provider: "claude-max",
+      provider: "claude-pro",
     });
     expect(result.apiKey).toBeUndefined();
     expect(result.mode).toBe("system-keychain");
