@@ -24,7 +24,7 @@ export { ensureAuthProfileStore, resolveAuthProfileOrder } from "./auth-profiles
  * Providers that authenticate via implicit system keychain (e.g. ~/.claude/ OAuth)
  * and bypass the conventional API-key / profile auth flow entirely.
  */
-export const SYSTEM_KEYCHAIN_PROVIDERS = new Set(["claude-pro"]);
+export const SYSTEM_KEYCHAIN_PROVIDERS = new Set(["claude-pro", "claude-max"]);
 
 const AWS_BEARER_ENV = "AWS_BEARER_TOKEN_BEDROCK";
 const AWS_ACCESS_KEY_ENV = "AWS_ACCESS_KEY_ID";
@@ -154,7 +154,7 @@ export async function resolveApiKeyForProvider(params: {
     return {
       apiKey: undefined,
       mode: "system-keychain" as const,
-      source: "Claude Pro (system keychain)",
+      source: "Claude Subscription (system keychain)",
     };
   }
 

@@ -48,6 +48,11 @@ describe("resolveModelAuthMode", () => {
     expect(mode).toBe("system-keychain");
   });
 
+  it("returns system-keychain for claude-max provider", () => {
+    const mode = resolveModelAuthMode("claude-max");
+    expect(mode).toBe("system-keychain");
+  });
+
   it("returns mixed when provider has both token and api key profiles", () => {
     const store: AuthProfileStore = {
       version: 1,
@@ -105,6 +110,15 @@ describe("resolveApiKeyForProvider", () => {
   it("returns undefined apiKey with system-keychain mode for claude-pro", async () => {
     const result = await resolveApiKeyForProvider({
       provider: "claude-pro",
+    });
+    expect(result.apiKey).toBeUndefined();
+    expect(result.mode).toBe("system-keychain");
+    expect(result.source).toContain("system keychain");
+  });
+
+  it("returns undefined apiKey with system-keychain mode for claude-max", async () => {
+    const result = await resolveApiKeyForProvider({
+      provider: "claude-max",
     });
     expect(result.apiKey).toBeUndefined();
     expect(result.mode).toBe("system-keychain");

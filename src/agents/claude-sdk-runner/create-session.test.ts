@@ -637,6 +637,11 @@ describe("session lifecycle — provider env wiring", () => {
     const session = await createSession(
       makeParams({
         claudeSdkConfig: { provider: "zai" },
+        resolvedProviderAuth: {
+          apiKey: "sk-zai-auth",
+          source: "test",
+          mode: "api-key",
+        },
       }),
     );
 
@@ -646,9 +651,11 @@ describe("session lifecycle — provider env wiring", () => {
     const options = call[0].options as Record<string, unknown>;
     const env = options["env"] as Record<string, string>;
     expect(env).toBeDefined();
-    expect(env["ANTHROPIC_BASE_URL"]).toContain("z.ai");
+    expect(env["ANTHROPIC_BASE_URL"]).toBe("https://api.z.ai/api/anthropic");
+    expect(env["ANTHROPIC_AUTH_TOKEN"]).toBe("sk-zai-auth");
     expect(env["ANTHROPIC_API_KEY"]).toBeUndefined();
-    expect(env["ANTHROPIC_HAIKU_MODEL"]).toBe("GLM-4.7");
+    expect(env["API_TIMEOUT_MS"]).toBe("3000000");
+    expect(env["ANTHROPIC_DEFAULT_HAIKU_MODEL"]).toBe("GLM-4.7-Air");
   });
 
   it("sets a sanitized env for claude-sdk provider", async () => {

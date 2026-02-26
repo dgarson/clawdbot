@@ -128,7 +128,28 @@ export function resolveRuntime(
   params: EmbeddedRunAttemptParams,
   agentId: string,
 ): "pi" | "claude-sdk" {
-  if (CLAUDE_SDK_PROVIDERS.has(params.provider) || resolveClaudeSdkConfig(params, agentId)) {
+  if (params.runtimeOverride) {
+    return params.runtimeOverride;
+  }
+  const claudeSdkConfig = resolveClaudeSdkConfig(params, agentId);
+  const supportedProviders = new Set(
+    (claudeSdkConfig?.supportedProviders ?? [])
+      .map((provider) => provider.trim().toLowerCase())
+      .filter((provider) => provider.length > 0),
+  );
+  const normalizedProvider = params.provider.trim().toLowerCase();
+  const resolvedAuthMode = params.resolvedProviderAuth?.mode;
+  const resolvedAuthSource = params.resolvedProviderAuth?.source.toLowerCase() ?? "";
+  // Prefer auth-resolution signal over provider-name heuristics when available.
+  if (resolvedAuthMode === "system-keychain" || resolvedAuthSource.includes("system keychain")) {
+    return "claude-sdk";
+  }
+  // If configured, allow explicit provider list routing through the Claude SDK runtime.
+  if (supportedProviders.has(normalizedProvider)) {
+    return "claude-sdk";
+  }
+  // Backstop for callers that haven't threaded resolvedProviderAuth yet.
+  if (CLAUDE_SDK_PROVIDERS.has(params.provider)) {
     return "claude-sdk";
   }
   if (/claude[-_]?pro/i.test(params.provider) && !CLAUDE_SDK_PROVIDERS.has(params.provider)) {
@@ -673,6 +694,7 @@ export async function runEmbeddedAttempt(
         agentSession = await prepareClaudeSdkSession(
           params,
           agentCfg,
+          params.resolvedProviderAuth,
           sessionManager,
           resolvedWorkspace,
           agentDir,

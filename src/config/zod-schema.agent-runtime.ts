@@ -17,8 +17,11 @@ import { sensitive } from "./zod-schema.sensitive.js";
 
 const thinkingDefaultsField = {
   thinkingDefault: z.enum(["none", "low", "medium", "high"]).optional(),
-  /** @deprecated Use thinkingDefault instead. */
-  thinkingLevel: z.enum(["none", "low", "medium", "high"]).optional(),
+  /**
+   * Optional provider IDs that should route through the Claude SDK runtime.
+   * If omitted, runtime defaults apply (currently system-keychain providers).
+   */
+  supportedProviders: z.array(z.string().min(1)).optional(),
 } as const;
 
 export const ClaudeSdkConfigSchema = z
@@ -38,18 +41,6 @@ export const ClaudeSdkConfigSchema = z
       })
       .strict(),
   ])
-  .superRefine((val, ctx) => {
-    if (!val?.thinkingDefault || !val.thinkingLevel) {
-      return;
-    }
-    if (val.thinkingDefault !== val.thinkingLevel) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["thinkingDefault"],
-        message: "thinkingDefault and thinkingLevel must match when both are set",
-      });
-    }
-  })
   .optional();
 
 export type ClaudeSdkConfig = NonNullable<z.infer<typeof ClaudeSdkConfigSchema>>;

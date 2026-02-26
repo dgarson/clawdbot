@@ -1,9 +1,11 @@
 import type { ClaudeSdkConfig } from "../../config/zod-schema.agent-runtime.js";
+import { SYSTEM_KEYCHAIN_PROVIDERS, type ResolvedProviderAuth } from "../model-auth.js";
 import type { EmbeddedRunAttemptParams } from "../pi-embedded-runner/run/types.js";
 import { createClaudeSdkSession } from "./create-session.js";
 import type { ClaudeSdkCompatibleTool, ClaudeSdkSession } from "./types.js";
 
-const CLAUDE_SDK_PROVIDERS = new Set(["claude-pro"]);
+// Claude SDK runtime is used for providers that authenticate via system keychain.
+const CLAUDE_SDK_PROVIDERS = SYSTEM_KEYCHAIN_PROVIDERS;
 
 /** @internal Exported for testing only. */
 export function resolveClaudeSdkConfig(
@@ -27,7 +29,14 @@ export function resolveClaudeSdkConfig(
   if (!("provider" in merged)) {
     return undefined;
   }
-  return merged as ClaudeSdkConfig;
+  const resolved = merged as ClaudeSdkConfig;
+  if (params.claudeSdkProviderOverride?.trim()) {
+    return {
+      ...resolved,
+      provider: params.claudeSdkProviderOverride.trim() as ClaudeSdkConfig["provider"],
+    };
+  }
+  return resolved;
 }
 
 export { CLAUDE_SDK_PROVIDERS };
@@ -39,6 +48,7 @@ export { CLAUDE_SDK_PROVIDERS };
 export async function prepareClaudeSdkSession(
   params: EmbeddedRunAttemptParams,
   claudeSdkConfig: ClaudeSdkConfig,
+  resolvedProviderAuth: ResolvedProviderAuth | undefined,
   sessionManager: {
     appendCustomEntry?: (key: string, value: unknown) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -94,10 +104,11 @@ export async function prepareClaudeSdkSession(
     thinkLevel:
       params.thinkLevel !== "off"
         ? params.thinkLevel
-        : (claudeSdkConfig.thinkingDefault ?? claudeSdkConfig.thinkingLevel ?? params.thinkLevel),
+        : (claudeSdkConfig.thinkingDefault ?? params.thinkLevel),
     extraParams: params.streamParams as Record<string, unknown> | undefined,
     sessionManager,
     claudeSdkResumeSessionId,
     claudeSdkConfig,
+    resolvedProviderAuth,
   });
 }

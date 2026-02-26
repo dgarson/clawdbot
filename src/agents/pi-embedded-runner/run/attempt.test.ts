@@ -216,9 +216,31 @@ describe("resolveClaudeSdkConfig", () => {
 });
 
 describe("resolveRuntime", () => {
+  it("returns claude-sdk when resolved auth mode is system-keychain", () => {
+    const params = {
+      provider: "not-claude-pro",
+      resolvedProviderAuth: {
+        source: "Claude Pro (system keychain)",
+        mode: "system-keychain",
+      },
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
   it("returns claude-sdk for known claude-sdk providers", () => {
     const params = {
       provider: "claude-pro",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("returns claude-sdk for claude-max alias", () => {
+    const params = {
+      provider: "claude-max",
       config: {},
     } as unknown as EmbeddedRunAttemptParams;
 
@@ -234,17 +256,40 @@ describe("resolveRuntime", () => {
     expect(resolveRuntime(params, "main")).toBe("pi");
   });
 
-  it("returns claude-sdk when agent has claudeSdk config", () => {
+  it("returns claude-sdk when provider is listed in claudeSdk.supportedProviders", () => {
     const params = {
       provider: "openai",
       config: {
         agents: {
-          list: [{ id: "main", claudeSdk: { provider: "anthropic" } }],
+          list: [
+            {
+              id: "main",
+              claudeSdk: { provider: "anthropic", supportedProviders: ["openai", "zai"] },
+            },
+          ],
         },
       },
     } as unknown as EmbeddedRunAttemptParams;
 
     expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("returns pi when claudeSdk config exists but provider is not supported", () => {
+    const params = {
+      provider: "openai",
+      config: {
+        agents: {
+          list: [
+            {
+              id: "main",
+              claudeSdk: { provider: "anthropic", supportedProviders: ["zai"] },
+            },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("pi");
   });
 
   it("warns when provider resembles claude-sdk but does not match", () => {

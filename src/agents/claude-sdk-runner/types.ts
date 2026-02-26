@@ -2,6 +2,7 @@ import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ClaudeSdkConfig } from "../../config/zod-schema.agent-runtime.js";
 import type { ModelCostConfig } from "../../utils/usage-format.js";
 import type { AgentRuntimeSession, AgentRuntimeHints } from "../agent-runtime.js";
+import type { ResolvedProviderAuth } from "../model-auth.js";
 import type { EmbeddedPiSubscribeEvent } from "../pi-embedded-subscribe.handlers.types.js";
 
 // ---------------------------------------------------------------------------
@@ -45,6 +46,8 @@ export type ClaudeSdkSessionParams = {
   claudeSdkResumeSessionId?: string;
   /** Resolved claudeSdk provider config from agents config. Defaults to claude-sdk. */
   claudeSdkConfig?: ClaudeSdkConfig;
+  /** Full auth-resolution output (profile/source/mode/key) for provider env mapping. */
+  resolvedProviderAuth?: ResolvedProviderAuth;
   /** SessionManager instance for persisting the claude SDK session ID and messages. */
   sessionManager?: {
     appendCustomEntry?: (key: string, value: unknown) => void;
