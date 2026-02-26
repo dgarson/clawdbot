@@ -79,6 +79,25 @@ function makeTool(overrides?: Partial<AnyAgentToolLike>): AnyAgentToolLike {
   };
 }
 
+function makePendingToolUseIdConsumer(
+  initialByTool: Record<string, string[]> = {},
+): () => { id: string; name: string; input: unknown } | undefined {
+  const pendingQueue: Array<{ id: string; name: string; input: unknown }> = [];
+  for (const [toolName, ids] of Object.entries(initialByTool)) {
+    for (const id of ids) {
+      pendingQueue.push({ id, name: toolName, input: {} });
+    }
+  }
+  let generatedCount = 0;
+  return () => {
+    if (pendingQueue.length > 0) {
+      return pendingQueue.shift();
+    }
+    generatedCount += 1;
+    return { id: `call_auto_${generatedCount}`, name: "read_file", input: {} };
+  };
+}
+
 function makeToolServer(tools: AnyAgentToolLike[]): {
   capturedEvents: EmbeddedPiSubscribeEvent[];
   emitEvent: (evt: EmbeddedPiSubscribeEvent) => void;
@@ -92,6 +111,7 @@ function makeToolServer(tools: AnyAgentToolLike[]): {
     tools: tools as never[],
     emitEvent,
     getAbortSignal,
+    consumePendingToolUse: makePendingToolUseIdConsumer(),
   });
 
   return { capturedEvents: events, emitEvent, getAbortSignal };
@@ -201,6 +221,7 @@ describe("mcp-tool-server — tool lifecycle events", () => {
         }
       },
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
     });
 
     const handler = getToolHandler("read_file");
@@ -220,6 +241,7 @@ describe("mcp-tool-server — tool lifecycle events", () => {
       tools: [tool] as never[],
       emitEvent: (evt) => events.push(evt),
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
     });
 
     const handler = getToolHandler("read_file");
@@ -234,6 +256,64 @@ describe("mcp-tool-server — tool lifecycle events", () => {
     expect(startEvt.args).toEqual({ path: "/foo.ts" });
   });
 
+  it("uses pending assistant tool_use id from SDK messages", async () => {
+    const tool = makeTool({ name: "read_file" });
+    const events: EmbeddedPiSubscribeEvent[] = [];
+
+    createClaudeSdkMcpToolServer({
+      tools: [tool] as never[],
+      emitEvent: (evt) => events.push(evt),
+      getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer({
+        read_file: ["call_from_assistant"],
+      }),
+    });
+
+    const handler = getToolHandler("read_file");
+    await handler({ path: "/foo.ts" }, {});
+
+    expect(tool.execute).toHaveBeenCalledWith(
+      "call_from_assistant",
+      { path: "/foo.ts" },
+      undefined,
+      expect.any(Function),
+    );
+    const startEvt = events.find(
+      (e) => (e as { type: string }).type === "tool_execution_start",
+    ) as Record<string, unknown>;
+    expect(startEvt.toolCallId).toBe("call_from_assistant");
+  });
+
+  it("returns structured MCP error when no SDK tool_use id is available", async () => {
+    const tool = makeTool({ name: "read_file" });
+    const events: EmbeddedPiSubscribeEvent[] = [];
+    const appendRuntimeMessage = vi.fn();
+    const appendMessage = vi.fn();
+
+    createClaudeSdkMcpToolServer({
+      tools: [tool] as never[],
+      emitEvent: (evt) => events.push(evt),
+      getAbortSignal: () => undefined,
+      consumePendingToolUse: () => undefined,
+      appendRuntimeMessage,
+      sessionManager: { appendMessage },
+    });
+
+    const handler = getToolHandler("read_file");
+    const result = (await handler({ path: "/foo.ts" }, {})) as {
+      isError?: boolean;
+      content?: Array<{ type: string; text: string }>;
+    };
+    expect(result.isError).toBe(true);
+    expect(result.content?.[0]?.type).toBe("text");
+    expect(result.content?.[0]?.text).toContain('"code":"missing_tool_use_id"');
+    const eventTypes = events.map((evt) => (evt as { type: string }).type);
+    expect(eventTypes).toContain("tool_execution_start");
+    expect(eventTypes).toContain("tool_execution_end");
+    expect(appendRuntimeMessage).toHaveBeenCalledTimes(1);
+    expect(appendMessage).toHaveBeenCalledTimes(1);
+  });
+
   it("emits tool_execution_end with output on success", async () => {
     const tool = makeTool({
       name: "read_file",
@@ -245,6 +325,7 @@ describe("mcp-tool-server — tool lifecycle events", () => {
       tools: [tool] as never[],
       emitEvent: (evt) => events.push(evt),
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
     });
 
     const handler = getToolHandler("read_file");
@@ -279,6 +360,7 @@ describe("mcp-tool-server — tool lifecycle events", () => {
       tools: [tool] as never[],
       emitEvent: (evt) => events.push(evt),
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
     });
 
     const handler = getToolHandler("read_file");
@@ -317,6 +399,7 @@ describe("mcp-tool-server — tool lifecycle events", () => {
       tools: [tool] as never[],
       emitEvent: (evt) => events.push(evt),
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
     });
 
     const handler = getToolHandler("read_file");
@@ -342,6 +425,7 @@ describe("mcp-tool-server — tool lifecycle events", () => {
       tools: [tool] as never[],
       emitEvent: (evt) => events.push(evt),
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
     });
 
     const handler = getToolHandler("read_file");
@@ -370,6 +454,7 @@ describe("mcp-tool-server — tool lifecycle events", () => {
       tools: [tool] as never[],
       emitEvent: (evt) => events.push(evt),
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
     });
 
     const handler = getToolHandler("read_file");
@@ -397,6 +482,7 @@ describe("mcp-tool-server — tool lifecycle events", () => {
       tools: [toolA, toolB] as never[],
       emitEvent: (evt) => events.push(evt),
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
     });
 
     const handlerA = getToolHandler("tool_a");
@@ -446,6 +532,7 @@ describe("mcp-tool-server — tool lifecycle events", () => {
       tools: [tool] as never[],
       emitEvent: (evt) => events.push(evt),
       getAbortSignal: () => abortController.signal,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
     });
 
     const handler = getToolHandler("read_file");
@@ -476,6 +563,7 @@ describe("mcp-tool-server — toolResult persistence", () => {
       tools: [tool] as never[],
       emitEvent: () => {},
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
       sessionManager: { appendMessage },
     });
 
@@ -492,6 +580,31 @@ describe("mcp-tool-server — toolResult persistence", () => {
     expect(typeof msg.timestamp).toBe("number");
   });
 
+  it("appends toolResult to runtime history callback on success", async () => {
+    const appendRuntimeMessage = vi.fn();
+    const tool = makeTool({
+      name: "read_file",
+      execute: vi.fn().mockResolvedValue("file contents here"),
+    });
+
+    createClaudeSdkMcpToolServer({
+      tools: [tool] as never[],
+      emitEvent: () => {},
+      getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
+      appendRuntimeMessage,
+    });
+
+    const handler = getToolHandler("read_file");
+    await handler({ path: "/foo.ts" }, {});
+
+    expect(appendRuntimeMessage).toHaveBeenCalledTimes(1);
+    const runtimeMsg = appendRuntimeMessage.mock.calls[0][0];
+    expect(runtimeMsg.role).toBe("toolResult");
+    expect(runtimeMsg.toolName).toBe("read_file");
+    expect(runtimeMsg.isError).toBe(false);
+  });
+
   it("calls sessionManager.appendMessage with isError true on failure", async () => {
     const appendMessage = vi.fn().mockReturnValue("msg-id");
     const tool = makeTool({
@@ -503,6 +616,7 @@ describe("mcp-tool-server — toolResult persistence", () => {
       tools: [tool] as never[],
       emitEvent: () => {},
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
       sessionManager: { appendMessage },
     });
 
@@ -527,6 +641,7 @@ describe("mcp-tool-server — toolResult persistence", () => {
       tools: [tool] as never[],
       emitEvent: () => {},
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
       // No sessionManager
     });
 
@@ -548,6 +663,7 @@ describe("mcp-tool-server — toolResult persistence", () => {
       tools: [tool] as never[],
       emitEvent: () => {},
       getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
       sessionManager: { appendMessage },
     });
 

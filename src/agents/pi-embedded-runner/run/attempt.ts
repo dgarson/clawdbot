@@ -599,13 +599,15 @@ export async function runEmbeddedAttempt(
         provider: params.provider,
         modelId: params.modelId,
       });
+      const runtimeKind = resolveRuntime(params, sessionAgentId);
 
       await prewarmSessionFile(params.sessionFile);
       sessionManager = guardSessionManager(SessionManager.open(params.sessionFile), {
         agentId: sessionAgentId,
         sessionKey: params.sessionKey,
         inputProvenance: params.inputProvenance,
-        allowSyntheticToolResults: transcriptPolicy.allowSyntheticToolResults,
+        allowSyntheticToolResults:
+          runtimeKind === "claude-sdk" ? false : transcriptPolicy.allowSyntheticToolResults,
         allowedToolNames,
       });
       trackSessionManagerAccess(params.sessionFile);
@@ -676,7 +678,6 @@ export async function runEmbeddedAttempt(
 
       const allCustomTools = [...customTools, ...clientToolDefs];
 
-      const runtimeKind = resolveRuntime(params, sessionAgentId);
       if (runtimeKind === "claude-sdk") {
         const claudeSdkConfig = resolveClaudeSdkConfig(params, sessionAgentId);
         const agentCfg: ClaudeSdkConfig = claudeSdkConfig ?? {
@@ -1097,8 +1098,10 @@ export async function runEmbeddedAttempt(
           const legacySystemPrompt =
             typeof hookResult?.systemPrompt === "string" ? hookResult.systemPrompt.trim() : "";
           if (legacySystemPrompt) {
-            // Pi-specific: applySystemPromptOverrideToSession modifies the Pi agent's system prompt.
-            if (!agentRuntime.runtimeHints.managesOwnHistory && session) {
+            // Apply system prompt override from hooks.
+            if (agentRuntime.setSystemPrompt) {
+              agentRuntime.setSystemPrompt(legacySystemPrompt);
+            } else if (!agentRuntime.runtimeHints.managesOwnHistory && session) {
               applySystemPromptOverrideToSession(session, legacySystemPrompt);
             }
             systemPromptText = legacySystemPrompt;
@@ -1448,14 +1451,17 @@ export async function runEmbeddedAttempt(
       // flushPendingToolResults() fires while tools are still executing, inserting
       // synthetic "missing tool result" errors and causing silent agent failures.
       // See: https://github.com/openclaw/openclaw/issues/8643
-      // Pi-specific: tear down context guard and flush pending tool results before dispose.
+      // Pi-specific: tear down context guard.
       if (!agentRuntime?.runtimeHints.managesOwnHistory) {
         removeToolResultContextGuard?.();
-        await flushPendingToolResultsAfterIdle({
-          agent: piAgentForFlush,
-          sessionManager,
-        });
       }
+
+      // Flush pending tool results before dispose for ALL runtimes (including Claude SDK)
+      // so that local JSONL transcripts correctly record tool outcomes.
+      await flushPendingToolResultsAfterIdle({
+        agent: piAgentForFlush,
+        sessionManager,
+      });
       agentRuntime?.dispose();
       await sessionLock.release();
     }

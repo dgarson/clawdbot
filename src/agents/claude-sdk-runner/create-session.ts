@@ -57,7 +57,7 @@ function resolveThinkingTokenBudget(thinkLevel?: string): number | null {
 }
 
 // ---------------------------------------------------------------------------
-// Query options builder (extracted for reuse in interrupt-and-resume loop)
+// Query options builder
 // ---------------------------------------------------------------------------
 
 // Stream params from Pi that have no meaningful equivalent in the Claude SDK
@@ -74,6 +74,23 @@ const SDK_BLOCKED_EXTRA_PARAMS = new Set([
   "env",
 ]);
 const log = createSubsystemLogger("agent/claude-sdk");
+
+function resolveTranscriptMetadata(provider?: string): {
+  transcriptProvider: string;
+  transcriptApi: string;
+} {
+  const normalized = provider ?? "claude-sdk";
+  if (normalized === "claude-sdk" || normalized === "anthropic") {
+    return {
+      transcriptProvider: "anthropic",
+      transcriptApi: "anthropic-messages",
+    };
+  }
+  return {
+    transcriptProvider: normalized,
+    transcriptApi: "claude-sdk",
+  };
+}
 
 function buildQueryOptions(
   params: ClaudeSdkSessionParams,
@@ -109,27 +126,13 @@ function buildQueryOptions(
       `claude-sdk: omitting incompatible model "${params.modelId}" for provider "${sdkProvider}" (using subprocess default)`,
     );
   }
-
-  // Determine whether to enable Claude Code's built-in WebSearch tool.
-  // Enabled only when a web_search/web_fetch native OpenClaw tool is in the tool list
-  // (detected during session creation and stored in state.enableClaudeWebSearch).
-  // The SDK's `tools` option accepts string[] of Claude Code built-in tool names;
-  // an empty array disables all built-in tools (our default to avoid conflicts with MCP).
-  // NOTE: The Anthropic API's web_search_20260209 tool object format is NOT supported here —
-  // the SDK joins the array as comma-separated strings for the --tools CLI flag, so
-  // only string tool names (e.g. "WebSearch") are valid.
-  const tools: string[] = [];
-  if (state.enableClaudeWebSearch) {
-    tools.push("WebSearch"); // Claude Code built-in tool name (string, not object)
-  }
-
   const queryOptions: Record<string, unknown> = {
     ...(resolvedModel !== undefined && { model: resolvedModel }),
     mcpServers,
     permissionMode: "bypassPermissions",
     allowDangerouslySkipPermissions: true,
-    systemPrompt: params.systemPrompt,
-    tools,
+    systemPrompt: state.systemPrompt,
+    tools: [],
     // Enable real-time streaming: the SDK yields stream_event messages with
     // token-level deltas so the UI can show text as it generates.
     includePartialMessages: true,
@@ -208,9 +211,9 @@ function buildQueryOptions(
 export async function createClaudeSdkSession(
   params: ClaudeSdkSessionParams,
 ): Promise<ClaudeSdkSession> {
-  // Claude SDK always uses the Anthropic Messages API.
-  const transcriptProvider = params.claudeSdkConfig?.provider || "anthropic";
-  const transcriptApi = "anthropic-messages";
+  const { transcriptProvider, transcriptApi } = resolveTranscriptMetadata(
+    params.claudeSdkConfig?.provider,
+  );
 
   // Internal adapter state
   const state: ClaudeSdkEventAdapterState = {
@@ -238,52 +241,38 @@ export async function createClaudeSdkSession(
     enableClaudeWebSearch: false,
   };
 
+  const clearTurnToolCorrelationState = (): void => {
+    if (state.pendingToolUses.length > 0 || state.toolNameByUseId.size > 0) {
+      log.debug(
+        `claude-sdk: clearing turn-local tool correlation state pending=${state.pendingToolUses.length} mapped=${state.toolNameByUseId.size}`,
+      );
+    }
+    state.pendingToolUses.length = 0;
+    state.toolNameByUseId.clear();
+  };
+
   // Build in-process MCP tool server from OpenClaw tools (already wrapped with
   // before_tool_call hooks, abort signal propagation, and loop detection upstream)
   const allTools = [...params.tools, ...params.customTools];
-  // Tool IDs to exclude from MCP and replace with Claude Code's built-in WebSearch.
-  // Includes both "web_search" (search) and "web_fetch" (URL fetch) native OpenClaw tools,
-  // with their "builtin:" prefixed variants.
-  const NATIVE_WEB_TOOL_IDS = new Set([
-    "web_search",
-    "builtin:web_search",
-    "web_fetch",
-    "builtin:web_fetch",
-  ]);
-  let enableClaudeWebSearch = false;
-
-  const mcpTools = allTools.filter((t) => {
-    if (NATIVE_WEB_TOOL_IDS.has(t.name)) {
-      enableClaudeWebSearch = true;
-      return false; // Remove from MCP tools — replaced by Claude Code's built-in WebSearch
-    }
-    return true;
-  });
-
-  state.enableClaudeWebSearch = enableClaudeWebSearch;
 
   const toolServer = createClaudeSdkMcpToolServer({
-    tools: mcpTools,
+    tools: allTools,
     emitEvent: (evt) => {
       for (const subscriber of state.subscribers) {
         subscriber(evt);
       }
     },
     getAbortSignal: () => state.abortController?.signal,
-    consumePendingToolUse: () => state.pendingToolUses.shift(),
+    consumePendingToolUse: () => {
+      return state.pendingToolUses.shift();
+    },
     appendRuntimeMessage: (message) => {
       state.messages.push(message);
     },
     sessionManager: state.sessionManager,
   });
 
-  // ---------------------------------------------------------------------------
-  // Session object implementing the AgentSession duck-typed interface
-  // ---------------------------------------------------------------------------
   const session: ClaudeSdkSession = {
-    // -------------------------------------------------------------------------
-    // subscribe — registers an event handler, returns unsubscribe fn
-    // -------------------------------------------------------------------------
     subscribe(handler) {
       state.subscribers.push(handler);
       return () => {
@@ -294,9 +283,6 @@ export async function createClaudeSdkSession(
       };
     },
 
-    // -------------------------------------------------------------------------
-    // prompt — runs the Agent SDK query() loop for one turn
-    // -------------------------------------------------------------------------
     async prompt(text, options) {
       // Drain any pending steer text by prepending to the current prompt
       const steerText = state.pendingSteer.splice(0).join("\n");
@@ -321,79 +307,48 @@ export async function createClaudeSdkSession(
       }
 
       try {
-        // Persist the user message to JSONL on first iteration only.
-        // Steer-resumed iterations should not double-persist.
-        let userMessagePersisted = false;
-
-        // Outer loop: supports interrupt-and-resume for mid-loop steer injection.
-        // When steer() is called while query() is running, we interrupt the current
-        // query at the next message yield and resume with the steer text as a new
-        // user turn. This gives near-parity with Pi's mid-loop steer behavior.
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-          if (!userMessagePersisted && state.sessionManager?.appendMessage) {
-            try {
-              state.sessionManager.appendMessage({
-                role: "user",
-                content: effectivePrompt,
-                timestamp: Date.now(),
-              });
-            } catch {
-              // Non-fatal — user message persistence failed
-            }
-            userMessagePersisted = true;
-          }
-
-          const queryOptions = buildQueryOptions(params, state, toolServer);
-          const queryInstance = query({ prompt: effectivePrompt, options: queryOptions as never });
-
-          // Wire abort signal to queryInstance.interrupt() so cancellation works
-          // even when blocked on generator.next().
-          const onAbort = () => {
-            const qi = queryInstance as { interrupt?: () => Promise<void> };
-            if (typeof qi.interrupt === "function") {
-              qi.interrupt().catch(() => {});
-            }
-          };
-          signal.addEventListener("abort", onAbort, { once: true });
-
-          let interruptedForSteer = false;
+        if (state.sessionManager?.appendMessage) {
+          const userMessage = {
+            role: "user" as const,
+            content: effectivePrompt,
+            timestamp: Date.now(),
+          } as AgentMessage;
+          state.messages.push(userMessage);
           try {
-            for await (const message of queryInstance) {
-              if (signal.aborted) {
-                break;
-              }
-              translateSdkMessageToEvents(message as never, state);
+            state.sessionManager.appendMessage(userMessage);
+          } catch {
+            // Non-fatal — user message persistence failed
+          }
+        } else {
+          state.messages.push({
+            role: "user",
+            content: effectivePrompt,
+            timestamp: Date.now(),
+          } as AgentMessage);
+        }
 
-              // Check for pending steer between SDK message yields.
-              // If steer text was queued (e.g., by queueEmbeddedPiMessage),
-              // interrupt the current query so we can resume with the steer
-              // text as the next user message. This gives mid-loop injection.
-              if (state.pendingSteer.length > 0 && !signal.aborted) {
-                const qi = queryInstance as { interrupt?: () => Promise<void> };
-                if (typeof qi.interrupt === "function") {
-                  await qi.interrupt();
-                }
-                interruptedForSteer = true;
-                break;
-              }
+        const queryOptions = buildQueryOptions(params, state, toolServer);
+        const queryInstance = query({ prompt: effectivePrompt, options: queryOptions as never });
+
+        // Wire abort signal to queryInstance.interrupt() so cancellation works
+        // even when blocked on generator.next().
+        const onAbort = () => {
+          const qi = queryInstance as { interrupt?: () => Promise<void> };
+          if (typeof qi.interrupt === "function") {
+            qi.interrupt().catch(() => {});
+          }
+        };
+        signal.addEventListener("abort", onAbort, { once: true });
+
+        try {
+          for await (const message of queryInstance) {
+            if (signal.aborted) {
+              break;
             }
-          } finally {
-            signal.removeEventListener("abort", onAbort);
+            translateSdkMessageToEvents(message as never, state);
           }
-
-          if (!interruptedForSteer || signal.aborted) {
-            // Normal completion or abort — exit the outer loop
-            break;
-          }
-
-          // Interrupted for steer: drain steer queue and resume with steer text
-          // as the new prompt. The server-side session already has the conversation
-          // context (including the interrupted response), so resume continues
-          // naturally with the injected user message.
-          const pendingSteer = state.pendingSteer.splice(0).join("\n");
-          effectivePrompt = pendingSteer;
-          userMessagePersisted = false; // allow steer prompt to be persisted
+        } finally {
+          signal.removeEventListener("abort", onAbort);
         }
 
         // After the query loop: throw if the SDK returned an error result message.
@@ -423,42 +378,30 @@ export async function createClaudeSdkSession(
         }
         throw mapSdkError(err);
       } finally {
+        // Turn-local correlation state must not leak into the next prompt turn.
+        // At this point, all SDK messages for this turn have already been processed.
+        clearTurnToolCorrelationState();
         state.streaming = false;
       }
     },
 
-    // -------------------------------------------------------------------------
-    // steer — queues text to be prepended to the next prompt
-    // -------------------------------------------------------------------------
     async steer(text) {
-      // KNOWN LIMITATION: In Pi, steer() injects text into the current agentic
-      // loop (between tool-call rounds). In Claude SDK, the agentic loop is opaque
-      // inside query() — we can't inject mid-loop. Steer text is queued and
-      // prepended to the next prompt() call. This means steer messages are
-      // delivered on the next turn, not mid-generation. This is acceptable for POC
-      // since the message is not lost, just delayed to the next turn.
       state.pendingSteer.push(text);
     },
 
     // -------------------------------------------------------------------------
     // abort — cancels the current in-flight query
     // -------------------------------------------------------------------------
-    abort() {
+    abort(): Promise<void> {
       state.abortController?.abort();
     },
 
-    // -------------------------------------------------------------------------
-    // abortCompaction — for Pi compat; only relevant if compaction detected
-    // -------------------------------------------------------------------------
     abortCompaction() {
       if (state.compacting) {
         state.abortController?.abort();
       }
     },
 
-    // -------------------------------------------------------------------------
-    // dispose — persists the Claude SDK session_id via SessionManager
-    // -------------------------------------------------------------------------
     dispose() {
       if (!state.claudeSdkSessionId) {
         if (state.messages.length > 0) {
@@ -480,9 +423,6 @@ export async function createClaudeSdkSession(
       }
     },
 
-    // -------------------------------------------------------------------------
-    // Properties
-    // -------------------------------------------------------------------------
     get isStreaming() {
       return state.streaming;
     },
@@ -499,23 +439,20 @@ export async function createClaudeSdkSession(
       return state.claudeSdkSessionId;
     },
 
-    // -------------------------------------------------------------------------
-    // replaceMessages — local mirror update (does NOT push to Claude API)
-    // The server-side session already has the full conversation history.
-    // -------------------------------------------------------------------------
+    // Local mirror only. Server-side session history remains authoritative.
     replaceMessages(messages: AgentMessage[]) {
       state.messages = [...messages];
     },
+    setSystemPrompt(text: string) {
+      state.systemPrompt = text;
+    },
 
-    // -------------------------------------------------------------------------
-    // runtimeHints — Claude SDK never needs synthetic tool results or <final> tag
-    // -------------------------------------------------------------------------
     runtimeHints: {
       allowSyntheticToolResults: false,
       enforceFinalTag: false,
       managesOwnHistory: true,
       supportsStreamFnWrapping: false,
-      sessionFile: undefined,
+      sessionFile: params.sessionFile,
     } satisfies AgentRuntimeHints,
   };
 

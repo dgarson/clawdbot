@@ -49,6 +49,11 @@ async function importQuery() {
   return mod.query as Mock;
 }
 
+async function importCreateSdkMcpServer() {
+  const mod = await import("@anthropic-ai/claude-agent-sdk");
+  return mod.createSdkMcpServer as Mock;
+}
+
 // ---------------------------------------------------------------------------
 // Test helpers
 // ---------------------------------------------------------------------------
@@ -189,6 +194,23 @@ describe("session lifecycle — session creation and resume", () => {
     expect(secondCall[0].prompt).not.toContain("Earlier response");
   });
 
+  it("setSystemPrompt() updates systemPrompt for subsequent query() calls", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success", result: "done" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ systemPrompt: "Original prompt" }));
+
+    await session.prompt("First question");
+    session.setSystemPrompt?.("Updated prompt");
+    await session.prompt("Second question");
+
+    expect(queryMock.mock.calls[0]?.[0]?.options?.systemPrompt).toBe("Original prompt");
+    expect(queryMock.mock.calls[1]?.[0]?.options?.systemPrompt).toBe("Updated prompt");
+  });
+
   it("persists session_id via sessionManager.appendCustomEntry on dispose()", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
@@ -258,6 +280,7 @@ describe("session lifecycle — interface compatibility", () => {
     expect(Array.isArray(session.messages)).toBe(true);
     expect(typeof session.sessionId).toBe("string");
     expect(typeof session.replaceMessages).toBe("function");
+    expect(typeof session.setSystemPrompt).toBe("function");
     expect(session.runtimeHints).toBeDefined();
     expect(typeof session.runtimeHints.allowSyntheticToolResults).toBe("boolean");
     expect(typeof session.runtimeHints.enforceFinalTag).toBe("boolean");
@@ -265,6 +288,20 @@ describe("session lifecycle — interface compatibility", () => {
     expect(typeof session.runtimeHints.supportsStreamFnWrapping).toBe("boolean");
     expect(session.runtimeHints.managesOwnHistory).toBe(true);
     expect(session.runtimeHints.supportsStreamFnWrapping).toBe(false);
+  });
+
+  it("runtimeHints.sessionFile is set when provided", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen([])());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        sessionFile: "/tmp/test-session.jsonl",
+      }),
+    );
+
+    expect(session.runtimeHints.sessionFile).toBe("/tmp/test-session.jsonl");
   });
 
   it("replaceMessages updates local messages array without API call", async () => {
@@ -337,98 +374,51 @@ describe("session lifecycle — abort and control", () => {
     expect(session.isStreaming).toBe(false);
   });
 
-  it("steer() mid-loop: interrupts current query and resumes with steer text", async () => {
+  it("steer() mid-loop does not interrupt current query and applies on next prompt", async () => {
     const queryMock = await importQuery();
 
-    // First query: yields init + assistant, then a second assistant message
-    // We'll steer after the first assistant message
-    let steerInjected = false;
     const firstQueryMessages = [
       { type: "system", subtype: "init", session_id: "sess_steer_1" },
       {
         type: "assistant",
         message: { role: "assistant", content: [{ type: "text", text: "Working on it..." }] },
       },
-      // This message should NOT be reached if steer interrupts
       {
         type: "assistant",
         message: { role: "assistant", content: [{ type: "text", text: "Still going..." }] },
       },
       { type: "result", subtype: "success" },
     ];
-
-    // Build a generator that lets us inject steer between messages
-    let messageIndex = 0;
-    const firstGen = {
-      [Symbol.asyncIterator]() {
-        return this;
-      },
-      async next() {
-        if (messageIndex >= firstQueryMessages.length) {
-          return { value: undefined, done: true as const };
-        }
-        const msg = firstQueryMessages[messageIndex++];
-        return { value: msg, done: false as const };
-      },
-      async return() {
-        return { value: undefined, done: true as const };
-      },
-      interrupt: vi.fn(async () => {}),
-    };
-
-    // Second query (after interrupt+resume): yields a response to the steer
-    const secondGen = {
-      [Symbol.asyncIterator]() {
-        return this;
-      },
-      async next() {
-        if (steerInjected) {
-          return { value: undefined, done: true as const };
-        }
-        steerInjected = true;
-        return {
-          value: {
-            type: "result",
-            subtype: "success",
-          },
-          done: false as const,
-        };
-      },
-      async return() {
-        return { value: undefined, done: true as const };
-      },
-      interrupt: vi.fn(async () => {}),
-    };
-
-    queryMock.mockReturnValueOnce(firstGen).mockReturnValueOnce(secondGen);
+    const secondQueryMessages = [{ type: "result", subtype: "success" }];
+    queryMock
+      .mockImplementationOnce(() => makeMockQueryGen(firstQueryMessages)())
+      .mockImplementationOnce(() => makeMockQueryGen(secondQueryMessages)());
 
     const createSession = await importCreateSession();
     const session = await createSession(makeParams());
 
-    // Subscribe to capture events, and steer after first assistant message
+    // Queue steer while prompt() is still running.
     let assistantCount = 0;
     session.subscribe((evt: unknown) => {
       const e = evt as { type: string };
       if (e.type === "message_end") {
         assistantCount++;
         if (assistantCount === 1) {
-          // Steer after first assistant message
           void session.steer("urgent: change direction");
         }
       }
     });
 
     await session.prompt("Initial task");
+    await session.prompt("Follow-up task");
 
-    // query() should have been called twice: once for initial, once for steer resume
+    // query() is called once per prompt (no mid-loop interrupt/resume path).
     expect(queryMock).toHaveBeenCalledTimes(2);
-    // Second call should have the steer text as prompt
+    // Second prompt should include queued steer text.
     const secondCall = queryMock.mock.calls[1];
-    expect(secondCall[0].prompt).toBe("urgent: change direction");
-    // Second call should have resume set
+    expect(secondCall[0].prompt).toBe("urgent: change direction\n\nFollow-up task");
+    // Second call resumes the same SDK session.
     expect(secondCall[0].options?.resume).toBe("sess_steer_1");
-    // interrupt() should have been called on the first query
-    expect(firstGen.interrupt).toHaveBeenCalled();
   });
 
   it("abort() calls queryInstance.interrupt() to cancel in-flight SDK query", async () => {
@@ -509,6 +499,42 @@ describe("session lifecycle — messages state", () => {
         expect.objectContaining({ type: "text", text: "Hello! How can I help?" }),
       ]),
     );
+  });
+
+  it("appends user prompt to state.messages before assistant output", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([
+        { type: "system", subtype: "init", session_id: "sess_1" },
+        {
+          type: "assistant",
+          message: {
+            role: "assistant",
+            content: [{ type: "text", text: "ok" }],
+            model: "claude-sonnet-test",
+            stop_reason: "end_turn",
+          },
+        },
+        { type: "result", subtype: "success" },
+      ])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams());
+
+    await session.prompt("Hello");
+
+    expect(session.messages[0]).toMatchObject({
+      role: "user",
+      content: "Hello",
+    });
+    expect(session.messages[1]).toMatchObject({
+      role: "assistant",
+      provider: "anthropic",
+      api: "anthropic-messages",
+      model: "claude-sonnet-test",
+      stopReason: "end_turn",
+    });
   });
 });
 
@@ -693,6 +719,15 @@ describe("session lifecycle — parity guards", () => {
     const session = await createSession(makeParams());
 
     await expect(session.prompt("Hello")).rejects.toThrow("Tool execution failed");
+    const errorAssistant = session.messages.find(
+      (msg) =>
+        (msg as { role?: string }).role === "assistant" &&
+        (msg as { stopReason?: string }).stopReason === "error",
+    ) as { errorMessage?: string; provider?: string; api?: string } | undefined;
+    expect(errorAssistant).toBeDefined();
+    expect(errorAssistant?.errorMessage).toBe("Tool execution failed");
+    expect(errorAssistant?.provider).toBe("anthropic");
+    expect(errorAssistant?.api).toBe("anthropic-messages");
   });
 
   it("throws result text when SDK marks is_error true with subtype success", async () => {
@@ -860,6 +895,66 @@ describe("session lifecycle — user message persistence", () => {
   });
 });
 
+describe("session lifecycle — tool correlation cleanup", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("clears pending tool_use ids after turn completion so stale IDs are not reused", async () => {
+    const queryMock = await importQuery();
+    const createSdkMcpServerMock = await importCreateSdkMcpServer();
+    const toolExecute = vi.fn().mockResolvedValue("ok");
+
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([
+        { type: "system", subtype: "init", session_id: "sess_cleanup_1" },
+        {
+          type: "assistant",
+          message: {
+            role: "assistant",
+            content: [{ type: "tool_use", id: "call_stale_1", name: "read_file", input: {} }],
+          },
+        },
+        { type: "result", subtype: "success" },
+      ])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        tools: [
+          {
+            name: "read_file",
+            description: "Read file",
+            parameters: {},
+            execute: toolExecute,
+          },
+        ] as never[],
+      }),
+    );
+
+    await session.prompt("trigger tool_use only");
+
+    const mcpConfig = createSdkMcpServerMock.mock.calls[0]?.[0] as {
+      tools: Array<{
+        name: string;
+        handler: (args: Record<string, unknown>, extra: unknown) => Promise<unknown>;
+      }>;
+    };
+    const readFile = mcpConfig.tools.find((t) => t.name === "read_file");
+    expect(readFile).toBeDefined();
+
+    const result = (await readFile!.handler({ path: "/tmp/a" }, {})) as {
+      isError?: boolean;
+      content?: Array<{ type: string; text: string }>;
+    };
+
+    expect(toolExecute).not.toHaveBeenCalled();
+    expect(result.isError).toBe(true);
+    expect(result.content?.[0]?.text).toContain('"code":"missing_tool_use_id"');
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Section 4.3: Streaming integration — stream_event messages produce real-time
 // events AND the complete assistant message triggers persistence
@@ -949,86 +1044,42 @@ describe("session lifecycle — streaming integration", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Concern #6: Steer-resume messages persisted to JSONL
+// Concern #6: Steer queue persisted on next prompt turn
 // ---------------------------------------------------------------------------
 
-describe("session lifecycle — steer-resume persistence", () => {
+describe("session lifecycle — steer next-turn persistence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("persists steer-resume prompt via appendMessage after interrupt", async () => {
+  it("persists queued steer text when the next prompt begins", async () => {
     const queryMock = await importQuery();
 
-    // First query: yields init + assistant, then gets interrupted
-    const firstQueryMessages = [
-      { type: "system", subtype: "init", session_id: "sess_steer_persist" },
-      {
-        type: "assistant",
-        message: { role: "assistant", content: [{ type: "text", text: "Working..." }] },
-      },
-    ];
-
-    let messageIndex = 0;
-    const firstGen = {
-      [Symbol.asyncIterator]() {
-        return this;
-      },
-      async next() {
-        if (messageIndex >= firstQueryMessages.length) {
-          return { value: undefined, done: true as const };
-        }
-        const msg = firstQueryMessages[messageIndex++];
-        return { value: msg, done: false as const };
-      },
-      async return() {
-        return { value: undefined, done: true as const };
-      },
-      interrupt: vi.fn(async () => {}),
-    };
-
-    // Second query (steer resume): completes immediately
-    const secondGen = {
-      [Symbol.asyncIterator]() {
-        return this;
-      },
-      async next() {
-        return { value: undefined, done: true as const };
-      },
-      async return() {
-        return { value: undefined, done: true as const };
-      },
-      interrupt: vi.fn(async () => {}),
-    };
-
-    queryMock.mockReturnValueOnce(firstGen).mockReturnValueOnce(secondGen);
+    queryMock
+      .mockImplementationOnce(() =>
+        makeMockQueryGen([
+          { type: "system", subtype: "init", session_id: "sess_steer_persist" },
+          { type: "result", subtype: "success" },
+        ])(),
+      )
+      .mockImplementationOnce(() => makeMockQueryGen([{ type: "result", subtype: "success" }])());
 
     const appendMessage = vi.fn(() => "msg-id");
     const createSession = await importCreateSession();
     const session = await createSession(makeParams({ sessionManager: { appendMessage } }));
 
-    // Subscribe and inject steer after first assistant message
-    session.subscribe((evt: unknown) => {
-      const e = evt as { type: string };
-      if (e.type === "message_end") {
-        void session.steer("new direction");
-      }
-    });
-
     await session.prompt("Initial task");
+    await session.steer("new direction");
+    await session.prompt("Follow-up");
 
-    // NOTE: This test depends on the steer callback firing synchronously during
-    // generator iteration (before the first query completes). The mock generators
-    // above are structured to ensure this ordering, but changes to the prompt()
-    // loop or generator timing could make the assertion fragile.
     const userCalls = appendMessage.mock.calls.filter(
       (c: unknown[]) => (c[0] as { role: string }).role === "user",
     );
-    // Verify steer triggered a second query (prerequisite for persistence)
+    // Verify second turn persisted the steer-prefixed prompt content.
     expect(queryMock).toHaveBeenCalledTimes(2);
-    expect(userCalls.length).toBeGreaterThanOrEqual(2);
+    expect(userCalls.length).toBe(2);
     const steerCall = userCalls[1] as unknown[];
-    expect((steerCall[0] as { content: string }).content).toBe("new direction");
+    expect((steerCall[0] as { content: string }).content).toBe("new direction\n\nFollow-up");
   });
 });
 

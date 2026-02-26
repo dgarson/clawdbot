@@ -5,12 +5,21 @@ import type { EmbeddedPiSubscribeEvent } from "./pi-embedded-subscribe.handlers.
 export interface AgentRuntime {
   subscribe(handler: (evt: EmbeddedPiSubscribeEvent) => void): () => void;
   prompt(text: string, options?: { images?: ImageContent[] }): Promise<void>;
+
+  /**
+   * Steer the agent with a new instruction mid-session.
+   * Pi injects steer text mid-loop. Claude SDK does best-effort mid-loop injection by
+   * interrupting/resuming between yielded messages, and falls back to next-turn delivery
+   * if no safe interruption point is reached.
+   */
   steer(text: string): Promise<void>;
+
   /** Cancel the current in-flight operation. Callers use `void runtime.abort()` — the returned Promise is intentionally fire-and-forget. */
   abort(): Promise<void>;
   abortCompaction(): void;
   dispose(): void;
   replaceMessages(messages: AgentMessage[]): void;
+  setSystemPrompt?(text: string): void;
   readonly isStreaming: boolean;
   readonly isCompacting: boolean;
   readonly messages: AgentMessage[];
