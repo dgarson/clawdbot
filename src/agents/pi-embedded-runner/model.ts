@@ -23,6 +23,22 @@ type InlineProviderConfig = {
 
 export { buildModelAliasLines };
 
+// The pi-ai catalog has stale/incorrect pricing for Claude Opus 4.5 and 4.6
+// (listed at $5/$25/$0.50/$6.25 per million vs actual $15/$75/$1.50/$18.75).
+// Apply corrections so cost tracking reflects actual Anthropic billing.
+// Dot-notation aliases (e.g. claude-opus-4.5) also have zero cost in the
+// catalog and are corrected here. Remove entries when upstream is fixed.
+const ANTHROPIC_CATALOG_COST_CORRECTIONS: Record<
+  string,
+  { input: number; output: number; cacheRead: number; cacheWrite: number }
+> = {
+  "claude-opus-4-5": { input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75 },
+  "claude-opus-4-5-20251101": { input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75 },
+  "claude-opus-4-6": { input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75 },
+  "claude-opus-4.5": { input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75 },
+  "claude-opus-4.6": { input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75 },
+};
+
 export function buildInlineProviderModels(
   providers: Record<string, InlineProviderConfig>,
 ): InlineModelEntry[] {
@@ -62,11 +78,19 @@ export function resolveModel(
   if (CLAUDE_SDK_PROVIDERS.has(provider)) {
     const catalogModel = modelRegistry.find("anthropic", modelId) as Model<Api> | null;
     if (catalogModel) {
-      return { model: { ...catalogModel, provider }, authStorage, modelRegistry };
+      const costOverride = ANTHROPIC_CATALOG_COST_CORRECTIONS[modelId];
+      const model = costOverride
+        ? { ...catalogModel, provider, cost: costOverride }
+        : { ...catalogModel, provider };
+      return { model, authStorage, modelRegistry };
     }
     const forwardCompat = resolveForwardCompatModel("anthropic", modelId, modelRegistry);
     if (forwardCompat) {
-      return { model: { ...forwardCompat, provider }, authStorage, modelRegistry };
+      const costOverride = ANTHROPIC_CATALOG_COST_CORRECTIONS[modelId];
+      const model = costOverride
+        ? { ...forwardCompat, provider, cost: costOverride }
+        : { ...forwardCompat, provider };
+      return { model, authStorage, modelRegistry };
     }
     return {
       error: buildUnknownModelError(provider, modelId),
