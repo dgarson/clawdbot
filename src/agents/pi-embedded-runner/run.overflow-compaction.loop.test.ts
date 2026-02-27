@@ -85,11 +85,22 @@ describe("overflow compaction in run loop", () => {
     expect(result.meta.error).toBeUndefined();
   });
 
-  it("retries without local overflow recovery in claude-sdk runtime", async () => {
+  it("retries claude-sdk overflow only when compaction lifecycle evidence exists", async () => {
     const overflowError = makeOverflowError();
 
     mockedRunEmbeddedAttempt
-      .mockResolvedValueOnce(makeAttemptResult({ promptError: overflowError }))
+      .mockResolvedValueOnce(
+        makeAttemptResult({
+          promptError: overflowError,
+          compactionCount: 1,
+          claudeSdkLifecycle: {
+            sdkStatus: null,
+            compactBoundaryCount: 1,
+            statusCompactingCount: 1,
+            statusIdleCount: 1,
+          },
+        }),
+      )
       .mockResolvedValueOnce(makeAttemptResult({ promptError: null }));
     mockedSessionLikelyHasOversizedToolResults.mockReturnValue(true);
 
@@ -105,12 +116,79 @@ describe("overflow compaction in run loop", () => {
       1,
       expect.objectContaining({ runtimeOverride: "claude-sdk" }),
     );
-    expect(log.warn).toHaveBeenCalledWith(
-      expect.stringContaining(
-        "retrying prompt without local overflow recovery for claude-pro/test-model",
-      ),
-    );
+    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("with compaction evidence"));
     expect(result.meta.error).toBeUndefined();
+  });
+
+  it("fails fast in claude-sdk runtime when overflow has no compaction signal", async () => {
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce(
+      makeAttemptResult({
+        promptError: makeOverflowError(),
+        compactionCount: 0,
+        claudeSdkLifecycle: {
+          sdkStatus: null,
+          compactBoundaryCount: 0,
+          statusCompactingCount: 0,
+          statusIdleCount: 0,
+        },
+      }),
+    );
+
+    const result = await runEmbeddedPiAgent({
+      ...baseParams,
+      provider: "claude-pro",
+    });
+
+    expect(mockedCompactDirect).not.toHaveBeenCalled();
+    expect(mockedTruncateOversizedToolResultsInSession).not.toHaveBeenCalled();
+    expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(1);
+    expect(result.meta.error?.kind).toBe("context_overflow");
+    expect(result.payloads?.[0]?.isError).toBe(true);
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.stringContaining("[claude-sdk-overflow] fail-fast"),
+    );
+  });
+
+  it("fails fast on repeated claude-sdk overflow when fingerprint has no meaningful state delta", async () => {
+    const overflowError = makeOverflowError();
+    mockedRunEmbeddedAttempt
+      .mockResolvedValueOnce(
+        makeAttemptResult({
+          promptError: overflowError,
+          compactionCount: 1,
+          messagesSnapshot: [{ role: "assistant", content: "same" } as never],
+          sessionIdUsed: "same-session",
+          claudeSdkLifecycle: {
+            sdkStatus: null,
+            compactBoundaryCount: 1,
+            statusCompactingCount: 1,
+            statusIdleCount: 1,
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        makeAttemptResult({
+          promptError: overflowError,
+          compactionCount: 1,
+          messagesSnapshot: [{ role: "assistant", content: "same" } as never],
+          sessionIdUsed: "same-session",
+          claudeSdkLifecycle: {
+            sdkStatus: null,
+            compactBoundaryCount: 2,
+            statusCompactingCount: 2,
+            statusIdleCount: 2,
+          },
+        }),
+      );
+
+    const result = await runEmbeddedPiAgent({
+      ...baseParams,
+      provider: "claude-pro",
+    });
+
+    expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(2);
+    expect(result.meta.error?.kind).toBe("context_overflow");
+    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining("reason=no_state_delta"));
   });
 
   it("retries after successful compaction on likely-overflow promptError variants", async () => {

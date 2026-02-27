@@ -17,6 +17,10 @@ import {
   saveAuthProfileStore,
 } from "../auth-profiles.js";
 import {
+  isStaleClaudeResumeSessionError,
+  isStaleClaudeResumeSessionErrorMessage,
+} from "../claude-sdk-runner/error-mapping.js";
+import {
   CONTEXT_WINDOW_HARD_MIN_TOKENS,
   CONTEXT_WINDOW_WARN_BELOW_TOKENS,
   evaluateContextWindowGuard,
@@ -107,6 +111,44 @@ const createUsageAccumulator = (): UsageAccumulator => ({
 
 function createCompactionDiagId(): string {
   return `ovf-${Date.now().toString(36)}-${generateSecureToken(4)}`;
+}
+
+function emitClaudeSdkRuntimeMetric(metric: string, fields: Record<string, unknown>): void {
+  log.info(`[claude-sdk-metric] ${metric} ${JSON.stringify(fields)}`);
+}
+
+function normalizeOverflowFingerprint(message: string): string {
+  return message
+    .toLowerCase()
+    .replace(/\b\d+\b/g, "#")
+    .replace(/[0-9a-f]{6,}/g, "<hex>")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 180);
+}
+
+function extractRateLimitBackoffMs(rateLimitInfo: unknown): number | undefined {
+  if (!rateLimitInfo || typeof rateLimitInfo !== "object") {
+    return undefined;
+  }
+  const info = rateLimitInfo as Record<string, unknown>;
+  const retryAfterMsRaw = info.retry_after_ms ?? info.retryAfterMs;
+  if (
+    typeof retryAfterMsRaw === "number" &&
+    Number.isFinite(retryAfterMsRaw) &&
+    retryAfterMsRaw > 0
+  ) {
+    return Math.floor(retryAfterMsRaw);
+  }
+  const retryAfterSecondsRaw = info.retry_after_seconds ?? info.retryAfterSeconds;
+  if (
+    typeof retryAfterSecondsRaw === "number" &&
+    Number.isFinite(retryAfterSecondsRaw) &&
+    retryAfterSecondsRaw > 0
+  ) {
+    return Math.floor(retryAfterSecondsRaw * 1000);
+  }
+  return undefined;
 }
 
 // Defensive guard for the outer run loop across all retry branches.
@@ -584,7 +626,19 @@ export async function runEmbeddedPiAgent(
       const MAX_OVERFLOW_COMPACTION_ATTEMPTS = 3;
       const MAX_RUN_LOOP_ITERATIONS = resolveMaxRunRetryIterations(profileCandidates.length);
       let overflowCompactionAttempts = 0;
+      let forceFreshClaudeSession = false;
+      let staleResumeRecoveryAttempted = false;
       let toolResultTruncationAttempted = false;
+      let claudeOverflowRetryCount = 0;
+      let claudeOverflowFailFastCount = 0;
+      let lastClaudeOverflowState:
+        | {
+            fingerprint: string;
+            messageCount: number;
+            sessionId: string;
+            promptTokens: number;
+          }
+        | undefined;
       const usageAccumulator = createUsageAccumulator();
       let lastRunPromptUsage: ReturnType<typeof normalizeUsage> | undefined;
       let autoCompactionCount = 0;
@@ -674,7 +728,9 @@ export async function runEmbeddedPiAgent(
             provider,
             modelId,
             model,
+            attemptNumber: runLoopIterations,
             runtimeOverride,
+            forceFreshClaudeSession,
             resolvedProviderAuth: apiKeyInfo ?? undefined,
             authStorage,
             modelRegistry,
@@ -707,6 +763,7 @@ export async function runEmbeddedPiAgent(
             ownerNumbers: params.ownerNumbers,
             enforceFinalTag: params.enforceFinalTag,
           });
+          forceFreshClaudeSession = false;
 
           const {
             aborted,
@@ -742,6 +799,67 @@ export async function runEmbeddedPiAgent(
             lastAssistant?.stopReason === "error"
               ? lastAssistant.errorMessage?.trim() || formattedAssistantErrorText
               : undefined;
+          const staleResumeError =
+            !aborted &&
+            runtimeOverride === "claude-sdk" &&
+            (isStaleClaudeResumeSessionError(promptError) ||
+              isStaleClaudeResumeSessionErrorMessage(assistantErrorText));
+          if (staleResumeError) {
+            const staleMessage =
+              (promptError ? describeUnknownError(promptError) : assistantErrorText) ??
+              "stale Claude SDK resume session";
+            if (!staleResumeRecoveryAttempted) {
+              staleResumeRecoveryAttempted = true;
+              forceFreshClaudeSession = true;
+              emitClaudeSdkRuntimeMetric("claude_sdk.resume.stale_recovered", {
+                runId: params.runId,
+                sessionId: params.sessionId,
+                sessionKey: params.sessionKey ?? params.sessionId,
+                provider,
+                model: modelId,
+                attempt: runLoopIterations,
+                action: "retry_with_fresh_session",
+              });
+              log.warn(
+                `[claude-sdk-stale-resume] retrying with fresh session ` +
+                  `runId=${params.runId} sessionId=${params.sessionId} ` +
+                  `sessionKey=${params.sessionKey ?? params.sessionId} ` +
+                  `provider=${provider}/${modelId} attempt=${runLoopIterations} ` +
+                  `error=${staleMessage.slice(0, 200)}`,
+              );
+              continue;
+            }
+            log.error(
+              `[claude-sdk-stale-resume] recovery failed after retry ` +
+                `runId=${params.runId} sessionId=${params.sessionId} ` +
+                `sessionKey=${params.sessionKey ?? params.sessionId} ` +
+                `provider=${provider}/${modelId} attempt=${runLoopIterations} ` +
+                `error=${staleMessage.slice(0, 200)}`,
+            );
+            return {
+              payloads: [
+                {
+                  text:
+                    "Claude session resume failed because the previous server session is no longer valid. " +
+                    "Please retry once, or use /new to start a fresh thread if it persists.",
+                  isError: true,
+                },
+              ],
+              meta: {
+                durationMs: Date.now() - started,
+                agentMeta: {
+                  sessionId: sessionIdUsed,
+                  provider,
+                  model: model.id,
+                },
+                systemPromptReport: attempt.systemPromptReport,
+                error: {
+                  kind: "claude_sdk_stale_resume",
+                  message: staleMessage,
+                },
+              },
+            };
+          }
 
           const contextOverflowError = !aborted
             ? (() => {
@@ -775,29 +893,103 @@ export async function runEmbeddedPiAgent(
             const isCompactionFailure = isCompactionFailureError(errorText);
             const hadAttemptLevelCompaction = attemptCompactionCount > 0;
             const claudeSdkManagedRuntime = runtimeOverride === "claude-sdk";
+            if (!isCompactionFailure && claudeSdkManagedRuntime) {
+              const lifecycle = attempt.claudeSdkLifecycle;
+              const hasCompactionEvidence =
+                hadAttemptLevelCompaction ||
+                (lifecycle?.compactBoundaryCount ?? 0) > 0 ||
+                (lifecycle?.statusCompactingCount ?? 0) > 0;
+              const currentClaudeOverflowState = {
+                fingerprint: normalizeOverflowFingerprint(errorText),
+                messageCount: msgCount,
+                sessionId: sessionIdUsed,
+                promptTokens: lastTurnTotal ?? 0,
+              };
+              const noMeaningfulStateDelta =
+                !!lastClaudeOverflowState &&
+                lastClaudeOverflowState.fingerprint === currentClaudeOverflowState.fingerprint &&
+                lastClaudeOverflowState.messageCount === currentClaudeOverflowState.messageCount &&
+                lastClaudeOverflowState.sessionId === currentClaudeOverflowState.sessionId &&
+                lastClaudeOverflowState.promptTokens === currentClaudeOverflowState.promptTokens;
+
+              if (!hasCompactionEvidence || noMeaningfulStateDelta) {
+                claudeOverflowFailFastCount += 1;
+                emitClaudeSdkRuntimeMetric("claude_sdk.overflow.fail_fast", {
+                  runId: params.runId,
+                  sessionId: params.sessionId,
+                  sessionKey: params.sessionKey ?? params.sessionId,
+                  provider,
+                  model: modelId,
+                  attempt: runLoopIterations,
+                  failFastCount: claudeOverflowFailFastCount,
+                  fingerprint: currentClaudeOverflowState.fingerprint,
+                  reason: !hasCompactionEvidence ? "no_compaction_signal" : "no_state_delta",
+                });
+                log.warn(
+                  `[claude-sdk-overflow] fail-fast runId=${params.runId} ` +
+                    `sessionId=${params.sessionId} sessionKey=${params.sessionKey ?? params.sessionId} ` +
+                    `provider=${provider}/${modelId} attempt=${runLoopIterations} ` +
+                    `reason=${!hasCompactionEvidence ? "no_compaction_signal" : "no_state_delta"}`,
+                );
+                return {
+                  payloads: [
+                    {
+                      text:
+                        "Context overflow: Claude could not compact this session enough to continue. " +
+                        "Use /new (or /reset) to start a fresh session, or switch to a larger-context model.",
+                      isError: true,
+                    },
+                  ],
+                  meta: {
+                    durationMs: Date.now() - started,
+                    agentMeta: {
+                      sessionId: sessionIdUsed,
+                      provider,
+                      model: model.id,
+                    },
+                    systemPromptReport: attempt.systemPromptReport,
+                    error: { kind: "context_overflow", message: errorText },
+                  },
+                };
+              }
+
+              if (overflowCompactionAttempts < MAX_OVERFLOW_COMPACTION_ATTEMPTS) {
+                overflowCompactionAttempts++;
+                claudeOverflowRetryCount += 1;
+                lastClaudeOverflowState = currentClaudeOverflowState;
+                emitClaudeSdkRuntimeMetric("claude_sdk.overflow.retries", {
+                  runId: params.runId,
+                  sessionId: params.sessionId,
+                  sessionKey: params.sessionKey ?? params.sessionId,
+                  provider,
+                  model: modelId,
+                  attempt: runLoopIterations,
+                  retryCount: claudeOverflowRetryCount,
+                  compactionEvidence: {
+                    attemptCompactionCount,
+                    compactBoundaryCount: lifecycle?.compactBoundaryCount ?? 0,
+                    statusCompactingCount: lifecycle?.statusCompactingCount ?? 0,
+                  },
+                });
+                log.warn(
+                  `context overflow detected in claude-sdk runtime with compaction evidence ` +
+                    `(attempt ${overflowCompactionAttempts}/${MAX_OVERFLOW_COMPACTION_ATTEMPTS}); ` +
+                    `retrying prompt without local overflow recovery for ${provider}/${modelId}`,
+                );
+                continue;
+              }
+            }
             // If this attempt already compacted (SDK auto-compaction), avoid immediately
             // running another explicit compaction for the same overflow trigger.
             if (
               !isCompactionFailure &&
               hadAttemptLevelCompaction &&
+              !claudeSdkManagedRuntime &&
               overflowCompactionAttempts < MAX_OVERFLOW_COMPACTION_ATTEMPTS
             ) {
               overflowCompactionAttempts++;
               log.warn(
                 `context overflow persisted after in-attempt compaction (attempt ${overflowCompactionAttempts}/${MAX_OVERFLOW_COMPACTION_ATTEMPTS}); retrying prompt without additional compaction for ${provider}/${modelId}`,
-              );
-              continue;
-            }
-            // Claude SDK runtime manages compaction server-side. Never run local
-            // overflow compaction/truncation in this path; only retry the prompt.
-            if (
-              !isCompactionFailure &&
-              claudeSdkManagedRuntime &&
-              overflowCompactionAttempts < MAX_OVERFLOW_COMPACTION_ATTEMPTS
-            ) {
-              overflowCompactionAttempts++;
-              log.warn(
-                `context overflow detected in claude-sdk runtime (attempt ${overflowCompactionAttempts}/${MAX_OVERFLOW_COMPACTION_ATTEMPTS}); retrying prompt without local overflow recovery for ${provider}/${modelId}`,
               );
               continue;
             }
@@ -938,6 +1130,55 @@ export async function runEmbeddedPiAgent(
                 error: { kind, message: errorText },
               },
             };
+          }
+          lastClaudeOverflowState = undefined;
+
+          if (runtimeOverride === "claude-sdk" && attempt.claudeSdkLifecycle) {
+            const lifecycle = attempt.claudeSdkLifecycle;
+            if (lifecycle.lastAuthStatus?.error && promptError) {
+              log.warn(
+                `[claude-sdk-auth-status] runId=${params.runId} sessionId=${params.sessionId} ` +
+                  `sessionKey=${params.sessionKey ?? params.sessionId} provider=${provider}/${modelId} ` +
+                  `attempt=${runLoopIterations} authError=${lifecycle.lastAuthStatus.error}`,
+              );
+            }
+            if (lifecycle.lastHookEvent) {
+              log.debug(
+                `[claude-sdk-hook] runId=${params.runId} sessionId=${params.sessionId} ` +
+                  `provider=${provider}/${modelId} hook=${lifecycle.lastHookEvent.subtype} ` +
+                  `name=${lifecycle.lastHookEvent.hookName ?? "unknown"} ` +
+                  `event=${lifecycle.lastHookEvent.hookEvent ?? "unknown"} ` +
+                  `outcome=${lifecycle.lastHookEvent.outcome ?? "n/a"}`,
+              );
+            }
+            if (lifecycle.lastTaskEvent) {
+              log.debug(
+                `[claude-sdk-task] runId=${params.runId} sessionId=${params.sessionId} ` +
+                  `provider=${provider}/${modelId} task=${lifecycle.lastTaskEvent.subtype} ` +
+                  `taskId=${lifecycle.lastTaskEvent.taskId ?? "unknown"} ` +
+                  `status=${lifecycle.lastTaskEvent.status ?? "n/a"}`,
+              );
+            }
+            if (lifecycle.lastPromptSuggestion) {
+              log.debug(
+                `[claude-sdk-prompt-suggestion] runId=${params.runId} sessionId=${params.sessionId} ` +
+                  `provider=${provider}/${modelId} suggestion=${lifecycle.lastPromptSuggestion}`,
+              );
+            }
+            const retryDelayMs = extractRateLimitBackoffMs(lifecycle.lastRateLimitInfo);
+            if (
+              promptError &&
+              retryDelayMs &&
+              classifyFailoverReason(describeUnknownError(promptError)) === "rate_limit"
+            ) {
+              const boundedDelayMs = Math.min(10_000, retryDelayMs);
+              log.warn(
+                `[claude-sdk-rate-limit] backoff before retry runId=${params.runId} ` +
+                  `sessionId=${params.sessionId} provider=${provider}/${modelId} ` +
+                  `attempt=${runLoopIterations} delayMs=${boundedDelayMs}`,
+              );
+              await new Promise((resolve) => setTimeout(resolve, boundedDelayMs));
+            }
           }
 
           if (promptError && !aborted) {
