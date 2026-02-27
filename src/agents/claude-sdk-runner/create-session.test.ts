@@ -696,7 +696,7 @@ describe("session lifecycle — multimodal images", () => {
     vi.clearAllMocks();
   });
 
-  it("includes images in the prompt content when provided", async () => {
+  it("sends images via structured multimodal user message blocks", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() =>
       makeMockQueryGen([{ type: "result", subtype: "success" }])(),
@@ -710,17 +710,91 @@ describe("session lifecycle — multimodal images", () => {
     } as never);
 
     const call = queryMock.mock.calls[0];
-    // The images should NOT be in a separate queryOptions.images field
-    // (SDK doesn't support that). They should be encoded in the prompt
-    // or passed as structured content.
     const options = call[0].options as Record<string, unknown>;
     expect(options.images).toBeUndefined();
-    // The prompt should contain the image data somehow
-    // (either as data URI in prompt text or as structured content blocks)
-    const prompt = call[0].prompt;
-    expect(typeof prompt === "string" ? prompt : JSON.stringify(prompt)).toContain(
-      "iVBOR_base64data",
+    const prompt = call[0].prompt as string | AsyncIterable<Record<string, unknown>>;
+    expect(typeof prompt).not.toBe("string");
+    if (typeof prompt === "string") {
+      throw new Error("expected structured SDK prompt stream for image input");
+    }
+    const first = await prompt[Symbol.asyncIterator]().next();
+    expect(first.done).toBe(false);
+    const userMessage = first.value as {
+      type: string;
+      session_id: string;
+      parent_tool_use_id: string | null;
+      message: {
+        role: string;
+        content: Array<
+          | { type: "text"; text: string }
+          | {
+              type: "image";
+              source: { type: "base64"; media_type: string; data: string };
+            }
+        >;
+      };
+    };
+    expect(userMessage.type).toBe("user");
+    expect(userMessage.session_id).toBe("");
+    expect(userMessage.parent_tool_use_id).toBeNull();
+    expect(userMessage.message.role).toBe("user");
+    expect(userMessage.message.content[0]).toEqual({
+      type: "text",
+      text: "What's in this image?",
+    });
+    expect(userMessage.message.content[1]).toEqual({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: "image/png",
+        data: "iVBOR_base64data",
+      },
+    });
+    expect(JSON.stringify(userMessage.message.content)).not.toContain("data:image/");
+  });
+
+  it("persists image prompts in Pi-style user content blocks", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
     );
+
+    const appendMessage = vi.fn(() => "msg-id");
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        sessionManager: { appendMessage },
+      }),
+    );
+
+    await session.prompt("Describe this", {
+      images: [{ type: "image", media_type: "image/png", data: "iVBOR_base64data" }],
+    } as never);
+
+    const userCall = appendMessage.mock.calls.find(
+      (c: unknown[]) => (c[0] as { role?: string }).role === "user",
+    ) as unknown[] | undefined;
+    expect(userCall).toBeDefined();
+    const userMessage = (userCall as unknown[])[0] as {
+      role: string;
+      content:
+        | string
+        | Array<
+            { type: "text"; text?: string } | { type: "image"; data?: string; mimeType?: string }
+          >;
+    };
+    expect(userMessage.role).toBe("user");
+    expect(Array.isArray(userMessage.content)).toBe(true);
+    const content = userMessage.content as Array<
+      { type: "text"; text?: string } | { type: "image"; data?: string; mimeType?: string }
+    >;
+    expect(content[0]).toEqual({ type: "text", text: "Describe this" });
+    expect(content[1]).toEqual({
+      type: "image",
+      data: "iVBOR_base64data",
+      mimeType: "image/png",
+    });
+    expect((content[0] as { text?: string }).text ?? "").not.toContain("data:image/");
   });
 });
 

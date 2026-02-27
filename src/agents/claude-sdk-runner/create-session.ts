@@ -17,7 +17,9 @@
  */
 
 import { query } from "@anthropic-ai/claude-agent-sdk";
+import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
+import type { ImageContent } from "@mariozechner/pi-ai";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { resolveClaudeSubprocessEnv } from "./config.js";
 import { mapSdkError } from "./error-mapping.js";
@@ -107,6 +109,94 @@ function appendTail(currentTail: string | undefined, chunk: string, maxChars: nu
     return next;
   }
   return next.slice(-maxChars);
+}
+
+type AnthropicBase64ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+type RuntimePromptImage = ImageContent & { media_type?: string };
+type PersistedUserContent = string | Array<{ type: "text"; text: string } | ImageContent>;
+type ClaudePromptInput = string | AsyncIterable<SDKUserMessage>;
+
+const ANTHROPIC_BASE64_IMAGE_MEDIA_TYPES: ReadonlySet<AnthropicBase64ImageMediaType> = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+]);
+
+function normalizePromptImageMimeType(image: RuntimePromptImage): string {
+  const runtimeMimeType = typeof image.mimeType === "string" ? image.mimeType.trim() : "";
+  if (runtimeMimeType.length > 0) {
+    return runtimeMimeType;
+  }
+  const legacyMimeType = typeof image.media_type === "string" ? image.media_type.trim() : "";
+  if (legacyMimeType.length > 0) {
+    return legacyMimeType;
+  }
+  return "image/png";
+}
+
+function normalizePromptImages(images: RuntimePromptImage[] | undefined): ImageContent[] {
+  if (!Array.isArray(images) || images.length === 0) {
+    return [];
+  }
+  const normalized: ImageContent[] = [];
+  for (const image of images) {
+    if (!image || typeof image.data !== "string" || image.data.length === 0) {
+      continue;
+    }
+    normalized.push({
+      type: "image",
+      data: image.data,
+      mimeType: normalizePromptImageMimeType(image),
+    });
+  }
+  return normalized;
+}
+
+function toAnthropicImageMediaType(mimeType: string): AnthropicBase64ImageMediaType {
+  const normalized = mimeType.trim().toLowerCase();
+  if (normalized === "image/jpg") {
+    return "image/jpeg";
+  }
+  if (ANTHROPIC_BASE64_IMAGE_MEDIA_TYPES.has(normalized as AnthropicBase64ImageMediaType)) {
+    return normalized as AnthropicBase64ImageMediaType;
+  }
+  return "image/png";
+}
+
+function buildPersistedUserContent(text: string, images: ImageContent[]): PersistedUserContent {
+  if (images.length === 0) {
+    return text;
+  }
+  return [{ type: "text", text }, ...images];
+}
+
+function buildClaudePromptInput(text: string, images: ImageContent[]): ClaudePromptInput {
+  if (images.length === 0) {
+    return text;
+  }
+  const userMessage: SDKUserMessage = {
+    type: "user",
+    session_id: "",
+    parent_tool_use_id: null,
+    message: {
+      role: "user",
+      content: [
+        { type: "text", text },
+        ...images.map((image) => ({
+          type: "image" as const,
+          source: {
+            type: "base64" as const,
+            media_type: toAnthropicImageMediaType(image.mimeType),
+            data: image.data,
+          },
+        })),
+      ],
+    },
+  };
+  return (async function* () {
+    yield userMessage;
+  })();
 }
 
 function buildQueryOptions(
@@ -287,38 +377,22 @@ export async function createClaudeSdkSession(
 
       // Drain any pending steer text by prepending to the current prompt
       const steerText = state.pendingSteer.splice(0).join("\n");
-      let effectivePrompt = steerText ? `${steerText}\n\n${text}` : text;
+      const effectivePrompt = steerText ? `${steerText}\n\n${text}` : text;
+      const promptImages = normalizePromptImages(
+        options?.images as RuntimePromptImage[] | undefined,
+      );
+      const persistedUserContent = buildPersistedUserContent(effectivePrompt, promptImages);
+      const claudePromptInput = buildClaudePromptInput(effectivePrompt, promptImages);
 
       state.streaming = true;
       state.abortController = new AbortController();
       const { signal } = state.abortController;
 
-      // Embed images inline in the prompt text as markdown data URIs.
-      // The SDK's Options type does NOT have a top-level `images` field. The
-      // alternative is AsyncIterable<SDKUserMessage> prompt format with structured
-      // multimodal content blocks, but that requires converting all prompt
-      // construction (including steer text prepending) to structured format.
-      // Data URI markdown is interpreted correctly by Claude and is sufficient
-      // for the current use cases (screenshots, diagrams).
-      if (options?.images && options.images.length > 0) {
-        const imageMarkdown = options.images
-          .map((img) => {
-            const mimeType = (
-              img as { mimeType?: string; media_type?: string; mimeTypeLower?: string }
-            ).mimeType;
-            const legacyMediaType = (img as { media_type?: string }).media_type;
-            const mediaType = mimeType ?? legacyMediaType ?? "image/png";
-            return `![image](data:${mediaType};base64,${img.data})`;
-          })
-          .join("\n");
-        effectivePrompt = `${imageMarkdown}\n\n${effectivePrompt}`;
-      }
-
       try {
         if (state.sessionManager?.appendMessage) {
           const userMessage = {
             role: "user" as const,
-            content: effectivePrompt,
+            content: persistedUserContent,
             timestamp: Date.now(),
           } as AgentMessage;
           state.messages.push(userMessage);
@@ -330,13 +404,13 @@ export async function createClaudeSdkSession(
         } else {
           state.messages.push({
             role: "user",
-            content: effectivePrompt,
+            content: persistedUserContent,
             timestamp: Date.now(),
           } as AgentMessage);
         }
 
         const queryOptions = buildQueryOptions(params, state, toolServer);
-        const queryInstance = query({ prompt: effectivePrompt, options: queryOptions as never });
+        const queryInstance = query({ prompt: claudePromptInput, options: queryOptions as never });
 
         // Wire abort signal to queryInstance.interrupt() so cancellation works
         // even when blocked on generator.next().
