@@ -3,6 +3,7 @@ import type { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { ModelDefinitionConfig } from "../../config/types.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
+import { CLAUDE_SDK_PROVIDERS } from "../claude-sdk-runner/prepare-session.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../defaults.js";
 import { buildModelAliasLines } from "../model-alias-lines.js";
 import { normalizeModelCompat } from "../model-compat.js";
@@ -53,6 +54,27 @@ export function resolveModel(
   const resolvedAgentDir = agentDir ?? resolveOpenClawAgentDir();
   const authStorage = discoverAuthStorage(resolvedAgentDir);
   const modelRegistry = discoverModels(authStorage, resolvedAgentDir);
+
+  // Claude SDK providers handle the actual API call via subprocess. Resolve
+  // model metadata from the anthropic catalog for cost tracking and context
+  // budgeting, then override the provider so downstream routing still works.
+  // Falls back to the forward-compat path for model IDs not yet in the catalog.
+  if (CLAUDE_SDK_PROVIDERS.has(provider)) {
+    const catalogModel = modelRegistry.find("anthropic", modelId) as Model<Api> | null;
+    if (catalogModel) {
+      return { model: { ...catalogModel, provider }, authStorage, modelRegistry };
+    }
+    const forwardCompat = resolveForwardCompatModel("anthropic", modelId, modelRegistry);
+    if (forwardCompat) {
+      return { model: { ...forwardCompat, provider }, authStorage, modelRegistry };
+    }
+    return {
+      error: buildUnknownModelError(provider, modelId),
+      authStorage,
+      modelRegistry,
+    };
+  }
+
   const model = modelRegistry.find(provider, modelId) as Model<Api> | null;
 
   if (!model) {
