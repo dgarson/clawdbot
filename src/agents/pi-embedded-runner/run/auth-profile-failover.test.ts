@@ -6,6 +6,7 @@ import { createRunAuthProfileFailoverController } from "./auth-profile-failover.
 const mocks = vi.hoisted(() => ({
   createClaudeSdkAuthResolutionState: vi.fn(),
   getApiKeyForModel: vi.fn(),
+  resolveCopilotApiToken: vi.fn(),
   isProfileInCooldown: vi.fn(),
   resolveProfilesUnavailableReason: vi.fn(),
   logWarn: vi.fn(),
@@ -17,6 +18,10 @@ vi.mock("../../claude-sdk-runner/auth-resolution.js", () => ({
 
 vi.mock("../../model-auth.js", () => ({
   getApiKeyForModel: mocks.getApiKeyForModel,
+}));
+
+vi.mock("../../../providers/github-copilot-token.js", () => ({
+  resolveCopilotApiToken: mocks.resolveCopilotApiToken,
 }));
 
 vi.mock("../../auth-profiles.js", () => ({
@@ -110,6 +115,7 @@ describe("createRunAuthProfileFailoverController", () => {
   beforeEach(() => {
     mocks.createClaudeSdkAuthResolutionState.mockReset();
     mocks.getApiKeyForModel.mockReset();
+    mocks.resolveCopilotApiToken.mockReset();
     mocks.isProfileInCooldown.mockReset();
     mocks.resolveProfilesUnavailableReason.mockReset();
     mocks.logWarn.mockReset();
@@ -133,6 +139,80 @@ describe("createRunAuthProfileFailoverController", () => {
     expect(controller.lastProfileId).toBe("anthropic:p1");
     expect(mocks.getApiKeyForModel).toHaveBeenCalledWith(
       expect.objectContaining({ profileId: "anthropic:p1" }),
+    );
+  });
+
+  it("maps auth lookup model provider to resolved auth provider", async () => {
+    const state = makeResolutionState({
+      runtimeOverride: "pi",
+      authProvider: "openrouter",
+      profileCandidates: [{ profileId: "openrouter:p1", resolveProfileId: "openrouter:p1" }],
+    });
+    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.getApiKeyForModel.mockResolvedValue(resolvedAuth("openrouter:p1", "sk-openrouter"));
+    const { params } = baseParams({ model: { provider: "anthropic" } as never });
+
+    const controller = await createRunAuthProfileFailoverController(params);
+    const lookupModel = controller.resolveAuthLookupModel();
+
+    expect(lookupModel.provider).toBe("openrouter");
+  });
+
+  it("accepts aws-sdk auth mode without an API key", async () => {
+    const state = makeResolutionState({
+      runtimeOverride: "pi",
+      authProvider: "amazon-bedrock",
+      profileCandidates: [{ profileId: "bedrock:aws-sdk", resolveProfileId: "bedrock:aws-sdk" }],
+    });
+    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.getApiKeyForModel.mockResolvedValue({
+      apiKey: undefined,
+      source: "aws-sdk default chain",
+      mode: "aws-sdk",
+    });
+    const { params, authStorage } = baseParams({
+      provider: "amazon-bedrock",
+      model: { provider: "amazon-bedrock" } as never,
+    });
+
+    const controller = await createRunAuthProfileFailoverController(params);
+
+    expect(controller.lastProfileId).toBe("bedrock:aws-sdk");
+    expect(authStorage.setRuntimeApiKey).not.toHaveBeenCalled();
+  });
+
+  it("exchanges github-copilot github token into a runtime copilot token", async () => {
+    const state = makeResolutionState({
+      runtimeOverride: "pi",
+      authProvider: "github-copilot",
+      profileCandidates: [
+        { profileId: "github-copilot:p1", resolveProfileId: "github-copilot:p1" },
+      ],
+    });
+    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.getApiKeyForModel.mockResolvedValue({
+      apiKey: "ghu_token",
+      profileId: "github-copilot:p1",
+      source: "profile:github-copilot:p1",
+      mode: "token",
+    });
+    mocks.resolveCopilotApiToken.mockResolvedValue({
+      token: "copilot_runtime_token",
+      expiresAt: Date.now() + 60_000,
+      source: "fetched",
+      baseUrl: "https://api.individual.githubcopilot.com",
+    });
+    const { params, authStorage } = baseParams({
+      provider: "github-copilot",
+      model: { provider: "github-copilot" } as never,
+    });
+
+    await createRunAuthProfileFailoverController(params);
+
+    expect(mocks.resolveCopilotApiToken).toHaveBeenCalledWith({ githubToken: "ghu_token" });
+    expect(authStorage.setRuntimeApiKey).toHaveBeenCalledWith(
+      "github-copilot",
+      "copilot_runtime_token",
     );
   });
 
@@ -341,6 +421,26 @@ describe("createRunAuthProfileFailoverController", () => {
       "locked profile invalid",
     );
     expect(state.profileIndex).toBe(0);
+  });
+
+  it("throws a plain error when fallback is disabled and no candidates can initialize", async () => {
+    const state = makeResolutionState({
+      runtimeOverride: "pi",
+      authProvider: "anthropic",
+      profileCandidates: [{ profileId: "anthropic:p1", resolveProfileId: "anthropic:p1" }],
+    });
+    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.getApiKeyForModel.mockRejectedValue(new Error("profile auth unavailable"));
+    const { params } = baseParams({ fallbackConfigured: false });
+
+    try {
+      await createRunAuthProfileFailoverController(params);
+      throw new Error("expected controller creation to fail");
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+      expect(error).not.toBeInstanceOf(FailoverError);
+      expect((error as Error).message).toBe("profile auth unavailable");
+    }
   });
 
   it("keeps FailoverError shape when fallbackConfigured is enabled", async () => {
