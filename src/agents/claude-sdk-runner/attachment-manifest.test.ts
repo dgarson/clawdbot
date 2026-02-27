@@ -43,7 +43,22 @@ describe("AttachmentManifest", () => {
       turn: 1,
     });
     expect(isAlreadyAttached(m, "A1", "abc123")).toBe(true);
-    expect(isAlreadyAttached(m, "A2", "abc123")).toBe(false);
+    expect(isAlreadyAttached(m, "A2", "different")).toBe(false);
+  });
+
+  it("detects already-attached by content hash (re-upload under new artifact ID)", () => {
+    const m = createAttachmentManifest();
+    recordAttachment(m, {
+      artifactId: "A1",
+      displayName: "photo.png",
+      mediaType: "image/png",
+      contentHash: "abc123",
+      sourceMessageId: "msg1",
+      sourceThreadId: null,
+      turn: 1,
+    });
+    // Same bytes, new artifact_id (platform re-uploaded the file)
+    expect(isAlreadyAttached(m, "A2", "abc123")).toBe(true);
   });
 
   it("round-trips through serialize/load", () => {

@@ -21,10 +21,14 @@ export function createAttachmentManifest(): AttachmentManifest {
 export function isAlreadyAttached(
   manifest: AttachmentManifest,
   artifactId: string,
-  _contentHash: string,
+  contentHash: string,
 ): boolean {
-  // Exact artifact_id match — content_hash is stored for informational/auditing purposes only
-  return Boolean(manifest.entries[artifactId]);
+  // Exact artifact_id match
+  if (manifest.entries[artifactId]) {
+    return true;
+  }
+  // Content hash match: same bytes re-uploaded under a new platform artifact ID
+  return Object.values(manifest.entries).some((e) => e.content_hash === contentHash);
 }
 
 export function recordAttachment(
