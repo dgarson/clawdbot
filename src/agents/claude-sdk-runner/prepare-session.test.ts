@@ -1,7 +1,14 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { EmbeddedRunAttemptParams } from "../pi-embedded-runner/run/types.js";
 import { createClaudeSdkSession } from "./create-session.js";
-import { prepareClaudeSdkSession, resolveClaudeSdkConfig } from "./prepare-session.js";
+import {
+  assertAutoCompactEnabled,
+  prepareClaudeSdkSession,
+  resolveClaudeSdkConfig,
+} from "./prepare-session.js";
 
 vi.mock("./create-session.js", () => ({
   createClaudeSdkSession: vi.fn().mockResolvedValue({ sessionId: "mock-session" }),
@@ -163,6 +170,18 @@ describe("prepareClaudeSdkSession — thinkLevel resolution", () => {
     const mock = createClaudeSdkSession as ReturnType<typeof vi.fn>;
     expect(mock.mock.calls[0][0].thinkLevel).toBe("off");
   });
+
+  it("forwards diagnosticsEnabled and sessionKey to createClaudeSdkSession", async () => {
+    const params = {
+      ...baseParams,
+      sessionKey: "agent:test:session",
+      config: { diagnostics: { enabled: true } },
+    } as unknown as EmbeddedRunAttemptParams;
+    await callPrepare(params, baseSessionManager());
+    const mock = createClaudeSdkSession as ReturnType<typeof vi.fn>;
+    expect(mock.mock.calls[0][0].sessionKey).toBe("agent:test:session");
+    expect(mock.mock.calls[0][0].diagnosticsEnabled).toBe(true);
+  });
 });
 
 describe("resolveClaudeSdkConfig — thinkingDefault compatibility", () => {
@@ -183,5 +202,86 @@ describe("resolveClaudeSdkConfig — thinkingDefault compatibility", () => {
     const resolved = resolveClaudeSdkConfig(params, "agent-1");
     expect(resolved).toBeDefined();
     expect(resolved?.thinkingDefault).toBe("none");
+  });
+});
+
+describe("assertAutoCompactEnabled", () => {
+  let tmpDir: string;
+  const origEnv = { ...process.env };
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "oc-autocompact-test-"));
+    // Clean env for each test
+    delete process.env.DISABLE_AUTO_COMPACT;
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    process.env = { ...origEnv };
+  });
+
+  it("throws when claude.json has autoCompactEnabled: false", () => {
+    const configPath = path.join(tmpDir, ".claude.json");
+    fs.writeFileSync(configPath, JSON.stringify({ autoCompactEnabled: false }));
+    expect(() => assertAutoCompactEnabled({ configDir: tmpDir })).toThrow(
+      /autoCompactEnabled.*false/,
+    );
+  });
+
+  it("does not throw when autoCompactEnabled is true", () => {
+    const configPath = path.join(tmpDir, ".claude.json");
+    fs.writeFileSync(configPath, JSON.stringify({ autoCompactEnabled: true }));
+    expect(() => assertAutoCompactEnabled({ configDir: tmpDir })).not.toThrow();
+  });
+
+  it("does not throw when autoCompactEnabled is absent (default is true)", () => {
+    const configPath = path.join(tmpDir, ".claude.json");
+    fs.writeFileSync(configPath, JSON.stringify({ someOtherSetting: "value" }));
+    expect(() => assertAutoCompactEnabled({ configDir: tmpDir })).not.toThrow();
+  });
+
+  it("does not throw when config file does not exist", () => {
+    expect(() => assertAutoCompactEnabled({ configDir: tmpDir })).not.toThrow();
+  });
+
+  it("does not throw when config file is malformed JSON", () => {
+    const configPath = path.join(tmpDir, ".claude.json");
+    fs.writeFileSync(configPath, "not valid json{{{");
+    expect(() => assertAutoCompactEnabled({ configDir: tmpDir })).not.toThrow();
+  });
+
+  it("prefers .config.json over .claude.json when both exist", () => {
+    fs.writeFileSync(
+      path.join(tmpDir, ".config.json"),
+      JSON.stringify({ autoCompactEnabled: false }),
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, ".claude.json"),
+      JSON.stringify({ autoCompactEnabled: true }),
+    );
+    // Should throw because .config.json takes precedence
+    expect(() => assertAutoCompactEnabled({ configDir: tmpDir })).toThrow(
+      /autoCompactEnabled.*false/,
+    );
+  });
+
+  it("throws when DISABLE_AUTO_COMPACT env var is '1'", () => {
+    // Config file is fine
+    const configPath = path.join(tmpDir, ".claude.json");
+    fs.writeFileSync(configPath, JSON.stringify({ autoCompactEnabled: true }));
+    process.env.DISABLE_AUTO_COMPACT = "1";
+    expect(() => assertAutoCompactEnabled({ configDir: tmpDir })).toThrow(/DISABLE_AUTO_COMPACT/);
+  });
+
+  it("throws when DISABLE_AUTO_COMPACT env var is 'true'", () => {
+    process.env.DISABLE_AUTO_COMPACT = "true";
+    expect(() => assertAutoCompactEnabled({ configDir: tmpDir })).toThrow(/DISABLE_AUTO_COMPACT/);
+  });
+
+  it("does not throw when DISABLE_AUTO_COMPACT is '0'", () => {
+    const configPath = path.join(tmpDir, ".claude.json");
+    fs.writeFileSync(configPath, JSON.stringify({ autoCompactEnabled: true }));
+    process.env.DISABLE_AUTO_COMPACT = "0";
+    expect(() => assertAutoCompactEnabled({ configDir: tmpDir })).not.toThrow();
   });
 });

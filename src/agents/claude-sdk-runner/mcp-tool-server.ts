@@ -15,6 +15,7 @@
 import { createSdkMcpServer, tool } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { TSchema } from "@sinclair/typebox";
+import { estimateBase64DecodedBytes } from "../../media/base64.js";
 import {
   HARD_MAX_TOOL_RESULT_CHARS,
   truncateToolResultText,
@@ -155,6 +156,24 @@ function stringifyToolResult(result: unknown): string {
   return typeof result === "symbol" ? result.toString() : `[unserializable ${typeof result}]`;
 }
 
+function summarizeToolResultBlockForTranscript(block: McpContent): { type: "text"; text: string } {
+  if (block.type === "text") {
+    return { type: "text", text: block.text };
+  }
+  const looksLikeUrl = /^https?:\/\//i.test(block.data);
+  if (looksLikeUrl) {
+    return {
+      type: "text",
+      text: `[tool_image_ref type=url mimeType=${block.mimeType} url=${block.data}]`,
+    };
+  }
+  const estimatedBytes = estimateBase64DecodedBytes(block.data);
+  return {
+    type: "text",
+    text: `[tool_image_ref type=inline mimeType=${block.mimeType} estimatedBytes=${estimatedBytes}]`,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // MCP tool server factory
 // ---------------------------------------------------------------------------
@@ -282,11 +301,7 @@ export function createClaudeSdkMcpToolServer(
             role: "toolResult",
             toolCallId,
             toolName: openClawTool.name,
-            content: mcpResult.content.map((block) =>
-              block.type === "text"
-                ? { type: "text", text: block.text }
-                : { type: "text", text: JSON.stringify(block) },
-            ),
+            content: mcpResult.content.map((block) => summarizeToolResultBlockForTranscript(block)),
             isError: false,
             timestamp: Date.now(),
           } as AgentMessage;

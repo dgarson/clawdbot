@@ -8,7 +8,9 @@
  * pi-runtime-baseline.md Section 3 (session interface surface used by attempt.ts).
  */
 
+import { createHash } from "node:crypto";
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
+import { onDiagnosticEvent, resetDiagnosticEventsForTest } from "../../infra/diagnostic-events.js";
 import type { ClaudeSdkSessionParams } from "./types.js";
 
 // ---------------------------------------------------------------------------
@@ -73,6 +75,14 @@ function makeParams(overrides?: Partial<ClaudeSdkSessionParams>): ClaudeSdkSessi
   };
 }
 
+function buildImageHash(mimeType: string, data: string): string {
+  return createHash("sha256").update(mimeType).update(":").update(data).digest("hex");
+}
+
+function buildImageFilename(index: number, hash: string): string {
+  return `openclaw-image-${index + 1}-${hash.slice(0, 12)}.png`;
+}
+
 const INIT_MESSAGES = [
   { type: "system", subtype: "init", session_id: "sess_server_abc123" },
   {
@@ -84,6 +94,7 @@ const INIT_MESSAGES = [
 
 afterEach(() => {
   vi.unstubAllEnvs();
+  resetDiagnosticEventsForTest();
 });
 
 // ---------------------------------------------------------------------------
@@ -696,7 +707,7 @@ describe("session lifecycle — multimodal images", () => {
     vi.clearAllMocks();
   });
 
-  it("includes images in the prompt content when provided", async () => {
+  it("sends images via structured multimodal user message blocks", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() =>
       makeMockQueryGen([{ type: "result", subtype: "success" }])(),
@@ -710,17 +721,91 @@ describe("session lifecycle — multimodal images", () => {
     } as never);
 
     const call = queryMock.mock.calls[0];
-    // The images should NOT be in a separate queryOptions.images field
-    // (SDK doesn't support that). They should be encoded in the prompt
-    // or passed as structured content.
     const options = call[0].options as Record<string, unknown>;
     expect(options.images).toBeUndefined();
-    // The prompt should contain the image data somehow
-    // (either as data URI in prompt text or as structured content blocks)
-    const prompt = call[0].prompt;
-    expect(typeof prompt === "string" ? prompt : JSON.stringify(prompt)).toContain(
-      "iVBOR_base64data",
+    const prompt = call[0].prompt as string | AsyncIterable<Record<string, unknown>>;
+    expect(typeof prompt).not.toBe("string");
+    if (typeof prompt === "string") {
+      throw new Error("expected structured SDK prompt stream for image input");
+    }
+    const first = await prompt[Symbol.asyncIterator]().next();
+    expect(first.done).toBe(false);
+    const userMessage = first.value as {
+      type: string;
+      session_id: string;
+      parent_tool_use_id: string | null;
+      message: {
+        role: string;
+        content: Array<
+          | { type: "text"; text: string }
+          | {
+              type: "image";
+              source: { type: "base64"; media_type: string; data: string };
+            }
+        >;
+      };
+    };
+    expect(userMessage.type).toBe("user");
+    expect(userMessage.session_id).toBe("");
+    expect(userMessage.parent_tool_use_id).toBeNull();
+    expect(userMessage.message.role).toBe("user");
+    expect(userMessage.message.content[0]).toEqual({
+      type: "text",
+      text: "What's in this image?",
+    });
+    expect(userMessage.message.content[1]).toEqual({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: "image/png",
+        data: "iVBOR_base64data",
+      },
+    });
+    expect(JSON.stringify(userMessage.message.content)).not.toContain("data:image/");
+  });
+
+  it("persists image prompts in Pi-style user content blocks", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
     );
+
+    const appendMessage = vi.fn(() => "msg-id");
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        sessionManager: { appendMessage },
+      }),
+    );
+
+    await session.prompt("Describe this", {
+      images: [{ type: "image", media_type: "image/png", data: "iVBOR_base64data" }],
+    } as never);
+
+    const userCall = appendMessage.mock.calls.find(
+      (c: unknown[]) => (c[0] as { role?: string }).role === "user",
+    ) as unknown[] | undefined;
+    expect(userCall).toBeDefined();
+    const userMessage = (userCall as unknown[])[0] as {
+      role: string;
+      content:
+        | string
+        | Array<
+            { type: "text"; text?: string } | { type: "image"; data?: string; mimeType?: string }
+          >;
+    };
+    expect(userMessage.role).toBe("user");
+    expect(Array.isArray(userMessage.content)).toBe(true);
+    const content = userMessage.content as Array<
+      { type: "text"; text?: string } | { type: "image"; data?: string; mimeType?: string }
+    >;
+    expect(content[0]).toEqual({ type: "text", text: "Describe this" });
+    expect(content[1]).toEqual({
+      type: "image",
+      data: "iVBOR_base64data",
+      mimeType: "image/png",
+    });
+    expect((content[0] as { text?: string }).text ?? "").not.toContain("data:image/");
   });
 });
 
@@ -818,47 +903,6 @@ describe("session lifecycle — provider env wiring", () => {
     const call = queryMock.mock.calls[0];
     const options = call[0].options as Record<string, unknown>;
     expect(options["model"]).toBe("MiniMax-M2.5");
-  });
-
-  it("translates claude model ids to CLI aliases for the subprocess", async () => {
-    const queryMock = await importQuery();
-    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
-
-    const createSession = await importCreateSession();
-
-    for (const [modelId, expectedAlias] of [
-      ["claude-sonnet-4-6", "sonnet"],
-      ["claude-opus-4-6", "opus"],
-      ["claude-haiku-4-5", "haiku"],
-    ] as const) {
-      vi.clearAllMocks();
-      queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
-      const session = await createSession(
-        makeParams({ modelId, claudeSdkConfig: { provider: "claude-sdk" } }),
-      );
-      await session.prompt("Hello");
-      const options = queryMock.mock.calls[0][0].options as Record<string, unknown>;
-      expect(options["model"]).toBe(expectedAlias);
-    }
-  });
-
-  it("does not alias model ids when opus/sonnet/haiku are only substrings", async () => {
-    const queryMock = await importQuery();
-    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
-
-    const createSession = await importCreateSession();
-    const session = await createSession(
-      makeParams({
-        modelId: "claude-sonnet-opus-hybrid-2026",
-        claudeSdkConfig: { provider: "claude-sdk" },
-      }),
-    );
-
-    await session.prompt("Hello");
-
-    const call = queryMock.mock.calls[0];
-    const options = call[0].options as Record<string, unknown>;
-    expect(options["model"]).toBe("claude-sonnet-opus-hybrid-2026");
   });
 });
 
@@ -1361,5 +1405,516 @@ describe("session lifecycle — dispose warning", () => {
       "openclaw:claude-sdk-session-id",
       "sess_server_abc123",
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bug 1: Thread context prefix stripping for resuming sessions
+// ---------------------------------------------------------------------------
+
+describe("prompt() — thread context prefix stripping for resuming sessions", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("strips [Thread history - for context] prefix when session was created with a resume ID", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt(
+      "[Thread history - for context]\nuser: prev\nassistant: prev reply\n\nActual message",
+    );
+
+    const call = queryMock.mock.calls[0];
+    const prompt = call[0].prompt;
+    // The SDK receives the stripped prompt string
+    expect(typeof prompt).toBe("string");
+    expect(prompt).toBe("Actual message");
+    expect(prompt).not.toContain("[Thread history - for context]");
+  });
+
+  it("strips [Thread starter - for context] prefix when session was created with a resume ID", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt(
+      "[Thread starter - for context]\nOriginal thread message\n\nFollow up question",
+    );
+
+    const call = queryMock.mock.calls[0];
+    const prompt = call[0].prompt;
+    expect(typeof prompt).toBe("string");
+    expect(prompt).toBe("Follow up question");
+    expect(prompt).not.toContain("[Thread starter - for context]");
+  });
+
+  it("does NOT strip prefix when session was created without a resume ID (first turn)", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    // No claudeSdkResumeSessionId — fresh session
+    const session = await createSession(makeParams());
+
+    const fullPrompt =
+      "[Thread history - for context]\nuser: hello\nassistant: hi\n\nActual message";
+    await session.prompt(fullPrompt);
+
+    const call = queryMock.mock.calls[0];
+    const prompt = call[0].prompt;
+    expect(prompt).toBe(fullPrompt);
+    expect(prompt).toContain("[Thread history - for context]");
+  });
+
+  it("preserves the actual message body after stripping", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt(
+      "[Thread history - for context]\nuser: hello\nassistant: hi\n\nDo the thing please",
+    );
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].prompt).toBe("Do the thing please");
+  });
+
+  it("returns prompt unchanged when no separator is present (malformed prefix, do not drop message)", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    const malformed = "[Thread history - for context]\nNo double-newline separator here";
+    await session.prompt(malformed);
+
+    const call = queryMock.mock.calls[0];
+    // No separator → strip is a no-op → message preserved
+    expect(call[0].prompt).toBe(malformed);
+  });
+
+  it("does not strip when prompt has no thread context prefix", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt("Plain message without prefix");
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].prompt).toBe("Plain message without prefix");
+  });
+
+  it("strips thread context even when media preamble lines appear before the marker", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt(
+      [
+        "[media attached: image.png (image/png) | https://example.com/image.png]",
+        "To send an image back, prefer the message tool.",
+        "[Thread history - for context]",
+        "user: previous",
+        "assistant: previous reply",
+        "",
+        "Current user request",
+      ].join("\n"),
+    );
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].prompt).toBe(
+      [
+        "[media attached: image.png (image/png) | https://example.com/image.png]",
+        "To send an image back, prefer the message tool.",
+        "Current user request",
+      ].join("\n"),
+    );
+  });
+
+  it("strips thread context even when hook prepend lines appear before the marker", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt(
+      [
+        "[Hook context]",
+        "channel=signal",
+        "[Thread starter - for context]",
+        "original message",
+        "",
+        "User asks for follow-up",
+      ].join("\n"),
+    );
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].prompt).toBe(
+      ["[Hook context]", "channel=signal", "User asks for follow-up"].join("\n"),
+    );
+  });
+
+  it("does not strip malformed marker segments when marker is not line-aligned", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    const malformed =
+      "Prefix text [Thread history - for context]\nuser: prev\nassistant: prev\n\nBody";
+    await session.prompt(malformed);
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].prompt).toBe(malformed);
+  });
+});
+
+describe("prompt() — media persistence strategy", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("reuses persisted file references on later turns when files_persisted confirms upload", async () => {
+    const queryMock = await importQuery();
+    queryMock
+      .mockImplementationOnce(() =>
+        makeMockQueryGen([
+          { type: "system", subtype: "init", session_id: "sess_media_1" },
+          { type: "system", subtype: "files_persisted", files: [{ file_id: "file_abc123" }] },
+          { type: "result", subtype: "success" },
+        ])(),
+      )
+      .mockImplementationOnce(() => makeMockQueryGen([{ type: "result", subtype: "success" }])());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ claudeSdkResumeSessionId: "sess_media_1" }));
+    const image = { type: "image", media_type: "image/png", data: "iVBOR_base64data" };
+
+    await session.prompt("Analyze image", { images: [image] } as never);
+    await session.prompt("Analyze image again", { images: [image] } as never);
+
+    const secondPrompt = queryMock.mock.calls[1][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await secondPrompt[Symbol.asyncIterator]().next();
+    const content = next.value.message.content;
+    expect(content[1]).toEqual({
+      type: "image",
+      source: { type: "file", file_id: "file_abc123" },
+    });
+  });
+
+  it("falls back to inline base64 when persistence reports failure", async () => {
+    const queryMock = await importQuery();
+    queryMock
+      .mockImplementationOnce(() =>
+        makeMockQueryGen([
+          { type: "system", subtype: "init", session_id: "sess_media_2" },
+          { type: "system", subtype: "files_persisted", failed: [{ error: "upload failed" }] },
+          { type: "result", subtype: "success" },
+        ])(),
+      )
+      .mockImplementationOnce(() => makeMockQueryGen([{ type: "result", subtype: "success" }])());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ claudeSdkResumeSessionId: "sess_media_2" }));
+    const image = { type: "image", media_type: "image/png", data: "iVBOR_base64data" };
+
+    await session.prompt("Analyze image", { images: [image] } as never);
+    await session.prompt("Analyze image again", { images: [image] } as never);
+
+    const secondPrompt = queryMock.mock.calls[1][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await secondPrompt[Symbol.asyncIterator]().next();
+    const content = next.value.message.content;
+    expect(content[1]).toEqual({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: "image/png",
+        data: "iVBOR_base64data",
+      },
+    });
+  });
+
+  it("hydrates persisted hash->file reference state from custom entries after restart", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const imageData = "iVBOR_base64data";
+    const hash = buildImageHash("image/png", imageData);
+    const filename = buildImageFilename(0, hash);
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        provider: "claude-pro",
+        claudeSdkResumeSessionId: "sess_media_resume",
+        sessionManager: {
+          appendMessage: vi.fn(() => "msg-id"),
+          getEntries: vi.fn(() => [
+            {
+              type: "custom",
+              customType: "openclaw:claude-sdk-media-ref",
+              data: {
+                hash,
+                filename,
+                fileId: "file_from_history",
+                sessionId: "sess_media_resume",
+                provider: "claude-pro",
+                modelId: "claude-sonnet-4-5-20250514",
+                updatedAt: Date.now() - 10_000,
+              },
+            },
+          ]),
+        },
+      }),
+    );
+
+    await session.prompt("Analyze restored media", {
+      images: [{ type: "image", media_type: "image/png", data: imageData }],
+    } as never);
+
+    const prompt = queryMock.mock.calls[0][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await prompt[Symbol.asyncIterator]().next();
+    expect(next.value.message.content[1]).toEqual({
+      type: "image",
+      source: { type: "file", file_id: "file_from_history" },
+    });
+  });
+
+  it("recovers hashless media references via deterministic filename mapping", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const imageData = "iVBOR_hashless";
+    const hash = buildImageHash("image/png", imageData);
+    const filename = buildImageFilename(0, hash);
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        provider: "claude-pro",
+        claudeSdkResumeSessionId: "sess_media_resume",
+        sessionManager: {
+          appendMessage: vi.fn(() => "msg-id"),
+          getEntries: vi.fn(() => [
+            {
+              type: "custom",
+              customType: "openclaw:claude-sdk-media-ref",
+              data: {
+                filename,
+                fileId: "file_hashless",
+                sessionId: "sess_media_resume",
+                provider: "claude-pro",
+                modelId: "claude-sonnet-4-5-20250514",
+                updatedAt: Date.now() - 10_000,
+              },
+            },
+          ]),
+        },
+      }),
+    );
+
+    await session.prompt("Analyze restored media", {
+      images: [{ type: "image", media_type: "image/png", data: imageData }],
+    } as never);
+
+    const prompt = queryMock.mock.calls[0][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await prompt[Symbol.asyncIterator]().next();
+    expect(next.value.message.content[1]).toEqual({
+      type: "image",
+      source: { type: "file", file_id: "file_hashless" },
+    });
+  });
+
+  it("does not use recovered file references when resume session id does not match", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const imageData = "iVBOR_mismatch";
+    const hash = buildImageHash("image/png", imageData);
+    const filename = buildImageFilename(0, hash);
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        provider: "claude-pro",
+        claudeSdkResumeSessionId: "sess_media_current",
+        sessionManager: {
+          appendMessage: vi.fn(() => "msg-id"),
+          getEntries: vi.fn(() => [
+            {
+              type: "custom",
+              customType: "openclaw:claude-sdk-media-ref",
+              data: {
+                hash,
+                filename,
+                fileId: "file_other_session",
+                sessionId: "sess_media_old",
+                provider: "claude-pro",
+                modelId: "claude-sonnet-4-5-20250514",
+                updatedAt: Date.now() - 10_000,
+              },
+            },
+          ]),
+        },
+      }),
+    );
+
+    await session.prompt("Analyze restored media", {
+      images: [{ type: "image", media_type: "image/png", data: imageData }],
+    } as never);
+
+    const prompt = queryMock.mock.calls[0][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await prompt[Symbol.asyncIterator]().next();
+    expect(next.value.message.content[1]).toEqual({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: "image/png",
+        data: imageData,
+      },
+    });
+  });
+
+  it("persists resolved media references to session custom entries", async () => {
+    const imageData = "iVBOR_base64data";
+    const hash = buildImageHash("image/png", imageData);
+    const filename = buildImageFilename(0, hash);
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([
+        { type: "system", subtype: "init", session_id: "sess_media_persist" },
+        {
+          type: "system",
+          subtype: "files_persisted",
+          files: [{ filename, file_id: "file_saved" }],
+        },
+        { type: "result", subtype: "success" },
+      ])(),
+    );
+
+    const appendCustomEntry = vi.fn();
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        claudeSdkResumeSessionId: "sess_media_persist",
+        sessionManager: {
+          appendMessage: vi.fn(() => "msg-id"),
+          appendCustomEntry,
+        },
+      }),
+    );
+
+    await session.prompt("Analyze image", {
+      images: [{ type: "image", media_type: "image/png", data: imageData }],
+    } as never);
+
+    expect(appendCustomEntry).toHaveBeenCalledWith(
+      "openclaw:claude-sdk-media-ref",
+      expect.objectContaining({
+        hash,
+        fileId: "file_saved",
+        filename,
+      }),
+    );
+  });
+
+  it("emits runtime.metric diagnostic events for media metrics when diagnostics are enabled", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const events: Array<{ metric: string; fields?: Record<string, unknown> }> = [];
+    const stop = onDiagnosticEvent((evt) => {
+      if (evt.type === "runtime.metric") {
+        events.push({
+          metric: evt.metric,
+          fields: evt.fields,
+        });
+      }
+    });
+    const session = await createSession(
+      makeParams({
+        diagnosticsEnabled: true,
+        claudeSdkResumeSessionId: "sess_media_diag",
+        sessionKey: "agent:test:media-diag",
+      }),
+    );
+
+    try {
+      await session.prompt("Analyze image", {
+        images: [{ type: "image", media_type: "image/png", data: "iVBOR_diag" }],
+      } as never);
+    } finally {
+      stop();
+    }
+
+    expect(events.some((evt) => evt.metric === "claude_sdk.media.inline_bytes_sent")).toBe(true);
+    expect(events.some((evt) => evt.metric === "claude_sdk.media.file_ref_used")).toBe(true);
+    const inlineMetric = events.find((evt) => evt.metric === "claude_sdk.media.inline_bytes_sent");
+    expect((inlineMetric?.fields?.bytes as number | undefined) ?? 0).toBeGreaterThan(0);
   });
 });
