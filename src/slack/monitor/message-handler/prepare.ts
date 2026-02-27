@@ -1,3 +1,4 @@
+import type { StructuredContextInput } from "../../../agents/claude-sdk-runner/context/types.js";
 import { resolveAckReaction } from "../../../agents/identity.js";
 import { hasControlCommand } from "../../../auto-reply/command-detection.js";
 import { shouldHandleTextCommands } from "../../../auto-reply/commands-registry.js";
@@ -47,6 +48,7 @@ import {
   resolveSlackThreadHistory,
   resolveSlackThreadStarter,
 } from "../media.js";
+import { cacheThreadReply } from "../media.thread-replies.js";
 import { resolveSlackRoomContextHints } from "../room-context.js";
 import type { PreparedSlackMessage } from "./types.js";
 
@@ -476,6 +478,10 @@ export async function prepareSlackMessage(params: {
   let threadSessionPreviousTimestamp: number | undefined;
   let threadLabel: string | undefined;
   let threadStarterMedia: Awaited<ReturnType<typeof resolveSlackMedia>> = null;
+  // Hoisted for StructuredContextInput building after the thread block
+  let threadHistoryForCtx: Awaited<ReturnType<typeof resolveSlackThreadHistory>> = [];
+  let threadStarterForCtx: Awaited<ReturnType<typeof resolveSlackThreadStarter>> = null;
+  let threadUserMapForCtx = new Map<string, { name?: string }>();
   if (isThreadReply && threadTs) {
     const starter = await resolveSlackThreadStarter({
       channelId: message.channel,
@@ -560,9 +566,84 @@ export async function prepareSlackMessage(params: {
         logVerbose(
           `slack: populated thread history with ${threadHistory.length} messages for new session`,
         );
+        // Hoist for StructuredContextInput building below
+        threadHistoryForCtx = threadHistory;
+        threadUserMapForCtx = userMap;
+        // Cache for subsequent turns in the same thread (e.g., tool calls)
+        cacheThreadReply(message.channel, threadTs, threadHistory);
       }
     }
+    // Hoist starter for StructuredContextInput building below
+    threadStarterForCtx = starter;
   }
+
+  // Build StructuredContextInput for Claude SDK sessions.
+  // Pi sessions still use the flat ThreadStarterBody/ThreadHistoryBody strings above.
+  const historyEntries =
+    isRoomish && ctx.historyLimit > 0 ? (ctx.channelHistories.get(historyKey) ?? []) : [];
+
+  const adjacentMessagesForCtx: StructuredContextInput["adjacentMessages"] = historyEntries.map(
+    (entry) => ({
+      messageId: entry.messageId ?? "",
+      ts: entry.messageId ?? "",
+      authorId: entry.sender ?? "",
+      authorName: entry.sender ?? "",
+      authorIsBot: false,
+      text: entry.body,
+      threadId: null,
+      replyCount: 0,
+      hasMedia: false,
+      reactions: [],
+    }),
+  );
+
+  let threadDataForCtx: StructuredContextInput["thread"] = null;
+  if (isThreadReply && threadTs && threadStarterForCtx) {
+    // Filter replies: exclude the root/starter (same ts as threadTs) but include all others
+    const replies = threadHistoryForCtx
+      .filter((m) => m.ts !== threadTs)
+      .map((r) => ({
+        messageId: r.ts ?? "",
+        ts: r.ts ?? "",
+        authorId: r.userId ?? r.botId ?? "",
+        authorName: r.userId
+          ? (threadUserMapForCtx.get(r.userId)?.name ?? r.userId)
+          : r.botId
+            ? `Bot (${r.botId})`
+            : "Unknown",
+        authorIsBot: Boolean(r.botId),
+        text: r.text,
+      }));
+    threadDataForCtx = {
+      rootMessageId: threadTs,
+      rootTs: threadTs,
+      rootAuthorId: threadStarterForCtx.userId ?? "",
+      rootAuthorName: threadStarterForCtx.userId
+        ? (threadUserMapForCtx.get(threadStarterForCtx.userId)?.name ?? threadStarterForCtx.userId)
+        : "Unknown",
+      rootAuthorIsBot: false,
+      rootText: threadStarterForCtx.text,
+      replies,
+      totalReplyCount: replies.length,
+    };
+  }
+
+  const structuredContext: StructuredContextInput = {
+    platform: "slack",
+    channelId: message.channel,
+    channelName: roomLabel,
+    anchor: {
+      messageId: message.ts ?? "",
+      ts: message.ts ?? "",
+      authorId: senderId ?? "",
+      authorName: senderName,
+      authorIsBot: isBotMessage,
+      text: rawBody,
+      threadId: isThreadReply && threadTs ? threadTs : null,
+    },
+    adjacentMessages: adjacentMessagesForCtx,
+    thread: threadDataForCtx,
+  };
 
   // Use direct media (including forwarded attachment media) if available, else thread starter media
   const effectiveMedia = effectiveDirectMedia ?? threadStarterMedia;
@@ -603,6 +684,7 @@ export async function prepareSlackMessage(params: {
     ParentSessionKey: threadKeys.parentSessionKey,
     ThreadStarterBody: threadStarterBody,
     ThreadHistoryBody: threadHistoryBody,
+    StructuredContext: structuredContext,
     IsFirstThreadTurn:
       isThreadReply && threadTs && !threadSessionPreviousTimestamp ? true : undefined,
     ThreadLabel: threadLabel,

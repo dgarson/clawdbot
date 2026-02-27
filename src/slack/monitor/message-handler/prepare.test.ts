@@ -608,6 +608,76 @@ describe("slack prepareSlackMessage inbound contract", () => {
     expect(prepared!.ctxPayload.Body).not.toContain("thread_ts");
     expect(prepared!.ctxPayload.Body).not.toContain("parent_user_id");
   });
+
+  // ---------------------------------------------------------------------------
+  // Task 9: StructuredContextInput population
+  // ---------------------------------------------------------------------------
+
+  it("populates StructuredContext for simple direct messages", async () => {
+    const prepared = await prepareWithDefaultCtx(
+      createSlackMessage({ text: "hello there", ts: "1700000000.000" }),
+    );
+
+    expect(prepared).toBeTruthy();
+    const sc = prepared!.ctxPayload.StructuredContext;
+    expect(sc).toBeDefined();
+    expect(sc!.platform).toBe("slack");
+    expect(sc!.channelId).toBe("D123");
+    expect(sc!.anchor.text).toBe("hello there");
+    expect(sc!.anchor.ts).toBe("1700000000.000");
+    expect(sc!.thread).toBeNull();
+  });
+
+  it("populates StructuredContext with thread data for thread reply messages", async () => {
+    // Use thread_ts "900.000" to avoid THREAD_STARTER_CACHE collisions from other tests
+    const replies = vi
+      .fn()
+      .mockResolvedValueOnce({
+        messages: [{ text: "root question", user: "U2", ts: "900.000" }],
+      })
+      .mockResolvedValueOnce({
+        messages: [
+          { text: "root question", user: "U2", ts: "900.000" },
+          { text: "first thread reply", user: "U1", ts: "900.500" },
+          { text: "current message", user: "U1", ts: "901.000" },
+        ],
+        response_metadata: { next_cursor: "" },
+      });
+
+    const slackCtx = createThreadSlackCtx({
+      cfg: {
+        channels: { slack: { enabled: true, replyToMode: "all", groupPolicy: "open" } },
+      } as OpenClawConfig,
+      replies,
+    });
+    slackCtx.resolveUserName = async (id: string) => ({ name: id === "U1" ? "Alice" : "Bob" });
+    slackCtx.resolveChannelName = async () => ({ name: "general", type: "channel" });
+
+    const prepared = await prepareMessageWith(
+      slackCtx,
+      createThreadAccount(),
+      createSlackMessage({
+        channel: "C123",
+        channel_type: "channel",
+        thread_ts: "900.000",
+        text: "current message",
+        ts: "901.000",
+      }),
+    );
+
+    expect(prepared).toBeTruthy();
+    const sc = prepared!.ctxPayload.StructuredContext;
+    expect(sc).toBeDefined();
+    expect(sc!.platform).toBe("slack");
+    expect(sc!.channelId).toBe("C123");
+    expect(sc!.anchor.text).toBe("current message");
+    expect(sc!.anchor.ts).toBe("901.000");
+    expect(sc!.thread).toBeDefined();
+    expect(sc!.thread!.rootText).toBe("root question");
+    // Replies should include the intermediate reply but not the root or current message
+    expect(sc!.thread!.replies.some((r) => r.text === "first thread reply")).toBe(true);
+    expect(sc!.thread!.replies.every((r) => r.text !== "root question")).toBe(true);
+  });
 });
 
 describe("prepareSlackMessage sender prefix", () => {
