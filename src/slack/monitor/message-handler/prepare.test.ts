@@ -678,6 +678,71 @@ describe("slack prepareSlackMessage inbound contract", () => {
     expect(sc!.thread!.replies.some((r) => r.text === "first thread reply")).toBe(true);
     expect(sc!.thread!.replies.every((r) => r.text !== "root question")).toBe(true);
   });
+
+  it("attaches a fetcher that delegates fetchThread to resolveSlackThreadHistory", async () => {
+    // Use a distinct thread_ts to avoid THREAD_STARTER_CACHE collisions
+    const replies = vi
+      .fn()
+      .mockResolvedValueOnce({
+        // resolveSlackThreadStarter call (limit:1)
+        messages: [{ text: "fetcher root", user: "U1", ts: "800.000" }],
+      })
+      .mockResolvedValueOnce({
+        // resolveSlackThreadHistory call for thread snapshot
+        messages: [
+          { text: "fetcher root", user: "U1", ts: "800.000" },
+          { text: "fetcher reply", user: "U2", ts: "800.500" },
+        ],
+        response_metadata: { next_cursor: "" },
+      })
+      .mockResolvedValueOnce({
+        // fetcher.fetchThread call for a different thread ("700.000")
+        messages: [
+          { text: "other root", user: "U3", ts: "700.000" },
+          { text: "other reply", user: "U4", ts: "700.100" },
+        ],
+        response_metadata: { next_cursor: "" },
+      });
+
+    const slackCtx = createThreadSlackCtx({
+      cfg: {
+        channels: { slack: { enabled: true, replyToMode: "all", groupPolicy: "open" } },
+      } as OpenClawConfig,
+      replies,
+    });
+    slackCtx.resolveUserName = async (id: string) => ({ name: id });
+    slackCtx.resolveChannelName = async () => ({ name: "general", type: "channel" });
+
+    const prepared = await prepareMessageWith(
+      slackCtx,
+      createThreadAccount(),
+      createSlackMessage({
+        channel: "C123",
+        channel_type: "channel",
+        thread_ts: "800.000",
+        text: "current reply",
+        ts: "800.500",
+      }),
+    );
+
+    expect(prepared).toBeTruthy();
+    const sc = prepared!.ctxPayload.StructuredContext;
+    expect(sc!.fetcher).toBeDefined();
+
+    // Invoke the fetcher for a different thread not in the snapshot
+    const result = await sc!.fetcher!.fetchThread("700.000", 50);
+    expect(result.replies.length).toBe(1);
+    expect(result.replies[0].text).toBe("other reply");
+    // Root message (ts === threadId) must be excluded from replies
+    expect(result.replies.every((r) => r.ts !== "700.000")).toBe(true);
+  });
+
+  it("fetcher.fetchMessages returns empty array (no Slack batch message API)", async () => {
+    const prepared = await prepareWithDefaultCtx(createSlackMessage({ text: "hello" }));
+    const fetcher = prepared!.ctxPayload.StructuredContext!.fetcher!;
+    const result = await fetcher.fetchMessages(["M1", "M2"]);
+    expect(result).toEqual([]);
+  });
 });
 
 describe("prepareSlackMessage sender prefix", () => {

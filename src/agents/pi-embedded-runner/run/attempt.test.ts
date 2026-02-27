@@ -6,6 +6,7 @@ import {
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
   resolveRuntime,
+  selectSdkPrompt,
 } from "./attempt.js";
 import type { EmbeddedRunAttemptParams } from "./types.js";
 
@@ -360,5 +361,43 @@ describe("resolveRuntime", () => {
     } as unknown as EmbeddedRunAttemptParams;
 
     expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+});
+
+describe("selectSdkPrompt", () => {
+  it("returns rawBodyForSdk when structuredContextInput and rawBodyForSdk are both present", () => {
+    expect(
+      selectSdkPrompt({
+        structuredContextInput: { platform: "slack" },
+        rawBodyForSdk: "raw body without thread prefix",
+        prompt: "Thread history prefix\n\nraw body without thread prefix",
+      }),
+    ).toBe("raw body without thread prefix");
+  });
+
+  it("returns prompt unchanged when structuredContextInput is absent", () => {
+    const prompt = "full prefixed body";
+    expect(selectSdkPrompt({ prompt })).toBe(prompt);
+  });
+
+  it("returns prompt unchanged when rawBodyForSdk is absent even if structuredContextInput present", () => {
+    const prompt = "full prefixed body";
+    expect(
+      selectSdkPrompt({
+        structuredContextInput: { platform: "slack" },
+        prompt,
+      }),
+    ).toBe(prompt);
+  });
+
+  it("returns prompt unchanged when rawBodyForSdk is empty string", () => {
+    const prompt = "full prefixed body";
+    expect(
+      selectSdkPrompt({
+        structuredContextInput: { platform: "slack" },
+        rawBodyForSdk: "",
+        prompt,
+      }),
+    ).toBe(prompt);
   });
 });

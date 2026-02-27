@@ -346,6 +346,18 @@ export function injectHistoryImagesIntoMessages(
   return didMutate;
 }
 
+/** Use the raw (unprefixed) body for SDK sessions with structured context to avoid
+ *  double-counting thread history that's already in ChannelSnapshot/ThreadContext. */
+export function selectSdkPrompt(params: {
+  structuredContextInput?: unknown;
+  rawBodyForSdk?: string;
+  prompt: string;
+}): string {
+  return params.structuredContextInput && params.rawBodyForSdk
+    ? params.rawBodyForSdk
+    : params.prompt;
+}
+
 export async function runEmbeddedAttempt(
   params: EmbeddedRunAttemptParams,
 ): Promise<EmbeddedRunAttemptResult> {
@@ -736,12 +748,8 @@ export async function runEmbeddedAttempt(
       if (runtimeKind === "claude-sdk") {
         const claudeSdkConfig = resolveClaudeSdkConfig(params, sessionAgentId);
         const agentCfg: ClaudeSdkConfig = claudeSdkConfig ?? {};
-        // For SDK sessions with structured context, use the raw (unprefixed) prompt
-        // so thread history is not double-counted (it's in ChannelSnapshot/ThreadContext).
-        const sdkParams =
-          params.structuredContextInput && params.rawBodyForSdk
-            ? { ...params, prompt: params.rawBodyForSdk }
-            : params;
+        const sdkPrompt = selectSdkPrompt(params);
+        const sdkParams = sdkPrompt !== params.prompt ? { ...params, prompt: sdkPrompt } : params;
         agentSession = await prepareClaudeSdkSession(
           sdkParams,
           agentCfg,

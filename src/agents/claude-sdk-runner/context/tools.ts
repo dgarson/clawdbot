@@ -168,7 +168,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
             ts: m.ts,
             author: { user_id: m.authorId, display_name: m.authorName, is_bot: m.authorIsBot },
             text: m.text,
-            media: [] as unknown[],
+            media: [],
           }));
         return JSON.stringify({ messages });
       }

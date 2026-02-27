@@ -1,4 +1,7 @@
-import type { StructuredContextInput } from "../../../agents/claude-sdk-runner/context/types.js";
+import type {
+  ChannelFetcher,
+  StructuredContextInput,
+} from "../../../agents/claude-sdk-runner/context/types.js";
 import { resolveAckReaction } from "../../../agents/identity.js";
 import { hasControlCommand } from "../../../auto-reply/command-detection.js";
 import { shouldHandleTextCommands } from "../../../auto-reply/commands-registry.js";
@@ -628,9 +631,36 @@ export async function prepareSlackMessage(params: {
     };
   }
 
+  const channelId = message.channel;
+  const slackFetcher: ChannelFetcher = {
+    async fetchThread(threadId: string, maxReplies: number) {
+      const msgs = await resolveSlackThreadHistory({
+        channelId,
+        threadTs: threadId,
+        client: ctx.app.client,
+        limit: maxReplies,
+      });
+      const replies = msgs
+        .filter((m) => m.ts !== threadId)
+        .map((m) => ({
+          messageId: m.ts ?? "",
+          ts: m.ts ?? "",
+          authorId: m.userId ?? m.botId ?? "",
+          authorName: m.userId ?? m.botId ?? "Unknown",
+          authorIsBot: Boolean(m.botId),
+          text: m.text,
+        }));
+      return { replies, totalCount: replies.length };
+    },
+    async fetchMessages(_messageIds: string[]) {
+      // Slack has no batch message-by-ID API; adjacentMessages cover the snapshot window
+      return [];
+    },
+  };
+
   const structuredContext: StructuredContextInput = {
     platform: "slack",
-    channelId: message.channel,
+    channelId,
     channelName: roomLabel,
     anchor: {
       messageId: message.ts ?? "",
@@ -643,6 +673,7 @@ export async function prepareSlackMessage(params: {
     },
     adjacentMessages: adjacentMessagesForCtx,
     thread: threadDataForCtx,
+    fetcher: slackFetcher,
   };
 
   // Use direct media (including forwarded attachment media) if available, else thread starter media
