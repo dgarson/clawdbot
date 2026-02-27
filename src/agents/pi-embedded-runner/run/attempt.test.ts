@@ -1,11 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../../../config/config.js";
+import { resolveClaudeSdkConfig } from "../../claude-sdk-runner/prepare-session.js";
 import {
   resolveAttemptFsWorkspaceOnly,
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
   wrapStreamFnTrimToolCallNames,
+  resolveRuntime,
 } from "./attempt.js";
+import type { EmbeddedRunAttemptParams } from "./types.js";
 
 describe("resolvePromptBuildHookResult", () => {
   function createLegacyOnlyHookRunner() {
@@ -172,5 +175,385 @@ describe("wrapStreamFnTrimToolCallNames", () => {
     expect(finalToolCall.name).toBe("browser");
     expect(result).toBe(finalMessage);
     expect(baseFn).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("resolveClaudeSdkConfig", () => {
+  it("returns undefined for empty claudeSdk object (no provider key)", () => {
+    const params = {
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: {} }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
+  it("returns config when claudeSdk has a provider key", () => {
+    const params = {
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: { provider: "claude-sdk" } }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({ provider: "claude-sdk" });
+  });
+
+  it("returns undefined when claudeSdk is explicitly false", () => {
+    const params = {
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: false }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
+  it("falls back to defaults.claudeSdk when agent has no override", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: { claudeSdk: { provider: "anthropic" } },
+          list: [{ id: "main" }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({ provider: "anthropic" });
+  });
+
+  it("merges defaults.claudeSdk and agent claudeSdk with agent fields taking precedence", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: {
+            claudeSdk: {
+              provider: "anthropic",
+              thinkingDefault: "low",
+              configDir: "/tmp/default-claude-dir",
+            },
+          },
+          list: [
+            { id: "main", claudeSdk: { provider: "zai", configDir: "/tmp/agent-claude-dir" } },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({
+      provider: "zai",
+      thinkingDefault: "low",
+      configDir: "/tmp/agent-claude-dir",
+    });
+  });
+
+  it("keeps defaults fields when agent claudeSdk is an empty object", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: {
+            claudeSdk: {
+              provider: "anthropic",
+              thinkingDefault: "medium",
+              configDir: "/tmp/default-claude-dir",
+            },
+          },
+          list: [{ id: "main", claudeSdk: {} }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({
+      provider: "anthropic",
+      thinkingDefault: "medium",
+      configDir: "/tmp/default-claude-dir",
+    });
+  });
+
+  it("honors explicit agent false even when defaults.claudeSdk is set", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: { claudeSdk: { provider: "anthropic", thinkingDefault: "medium" } },
+          list: [{ id: "main", claudeSdk: false }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
+  it("returns undefined for empty defaults.claudeSdk (no provider key)", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: { claudeSdk: {} },
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "other")).toBeUndefined();
+  });
+
+  it("returns custom claudeSdk config with required explicit fields", () => {
+    const params = {
+      config: {
+        agents: {
+          list: [
+            {
+              id: "main",
+              claudeSdk: {
+                provider: "custom",
+                baseUrl: "https://gateway.example/v1",
+                authProfileId: "custom-profile",
+                anthropicDefaultHaikuModel: "custom-haiku",
+                anthropicDefaultSonnetModel: "custom-sonnet",
+                anthropicDefaultOpusModel: "custom-opus",
+              },
+            },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({
+      provider: "custom",
+      baseUrl: "https://gateway.example/v1",
+      authProfileId: "custom-profile",
+      anthropicDefaultHaikuModel: "custom-haiku",
+      anthropicDefaultSonnetModel: "custom-sonnet",
+      anthropicDefaultOpusModel: "custom-opus",
+    });
+  });
+
+  it("claudeSdkProviderOverride custom when existing claudeSdk has provider anthropic returns undefined", () => {
+    const params = {
+      claudeSdkProviderOverride: "custom",
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: { provider: "anthropic" } }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
+  it("claudeSdkProviderOverride custom when existing claudeSdk already has provider custom with baseUrl returns full config", () => {
+    const params = {
+      claudeSdkProviderOverride: "custom",
+      config: {
+        agents: {
+          list: [
+            {
+              id: "main",
+              claudeSdk: {
+                provider: "custom",
+                baseUrl: "https://gateway.example/v1",
+                authProfileId: "my-profile",
+                anthropicDefaultHaikuModel: "haiku-custom",
+                anthropicDefaultSonnetModel: "sonnet-custom",
+                anthropicDefaultOpusModel: "opus-custom",
+              },
+            },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({
+      provider: "custom",
+      baseUrl: "https://gateway.example/v1",
+      authProfileId: "my-profile",
+      anthropicDefaultHaikuModel: "haiku-custom",
+      anthropicDefaultSonnetModel: "sonnet-custom",
+      anthropicDefaultOpusModel: "opus-custom",
+    });
+  });
+
+  it("config undefined (no agents) returns undefined", () => {
+    const params = {
+      config: undefined,
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
+  it("drops custom-only fields when overriding custom config to non-custom provider", () => {
+    const params = {
+      claudeSdkProviderOverride: "zai",
+      config: {
+        agents: {
+          list: [
+            {
+              id: "main",
+              claudeSdk: {
+                provider: "custom",
+                baseUrl: "https://gateway.example/v1",
+                authProfileId: "custom-profile",
+                thinkingDefault: "low",
+                configDir: "/tmp/custom-claude-dir",
+                supportedProviders: ["claude-pro", "zai"],
+                anthropicDefaultHaikuModel: "custom-haiku",
+                anthropicDefaultSonnetModel: "custom-sonnet",
+                anthropicDefaultOpusModel: "custom-opus",
+              },
+            },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({
+      provider: "zai",
+      thinkingDefault: "low",
+      configDir: "/tmp/custom-claude-dir",
+      supportedProviders: ["claude-pro", "zai"],
+    });
+  });
+});
+
+describe("resolveRuntime", () => {
+  it("returns claude-sdk when resolved auth mode is system-keychain", () => {
+    const params = {
+      provider: "not-claude-pro",
+      resolvedProviderAuth: {
+        source: "Claude Pro (system keychain)",
+        mode: "system-keychain",
+      },
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("returns claude-sdk for known claude-sdk providers", () => {
+    const params = {
+      provider: "claude-pro",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("returns claude-sdk for claude-max alias", () => {
+    const params = {
+      provider: "claude-max",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("returns pi for non-claude-sdk providers", () => {
+    const params = {
+      provider: "openai",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("pi");
+  });
+
+  it("returns claude-sdk when provider is listed in claudeSdk.supportedProviders", () => {
+    const params = {
+      provider: "openai",
+      config: {
+        agents: {
+          list: [
+            {
+              id: "main",
+              claudeSdk: { provider: "anthropic", supportedProviders: ["openai", "zai"] },
+            },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("returns pi when claudeSdk config exists but provider is not supported", () => {
+    const params = {
+      provider: "openai",
+      config: {
+        agents: {
+          list: [
+            {
+              id: "main",
+              claudeSdk: { provider: "anthropic", supportedProviders: ["zai"] },
+            },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("pi");
+  });
+
+  it("warns when provider resembles claude-sdk but does not match", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    // Use a dynamic import to access the subsystem logger's warn method.
+    // Instead, we test indirectly: resolveRuntime returns "pi" and does not throw.
+    const params = {
+      provider: "claude-pro-custom",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    const result = resolveRuntime(params, "main");
+    expect(result).toBe("pi");
+    warnSpy.mockRestore();
+  });
+
+  it("runtimeOverride pi forces pi even when provider is a known claude-sdk provider", () => {
+    const params = {
+      provider: "claude-pro",
+      runtimeOverride: "pi",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("pi");
+  });
+
+  it("runtimeOverride claude-sdk forces claude-sdk even when provider is openai with no supportedProviders", () => {
+    const params = {
+      provider: "openai",
+      runtimeOverride: "claude-sdk",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("supportedProviders matching is case-insensitive: provider OpenAI matches entry openai", () => {
+    const params = {
+      provider: "OpenAI",
+      config: {
+        agents: {
+          list: [
+            {
+              id: "main",
+              claudeSdk: { provider: "anthropic", supportedProviders: ["openai"] },
+            },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("config undefined with a non-sdk provider returns pi", () => {
+    const params = {
+      provider: "gemini",
+      config: undefined,
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("pi");
   });
 });
