@@ -64,10 +64,19 @@ describe("buildProviderEnv", () => {
     expectTrafficGuardrails(env);
   });
 
-  it("minimax: omits ANTHROPIC_AUTH_TOKEN when no resolvedApiKey", () => {
-    const env = buildProviderEnv({ provider: "minimax" });
+  it("minimax: throws when auth resolver did not provide credentials", () => {
+    expect(() => buildProviderEnv({ provider: "minimax" })).toThrow(
+      "[claude-sdk] minimax provider requires API credentials from auth profile resolution",
+    );
+  });
+
+  it("minimax-portal: maps to the minimax anthropic-compatible endpoint", () => {
+    const env = buildProviderEnv({ provider: "minimax-portal" }, resolvedAuth("sk-minimax-auth"));
     expect(env!["ANTHROPIC_BASE_URL"]).toBe("https://api.minimax.io/anthropic");
-    expect("ANTHROPIC_AUTH_TOKEN" in env!).toBe(false);
+    expect(env!["ANTHROPIC_AUTH_TOKEN"]).toBe("sk-minimax-auth");
+    expect(env!["ANTHROPIC_DEFAULT_HAIKU_MODEL"]).toBe("MiniMax-M2.5");
+    expect(env!["ANTHROPIC_DEFAULT_SONNET_MODEL"]).toBe("MiniMax-M2.5");
+    expect(env!["ANTHROPIC_DEFAULT_OPUS_MODEL"]).toBe("MiniMax-M2.5");
   });
 
   it("zai: uses hardcoded GLM model names", () => {
@@ -233,5 +242,27 @@ describe("buildProviderEnv", () => {
         { source: "profile:custom-profile", mode: "api-key" },
       ),
     ).toThrow("[claude-sdk] custom provider requires API credentials from claudeSdk.authProfileId");
+  });
+
+  it("custom: throws when baseUrl is missing or empty", () => {
+    expect(() =>
+      buildProviderEnv(
+        {
+          provider: "custom",
+          baseUrl: "   ",
+          authProfileId: "custom-profile",
+          anthropicDefaultHaikuModel: "custom-haiku",
+          anthropicDefaultSonnetModel: "custom-sonnet",
+          anthropicDefaultOpusModel: "custom-opus",
+        },
+        resolvedAuth("sk-custom-auth-token"),
+      ),
+    ).toThrow("[claude-sdk] custom provider requires a non-empty baseUrl");
+  });
+
+  it("throws for unknown provider IDs", () => {
+    expect(() =>
+      buildProviderEnv({ provider: "not-a-provider" as never }, resolvedAuth("sk")),
+    ).toThrow("[claude-sdk] Unknown provider: not-a-provider");
   });
 });

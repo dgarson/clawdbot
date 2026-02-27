@@ -25,6 +25,7 @@ import { translateSdkMessageToEvents } from "./event-adapter.js";
 import { createClaudeSdkMcpToolServer } from "./mcp-tool-server.js";
 import { buildProviderEnv } from "./provider-env.js";
 import {
+  CLAUDE_SDK_STDERR_TAIL_MAX_CHARS,
   CLAUDE_SDK_STDOUT_TAIL_MAX_CHARS,
   createClaudeSdkSpawnWithStdoutTailLogging,
   type ClaudeSdkSpawnProcess,
@@ -50,20 +51,11 @@ function resolveThinkingTokenBudget(thinkLevel?: string): number | null {
     case "off":
     case "none":
       return null;
-    case "minimal":
     case "low":
-    case "basic":
       return 4000;
     case "medium":
-    case "deep":
-    case "think-hard":
       return 10000;
     case "high":
-    case "xhigh":
-    case "max":
-    case "highest":
-    case "ultrathink":
-    case "extended":
       return 40000;
     default:
       return null;
@@ -120,17 +112,25 @@ function resolveTranscriptMetadata(provider?: string): {
  */
 function resolveClaudeSdkModelAlias(modelId: string): string {
   const lower = modelId.toLowerCase();
-  if (lower.includes("opus")) {
-    return "opus";
-  }
-  if (lower.includes("sonnet")) {
-    return "sonnet";
-  }
-  if (lower.includes("haiku")) {
-    return "haiku";
+  const matchedTiers = (["opus", "sonnet", "haiku"] as const).filter((tier) =>
+    new RegExp(`\\b${tier}\\b`).test(lower),
+  );
+  if (matchedTiers.length === 1) {
+    return matchedTiers[0];
   }
   // Unknown model — pass through and let the CLI reject it explicitly.
   return modelId;
+}
+
+function appendTail(currentTail: string | undefined, chunk: string, maxChars: number): string {
+  if (!chunk) {
+    return currentTail ?? "";
+  }
+  const next = `${currentTail ?? ""}${chunk}`;
+  if (next.length <= maxChars) {
+    return next;
+  }
+  return next.slice(-maxChars);
 }
 
 function buildQueryOptions(
@@ -156,6 +156,8 @@ function buildQueryOptions(
     // Enable real-time streaming: the SDK yields stream_event messages with
     // token-level deltas so the UI can show text as it generates.
     includePartialMessages: true,
+    // Use the caller-provided workspace for Claude SDK subprocess execution.
+    cwd: params.workspaceDir,
     // Pass AbortController for canonical SDK cancellation. The SDK terminates
     // the underlying subprocess when this signal aborts. We also wire
     // interrupt() as defense-in-depth in the for-await loop.
@@ -163,9 +165,9 @@ function buildQueryOptions(
     // Capture subprocess stderr so process exit errors have actionable context.
     // Without this the SDK discards stderr and "exited with code N" is opaque.
     stderr: (data: string) => {
-      const trimmed = data.trim();
-      if (trimmed) {
-        state.lastStderr = trimmed;
+      const tail = appendTail(state.lastStderr, data, CLAUDE_SDK_STDERR_TAIL_MAX_CHARS).trim();
+      if (tail) {
+        state.lastStderr = tail;
       }
     },
   };
@@ -245,6 +247,7 @@ export async function createClaudeSdkSession(
     subscribers: [],
     streaming: false,
     compacting: false,
+    pendingCompactionEnd: undefined,
     abortController: null,
     systemPrompt: params.systemPrompt,
     pendingSteer: [],
@@ -263,7 +266,7 @@ export async function createClaudeSdkSession(
     transcriptProvider,
     transcriptApi,
     modelCost: params.modelCost,
-    enableClaudeWebSearch: false,
+    sessionIdPersisted: false,
   };
 
   const clearTurnToolCorrelationState = (): void => {
@@ -309,6 +312,10 @@ export async function createClaudeSdkSession(
     },
 
     async prompt(text, options) {
+      if (state.streaming) {
+        throw new Error("Claude SDK session already has an in-flight prompt");
+      }
+
       // Drain any pending steer text by prepending to the current prompt
       const steerText = state.pendingSteer.splice(0).join("\n");
       let effectivePrompt = steerText ? `${steerText}\n\n${text}` : text;
@@ -326,7 +333,14 @@ export async function createClaudeSdkSession(
       // for the current use cases (screenshots, diagrams).
       if (options?.images && options.images.length > 0) {
         const imageMarkdown = options.images
-          .map((img) => `![image](data:${img.media_type};base64,${img.data})`)
+          .map((img) => {
+            const mimeType = (
+              img as { mimeType?: string; media_type?: string; mimeTypeLower?: string }
+            ).mimeType;
+            const legacyMediaType = (img as { media_type?: string }).media_type;
+            const mediaType = mimeType ?? legacyMediaType ?? "image/png";
+            return `![image](data:${mediaType};base64,${img.data})`;
+          })
           .join("\n");
         effectivePrompt = `${imageMarkdown}\n\n${effectivePrompt}`;
       }
@@ -381,9 +395,7 @@ export async function createClaudeSdkSession(
         // when it encounters a result with subtype "error_*" or is_error: true.
         // Throwing here ensures prompt() rejects rather than resolving silently.
         if (state.sdkResultError) {
-          const errMsg = state.sdkResultError;
-          state.sdkResultError = undefined;
-          throw new Error(errMsg);
+          throw new Error(state.sdkResultError);
         }
       } catch (err) {
         if ((err as { name?: string }).name === "AbortError") {
@@ -419,6 +431,7 @@ export async function createClaudeSdkSession(
     // -------------------------------------------------------------------------
     abort(): Promise<void> {
       state.abortController?.abort();
+      return Promise.resolve();
     },
 
     abortCompaction() {
@@ -428,6 +441,9 @@ export async function createClaudeSdkSession(
     },
 
     dispose() {
+      if (state.sessionIdPersisted === true) {
+        return;
+      }
       if (!state.claudeSdkSessionId) {
         if (state.messages.length > 0) {
           log.warn(
@@ -442,6 +458,7 @@ export async function createClaudeSdkSession(
             "openclaw:claude-sdk-session-id",
             state.claudeSdkSessionId,
           );
+          state.sessionIdPersisted = true;
         } catch {
           // Non-fatal — session_id persistence failed
         }

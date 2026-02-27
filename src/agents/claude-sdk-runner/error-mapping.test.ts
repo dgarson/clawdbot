@@ -13,6 +13,7 @@
 
 import { describe, it, expect } from "vitest";
 import {
+  classifyFailoverReason,
   isAuthErrorMessage,
   isRateLimitErrorMessage,
   isTimeoutErrorMessage,
@@ -173,5 +174,24 @@ describe("error mapping — mapped errors have cause chain", () => {
 
     // The cause chain preserves the original for debugging
     expect((mapped as Error & { cause?: unknown }).cause).toBe(original);
+  });
+});
+
+describe("error mapping — thrown prompt errors stay failover-classifiable", () => {
+  it("maps auth SDK errors to string signals consumed by run.ts prompt-error path", () => {
+    const sdkError = makeSdkError("AuthenticationError", "invalid key");
+    const mapped = mapSdkError(sdkError) as Error;
+
+    expect(mapped.name).toBe("AssistantError");
+    expect(isFailoverErrorMessage(mapped.message)).toBe(true);
+    expect(classifyFailoverReason(mapped.message)).toBe("auth");
+  });
+
+  it("maps 5xx SDK errors to retryable prompt failover reasons", () => {
+    const sdkError = makeSdkError("APIError", "Server crashed", 503);
+    const mapped = mapSdkError(sdkError) as Error;
+
+    expect(isFailoverErrorMessage(mapped.message)).toBe(true);
+    expect(["timeout", "rate_limit"]).toContain(classifyFailoverReason(mapped.message));
   });
 });

@@ -743,7 +743,11 @@ async function handleAgentsFilesSet({
   }
   const content = String(params.content ?? "");
   try {
-    await writeFileSafely(resolvedPath.ioPath, content);
+    await writeFileWithinRoot({
+      rootDir: resolvedPath.workspaceReal,
+      relativePath: name,
+      data: content,
+    });
   } catch {
     respond(
       false,

@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
+import type { ImageContent } from "@mariozechner/pi-ai";
 import { streamSimple } from "@mariozechner/pi-ai";
 import {
   createAgentSession,
@@ -149,7 +150,7 @@ export function resolveRuntime(
     return "claude-sdk";
   }
   // Backstop for callers that haven't threaded resolvedProviderAuth yet.
-  if (CLAUDE_SDK_PROVIDERS.has(params.provider)) {
+  if (CLAUDE_SDK_PROVIDERS.has(normalizedProvider)) {
     return "claude-sdk";
   }
   if (/claude[-_]?pro/i.test(params.provider) && !CLAUDE_SDK_PROVIDERS.has(params.provider)) {
@@ -297,6 +298,67 @@ function summarizeSessionContext(messages: AgentMessage[]): {
     totalImageBlocks,
     maxMessageTextChars,
   };
+}
+
+export function pruneProcessedSessionImages(session?: {
+  messages: AgentMessage[];
+  agent: { replaceMessages: (messages: AgentMessage[]) => void };
+}) {
+  if (!session) {
+    return;
+  }
+  const didPrune = pruneProcessedHistoryImages(session.messages);
+  if (didPrune) {
+    session.agent.replaceMessages(session.messages);
+  }
+}
+
+export function injectHistoryImagesIntoMessages(
+  messages: AgentMessage[],
+  historyImagesByIndex: Map<number, ImageContent[]>,
+): boolean {
+  if (historyImagesByIndex.size === 0) {
+    return false;
+  }
+  let didMutate = false;
+
+  for (const [msgIndex, images] of historyImagesByIndex) {
+    // Bounds check: ensure index is valid before accessing
+    if (msgIndex < 0 || msgIndex >= messages.length) {
+      continue;
+    }
+    const msg = messages[msgIndex];
+    if (msg && msg.role === "user") {
+      // Convert string content to array format if needed
+      if (typeof msg.content === "string") {
+        msg.content = [{ type: "text", text: msg.content }];
+        didMutate = true;
+      }
+      if (Array.isArray(msg.content)) {
+        // Check for existing image content to avoid duplicates across turns
+        const existingImageData = new Set(
+          msg.content
+            .filter(
+              (c): c is ImageContent =>
+                c != null &&
+                typeof c === "object" &&
+                c.type === "image" &&
+                typeof c.data === "string",
+            )
+            .map((c) => c.data),
+        );
+        for (const img of images) {
+          // Only add if this image isn't already in the message
+          if (!existingImageData.has(img.data)) {
+            msg.content.push(img);
+            didMutate = true;
+          }
+        }
+      }
+    }
+  }
+
+  return didMutate;
 }
 
 export async function runEmbeddedAttempt(
@@ -732,10 +794,10 @@ export async function runEmbeddedAttempt(
           settingsManager,
           resourceLoader,
         }));
-        applySystemPromptOverrideToSession(session, systemPromptText);
         if (!session) {
           throw new Error("Embedded agent session missing");
         }
+        applySystemPromptOverrideToSession(session, systemPromptText);
         piAgentForFlush = session.agent;
         agentSession = createPiRuntimeAdapter({
           session,
@@ -1154,14 +1216,10 @@ export async function runEmbeddedAttempt(
 
         try {
           // Idempotent cleanup for legacy sessions with persisted image payloads.
-          // Called each run; only mutates already-answered user turns that still carry image blocks.
-          const didPruneImages = pruneProcessedHistoryImages(activeSession.messages);
-          if (didPruneImages) {
-            activeSession.agent.replaceMessages(activeSession.messages);
-          }
+          pruneProcessedSessionImages(session);
 
           // Detect and load images referenced in the prompt for vision-capable models.
-          // Images are prompt-local only (pi-like behavior).
+          // Also scans conversation history to enable follow-up questions about earlier images.
           const imageResult = await detectAndLoadPromptImages({
             prompt: effectivePrompt,
             workspaceDir: effectiveWorkspace,
@@ -1211,6 +1269,7 @@ export async function runEmbeddedAttempt(
                 `historyImageBlocks=${sessionSummary.totalImageBlocks} ` +
                 `systemPromptChars=${systemLen} promptChars=${promptLen} ` +
                 `promptImages=${imageResult.images.length} ` +
+                `historyImageMessages=${imageResult.historyImagesByIndex.size} ` +
                 `provider=${params.provider}/${params.modelId} sessionFile=${params.sessionFile}`,
             );
           }

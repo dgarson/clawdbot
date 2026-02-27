@@ -33,7 +33,7 @@ function dedupeProviders(providerIds: Array<string | undefined>): string[] {
       continue;
     }
     seen.add(normalized);
-    deduped.push(trimmed);
+    deduped.push(normalized);
   }
   return deduped;
 }
@@ -159,14 +159,14 @@ function resolveClaudeSdkProviderCandidates(params: {
   const supportedProviders = resolveSupportedProviders(params.claudeSdkConfig);
   const normalizedProvider = normalizeProviderId(params.provider);
   const supportedSet = new Set(supportedProviders.map((entry) => normalizeProviderId(entry)));
-  const providerIsSystemKeychain = SYSTEM_KEYCHAIN_PROVIDERS.has(params.provider);
+  const providerIsSystemKeychain = SYSTEM_KEYCHAIN_PROVIDERS.has(normalizedProvider);
   const providerIsSupported = supportedSet.has(normalizedProvider);
   if (!providerIsSystemKeychain && !providerIsSupported) {
     return [];
   }
   const configuredPrimaryProvider =
     params.claudeSdkConfig && params.claudeSdkConfig.provider !== "claude-sdk"
-      ? params.claudeSdkConfig.provider
+      ? normalizeProviderId(params.claudeSdkConfig.provider)
       : undefined;
   const orderedProviders = providerIsSystemKeychain
     ? [params.provider, configuredPrimaryProvider, ...supportedProviders]

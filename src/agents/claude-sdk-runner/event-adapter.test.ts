@@ -22,6 +22,7 @@ function makeState(overrides?: Partial<ClaudeSdkEventAdapterState>): ClaudeSdkEv
     subscribers: [],
     streaming: false,
     compacting: false,
+    pendingCompactionEnd: undefined,
     abortController: null,
     systemPrompt: "You are helpful.",
     pendingSteer: [],
@@ -31,6 +32,7 @@ function makeState(overrides?: Partial<ClaudeSdkEventAdapterState>): ClaudeSdkEv
     messageIdCounter: 0,
     streamingMessageId: null,
     claudeSdkSessionId: undefined,
+    sessionIdPersisted: false,
     sdkResultError: undefined,
     lastStderr: undefined,
     streamingBlockTypes: new Map(),
@@ -68,6 +70,34 @@ describe("event translation — required event types", () => {
 
     expect(state.claudeSdkSessionId).toBe("sess_abc123");
     expect(events).toContainEqual(expect.objectContaining({ type: "agent_start" }));
+  });
+
+  it("system/init with empty session_id still emits agent_start and does not overwrite session id", () => {
+    const state = makeState({ claudeSdkSessionId: "existing-session" });
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      { type: "system", subtype: "init", session_id: "" } as never,
+      state,
+    );
+
+    expect(state.claudeSdkSessionId).toBe("existing-session");
+    expect(events).toContainEqual(expect.objectContaining({ type: "agent_start" }));
+  });
+
+  it("unknown message types are ignored without emitting events", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "mystery_type",
+        payload: { anything: true },
+      } as never,
+      state,
+    );
+
+    expect(events).toHaveLength(0);
   });
 
   it("emits message_start on first assistant text content block", () => {
@@ -126,6 +156,26 @@ describe("event translation — required event types", () => {
 
     const messageEnd = events.find((e) => e.type === "message_end");
     expect(messageEnd).toBeDefined();
+  });
+
+  it("assistant message with empty content still emits message lifecycle events", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [],
+        },
+      } as never,
+      state,
+    );
+
+    const types = events.map((evt) => evt.type);
+    expect(types[0]).toBe("message_start");
+    expect(types[types.length - 1]).toBe("message_end");
   });
 
   it("emits agent_end on result message", () => {
@@ -376,6 +426,11 @@ describe("event translation — thinking content", () => {
 // Section 1.1: Tool execution events (from MCP handler)
 // ---------------------------------------------------------------------------
 
+// NOTE: These tests assert on hardcoded literal objects, not on adapter output.
+// tool_execution_* events are emitted by mcp-tool-server.ts (not by the adapter),
+// so they cannot be exercised through translateSdkMessageToEvents. The tests below
+// document the expected Pi AgentEvent shape contract only — behavioral coverage
+// lives in mcp-tool-server.test.ts.
 describe("event translation — tool execution event shapes (Pi AgentEvent contract)", () => {
   it("tool_execution_start event has correct Pi AgentEvent fields", () => {
     // Tool execution events are emitted from the MCP handler, not directly from
@@ -760,7 +815,20 @@ describe("event translation — text_end emission for blockReplyBreak parity", (
 // ---------------------------------------------------------------------------
 
 describe("event translation — compaction events", () => {
-  it("emits auto_compaction_start then auto_compaction_end on compact_boundary", () => {
+  function emitCompactionCompletionSignal(state: ClaudeSdkEventAdapterState): void {
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: { role: "assistant", content: [], model: "test" },
+        },
+      } as never,
+      state,
+    );
+  }
+
+  it("emits auto_compaction_start immediately and auto_compaction_end on next eligible event", () => {
     const state = makeState();
     const events = captureEvents(state);
 
@@ -773,6 +841,7 @@ describe("event translation — compaction events", () => {
       } as never,
       state,
     );
+    emitCompactionCompletionSignal(state);
 
     const types = events.map((e) => e.type);
     const startIdx = types.indexOf("auto_compaction_start");
@@ -835,6 +904,7 @@ describe("event translation — compaction events", () => {
       } as never,
       state,
     );
+    emitCompactionCompletionSignal(state);
 
     const endEvt = events.find((e) => e.type === "auto_compaction_end");
     expect(endEvt).toBeDefined();
@@ -856,6 +926,7 @@ describe("event translation — compaction events", () => {
       } as never,
       state,
     );
+    emitCompactionCompletionSignal(state);
 
     const startEvt = events.find((e) => e.type === "auto_compaction_start") as Record<
       string,
@@ -880,9 +951,86 @@ describe("event translation — compaction events", () => {
       } as never,
       state,
     );
+    emitCompactionCompletionSignal(state);
 
     const endEvt = events.find((e) => e.type === "auto_compaction_end");
     expect(endEvt?.willRetry).toBe(true);
+  });
+
+  it("uses top-level willRetry when compact_metadata omits retry fields", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "compact_boundary",
+        session_id: "sess_retry_top_level",
+        compact_metadata: { trigger: "auto", pre_tokens: 777 },
+        willRetry: true,
+      } as never,
+      state,
+    );
+    emitCompactionCompletionSignal(state);
+
+    const endEvt = events.find((e) => e.type === "auto_compaction_end");
+    expect(endEvt?.willRetry).toBe(true);
+  });
+
+  it("keeps compacting=true after compact_boundary until next eligible SDK message", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "compact_boundary",
+        session_id: "sess_recent",
+        compact_metadata: { trigger: "auto", pre_tokens: 123 },
+      } as never,
+      state,
+    );
+
+    expect(state.compacting).toBe(true);
+
+    emitCompactionCompletionSignal(state);
+
+    expect(state.compacting).toBe(false);
+  });
+
+  it("ignores unknown messages while compacting and preserves compacting=true", () => {
+    const state = makeState({ compacting: true });
+    captureEvents(state);
+
+    translateSdkMessageToEvents({ type: "unknown_x" } as never, state);
+
+    expect(state.compacting).toBe(true);
+  });
+
+  it("does not end compaction on unknown system subtype", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "compact_boundary",
+        session_id: "sess_abc",
+        compact_metadata: { trigger: "auto", pre_tokens: 1000 },
+      } as never,
+      state,
+    );
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "ping",
+      } as never,
+      state,
+    );
+
+    expect(state.compacting).toBe(true);
+    expect(events.filter((evt) => evt.type === "auto_compaction_end")).toHaveLength(0);
   });
 });
 
@@ -1789,6 +1937,41 @@ describe("event translation -- JSONL persistence", () => {
     expect(runtimeAssistant.stopReason).toBe("toolUse");
   });
 
+  it("normalizes stopReason edge cases with safe fallback for unknown strings", () => {
+    const appendMessage = vi.fn();
+    const state = makeState({ sessionManager: { appendMessage } });
+    captureEvents(state);
+
+    const cases = [
+      { input: "length", expected: "length" },
+      { input: "max_tokens", expected: "length" },
+      { input: "aborted", expected: "aborted" },
+      { input: "cancelled", expected: "aborted" },
+      { input: "future_new_reason", expected: "stop" },
+    ];
+
+    for (const testCase of cases) {
+      translateSdkMessageToEvents(
+        {
+          type: "assistant",
+          message: {
+            role: "assistant",
+            content: [{ type: "text", text: "hi" }],
+            stop_reason: testCase.input,
+          },
+        } as never,
+        state,
+      );
+    }
+
+    const persistedStopReasons = appendMessage.mock.calls.map((call) => call[0].stopReason);
+    expect(persistedStopReasons).toEqual(cases.map((testCase) => testCase.expected));
+    const runtimeStopReasons = state.messages.map(
+      (message) => (message as { stopReason?: string }).stopReason,
+    );
+    expect(runtimeStopReasons).toEqual(cases.map((testCase) => testCase.expected));
+  });
+
   it("uses configured transcript provider/api metadata for persistence", () => {
     const appendMessage = vi.fn();
     const state = makeState({
@@ -1919,5 +2102,413 @@ describe("event translation -- JSONL persistence", () => {
         state,
       );
     }).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Issue 4: message_delta stop_reason propagation
+// The message_delta event carries delta.stop_reason which must be captured
+// and reflected in the message_end event's stopReason field.
+// ---------------------------------------------------------------------------
+
+describe("event translation -- streaming message_delta stop_reason propagation", () => {
+  it("message_end carries stopReason 'stop' when message_delta delivers end_turn", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: { role: "assistant", content: [], model: "test" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_delta",
+          delta: { stop_reason: "end_turn" },
+          usage: { output_tokens: 20 },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "message_stop" } } as never,
+      state,
+    );
+
+    const messageEnd = events.find((e) => e.type === "message_end") as
+      | { message?: { stopReason?: string } }
+      | undefined;
+    expect(messageEnd).toBeDefined();
+    expect(messageEnd?.message?.stopReason).toBe("stop");
+  });
+
+  it("message_end carries stopReason 'toolUse' when message_delta delivers tool_use", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: { role: "assistant", content: [], model: "test" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_delta",
+          delta: { stop_reason: "tool_use" },
+          usage: { output_tokens: 5 },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "message_stop" } } as never,
+      state,
+    );
+
+    const messageEnd = events.find((e) => e.type === "message_end") as
+      | { message?: { stopReason?: string } }
+      | undefined;
+    expect(messageEnd?.message?.stopReason).toBe("toolUse");
+  });
+
+  it("stop_reason from message_delta is carried on all subsequent events including message_end", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: { role: "assistant", content: [], model: "test" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: { type: "content_block_start", index: 0, content_block: { type: "text" } },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: { type: "content_block_delta", index: 0, delta: { type: "text_delta", text: "Hi" } },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "content_block_stop", index: 0 } } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_delta",
+          delta: { stop_reason: "max_tokens" },
+          usage: { output_tokens: 100 },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "message_stop" } } as never,
+      state,
+    );
+
+    const messageEnd = events.find((e) => e.type === "message_end") as
+      | { message?: { stopReason?: string } }
+      | undefined;
+    expect(messageEnd?.message?.stopReason).toBe("length");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Issue 6: Streaming tool_use content accumulation (no sparse array holes)
+// Tool_use blocks are accumulated into streamingPartialMessage.content so
+// the content array mirrors the final assistant message structure at every
+// streaming index. input_json_delta chunks are concatenated and parsed at
+// content_block_stop.
+// ---------------------------------------------------------------------------
+
+describe("event translation -- streaming tool_use content accumulation", () => {
+  it("thinking@0 tool_use@1 text@2: all three block types present in message_end content", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: { role: "assistant", content: [], model: "test" },
+        },
+      } as never,
+      state,
+    );
+    // thinking at index 0
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: { type: "content_block_start", index: 0, content_block: { type: "thinking" } },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "content_block_delta",
+          index: 0,
+          delta: { type: "thinking_delta", thinking: "I need to read" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "content_block_stop", index: 0 } } as never,
+      state,
+    );
+    // tool_use at index 1 with input_json_delta chunks
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "content_block_start",
+          index: 1,
+          content_block: { type: "tool_use", id: "call_1", name: "read_file" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "content_block_delta",
+          index: 1,
+          delta: { type: "input_json_delta", partial_json: '{"path":' },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "content_block_delta",
+          index: 1,
+          delta: { type: "input_json_delta", partial_json: '"/foo.ts"}' },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "content_block_stop", index: 1 } } as never,
+      state,
+    );
+    // text at index 2
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: { type: "content_block_start", index: 2, content_block: { type: "text" } },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "content_block_delta",
+          index: 2,
+          delta: { type: "text_delta", text: "here" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "content_block_stop", index: 2 } } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "message_stop" } } as never,
+      state,
+    );
+
+    const messageEnd = events.find((e) => e.type === "message_end") as
+      | { message?: { content?: unknown[] } }
+      | undefined;
+    expect(messageEnd).toBeDefined();
+    const content = messageEnd?.message?.content ?? [];
+
+    // Dense array — no holes
+    expect(content).toHaveLength(3);
+    for (const item of content) {
+      expect(item).not.toBeNull();
+      expect(item).not.toBeUndefined();
+    }
+
+    // Block types at correct indices
+    expect((content[0] as { type: string }).type).toBe("thinking");
+    expect((content[1] as { type: string }).type).toBe("tool_use");
+    expect((content[2] as { type: string }).type).toBe("text");
+
+    // tool_use block has id, name, and parsed input
+    const toolBlock = content[1] as { id?: string; name?: string; input?: unknown };
+    expect(toolBlock.id).toBe("call_1");
+    expect(toolBlock.name).toBe("read_file");
+    expect(toolBlock.input).toEqual({ path: "/foo.ts" });
+  });
+
+  it("tool_use input defaults to {} when no input_json_delta chunks arrive", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: { role: "assistant", content: [], model: "test" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "content_block_start",
+          index: 0,
+          content_block: { type: "tool_use", id: "call_2", name: "noop" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "content_block_stop", index: 0 } } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "message_stop" } } as never,
+      state,
+    );
+
+    const messageEnd = events.find((e) => e.type === "message_end") as
+      | { message?: { content?: unknown[] } }
+      | undefined;
+    const content = messageEnd?.message?.content ?? [];
+    expect(content).toHaveLength(1);
+    const toolBlock = content[0] as { type: string; id: string; input: unknown };
+    expect(toolBlock.type).toBe("tool_use");
+    expect(toolBlock.id).toBe("call_2");
+    expect(toolBlock.input).toEqual({});
+  });
+
+  it("mid-stream text_delta events include accumulated tool_use block at intermediate index", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: { role: "assistant", content: [], model: "test" },
+        },
+      } as never,
+      state,
+    );
+    // thinking at index 0
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: { type: "content_block_start", index: 0, content_block: { type: "thinking" } },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "content_block_delta",
+          index: 0,
+          delta: { type: "thinking_delta", thinking: "hmm" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "content_block_stop", index: 0 } } as never,
+      state,
+    );
+    // tool_use at index 1
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "content_block_start",
+          index: 1,
+          content_block: { type: "tool_use", id: "c1", name: "write" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      { type: "stream_event", event: { type: "content_block_stop", index: 1 } } as never,
+      state,
+    );
+    // text at index 2
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: { type: "content_block_start", index: 2, content_block: { type: "text" } },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "content_block_delta",
+          index: 2,
+          delta: { type: "text_delta", text: "answer" },
+        },
+      } as never,
+      state,
+    );
+
+    // text_delta event at index 2 carries content with tool_use at index 1
+    const textDeltaEvt = events.find(
+      (e) =>
+        e.type === "message_update" &&
+        (e as { assistantMessageEvent?: { type?: string } }).assistantMessageEvent?.type ===
+          "text_delta",
+    ) as { message?: { content?: unknown[] } } | undefined;
+
+    expect(textDeltaEvt).toBeDefined();
+    const content = textDeltaEvt?.message?.content ?? [];
+    expect(content).toHaveLength(3);
+    expect((content[1] as { type: string }).type).toBe("tool_use");
+
+    const serialized = JSON.stringify(content);
+    expect(serialized).not.toContain("null");
   });
 });

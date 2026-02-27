@@ -82,11 +82,7 @@ function typeboxKindToZod(kind: string | undefined, schema: TSchema): ZodTypeAny
   if (kind === "Unsafe") {
     const enumValues = (schema as { enum?: unknown[] }).enum;
     if (Array.isArray(enumValues) && enumValues.length >= 1) {
-      const [first, ...rest] = enumValues as string[];
-      return applyDescription(
-        z.enum([first, ...rest] as [string, ...string[]]),
-        schema.description,
-      );
+      return applyDescription(enumValuesToZod(enumValues), schema.description);
     }
     // Other Unsafe shapes (no enum) — fall through to z.unknown()
     return applyDescription(z.unknown(), schema.description);
@@ -96,11 +92,7 @@ function typeboxKindToZod(kind: string | undefined, schema: TSchema): ZodTypeAny
   if (kind === "Enum") {
     const values = (schema as { enum?: unknown[] }).enum;
     if (values && values.length >= 1) {
-      const [first, ...rest] = values as string[];
-      return applyDescription(
-        z.enum([first, ...rest] as [string, ...string[]]),
-        schema.description,
-      );
+      return applyDescription(enumValuesToZod(values), schema.description);
     }
     return applyDescription(z.unknown(), schema.description);
   }
@@ -208,4 +200,29 @@ function applyDescription(zodType: ZodTypeAny, description?: string): ZodTypeAny
     return zodType.describe(description);
   }
   return zodType;
+}
+
+function enumValuesToZod(enumValues: unknown[]): ZodTypeAny {
+  if (enumValues.length < 1) {
+    return z.unknown();
+  }
+
+  if (enumValues.every((val) => typeof val === "string")) {
+    const [first, ...rest] = enumValues;
+    return z.enum([first, ...rest] as [string, ...string[]]);
+  }
+
+  const literalValues = enumValues.filter((val): val is string | number | boolean =>
+    ["string", "number", "boolean"].includes(typeof val),
+  );
+  if (literalValues.length !== enumValues.length) {
+    return z.unknown();
+  }
+
+  const literalSchemas = literalValues.map((val) => z.literal(val));
+  if (literalSchemas.length === 1) {
+    return literalSchemas[0];
+  }
+  const [first, second, ...rest] = literalSchemas;
+  return z.union([first, second, ...rest] as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]);
 }

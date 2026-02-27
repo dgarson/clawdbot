@@ -14,6 +14,11 @@ import { z } from "zod";
 import { stringEnum, optionalStringEnum } from "../schema/typebox.js";
 import { typeboxPropertyToZod, typeboxToZod } from "./schema-adapter.js";
 
+enum NumericEnum {
+  Zero = 0,
+  One = 1,
+}
+
 describe("typeboxPropertyToZod", () => {
   it("converts Type.String() to z.string()", () => {
     const schema = Type.String();
@@ -64,6 +69,15 @@ describe("typeboxPropertyToZod", () => {
     expect(zodType.parse("hello")).toBe("hello");
     expect(zodType.parse(42)).toBe(42);
     expect(() => zodType.parse(true)).toThrow();
+  });
+
+  it("converts Type.Enum with numeric values to numeric literal validation", () => {
+    const schema = Type.Enum(NumericEnum);
+    const zodType = typeboxPropertyToZod(schema);
+    expect(zodType.parse(0)).toBe(0);
+    expect(zodType.parse(1)).toBe(1);
+    expect(() => zodType.parse("0")).toThrow();
+    expect(() => zodType.parse(2)).toThrow();
   });
 
   it("preserves description annotations", () => {

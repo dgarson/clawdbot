@@ -66,6 +66,7 @@ type AnyAgentToolLike = {
   name: string;
   description?: string;
   parameters: ReturnType<typeof Type.Object>;
+  ownerOnly?: boolean;
   execute: Mock;
 };
 
@@ -347,6 +348,91 @@ describe("mcp-tool-server — tool lifecycle events", () => {
     expect(result.content[0]?.type).toBe("text");
     expect(result.content[0]?.text).toBe("file contents here");
     expect(result.isError).toBeFalsy();
+  });
+
+  it("formats object results as JSON text blocks", async () => {
+    const tool = makeTool({
+      name: "read_file",
+      execute: vi.fn().mockResolvedValue({ ok: true, count: 2 }),
+    });
+    createClaudeSdkMcpToolServer({
+      tools: [tool] as never[],
+      emitEvent: () => {},
+      getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
+    });
+
+    const handler = getToolHandler("read_file");
+    const mcpResult = (await handler({ path: "/foo.ts" }, {})) as {
+      content: Array<{ type: string; text?: string }>;
+    };
+    expect(mcpResult.content).toEqual([{ type: "text", text: '{"ok":true,"count":2}' }]);
+  });
+
+  it("formats array results as JSON text blocks", async () => {
+    const tool = makeTool({
+      name: "read_file",
+      execute: vi.fn().mockResolvedValue(["a", "b", 3]),
+    });
+    createClaudeSdkMcpToolServer({
+      tools: [tool] as never[],
+      emitEvent: () => {},
+      getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
+    });
+
+    const handler = getToolHandler("read_file");
+    const mcpResult = (await handler({ path: "/foo.ts" }, {})) as {
+      content: Array<{ type: string; text?: string }>;
+    };
+    expect(mcpResult.content).toEqual([{ type: "text", text: '["a","b",3]' }]);
+  });
+
+  it("formats undefined tool results as a string text block", async () => {
+    const tool = makeTool({
+      name: "read_file",
+      execute: vi.fn().mockResolvedValue(undefined),
+    });
+    createClaudeSdkMcpToolServer({
+      tools: [tool] as never[],
+      emitEvent: () => {},
+      getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
+    });
+
+    const handler = getToolHandler("read_file");
+    const mcpResult = (await handler({ path: "/foo.ts" }, {})) as {
+      content: Array<{ type: string; text?: string }>;
+      isError?: boolean;
+    };
+    expect(mcpResult.isError).toBeFalsy();
+    expect(mcpResult.content).toEqual([{ type: "text", text: "undefined" }]);
+  });
+
+  it("keeps ownerOnly tools registered and executable when provided to the MCP server", async () => {
+    const tool = makeTool({
+      name: "secure_tool",
+      ownerOnly: true,
+      execute: vi.fn().mockResolvedValue("secure result"),
+    });
+    createClaudeSdkMcpToolServer({
+      tools: [tool] as never[],
+      emitEvent: () => {},
+      getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer({ secure_tool: ["call_owner_only"] }),
+    });
+
+    const handler = getToolHandler("secure_tool");
+    const result = (await handler({ action: "run" }, {})) as {
+      content: Array<{ type: string; text: string }>;
+    };
+    expect(result.content[0]?.text).toBe("secure result");
+    expect(tool.execute).toHaveBeenCalledWith(
+      "call_owner_only",
+      { action: "run" },
+      undefined,
+      expect.any(Function),
+    );
   });
 
   it("emits tool_execution_end with error on failure and MCP isError: true", async () => {

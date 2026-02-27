@@ -2,7 +2,10 @@ import { EventEmitter } from "node:events";
 import { PassThrough } from "node:stream";
 import type { SpawnedProcess } from "@anthropic-ai/claude-agent-sdk";
 import { describe, expect, it, vi } from "vitest";
-import { createClaudeSdkSpawnWithStdoutTailLogging } from "./spawn-stdout-logging.js";
+import {
+  createClaudeSdkSpawnWithStdoutTailLogging,
+  defaultClaudeSdkSpawnProcess,
+} from "./spawn-stdout-logging.js";
 
 type FakeSpawnedProcess = SpawnedProcess & {
   pushStdout: (text: string) => void;
@@ -96,5 +99,39 @@ describe("createClaudeSdkSpawnWithStdoutTailLogging", () => {
     fakeProcess.emitExit(0);
 
     expect(onExitCodeOne).not.toHaveBeenCalled();
+  });
+});
+
+describe("defaultClaudeSdkSpawnProcess", () => {
+  it("pipes stderr so SDK stderr callbacks can capture diagnostics", async () => {
+    const stderrChunks: string[] = [];
+    const proc = defaultClaudeSdkSpawnProcess({
+      command: process.execPath,
+      args: ["-e", "process.stderr.write('stderr-ready')"],
+      cwd: process.cwd(),
+      env: process.env,
+      signal: new AbortController().signal,
+    });
+    const procWithStderr = proc as unknown as {
+      stderr?: NodeJS.ReadableStream | null;
+      once: SpawnedProcess["once"];
+    };
+
+    expect(procWithStderr.stderr).toBeTruthy();
+    procWithStderr.stderr?.on("data", (chunk: Buffer | string) => {
+      stderrChunks.push(typeof chunk === "string" ? chunk : chunk.toString("utf8"));
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      proc.once("exit", (code) => {
+        if (code === 0) {
+          resolve();
+          return;
+        }
+        reject(new Error(`unexpected exit code: ${String(code)}`));
+      });
+    });
+
+    expect(stderrChunks.join("")).toContain("stderr-ready");
   });
 });

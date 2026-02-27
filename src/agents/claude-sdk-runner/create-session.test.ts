@@ -8,7 +8,7 @@
  * pi-runtime-baseline.md Section 3 (session interface surface used by attempt.ts).
  */
 
-import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
 import type { ClaudeSdkSessionParams } from "./types.js";
 
 // ---------------------------------------------------------------------------
@@ -82,6 +82,10 @@ const INIT_MESSAGES = [
   { type: "result", subtype: "success", result: "Hello!" },
 ];
 
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 // ---------------------------------------------------------------------------
 // Section 3.1: Session Creation and Resume
 // ---------------------------------------------------------------------------
@@ -123,6 +127,19 @@ describe("session lifecycle — session creation and resume", () => {
     expect(queryMock).toHaveBeenCalledTimes(2);
     const secondCall = queryMock.mock.calls[1];
     expect(secondCall[0].options?.resume).toBe("sess_server_abc123");
+  });
+
+  it("passes workspaceDir as query cwd", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ workspaceDir: "/tmp/openclaw-workspace" }));
+
+    await session.prompt("Hello");
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].options?.cwd).toBe("/tmp/openclaw-workspace");
   });
 
   it("merges caller-provided mcpServers with internal openclaw-tools bridge", async () => {
@@ -284,17 +301,30 @@ describe("session lifecycle — thinking token budget mapping", () => {
     expect(call[0].options?.maxThinkingTokens).toBe(10000);
   });
 
-  it("maps highest/extended thinking to ~40k tokens", async () => {
+  it("maps high thinking to ~40k tokens", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
 
     const createSession = await importCreateSession();
-    const session = await createSession(makeParams({ thinkLevel: "xhigh" }));
+    const session = await createSession(makeParams({ thinkLevel: "high" }));
 
     await session.prompt("Hello");
 
     const call = queryMock.mock.calls[0];
     expect(call[0].options?.maxThinkingTokens).toBe(40000);
+  });
+
+  it("maps off thinking to no thinking token budget", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ thinkLevel: "off" }));
+
+    await session.prompt("Hello");
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].options?.maxThinkingTokens).toBeUndefined();
   });
 });
 
@@ -499,6 +529,50 @@ describe("session lifecycle — abort and control", () => {
 
     expect(interruptCalled).toBe(true);
   });
+
+  it("rejects concurrent prompt() calls while a prompt is in-flight", async () => {
+    const queryMock = await importQuery();
+    let resolveNext: (() => void) | undefined;
+    const waitForNext = new Promise<void>((resolve) => {
+      resolveNext = resolve;
+    });
+    const iter = {
+      [Symbol.asyncIterator]() {
+        return this;
+      },
+      async next() {
+        await waitForNext;
+        return { done: true as const, value: undefined };
+      },
+      async return() {
+        return { done: true as const, value: undefined };
+      },
+      interrupt: vi.fn(async () => {}),
+    };
+    queryMock.mockReturnValue(iter);
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams());
+
+    const firstPrompt = session.prompt("First");
+    await Promise.resolve();
+    await expect(session.prompt("Second")).rejects.toThrow("already has an in-flight prompt");
+    resolveNext?.();
+    await firstPrompt;
+  });
+
+  it("treats pre-signaled abort controllers as a no-op completion", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation((input: { options: { abortController: AbortController } }) => {
+      input.options.abortController.abort();
+      return makeMockQueryGen([{ type: "result", subtype: "success", result: "ignored" }])();
+    });
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams());
+
+    await expect(session.prompt("Hello")).resolves.toBeUndefined();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -662,10 +736,8 @@ describe("session lifecycle — provider env wiring", () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
 
-    const prevApiKey = process.env.ANTHROPIC_API_KEY;
-    const prevAuthToken = process.env.ANTHROPIC_AUTH_TOKEN;
-    process.env.ANTHROPIC_API_KEY = "sk-ant-inherited";
-    process.env.ANTHROPIC_AUTH_TOKEN = "oauth-token";
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-inherited");
+    vi.stubEnv("ANTHROPIC_AUTH_TOKEN", "oauth-token");
 
     const createSession = await importCreateSession();
     const session = await createSession(
@@ -674,27 +746,21 @@ describe("session lifecycle — provider env wiring", () => {
       }),
     );
 
-    try {
-      await session.prompt("Hello");
+    await session.prompt("Hello");
 
-      const call = queryMock.mock.calls[0];
-      const options = call[0].options as Record<string, unknown>;
-      const env = options["env"] as Record<string, string>;
-      expect(env).toBeDefined();
-      expect(env["ANTHROPIC_API_KEY"]).toBeUndefined();
-      expect(env["ANTHROPIC_AUTH_TOKEN"]).toBeUndefined();
-    } finally {
-      process.env.ANTHROPIC_API_KEY = prevApiKey;
-      process.env.ANTHROPIC_AUTH_TOKEN = prevAuthToken;
-    }
+    const call = queryMock.mock.calls[0];
+    const options = call[0].options as Record<string, unknown>;
+    const env = options["env"] as Record<string, string>;
+    expect(env).toBeDefined();
+    expect(env["ANTHROPIC_API_KEY"]).toBeUndefined();
+    expect(env["ANTHROPIC_AUTH_TOKEN"]).toBeUndefined();
   });
 
   it("uses process CLAUDE_CONFIG_DIR when config does not override it", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
 
-    const prevConfigDir = process.env.CLAUDE_CONFIG_DIR;
-    process.env.CLAUDE_CONFIG_DIR = "/tmp/from-process-env";
+    vi.stubEnv("CLAUDE_CONFIG_DIR", "/tmp/from-process-env");
 
     const createSession = await importCreateSession();
     const session = await createSession(
@@ -703,28 +769,19 @@ describe("session lifecycle — provider env wiring", () => {
       }),
     );
 
-    try {
-      await session.prompt("Hello");
+    await session.prompt("Hello");
 
-      const call = queryMock.mock.calls[0];
-      const options = call[0].options as Record<string, unknown>;
-      const env = options["env"] as Record<string, string>;
-      expect(env["CLAUDE_CONFIG_DIR"]).toBe("/tmp/from-process-env");
-    } finally {
-      if (prevConfigDir === undefined) {
-        delete process.env.CLAUDE_CONFIG_DIR;
-      } else {
-        process.env.CLAUDE_CONFIG_DIR = prevConfigDir;
-      }
-    }
+    const call = queryMock.mock.calls[0];
+    const options = call[0].options as Record<string, unknown>;
+    const env = options["env"] as Record<string, string>;
+    expect(env["CLAUDE_CONFIG_DIR"]).toBe("/tmp/from-process-env");
   });
 
   it("uses claudeSdk.configDir over process CLAUDE_CONFIG_DIR", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
 
-    const prevConfigDir = process.env.CLAUDE_CONFIG_DIR;
-    process.env.CLAUDE_CONFIG_DIR = "/tmp/from-process-env";
+    vi.stubEnv("CLAUDE_CONFIG_DIR", "/tmp/from-process-env");
 
     const createSession = await importCreateSession();
     const session = await createSession(
@@ -736,28 +793,19 @@ describe("session lifecycle — provider env wiring", () => {
       }),
     );
 
-    try {
-      await session.prompt("Hello");
+    await session.prompt("Hello");
 
-      const call = queryMock.mock.calls[0];
-      const options = call[0].options as Record<string, unknown>;
-      const env = options["env"] as Record<string, string>;
-      expect(env["CLAUDE_CONFIG_DIR"]).toBe("/tmp/from-agent-config");
-    } finally {
-      if (prevConfigDir === undefined) {
-        delete process.env.CLAUDE_CONFIG_DIR;
-      } else {
-        process.env.CLAUDE_CONFIG_DIR = prevConfigDir;
-      }
-    }
+    const call = queryMock.mock.calls[0];
+    const options = call[0].options as Record<string, unknown>;
+    const env = options["env"] as Record<string, string>;
+    expect(env["CLAUDE_CONFIG_DIR"]).toBe("/tmp/from-agent-config");
   });
 
   it("sets CLAUDE_CONFIG_DIR for anthropic when only claudeSdk.configDir is provided", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
 
-    const prevConfigDir = process.env.CLAUDE_CONFIG_DIR;
-    delete process.env.CLAUDE_CONFIG_DIR;
+    vi.stubEnv("CLAUDE_CONFIG_DIR", undefined);
 
     const createSession = await importCreateSession();
     const session = await createSession(
@@ -769,21 +817,13 @@ describe("session lifecycle — provider env wiring", () => {
       }),
     );
 
-    try {
-      await session.prompt("Hello");
+    await session.prompt("Hello");
 
-      const call = queryMock.mock.calls[0];
-      const options = call[0].options as Record<string, unknown>;
-      const env = options["env"] as Record<string, string>;
-      expect(env).toBeDefined();
-      expect(env["CLAUDE_CONFIG_DIR"]).toBe("/tmp/from-agent-config");
-    } finally {
-      if (prevConfigDir === undefined) {
-        delete process.env.CLAUDE_CONFIG_DIR;
-      } else {
-        process.env.CLAUDE_CONFIG_DIR = prevConfigDir;
-      }
-    }
+    const call = queryMock.mock.calls[0];
+    const options = call[0].options as Record<string, unknown>;
+    const env = options["env"] as Record<string, string>;
+    expect(env).toBeDefined();
+    expect(env["CLAUDE_CONFIG_DIR"]).toBe("/tmp/from-agent-config");
   });
 
   it("forwards non-claude model ids for claude-sdk provider", async () => {
@@ -825,6 +865,25 @@ describe("session lifecycle — provider env wiring", () => {
       const options = queryMock.mock.calls[0][0].options as Record<string, unknown>;
       expect(options["model"]).toBe(expectedAlias);
     }
+  });
+
+  it("does not alias model ids when opus/sonnet/haiku are only substrings", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        modelId: "claude-sonnet-opus-hybrid-2026",
+        claudeSdkConfig: { provider: "claude-sdk" },
+      }),
+    );
+
+    await session.prompt("Hello");
+
+    const call = queryMock.mock.calls[0];
+    const options = call[0].options as Record<string, unknown>;
+    expect(options["model"]).toBe("claude-sonnet-opus-hybrid-2026");
   });
 });
 
@@ -970,6 +1029,36 @@ describe("session lifecycle — parity guards", () => {
     const call = queryMock.mock.calls[0];
     const options = call[0].options as Record<string, unknown>;
     expect(typeof options.spawnClaudeCodeProcess).toBe("function");
+  });
+
+  it("caps captured stderr tail when enriching process exit errors", async () => {
+    expect.hasAssertions();
+    const queryMock = await importQuery();
+    queryMock.mockImplementation((input: { options: { stderr?: (data: string) => void } }) => {
+      input.options.stderr?.(`${"x".repeat(5000)}tail-marker`);
+      return {
+        [Symbol.asyncIterator]() {
+          return this;
+        },
+        async next() {
+          throw new Error("Claude Code process exited with code 1");
+        },
+        async return() {
+          return { done: true as const, value: undefined };
+        },
+        interrupt: vi.fn(async () => {}),
+      };
+    });
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams());
+
+    await session.prompt("Hello").catch((err: Error) => {
+      expect(err.message).toContain("Subprocess stderr:");
+      expect(err.message).toContain("tail-marker");
+      const stderrTail = err.message.split("Subprocess stderr: ")[1] ?? "";
+      expect(stderrTail.length).toBeLessThanOrEqual(4096);
+    });
   });
 });
 
@@ -1278,5 +1367,24 @@ describe("session lifecycle — dispose warning", () => {
     // No prompt() called — no messages, no session_id
     session.dispose();
     expect(appendCustomEntry).not.toHaveBeenCalled();
+  });
+
+  it("dispose() is idempotent after persisting session_id", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const appendCustomEntry = vi.fn();
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ sessionManager: { appendCustomEntry } }));
+
+    await session.prompt("Hello");
+    session.dispose();
+    session.dispose();
+
+    expect(appendCustomEntry).toHaveBeenCalledTimes(1);
+    expect(appendCustomEntry).toHaveBeenCalledWith(
+      "openclaw:claude-sdk-session-id",
+      "sess_server_abc123",
+    );
   });
 });

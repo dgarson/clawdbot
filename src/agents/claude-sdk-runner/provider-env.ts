@@ -145,6 +145,10 @@ export function buildProviderEnv(
   }
 
   if (provider === "custom") {
+    const baseUrl = config.baseUrl?.trim();
+    if (!baseUrl) {
+      throw new Error("[claude-sdk] custom provider requires a non-empty baseUrl");
+    }
     if (!resolvedApiKey) {
       throw new Error(
         "[claude-sdk] custom provider requires API credentials from claudeSdk.authProfileId",
@@ -156,7 +160,7 @@ export function buildProviderEnv(
     scrubInheritedAnthropicEnv(inherited);
     const env: Record<string, string> = {
       ...inherited,
-      ANTHROPIC_BASE_URL: config.baseUrl,
+      ANTHROPIC_BASE_URL: baseUrl,
       API_TIMEOUT_MS: PROVIDER_TIMEOUT_MS,
       [DEFAULT_HAIKU_MODEL_ENV]: config.anthropicDefaultHaikuModel,
       [DEFAULT_SONNET_MODEL_ENV]: config.anthropicDefaultSonnetModel,
@@ -172,6 +176,11 @@ export function buildProviderEnv(
   const providerConfig = KNOWN_PROVIDER_CONFIGS[provider];
   if (!providerConfig) {
     throw new Error(`[claude-sdk] Unknown provider: ${provider}`);
+  }
+  if (!resolvedApiKey) {
+    throw new Error(
+      `[claude-sdk] ${provider} provider requires API credentials from auth profile resolution`,
+    );
   }
 
   const inherited = parentEnv();
@@ -202,9 +211,7 @@ export function buildProviderEnv(
     [DEFAULT_SONNET_MODEL_ENV]: sonnetModel,
     [DEFAULT_OPUS_MODEL_ENV]: opusModel,
   };
-  if (resolvedApiKey) {
-    env["ANTHROPIC_AUTH_TOKEN"] = resolvedApiKey;
-  }
+  env["ANTHROPIC_AUTH_TOKEN"] = resolvedApiKey;
   if (providerConfig.requiresExplicitEmptyApiKey) {
     env["ANTHROPIC_API_KEY"] = "";
   }
