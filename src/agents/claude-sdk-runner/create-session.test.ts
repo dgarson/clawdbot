@@ -1396,3 +1396,133 @@ describe("session lifecycle — dispose warning", () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// Bug 1: Thread context prefix stripping for resuming sessions
+// ---------------------------------------------------------------------------
+
+describe("prompt() — thread context prefix stripping for resuming sessions", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("strips [Thread history - for context] prefix when session was created with a resume ID", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt(
+      "[Thread history - for context]\nuser: prev\nassistant: prev reply\n\nActual message",
+    );
+
+    const call = queryMock.mock.calls[0];
+    const prompt = call[0].prompt;
+    // The SDK receives the stripped prompt string
+    expect(typeof prompt).toBe("string");
+    expect(prompt).toBe("Actual message");
+    expect(prompt).not.toContain("[Thread history - for context]");
+  });
+
+  it("strips [Thread starter - for context] prefix when session was created with a resume ID", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt(
+      "[Thread starter - for context]\nOriginal thread message\n\nFollow up question",
+    );
+
+    const call = queryMock.mock.calls[0];
+    const prompt = call[0].prompt;
+    expect(typeof prompt).toBe("string");
+    expect(prompt).toBe("Follow up question");
+    expect(prompt).not.toContain("[Thread starter - for context]");
+  });
+
+  it("does NOT strip prefix when session was created without a resume ID (first turn)", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    // No claudeSdkResumeSessionId — fresh session
+    const session = await createSession(makeParams());
+
+    const fullPrompt =
+      "[Thread history - for context]\nuser: hello\nassistant: hi\n\nActual message";
+    await session.prompt(fullPrompt);
+
+    const call = queryMock.mock.calls[0];
+    const prompt = call[0].prompt;
+    expect(prompt).toBe(fullPrompt);
+    expect(prompt).toContain("[Thread history - for context]");
+  });
+
+  it("preserves the actual message body after stripping", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt(
+      "[Thread history - for context]\nuser: hello\nassistant: hi\n\nDo the thing please",
+    );
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].prompt).toBe("Do the thing please");
+  });
+
+  it("returns prompt unchanged when no separator is present (malformed prefix, do not drop message)", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    const malformed = "[Thread history - for context]\nNo double-newline separator here";
+    await session.prompt(malformed);
+
+    const call = queryMock.mock.calls[0];
+    // No separator → strip is a no-op → message preserved
+    expect(call[0].prompt).toBe(malformed);
+  });
+
+  it("does not strip when prompt has no thread context prefix", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt("Plain message without prefix");
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].prompt).toBe("Plain message without prefix");
+  });
+});

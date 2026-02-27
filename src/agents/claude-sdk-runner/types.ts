@@ -127,6 +127,41 @@ export type ClaudeSdkEventAdapterState = {
   transcriptProvider: string;
   transcriptApi: string;
   modelCost?: ModelCostConfig;
+  /** Last SDK status value from system/status events. */
+  sdkStatus?: "compacting" | null;
+  /** Last permission mode reported by the SDK system/status event. */
+  sdkPermissionMode?: string;
+  /** Tracks replayed user message UUIDs emitted by SDK dedupe acknowledgements. */
+  replayedUserMessageUuids?: Set<string>;
+  /** Tracks files confirmed as persisted by system/files_persisted events. */
+  persistedFileIdsByName?: Map<string, string>;
+  /** Tracks file persistence failures from system/files_persisted events. */
+  failedPersistedFilesByName?: Map<string, string>;
+  /** Last auth status payload from SDK auth_status events. */
+  lastAuthStatus?: {
+    isAuthenticating: boolean;
+    error?: string;
+    output?: string[];
+  };
+  /** Last observed hook event emitted by the SDK. */
+  lastHookEvent?: {
+    subtype: "hook_started" | "hook_progress" | "hook_response";
+    hookId?: string;
+    hookName?: string;
+    hookEvent?: string;
+    outcome?: string;
+  };
+  /** Last observed task event emitted by the SDK. */
+  lastTaskEvent?: {
+    subtype: "task_started" | "task_progress" | "task_notification";
+    taskId?: string;
+    status?: string;
+    description?: string;
+  };
+  /** Last rate-limit event payload emitted by the SDK. */
+  lastRateLimitInfo?: unknown;
+  /** Last prompt suggestion emitted by the SDK. */
+  lastPromptSuggestion?: string;
 };
 
 // ---------------------------------------------------------------------------

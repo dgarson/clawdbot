@@ -83,6 +83,30 @@ const SDK_BLOCKED_EXTRA_PARAMS = new Set([
 ]);
 const log = createSubsystemLogger("agent/claude-sdk");
 
+/**
+ * Strips the [Thread history - for context] or [Thread starter - for context]
+ * prefix added by get-reply-run.ts. For resuming claude-sdk sessions the server
+ * already has this context from the first turn — resending it every turn causes
+ * quadratic token waste.
+ *
+ * Format: "[Thread {history|starter} - for context]\n{content}\n\n{actual message}"
+ * If the separator "\n\n" is absent (malformed), returns the prompt unchanged to
+ * avoid silently dropping the user's message.
+ */
+function stripThreadContextPrefix(prompt: string): string {
+  if (
+    !prompt.startsWith("[Thread history - for context]\n") &&
+    !prompt.startsWith("[Thread starter - for context]\n")
+  ) {
+    return prompt;
+  }
+  const separatorIdx = prompt.indexOf("\n\n");
+  if (separatorIdx === -1) {
+    return prompt; // malformed — do not drop the message
+  }
+  return prompt.slice(separatorIdx + 2);
+}
+
 function resolveTranscriptMetadata(provider?: string): {
   transcriptProvider: string;
   transcriptApi: string;
@@ -219,6 +243,9 @@ function buildQueryOptions(
     allowDangerouslySkipPermissions: true,
     systemPrompt: state.systemPrompt,
     tools: [],
+    // Claude SDK session state (including server-side compaction context) must
+    // persist for resume semantics to work across runs.
+    persistSession: true,
     // Enable real-time streaming: the SDK yields stream_event messages with
     // token-level deltas so the UI can show text as it generates.
     includePartialMessages: true,
@@ -326,6 +353,16 @@ export async function createClaudeSdkSession(
     transcriptApi,
     modelCost: params.modelCost,
     sessionIdPersisted: false,
+    sdkStatus: null,
+    sdkPermissionMode: undefined,
+    replayedUserMessageUuids: new Set(),
+    persistedFileIdsByName: new Map(),
+    failedPersistedFilesByName: new Map(),
+    lastAuthStatus: undefined,
+    lastHookEvent: undefined,
+    lastTaskEvent: undefined,
+    lastRateLimitInfo: undefined,
+    lastPromptSuggestion: undefined,
   };
 
   const clearTurnToolCorrelationState = (): void => {
@@ -375,9 +412,14 @@ export async function createClaudeSdkSession(
         throw new Error("Claude SDK session already has an in-flight prompt");
       }
 
-      // Drain any pending steer text by prepending to the current prompt
+      // Drain any pending steer text by prepending to the current prompt.
+      // For resuming sessions the server-side history already has the thread context
+      // injected on the first turn. Strip it on subsequent turns to prevent quadratic
+      // token accumulation in the server's session history. Strip before the steer-text
+      // prepend so steer content is never inadvertently stripped.
+      const promptText = params.claudeSdkResumeSessionId ? stripThreadContextPrefix(text) : text;
       const steerText = state.pendingSteer.splice(0).join("\n");
-      const effectivePrompt = steerText ? `${steerText}\n\n${text}` : text;
+      const effectivePrompt = steerText ? `${steerText}\n\n${promptText}` : promptText;
       const promptImages = normalizePromptImages(
         options?.images as RuntimePromptImage[] | undefined,
       );
