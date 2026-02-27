@@ -73,14 +73,13 @@ function formatToolResultForMcp(result: unknown): McpToolResult {
         const data = item.data ?? item.url ?? "";
         const mimeType = item.mediaType ?? "image/png";
         if (data.startsWith("data:")) {
-          const [header, base64] = data.split(",", 2);
-          const mime = header.split(":")[1]?.split(";")[0] ?? mimeType;
-          content.push({ type: "image", data: base64 ?? data, mimeType: mime });
+          const parsed = parseDataUri(data);
+          content.push({ type: "image", data: parsed.data, mimeType: parsed.mimeType ?? mimeType });
         } else {
           content.push({ type: "image", data, mimeType });
         }
       } else {
-        content.push({ type: "text", text: item.text ?? JSON.stringify(item) });
+        content.push({ type: "text", text: item.text ?? stringifyToolResult(item) });
       }
     }
     return { content: content.length > 0 ? content : [{ type: "text", text: "" }] };
@@ -95,9 +94,12 @@ function formatToolResultForMcp(result: unknown): McpToolResult {
       }
       for (const url of obj.mediaUrls) {
         if (url.startsWith("data:")) {
-          const [header, base64] = url.split(",", 2);
-          const mimeType = header.split(":")[1]?.split(";")[0] ?? "image/png";
-          content.push({ type: "image", data: base64 ?? url, mimeType });
+          const parsed = parseDataUri(url);
+          content.push({
+            type: "image",
+            data: parsed.data,
+            mimeType: parsed.mimeType ?? "image/png",
+          });
         } else {
           content.push({ type: "image", data: url, mimeType: "image/png" });
         }
@@ -106,7 +108,7 @@ function formatToolResultForMcp(result: unknown): McpToolResult {
     }
   }
 
-  return { content: [{ type: "text", text: JSON.stringify(result) }] };
+  return { content: [{ type: "text", text: stringifyToolResult(result) }] };
 }
 
 function formatToolPairingFailureForMcp(failure: ToolPairingFailure): McpToolResult {
@@ -114,6 +116,43 @@ function formatToolPairingFailureForMcp(failure: ToolPairingFailure): McpToolRes
     content: [{ type: "text", text: JSON.stringify({ error: failure }) }],
     isError: true,
   };
+}
+
+async function invokeToolExecute(params: {
+  execute: (...args: unknown[]) => Promise<unknown>;
+  toolCallId: string;
+  args: Record<string, unknown>;
+  signal?: AbortSignal;
+  onUpdate?: (update: unknown) => void;
+}): Promise<unknown> {
+  if (params.execute.length >= 5) {
+    return params.execute(
+      params.toolCallId,
+      params.args,
+      params.signal,
+      params.onUpdate,
+      undefined,
+    );
+  }
+  return params.execute(params.toolCallId, params.args, params.signal, params.onUpdate);
+}
+
+function parseDataUri(url: string): { data: string; mimeType?: string } {
+  const [header, payload] = url.split(",", 2);
+  const mimeType = header.split(":")[1]?.split(";")[0];
+  return { data: payload ?? url, mimeType };
+}
+
+function stringifyToolResult(result: unknown): string {
+  if (result === undefined) {
+    return "undefined";
+  }
+  const json = JSON.stringify(result);
+  if (typeof json === "string") {
+    return json;
+  }
+  // json is undefined: result is non-serializable (function, symbol, circular object)
+  return typeof result === "symbol" ? result.toString() : `[unserializable ${typeof result}]`;
 }
 
 // ---------------------------------------------------------------------------
@@ -145,6 +184,13 @@ export function createClaudeSdkMcpToolServer(
       async (args: Record<string, unknown>, _extra: unknown) => {
         // Tool call IDs must come from SDK assistant tool_use messages.
         // Do not use handler "extra" metadata or synthetic/by-name fallbacks.
+        //
+        // FIFO pairing: the SDK invokes MCP tool handlers in the same order that
+        // tool_use blocks appear in the assistant message. consumePendingToolUse()
+        // shifts the front of the queue populated by rememberPendingToolUses() in
+        // event-adapter.ts, so index 0 in the queue matches the first tool called,
+        // index 1 matches the second, etc. This invariant holds because the SDK does
+        // not parallelize tool execution within a single assistant turn.
         const pendingToolUse = params.consumePendingToolUse();
         if (!pendingToolUse) {
           const fallbackToolCallId = `missing_tool_use_id:${crypto.randomUUID()}`;
@@ -195,14 +241,20 @@ export function createClaudeSdkMcpToolServer(
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         try {
-          const result = await openClawTool.execute(toolCallId, args, signal, (update: unknown) => {
-            // Override type/tool IDs after spreading update payload to prevent clobbering.
-            emitEvent({
-              ...(update && typeof update === "object" ? update : {}),
-              type: "tool_execution_update",
-              toolCallId,
-              toolName: openClawTool.name,
-            } as never);
+          const result = await invokeToolExecute({
+            execute: openClawTool.execute as (...args: unknown[]) => Promise<unknown>,
+            toolCallId,
+            args,
+            signal,
+            onUpdate: (update: unknown) => {
+              // Override type/tool IDs after spreading update payload to prevent clobbering.
+              emitEvent({
+                ...(update && typeof update === "object" ? update : {}),
+                type: "tool_execution_update",
+                toolCallId,
+                toolName: openClawTool.name,
+              } as never);
+            },
           });
 
           emitEvent({

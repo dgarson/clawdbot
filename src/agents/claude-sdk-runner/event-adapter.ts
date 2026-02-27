@@ -139,6 +139,25 @@ export type SdkMessage =
 
 type PiStopReason = "stop" | "length" | "toolUse" | "error" | "aborted";
 
+function isCompactionCompletionMessage(message: SdkMessage): boolean {
+  const msgType = (message as { type?: string }).type;
+  // Only treat known post-compaction progress signals as completion.
+  // Unknown system/* subtypes should not implicitly close compaction.
+  if (msgType === "system") {
+    return (message as { subtype?: string }).subtype === "init";
+  }
+  if (
+    msgType === "stream_event" ||
+    msgType === "assistant" ||
+    msgType === "result" ||
+    msgType === "tool_progress" ||
+    msgType === "tool_use_summary"
+  ) {
+    return true;
+  }
+  return false;
+}
+
 // ---------------------------------------------------------------------------
 // Main translation function
 // ---------------------------------------------------------------------------
@@ -158,6 +177,23 @@ export function translateSdkMessageToEvents(
       subscriber(evt);
     }
   };
+
+  // Claude SDK compaction is represented by a single compact_boundary event.
+  // We emit start immediately, then emit end at the first subsequent eligible
+  // SDK message that proves generation moved forward.
+  if (state.compacting && isCompactionCompletionMessage(message)) {
+    const pending = state.pendingCompactionEnd;
+    state.compacting = false;
+    state.pendingCompactionEnd = undefined;
+    if (pending) {
+      emit({
+        type: "auto_compaction_end",
+        willRetry: pending.willRetry,
+        pre_tokens: pending.pre_tokens,
+        trigger: pending.trigger,
+      } as EmbeddedPiSubscribeEvent);
+    }
+  }
 
   const msgType = (message as { type?: string }).type;
 
@@ -225,15 +261,18 @@ export function translateSdkMessageToEvents(
       const pre_tokens = compactMsg.compact_metadata?.pre_tokens;
       const trigger = compactMsg.compact_metadata?.trigger;
       const willRetry = extractCompactionWillRetry(compactMsg);
+      if (state.compacting && state.pendingCompactionEnd) {
+        // Defensive: close any prior deferred compaction before starting a new one.
+        emit({
+          type: "auto_compaction_end",
+          willRetry: state.pendingCompactionEnd.willRetry,
+          pre_tokens: state.pendingCompactionEnd.pre_tokens,
+          trigger: state.pendingCompactionEnd.trigger,
+        } as EmbeddedPiSubscribeEvent);
+      }
       state.compacting = true;
+      state.pendingCompactionEnd = { willRetry, pre_tokens, trigger };
       emit({ type: "auto_compaction_start", pre_tokens, trigger } as EmbeddedPiSubscribeEvent);
-      state.compacting = false;
-      emit({
-        type: "auto_compaction_end",
-        willRetry,
-        pre_tokens,
-        trigger,
-      } as EmbeddedPiSubscribeEvent);
     }
     // Other system subtypes are ignored
     return;
@@ -260,11 +299,14 @@ export function translateSdkMessageToEvents(
     const content = assistantMsg.content ?? [];
 
     if (state.streamingInProgress) {
-      // Stream events already emitted real-time events — skip re-emitting.
+      // Streaming path: real-time events (message_start/update/end) were already
+      // emitted by handleStreamEvent as stream_event messages arrived. Skip
+      // translateAssistantContent to avoid double-emitting. Clear streaming state
+      // so subsequent turns start clean.
       state.streamingInProgress = false;
       state.streamingPartialMessage = null;
     } else {
-      // Non-streaming fallback — keep existing event emission logic.
+      // Non-streaming fallback — emit full event sequence from the complete message.
       translateAssistantContent(
         content,
         assistantMsg,
@@ -274,12 +316,21 @@ export function translateSdkMessageToEvents(
       );
     }
 
-    // Persist to JSONL in both cases.
+    // The three calls below run unconditionally for BOTH streaming and non-streaming:
+
+    // (1) JSONL persistence always uses the complete assistant message (authoritative
+    //     stop_reason, usage, and tool input) regardless of streaming mode.
     persistAssistantMessage(message as SdkAssistantMessage, content, state);
+
+    // (2) Arm the MCP tool server with tool_use blocks from the complete message.
+    //     The streaming accumulation in streamingPartialMessage (content_block_start/
+    //     delta/stop) is for subscriber event parity only — actual tool execution
+    //     depends on consumePendingToolUse() reading from this queue. See design-notes.md.
     rememberPendingToolUses(state, content);
 
-    // Append assistant message to state.messages so that attempt.ts snapshots
-    // (activeSession.messages.slice()) contain the current turn's output.
+    // (3) Push to state.messages so attempt.ts snapshots contain the current turn.
+    //     Uses the complete message's stop_reason, not streamingPartialMessage's
+    //     captured value — both must agree (same underlying API response).
     const agentMsg = buildAgentMessage(
       assistantMsg,
       content,
@@ -660,7 +711,7 @@ function normalizeStopReason(value: unknown, fallback?: PiStopReason): PiStopRea
     case "interrupted":
       return "aborted";
     default:
-      return fallback;
+      return fallback ?? "stop";
   }
 }
 
@@ -723,8 +774,15 @@ function handleStreamEvent(
       } else if (blockType === "text") {
         // text_start is implicit — first text_delta serves as start.
         // No explicit event needed here.
+      } else if (blockType === "tool_use" && state.streamingPartialMessage) {
+        // Accumulate tool_use blocks so streamingPartialMessage.content mirrors
+        // the final assistant message structure (no sparse array holes at tool_use
+        // indices). This duplicates what the SDK does internally — tool execution
+        // itself is still handled by the MCP tool server after the complete
+        // assistant message arrives.
+        const cb = event.content_block as { id?: string; name?: string };
+        initToolUseBlock(state.streamingPartialMessage, event.index, cb.id ?? "", cb.name ?? "");
       }
-      // tool_use: MCP handler owns tool events — skip.
       break;
     }
 
@@ -770,8 +828,13 @@ function handleStreamEvent(
             content: accumulated,
           },
         } as EmbeddedPiSubscribeEvent);
+      } else if (deltaType === "input_json_delta" && event.delta.partial_json !== undefined) {
+        accumulateToolInputDelta(
+          state.streamingPartialMessage,
+          event.index,
+          event.delta.partial_json,
+        );
       }
-      // input_json_delta: skip — MCP handler owns tool events.
       break;
     }
 
@@ -810,6 +873,8 @@ function handleStreamEvent(
           message,
           assistantMessageEvent: { type: "thinking_end" },
         } as EmbeddedPiSubscribeEvent);
+      } else if (blockType === "tool_use") {
+        finalizeToolUseInput(state.streamingPartialMessage, event.index);
       }
       state.streamingBlockTypes.delete(event.index);
       break;
@@ -831,6 +896,10 @@ function handleStreamEvent(
         } else {
           state.streamingPartialMessage.usage = event.usage;
         }
+        // Capture stop_reason so message_stop's buildAgentMessage can normalize it.
+        if (event.delta.stop_reason != null) {
+          state.streamingPartialMessage.stop_reason = event.delta.stop_reason;
+        }
       }
       break;
     }
@@ -850,7 +919,12 @@ function handleStreamEvent(
 
 // ---------------------------------------------------------------------------
 // Content accumulation helpers
-// Build up partial message content during streaming.
+// Build up partial message content during streaming so that
+// streamingPartialMessage.content mirrors the final assistant message
+// structure for all block types (text, thinking, tool_use).
+// Tool_use accumulation duplicates what the SDK tracks internally — tool
+// execution itself is handled by the MCP tool server after the complete
+// assistant message arrives via rememberPendingToolUses/consumePendingToolUse.
 // ---------------------------------------------------------------------------
 
 function accumulateTextDelta(partial: { content: unknown[] }, index: number, text: string): void {
@@ -872,6 +946,40 @@ function accumulateThinkingDelta(
     existing.thinking = (existing.thinking ?? "") + thinking;
   } else {
     partial.content[index] = { type: "thinking", thinking };
+  }
+}
+
+function initToolUseBlock(
+  partial: { content: unknown[] },
+  index: number,
+  id: string,
+  name: string,
+): void {
+  partial.content[index] = { type: "tool_use", id, name, _inputJson: "", input: {} };
+}
+
+function accumulateToolInputDelta(
+  partial: { content: unknown[] },
+  index: number,
+  json: string,
+): void {
+  const existing = partial.content[index] as { type: string; _inputJson?: string } | undefined;
+  if (existing && existing.type === "tool_use") {
+    existing._inputJson = (existing._inputJson ?? "") + json;
+  }
+}
+
+function finalizeToolUseInput(partial: { content: unknown[] }, index: number): void {
+  const existing = partial.content[index] as
+    | { type: string; _inputJson?: string; input?: unknown }
+    | undefined;
+  if (existing && existing.type === "tool_use") {
+    try {
+      existing.input = JSON.parse(existing._inputJson || "{}");
+    } catch {
+      existing.input = {};
+    }
+    delete existing._inputJson;
   }
 }
 
@@ -925,6 +1033,7 @@ function persistAssistantMessage(
     const outputTokens = toTokenCount(sdkUsage?.output_tokens);
     const cacheReadTokens = toTokenCount(sdkUsage?.cache_read_input_tokens);
     const cacheWriteTokens = toTokenCount(sdkUsage?.cache_creation_input_tokens);
+    const totalTokens = inputTokens + outputTokens + cacheReadTokens + cacheWriteTokens;
     const usageCost = {
       input: calculateUsageCost(inputTokens, state.modelCost?.input),
       output: calculateUsageCost(outputTokens, state.modelCost?.output),
@@ -946,7 +1055,7 @@ function persistAssistantMessage(
         output: outputTokens,
         cacheRead: cacheReadTokens,
         cacheWrite: cacheWriteTokens,
-        totalTokens: inputTokens + outputTokens + cacheReadTokens + cacheWriteTokens,
+        totalTokens,
         cost: {
           input: usageCost.input,
           output: usageCost.output,

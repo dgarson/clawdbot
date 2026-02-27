@@ -65,3 +65,79 @@ describe("ClaudeSdkConfigSchema custom provider", () => {
     ).toThrow();
   });
 });
+
+describe("ClaudeSdkConfigSchema provider variants and validation edges", () => {
+  it("accepts non-custom providers with optional configDir and supportedProviders", () => {
+    const parsed = ClaudeSdkConfigSchema.parse({
+      provider: "zai",
+      configDir: "/tmp/claude-config",
+      supportedProviders: ["claude-pro", "zai"],
+    });
+    expect(parsed?.provider).toBe("zai");
+    expect(parsed?.configDir).toBe("/tmp/claude-config");
+    expect(parsed?.supportedProviders).toEqual(["claude-pro", "zai"]);
+  });
+
+  it("rejects unknown provider values", () => {
+    expect(() =>
+      ClaudeSdkConfigSchema.parse({
+        provider: "not-a-provider",
+      }),
+    ).toThrow();
+  });
+
+  it("rejects empty supportedProviders entries", () => {
+    expect(() =>
+      ClaudeSdkConfigSchema.parse({
+        provider: "claude-sdk",
+        supportedProviders: ["anthropic", ""],
+      }),
+    ).toThrow();
+  });
+
+  it("rejects blank configDir after trimming", () => {
+    expect(() =>
+      ClaudeSdkConfigSchema.parse({
+        provider: "anthropic",
+        configDir: "   ",
+      }),
+    ).toThrow();
+  });
+});
+
+describe("ClaudeSdkConfigSchema thinkingDefault", () => {
+  it("accepts Claude SDK thinking levels", () => {
+    const none = ClaudeSdkConfigSchema.parse({
+      provider: "claude-sdk",
+      thinkingDefault: "none",
+    });
+    expect(none?.thinkingDefault).toBe("none");
+
+    const low = ClaudeSdkConfigSchema.parse({
+      provider: "claude-sdk",
+      thinkingDefault: "low",
+    });
+    expect(low?.thinkingDefault).toBe("low");
+
+    const medium = ClaudeSdkConfigSchema.parse({
+      provider: "anthropic",
+      thinkingDefault: "medium",
+    });
+    expect(medium?.thinkingDefault).toBe("medium");
+
+    const high = ClaudeSdkConfigSchema.parse({
+      provider: "openrouter",
+      thinkingDefault: "high",
+    });
+    expect(high?.thinkingDefault).toBe("high");
+  });
+
+  it("rejects non-Claude-SDK thinking levels", () => {
+    expect(() =>
+      ClaudeSdkConfigSchema.parse({
+        provider: "claude-sdk",
+        thinkingDefault: "off",
+      }),
+    ).toThrow();
+  });
+});

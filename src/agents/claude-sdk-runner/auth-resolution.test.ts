@@ -56,6 +56,25 @@ describe("createClaudeSdkAuthResolutionState", () => {
     );
   });
 
+  it("normalizes provider IDs when deduping supportedProviders", async () => {
+    const authStore = { profiles: {} } as never;
+    const state = await createClaudeSdkAuthResolutionState({
+      provider: "Anthropic",
+      cfg: {},
+      claudeSdkConfig: {
+        provider: "claude-sdk",
+        supportedProviders: ["Anthropic", "anthropic"],
+      } as never,
+      authStore,
+      agentDir: "/tmp/agent",
+      preferredProfileId: undefined,
+      authProfileIdSource: undefined,
+    });
+
+    expect(state.runtimeOverride).toBe("claude-sdk");
+    expect(state.authProvider).toBe("anthropic");
+  });
+
   it("keeps runtime unset when provider is outside claudeSdk.supportedProviders", async () => {
     const authStore = { profiles: {} } as never;
     const state = await createClaudeSdkAuthResolutionState({
@@ -114,6 +133,51 @@ describe("createClaudeSdkAuthResolutionState", () => {
     expect(state.claudeSdkProviderOverride).toBeUndefined();
   });
 
+  it("moveToNextClaudeSdkProvider returns false when provider candidates are exhausted", async () => {
+    const authStore = { profiles: {} } as never;
+    const state = await createClaudeSdkAuthResolutionState({
+      provider: "claude-pro",
+      cfg: {},
+      claudeSdkConfig: {
+        provider: "zai",
+        supportedProviders: ["zai"],
+      } as never,
+      authStore,
+      agentDir: "/tmp/agent",
+      preferredProfileId: undefined,
+      authProfileIdSource: undefined,
+    });
+
+    expect(await state.moveToNextClaudeSdkProvider()).toBe(true);
+    expect(await state.moveToNextClaudeSdkProvider()).toBe(false);
+    expect(state.authProvider).toBe("zai");
+  });
+
+  it("advanceProfileIndex increments until exhaustion for unlocked profiles", async () => {
+    mocks.resolveAuthProfileOrder.mockReturnValue(["zai:p1", "zai:p2"]);
+    const authStore = {
+      profiles: {
+        "zai:p1": { type: "token", provider: "zai", token: "one" },
+        "zai:p2": { type: "token", provider: "zai", token: "two" },
+      },
+    } as never;
+    const state = await createClaudeSdkAuthResolutionState({
+      provider: "zai",
+      cfg: {},
+      claudeSdkConfig: { provider: "zai", supportedProviders: ["zai"] } as never,
+      authStore,
+      agentDir: "/tmp/agent",
+      preferredProfileId: undefined,
+      authProfileIdSource: undefined,
+    });
+
+    expect(state.profileIndex).toBe(0);
+    state.advanceProfileIndex();
+    expect(state.profileIndex).toBe(1);
+    state.advanceProfileIndex();
+    expect(state.profileIndex).toBe(2);
+  });
+
   it("uses claudeSdk.custom.authProfileId as locked candidate for custom provider", async () => {
     mocks.upsertAuthProfileWithLock.mockResolvedValue({
       profiles: {
@@ -165,5 +229,54 @@ describe("createClaudeSdkAuthResolutionState", () => {
     expect(state.profileCandidates).toEqual([
       { profileId: "custom-profile", resolveProfileId: "custom-profile" },
     ]);
+  });
+
+  it("does not advanceProfileIndex for a locked profile candidate", async () => {
+    const authStore = {
+      profiles: {
+        "custom-profile": {
+          type: "token",
+          provider: "zai",
+          token: "sk-custom",
+        },
+      },
+    } as never;
+    const state = await createClaudeSdkAuthResolutionState({
+      provider: "custom",
+      cfg: {},
+      claudeSdkConfig: {
+        provider: "custom",
+        authProfileId: "custom-profile",
+        anthropicDefaultHaikuModel: "custom-haiku",
+        anthropicDefaultSonnetModel: "custom-sonnet",
+        anthropicDefaultOpusModel: "custom-opus",
+        baseUrl: "https://gateway.example/v1",
+      } as never,
+      authStore,
+      agentDir: "/tmp/agent",
+      preferredProfileId: undefined,
+      authProfileIdSource: undefined,
+    });
+
+    expect(state.profileIndex).toBe(0);
+    state.advanceProfileIndex();
+    expect(state.profileIndex).toBe(0);
+  });
+
+  it("surfaces synthetic keychain profile creation failure", async () => {
+    mocks.upsertAuthProfileWithLock.mockRejectedValueOnce(new Error("lock failed"));
+    const authStore = { profiles: {} } as never;
+
+    await expect(
+      createClaudeSdkAuthResolutionState({
+        provider: "claude-pro",
+        cfg: {},
+        claudeSdkConfig: undefined,
+        authStore,
+        agentDir: "/tmp/agent",
+        preferredProfileId: undefined,
+        authProfileIdSource: undefined,
+      }),
+    ).rejects.toThrow("lock failed");
   });
 });

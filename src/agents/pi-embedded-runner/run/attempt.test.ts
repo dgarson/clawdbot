@@ -261,6 +261,53 @@ describe("resolveClaudeSdkConfig", () => {
     });
   });
 
+  it("claudeSdkProviderOverride custom when existing claudeSdk has provider anthropic returns undefined", () => {
+    const params = {
+      claudeSdkProviderOverride: "custom",
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: { provider: "anthropic" } }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
+  it("claudeSdkProviderOverride custom when existing claudeSdk already has provider custom with baseUrl returns full config", () => {
+    const params = {
+      claudeSdkProviderOverride: "custom",
+      config: {
+        agents: {
+          list: [
+            {
+              id: "main",
+              claudeSdk: {
+                provider: "custom",
+                baseUrl: "https://gateway.example/v1",
+                authProfileId: "my-profile",
+              },
+            },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({
+      provider: "custom",
+      baseUrl: "https://gateway.example/v1",
+      authProfileId: "my-profile",
+    });
+  });
+
+  it("config undefined (no agents) returns undefined", () => {
+    const params = {
+      config: undefined,
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
   it("drops custom-only fields when overriding custom config to non-custom provider", () => {
     const params = {
       claudeSdkProviderOverride: "zai",
@@ -384,5 +431,52 @@ describe("resolveRuntime", () => {
     const result = resolveRuntime(params, "main");
     expect(result).toBe("pi");
     warnSpy.mockRestore();
+  });
+
+  it("runtimeOverride pi forces pi even when provider is a known claude-sdk provider", () => {
+    const params = {
+      provider: "claude-pro",
+      runtimeOverride: "pi",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("pi");
+  });
+
+  it("runtimeOverride claude-sdk forces claude-sdk even when provider is openai with no supportedProviders", () => {
+    const params = {
+      provider: "openai",
+      runtimeOverride: "claude-sdk",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("supportedProviders matching is case-insensitive: provider OpenAI matches entry openai", () => {
+    const params = {
+      provider: "OpenAI",
+      config: {
+        agents: {
+          list: [
+            {
+              id: "main",
+              claudeSdk: { provider: "anthropic", supportedProviders: ["openai"] },
+            },
+          ],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("config undefined with a non-sdk provider returns pi", () => {
+    const params = {
+      provider: "gemini",
+      config: undefined,
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("pi");
   });
 });

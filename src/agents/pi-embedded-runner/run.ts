@@ -50,6 +50,7 @@ import { runEmbeddedAttempt } from "./run/attempt.js";
 import { createRunAuthProfileFailoverController } from "./run/auth-profile-failover.js";
 import type { RunEmbeddedPiAgentParams } from "./run/params.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
+import type { EmbeddedRunAttemptParams } from "./run/types.js";
 import {
   truncateOversizedToolResultsInSession,
   sessionLikelyHasOversizedToolResults,
@@ -333,7 +334,7 @@ export async function runEmbeddedPiAgent(
           authStorage,
           modelRegistry,
           thinkLevel: params.thinkLevel ?? "off",
-        } as never,
+        } as EmbeddedRunAttemptParams,
         workspaceResolution.agentId,
       );
       const preferredProfileId = params.authProfileId?.trim();
@@ -467,7 +468,6 @@ export async function runEmbeddedPiAgent(
             agentId: workspaceResolution.agentId,
             legacyBeforeAgentStartResult,
             thinkLevel,
-            resolvedProviderAuth: apiKeyInfo ?? undefined,
             verboseLevel: params.verboseLevel,
             reasoningLevel: params.reasoningLevel,
             toolResultFormat: resolvedToolResultFormat,

@@ -1,5 +1,9 @@
-import type { ClaudeSdkConfig } from "../../config/zod-schema.agent-runtime.js";
+import {
+  ClaudeSdkConfigSchema,
+  type ClaudeSdkConfig,
+} from "../../config/zod-schema.agent-runtime.js";
 import { SYSTEM_KEYCHAIN_PROVIDERS, type ResolvedProviderAuth } from "../model-auth.js";
+import { log } from "../pi-embedded-runner/logger.js";
 import type { EmbeddedRunAttemptParams } from "../pi-embedded-runner/run/types.js";
 import { createClaudeSdkSession } from "./create-session.js";
 import type { ClaudeSdkCompatibleTool, ClaudeSdkSession } from "./types.js";
@@ -29,7 +33,24 @@ export function resolveClaudeSdkConfig(
   if (!("provider" in merged)) {
     return undefined;
   }
-  const resolved = merged as ClaudeSdkConfig;
+  // Run the merged object through the discriminated-union schema for two reasons:
+  // (1) Validation: reject structurally invalid configs before they reach the SDK.
+  // (2) Normalization: Zod's default strip mode removes fields that don't belong
+  //     to the resolved provider variant. A shallow spread of defaults + agent config
+  //     can produce cross-provider pollution (e.g. defaults have provider:"custom" with
+  //     baseUrl/authProfileId, agent overrides to provider:"zai" — the merge inherits
+  //     custom-only fields that are invalid for zai). safeParse strips them cleanly.
+  // On failure we return undefined so the session falls back to Pi runtime rather
+  // than running with a corrupted config. The warn log covers both real
+  // misconfigurations and the edge case where no union variant matches the merge.
+  const parseResult = ClaudeSdkConfigSchema.safeParse(merged);
+  if (!parseResult.success || !parseResult.data) {
+    log.warn(
+      `claudeSdk config validation failed after merge (provider: ${String((merged as Record<string, unknown>).provider)}): ${parseResult.success ? "empty result" : parseResult.error.message}`,
+    );
+    return undefined;
+  }
+  const resolved = parseResult.data;
   if (params.claudeSdkProviderOverride?.trim()) {
     const overriddenProvider =
       params.claudeSdkProviderOverride.trim() as ClaudeSdkConfig["provider"];

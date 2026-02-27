@@ -1,4 +1,5 @@
-import type { AgentMessage } from "@mariozechner/pi-agent-core";
+import type { AgentMessage, AgentTool } from "@mariozechner/pi-agent-core";
+import type { ToolDefinition } from "@mariozechner/pi-coding-agent";
 import type { ClaudeSdkConfig } from "../../config/zod-schema.agent-runtime.js";
 import type { ModelCostConfig } from "../../utils/usage-format.js";
 import type { AgentRuntimeSession, AgentRuntimeHints } from "../agent-runtime.js";
@@ -18,8 +19,7 @@ export type ClaudeSdkCompatibleTool = {
   description?: string | null;
   parameters: Record<string, unknown> | { [key: symbol]: unknown };
   ownerOnly?: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  execute: (...args: any[]) => Promise<unknown>;
+  execute: AgentTool["execute"] | ToolDefinition["execute"];
 };
 
 // ---------------------------------------------------------------------------
@@ -78,6 +78,13 @@ export type ClaudeSdkEventAdapterState = {
   subscribers: Array<(evt: EmbeddedPiSubscribeEvent) => void>;
   streaming: boolean;
   compacting: boolean;
+  pendingCompactionEnd:
+    | {
+        willRetry: boolean;
+        pre_tokens: number | undefined;
+        trigger: "manual" | "auto" | undefined;
+      }
+    | undefined;
   abortController: AbortController | null;
   systemPrompt: string;
   pendingSteer: string[];
@@ -87,6 +94,8 @@ export type ClaudeSdkEventAdapterState = {
   messageIdCounter: number;
   streamingMessageId: string | null;
   claudeSdkSessionId: string | undefined;
+  /** True once dispose() has persisted the session ID to avoid duplicate entries. */
+  sessionIdPersisted?: boolean;
   /** Set when the SDK yields a result message with an error subtype. The
    *  prompt() method throws this after the for-await loop so callers receive
    *  a proper rejection rather than a silent successful resolution. */
@@ -102,6 +111,7 @@ export type ClaudeSdkEventAdapterState = {
     content: unknown[];
     usage?: unknown;
     model?: string;
+    stop_reason?: string;
   } | null;
   /** Set true on stream message_start; used by assistant handler to skip re-emitting events. */
   streamingInProgress: boolean;

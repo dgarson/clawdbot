@@ -1,4 +1,5 @@
 import type { Api, Model } from "@mariozechner/pi-ai";
+import type { AuthStorage } from "@mariozechner/pi-coding-agent";
 import type { OpenClawConfig } from "../../../config/config.js";
 import type { ClaudeSdkConfig } from "../../../config/zod-schema.agent-runtime.js";
 import type { AuthProfileStore } from "../../auth-profiles.js";
@@ -11,7 +12,7 @@ import {
 import { FailoverError, resolveFailoverStatus } from "../../failover-error.js";
 import { getApiKeyForModel, type ResolvedProviderAuth } from "../../model-auth.js";
 import { classifyFailoverReason, type FailoverReason } from "../../pi-embedded-helpers.js";
-import type { AuthStorage } from "../../pi-model-discovery.js";
+import { log } from "../logger.js";
 import { describeUnknownError } from "../utils.js";
 
 type CreateRunAuthProfileFailoverControllerParams = {
@@ -53,6 +54,8 @@ export async function createRunAuthProfileFailoverController(
 
   let apiKeyInfo: ResolvedProviderAuth | null = null;
   let lastProfileId: string | undefined;
+  let sawNonCooldownCandidateFailure = false;
+  let lastCandidateResolutionError: unknown;
 
   const resolveAuthLookupModel = () =>
     authResolution.authProvider === params.model.provider
@@ -167,6 +170,8 @@ export async function createRunAuthProfileFailoverController(
         if (candidateProfileId && candidateProfileId === authResolution.lockedProfileId) {
           throw error;
         }
+        sawNonCooldownCandidateFailure = true;
+        lastCandidateResolutionError = error;
         authResolution.advanceProfileIndex();
       }
     }
@@ -197,6 +202,9 @@ export async function createRunAuthProfileFailoverController(
           params.onAuthRotationSuccess?.();
           return true;
         }
+        log.warn(
+          `Auth profile failover switched from Claude SDK to Pi runtime, but no usable auth profile was available for provider "${authResolution.authProvider}".`,
+        );
       }
       break;
     }
@@ -213,12 +221,20 @@ export async function createRunAuthProfileFailoverController(
       if (await authResolution.fallBackToPiRuntime()) {
         params.onClaudeSdkToPiFallback?.();
         initialized = await initializeCurrentAuthCandidate();
+        if (!initialized) {
+          log.warn(
+            `Auth profile initialization switched from Claude SDK to Pi runtime, but no usable auth profile was available for provider "${authResolution.authProvider}".`,
+          );
+        }
         break;
       }
       break;
     }
     if (!initialized) {
-      throwAuthProfileFailover({ allInCooldown: true });
+      throwAuthProfileFailover({
+        allInCooldown: !sawNonCooldownCandidateFailure,
+        error: lastCandidateResolutionError,
+      });
     }
   } catch (error) {
     if (error instanceof FailoverError) {
