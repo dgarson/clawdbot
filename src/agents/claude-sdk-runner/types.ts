@@ -5,6 +5,7 @@ import type { ModelCostConfig } from "../../utils/usage-format.js";
 import type { AgentRuntimeSession, AgentRuntimeHints } from "../agent-runtime.js";
 import type { ResolvedProviderAuth } from "../model-auth.js";
 import type { EmbeddedPiSubscribeEvent } from "../pi-embedded-subscribe.handlers.types.js";
+import type { StructuredContextInput } from "./context/types.js";
 
 // ---------------------------------------------------------------------------
 // Minimal tool interface compatible with both AnyAgentTool (4-param execute)
@@ -47,6 +48,8 @@ export type ClaudeSdkSessionParams = {
   claudeSdkResumeSessionId?: string;
   /** Resolved claudeSdk options from agents config. */
   claudeSdkConfig?: ClaudeSdkConfig;
+  /** Structured channel/thread context for SDK sessions (replaces flat string prefixes). */
+  structuredContextInput?: StructuredContextInput;
   /** Full auth-resolution output (profile/source/mode/key) for provider env mapping. */
   resolvedProviderAuth?: ResolvedProviderAuth;
   /** SessionManager instance for persisting the claude SDK session ID and messages. */

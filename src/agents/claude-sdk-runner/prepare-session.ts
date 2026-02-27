@@ -188,5 +188,6 @@ export async function prepareClaudeSdkSession(
     claudeSdkResumeSessionId,
     claudeSdkConfig,
     resolvedProviderAuth,
+    structuredContextInput: params.structuredContextInput,
   });
 }

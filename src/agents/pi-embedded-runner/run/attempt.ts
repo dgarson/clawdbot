@@ -736,8 +736,14 @@ export async function runEmbeddedAttempt(
       if (runtimeKind === "claude-sdk") {
         const claudeSdkConfig = resolveClaudeSdkConfig(params, sessionAgentId);
         const agentCfg: ClaudeSdkConfig = claudeSdkConfig ?? {};
+        // For SDK sessions with structured context, use the raw (unprefixed) prompt
+        // so thread history is not double-counted (it's in ChannelSnapshot/ThreadContext).
+        const sdkParams =
+          params.structuredContextInput && params.rawBodyForSdk
+            ? { ...params, prompt: params.rawBodyForSdk }
+            : params;
         agentSession = await prepareClaudeSdkSession(
-          params,
+          sdkParams,
           agentCfg,
           params.resolvedProviderAuth,
           sessionManager,

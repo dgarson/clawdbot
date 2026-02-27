@@ -1,3 +1,4 @@
+import type { StructuredContextInput } from "../agents/claude-sdk-runner/context/types.js";
 import type { ChannelId } from "../channels/plugins/types.js";
 import type {
   MediaUnderstandingDecision,
@@ -76,6 +77,8 @@ export type MsgContext = {
   ForwardedFromMessageId?: number;
   ForwardedDate?: number;
   ThreadStarterBody?: string;
+  /** Structured channel/thread context for Claude SDK sessions. */
+  StructuredContext?: StructuredContextInput;
   /** Full thread history when starting a new thread session. */
   ThreadHistoryBody?: string;
   IsFirstThreadTurn?: boolean;

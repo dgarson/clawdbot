@@ -152,6 +152,44 @@ describe("prepareClaudeSdkSession — thinkLevel resolution", () => {
   });
 });
 
+describe("prepareClaudeSdkSession — structuredContextInput threading", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("passes structuredContextInput through to createClaudeSdkSession", async () => {
+    const structuredContextInput = {
+      platform: "slack",
+      channelId: "C123",
+      channelName: "general",
+      anchor: {
+        messageId: "1234",
+        ts: "1234",
+        authorId: "U1",
+        authorName: "Alice",
+        authorIsBot: false,
+        text: "Test",
+        threadId: null,
+      },
+      adjacentMessages: [],
+      thread: null,
+    };
+    const params = {
+      ...baseParams,
+      structuredContextInput,
+    } as unknown as EmbeddedRunAttemptParams;
+    await callPrepare(params, baseSessionManager());
+    const mock = createClaudeSdkSession as ReturnType<typeof vi.fn>;
+    expect(mock.mock.calls[0][0]).toMatchObject({ structuredContextInput });
+  });
+
+  it("passes undefined structuredContextInput when not set", async () => {
+    await callPrepare(baseParams, baseSessionManager());
+    const mock = createClaudeSdkSession as ReturnType<typeof vi.fn>;
+    expect(mock.mock.calls[0][0].structuredContextInput).toBeUndefined();
+  });
+});
+
 describe("resolveClaudeSdkConfig — thinkingDefault compatibility", () => {
   it("keeps claudeSdk config when thinkingDefault is legacy 'none'", () => {
     const params = {

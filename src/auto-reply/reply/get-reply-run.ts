@@ -339,11 +339,16 @@ export async function runPreparedReply(
   prefixedBodyBase = appendUntrustedContext(prefixedBodyBase, sessionCtx.UntrustedContext);
   const threadStarterBody = ctx.ThreadStarterBody?.trim();
   const threadHistoryBody = ctx.ThreadHistoryBody?.trim();
-  const threadContextNote = threadHistoryBody
-    ? `[Thread history - for context]\n${threadHistoryBody}`
-    : threadStarterBody
-      ? `[Thread starter - for context]\n${threadStarterBody}`
-      : undefined;
+  // When structured context is provided (SDK sessions), skip thread prefix —
+  // ChannelSnapshot + ThreadContext carry the thread data natively.
+  const threadContextNote =
+    ctx.StructuredContext != null
+      ? undefined
+      : threadHistoryBody
+        ? `[Thread history - for context]\n${threadHistoryBody}`
+        : threadStarterBody
+          ? `[Thread starter - for context]\n${threadStarterBody}`
+          : undefined;
   const skillResult = await ensureSkillSnapshot({
     sessionEntry,
     sessionStore,
@@ -506,6 +511,8 @@ export async function runPreparedReply(
       ownerNumbers: command.ownerList.length > 0 ? command.ownerList : undefined,
       extraSystemPrompt: extraSystemPrompt || undefined,
       ...(isReasoningTagProvider(provider) ? { enforceFinalTag: true } : {}),
+      structuredContextInput: ctx.StructuredContext ?? undefined,
+      rawBodyForSdk: ctx.BodyForAgent?.trim() ?? undefined,
     },
   };
 
