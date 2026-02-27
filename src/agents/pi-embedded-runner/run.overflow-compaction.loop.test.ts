@@ -85,6 +85,34 @@ describe("overflow compaction in run loop", () => {
     expect(result.meta.error).toBeUndefined();
   });
 
+  it("retries without local overflow recovery in claude-sdk runtime", async () => {
+    const overflowError = makeOverflowError();
+
+    mockedRunEmbeddedAttempt
+      .mockResolvedValueOnce(makeAttemptResult({ promptError: overflowError }))
+      .mockResolvedValueOnce(makeAttemptResult({ promptError: null }));
+    mockedSessionLikelyHasOversizedToolResults.mockReturnValue(true);
+
+    const result = await runEmbeddedPiAgent({
+      ...baseParams,
+      provider: "claude-pro",
+    });
+
+    expect(mockedCompactDirect).not.toHaveBeenCalled();
+    expect(mockedTruncateOversizedToolResultsInSession).not.toHaveBeenCalled();
+    expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(2);
+    expect(mockedRunEmbeddedAttempt).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ runtimeOverride: "claude-sdk" }),
+    );
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "retrying prompt without local overflow recovery for claude-pro/test-model",
+      ),
+    );
+    expect(result.meta.error).toBeUndefined();
+  });
+
   it("retries after successful compaction on likely-overflow promptError variants", async () => {
     const overflowHintError = new Error("Context window exceeded: requested 12000 tokens");
 

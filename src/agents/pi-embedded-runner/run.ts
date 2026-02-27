@@ -774,6 +774,7 @@ export async function runEmbeddedPiAgent(
             );
             const isCompactionFailure = isCompactionFailureError(errorText);
             const hadAttemptLevelCompaction = attemptCompactionCount > 0;
+            const claudeSdkManagedRuntime = runtimeOverride === "claude-sdk";
             // If this attempt already compacted (SDK auto-compaction), avoid immediately
             // running another explicit compaction for the same overflow trigger.
             if (
@@ -787,10 +788,24 @@ export async function runEmbeddedPiAgent(
               );
               continue;
             }
-            // Attempt explicit overflow compaction only when this attempt did not
-            // already auto-compact.
+            // Claude SDK runtime manages compaction server-side. Never run local
+            // overflow compaction/truncation in this path; only retry the prompt.
             if (
               !isCompactionFailure &&
+              claudeSdkManagedRuntime &&
+              overflowCompactionAttempts < MAX_OVERFLOW_COMPACTION_ATTEMPTS
+            ) {
+              overflowCompactionAttempts++;
+              log.warn(
+                `context overflow detected in claude-sdk runtime (attempt ${overflowCompactionAttempts}/${MAX_OVERFLOW_COMPACTION_ATTEMPTS}); retrying prompt without local overflow recovery for ${provider}/${modelId}`,
+              );
+              continue;
+            }
+            // Attempt explicit overflow compaction only when this attempt did not
+            // already auto-compact and we're not in the Claude SDK runtime.
+            if (
+              !isCompactionFailure &&
+              !claudeSdkManagedRuntime &&
               !hadAttemptLevelCompaction &&
               overflowCompactionAttempts < MAX_OVERFLOW_COMPACTION_ATTEMPTS
             ) {
@@ -843,7 +858,7 @@ export async function runEmbeddedPiAgent(
             // Fallback: try truncating oversized tool results in the session.
             // This handles the case where a single tool result exceeds the
             // context window and compaction cannot reduce it further.
-            if (!toolResultTruncationAttempted) {
+            if (!toolResultTruncationAttempted && !claudeSdkManagedRuntime) {
               const contextWindowTokens = ctxInfo.tokens;
               const hasOversized = attempt.messagesSnapshot
                 ? sessionLikelyHasOversizedToolResults({
