@@ -127,26 +127,20 @@ import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types
 /** @internal Exported for testing only. */
 export function resolveRuntime(
   params: EmbeddedRunAttemptParams,
-  agentId: string,
+  _agentId: string,
 ): "pi" | "claude-sdk" {
+  // Non-Claude model IDs cannot run through the claude-sdk subprocess.
+  if (params.modelId && !params.modelId.startsWith("claude-")) {
+    return "pi";
+  }
   if (params.runtimeOverride) {
     return params.runtimeOverride;
   }
-  const claudeSdkConfig = resolveClaudeSdkConfig(params, agentId);
-  const supportedProviders = new Set(
-    (claudeSdkConfig?.supportedProviders ?? [])
-      .map((provider) => provider.trim().toLowerCase())
-      .filter((provider) => provider.length > 0),
-  );
   const normalizedProvider = params.provider.trim().toLowerCase();
   const resolvedAuthMode = params.resolvedProviderAuth?.mode;
   const resolvedAuthSource = params.resolvedProviderAuth?.source.toLowerCase() ?? "";
   // Prefer auth-resolution signal over provider-name heuristics when available.
   if (resolvedAuthMode === "system-keychain" || resolvedAuthSource.includes("system keychain")) {
-    return "claude-sdk";
-  }
-  // If configured, allow explicit provider list routing through the Claude SDK runtime.
-  if (supportedProviders.has(normalizedProvider)) {
     return "claude-sdk";
   }
   // Backstop for callers that haven't threaded resolvedProviderAuth yet.
@@ -822,9 +816,7 @@ export async function runEmbeddedAttempt(
 
       if (runtimeKind === "claude-sdk") {
         const claudeSdkConfig = resolveClaudeSdkConfig(params, sessionAgentId);
-        const agentCfg: ClaudeSdkConfig = claudeSdkConfig ?? {
-          provider: "claude-sdk" as const,
-        };
+        const agentCfg: ClaudeSdkConfig = claudeSdkConfig ?? {};
         agentSession = await prepareClaudeSdkSession(
           params,
           agentCfg,

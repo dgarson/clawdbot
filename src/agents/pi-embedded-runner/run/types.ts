@@ -19,7 +19,6 @@ export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   modelId: string;
   model: Model<Api>;
   runtimeOverride?: "pi" | "claude-sdk";
-  claudeSdkProviderOverride?: string;
   resolvedProviderAuth?: ResolvedProviderAuth;
   authStorage: AuthStorage;
   modelRegistry: ModelRegistry;

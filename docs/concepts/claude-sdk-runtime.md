@@ -33,10 +33,10 @@ If you want implementation details and reviewer checklists, see
 
 OpenClaw can run a turn in either Claude SDK runtime or Pi runtime.
 
-- System keychain providers (for example `claude-pro` / `claude-max`) start in Claude SDK runtime.
-- `agents.defaults.claudeSdk.supportedProviders` can add non-keychain provider IDs (for example `zai`, `minimax`) as Claude SDK candidates.
-- Within Claude SDK runtime, OpenClaw rotates auth profiles first, then Claude SDK provider candidates.
-- If all Claude SDK candidates are unavailable or cooling down, OpenClaw automatically falls back to Pi runtime for the same turn.
+- System keychain providers (`claude-pro` / `claude-max`) start in Claude SDK runtime.
+- All other providers (API-key-based, third-party) always use Pi runtime.
+- Within Claude SDK runtime, OpenClaw rotates auth profiles for the active provider.
+- If all auth profiles are unavailable or cooling down, OpenClaw automatically falls back to Pi runtime for the same turn.
 
 This keeps session continuity while preserving the broader Pi failover path.
 
@@ -47,12 +47,8 @@ Example:
   agents: {
     defaults: {
       claudeSdk: {
-        provider: "zai",
-        supportedProviders: ["claude-pro", "zai", "minimax"],
-      },
-      model: {
-        primary: "claude-pro/claude-sonnet-4-5",
-        fallbacks: ["zai/GLM-4.7", "minimax/MiniMax-M2.5"],
+        provider: "claude-sdk",
+        thinkingDefault: "low",
       },
     },
   },

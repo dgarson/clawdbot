@@ -61,7 +61,7 @@ describe("runEmbeddedPiAgent usage reporting", () => {
     expect(usage?.total).toBe(200);
   });
 
-  it("resolves auth against claudeSdk.provider when claude-sdk runtime is selected", async () => {
+  it("uses claude-sdk runtime when provider is system-keychain", async () => {
     mockedRunEmbeddedAttempt.mockResolvedValueOnce({
       aborted: false,
       promptError: null,
@@ -75,6 +75,12 @@ describe("runEmbeddedPiAgent usage reporting", () => {
       attemptUsage: { input: 10, output: 5, total: 15 },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
+    mockedGetApiKeyForModel.mockResolvedValueOnce({
+      apiKey: undefined,
+      profileId: "claude-pro:system-keychain",
+      source: "Claude Pro (system keychain)",
+      mode: "system-keychain",
+    } as never);
 
     await runEmbeddedPiAgent({
       sessionId: "test-session",
@@ -84,27 +90,23 @@ describe("runEmbeddedPiAgent usage reporting", () => {
       prompt: "hello",
       timeoutMs: 30000,
       runId: "run-2",
+      provider: "claude-pro",
       config: {
         agents: {
           defaults: {
-            claudeSdk: {
-              provider: "zai",
-              supportedProviders: ["anthropic"],
-            },
+            claudeSdk: {},
           },
         },
       },
     });
 
-    expect(mockedGetApiKeyForModel).toHaveBeenCalled();
-    const firstCall = mockedGetApiKeyForModel.mock.calls[0]?.[0];
-    expect(firstCall?.model.provider).toBe("zai");
+    const firstAttemptCall = mockedRunEmbeddedAttempt.mock.calls[0]?.[0];
+    expect(firstAttemptCall?.runtimeOverride).toBe("claude-sdk");
   });
 
-  it("falls back runtime to pi before attempt when claude-sdk providers are unavailable", async () => {
+  it("falls back runtime to pi before attempt when claude-sdk auth is unavailable", async () => {
     mockedGetApiKeyForModel
       .mockRejectedValueOnce(new Error("claude-pro keychain expired"))
-      .mockRejectedValueOnce(new Error("zai auth unavailable"))
       .mockResolvedValueOnce({
         apiKey: "sk-pi-fallback",
         profileId: "pi-profile",
@@ -137,10 +139,7 @@ describe("runEmbeddedPiAgent usage reporting", () => {
       config: {
         agents: {
           defaults: {
-            claudeSdk: {
-              provider: "zai",
-              supportedProviders: ["zai"],
-            },
+            claudeSdk: {},
           },
         },
       },
@@ -148,7 +147,6 @@ describe("runEmbeddedPiAgent usage reporting", () => {
 
     const firstAttemptCall = mockedRunEmbeddedAttempt.mock.calls[0]?.[0];
     expect(firstAttemptCall?.runtimeOverride).toBe("pi");
-    expect(firstAttemptCall?.claudeSdkProviderOverride).toBeUndefined();
     expect(firstAttemptCall?.resolvedProviderAuth?.apiKey).toBe("sk-pi-fallback");
   });
 });

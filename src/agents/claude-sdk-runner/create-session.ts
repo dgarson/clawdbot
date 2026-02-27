@@ -167,12 +167,7 @@ function buildQueryOptions(
     queryOptions.resume = state.claudeSdkSessionId;
   }
 
-  // Provider env: sets Anthropic-compatible endpoint/auth/model env for
-  // non-Anthropic providers. Returns undefined for anthropic without resolved key.
-  const providerEnv = buildProviderEnv(
-    params.claudeSdkConfig ?? { provider: "claude-sdk" as const },
-    params.resolvedProviderAuth,
-  );
+  const providerEnv = buildProviderEnv();
 
   const resolvedSubprocessEnv = resolveClaudeSubprocessEnv({
     providerEnv,
@@ -214,9 +209,7 @@ function buildQueryOptions(
 export async function createClaudeSdkSession(
   params: ClaudeSdkSessionParams,
 ): Promise<ClaudeSdkSession> {
-  const { transcriptProvider, transcriptApi } = resolveTranscriptMetadata(
-    params.claudeSdkConfig?.provider,
-  );
+  const { transcriptProvider, transcriptApi } = resolveTranscriptMetadata(params.provider);
 
   // Internal adapter state
   const state: ClaudeSdkEventAdapterState = {

@@ -867,53 +867,27 @@ Z.AI models enable `tool_stream` by default for tool call streaming. Set `agents
 
 ### `agents.defaults.claudeSdk`
 
-Claude SDK runtime options for agents.
+Claude SDK runtime options for agents. Only applies to Claude Pro / Claude Max subscription users (system keychain authentication). API-key-based providers always use Pi runtime; configure them via `models.providers` instead.
 
-Supported `provider` values: `claude-sdk`, `anthropic`, `zai`, `minimax`, `minimax-portal`, `openrouter`, `custom`.
+The only valid `provider` value is `claude-sdk`.
 
-Common fields:
+Fields:
 
-- `thinkingDefault`: `none | low | medium | high`
-- `supportedProviders`: optional list of provider IDs that should route through Claude SDK runtime before falling back to Pi runtime
-
-#### Custom provider strict config
-
-`provider: "custom"` requires all of the following:
-
-- `baseUrl`
-- `authProfileId`
-- `anthropicDefaultHaikuModel`
-- `anthropicDefaultSonnetModel`
-- `anthropicDefaultOpusModel`
-
-Optional:
-
-- `authHeaderName` (defaults to `ANTHROPIC_AUTH_TOKEN`)
-
-OpenClaw does not infer these values for `custom`. They must be explicit.
+- `thinkingDefault`: `none | low | medium | high` — default thinking level for the agent
+- `configDir`: optional path passed to the Claude subprocess as `CLAUDE_CONFIG_DIR`
 
 ```json5
 {
   agents: {
     defaults: {
       claudeSdk: {
-        provider: "custom",
-        baseUrl: "https://example.gateway/v1",
-        authProfileId: "custom-bridge:work",
-        authHeaderName: "ANTHROPIC_AUTH_TOKEN",
-        anthropicDefaultHaikuModel: "vendor/model-haiku",
-        anthropicDefaultSonnetModel: "vendor/model-sonnet",
-        anthropicDefaultOpusModel: "vendor/model-opus",
-        supportedProviders: ["claude-pro", "zai", "custom"],
+        provider: "claude-sdk",
+        thinkingDefault: "low",
       },
     },
   },
 }
 ```
-
-`authProfileId` must exist in the agent auth profile store (`~/.openclaw/agents/<agentId>/agent/auth-profiles.json`).
-
-For provider ID vs auth profile ID semantics, see [FAQ](/help/faq#provider-id-vs-auth-profile-id).
 
 ### `agents.defaults.cliBackends`
 

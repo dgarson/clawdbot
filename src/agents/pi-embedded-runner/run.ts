@@ -461,7 +461,6 @@ export async function runEmbeddedPiAgent(
             modelId,
             model,
             runtimeOverride: authResolution.runtimeOverride,
-            claudeSdkProviderOverride: authResolution.claudeSdkProviderOverride,
             resolvedProviderAuth: authController.apiKeyInfo ?? undefined,
             authStorage,
             modelRegistry,

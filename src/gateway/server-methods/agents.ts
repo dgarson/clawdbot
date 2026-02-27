@@ -344,326 +344,274 @@ async function moveToTrashBestEffort(pathname: string): Promise<void> {
   }
 }
 
-async function handleAgentsList({
-  params,
-  respond,
-}: {
-  params: Record<string, unknown>;
-  respond: RespondFn;
-}): Promise<void> {
-  if (!validateAgentsListParams(params)) {
-    respond(
-      false,
-      undefined,
-      errorShape(
-        ErrorCodes.INVALID_REQUEST,
-        `invalid agents.list params: ${formatValidationErrors(validateAgentsListParams.errors)}`,
-      ),
-    );
-    return;
-  }
+export const agentsHandlers: GatewayRequestHandlers = {
+  "agents.list": ({ params, respond }) => {
+    if (!validateAgentsListParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid agents.list params: ${formatValidationErrors(validateAgentsListParams.errors)}`,
+        ),
+      );
+      return;
+    }
 
-  const cfg = loadConfig();
-  const result = listAgentsForGateway(cfg);
-  respond(true, result, undefined);
-}
+    const cfg = loadConfig();
+    const result = listAgentsForGateway(cfg);
+    respond(true, result, undefined);
+  },
+  "agents.create": async ({ params, respond }) => {
+    if (!validateAgentsCreateParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid agents.create params: ${formatValidationErrors(
+            validateAgentsCreateParams.errors,
+          )}`,
+        ),
+      );
+      return;
+    }
 
-async function handleAgentsCreate({
-  params,
-  respond,
-}: {
-  params: Record<string, unknown>;
-  respond: RespondFn;
-}): Promise<void> {
-  if (!validateAgentsCreateParams(params)) {
-    respond(
-      false,
-      undefined,
-      errorShape(
-        ErrorCodes.INVALID_REQUEST,
-        `invalid agents.create params: ${formatValidationErrors(
-          validateAgentsCreateParams.errors,
-        )}`,
-      ),
-    );
-    return;
-  }
+    const cfg = loadConfig();
+    const rawName = String(params.name ?? "").trim();
+    const agentId = normalizeAgentId(rawName);
+    if (agentId === DEFAULT_AGENT_ID) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `"${DEFAULT_AGENT_ID}" is reserved`),
+      );
+      return;
+    }
 
-  const cfg = loadConfig();
-  const rawName = String(params.name ?? "").trim();
-  const agentId = normalizeAgentId(rawName);
-  if (agentId === DEFAULT_AGENT_ID) {
-    respond(
-      false,
-      undefined,
-      errorShape(ErrorCodes.INVALID_REQUEST, `"${DEFAULT_AGENT_ID}" is reserved`),
-    );
-    return;
-  }
+    if (findAgentEntryIndex(listAgentEntries(cfg), agentId) >= 0) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `agent "${agentId}" already exists`),
+      );
+      return;
+    }
 
-  if (findAgentEntryIndex(listAgentEntries(cfg), agentId) >= 0) {
-    respond(
-      false,
-      undefined,
-      errorShape(ErrorCodes.INVALID_REQUEST, `agent "${agentId}" already exists`),
-    );
-    return;
-  }
+    const workspaceDir = resolveUserPath(String(params.workspace ?? "").trim());
 
-  const workspaceDir = resolveUserPath(String(params.workspace ?? "").trim());
+    // Resolve agentDir against the config we're about to persist (vs the pre-write config),
+    // so subsequent resolutions can't disagree about the agent's directory.
+    let nextConfig = applyAgentConfig(cfg, {
+      agentId,
+      name: rawName,
+      workspace: workspaceDir,
+    });
+    const agentDir = resolveAgentDir(nextConfig, agentId);
+    nextConfig = applyAgentConfig(nextConfig, { agentId, agentDir });
 
-  // Resolve agentDir against the config we're about to persist (vs the pre-write config),
-  // so subsequent resolutions can't disagree about the agent's directory.
-  let nextConfig = applyAgentConfig(cfg, {
-    agentId,
-    name: rawName,
-    workspace: workspaceDir,
-  });
-  const agentDir = resolveAgentDir(nextConfig, agentId);
-  nextConfig = applyAgentConfig(nextConfig, { agentId, agentDir });
-
-  // Ensure workspace & transcripts exist BEFORE writing config so a failure
-  // here does not leave a broken config entry behind.
-  const skipBootstrap = Boolean(nextConfig.agents?.defaults?.skipBootstrap);
-  await ensureAgentWorkspace({ dir: workspaceDir, ensureBootstrapFiles: !skipBootstrap });
-  await fs.mkdir(resolveSessionTranscriptsDirForAgent(agentId), { recursive: true });
-
-  await writeConfigFile(nextConfig);
-
-  // Always write Name to IDENTITY.md; optionally include emoji/avatar.
-  const safeName = sanitizeIdentityLine(rawName);
-  const emoji = resolveOptionalStringParam(params.emoji);
-  const avatar = resolveOptionalStringParam(params.avatar);
-  const identityPath = path.join(workspaceDir, DEFAULT_IDENTITY_FILENAME);
-  const lines = [
-    "",
-    `- Name: ${safeName}`,
-    ...(emoji ? [`- Emoji: ${sanitizeIdentityLine(emoji)}`] : []),
-    ...(avatar ? [`- Avatar: ${sanitizeIdentityLine(avatar)}`] : []),
-    "",
-  ];
-  await fs.appendFile(identityPath, lines.join("\n"), "utf-8");
-
-  respond(true, { ok: true, agentId, name: rawName, workspace: workspaceDir }, undefined);
-}
-
-async function handleAgentsUpdate({
-  params,
-  respond,
-}: {
-  params: Record<string, unknown>;
-  respond: RespondFn;
-}): Promise<void> {
-  if (!validateAgentsUpdateParams(params)) {
-    respond(
-      false,
-      undefined,
-      errorShape(
-        ErrorCodes.INVALID_REQUEST,
-        `invalid agents.update params: ${formatValidationErrors(
-          validateAgentsUpdateParams.errors,
-        )}`,
-      ),
-    );
-    return;
-  }
-
-  const cfg = loadConfig();
-  const agentId = normalizeAgentId(String(params.agentId ?? ""));
-  if (findAgentEntryIndex(listAgentEntries(cfg), agentId) < 0) {
-    respond(
-      false,
-      undefined,
-      errorShape(ErrorCodes.INVALID_REQUEST, `agent "${agentId}" not found`),
-    );
-    return;
-  }
-
-  const workspaceDir =
-    typeof params.workspace === "string" && params.workspace.trim()
-      ? resolveUserPath(params.workspace.trim())
-      : undefined;
-
-  const model = resolveOptionalStringParam(params.model);
-  const avatar = resolveOptionalStringParam(params.avatar);
-
-  const nextConfig = applyAgentConfig(cfg, {
-    agentId,
-    ...(typeof params.name === "string" && params.name.trim() ? { name: params.name.trim() } : {}),
-    ...(workspaceDir ? { workspace: workspaceDir } : {}),
-    ...(model ? { model } : {}),
-  });
-
-  await writeConfigFile(nextConfig);
-
-  if (workspaceDir) {
+    // Ensure workspace & transcripts exist BEFORE writing config so a failure
+    // here does not leave a broken config entry behind.
     const skipBootstrap = Boolean(nextConfig.agents?.defaults?.skipBootstrap);
     await ensureAgentWorkspace({ dir: workspaceDir, ensureBootstrapFiles: !skipBootstrap });
-  }
+    await fs.mkdir(resolveSessionTranscriptsDirForAgent(agentId), { recursive: true });
 
-  if (avatar) {
-    const workspace = workspaceDir ?? resolveAgentWorkspaceDir(nextConfig, agentId);
-    await fs.mkdir(workspace, { recursive: true });
-    const identityPath = path.join(workspace, DEFAULT_IDENTITY_FILENAME);
-    await fs.appendFile(identityPath, `\n- Avatar: ${sanitizeIdentityLine(avatar)}\n`, "utf-8");
-  }
+    await writeConfigFile(nextConfig);
 
-  respond(true, { ok: true, agentId }, undefined);
-}
+    // Always write Name to IDENTITY.md; optionally include emoji/avatar.
+    const safeName = sanitizeIdentityLine(rawName);
+    const emoji = resolveOptionalStringParam(params.emoji);
+    const avatar = resolveOptionalStringParam(params.avatar);
+    const identityPath = path.join(workspaceDir, DEFAULT_IDENTITY_FILENAME);
+    const lines = [
+      "",
+      `- Name: ${safeName}`,
+      ...(emoji ? [`- Emoji: ${sanitizeIdentityLine(emoji)}`] : []),
+      ...(avatar ? [`- Avatar: ${sanitizeIdentityLine(avatar)}`] : []),
+      "",
+    ];
+    await fs.appendFile(identityPath, lines.join("\n"), "utf-8");
 
-async function handleAgentsDelete({
-  params,
-  respond,
-}: {
-  params: Record<string, unknown>;
-  respond: RespondFn;
-}): Promise<void> {
-  if (!validateAgentsDeleteParams(params)) {
-    respond(
-      false,
-      undefined,
-      errorShape(
-        ErrorCodes.INVALID_REQUEST,
-        `invalid agents.delete params: ${formatValidationErrors(
-          validateAgentsDeleteParams.errors,
-        )}`,
-      ),
-    );
-    return;
-  }
+    respond(true, { ok: true, agentId, name: rawName, workspace: workspaceDir }, undefined);
+  },
+  "agents.update": async ({ params, respond }) => {
+    if (!validateAgentsUpdateParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid agents.update params: ${formatValidationErrors(
+            validateAgentsUpdateParams.errors,
+          )}`,
+        ),
+      );
+      return;
+    }
 
-  const cfg = loadConfig();
-  const agentId = normalizeAgentId(String(params.agentId ?? ""));
-  if (agentId === DEFAULT_AGENT_ID) {
-    respond(
-      false,
-      undefined,
-      errorShape(ErrorCodes.INVALID_REQUEST, `"${DEFAULT_AGENT_ID}" cannot be deleted`),
-    );
-    return;
-  }
-  if (findAgentEntryIndex(listAgentEntries(cfg), agentId) < 0) {
-    respond(
-      false,
-      undefined,
-      errorShape(ErrorCodes.INVALID_REQUEST, `agent "${agentId}" not found`),
-    );
-    return;
-  }
+    const cfg = loadConfig();
+    const agentId = normalizeAgentId(String(params.agentId ?? ""));
+    if (findAgentEntryIndex(listAgentEntries(cfg), agentId) < 0) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `agent "${agentId}" not found`),
+      );
+      return;
+    }
 
-  const deleteFiles = typeof params.deleteFiles === "boolean" ? params.deleteFiles : true;
-  const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
-  const agentDir = resolveAgentDir(cfg, agentId);
-  const sessionsDir = resolveSessionTranscriptsDirForAgent(agentId);
+    const workspaceDir =
+      typeof params.workspace === "string" && params.workspace.trim()
+        ? resolveUserPath(params.workspace.trim())
+        : undefined;
 
-  const result = pruneAgentConfig(cfg, agentId);
-  await writeConfigFile(result.config);
+    const model = resolveOptionalStringParam(params.model);
+    const avatar = resolveOptionalStringParam(params.avatar);
 
-  if (deleteFiles) {
-    await Promise.all([
-      moveToTrashBestEffort(workspaceDir),
-      moveToTrashBestEffort(agentDir),
-      moveToTrashBestEffort(sessionsDir),
-    ]);
-  }
+    const nextConfig = applyAgentConfig(cfg, {
+      agentId,
+      ...(typeof params.name === "string" && params.name.trim()
+        ? { name: params.name.trim() }
+        : {}),
+      ...(workspaceDir ? { workspace: workspaceDir } : {}),
+      ...(model ? { model } : {}),
+    });
 
-  respond(true, { ok: true, agentId, removedBindings: result.removedBindings }, undefined);
-}
+    await writeConfigFile(nextConfig);
 
-async function handleAgentsFilesList({
-  params,
-  respond,
-}: {
-  params: Record<string, unknown>;
-  respond: RespondFn;
-}): Promise<void> {
-  if (!validateAgentsFilesListParams(params)) {
-    respond(
-      false,
-      undefined,
-      errorShape(
-        ErrorCodes.INVALID_REQUEST,
-        `invalid agents.files.list params: ${formatValidationErrors(
-          validateAgentsFilesListParams.errors,
-        )}`,
-      ),
-    );
-    return;
-  }
-  const cfg = loadConfig();
-  const agentId = resolveAgentIdOrError(String(params.agentId ?? ""), cfg);
-  if (!agentId) {
-    respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown agent id"));
-    return;
-  }
-  const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
-  let hideBootstrap = false;
-  try {
-    hideBootstrap = await isWorkspaceOnboardingCompleted(workspaceDir);
-  } catch {
-    // Fall back to showing BOOTSTRAP if workspace state cannot be read.
-  }
-  const files = await listAgentFiles(workspaceDir, { hideBootstrap });
-  respond(true, { agentId, workspace: workspaceDir, files }, undefined);
-}
+    if (workspaceDir) {
+      const skipBootstrap = Boolean(nextConfig.agents?.defaults?.skipBootstrap);
+      await ensureAgentWorkspace({ dir: workspaceDir, ensureBootstrapFiles: !skipBootstrap });
+    }
 
-async function handleAgentsFilesGet({
-  params,
-  respond,
-}: {
-  params: Record<string, unknown>;
-  respond: RespondFn;
-}): Promise<void> {
-  if (!validateAgentsFilesGetParams(params)) {
-    respond(
-      false,
-      undefined,
-      errorShape(
-        ErrorCodes.INVALID_REQUEST,
-        `invalid agents.files.get params: ${formatValidationErrors(validateAgentsFilesGetParams.errors)}`,
-      ),
-    );
-    return;
-  }
-  const resolved = resolveAgentWorkspaceFileOrRespondError(params, respond);
-  if (!resolved) {
-    return;
-  }
-  const { agentId, workspaceDir, name } = resolved;
-  const filePath = path.join(workspaceDir, name);
-  const resolvedPath = await resolveAgentWorkspaceFilePath({
-    workspaceDir,
-    name,
-    allowMissing: true,
-  });
-  if (resolvedPath.kind === "invalid") {
-    respond(
-      false,
-      undefined,
-      errorShape(
-        ErrorCodes.INVALID_REQUEST,
-        `unsafe workspace file "${name}" (${resolvedPath.reason})`,
-      ),
-    );
-    return;
-  }
-  if (resolvedPath.kind === "missing") {
-    respond(
-      true,
-      {
-        agentId,
-        workspace: workspaceDir,
-        file: { name, path: filePath, missing: true },
-      },
-      undefined,
-    );
-    return;
-  }
-  let safeRead: Awaited<ReturnType<typeof readLocalFileSafely>>;
-  try {
-    safeRead = await readLocalFileSafely({ filePath: resolvedPath.ioPath });
-  } catch (err) {
-    if (err instanceof SafeOpenError && err.code === "not-found") {
+    if (avatar) {
+      const workspace = workspaceDir ?? resolveAgentWorkspaceDir(nextConfig, agentId);
+      await fs.mkdir(workspace, { recursive: true });
+      const identityPath = path.join(workspace, DEFAULT_IDENTITY_FILENAME);
+      await fs.appendFile(identityPath, `\n- Avatar: ${sanitizeIdentityLine(avatar)}\n`, "utf-8");
+    }
+
+    respond(true, { ok: true, agentId }, undefined);
+  },
+  "agents.delete": async ({ params, respond }) => {
+    if (!validateAgentsDeleteParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid agents.delete params: ${formatValidationErrors(
+            validateAgentsDeleteParams.errors,
+          )}`,
+        ),
+      );
+      return;
+    }
+
+    const cfg = loadConfig();
+    const agentId = normalizeAgentId(String(params.agentId ?? ""));
+    if (agentId === DEFAULT_AGENT_ID) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `"${DEFAULT_AGENT_ID}" cannot be deleted`),
+      );
+      return;
+    }
+    if (findAgentEntryIndex(listAgentEntries(cfg), agentId) < 0) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `agent "${agentId}" not found`),
+      );
+      return;
+    }
+
+    const deleteFiles = typeof params.deleteFiles === "boolean" ? params.deleteFiles : true;
+    const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
+    const agentDir = resolveAgentDir(cfg, agentId);
+    const sessionsDir = resolveSessionTranscriptsDirForAgent(agentId);
+
+    const result = pruneAgentConfig(cfg, agentId);
+    await writeConfigFile(result.config);
+
+    if (deleteFiles) {
+      await Promise.all([
+        moveToTrashBestEffort(workspaceDir),
+        moveToTrashBestEffort(agentDir),
+        moveToTrashBestEffort(sessionsDir),
+      ]);
+    }
+
+    respond(true, { ok: true, agentId, removedBindings: result.removedBindings }, undefined);
+  },
+  "agents.files.list": async ({ params, respond }) => {
+    if (!validateAgentsFilesListParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid agents.files.list params: ${formatValidationErrors(
+            validateAgentsFilesListParams.errors,
+          )}`,
+        ),
+      );
+      return;
+    }
+    const cfg = loadConfig();
+    const agentId = resolveAgentIdOrError(String(params.agentId ?? ""), cfg);
+    if (!agentId) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown agent id"));
+      return;
+    }
+    const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
+    let hideBootstrap = false;
+    try {
+      hideBootstrap = await isWorkspaceOnboardingCompleted(workspaceDir);
+    } catch {
+      // Fall back to showing BOOTSTRAP if workspace state cannot be read.
+    }
+    const files = await listAgentFiles(workspaceDir, { hideBootstrap });
+    respond(true, { agentId, workspace: workspaceDir, files }, undefined);
+  },
+  "agents.files.get": async ({ params, respond }) => {
+    if (!validateAgentsFilesGetParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid agents.files.get params: ${formatValidationErrors(
+            validateAgentsFilesGetParams.errors,
+          )}`,
+        ),
+      );
+      return;
+    }
+    const resolved = resolveAgentWorkspaceFileOrRespondError(params, respond);
+    if (!resolved) {
+      return;
+    }
+    const { agentId, workspaceDir, name } = resolved;
+    const filePath = path.join(workspaceDir, name);
+    const resolvedPath = await resolveAgentWorkspaceFilePath({
+      workspaceDir,
+      name,
+      allowMissing: true,
+    });
+    if (resolvedPath.kind === "invalid") {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `unsafe workspace file "${name}" (${resolvedPath.reason})`,
+        ),
+      );
+      return;
+    }
+    if (resolvedPath.kind === "missing") {
       respond(
         true,
         {
@@ -675,121 +623,115 @@ async function handleAgentsFilesGet({
       );
       return;
     }
+    let safeRead: Awaited<ReturnType<typeof readLocalFileSafely>>;
+    try {
+      safeRead = await readLocalFileSafely({ filePath: resolvedPath.ioPath });
+    } catch (err) {
+      if (err instanceof SafeOpenError && err.code === "not-found") {
+        respond(
+          true,
+          {
+            agentId,
+            workspace: workspaceDir,
+            file: { name, path: filePath, missing: true },
+          },
+          undefined,
+        );
+        return;
+      }
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `unsafe workspace file "${name}"`),
+      );
+      return;
+    }
     respond(
-      false,
-      undefined,
-      errorShape(ErrorCodes.INVALID_REQUEST, `unsafe workspace file "${name}"`),
-    );
-    return;
-  }
-  respond(
-    true,
-    {
-      agentId,
-      workspace: workspaceDir,
-      file: {
-        name,
-        path: filePath,
-        missing: false,
-        size: safeRead.stat.size,
-        updatedAtMs: Math.floor(safeRead.stat.mtimeMs),
-        content: safeRead.buffer.toString("utf-8"),
+      true,
+      {
+        agentId,
+        workspace: workspaceDir,
+        file: {
+          name,
+          path: filePath,
+          missing: false,
+          size: safeRead.stat.size,
+          updatedAtMs: Math.floor(safeRead.stat.mtimeMs),
+          content: safeRead.buffer.toString("utf-8"),
+        },
       },
-    },
-    undefined,
-  );
-}
-
-async function handleAgentsFilesSet({
-  params,
-  respond,
-}: {
-  params: Record<string, unknown>;
-  respond: RespondFn;
-}): Promise<void> {
-  if (!validateAgentsFilesSetParams(params)) {
-    respond(
-      false,
       undefined,
-      errorShape(
-        ErrorCodes.INVALID_REQUEST,
-        `invalid agents.files.set params: ${formatValidationErrors(validateAgentsFilesSetParams.errors)}`,
-      ),
     );
-    return;
-  }
-  const resolved = resolveAgentWorkspaceFileOrRespondError(params, respond);
-  if (!resolved) {
-    return;
-  }
-  const { agentId, workspaceDir, name } = resolved;
-  await fs.mkdir(workspaceDir, { recursive: true });
-  const filePath = path.join(workspaceDir, name);
-  const resolvedPath = await resolveAgentWorkspaceFilePath({
-    workspaceDir,
-    name,
-    allowMissing: true,
-  });
-  if (resolvedPath.kind === "invalid") {
-    respond(
-      false,
-      undefined,
-      errorShape(
-        ErrorCodes.INVALID_REQUEST,
-        `unsafe workspace file "${name}" (${resolvedPath.reason})`,
-      ),
-    );
-    return;
-  }
-  const content = String(params.content ?? "");
-  try {
-    await writeFileWithinRoot({
-      rootDir: resolvedPath.workspaceReal,
-      relativePath: name,
-      data: content,
+  },
+  "agents.files.set": async ({ params, respond }) => {
+    if (!validateAgentsFilesSetParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid agents.files.set params: ${formatValidationErrors(
+            validateAgentsFilesSetParams.errors,
+          )}`,
+        ),
+      );
+      return;
+    }
+    const resolved = resolveAgentWorkspaceFileOrRespondError(params, respond);
+    if (!resolved) {
+      return;
+    }
+    const { agentId, workspaceDir, name } = resolved;
+    await fs.mkdir(workspaceDir, { recursive: true });
+    const filePath = path.join(workspaceDir, name);
+    const resolvedPath = await resolveAgentWorkspaceFilePath({
+      workspaceDir,
+      name,
+      allowMissing: true,
     });
-  } catch {
+    if (resolvedPath.kind === "invalid") {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `unsafe workspace file "${name}" (${resolvedPath.reason})`,
+        ),
+      );
+      return;
+    }
+    const content = String(params.content ?? "");
+    try {
+      await writeFileWithinRoot({
+        rootDir: resolvedPath.workspaceReal,
+        relativePath: name,
+        data: content,
+      });
+    } catch {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `unsafe workspace file "${name}"`),
+      );
+      return;
+    }
+    const meta = await statFileSafely(resolvedPath.ioPath);
     respond(
-      false,
-      undefined,
-      errorShape(ErrorCodes.INVALID_REQUEST, `unsafe workspace file "${name}"`),
-    );
-    return;
-  }
-  const meta = await statFileSafely(resolvedPath.ioPath);
-  respond(
-    true,
-    {
-      ok: true,
-      agentId,
-      workspace: workspaceDir,
-      file: {
-        name,
-        path: filePath,
-        missing: false,
-        size: meta?.size,
-        updatedAtMs: meta?.updatedAtMs,
-        content,
+      true,
+      {
+        ok: true,
+        agentId,
+        workspace: workspaceDir,
+        file: {
+          name,
+          path: filePath,
+          missing: false,
+          size: meta?.size,
+          updatedAtMs: meta?.updatedAtMs,
+          content,
+        },
       },
-    },
-    undefined,
-  );
-}
-
-const agentsCommandHandlers: GatewayRequestHandlers = {
-  "agents.list": handleAgentsList,
-  "agents.create": handleAgentsCreate,
-  "agents.update": handleAgentsUpdate,
-  "agents.delete": handleAgentsDelete,
-};
-
-const agentsFilesHandlers: GatewayRequestHandlers = {
-  "agents.files.list": handleAgentsFilesList,
-  "agents.files.get": handleAgentsFilesGet,
-  "agents.files.set": handleAgentsFilesSet,
-};
-
-export const agentsHandlers: GatewayRequestHandlers = {
-  ...agentsCommandHandlers,
-  ...agentsFilesHandlers,
+      undefined,
+    );
+  },
 };

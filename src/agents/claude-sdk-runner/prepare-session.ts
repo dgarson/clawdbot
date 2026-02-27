@@ -21,50 +21,27 @@ export function resolveClaudeSdkConfig(
     return undefined;
   }
   const defaultsCfg = params.config?.agents?.defaults?.claudeSdk;
-  if (!agentEntry?.claudeSdk || typeof agentEntry.claudeSdk !== "object") {
-    if (defaultsCfg && typeof defaultsCfg === "object" && !("provider" in defaultsCfg)) {
-      return undefined;
-    }
-    return defaultsCfg;
-  }
-  const merged = defaultsCfg
-    ? { ...defaultsCfg, ...agentEntry.claudeSdk }
-    : { ...agentEntry.claudeSdk };
-  if (!("provider" in merged)) {
+  const agentCfg =
+    agentEntry?.claudeSdk && typeof agentEntry.claudeSdk === "object"
+      ? agentEntry.claudeSdk
+      : undefined;
+  const merged =
+    agentCfg && defaultsCfg && typeof defaultsCfg === "object"
+      ? { ...defaultsCfg, ...agentCfg }
+      : (agentCfg ?? defaultsCfg);
+  if (!merged || typeof merged !== "object") {
     return undefined;
   }
-  // Run the merged object through the discriminated-union schema for two reasons:
-  // (1) Validation: reject structurally invalid configs before they reach the SDK.
-  // (2) Normalization: Zod's default strip mode removes fields that don't belong
-  //     to the resolved provider variant. A shallow spread of defaults + agent config
-  //     can produce cross-provider pollution (e.g. defaults have provider:"custom" with
-  //     baseUrl/authProfileId, agent overrides to provider:"zai" — the merge inherits
-  //     custom-only fields that are invalid for zai). safeParse strips them cleanly.
-  // On failure we return undefined so the session falls back to Pi runtime rather
-  // than running with a corrupted config. The warn log covers both real
-  // misconfigurations and the edge case where no union variant matches the merge.
+  // Validate merged config. On failure fall back to Pi runtime rather than
+  // running with a corrupted config.
   const parseResult = ClaudeSdkConfigSchema.safeParse(merged);
   if (!parseResult.success || !parseResult.data) {
     log.warn(
-      `claudeSdk config validation failed after merge (provider: ${String((merged as Record<string, unknown>).provider)}): ${parseResult.success ? "empty result" : parseResult.error.message}`,
+      `claudeSdk config validation failed after merge: ${parseResult.success ? "empty result" : parseResult.error.message}`,
     );
     return undefined;
   }
-  const resolved = parseResult.data;
-  if (params.claudeSdkProviderOverride?.trim()) {
-    const overriddenProvider =
-      params.claudeSdkProviderOverride.trim() as ClaudeSdkConfig["provider"];
-    if (overriddenProvider === "custom") {
-      return resolved.provider === "custom" ? resolved : undefined;
-    }
-    return {
-      provider: overriddenProvider,
-      thinkingDefault: resolved.thinkingDefault,
-      configDir: resolved.configDir,
-      supportedProviders: resolved.supportedProviders,
-    };
-  }
-  return resolved;
+  return parseResult.data;
 }
 
 export { CLAUDE_SDK_PROVIDERS };
@@ -117,6 +94,7 @@ export async function prepareClaudeSdkSession(
     sessionId: params.sessionId,
     sessionFile: params.sessionFile,
     modelId: params.modelId,
+    provider: params.provider,
     tools: builtInTools,
     customTools: allCustomTools,
     systemPrompt: systemPromptText,

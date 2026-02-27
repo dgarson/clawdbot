@@ -2347,11 +2347,10 @@ Config examples are in [/gateway/configuration-reference#agentsdefaultsclaudesdk
 
 OpenClaw failover for Claude SDK uses staged fallback:
 
-1. Rotate auth profiles for the active Claude SDK provider.
-2. Rotate to next Claude SDK provider from `claudeSdk.supportedProviders` (if configured).
-3. If no Claude SDK providers remain, switch runtime to Pi for the turn and continue normal model/provider fallback.
+1. Rotate auth profiles for the active system-keychain provider (`claude-pro` / `claude-max`).
+2. If no auth profiles remain (all cooling down or expired), switch runtime to Pi for the turn and continue normal model/provider fallback.
 
-This is why a session can start on Claude SDK (`claude-pro`) and continue on Pi runtime when Claude SDK candidates are exhausted.
+This is why a session can start on Claude SDK and continue on Pi runtime when the Claude subscription auth is unavailable.
 
 ### Can I control which auth profile is tried first
 
