@@ -170,6 +170,18 @@ describe("prepareClaudeSdkSession — thinkLevel resolution", () => {
     const mock = createClaudeSdkSession as ReturnType<typeof vi.fn>;
     expect(mock.mock.calls[0][0].thinkLevel).toBe("off");
   });
+
+  it("forwards diagnosticsEnabled and sessionKey to createClaudeSdkSession", async () => {
+    const params = {
+      ...baseParams,
+      sessionKey: "agent:test:session",
+      config: { diagnostics: { enabled: true } },
+    } as unknown as EmbeddedRunAttemptParams;
+    await callPrepare(params, baseSessionManager());
+    const mock = createClaudeSdkSession as ReturnType<typeof vi.fn>;
+    expect(mock.mock.calls[0][0].sessionKey).toBe("agent:test:session");
+    expect(mock.mock.calls[0][0].diagnosticsEnabled).toBe(true);
+  });
 });
 
 describe("resolveClaudeSdkConfig — thinkingDefault compatibility", () => {

@@ -30,9 +30,11 @@ export type ClaudeSdkSessionParams = {
   workspaceDir: string;
   agentDir?: string;
   sessionId: string;
+  sessionKey?: string;
   sessionFile?: string;
   runId?: string;
   attemptNumber?: number;
+  diagnosticsEnabled?: boolean;
   modelId: string;
   provider?: string;
   tools: ClaudeSdkCompatibleTool[];
@@ -184,6 +186,17 @@ export type ClaudeSdkEventAdapterState = {
     {
       fileId: string;
       filename: string;
+      sessionId?: string;
+      provider?: string;
+      modelId?: string;
+      updatedAt: number;
+    }
+  >;
+  /** Filename->persisted file metadata for hashless/legacy recovery paths. */
+  mediaReferencesByFilename?: Map<
+    string,
+    {
+      fileId: string;
       sessionId?: string;
       provider?: string;
       modelId?: string;

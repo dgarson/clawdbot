@@ -8,7 +8,9 @@
  * pi-runtime-baseline.md Section 3 (session interface surface used by attempt.ts).
  */
 
+import { createHash } from "node:crypto";
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
+import { onDiagnosticEvent, resetDiagnosticEventsForTest } from "../../infra/diagnostic-events.js";
 import type { ClaudeSdkSessionParams } from "./types.js";
 
 // ---------------------------------------------------------------------------
@@ -73,6 +75,14 @@ function makeParams(overrides?: Partial<ClaudeSdkSessionParams>): ClaudeSdkSessi
   };
 }
 
+function buildImageHash(mimeType: string, data: string): string {
+  return createHash("sha256").update(mimeType).update(":").update(data).digest("hex");
+}
+
+function buildImageFilename(index: number, hash: string): string {
+  return `openclaw-image-${index + 1}-${hash.slice(0, 12)}.png`;
+}
+
 const INIT_MESSAGES = [
   { type: "system", subtype: "init", session_id: "sess_server_abc123" },
   {
@@ -84,6 +94,7 @@ const INIT_MESSAGES = [
 
 afterEach(() => {
   vi.unstubAllEnvs();
+  resetDiagnosticEventsForTest();
 });
 
 // ---------------------------------------------------------------------------
@@ -1674,5 +1685,236 @@ describe("prompt() — media persistence strategy", () => {
         data: "iVBOR_base64data",
       },
     });
+  });
+
+  it("hydrates persisted hash->file reference state from custom entries after restart", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const imageData = "iVBOR_base64data";
+    const hash = buildImageHash("image/png", imageData);
+    const filename = buildImageFilename(0, hash);
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        provider: "claude-pro",
+        claudeSdkResumeSessionId: "sess_media_resume",
+        sessionManager: {
+          appendMessage: vi.fn(() => "msg-id"),
+          getEntries: vi.fn(() => [
+            {
+              type: "custom",
+              customType: "openclaw:claude-sdk-media-ref",
+              data: {
+                hash,
+                filename,
+                fileId: "file_from_history",
+                sessionId: "sess_media_resume",
+                provider: "claude-pro",
+                modelId: "claude-sonnet-4-5-20250514",
+                updatedAt: Date.now() - 10_000,
+              },
+            },
+          ]),
+        },
+      }),
+    );
+
+    await session.prompt("Analyze restored media", {
+      images: [{ type: "image", media_type: "image/png", data: imageData }],
+    } as never);
+
+    const prompt = queryMock.mock.calls[0][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await prompt[Symbol.asyncIterator]().next();
+    expect(next.value.message.content[1]).toEqual({
+      type: "image",
+      source: { type: "file", file_id: "file_from_history" },
+    });
+  });
+
+  it("recovers hashless media references via deterministic filename mapping", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const imageData = "iVBOR_hashless";
+    const hash = buildImageHash("image/png", imageData);
+    const filename = buildImageFilename(0, hash);
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        provider: "claude-pro",
+        claudeSdkResumeSessionId: "sess_media_resume",
+        sessionManager: {
+          appendMessage: vi.fn(() => "msg-id"),
+          getEntries: vi.fn(() => [
+            {
+              type: "custom",
+              customType: "openclaw:claude-sdk-media-ref",
+              data: {
+                filename,
+                fileId: "file_hashless",
+                sessionId: "sess_media_resume",
+                provider: "claude-pro",
+                modelId: "claude-sonnet-4-5-20250514",
+                updatedAt: Date.now() - 10_000,
+              },
+            },
+          ]),
+        },
+      }),
+    );
+
+    await session.prompt("Analyze restored media", {
+      images: [{ type: "image", media_type: "image/png", data: imageData }],
+    } as never);
+
+    const prompt = queryMock.mock.calls[0][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await prompt[Symbol.asyncIterator]().next();
+    expect(next.value.message.content[1]).toEqual({
+      type: "image",
+      source: { type: "file", file_id: "file_hashless" },
+    });
+  });
+
+  it("does not use recovered file references when resume session id does not match", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const imageData = "iVBOR_mismatch";
+    const hash = buildImageHash("image/png", imageData);
+    const filename = buildImageFilename(0, hash);
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        provider: "claude-pro",
+        claudeSdkResumeSessionId: "sess_media_current",
+        sessionManager: {
+          appendMessage: vi.fn(() => "msg-id"),
+          getEntries: vi.fn(() => [
+            {
+              type: "custom",
+              customType: "openclaw:claude-sdk-media-ref",
+              data: {
+                hash,
+                filename,
+                fileId: "file_other_session",
+                sessionId: "sess_media_old",
+                provider: "claude-pro",
+                modelId: "claude-sonnet-4-5-20250514",
+                updatedAt: Date.now() - 10_000,
+              },
+            },
+          ]),
+        },
+      }),
+    );
+
+    await session.prompt("Analyze restored media", {
+      images: [{ type: "image", media_type: "image/png", data: imageData }],
+    } as never);
+
+    const prompt = queryMock.mock.calls[0][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await prompt[Symbol.asyncIterator]().next();
+    expect(next.value.message.content[1]).toEqual({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: "image/png",
+        data: imageData,
+      },
+    });
+  });
+
+  it("persists resolved media references to session custom entries", async () => {
+    const imageData = "iVBOR_base64data";
+    const hash = buildImageHash("image/png", imageData);
+    const filename = buildImageFilename(0, hash);
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([
+        { type: "system", subtype: "init", session_id: "sess_media_persist" },
+        {
+          type: "system",
+          subtype: "files_persisted",
+          files: [{ filename, file_id: "file_saved" }],
+        },
+        { type: "result", subtype: "success" },
+      ])(),
+    );
+
+    const appendCustomEntry = vi.fn();
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        claudeSdkResumeSessionId: "sess_media_persist",
+        sessionManager: {
+          appendMessage: vi.fn(() => "msg-id"),
+          appendCustomEntry,
+        },
+      }),
+    );
+
+    await session.prompt("Analyze image", {
+      images: [{ type: "image", media_type: "image/png", data: imageData }],
+    } as never);
+
+    expect(appendCustomEntry).toHaveBeenCalledWith(
+      "openclaw:claude-sdk-media-ref",
+      expect.objectContaining({
+        hash,
+        fileId: "file_saved",
+        filename,
+      }),
+    );
+  });
+
+  it("emits runtime.metric diagnostic events for media metrics when diagnostics are enabled", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const events: Array<{ metric: string; fields?: Record<string, unknown> }> = [];
+    const stop = onDiagnosticEvent((evt) => {
+      if (evt.type === "runtime.metric") {
+        events.push({
+          metric: evt.metric,
+          fields: evt.fields,
+        });
+      }
+    });
+    const session = await createSession(
+      makeParams({
+        diagnosticsEnabled: true,
+        claudeSdkResumeSessionId: "sess_media_diag",
+        sessionKey: "agent:test:media-diag",
+      }),
+    );
+
+    try {
+      await session.prompt("Analyze image", {
+        images: [{ type: "image", media_type: "image/png", data: "iVBOR_diag" }],
+      } as never);
+    } finally {
+      stop();
+    }
+
+    expect(events.some((evt) => evt.metric === "claude_sdk.media.inline_bytes_sent")).toBe(true);
+    expect(events.some((evt) => evt.metric === "claude_sdk.media.file_ref_used")).toBe(true);
+    const inlineMetric = events.find((evt) => evt.metric === "claude_sdk.media.inline_bytes_sent");
+    expect((inlineMetric?.fields?.bytes as number | undefined) ?? 0).toBeGreaterThan(0);
   });
 });

@@ -5,6 +5,7 @@ import {
   ClaudeSdkConfigSchema,
   type ClaudeSdkConfig,
 } from "../../config/zod-schema.agent-runtime.js";
+import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
 import type { ResolvedProviderAuth } from "../model-auth.js";
 import { log } from "../pi-embedded-runner/logger.js";
 import type { EmbeddedRunAttemptParams } from "../pi-embedded-runner/run/types.js";
@@ -185,9 +186,11 @@ export async function prepareClaudeSdkSession(
     workspaceDir: resolvedWorkspace,
     agentDir,
     sessionId: params.sessionId,
+    sessionKey: params.sessionKey,
     sessionFile: params.sessionFile,
     runId: params.runId,
     attemptNumber: params.attemptNumber,
+    diagnosticsEnabled: isDiagnosticsEnabled(params.config),
     modelId: params.modelId,
     provider: params.provider,
     tools: builtInTools,
