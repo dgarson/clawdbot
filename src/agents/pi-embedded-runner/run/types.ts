@@ -18,7 +18,10 @@ export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   provider: string;
   modelId: string;
   model: Model<Api>;
+  attemptNumber?: number;
   runtimeOverride?: "pi" | "claude-sdk";
+  /** Retry path for stale/invalid claude-sdk resume session IDs. */
+  forceFreshClaudeSession?: boolean;
   resolvedProviderAuth?: ResolvedProviderAuth;
   authStorage: AuthStorage;
   modelRegistry: ModelRegistry;
@@ -53,6 +56,32 @@ export type EmbeddedRunAttemptResult = {
   cloudCodeAssistFormatError: boolean;
   attemptUsage?: NormalizedUsage;
   compactionCount?: number;
+  claudeSdkLifecycle?: {
+    sdkStatus: "compacting" | null | undefined;
+    compactBoundaryCount: number;
+    statusCompactingCount: number;
+    statusIdleCount: number;
+    lastAuthStatus?: {
+      isAuthenticating: boolean;
+      error?: string;
+      output?: string[];
+    };
+    lastHookEvent?: {
+      subtype: "hook_started" | "hook_progress" | "hook_response";
+      hookId?: string;
+      hookName?: string;
+      hookEvent?: string;
+      outcome?: string;
+    };
+    lastTaskEvent?: {
+      subtype: "task_started" | "task_progress" | "task_notification";
+      taskId?: string;
+      status?: string;
+      description?: string;
+    };
+    lastRateLimitInfo?: unknown;
+    lastPromptSuggestion?: string;
+  };
   /** Client tool call detected (OpenResponses hosted tools). */
   clientToolCall?: { name: string; params: Record<string, unknown> };
 };

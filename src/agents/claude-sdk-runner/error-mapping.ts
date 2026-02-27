@@ -27,6 +27,32 @@
  * Pi error classification functions. Returns a new Error with the appropriate
  * name and message, or the original error if no mapping applies.
  */
+const STALE_RESUME_HINTS = [
+  "resume",
+  "session not found",
+  "invalid session",
+  "unknown session",
+  "session expired",
+];
+
+export function isStaleClaudeResumeSessionErrorMessage(message: string | undefined): boolean {
+  if (!message) {
+    return false;
+  }
+  const normalized = message.toLowerCase();
+  if (!normalized.includes("session")) {
+    return false;
+  }
+  return STALE_RESUME_HINTS.some((hint) => normalized.includes(hint));
+}
+
+export function isStaleClaudeResumeSessionError(err: unknown): boolean {
+  if (!(err instanceof Error)) {
+    return false;
+  }
+  return isStaleClaudeResumeSessionErrorMessage(err.message);
+}
+
 export function mapSdkError(err: unknown): unknown {
   if (!(err instanceof Error)) {
     return err;
@@ -38,6 +64,14 @@ export function mapSdkError(err: unknown): unknown {
   // AbortError — already runtime-agnostic, pass through as-is
   if (errName === "AbortError") {
     return err;
+  }
+
+  if (isStaleClaudeResumeSessionError(err)) {
+    return createMappedError(
+      `claude_sdk_stale_resume_session: ${err.message || "resume session is stale or invalid"}`,
+      "AssistantError",
+      err,
+    );
   }
 
   // TimeoutError (APIConnectionTimeoutError)

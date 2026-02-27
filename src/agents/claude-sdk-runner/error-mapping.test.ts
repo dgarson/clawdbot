@@ -21,7 +21,11 @@ import {
   isFailoverErrorMessage,
 } from "../pi-embedded-helpers/errors.js";
 import { isRunnerAbortError } from "../pi-embedded-runner/abort.js";
-import { mapSdkError } from "./error-mapping.js";
+import {
+  isStaleClaudeResumeSessionError,
+  isStaleClaudeResumeSessionErrorMessage,
+  mapSdkError,
+} from "./error-mapping.js";
 
 // ---------------------------------------------------------------------------
 // Helpers: create mock SDK errors by name
@@ -128,6 +132,23 @@ describe("error mapping — BadRequestError with context overflow", () => {
     const mapped = mapSdkError(sdkError) as Error;
 
     expect(isLikelyContextOverflowError(mapped.message)).toBe(true);
+  });
+});
+
+describe("error mapping — stale resume session errors", () => {
+  it("detects stale resume errors by message heuristics", () => {
+    expect(
+      isStaleClaudeResumeSessionErrorMessage("Resume failed: session not found on server"),
+    ).toBe(true);
+    expect(isStaleClaudeResumeSessionErrorMessage("Model not found")).toBe(false);
+  });
+
+  it("maps stale resume errors with explicit marker prefix for runtime recovery", () => {
+    const sdkError = makeSdkError("BadRequestError", "invalid session id for resume request");
+    const mapped = mapSdkError(sdkError) as Error;
+
+    expect(isStaleClaudeResumeSessionError(mapped)).toBe(true);
+    expect(mapped.message).toContain("claude_sdk_stale_resume_session");
   });
 });
 

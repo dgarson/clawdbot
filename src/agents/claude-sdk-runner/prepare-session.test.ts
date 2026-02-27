@@ -43,6 +43,7 @@ function callPrepare(
   params: EmbeddedRunAttemptParams,
   sessionManager: PrepareSessionManager,
   cfg = claudeSdkConfig,
+  forceFresh = false,
 ) {
   return prepareClaudeSdkSession(
     params,
@@ -54,6 +55,7 @@ function callPrepare(
     systemPromptText,
     builtInTools,
     allCustomTools,
+    forceFresh,
   );
 }
 
@@ -123,6 +125,24 @@ describe("prepareClaudeSdkSession — resume session ID", () => {
     await callPrepare(baseParams, sm);
     const mock = createClaudeSdkSession as ReturnType<typeof vi.fn>;
     expect(mock.mock.calls[0][0].claudeSdkResumeSessionId).toBeUndefined();
+  });
+
+  it("clears stale resume marker and forces fresh session when requested", async () => {
+    const sm = baseSessionManager();
+    sm.getEntries.mockReturnValue([
+      { type: "custom", customType: "openclaw:claude-sdk-session-id", data: "sess-stale" },
+    ]);
+    await callPrepare(baseParams, sm, claudeSdkConfig, true);
+    const mock = createClaudeSdkSession as ReturnType<typeof vi.fn>;
+    expect(mock.mock.calls[0][0].claudeSdkResumeSessionId).toBeUndefined();
+    expect(sm.appendCustomEntry).toHaveBeenCalledWith("openclaw:claude-sdk-session-id", null);
+    expect(sm.appendCustomEntry).toHaveBeenCalledWith(
+      "openclaw:claude-sdk-stale-resume-recovered",
+      expect.objectContaining({
+        staleSessionId: "sess-stale",
+        sessionId: "s1",
+      }),
+    );
   });
 });
 

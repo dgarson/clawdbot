@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../../../config/config.js";
 import { resolveClaudeSdkConfig } from "../../claude-sdk-runner/prepare-session.js";
 import {
+  repairTrailingUserMessageOrphan,
   resolveAttemptFsWorkspaceOnly,
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
@@ -52,6 +53,67 @@ describe("resolvePromptBuildHookResult", () => {
     expect(hookRunner.runBeforeAgentStart).toHaveBeenCalledTimes(1);
     expect(hookRunner.runBeforeAgentStart).toHaveBeenCalledWith({ prompt: "hello", messages }, {});
     expect(result.prependContext).toBe("from-hook");
+  });
+});
+
+describe("repairTrailingUserMessageOrphan", () => {
+  it("repairs orphaned trailing user entries for runtime-agnostic sessions", () => {
+    const replacementMessages = [{ role: "assistant", content: "hi" }];
+    const sessionManager = {
+      getLeafEntry: vi.fn(() => ({
+        type: "message",
+        message: { role: "user" },
+        parentId: "parent-entry",
+      })),
+      branch: vi.fn(),
+      resetLeaf: vi.fn(),
+      buildSessionContext: vi.fn(() => ({ messages: replacementMessages })),
+    };
+    const agentSession = {
+      replaceMessages: vi.fn(),
+    };
+    const session = {
+      agent: {
+        replaceMessages: vi.fn(),
+      },
+    };
+
+    const repaired = repairTrailingUserMessageOrphan({
+      sessionManager: sessionManager as never,
+      agentSession: agentSession as never,
+      session: session as never,
+      runId: "run-1",
+      sessionId: "sess-1",
+    });
+
+    expect(repaired).toBe(true);
+    expect(sessionManager.branch).toHaveBeenCalledWith("parent-entry");
+    expect(sessionManager.resetLeaf).not.toHaveBeenCalled();
+    expect(agentSession.replaceMessages).toHaveBeenCalledWith(replacementMessages);
+    expect(session.agent.replaceMessages).toHaveBeenCalledWith(replacementMessages);
+  });
+
+  it("returns false when there is no trailing orphaned user entry", () => {
+    const sessionManager = {
+      getLeafEntry: vi.fn(() => ({
+        type: "message",
+        message: { role: "assistant" },
+      })),
+      branch: vi.fn(),
+      resetLeaf: vi.fn(),
+      buildSessionContext: vi.fn(),
+    };
+
+    const repaired = repairTrailingUserMessageOrphan({
+      sessionManager: sessionManager as never,
+      agentSession: { replaceMessages: vi.fn() } as never,
+      runId: "run-1",
+      sessionId: "sess-1",
+    });
+
+    expect(repaired).toBe(false);
+    expect(sessionManager.branch).not.toHaveBeenCalled();
+    expect(sessionManager.resetLeaf).not.toHaveBeenCalled();
   });
 });
 

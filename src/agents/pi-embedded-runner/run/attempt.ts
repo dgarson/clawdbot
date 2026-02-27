@@ -418,6 +418,91 @@ export function injectHistoryImagesIntoMessages(
   return didMutate;
 }
 
+export async function buildHookVisibleHistorySnapshot(params: {
+  messages: AgentMessage[];
+  modelApi: string;
+  modelId: string;
+  provider: string;
+  allowedToolNames: Set<string>;
+  config: OpenClawConfig | undefined;
+  sessionManager: SessionManager;
+  sessionId: string;
+  transcriptPolicy: ReturnType<typeof resolveTranscriptPolicy>;
+  sessionKey?: string;
+}): Promise<AgentMessage[]> {
+  const prior = await sanitizeSessionHistory({
+    messages: params.messages,
+    modelApi: params.modelApi,
+    modelId: params.modelId,
+    provider: params.provider,
+    allowedToolNames: params.allowedToolNames,
+    config: params.config,
+    sessionManager: params.sessionManager,
+    sessionId: params.sessionId,
+    policy: params.transcriptPolicy,
+  });
+  const validatedGemini = params.transcriptPolicy.validateGeminiTurns
+    ? validateGeminiTurns(prior)
+    : prior;
+  const validated = params.transcriptPolicy.validateAnthropicTurns
+    ? validateAnthropicTurns(validatedGemini)
+    : validatedGemini;
+  const truncated = limitHistoryTurns(
+    validated,
+    getDmHistoryLimitFromSessionKey(params.sessionKey, params.config),
+  );
+  return params.transcriptPolicy.repairToolUseResultPairing
+    ? sanitizeToolUseResultPairing(truncated)
+    : truncated;
+}
+
+export function repairTrailingUserMessageOrphan(params: {
+  sessionManager: SessionManager;
+  agentSession: AgentRuntimeSession;
+  session?: {
+    agent: { replaceMessages: (messages: AgentMessage[]) => void };
+  };
+  runId: string;
+  sessionId: string;
+}): boolean {
+  const leafEntry = params.sessionManager.getLeafEntry();
+  if (leafEntry?.type !== "message" || leafEntry.message.role !== "user") {
+    return false;
+  }
+  if (leafEntry.parentId) {
+    params.sessionManager.branch(leafEntry.parentId);
+  } else {
+    params.sessionManager.resetLeaf();
+  }
+  const sessionContext = params.sessionManager.buildSessionContext();
+  params.agentSession.replaceMessages(sessionContext.messages);
+  if (params.session) {
+    params.session.agent.replaceMessages(sessionContext.messages);
+  }
+  log.warn(
+    `Removed orphaned user message to prevent consecutive user turns. ` +
+      `runId=${params.runId} sessionId=${params.sessionId}`,
+  );
+  return true;
+}
+
+function getClaudeSdkLifecycleSnapshot(
+  session: AgentRuntimeSession,
+): EmbeddedRunAttemptResult["claudeSdkLifecycle"] | undefined {
+  if (
+    !("claudeSdkLifecycleSnapshot" in (session as object)) ||
+    typeof (session as { claudeSdkLifecycleSnapshot?: unknown }).claudeSdkLifecycleSnapshot !==
+      "object"
+  ) {
+    return undefined;
+  }
+  return (
+    session as {
+      claudeSdkLifecycleSnapshot?: EmbeddedRunAttemptResult["claudeSdkLifecycle"];
+    }
+  ).claudeSdkLifecycleSnapshot;
+}
+
 export async function runEmbeddedAttempt(
   params: EmbeddedRunAttemptParams,
 ): Promise<EmbeddedRunAttemptResult> {
@@ -818,6 +903,7 @@ export async function runEmbeddedAttempt(
           systemPromptText,
           builtInTools,
           allCustomTools,
+          params.forceFreshClaudeSession === true,
         );
         cacheTrace = createCacheTrace({
           cfg: params.config,
@@ -972,58 +1058,41 @@ export async function runEmbeddedAttempt(
             return inner(model, nextContext as typeof context, options);
           };
         }
-
         // Some models emit tool names with surrounding whitespace (e.g. " read ").
         // pi-agent-core dispatches tool calls with exact string matching, so normalize
         // names on the live response stream before tool execution.
         session.agent.streamFn = wrapStreamFnTrimToolCallNames(session.agent.streamFn);
-
-        // Pi-specific: history sanitization uses the Pi agent's replaceMessages.
-        // The claude-sdk runtime manages its own history via resume session IDs.
-        try {
-          const prior = await sanitizeSessionHistory({
-            messages: agentSession.messages,
-            modelApi: params.model.api,
-            modelId: params.modelId,
-            provider: params.provider,
-            allowedToolNames,
-            config: params.config,
-            sessionManager,
-            sessionId: params.sessionId,
-            policy: transcriptPolicy,
-          });
-          cacheTrace?.recordStage("session:sanitized", { messages: prior });
-          const validatedGemini = transcriptPolicy.validateGeminiTurns
-            ? validateGeminiTurns(prior)
-            : prior;
-          const validated = transcriptPolicy.validateAnthropicTurns
-            ? validateAnthropicTurns(validatedGemini)
-            : validatedGemini;
-          const truncated = limitHistoryTurns(
-            validated,
-            getDmHistoryLimitFromSessionKey(params.sessionKey, params.config),
-          );
-          // Re-run tool_use/tool_result pairing repair after truncation, since
-          // limitHistoryTurns can orphan tool_result blocks by removing the
-          // assistant message that contained the matching tool_use.
-          const limited = transcriptPolicy.repairToolUseResultPairing
-            ? sanitizeToolUseResultPairing(truncated)
-            : truncated;
-          cacheTrace?.recordStage("session:limited", { messages: limited });
-          if (limited.length > 0) {
-            session.agent.replaceMessages(limited);
-          }
-        } catch (err) {
-          await flushPendingToolResultsAfterIdle({
-            agent: piAgentForFlush,
-            sessionManager,
-          });
-          agentSession.dispose();
-          throw err;
-        }
       }
       if (!agentSession) {
         throw new Error("Embedded agent session missing");
+      }
+      let hookHistoryMessages = agentSession.messages;
+      try {
+        const historySnapshot = await buildHookVisibleHistorySnapshot({
+          messages: agentSession.messages,
+          modelApi: params.model.api,
+          modelId: params.modelId,
+          provider: params.provider,
+          allowedToolNames,
+          config: params.config,
+          sessionManager,
+          sessionId: params.sessionId,
+          transcriptPolicy,
+          sessionKey: params.sessionKey,
+        });
+        cacheTrace?.recordStage("session:sanitized", { messages: historySnapshot });
+        cacheTrace?.recordStage("session:limited", { messages: historySnapshot });
+        hookHistoryMessages = historySnapshot;
+        if (!agentSession.runtimeHints.managesOwnHistory && session && historySnapshot.length > 0) {
+          session.agent.replaceMessages(historySnapshot);
+        }
+      } catch (err) {
+        await flushPendingToolResultsAfterIdle({
+          agent: piAgentForFlush,
+          sessionManager,
+        });
+        agentSession.dispose();
+        throw err;
       }
       // Narrowed reference for closures that capture agentSession before TS can narrow it.
       const activeRuntime: AgentRuntimeSession = agentSession;
@@ -1222,9 +1291,20 @@ export async function runEmbeddedAttempt(
           workspaceDir: params.workspaceDir,
           messageProvider: params.messageProvider ?? undefined,
         };
+        if (
+          repairTrailingUserMessageOrphan({
+            sessionManager,
+            agentSession,
+            session,
+            runId: params.runId,
+            sessionId: params.sessionId,
+          })
+        ) {
+          hookHistoryMessages = agentSession.messages;
+        }
         const hookResult = await resolvePromptBuildHookResult({
           prompt: params.prompt,
-          messages: agentSession.messages,
+          messages: hookHistoryMessages,
           hookCtx,
           hookRunner,
           legacyBeforeAgentStartResult: params.legacyBeforeAgentStartResult,
@@ -1253,26 +1333,8 @@ export async function runEmbeddedAttempt(
         log.debug(`embedded run prompt start: runId=${params.runId} sessionId=${params.sessionId}`);
         cacheTrace?.recordStage("prompt:before", {
           prompt: effectivePrompt,
-          messages: agentSession.messages,
+          messages: hookHistoryMessages,
         });
-
-        // Pi-specific: repair orphaned trailing user messages so new prompts don't violate role ordering.
-        if (session) {
-          const leafEntry = sessionManager.getLeafEntry();
-          if (leafEntry?.type === "message" && leafEntry.message.role === "user") {
-            if (leafEntry.parentId) {
-              sessionManager.branch(leafEntry.parentId);
-            } else {
-              sessionManager.resetLeaf();
-            }
-            const sessionContext = sessionManager.buildSessionContext();
-            session.agent.replaceMessages(sessionContext.messages);
-            log.warn(
-              `Removed orphaned user message to prevent consecutive user turns. ` +
-                `runId=${params.runId} sessionId=${params.sessionId}`,
-            );
-          }
-        }
 
         try {
           // Idempotent cleanup for legacy sessions with persisted image payloads.
@@ -1285,7 +1347,7 @@ export async function runEmbeddedAttempt(
             workspaceDir: effectiveWorkspace,
             model: params.model,
             existingImages: params.images,
-            historyMessages: agentSession.messages,
+            historyMessages: hookHistoryMessages,
             maxBytes: MAX_IMAGE_BYTES,
             maxDimensionPx: resolveImageSanitizationLimits(params.config).maxDimensionPx,
             workspaceOnly: effectiveFsWorkspaceOnly,
@@ -1306,21 +1368,22 @@ export async function runEmbeddedAttempt(
             if (didMutate) {
               // Persist message mutations (e.g., injected history images) so we don't re-scan/reload.
               session.agent.replaceMessages(session.messages);
+              hookHistoryMessages = session.messages;
             }
           }
 
           cacheTrace?.recordStage("prompt:images", {
             prompt: effectivePrompt,
-            messages: agentSession.messages,
+            messages: hookHistoryMessages,
             note: `images: prompt=${imageResult.images.length} history=${imageResult.historyImagesByIndex.size}`,
           });
 
           // Diagnostic: log context sizes before prompt to help debug early overflow errors.
           if (log.isEnabled("debug")) {
-            const msgCount = agentSession.messages.length;
+            const msgCount = hookHistoryMessages.length;
             const systemLen = systemPromptText?.length ?? 0;
             const promptLen = effectivePrompt.length;
-            const sessionSummary = summarizeSessionContext(agentSession.messages);
+            const sessionSummary = summarizeSessionContext(hookHistoryMessages);
             log.debug(
               `[context-diag] pre-prompt: sessionKey=${params.sessionKey ?? params.sessionId} ` +
                 `messages=${msgCount} roleCounts=${sessionSummary.roleCounts} ` +
@@ -1344,7 +1407,7 @@ export async function runEmbeddedAttempt(
                   model: params.modelId,
                   systemPrompt: systemPromptText,
                   prompt: effectivePrompt,
-                  historyMessages: agentSession.messages,
+                  historyMessages: hookHistoryMessages,
                   imagesCount: imageResult.images.length,
                 },
                 {
@@ -1577,6 +1640,7 @@ export async function runEmbeddedAttempt(
         ),
         attemptUsage: getUsageTotals(),
         compactionCount: getCompactionCount(),
+        claudeSdkLifecycle: getClaudeSdkLifecycleSnapshot(agentSession),
         // Client tool call detected (OpenResponses hosted tools)
         clientToolCall: clientToolCallDetected ?? undefined,
       };
