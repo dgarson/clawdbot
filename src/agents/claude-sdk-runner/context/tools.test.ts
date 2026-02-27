@@ -56,8 +56,8 @@ describe("buildChannelTools", () => {
     const contextTool = tools.find((t) => t.name === "channel.context")!;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (contextTool.execute as any)(
+      "test-call-id",
       { intent: "rollout discussion" },
-      null,
       null,
       null,
     );
@@ -71,8 +71,8 @@ describe("buildChannelTools", () => {
     const contextTool = tools.find((t) => t.name === "channel.context")!;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (contextTool.execute as any)(
+      "test-call-id",
       { intent: "xyzzy nonsense token" },
-      null,
       null,
       null,
     );
@@ -109,7 +109,7 @@ describe("buildChannelTools", () => {
     const tools = buildChannelTools(inputWithThread);
     const msgTool = tools.find((t) => t.name === "channel.messages")!;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await (msgTool.execute as any)({ thread_id: "900" }, null, null, null);
+    const result = await (msgTool.execute as any)("test-call-id", { thread_id: "900" }, null, null);
     const parsed = JSON.parse(result);
     expect(parsed.thread).toBeDefined();
     expect(parsed.thread.root.text).toBe("Thread root");

@@ -21,7 +21,15 @@ import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
+import {
+  ATTACHMENT_MANIFEST_KEY,
+  loadManifestFromEntries,
+  serializeManifest,
+} from "./attachment-manifest.js";
 import { resolveClaudeSubprocessEnv } from "./config.js";
+import { buildChannelSnapshot } from "./context/channel-snapshot.js";
+import { buildThreadContext } from "./context/thread-context.js";
+import { buildChannelTools } from "./context/tools.js";
 import { mapSdkError } from "./error-mapping.js";
 import { translateSdkMessageToEvents } from "./event-adapter.js";
 import { createClaudeSdkMcpToolServer } from "./mcp-tool-server.js";
@@ -301,6 +309,29 @@ export async function createClaudeSdkSession(
 ): Promise<ClaudeSdkSession> {
   const { transcriptProvider, transcriptApi } = resolveTranscriptMetadata(params.provider);
 
+  // Build enriched system prompt with structured channel/thread context if provided.
+  // The context is injected as a labeled JSON section so Claude can reference the
+  // channel snapshot and thread history without needing history concatenation.
+  let systemPrompt = params.systemPrompt;
+  if (params.structuredContextInput) {
+    const snapshot = buildChannelSnapshot(params.structuredContextInput);
+    const thread = buildThreadContext(params.structuredContextInput.thread ?? null);
+    const parts = ["\n\n### Channel Context", "```json", JSON.stringify(snapshot, null, 2), "```"];
+    if (thread) {
+      parts.push("\n### Thread Context", "```json", JSON.stringify(thread, null, 2), "```");
+    }
+    systemPrompt = params.systemPrompt + parts.join("\n");
+  }
+
+  // Load attachment manifest from session history for cross-turn media deduplication.
+  const allEntries = params.sessionManager?.getEntries?.() ?? [];
+  const manifest = loadManifestFromEntries(allEntries);
+
+  // Build channel exploration tools from structured context (if provided).
+  const channelTools = params.structuredContextInput
+    ? buildChannelTools(params.structuredContextInput)
+    : [];
+
   // Internal adapter state
   const state: ClaudeSdkEventAdapterState = {
     subscribers: [],
@@ -308,7 +339,7 @@ export async function createClaudeSdkSession(
     compacting: false,
     pendingCompactionEnd: undefined,
     abortController: null,
-    systemPrompt: params.systemPrompt,
+    systemPrompt,
     pendingSteer: [],
     pendingToolUses: [],
     toolNameByUseId: new Map(),
@@ -339,8 +370,9 @@ export async function createClaudeSdkSession(
   };
 
   // Build in-process MCP tool server from OpenClaw tools (already wrapped with
-  // before_tool_call hooks, abort signal propagation, and loop detection upstream)
-  const allTools = [...params.tools, ...params.customTools];
+  // before_tool_call hooks, abort signal propagation, and loop detection upstream).
+  // Channel tools are appended last so they can't shadow user-provided tools.
+  const allTools = [...params.tools, ...params.customTools, ...channelTools];
 
   const toolServer = createClaudeSdkMcpToolServer({
     tools: allTools,
@@ -501,9 +533,17 @@ export async function createClaudeSdkSession(
             "openclaw:claude-sdk-session-id",
             state.claudeSdkSessionId,
           );
+          // Persist attachment manifest alongside session ID so the next session can
+          // load it via loadManifestFromEntries() for cross-turn deduplication.
+          if (Object.keys(manifest.entries).length > 0) {
+            params.sessionManager.appendCustomEntry(
+              ATTACHMENT_MANIFEST_KEY,
+              serializeManifest(manifest),
+            );
+          }
           state.sessionIdPersisted = true;
         } catch {
-          // Non-fatal — session_id persistence failed
+          // Non-fatal — persistence failed
         }
       }
     },

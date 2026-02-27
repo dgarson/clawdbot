@@ -9,6 +9,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
+import type { StructuredContextInput } from "./context/types.js";
 import type { ClaudeSdkSessionParams } from "./types.js";
 
 // ---------------------------------------------------------------------------
@@ -52,6 +53,11 @@ async function importQuery() {
 async function importCreateSdkMcpServer() {
   const mod = await import("@anthropic-ai/claude-agent-sdk");
   return mod.createSdkMcpServer as Mock;
+}
+
+async function importTool() {
+  const mod = await import("@anthropic-ai/claude-agent-sdk");
+  return mod.tool as Mock;
 }
 
 // ---------------------------------------------------------------------------
@@ -1394,5 +1400,237 @@ describe("session lifecycle — dispose warning", () => {
       "openclaw:claude-sdk-session-id",
       "sess_server_abc123",
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Helper: minimal StructuredContextInput for tests
+// ---------------------------------------------------------------------------
+
+function makeStructuredContextInput(
+  overrides?: Partial<StructuredContextInput>,
+): StructuredContextInput {
+  return {
+    platform: "slack",
+    channelId: "C123",
+    channelName: "general",
+    anchor: {
+      messageId: "M001",
+      ts: "1700000000.000000",
+      authorId: "U001",
+      authorName: "Alice",
+      authorIsBot: false,
+      text: "Hello, what is the status of the project?",
+      threadId: null,
+    },
+    adjacentMessages: [],
+    thread: null,
+    ...overrides,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Task 8: Structured context injection into system prompt
+// ---------------------------------------------------------------------------
+
+describe("session lifecycle — structured context injection", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("appends channel snapshot JSON to system prompt when structuredContextInput is provided", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        systemPrompt: "Base prompt.",
+        structuredContextInput: makeStructuredContextInput(),
+      }),
+    );
+
+    await session.prompt("Hello");
+
+    const call = queryMock.mock.calls[0];
+    const systemPrompt = call[0].options?.systemPrompt as string;
+    expect(systemPrompt).toContain("Base prompt.");
+    expect(systemPrompt).toContain("Channel Context");
+    expect(systemPrompt).toContain('"schema_version"');
+    expect(systemPrompt).toContain('"channel"');
+  });
+
+  it("does NOT modify system prompt when structuredContextInput is absent", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ systemPrompt: "Base prompt." }));
+
+    await session.prompt("Hello");
+
+    const call = queryMock.mock.calls[0];
+    const systemPrompt = call[0].options?.systemPrompt as string;
+    expect(systemPrompt).toBe("Base prompt.");
+    expect(systemPrompt).not.toContain("Channel Context");
+  });
+
+  it("appends thread context JSON when structuredContextInput includes a thread", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        structuredContextInput: makeStructuredContextInput({
+          thread: {
+            rootMessageId: "M001",
+            rootTs: "1700000000.000000",
+            rootAuthorId: "U001",
+            rootAuthorName: "Alice",
+            rootAuthorIsBot: false,
+            rootText: "Root message text",
+            replies: [],
+            totalReplyCount: 0,
+          },
+        }),
+      }),
+    );
+
+    await session.prompt("Hello");
+
+    const call = queryMock.mock.calls[0];
+    const systemPrompt = call[0].options?.systemPrompt as string;
+    expect(systemPrompt).toContain("Thread Context");
+    expect(systemPrompt).toContain('"thread_id"');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Task 8: Channel tools registration
+// ---------------------------------------------------------------------------
+
+describe("session lifecycle — channel tools registration", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("registers channel.context and channel.messages tools when structuredContextInput is provided", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+    const toolMock = await importTool();
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ structuredContextInput: makeStructuredContextInput() }),
+    );
+
+    await session.prompt("Hello");
+
+    const registeredNames = toolMock.mock.calls.map((c: unknown[]) => c[0] as string);
+    expect(registeredNames).toContain("channel.context");
+    expect(registeredNames).toContain("channel.messages");
+  });
+
+  it("does NOT register channel tools when structuredContextInput is absent", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+    const toolMock = await importTool();
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams());
+
+    await session.prompt("Hello");
+
+    const registeredNames = toolMock.mock.calls.map((c: unknown[]) => c[0] as string);
+    expect(registeredNames).not.toContain("channel.context");
+    expect(registeredNames).not.toContain("channel.messages");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Task 8: AttachmentManifest lifecycle
+// ---------------------------------------------------------------------------
+
+describe("session lifecycle — attachment manifest", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("loads manifest from sessionManager entries and re-persists non-empty manifest on dispose()", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const {
+      createAttachmentManifest,
+      recordAttachment,
+      serializeManifest,
+      ATTACHMENT_MANIFEST_KEY,
+    } = await import("./attachment-manifest.js");
+
+    const previousManifest = createAttachmentManifest();
+    recordAttachment(previousManifest, {
+      artifactId: "A1",
+      displayName: "photo.jpg",
+      mediaType: "image/jpeg",
+      contentHash: "abc123",
+      sourceMessageId: "M001",
+      sourceThreadId: null,
+      turn: 0,
+    });
+    const serialized = serializeManifest(previousManifest);
+
+    const appendCustomEntry = vi.fn();
+    const getEntries = vi.fn(() => [
+      { type: "custom", customType: ATTACHMENT_MANIFEST_KEY, data: serialized },
+    ]);
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        sessionManager: { appendCustomEntry, getEntries, appendMessage: vi.fn(() => "msg-id") },
+      }),
+    );
+
+    await session.prompt("Hello");
+    session.dispose();
+
+    const manifestCall = appendCustomEntry.mock.calls.find(
+      (c: unknown[]) => c[0] === ATTACHMENT_MANIFEST_KEY,
+    );
+    expect(manifestCall).toBeDefined();
+    const persistedData = JSON.parse(manifestCall![1] as string) as {
+      entries: Record<string, { artifact_id: string }>;
+    };
+    expect(Object.values(persistedData.entries).some((e) => e.artifact_id === "A1")).toBe(true);
+  });
+
+  it("does NOT persist manifest when entries are empty", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const { ATTACHMENT_MANIFEST_KEY } = await import("./attachment-manifest.js");
+
+    const appendCustomEntry = vi.fn();
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        sessionManager: {
+          appendCustomEntry,
+          appendMessage: vi.fn(() => "msg-id"),
+        },
+      }),
+    );
+
+    await session.prompt("Hello");
+    session.dispose();
+
+    // Session ID is persisted
+    expect(appendCustomEntry).toHaveBeenCalledWith(
+      "openclaw:claude-sdk-session-id",
+      "sess_server_abc123",
+    );
+    // But manifest is NOT persisted (nothing to persist)
+    expect(appendCustomEntry).not.toHaveBeenCalledWith(ATTACHMENT_MANIFEST_KEY, expect.anything());
   });
 });

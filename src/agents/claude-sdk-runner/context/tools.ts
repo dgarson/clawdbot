@@ -1,3 +1,4 @@
+import type { AgentTool } from "@mariozechner/pi-agent-core";
 import type { ClaudeSdkCompatibleTool } from "../types.js";
 import { buildThreadContext } from "./thread-context.js";
 import type { StructuredContextInput } from "./types.js";
@@ -43,7 +44,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
       },
       required: ["intent"],
     },
-    execute: async (toolInput: unknown) => {
+    execute: (async (_toolCallId: string, toolInput: unknown) => {
       const params = toolInput as {
         intent: string;
         since?: string;
@@ -86,7 +87,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
           time_range: [oldest, newest],
         },
       });
-    },
+    }) as unknown as AgentTool["execute"],
   };
 
   const channelMessagesTool: ClaudeSdkCompatibleTool = {
@@ -115,7 +116,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
         },
       },
     },
-    execute: async (toolInput: unknown) => {
+    execute: (async (_toolCallId: string, toolInput: unknown) => {
       const params = toolInput as {
         thread_id?: string;
         message_ids?: string[];
@@ -180,7 +181,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
       }
 
       return JSON.stringify({ error: "No valid query parameters provided" });
-    },
+    }) as unknown as AgentTool["execute"],
   };
 
   return [channelContextTool, channelMessagesTool];
