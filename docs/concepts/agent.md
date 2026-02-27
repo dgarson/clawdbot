@@ -88,7 +88,7 @@ There is no separate pre-compaction callback from the SDK, so this behavior is
 intentional and currently unavoidable.
 
 Runtime map: [Claude SDK Runtime](/concepts/claude-sdk-runtime)  
-Maintainer checklist: [Claude SDK parity gotchas](/reference/claude-sdk-parity-gotchas)
+Maintainer checklist: [Claude SDK Runtime](/concepts/claude-sdk-runtime#maintainer-checklist)
 
 ## Steering while streaming
 
