@@ -8,6 +8,16 @@ import type { EmbeddedRunAttemptParams } from "../pi-embedded-runner/run/types.j
 import { createClaudeSdkSession } from "./create-session.js";
 import type { ClaudeSdkCompatibleTool, ClaudeSdkSession } from "./types.js";
 
+const CLAUDE_SDK_RESUME_SESSION_KEY = "openclaw:claude-sdk-session-id";
+
+type ClaudeSessionManagerLike = {
+  appendCustomEntry?: (key: string, value: unknown) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getEntries?: () => Array<{ type: string; customType?: string; data?: unknown }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  appendMessage?: (message: any) => string;
+};
+
 /** @internal Exported for testing only. */
 export function resolveClaudeSdkConfig(
   params: EmbeddedRunAttemptParams,
@@ -49,18 +59,13 @@ export async function prepareClaudeSdkSession(
   params: EmbeddedRunAttemptParams,
   claudeSdkConfig: ClaudeSdkConfig,
   resolvedProviderAuth: ResolvedProviderAuth | undefined,
-  sessionManager: {
-    appendCustomEntry?: (key: string, value: unknown) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getEntries?: () => Array<{ type: string; customType?: string; data?: unknown }>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    appendMessage?: (message: any) => string;
-  },
+  sessionManager: ClaudeSessionManagerLike,
   resolvedWorkspace: string,
   agentDir: string | undefined,
   systemPromptText: string,
   builtInTools: ClaudeSdkCompatibleTool[],
   allCustomTools: ClaudeSdkCompatibleTool[],
+  forceFreshClaudeSession = false,
 ): Promise<ClaudeSdkSession> {
   // 1. Validate model ID — must use full Anthropic name (claude-* prefix).
   // Full IDs (e.g. "claude-opus-4-6") are required here for routing and display;
@@ -80,9 +85,23 @@ export async function prepareClaudeSdkSession(
   const allEntries = sessionManager.getEntries?.() ?? [];
   const claudeSdkEntry = [...allEntries]
     .toReversed()
-    .find((e) => e.type === "custom" && e.customType === "openclaw:claude-sdk-session-id");
-  const claudeSdkResumeSessionId =
+    .find((e) => e.type === "custom" && e.customType === CLAUDE_SDK_RESUME_SESSION_KEY);
+  let claudeSdkResumeSessionId =
     typeof claudeSdkEntry?.data === "string" ? claudeSdkEntry.data : undefined;
+  if (forceFreshClaudeSession && claudeSdkResumeSessionId) {
+    try {
+      sessionManager.appendCustomEntry?.(CLAUDE_SDK_RESUME_SESSION_KEY, null);
+      sessionManager.appendCustomEntry?.("openclaw:claude-sdk-stale-resume-recovered", {
+        timestamp: Date.now(),
+        staleSessionId: claudeSdkResumeSessionId,
+        runId: params.runId,
+        sessionId: params.sessionId,
+      });
+    } catch {
+      // Non-fatal — stale marker clear failures are handled by caller-level retries.
+    }
+    claudeSdkResumeSessionId = undefined;
+  }
 
   // 3. Create and return the session
   return createClaudeSdkSession({
@@ -90,6 +109,8 @@ export async function prepareClaudeSdkSession(
     agentDir,
     sessionId: params.sessionId,
     sessionFile: params.sessionFile,
+    runId: params.runId,
+    attemptNumber: params.attemptNumber,
     modelId: params.modelId,
     provider: params.provider,
     tools: builtInTools,
