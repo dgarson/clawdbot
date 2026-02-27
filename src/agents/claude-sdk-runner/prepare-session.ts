@@ -2,14 +2,11 @@ import {
   ClaudeSdkConfigSchema,
   type ClaudeSdkConfig,
 } from "../../config/zod-schema.agent-runtime.js";
-import { SYSTEM_KEYCHAIN_PROVIDERS, type ResolvedProviderAuth } from "../model-auth.js";
+import type { ResolvedProviderAuth } from "../model-auth.js";
 import { log } from "../pi-embedded-runner/logger.js";
 import type { EmbeddedRunAttemptParams } from "../pi-embedded-runner/run/types.js";
 import { createClaudeSdkSession } from "./create-session.js";
 import type { ClaudeSdkCompatibleTool, ClaudeSdkSession } from "./types.js";
-
-// Claude SDK runtime is used for providers that authenticate via system keychain.
-const CLAUDE_SDK_PROVIDERS = SYSTEM_KEYCHAIN_PROVIDERS;
 
 /** @internal Exported for testing only. */
 export function resolveClaudeSdkConfig(
@@ -43,8 +40,6 @@ export function resolveClaudeSdkConfig(
   }
   return parseResult.data;
 }
-
-export { CLAUDE_SDK_PROVIDERS };
 
 /**
  * Validates credentials and creates a ClaudeSdk session from attempt params.

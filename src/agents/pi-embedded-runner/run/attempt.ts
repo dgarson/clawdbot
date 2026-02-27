@@ -39,7 +39,6 @@ import {
   resolveChannelMessageToolHints,
 } from "../../channel-tools.js";
 import {
-  CLAUDE_SDK_PROVIDERS,
   prepareClaudeSdkSession,
   resolveClaudeSdkConfig,
 } from "../../claude-sdk-runner/prepare-session.js";
@@ -129,28 +128,20 @@ export function resolveRuntime(
   params: EmbeddedRunAttemptParams,
   _agentId: string,
 ): "pi" | "claude-sdk" {
-  // Non-Claude model IDs cannot run through the claude-sdk subprocess.
+  // Non-Claude models cannot run through the claude-sdk subprocess; always route to Pi.
   if (params.modelId && !params.modelId.startsWith("claude-")) {
+    log.warn(
+      `model "${params.modelId}" is not a Claude model; routing to Pi runtime (provider: ${params.provider})`,
+    );
     return "pi";
   }
+  // Explicit override wins — caller takes full responsibility.
   if (params.runtimeOverride) {
     return params.runtimeOverride;
   }
-  const normalizedProvider = params.provider.trim().toLowerCase();
-  const resolvedAuthMode = params.resolvedProviderAuth?.mode;
-  const resolvedAuthSource = params.resolvedProviderAuth?.source.toLowerCase() ?? "";
-  // Prefer auth-resolution signal over provider-name heuristics when available.
-  if (resolvedAuthMode === "system-keychain" || resolvedAuthSource.includes("system keychain")) {
+  // Only the two system-keychain providers use the claude-sdk subprocess.
+  if (params.provider === "claude-pro" || params.provider === "claude-max") {
     return "claude-sdk";
-  }
-  // Backstop for callers that haven't threaded resolvedProviderAuth yet.
-  if (CLAUDE_SDK_PROVIDERS.has(normalizedProvider)) {
-    return "claude-sdk";
-  }
-  if (/claude[-_]?pro/i.test(params.provider) && !CLAUDE_SDK_PROVIDERS.has(params.provider)) {
-    log.warn(
-      `provider "${params.provider}" resembles a claude-sdk provider but did not match; falling back to Pi runtime`,
-    );
   }
   return "pi";
 }
