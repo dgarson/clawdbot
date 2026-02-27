@@ -863,6 +863,56 @@ Your configured aliases always win over defaults.
 Z.AI GLM-4.x models automatically enable thinking mode unless you set `--thinking off` or define `agents.defaults.models["zai/<model>"].params.thinking` yourself.
 Z.AI models enable `tool_stream` by default for tool call streaming. Set `agents.defaults.models["zai/<model>"].params.tool_stream` to `false` to disable it.
 
+### `agents.defaults.claudeSdk`
+
+Claude SDK runtime options for agents.
+
+Supported `provider` values: `claude-sdk`, `anthropic`, `zai`, `minimax`, `minimax-portal`, `openrouter`, `custom`.
+
+Common fields:
+
+- `thinkingDefault`: `none | low | medium | high`
+- `supportedProviders`: optional list of provider IDs that should route through Claude SDK runtime before falling back to Pi runtime
+
+#### Custom provider strict config
+
+`provider: "custom"` requires all of the following:
+
+- `baseUrl`
+- `authProfileId`
+- `anthropicDefaultHaikuModel`
+- `anthropicDefaultSonnetModel`
+- `anthropicDefaultOpusModel`
+
+Optional:
+
+- `authHeaderName` (defaults to `ANTHROPIC_AUTH_TOKEN`)
+
+OpenClaw does not infer these values for `custom`. They must be explicit.
+
+```json5
+{
+  agents: {
+    defaults: {
+      claudeSdk: {
+        provider: "custom",
+        baseUrl: "https://example.gateway/v1",
+        authProfileId: "custom-bridge:work",
+        authHeaderName: "ANTHROPIC_AUTH_TOKEN",
+        anthropicDefaultHaikuModel: "vendor/model-haiku",
+        anthropicDefaultSonnetModel: "vendor/model-sonnet",
+        anthropicDefaultOpusModel: "vendor/model-opus",
+        supportedProviders: ["claude-pro", "zai", "custom"],
+      },
+    },
+  },
+}
+```
+
+`authProfileId` must exist in the agent auth profile store (`~/.openclaw/agents/<agentId>/agent/auth-profiles.json`).
+
+For provider ID vs auth profile ID semantics, see [FAQ](/help/faq#provider-id-vs-auth-profile-id).
+
 ### `agents.defaults.cliBackends`
 
 Optional CLI backends for text-only fallback runs (no tool calls). Useful as a backup when API providers fail.
