@@ -1,5 +1,6 @@
 import "./run.overflow-compaction.mocks.shared.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { onDiagnosticEvent, resetDiagnosticEventsForTest } from "../../infra/diagnostic-events.js";
 import { isCompactionFailureError, isLikelyContextOverflowError } from "../pi-embedded-helpers.js";
 
 vi.mock("../../utils.js", () => ({
@@ -30,6 +31,7 @@ const mockedIsLikelyContextOverflowError = vi.mocked(isLikelyContextOverflowErro
 describe("overflow compaction in run loop", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetDiagnosticEventsForTest();
     mockedIsCompactionFailureError.mockImplementation((msg?: string) => {
       if (!msg) {
         return false;
@@ -147,6 +149,47 @@ describe("overflow compaction in run loop", () => {
     expect(log.warn).toHaveBeenCalledWith(
       expect.stringContaining("[claude-sdk-overflow] fail-fast"),
     );
+  });
+
+  it("emits runtime.metric telemetry for claude-sdk overflow fail-fast", async () => {
+    const metrics: Array<{ metric: string; fields?: Record<string, unknown> }> = [];
+    const stop = onDiagnosticEvent((evt) => {
+      if (evt.type === "runtime.metric") {
+        metrics.push({ metric: evt.metric, fields: evt.fields });
+      }
+    });
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce(
+      makeAttemptResult({
+        promptError: makeOverflowError(),
+        compactionCount: 0,
+        claudeSdkLifecycle: {
+          sdkStatus: null,
+          compactBoundaryCount: 0,
+          statusCompactingCount: 0,
+          statusIdleCount: 0,
+        },
+      }),
+    );
+
+    try {
+      await runEmbeddedPiAgent({
+        ...baseParams,
+        provider: "claude-pro",
+        config: { diagnostics: { enabled: true } } as never,
+      });
+    } finally {
+      stop();
+    }
+
+    const failFastMetric = metrics.find(
+      (entry) => entry.metric === "claude_sdk.overflow.fail_fast",
+    );
+    expect(failFastMetric).toBeDefined();
+    expect(failFastMetric?.fields).toMatchObject({
+      sessionKey: "test-key",
+      provider: "claude-pro",
+      reason: "no_compaction_signal",
+    });
   });
 
   it("fails fast on repeated claude-sdk overflow when fingerprint has no meaningful state delta", async () => {

@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import fs from "node:fs/promises";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
+import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
 import { generateSecureToken } from "../../infra/secure-random.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import type { PluginHookBeforeAgentStartResult } from "../../plugins/types.js";
@@ -113,8 +114,26 @@ function createCompactionDiagId(): string {
   return `ovf-${Date.now().toString(36)}-${generateSecureToken(4)}`;
 }
 
-function emitClaudeSdkRuntimeMetric(metric: string, fields: Record<string, unknown>): void {
+function emitClaudeSdkRuntimeMetric(
+  metric: string,
+  fields: Record<string, unknown>,
+  diagnosticsEnabled: boolean,
+): void {
   log.info(`[claude-sdk-metric] ${metric} ${JSON.stringify(fields)}`);
+  if (!diagnosticsEnabled) {
+    return;
+  }
+  emitDiagnosticEvent({
+    type: "runtime.metric",
+    metric,
+    runId: typeof fields.runId === "string" ? fields.runId : undefined,
+    sessionId: typeof fields.sessionId === "string" ? fields.sessionId : undefined,
+    sessionKey: typeof fields.sessionKey === "string" ? fields.sessionKey : undefined,
+    provider: typeof fields.provider === "string" ? fields.provider : undefined,
+    model: typeof fields.model === "string" ? fields.model : undefined,
+    attempt: typeof fields.attempt === "number" ? fields.attempt : undefined,
+    fields,
+  });
 }
 
 function normalizeOverflowFingerprint(message: string): string {
@@ -631,6 +650,7 @@ export async function runEmbeddedPiAgent(
       let toolResultTruncationAttempted = false;
       let claudeOverflowRetryCount = 0;
       let claudeOverflowFailFastCount = 0;
+      const diagnosticsEnabled = isDiagnosticsEnabled(params.config);
       let lastClaudeOverflowState:
         | {
             fingerprint: string;
@@ -811,15 +831,19 @@ export async function runEmbeddedPiAgent(
             if (!staleResumeRecoveryAttempted) {
               staleResumeRecoveryAttempted = true;
               forceFreshClaudeSession = true;
-              emitClaudeSdkRuntimeMetric("claude_sdk.resume.stale_recovered", {
-                runId: params.runId,
-                sessionId: params.sessionId,
-                sessionKey: params.sessionKey ?? params.sessionId,
-                provider,
-                model: modelId,
-                attempt: runLoopIterations,
-                action: "retry_with_fresh_session",
-              });
+              emitClaudeSdkRuntimeMetric(
+                "claude_sdk.resume.stale_recovered",
+                {
+                  runId: params.runId,
+                  sessionId: params.sessionId,
+                  sessionKey: params.sessionKey ?? params.sessionId,
+                  provider,
+                  model: modelId,
+                  attempt: runLoopIterations,
+                  action: "retry_with_fresh_session",
+                },
+                diagnosticsEnabled,
+              );
               log.warn(
                 `[claude-sdk-stale-resume] retrying with fresh session ` +
                   `runId=${params.runId} sessionId=${params.sessionId} ` +
@@ -914,17 +938,21 @@ export async function runEmbeddedPiAgent(
 
               if (!hasCompactionEvidence || noMeaningfulStateDelta) {
                 claudeOverflowFailFastCount += 1;
-                emitClaudeSdkRuntimeMetric("claude_sdk.overflow.fail_fast", {
-                  runId: params.runId,
-                  sessionId: params.sessionId,
-                  sessionKey: params.sessionKey ?? params.sessionId,
-                  provider,
-                  model: modelId,
-                  attempt: runLoopIterations,
-                  failFastCount: claudeOverflowFailFastCount,
-                  fingerprint: currentClaudeOverflowState.fingerprint,
-                  reason: !hasCompactionEvidence ? "no_compaction_signal" : "no_state_delta",
-                });
+                emitClaudeSdkRuntimeMetric(
+                  "claude_sdk.overflow.fail_fast",
+                  {
+                    runId: params.runId,
+                    sessionId: params.sessionId,
+                    sessionKey: params.sessionKey ?? params.sessionId,
+                    provider,
+                    model: modelId,
+                    attempt: runLoopIterations,
+                    failFastCount: claudeOverflowFailFastCount,
+                    fingerprint: currentClaudeOverflowState.fingerprint,
+                    reason: !hasCompactionEvidence ? "no_compaction_signal" : "no_state_delta",
+                  },
+                  diagnosticsEnabled,
+                );
                 log.warn(
                   `[claude-sdk-overflow] fail-fast runId=${params.runId} ` +
                     `sessionId=${params.sessionId} sessionKey=${params.sessionKey ?? params.sessionId} ` +
@@ -957,20 +985,24 @@ export async function runEmbeddedPiAgent(
                 overflowCompactionAttempts++;
                 claudeOverflowRetryCount += 1;
                 lastClaudeOverflowState = currentClaudeOverflowState;
-                emitClaudeSdkRuntimeMetric("claude_sdk.overflow.retries", {
-                  runId: params.runId,
-                  sessionId: params.sessionId,
-                  sessionKey: params.sessionKey ?? params.sessionId,
-                  provider,
-                  model: modelId,
-                  attempt: runLoopIterations,
-                  retryCount: claudeOverflowRetryCount,
-                  compactionEvidence: {
-                    attemptCompactionCount,
-                    compactBoundaryCount: lifecycle?.compactBoundaryCount ?? 0,
-                    statusCompactingCount: lifecycle?.statusCompactingCount ?? 0,
+                emitClaudeSdkRuntimeMetric(
+                  "claude_sdk.overflow.retries",
+                  {
+                    runId: params.runId,
+                    sessionId: params.sessionId,
+                    sessionKey: params.sessionKey ?? params.sessionId,
+                    provider,
+                    model: modelId,
+                    attempt: runLoopIterations,
+                    retryCount: claudeOverflowRetryCount,
+                    compactionEvidence: {
+                      attemptCompactionCount,
+                      compactBoundaryCount: lifecycle?.compactBoundaryCount ?? 0,
+                      statusCompactingCount: lifecycle?.statusCompactingCount ?? 0,
+                    },
                   },
-                });
+                  diagnosticsEnabled,
+                );
                 log.warn(
                   `context overflow detected in claude-sdk runtime with compaction evidence ` +
                     `(attempt ${overflowCompactionAttempts}/${MAX_OVERFLOW_COMPACTION_ATTEMPTS}); ` +
