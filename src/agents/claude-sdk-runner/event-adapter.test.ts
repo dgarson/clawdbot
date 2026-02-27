@@ -1063,8 +1063,27 @@ describe("event translation — compaction events", () => {
 
     expect(state.compacting).toBe(false);
     expect(state.sdkStatus).toBeNull();
+    expect(state.statusCompactingCount).toBe(1);
+    expect(state.statusIdleCount).toBe(1);
     expect(events.map((evt) => evt.type)).toContain("auto_compaction_start");
     expect(events.map((evt) => evt.type)).toContain("auto_compaction_end");
+  });
+
+  it("increments compactBoundaryCount when compact_boundary arrives", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "compact_boundary",
+        session_id: "sess_boundary_1",
+        compact_metadata: { trigger: "auto", pre_tokens: 10_000 },
+      } as never,
+      state,
+    );
+
+    expect(state.compactBoundaryCount).toBe(1);
   });
 
   it("does not emit duplicate auto_compaction_start when compact_boundary arrives during status compaction", () => {
@@ -1113,6 +1132,40 @@ describe("event translation — sdk message coverage", () => {
 
     expect(state.persistedFileIdsByName?.get("image-a.jpg")).toBe("file_123");
     expect(state.failedPersistedFilesByName?.get("image-b.jpg")).toBe("upload failed");
+    expect(state.persistedFileEvents).toHaveLength(1);
+    expect(state.failedPersistedFileEvents).toHaveLength(1);
+    expect(state.persistedFileEvents?.[0]).toMatchObject({
+      filename: "image-a.jpg",
+      fileId: "file_123",
+    });
+    expect(state.failedPersistedFileEvents?.[0]).toMatchObject({
+      filename: "image-b.jpg",
+      error: "upload failed",
+    });
+  });
+
+  it("records files_persisted events even when filename is absent", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "files_persisted",
+        files: [{ file_id: "file_without_name" }],
+        failed: [{ error: "transient upload error" }],
+      } as never,
+      state,
+    );
+
+    expect(state.persistedFileEvents?.[0]).toMatchObject({
+      filename: undefined,
+      fileId: "file_without_name",
+    });
+    expect(state.failedPersistedFileEvents?.[0]).toMatchObject({
+      filename: undefined,
+      error: "transient upload error",
+    });
   });
 
   it("tracks replayed user message acknowledgements", () => {

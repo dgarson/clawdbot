@@ -666,6 +666,33 @@ describe("mcp-tool-server — toolResult persistence", () => {
     expect(typeof msg.timestamp).toBe("number");
   });
 
+  it("summarizes image tool results in transcript persistence without embedding payload bytes", async () => {
+    const appendMessage = vi.fn().mockReturnValue("msg-id");
+    const tool = makeTool({
+      name: "read_file",
+      execute: vi.fn().mockResolvedValue({
+        content: [{ type: "image", data: "iVBORw0KGgoAAAANSUhEUgAAAAE=", mediaType: "image/png" }],
+      }),
+    });
+
+    createClaudeSdkMcpToolServer({
+      tools: [tool] as never[],
+      emitEvent: () => {},
+      getAbortSignal: () => undefined,
+      consumePendingToolUse: makePendingToolUseIdConsumer(),
+      sessionManager: { appendMessage },
+    });
+
+    const handler = getToolHandler("read_file");
+    await handler({ path: "/foo.ts" }, {});
+
+    const msg = appendMessage.mock.calls[0][0];
+    expect(msg.role).toBe("toolResult");
+    expect(msg.content[0].type).toBe("text");
+    expect(msg.content[0].text).toContain("[tool_image_ref");
+    expect(msg.content[0].text).not.toContain("iVBORw0KGgoAAAANSUhEUgAAAAE=");
+  });
+
   it("appends toolResult to runtime history callback on success", async () => {
     const appendRuntimeMessage = vi.fn();
     const tool = makeTool({

@@ -396,8 +396,10 @@ export function translateSdkMessageToEvents(
         state.sdkPermissionMode = statusMsg.permissionMode;
       }
       if (statusMsg.status === "compacting") {
+        state.statusCompactingCount = (state.statusCompactingCount ?? 0) + 1;
         beginCompaction(state, emit);
       } else if (statusMsg.status === null) {
+        state.statusIdleCount = (state.statusIdleCount ?? 0) + 1;
         // Some SDK runs emit status=null as the only compaction-complete signal.
         finishCompaction(state, emit);
       }
@@ -411,26 +413,47 @@ export function translateSdkMessageToEvents(
       const pre_tokens = compactMsg.compact_metadata?.pre_tokens;
       const trigger = compactMsg.compact_metadata?.trigger;
       const willRetry = extractCompactionWillRetry(compactMsg);
+      state.compactBoundaryCount = (state.compactBoundaryCount ?? 0) + 1;
       beginCompaction(state, emit, { pre_tokens, trigger, willRetry });
     } else if (subtype === "files_persisted") {
       const filesPersisted = message as SdkFilesPersistedMessage;
       const persistedByName = state.persistedFileIdsByName ?? new Map<string, string>();
       const failedByName = state.failedPersistedFilesByName ?? new Map<string, string>();
+      const persistedEvents = state.persistedFileEvents ?? [];
+      const failedEvents = state.failedPersistedFileEvents ?? [];
+      const observedAt = Date.now();
       for (const file of filesPersisted.files ?? []) {
-        if (!file?.filename || !file.file_id) {
+        if (!file?.file_id) {
           continue;
         }
-        persistedByName.set(file.filename, file.file_id);
-        failedByName.delete(file.filename);
+        if (file.filename) {
+          persistedByName.set(file.filename, file.file_id);
+          failedByName.delete(file.filename);
+        }
+        persistedEvents.push({
+          filename: file.filename,
+          fileId: file.file_id,
+          observedAt,
+        });
       }
       for (const failure of filesPersisted.failed ?? []) {
-        if (!failure?.filename) {
+        if (!failure) {
           continue;
         }
-        failedByName.set(failure.filename, failure.error ?? "unknown");
+        const error = failure.error ?? "unknown";
+        if (failure.filename) {
+          failedByName.set(failure.filename, error);
+        }
+        failedEvents.push({
+          filename: failure.filename,
+          error,
+          observedAt,
+        });
       }
       state.persistedFileIdsByName = persistedByName;
       state.failedPersistedFilesByName = failedByName;
+      state.persistedFileEvents = persistedEvents;
+      state.failedPersistedFileEvents = failedEvents;
     } else if (subtype === "hook_started") {
       const hook = message as SdkHookStartedMessage;
       state.lastHookEvent = {
