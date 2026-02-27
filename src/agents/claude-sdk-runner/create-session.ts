@@ -16,11 +16,13 @@
  * Per implementation-plan.md Section 4.1 and 4.4.
  */
 
+import { createHash } from "node:crypto";
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { estimateBase64DecodedBytes } from "../../media/base64.js";
 import { resolveClaudeSubprocessEnv } from "./config.js";
 import { mapSdkError } from "./error-mapping.js";
 import { translateSdkMessageToEvents } from "./event-adapter.js";
@@ -82,29 +84,75 @@ const SDK_BLOCKED_EXTRA_PARAMS = new Set([
   "env",
 ]);
 const log = createSubsystemLogger("agent/claude-sdk");
+const THREAD_CONTEXT_MARKERS = [
+  "[Thread history - for context]",
+  "[Thread starter - for context]",
+] as const;
+const THREAD_CONTEXT_SCAN_LIMIT_CHARS = 16_384;
+const MEDIA_PERSISTENCE_RETRY_BASE_MS = 15_000;
+const MEDIA_PERSISTENCE_RETRY_MAX_MS = 10 * 60_000;
+const MAX_REFERENCE_URL_CHARS = 2048;
 
 /**
- * Strips the [Thread history - for context] or [Thread starter - for context]
- * prefix added by get-reply-run.ts. For resuming claude-sdk sessions the server
- * already has this context from the first turn — resending it every turn causes
- * quadratic token waste.
+ * Strips [Thread history - for context] / [Thread starter - for context] from
+ * resumed prompts while preserving any preamble before the marker and the full
+ * user body after the marker block.
  *
- * Format: "[Thread {history|starter} - for context]\n{content}\n\n{actual message}"
- * If the separator "\n\n" is absent (malformed), returns the prompt unchanged to
- * avoid silently dropping the user's message.
+ * Conservative behavior:
+ * - marker must appear near the prompt top segment and at a line boundary
+ * - malformed formats fall back to no-op to avoid dropping user content
  */
-function stripThreadContextPrefix(prompt: string): string {
-  if (
-    !prompt.startsWith("[Thread history - for context]\n") &&
-    !prompt.startsWith("[Thread starter - for context]\n")
-  ) {
-    return prompt;
+function stripThreadContextPrefix(prompt: string): {
+  prompt: string;
+  stripped: boolean;
+  removedChars: number;
+  marker?: (typeof THREAD_CONTEXT_MARKERS)[number];
+} {
+  if (!prompt) {
+    return { prompt, stripped: false, removedChars: 0 };
   }
-  const separatorIdx = prompt.indexOf("\n\n");
+
+  const scanWindow = prompt.slice(0, THREAD_CONTEXT_SCAN_LIMIT_CHARS);
+  let selectedMarker: (typeof THREAD_CONTEXT_MARKERS)[number] | undefined;
+  let markerIdx = -1;
+  for (const marker of THREAD_CONTEXT_MARKERS) {
+    const idx = scanWindow.indexOf(marker);
+    if (idx === -1) {
+      continue;
+    }
+    if (markerIdx === -1 || idx < markerIdx) {
+      markerIdx = idx;
+      selectedMarker = marker;
+    }
+  }
+  if (markerIdx === -1 || !selectedMarker) {
+    return { prompt, stripped: false, removedChars: 0 };
+  }
+
+  if (markerIdx > 0 && prompt[markerIdx - 1] !== "\n") {
+    return { prompt, stripped: false, removedChars: 0 };
+  }
+
+  const markerEnd = markerIdx + selectedMarker.length;
+  if (prompt[markerEnd] !== "\n") {
+    return { prompt, stripped: false, removedChars: 0 };
+  }
+  const separatorIdx = prompt.indexOf("\n\n", markerEnd + 1);
   if (separatorIdx === -1) {
-    return prompt; // malformed — do not drop the message
+    return { prompt, stripped: false, removedChars: 0 };
   }
-  return prompt.slice(separatorIdx + 2);
+
+  const strippedPrompt = `${prompt.slice(0, markerIdx)}${prompt.slice(separatorIdx + 2)}`;
+  const removedChars = separatorIdx + 2 - markerIdx;
+  if (removedChars <= 0) {
+    return { prompt, stripped: false, removedChars: 0 };
+  }
+  return {
+    prompt: strippedPrompt,
+    stripped: true,
+    removedChars,
+    marker: selectedMarker,
+  };
 }
 
 function resolveTranscriptMetadata(provider?: string): {
@@ -135,8 +183,61 @@ function appendTail(currentTail: string | undefined, chunk: string, maxChars: nu
   return next.slice(-maxChars);
 }
 
+function emitClaudeSdkMetric(
+  metric: string,
+  params: Pick<
+    ClaudeSdkSessionParams,
+    "runId" | "sessionId" | "provider" | "modelId" | "attemptNumber"
+  >,
+  fields: Record<string, unknown>,
+): void {
+  const payload = {
+    runId: params.runId,
+    sessionId: params.sessionId,
+    provider: params.provider ?? "claude-sdk",
+    model: params.modelId,
+    attempt: params.attemptNumber,
+    ...fields,
+  };
+  log.info(`[claude-sdk-metric] ${metric} ${JSON.stringify(payload)}`);
+}
+
 type AnthropicBase64ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
-type RuntimePromptImage = ImageContent & { media_type?: string };
+type RuntimePromptImage = ImageContent & { media_type?: string; url?: string };
+type NormalizedPromptImage = {
+  mimeType: string;
+  base64Data?: string;
+  url?: string;
+};
+type PreparedPromptImage =
+  | {
+      mimeType: string;
+      filename: string;
+      hash?: string;
+      referenceType: "inline_base64";
+      source: {
+        type: "base64";
+        media_type: AnthropicBase64ImageMediaType;
+        data: string;
+      };
+      inlineBytes: number;
+    }
+  | {
+      mimeType: string;
+      filename: string;
+      hash?: string;
+      referenceType: "url";
+      source: { type: "url"; url: string };
+      inlineBytes: 0;
+    }
+  | {
+      mimeType: string;
+      filename: string;
+      hash: string;
+      referenceType: "file";
+      source: { type: "file"; file_id: string };
+      inlineBytes: 0;
+    };
 type PersistedUserContent = string | Array<{ type: "text"; text: string } | ImageContent>;
 type ClaudePromptInput = string | AsyncIterable<SDKUserMessage>;
 
@@ -159,20 +260,45 @@ function normalizePromptImageMimeType(image: RuntimePromptImage): string {
   return "image/png";
 }
 
-function normalizePromptImages(images: RuntimePromptImage[] | undefined): ImageContent[] {
+function isHttpsUrl(value: string | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+  return /^https?:\/\//i.test(value.trim());
+}
+
+function normalizePromptImages(images: RuntimePromptImage[] | undefined): NormalizedPromptImage[] {
   if (!Array.isArray(images) || images.length === 0) {
     return [];
   }
-  const normalized: ImageContent[] = [];
+  const normalized: NormalizedPromptImage[] = [];
   for (const image of images) {
-    if (!image || typeof image.data !== "string" || image.data.length === 0) {
+    if (!image) {
       continue;
     }
-    normalized.push({
-      type: "image",
-      data: image.data,
-      mimeType: normalizePromptImageMimeType(image),
-    });
+    const mimeType = normalizePromptImageMimeType(image);
+    const directUrl = typeof image.url === "string" ? image.url.trim() : "";
+    if (isHttpsUrl(directUrl)) {
+      normalized.push({ mimeType, url: directUrl });
+      continue;
+    }
+    const rawData = typeof image.data === "string" ? image.data.trim() : "";
+    if (!rawData) {
+      continue;
+    }
+    if (isHttpsUrl(rawData)) {
+      normalized.push({ mimeType, url: rawData });
+      continue;
+    }
+    const dataUriMatch = rawData.match(/^data:([^;,]+)?;base64,(.+)$/i);
+    if (dataUriMatch) {
+      normalized.push({
+        mimeType: (dataUriMatch[1] ?? mimeType).trim(),
+        base64Data: dataUriMatch[2].trim(),
+      });
+      continue;
+    }
+    normalized.push({ mimeType, base64Data: rawData });
   }
   return normalized;
 }
@@ -188,18 +314,330 @@ function toAnthropicImageMediaType(mimeType: string): AnthropicBase64ImageMediaT
   return "image/png";
 }
 
-function buildPersistedUserContent(text: string, images: ImageContent[]): PersistedUserContent {
-  if (images.length === 0) {
-    return text;
+function resolveMimeExtension(mimeType: string): string {
+  switch (toAnthropicImageMediaType(mimeType)) {
+    case "image/jpeg":
+      return "jpg";
+    case "image/gif":
+      return "gif";
+    case "image/webp":
+      return "webp";
+    case "image/png":
+    default:
+      return "png";
   }
-  return [{ type: "text", text }, ...images];
 }
 
-function buildClaudePromptInput(text: string, images: ImageContent[]): ClaudePromptInput {
+function makePromptImageHash(base64Data: string, mimeType: string): string {
+  return createHash("sha256").update(mimeType).update(":").update(base64Data).digest("hex");
+}
+
+function buildPromptImageFilename(index: number, hash: string, mimeType: string): string {
+  return `openclaw-image-${index + 1}-${hash.slice(0, 12)}.${resolveMimeExtension(mimeType)}`;
+}
+
+function isMediaReferenceUsable(
+  reference: {
+    fileId: string;
+    sessionId?: string;
+    provider?: string;
+    modelId?: string;
+  },
+  params: {
+    claudeSdkSessionId: string | undefined;
+    provider?: string;
+    modelId: string;
+  },
+): boolean {
+  if (
+    reference.sessionId &&
+    params.claudeSdkSessionId &&
+    reference.sessionId !== params.claudeSdkSessionId
+  ) {
+    return false;
+  }
+  if (reference.provider && params.provider && reference.provider !== params.provider) {
+    return false;
+  }
+  if (reference.modelId && reference.modelId !== params.modelId) {
+    return false;
+  }
+  return typeof reference.fileId === "string" && reference.fileId.length > 0;
+}
+
+function buildPromptImages(params: {
+  images: NormalizedPromptImage[];
+  state: ClaudeSdkEventAdapterState;
+  provider?: string;
+  modelId: string;
+}): {
+  prepared: PreparedPromptImage[];
+  inlineBytesSent: number;
+  fileReferenceCount: number;
+  pendingPersistence: Array<{ hash: string; filename: string }>;
+} {
+  if (params.images.length === 0) {
+    return {
+      prepared: [],
+      inlineBytesSent: 0,
+      fileReferenceCount: 0,
+      pendingPersistence: [],
+    };
+  }
+  const prepared: PreparedPromptImage[] = [];
+  const pendingPersistence: Array<{ hash: string; filename: string }> = [];
+  const mediaReferencesByHash = params.state.mediaReferencesByHash ?? new Map();
+  const mediaFailuresByHash = params.state.mediaPersistenceFailuresByHash ?? new Map();
+  const pendingByFilename = params.state.pendingPersistHashesByFilename ?? new Map();
+  let inlineBytesSent = 0;
+  let fileReferenceCount = 0;
+  const now = Date.now();
+
+  for (const [index, image] of params.images.entries()) {
+    if (image.base64Data) {
+      const hash = makePromptImageHash(image.base64Data, image.mimeType);
+      const filename = buildPromptImageFilename(index, hash, image.mimeType);
+      const persistedRef = mediaReferencesByHash.get(hash);
+      if (
+        persistedRef &&
+        isMediaReferenceUsable(persistedRef, {
+          claudeSdkSessionId: params.state.claudeSdkSessionId,
+          provider: params.provider,
+          modelId: params.modelId,
+        })
+      ) {
+        fileReferenceCount += 1;
+        prepared.push({
+          mimeType: image.mimeType,
+          filename,
+          hash,
+          referenceType: "file",
+          source: {
+            type: "file",
+            file_id: persistedRef.fileId,
+          },
+          inlineBytes: 0,
+        });
+        continue;
+      }
+
+      const failure = mediaFailuresByHash.get(hash);
+      const backoffActive = Boolean(failure && failure.retryAfter > now);
+      if (image.url && isHttpsUrl(image.url)) {
+        prepared.push({
+          mimeType: image.mimeType,
+          filename,
+          hash,
+          referenceType: "url",
+          source: { type: "url", url: image.url },
+          inlineBytes: 0,
+        });
+        continue;
+      }
+
+      const mediaType = toAnthropicImageMediaType(image.mimeType);
+      const inlineBytes = estimateBase64DecodedBytes(image.base64Data);
+      inlineBytesSent += inlineBytes;
+      prepared.push({
+        mimeType: image.mimeType,
+        filename,
+        hash,
+        referenceType: "inline_base64",
+        source: {
+          type: "base64",
+          media_type: mediaType,
+          data: image.base64Data,
+        },
+        inlineBytes,
+      });
+
+      if (!backoffActive) {
+        pendingPersistence.push({ hash, filename });
+        pendingByFilename.set(filename, hash);
+      }
+      continue;
+    }
+
+    if (!image.url || !isHttpsUrl(image.url)) {
+      continue;
+    }
+    const urlHash = createHash("sha256").update(image.url).digest("hex");
+    const filename = buildPromptImageFilename(index, urlHash, image.mimeType);
+    prepared.push({
+      mimeType: image.mimeType,
+      filename,
+      hash: urlHash,
+      referenceType: "url",
+      source: {
+        type: "url",
+        url: image.url.slice(0, MAX_REFERENCE_URL_CHARS),
+      },
+      inlineBytes: 0,
+    });
+  }
+
+  params.state.mediaReferencesByHash = mediaReferencesByHash;
+  params.state.mediaPersistenceFailuresByHash = mediaFailuresByHash;
+  params.state.pendingPersistHashesByFilename = pendingByFilename;
+  return { prepared, inlineBytesSent, fileReferenceCount, pendingPersistence };
+}
+
+function reconcilePromptMediaPersistence(params: {
+  state: ClaudeSdkEventAdapterState;
+  pendingPersistence: Array<{ hash: string; filename: string }>;
+  persistedEventsStart: number;
+  failedEventsStart: number;
+  provider?: string;
+  modelId: string;
+}): { persistFailures: number; registeredFileRefs: number } {
+  if (params.pendingPersistence.length === 0) {
+    return { persistFailures: 0, registeredFileRefs: 0 };
+  }
+
+  const mediaReferencesByHash = params.state.mediaReferencesByHash ?? new Map();
+  const mediaFailuresByHash = params.state.mediaPersistenceFailuresByHash ?? new Map();
+  const pendingByFilename = params.state.pendingPersistHashesByFilename ?? new Map();
+  const persistedByName = params.state.persistedFileIdsByName ?? new Map();
+  const newPersisted = (params.state.persistedFileEvents ?? []).slice(params.persistedEventsStart);
+  const newFailed = (params.state.failedPersistedFileEvents ?? []).slice(params.failedEventsStart);
+  const unresolved = [...params.pendingPersistence];
+  let registeredFileRefs = 0;
+  let persistFailures = 0;
+  const now = Date.now();
+
+  const resolveSuccess = (candidate: { hash: string; filename: string }, fileId: string) => {
+    mediaReferencesByHash.set(candidate.hash, {
+      fileId,
+      filename: candidate.filename,
+      sessionId: params.state.claudeSdkSessionId,
+      provider: params.provider,
+      modelId: params.modelId,
+      updatedAt: now,
+    });
+    mediaFailuresByHash.delete(candidate.hash);
+    pendingByFilename.delete(candidate.filename);
+    registeredFileRefs += 1;
+  };
+
+  for (let i = unresolved.length - 1; i >= 0; i -= 1) {
+    const candidate = unresolved[i];
+    const byName = persistedByName.get(candidate.filename);
+    if (!byName) {
+      continue;
+    }
+    resolveSuccess(candidate, byName);
+    unresolved.splice(i, 1);
+  }
+
+  for (const persistedEvent of newPersisted) {
+    if (!persistedEvent.filename) {
+      continue;
+    }
+    const idx = unresolved.findIndex((candidate) => candidate.filename === persistedEvent.filename);
+    if (idx === -1) {
+      continue;
+    }
+    resolveSuccess(unresolved[idx], persistedEvent.fileId);
+    unresolved.splice(idx, 1);
+  }
+
+  if (unresolved.length > 0) {
+    const namelessPersisted = newPersisted.filter((event) => !event.filename);
+    if (namelessPersisted.length === unresolved.length) {
+      for (let i = 0; i < unresolved.length; i += 1) {
+        resolveSuccess(unresolved[i], namelessPersisted[i].fileId);
+      }
+      unresolved.length = 0;
+    }
+  }
+
+  const recordFailure = (candidate: { hash: string; filename: string }, reason: string) => {
+    const prev = mediaFailuresByHash.get(candidate.hash);
+    const failureCount = (prev?.failureCount ?? 0) + 1;
+    const retryMs = Math.min(
+      MEDIA_PERSISTENCE_RETRY_BASE_MS * 2 ** (failureCount - 1),
+      MEDIA_PERSISTENCE_RETRY_MAX_MS,
+    );
+    mediaFailuresByHash.set(candidate.hash, {
+      filename: candidate.filename,
+      reason,
+      failureCount,
+      lastFailureAt: now,
+      retryAfter: now + retryMs,
+    });
+    pendingByFilename.delete(candidate.filename);
+    persistFailures += 1;
+  };
+
+  for (const failedEvent of newFailed) {
+    if (!failedEvent.filename) {
+      continue;
+    }
+    const idx = unresolved.findIndex((candidate) => candidate.filename === failedEvent.filename);
+    if (idx === -1) {
+      continue;
+    }
+    const [candidate] = unresolved.splice(idx, 1);
+    recordFailure(candidate, failedEvent.error);
+  }
+
+  if (unresolved.length > 0) {
+    const namelessFailed = newFailed.filter((event) => !event.filename);
+    if (namelessFailed.length === unresolved.length) {
+      for (let i = 0; i < unresolved.length; i += 1) {
+        recordFailure(unresolved[i], namelessFailed[i].error);
+      }
+      unresolved.length = 0;
+    }
+  }
+
+  params.state.mediaReferencesByHash = mediaReferencesByHash;
+  params.state.mediaPersistenceFailuresByHash = mediaFailuresByHash;
+  params.state.pendingPersistHashesByFilename = pendingByFilename;
+  return { persistFailures, registeredFileRefs };
+}
+
+function buildPersistedUserContent(
+  text: string,
+  images: PreparedPromptImage[],
+): PersistedUserContent {
   if (images.length === 0) {
     return text;
   }
-  const userMessage: SDKUserMessage = {
+  const content: Array<{ type: "text"; text: string } | ImageContent> = [{ type: "text", text }];
+  for (const image of images) {
+    if (image.referenceType === "inline_base64") {
+      content.push({
+        type: "image",
+        data: image.source.data,
+        mimeType: image.mimeType,
+      });
+      continue;
+    }
+    if (image.referenceType === "file") {
+      content.push({
+        type: "text",
+        text:
+          `[media_ref type=file hash=${image.hash} file_id=${image.source.file_id} ` +
+          `filename=${image.filename} mime_type=${image.mimeType}]`,
+      });
+      continue;
+    }
+    content.push({
+      type: "text",
+      text:
+        `[media_ref type=url hash=${image.hash ?? "n/a"} url=${image.source.url} ` +
+        `filename=${image.filename} mime_type=${image.mimeType}]`,
+    });
+  }
+  return content;
+}
+
+function buildClaudePromptInput(text: string, images: PreparedPromptImage[]): ClaudePromptInput {
+  if (images.length === 0) {
+    return text;
+  }
+  const userMessage = {
     type: "user",
     session_id: "",
     parent_tool_use_id: null,
@@ -207,17 +645,10 @@ function buildClaudePromptInput(text: string, images: ImageContent[]): ClaudePro
       role: "user",
       content: [
         { type: "text", text },
-        ...images.map((image) => ({
-          type: "image" as const,
-          source: {
-            type: "base64" as const,
-            media_type: toAnthropicImageMediaType(image.mimeType),
-            data: image.data,
-          },
-        })),
+        ...images.map((image) => ({ type: "image" as const, source: image.source })),
       ],
     },
-  };
+  } as unknown as SDKUserMessage;
   return (async function* () {
     yield userMessage;
   })();
@@ -358,11 +789,19 @@ export async function createClaudeSdkSession(
     replayedUserMessageUuids: new Set(),
     persistedFileIdsByName: new Map(),
     failedPersistedFilesByName: new Map(),
+    persistedFileEvents: [],
+    failedPersistedFileEvents: [],
+    mediaReferencesByHash: new Map(),
+    pendingPersistHashesByFilename: new Map(),
+    mediaPersistenceFailuresByHash: new Map(),
     lastAuthStatus: undefined,
     lastHookEvent: undefined,
     lastTaskEvent: undefined,
     lastRateLimitInfo: undefined,
     lastPromptSuggestion: undefined,
+    compactBoundaryCount: 0,
+    statusCompactingCount: 0,
+    statusIdleCount: 0,
   };
 
   const clearTurnToolCorrelationState = (): void => {
@@ -412,19 +851,41 @@ export async function createClaudeSdkSession(
         throw new Error("Claude SDK session already has an in-flight prompt");
       }
 
+      // Strip thread context only for resumed sessions, while preserving any
+      // preamble and the complete user body.
+      const stripResult = params.claudeSdkResumeSessionId
+        ? stripThreadContextPrefix(text)
+        : { prompt: text, stripped: false, removedChars: 0 };
+      emitClaudeSdkMetric("claude_sdk.prompt.thread_context_stripped", params, {
+        stripped: stripResult.stripped,
+        removedChars: stripResult.removedChars,
+        marker: stripResult.marker,
+      });
+
       // Drain any pending steer text by prepending to the current prompt.
-      // For resuming sessions the server-side history already has the thread context
-      // injected on the first turn. Strip it on subsequent turns to prevent quadratic
-      // token accumulation in the server's session history. Strip before the steer-text
-      // prepend so steer content is never inadvertently stripped.
-      const promptText = params.claudeSdkResumeSessionId ? stripThreadContextPrefix(text) : text;
+      // Strip before steer prepend so steer content is never affected.
+      const promptText = stripResult.prompt;
       const steerText = state.pendingSteer.splice(0).join("\n");
       const effectivePrompt = steerText ? `${steerText}\n\n${promptText}` : promptText;
       const promptImages = normalizePromptImages(
         options?.images as RuntimePromptImage[] | undefined,
       );
-      const persistedUserContent = buildPersistedUserContent(effectivePrompt, promptImages);
-      const claudePromptInput = buildClaudePromptInput(effectivePrompt, promptImages);
+      const promptImagePlan = buildPromptImages({
+        images: promptImages,
+        state,
+        provider: params.provider,
+        modelId: params.modelId,
+      });
+      const turnPersistedEventsStart = state.persistedFileEvents?.length ?? 0;
+      const turnFailedEventsStart = state.failedPersistedFileEvents?.length ?? 0;
+      const persistedUserContent = buildPersistedUserContent(
+        effectivePrompt,
+        promptImagePlan.prepared,
+      );
+      const claudePromptInput = buildClaudePromptInput(effectivePrompt, promptImagePlan.prepared);
+      const preQuerySessionId = state.claudeSdkSessionId;
+      let persistFailuresForTurn = 0;
+      let registeredFileRefsForTurn = 0;
 
       state.streaming = true;
       state.abortController = new AbortController();
@@ -500,6 +961,41 @@ export async function createClaudeSdkSession(
         }
         throw mapSdkError(err);
       } finally {
+        if (
+          preQuerySessionId &&
+          state.claudeSdkSessionId &&
+          preQuerySessionId !== state.claudeSdkSessionId
+        ) {
+          state.mediaReferencesByHash?.clear();
+          state.mediaPersistenceFailuresByHash?.clear();
+          state.pendingPersistHashesByFilename?.clear();
+          log.warn(
+            `claude-sdk media reference state reset due to session id change ` +
+              `${preQuerySessionId} -> ${state.claudeSdkSessionId}`,
+          );
+        }
+        const reconciliation = reconcilePromptMediaPersistence({
+          state,
+          pendingPersistence: promptImagePlan.pendingPersistence,
+          persistedEventsStart: turnPersistedEventsStart,
+          failedEventsStart: turnFailedEventsStart,
+          provider: params.provider,
+          modelId: params.modelId,
+        });
+        persistFailuresForTurn = reconciliation.persistFailures;
+        registeredFileRefsForTurn = reconciliation.registeredFileRefs;
+        emitClaudeSdkMetric("claude_sdk.media.inline_bytes_sent", params, {
+          bytes: promptImagePlan.inlineBytesSent,
+        });
+        emitClaudeSdkMetric("claude_sdk.media.file_ref_used", params, {
+          count: promptImagePlan.fileReferenceCount,
+          registeredForFutureTurns: registeredFileRefsForTurn,
+        });
+        if (persistFailuresForTurn > 0) {
+          emitClaudeSdkMetric("claude_sdk.media.persist_failures", params, {
+            count: persistFailuresForTurn,
+          });
+        }
         // Turn-local correlation state must not leak into the next prompt turn.
         // At this point, all SDK messages for this turn have already been processed.
         clearTurnToolCorrelationState();
@@ -564,6 +1060,19 @@ export async function createClaudeSdkSession(
     },
     get claudeSdkSessionId() {
       return state.claudeSdkSessionId;
+    },
+    get claudeSdkLifecycleSnapshot() {
+      return {
+        sdkStatus: state.sdkStatus,
+        compactBoundaryCount: state.compactBoundaryCount ?? 0,
+        statusCompactingCount: state.statusCompactingCount ?? 0,
+        statusIdleCount: state.statusIdleCount ?? 0,
+        lastAuthStatus: state.lastAuthStatus,
+        lastHookEvent: state.lastHookEvent,
+        lastTaskEvent: state.lastTaskEvent,
+        lastRateLimitInfo: state.lastRateLimitInfo,
+        lastPromptSuggestion: state.lastPromptSuggestion,
+      };
     },
 
     // Local mirror only. Server-side session history remains authoritative.

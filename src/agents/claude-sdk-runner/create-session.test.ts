@@ -1525,4 +1525,154 @@ describe("prompt() — thread context prefix stripping for resuming sessions", (
     const call = queryMock.mock.calls[0];
     expect(call[0].prompt).toBe("Plain message without prefix");
   });
+
+  it("strips thread context even when media preamble lines appear before the marker", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt(
+      [
+        "[media attached: image.png (image/png) | https://example.com/image.png]",
+        "To send an image back, prefer the message tool.",
+        "[Thread history - for context]",
+        "user: previous",
+        "assistant: previous reply",
+        "",
+        "Current user request",
+      ].join("\n"),
+    );
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].prompt).toBe(
+      [
+        "[media attached: image.png (image/png) | https://example.com/image.png]",
+        "To send an image back, prefer the message tool.",
+        "Current user request",
+      ].join("\n"),
+    );
+  });
+
+  it("strips thread context even when hook prepend lines appear before the marker", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    await session.prompt(
+      [
+        "[Hook context]",
+        "channel=signal",
+        "[Thread starter - for context]",
+        "original message",
+        "",
+        "User asks for follow-up",
+      ].join("\n"),
+    );
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].prompt).toBe(
+      ["[Hook context]", "channel=signal", "User asks for follow-up"].join("\n"),
+    );
+  });
+
+  it("does not strip malformed marker segments when marker is not line-aligned", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({ claudeSdkResumeSessionId: "existing-session-id" }),
+    );
+
+    const malformed =
+      "Prefix text [Thread history - for context]\nuser: prev\nassistant: prev\n\nBody";
+    await session.prompt(malformed);
+
+    const call = queryMock.mock.calls[0];
+    expect(call[0].prompt).toBe(malformed);
+  });
+});
+
+describe("prompt() — media persistence strategy", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("reuses persisted file references on later turns when files_persisted confirms upload", async () => {
+    const queryMock = await importQuery();
+    queryMock
+      .mockImplementationOnce(() =>
+        makeMockQueryGen([
+          { type: "system", subtype: "init", session_id: "sess_media_1" },
+          { type: "system", subtype: "files_persisted", files: [{ file_id: "file_abc123" }] },
+          { type: "result", subtype: "success" },
+        ])(),
+      )
+      .mockImplementationOnce(() => makeMockQueryGen([{ type: "result", subtype: "success" }])());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ claudeSdkResumeSessionId: "sess_media_1" }));
+    const image = { type: "image", media_type: "image/png", data: "iVBOR_base64data" };
+
+    await session.prompt("Analyze image", { images: [image] } as never);
+    await session.prompt("Analyze image again", { images: [image] } as never);
+
+    const secondPrompt = queryMock.mock.calls[1][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await secondPrompt[Symbol.asyncIterator]().next();
+    const content = next.value.message.content;
+    expect(content[1]).toEqual({
+      type: "image",
+      source: { type: "file", file_id: "file_abc123" },
+    });
+  });
+
+  it("falls back to inline base64 when persistence reports failure", async () => {
+    const queryMock = await importQuery();
+    queryMock
+      .mockImplementationOnce(() =>
+        makeMockQueryGen([
+          { type: "system", subtype: "init", session_id: "sess_media_2" },
+          { type: "system", subtype: "files_persisted", failed: [{ error: "upload failed" }] },
+          { type: "result", subtype: "success" },
+        ])(),
+      )
+      .mockImplementationOnce(() => makeMockQueryGen([{ type: "result", subtype: "success" }])());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ claudeSdkResumeSessionId: "sess_media_2" }));
+    const image = { type: "image", media_type: "image/png", data: "iVBOR_base64data" };
+
+    await session.prompt("Analyze image", { images: [image] } as never);
+    await session.prompt("Analyze image again", { images: [image] } as never);
+
+    const secondPrompt = queryMock.mock.calls[1][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await secondPrompt[Symbol.asyncIterator]().next();
+    const content = next.value.message.content;
+    expect(content[1]).toEqual({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: "image/png",
+        data: "iVBOR_base64data",
+      },
+    });
+  });
 });

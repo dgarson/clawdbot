@@ -31,6 +31,8 @@ export type ClaudeSdkSessionParams = {
   agentDir?: string;
   sessionId: string;
   sessionFile?: string;
+  runId?: string;
+  attemptNumber?: number;
   modelId: string;
   provider?: string;
   tools: ClaudeSdkCompatibleTool[];
@@ -66,6 +68,35 @@ export type ClaudeSdkSessionParams = {
 export type ClaudeSdkSession = AgentRuntimeSession & {
   /** Claude Agent SDK server-side session ID, set after first prompt. */
   readonly claudeSdkSessionId: string | undefined;
+  /** Latest observed SDK lifecycle signals (for retry policy and diagnostics). */
+  readonly claudeSdkLifecycleSnapshot:
+    | {
+        sdkStatus: "compacting" | null | undefined;
+        compactBoundaryCount: number;
+        statusCompactingCount: number;
+        statusIdleCount: number;
+        lastAuthStatus?: {
+          isAuthenticating: boolean;
+          error?: string;
+          output?: string[];
+        };
+        lastHookEvent?: {
+          subtype: "hook_started" | "hook_progress" | "hook_response";
+          hookId?: string;
+          hookName?: string;
+          hookEvent?: string;
+          outcome?: string;
+        };
+        lastTaskEvent?: {
+          subtype: "task_started" | "task_progress" | "task_notification";
+          taskId?: string;
+          status?: string;
+          description?: string;
+        };
+        lastRateLimitInfo?: unknown;
+        lastPromptSuggestion?: string;
+      }
+    | undefined;
 };
 
 // Re-export for use in create-session.ts without an additional import
@@ -129,6 +160,12 @@ export type ClaudeSdkEventAdapterState = {
   modelCost?: ModelCostConfig;
   /** Last SDK status value from system/status events. */
   sdkStatus?: "compacting" | null;
+  /** Number of compact_boundary lifecycle events observed this session. */
+  compactBoundaryCount?: number;
+  /** Number of status=compacting lifecycle events observed this session. */
+  statusCompactingCount?: number;
+  /** Number of status=null lifecycle events observed this session. */
+  statusIdleCount?: number;
   /** Last permission mode reported by the SDK system/status event. */
   sdkPermissionMode?: string;
   /** Tracks replayed user message UUIDs emitted by SDK dedupe acknowledgements. */
@@ -137,6 +174,35 @@ export type ClaudeSdkEventAdapterState = {
   persistedFileIdsByName?: Map<string, string>;
   /** Tracks file persistence failures from system/files_persisted events. */
   failedPersistedFilesByName?: Map<string, string>;
+  /** Ordered files_persisted success events (used for hash->file_id reconciliation). */
+  persistedFileEvents?: Array<{ filename?: string; fileId: string; observedAt: number }>;
+  /** Ordered files_persisted failure events (used for retry/fallback decisions). */
+  failedPersistedFileEvents?: Array<{ filename?: string; error: string; observedAt: number }>;
+  /** Hash->persisted file metadata for send-path reuse in this runtime session. */
+  mediaReferencesByHash?: Map<
+    string,
+    {
+      fileId: string;
+      filename: string;
+      sessionId?: string;
+      provider?: string;
+      modelId?: string;
+      updatedAt: number;
+    }
+  >;
+  /** Filename->hash map for in-flight persistence reconciliation. */
+  pendingPersistHashesByFilename?: Map<string, string>;
+  /** Hash->last persistence failure metadata and retry backoff. */
+  mediaPersistenceFailuresByHash?: Map<
+    string,
+    {
+      filename: string;
+      reason: string;
+      failureCount: number;
+      lastFailureAt: number;
+      retryAfter: number;
+    }
+  >;
   /** Last auth status payload from SDK auth_status events. */
   lastAuthStatus?: {
     isAuthenticating: boolean;
