@@ -4,6 +4,7 @@ import type { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
 import type { ThinkLevel } from "../../../auto-reply/thinking.js";
 import type { SessionSystemPromptReport } from "../../../config/sessions/types.js";
 import type { PluginHookBeforeAgentStartResult } from "../../../plugins/types.js";
+import type { ResolvedProviderAuth } from "../../model-auth.js";
 import type { MessagingToolSend } from "../../pi-embedded-messaging.js";
 import type { NormalizedUsage } from "../../usage.js";
 import type { RunEmbeddedPiAgentParams } from "./params.js";
@@ -17,6 +18,8 @@ export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   provider: string;
   modelId: string;
   model: Model<Api>;
+  runtimeOverride?: "pi" | "claude-sdk";
+  resolvedProviderAuth?: ResolvedProviderAuth;
   authStorage: AuthStorage;
   modelRegistry: ModelRegistry;
   thinkLevel: ThinkLevel;

@@ -655,6 +655,36 @@ describe("session lifecycle — messages state", () => {
       stopReason: "stop",
     });
   });
+
+  it("uses params.provider for transcript metadata when provided", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([
+        { type: "system", subtype: "init", session_id: "sess_2" },
+        {
+          type: "assistant",
+          message: {
+            role: "assistant",
+            content: [{ type: "text", text: "ok" }],
+            model: "claude-sonnet-test",
+            stop_reason: "end_turn",
+          },
+        },
+        { type: "result", subtype: "success" },
+      ])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ provider: "openrouter" }));
+
+    await session.prompt("Hello");
+
+    expect(session.messages[1]).toMatchObject({
+      role: "assistant",
+      provider: "openrouter",
+      api: "claude-sdk",
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -703,35 +733,6 @@ describe("session lifecycle — provider env wiring", () => {
     vi.clearAllMocks();
   });
 
-  it("passes provider env to query() when provider is zai", async () => {
-    const queryMock = await importQuery();
-    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
-
-    const createSession = await importCreateSession();
-    const session = await createSession(
-      makeParams({
-        claudeSdkConfig: { provider: "zai" },
-        resolvedProviderAuth: {
-          apiKey: "sk-zai-auth",
-          source: "test",
-          mode: "api-key",
-        },
-      }),
-    );
-
-    await session.prompt("Hello");
-
-    const call = queryMock.mock.calls[0];
-    const options = call[0].options as Record<string, unknown>;
-    const env = options["env"] as Record<string, string>;
-    expect(env).toBeDefined();
-    expect(env["ANTHROPIC_BASE_URL"]).toBe("https://api.z.ai/api/anthropic");
-    expect(env["ANTHROPIC_AUTH_TOKEN"]).toBe("sk-zai-auth");
-    expect(env["ANTHROPIC_API_KEY"]).toBeUndefined();
-    expect(env["API_TIMEOUT_MS"]).toBe("3000000");
-    expect(env["ANTHROPIC_DEFAULT_HAIKU_MODEL"]).toBe("GLM-4.7-Air");
-  });
-
   it("sets a sanitized env for claude-sdk provider", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
@@ -742,7 +743,7 @@ describe("session lifecycle — provider env wiring", () => {
     const createSession = await importCreateSession();
     const session = await createSession(
       makeParams({
-        claudeSdkConfig: { provider: "claude-sdk" },
+        claudeSdkConfig: {},
       }),
     );
 
@@ -765,7 +766,7 @@ describe("session lifecycle — provider env wiring", () => {
     const createSession = await importCreateSession();
     const session = await createSession(
       makeParams({
-        claudeSdkConfig: { provider: "claude-sdk" },
+        claudeSdkConfig: {},
       }),
     );
 
@@ -787,7 +788,6 @@ describe("session lifecycle — provider env wiring", () => {
     const session = await createSession(
       makeParams({
         claudeSdkConfig: {
-          provider: "claude-sdk",
           configDir: "/tmp/from-agent-config",
         },
       }),
@@ -798,31 +798,6 @@ describe("session lifecycle — provider env wiring", () => {
     const call = queryMock.mock.calls[0];
     const options = call[0].options as Record<string, unknown>;
     const env = options["env"] as Record<string, string>;
-    expect(env["CLAUDE_CONFIG_DIR"]).toBe("/tmp/from-agent-config");
-  });
-
-  it("sets CLAUDE_CONFIG_DIR for anthropic when only claudeSdk.configDir is provided", async () => {
-    const queryMock = await importQuery();
-    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
-
-    vi.stubEnv("CLAUDE_CONFIG_DIR", undefined);
-
-    const createSession = await importCreateSession();
-    const session = await createSession(
-      makeParams({
-        claudeSdkConfig: {
-          provider: "anthropic",
-          configDir: "/tmp/from-agent-config",
-        },
-      }),
-    );
-
-    await session.prompt("Hello");
-
-    const call = queryMock.mock.calls[0];
-    const options = call[0].options as Record<string, unknown>;
-    const env = options["env"] as Record<string, string>;
-    expect(env).toBeDefined();
     expect(env["CLAUDE_CONFIG_DIR"]).toBe("/tmp/from-agent-config");
   });
 
@@ -834,7 +809,7 @@ describe("session lifecycle — provider env wiring", () => {
     const session = await createSession(
       makeParams({
         modelId: "MiniMax-M2.5",
-        claudeSdkConfig: { provider: "claude-sdk" },
+        claudeSdkConfig: {},
       }),
     );
 

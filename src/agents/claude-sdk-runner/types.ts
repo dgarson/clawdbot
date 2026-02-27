@@ -32,6 +32,7 @@ export type ClaudeSdkSessionParams = {
   sessionId: string;
   sessionFile?: string;
   modelId: string;
+  provider?: string;
   tools: ClaudeSdkCompatibleTool[];
   customTools: ClaudeSdkCompatibleTool[];
   systemPrompt: string;
@@ -44,7 +45,7 @@ export type ClaudeSdkSessionParams = {
   mcpServers?: Record<string, unknown>;
   /** Claude Agent SDK session ID to resume. Loaded from SessionManager custom entry. */
   claudeSdkResumeSessionId?: string;
-  /** Resolved claudeSdk provider config from agents config. Defaults to claude-sdk. */
+  /** Resolved claudeSdk options from agents config. */
   claudeSdkConfig?: ClaudeSdkConfig;
   /** Full auth-resolution output (profile/source/mode/key) for provider env mapping. */
   resolvedProviderAuth?: ResolvedProviderAuth;

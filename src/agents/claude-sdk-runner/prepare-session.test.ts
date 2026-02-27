@@ -22,7 +22,7 @@ const baseSessionManager = () => ({
   appendMessage: vi.fn(),
 });
 
-const claudeSdkConfig = { provider: "claude-sdk" as const };
+const claudeSdkConfig = {};
 const resolvedWorkspace = "/tmp/ws";
 const agentDir = undefined;
 const systemPromptText = "sys";
@@ -132,7 +132,7 @@ describe("prepareClaudeSdkSession — thinkLevel resolution", () => {
   });
 
   it("uses thinkingDefault from config when thinkLevel is 'off'", async () => {
-    const cfg = { provider: "claude-sdk" as const, thinkingDefault: "medium" as const };
+    const cfg = { thinkingDefault: "medium" as const };
     await callPrepare(baseParams, baseSessionManager(), cfg);
     const mock = createClaudeSdkSession as ReturnType<typeof vi.fn>;
     expect(mock.mock.calls[0][0].thinkLevel).toBe("medium");
@@ -152,7 +152,6 @@ describe("resolveClaudeSdkConfig — thinkingDefault compatibility", () => {
         agents: {
           defaults: {
             claudeSdk: {
-              provider: "claude-sdk",
               thinkingDefault: "none",
             },
           },
@@ -163,7 +162,6 @@ describe("resolveClaudeSdkConfig — thinkingDefault compatibility", () => {
 
     const resolved = resolveClaudeSdkConfig(params, "agent-1");
     expect(resolved).toBeDefined();
-    expect(resolved?.provider).toBe("claude-sdk");
     expect(resolved?.thinkingDefault).toBe("none");
   });
 });
