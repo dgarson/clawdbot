@@ -1032,6 +1032,178 @@ describe("event translation — compaction events", () => {
     expect(state.compacting).toBe(true);
     expect(events.filter((evt) => evt.type === "auto_compaction_end")).toHaveLength(0);
   });
+
+  it("starts compaction on system/status=compacting and ends on system/status=null", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "status",
+        status: "compacting",
+        permissionMode: "bypassPermissions",
+        session_id: "sess_status_1",
+      } as never,
+      state,
+    );
+    expect(state.compacting).toBe(true);
+    expect(state.sdkStatus).toBe("compacting");
+    expect(state.sdkPermissionMode).toBe("bypassPermissions");
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "status",
+        status: null,
+        session_id: "sess_status_1",
+      } as never,
+      state,
+    );
+
+    expect(state.compacting).toBe(false);
+    expect(state.sdkStatus).toBeNull();
+    expect(events.map((evt) => evt.type)).toContain("auto_compaction_start");
+    expect(events.map((evt) => evt.type)).toContain("auto_compaction_end");
+  });
+
+  it("does not emit duplicate auto_compaction_start when compact_boundary arrives during status compaction", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "status",
+        status: "compacting",
+        session_id: "sess_status_2",
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "compact_boundary",
+        session_id: "sess_status_2",
+        compact_metadata: { trigger: "auto", pre_tokens: 42_000 },
+      } as never,
+      state,
+    );
+
+    const starts = events.filter((evt) => evt.type === "auto_compaction_start");
+    expect(starts).toHaveLength(1);
+    expect(state.pendingCompactionEnd?.pre_tokens).toBe(42_000);
+  });
+});
+
+describe("event translation — sdk message coverage", () => {
+  it("tracks files_persisted success and failures", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "files_persisted",
+        files: [{ filename: "image-a.jpg", file_id: "file_123" }],
+        failed: [{ filename: "image-b.jpg", error: "upload failed" }],
+      } as never,
+      state,
+    );
+
+    expect(state.persistedFileIdsByName?.get("image-a.jpg")).toBe("file_123");
+    expect(state.failedPersistedFilesByName?.get("image-b.jpg")).toBe("upload failed");
+  });
+
+  it("tracks replayed user message acknowledgements", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "user",
+        uuid: "user-msg-1",
+        isReplay: true,
+        session_id: "sess_user",
+      } as never,
+      state,
+    );
+
+    expect(state.replayedUserMessageUuids?.has("user-msg-1")).toBe(true);
+  });
+
+  it("stores auth_status payload", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "auth_status",
+        isAuthenticating: true,
+        output: ["waiting for oauth"],
+      } as never,
+      state,
+    );
+
+    expect(state.lastAuthStatus?.isAuthenticating).toBe(true);
+    expect(state.lastAuthStatus?.output?.[0]).toBe("waiting for oauth");
+  });
+
+  it("stores hook/task/rate-limit/prompt-suggestion metadata", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "hook_response",
+        hook_id: "hook_1",
+        hook_name: "before_compaction",
+        hook_event: "PreCompact",
+        outcome: "success",
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "task_notification",
+        task_id: "task_1",
+        status: "completed",
+        summary: "done",
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "rate_limit_event",
+        rate_limit_info: { status: "allowed_warning", utilization: 0.8 },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "prompt_suggestion",
+        suggestion: "Try asking for a test plan next.",
+      } as never,
+      state,
+    );
+
+    expect(state.lastHookEvent).toMatchObject({
+      subtype: "hook_response",
+      hookId: "hook_1",
+      outcome: "success",
+    });
+    expect(state.lastTaskEvent).toMatchObject({
+      subtype: "task_notification",
+      taskId: "task_1",
+      status: "completed",
+    });
+    expect(state.lastRateLimitInfo).toMatchObject({
+      status: "allowed_warning",
+    });
+    expect(state.lastPromptSuggestion).toBe("Try asking for a test plan next.");
+  });
 });
 
 // ---------------------------------------------------------------------------

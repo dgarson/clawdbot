@@ -30,6 +30,14 @@ type SdkSystemInitMessage = {
   session_id: string;
 };
 
+type SdkSystemStatusMessage = {
+  type: "system";
+  subtype: "status";
+  status: "compacting" | null;
+  permissionMode?: string;
+  session_id: string;
+};
+
 type SdkContentBlock =
   | { type: "text"; text: string }
   | { type: "thinking"; thinking: string }
@@ -98,6 +106,84 @@ type SdkToolUseSummaryMessage = {
   preceding_tool_use_ids: string[];
 };
 
+type SdkUserMessage = {
+  type: "user";
+  uuid?: string;
+  isReplay?: boolean;
+  session_id?: string;
+};
+
+type SdkAuthStatusMessage = {
+  type: "auth_status";
+  isAuthenticating: boolean;
+  output?: string[];
+  error?: string;
+};
+
+type SdkRateLimitEvent = {
+  type: "rate_limit_event";
+  rate_limit_info?: unknown;
+};
+
+type SdkPromptSuggestionMessage = {
+  type: "prompt_suggestion";
+  suggestion?: string;
+};
+
+type SdkFilesPersistedMessage = {
+  type: "system";
+  subtype: "files_persisted";
+  files?: Array<{ filename?: string; file_id?: string }>;
+  failed?: Array<{ filename?: string; error?: string }>;
+};
+
+type SdkHookStartedMessage = {
+  type: "system";
+  subtype: "hook_started";
+  hook_id?: string;
+  hook_name?: string;
+  hook_event?: string;
+};
+
+type SdkHookProgressMessage = {
+  type: "system";
+  subtype: "hook_progress";
+  hook_id?: string;
+  hook_name?: string;
+  hook_event?: string;
+};
+
+type SdkHookResponseMessage = {
+  type: "system";
+  subtype: "hook_response";
+  hook_id?: string;
+  hook_name?: string;
+  hook_event?: string;
+  outcome?: string;
+};
+
+type SdkTaskStartedMessage = {
+  type: "system";
+  subtype: "task_started";
+  task_id?: string;
+  description?: string;
+};
+
+type SdkTaskProgressMessage = {
+  type: "system";
+  subtype: "task_progress";
+  task_id?: string;
+  description?: string;
+};
+
+type SdkTaskNotificationMessage = {
+  type: "system";
+  subtype: "task_notification";
+  task_id?: string;
+  status?: string;
+  summary?: string;
+};
+
 // ---------------------------------------------------------------------------
 // Stream event types (Anthropic streaming API events via includePartialMessages)
 // ---------------------------------------------------------------------------
@@ -128,13 +214,25 @@ type SdkPartialAssistantMessage = {
 
 export type SdkMessage =
   | SdkSystemInitMessage
+  | SdkSystemStatusMessage
   | SdkAssistantMessage
+  | SdkUserMessage
   | SdkPartialAssistantMessage
   | SdkResultMessage
   | SdkResultErrorMessage
   | SdkToolProgressMessage
   | SdkToolUseSummaryMessage
   | SdkCompactBoundaryMessage
+  | SdkFilesPersistedMessage
+  | SdkHookStartedMessage
+  | SdkHookProgressMessage
+  | SdkHookResponseMessage
+  | SdkTaskStartedMessage
+  | SdkTaskProgressMessage
+  | SdkTaskNotificationMessage
+  | SdkAuthStatusMessage
+  | SdkRateLimitEvent
+  | SdkPromptSuggestionMessage
   | Record<string, unknown>;
 
 type PiStopReason = "stop" | "length" | "toolUse" | "error" | "aborted";
@@ -144,7 +242,14 @@ function isCompactionCompletionMessage(message: SdkMessage): boolean {
   // Only treat known post-compaction progress signals as completion.
   // Unknown system/* subtypes should not implicitly close compaction.
   if (msgType === "system") {
-    return (message as { subtype?: string }).subtype === "init";
+    const systemSubtype = (message as { subtype?: string }).subtype;
+    if (systemSubtype === "init") {
+      return true;
+    }
+    if (systemSubtype === "status") {
+      return (message as SdkSystemStatusMessage).status === null;
+    }
+    return false;
   }
   if (
     msgType === "stream_event" ||
@@ -156,6 +261,49 @@ function isCompactionCompletionMessage(message: SdkMessage): boolean {
     return true;
   }
   return false;
+}
+
+function beginCompaction(
+  state: ClaudeSdkEventAdapterState,
+  emit: (evt: EmbeddedPiSubscribeEvent) => void,
+  metadata?: { pre_tokens?: number; trigger?: "manual" | "auto"; willRetry?: boolean },
+): void {
+  const next = {
+    willRetry: metadata?.willRetry ?? state.pendingCompactionEnd?.willRetry ?? false,
+    pre_tokens: metadata?.pre_tokens ?? state.pendingCompactionEnd?.pre_tokens,
+    trigger: metadata?.trigger ?? state.pendingCompactionEnd?.trigger,
+  };
+  state.pendingCompactionEnd = next;
+  if (state.compacting) {
+    return;
+  }
+  state.compacting = true;
+  emit({
+    type: "auto_compaction_start",
+    pre_tokens: next.pre_tokens,
+    trigger: next.trigger,
+  } as EmbeddedPiSubscribeEvent);
+}
+
+function finishCompaction(
+  state: ClaudeSdkEventAdapterState,
+  emit: (evt: EmbeddedPiSubscribeEvent) => void,
+): void {
+  if (!state.compacting) {
+    return;
+  }
+  const pending = state.pendingCompactionEnd;
+  state.compacting = false;
+  state.pendingCompactionEnd = undefined;
+  if (!pending) {
+    return;
+  }
+  emit({
+    type: "auto_compaction_end",
+    willRetry: pending.willRetry,
+    pre_tokens: pending.pre_tokens,
+    trigger: pending.trigger,
+  } as EmbeddedPiSubscribeEvent);
 }
 
 // ---------------------------------------------------------------------------
@@ -182,17 +330,7 @@ export function translateSdkMessageToEvents(
   // We emit start immediately, then emit end at the first subsequent eligible
   // SDK message that proves generation moved forward.
   if (state.compacting && isCompactionCompletionMessage(message)) {
-    const pending = state.pendingCompactionEnd;
-    state.compacting = false;
-    state.pendingCompactionEnd = undefined;
-    if (pending) {
-      emit({
-        type: "auto_compaction_end",
-        willRetry: pending.willRetry,
-        pre_tokens: pending.pre_tokens,
-        trigger: pending.trigger,
-      } as EmbeddedPiSubscribeEvent);
-    }
+    finishCompaction(state, emit);
   }
 
   const msgType = (message as { type?: string }).type;
@@ -239,7 +377,7 @@ export function translateSdkMessageToEvents(
   }
 
   // -------------------------------------------------------------------------
-  // system/* — init and compact_boundary subtypes
+  // system/* — init/status/compaction and SDK lifecycle subtypes
   // -------------------------------------------------------------------------
   if (msgType === "system") {
     const subtype = (message as { subtype?: string }).subtype;
@@ -251,6 +389,18 @@ export function translateSdkMessageToEvents(
         state.claudeSdkSessionId = sessionId;
       }
       emit({ type: "agent_start" } as EmbeddedPiSubscribeEvent);
+    } else if (subtype === "status") {
+      const statusMsg = message as SdkSystemStatusMessage;
+      state.sdkStatus = statusMsg.status ?? null;
+      if (typeof statusMsg.permissionMode === "string") {
+        state.sdkPermissionMode = statusMsg.permissionMode;
+      }
+      if (statusMsg.status === "compacting") {
+        beginCompaction(state, emit);
+      } else if (statusMsg.status === null) {
+        // Some SDK runs emit status=null as the only compaction-complete signal.
+        finishCompaction(state, emit);
+      }
     } else if (subtype === "compact_boundary") {
       // system/compact_boundary — server-side compaction signal.
       // SDKCompactBoundaryMessage confirmed in the official TypeScript API reference.
@@ -261,20 +411,75 @@ export function translateSdkMessageToEvents(
       const pre_tokens = compactMsg.compact_metadata?.pre_tokens;
       const trigger = compactMsg.compact_metadata?.trigger;
       const willRetry = extractCompactionWillRetry(compactMsg);
-      if (state.compacting && state.pendingCompactionEnd) {
-        // Defensive: close any prior deferred compaction before starting a new one.
-        emit({
-          type: "auto_compaction_end",
-          willRetry: state.pendingCompactionEnd.willRetry,
-          pre_tokens: state.pendingCompactionEnd.pre_tokens,
-          trigger: state.pendingCompactionEnd.trigger,
-        } as EmbeddedPiSubscribeEvent);
+      beginCompaction(state, emit, { pre_tokens, trigger, willRetry });
+    } else if (subtype === "files_persisted") {
+      const filesPersisted = message as SdkFilesPersistedMessage;
+      const persistedByName = state.persistedFileIdsByName ?? new Map<string, string>();
+      const failedByName = state.failedPersistedFilesByName ?? new Map<string, string>();
+      for (const file of filesPersisted.files ?? []) {
+        if (!file?.filename || !file.file_id) {
+          continue;
+        }
+        persistedByName.set(file.filename, file.file_id);
+        failedByName.delete(file.filename);
       }
-      state.compacting = true;
-      state.pendingCompactionEnd = { willRetry, pre_tokens, trigger };
-      emit({ type: "auto_compaction_start", pre_tokens, trigger } as EmbeddedPiSubscribeEvent);
+      for (const failure of filesPersisted.failed ?? []) {
+        if (!failure?.filename) {
+          continue;
+        }
+        failedByName.set(failure.filename, failure.error ?? "unknown");
+      }
+      state.persistedFileIdsByName = persistedByName;
+      state.failedPersistedFilesByName = failedByName;
+    } else if (subtype === "hook_started") {
+      const hook = message as SdkHookStartedMessage;
+      state.lastHookEvent = {
+        subtype: "hook_started",
+        hookId: hook.hook_id,
+        hookName: hook.hook_name,
+        hookEvent: hook.hook_event,
+      };
+    } else if (subtype === "hook_progress") {
+      const hook = message as SdkHookProgressMessage;
+      state.lastHookEvent = {
+        subtype: "hook_progress",
+        hookId: hook.hook_id,
+        hookName: hook.hook_name,
+        hookEvent: hook.hook_event,
+      };
+    } else if (subtype === "hook_response") {
+      const hook = message as SdkHookResponseMessage;
+      state.lastHookEvent = {
+        subtype: "hook_response",
+        hookId: hook.hook_id,
+        hookName: hook.hook_name,
+        hookEvent: hook.hook_event,
+        outcome: hook.outcome,
+      };
+    } else if (subtype === "task_started") {
+      const task = message as SdkTaskStartedMessage;
+      state.lastTaskEvent = {
+        subtype: "task_started",
+        taskId: task.task_id,
+        description: task.description,
+      };
+    } else if (subtype === "task_progress") {
+      const task = message as SdkTaskProgressMessage;
+      state.lastTaskEvent = {
+        subtype: "task_progress",
+        taskId: task.task_id,
+        description: task.description,
+      };
+    } else if (subtype === "task_notification") {
+      const task = message as SdkTaskNotificationMessage;
+      state.lastTaskEvent = {
+        subtype: "task_notification",
+        taskId: task.task_id,
+        status: task.status,
+        description: task.summary,
+      };
     }
-    // Other system subtypes are ignored
+    // Other system subtypes are intentionally ignored.
     return;
   }
 
@@ -339,6 +544,41 @@ export function translateSdkMessageToEvents(
     );
     state.messages.push(agentMsg as never);
     state.streamingMessageId = null;
+    return;
+  }
+
+  if (msgType === "user") {
+    const userMessage = message as SdkUserMessage;
+    if (userMessage.isReplay && typeof userMessage.uuid === "string") {
+      if (!state.replayedUserMessageUuids) {
+        state.replayedUserMessageUuids = new Set();
+      }
+      state.replayedUserMessageUuids.add(userMessage.uuid);
+    }
+    return;
+  }
+
+  if (msgType === "auth_status") {
+    const authStatus = message as SdkAuthStatusMessage;
+    state.lastAuthStatus = {
+      isAuthenticating: Boolean(authStatus.isAuthenticating),
+      error: authStatus.error,
+      output: authStatus.output,
+    };
+    return;
+  }
+
+  if (msgType === "rate_limit_event") {
+    const rateLimit = message as SdkRateLimitEvent;
+    state.lastRateLimitInfo = rateLimit.rate_limit_info;
+    return;
+  }
+
+  if (msgType === "prompt_suggestion") {
+    const suggestion = message as SdkPromptSuggestionMessage;
+    if (typeof suggestion.suggestion === "string") {
+      state.lastPromptSuggestion = suggestion.suggestion;
+    }
     return;
   }
 
