@@ -703,7 +703,7 @@ export const agentsHandlers: GatewayRequestHandlers = {
     const content = String(params.content ?? "");
     try {
       await writeFileWithinRoot({
-        rootDir: workspaceDir,
+        rootDir: resolvedPath.workspaceReal,
         relativePath: name,
         data: content,
         encoding: "utf8",
