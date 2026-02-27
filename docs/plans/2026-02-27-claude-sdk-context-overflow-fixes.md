@@ -361,11 +361,11 @@ R9. JSON-RPC 2.0 spec (for MCP transport framing semantics): https://www.jsonrpc
 
 ## 12) Execution checklist
 
-- [ ] A: robust resumed-thread stripping
-- [ ] B: media strategy migration with persisted references
-- [ ] C: Claude hook-context parity hardening
-- [ ] D: orphan + stale-resume safeguards
-- [ ] E: overflow retry/fail-fast policy
-- [ ] F: message lifecycle signals -> runtime decisions
-- [ ] G: metrics and diagnostics
-- [ ] integration and regression test pass
+- [x] A: robust resumed-thread stripping
+- [x] B: media strategy migration with persisted references
+- [x] C: Claude hook-context parity hardening
+- [x] D: orphan + stale-resume safeguards
+- [x] E: overflow retry/fail-fast policy
+- [x] F: message lifecycle signals -> runtime decisions
+- [x] G: metrics and diagnostics
+- [x] integration and regression test pass
