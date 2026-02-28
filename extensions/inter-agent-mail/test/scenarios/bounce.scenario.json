@@ -1,0 +1,111 @@
+{
+  "id": "bounce",
+  "description": "Agent B receives a misrouted message and returns it to sender with a reason and confidence score. The original message is marked read; a new _bounce message appears in Agent A's inbox.",
+
+  "config": {
+    "delivery_policies": {
+      "agent-b": {
+        "bounce_enabled": true
+      }
+    }
+  },
+
+  "steps": [
+    {
+      "id": "send",
+      "description": "Agent A sends a message that Agent B will consider misrouted",
+      "actor": "agent-a",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-b",
+        "subject": "Wrong agent",
+        "body": "I think you wanted agent-c for this."
+      },
+      "expect": {
+        "result_contains": "sent to 'agent-b'",
+        "mailbox": {
+          "agent": "agent-b",
+          "unread_count": 1
+        }
+      }
+    },
+    {
+      "id": "b-inbox",
+      "description": "Agent B claims the message",
+      "actor": "agent-b",
+      "action": "mail.inbox",
+      "params": {},
+      "capture": {
+        "b_msg_id": { "source": "mailbox", "agent": "agent-b", "path": "messages[0].id" }
+      },
+      "expect": {
+        "mailbox": {
+          "agent": "agent-b",
+          "processing_count": 1
+        }
+      }
+    },
+    {
+      "id": "bounce",
+      "description": "Agent B bounces the message back with a reason",
+      "actor": "agent-b",
+      "action": "bounce_mail",
+      "params": {
+        "message_id": "${b-inbox.b_msg_id}",
+        "reason": "This task belongs to agent-c's domain, not mine.",
+        "confidence": 0.92
+      },
+      "expect": {
+        "result_contains": "Bounced message",
+        "mailboxes": [
+          {
+            "agent": "agent-b",
+            "read_count": 1,
+            "unread_count": 0
+          },
+          {
+            "agent": "agent-a",
+            "unread_count": 1,
+            "messages": [
+              {
+                "from": "agent-b",
+                "to": "agent-a",
+                "is_bounce": true,
+                "body_contains": "agent-c's domain"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "a-reads-bounce",
+      "description": "Agent A reads the bounce notification",
+      "actor": "agent-a",
+      "action": "mail.inbox",
+      "params": {},
+      "capture": {
+        "bounce_id": { "source": "mailbox", "agent": "agent-a", "path": "messages[0].id" }
+      },
+      "expect": {
+        "result_contains": "1 message",
+        "mailbox": {
+          "agent": "agent-a",
+          "processing_count": 1
+        }
+      }
+    },
+    {
+      "id": "a-acks-bounce",
+      "description": "Agent A acks after reading the bounce notification",
+      "actor": "agent-a",
+      "action": "mail.ack",
+      "params": {
+        "message_ids": ["${a-reads-bounce.bounce_id}"]
+      },
+      "expect": {
+        "result_contains": "Acked 1"
+      }
+    }
+  ]
+}
