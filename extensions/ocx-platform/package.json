@@ -2,9 +2,21 @@
   "name": "@openclaw/ocx-platform",
   "version": "2026.2.27",
   "private": true,
-  "description": "Shared types and primitives for OpenClaw control-plane extensions",
+  "description": "Shared types and ops tools for OpenClaw control-plane extensions",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@openclaw/ocx-event-ledger": "workspace:*",
+    "@openclaw/ocx-observability": "workspace:*"
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.2.0"
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
   }
 }

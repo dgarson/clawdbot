@@ -3,6 +3,8 @@
  * Covers health evaluation, anomaly signals, suppression, and reaper policies.
  */
 
+import type { ISOTimestamp } from "@openclaw/ocx-platform";
+
 // =============================================================================
 // Health State
 // =============================================================================
@@ -13,9 +15,9 @@ export type HealthEvaluation = {
   agentId: string;
   state: HealthState;
   signals: HealthSignal[];
-  evaluatedAt: string;
+  evaluatedAt: ISOTimestamp;
   previousState?: HealthState;
-  stateChangedAt?: string;
+  stateChangedAt?: ISOTimestamp;
 };
 
 export type HealthSignal = {
@@ -142,7 +144,7 @@ export type ReaperActionRecord = {
   agentId: string;
   state: HealthState;
   action: ReaperAction;
-  executedAt: string;
+  executedAt: ISOTimestamp;
   confirmed: boolean;
   pendingConfirmation: boolean;
 };
@@ -156,5 +158,5 @@ export type PendingConfirmation = {
   agentId: string;
   state: HealthState;
   action: ReaperAction;
-  createdAt: string;
+  createdAt: ISOTimestamp;
 };

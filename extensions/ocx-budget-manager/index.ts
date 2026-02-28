@@ -8,27 +8,33 @@ import { registerReportingMethods } from "./src/reporting.js";
 import { loadScopeResolver } from "./src/scope-resolver.js";
 import { registerTrackerHook } from "./src/tracker.js";
 
-export default async function register(api: OpenClawPluginApi): Promise<void> {
+export default function register(api: OpenClawPluginApi): void {
   const config = resolveConfig(api.pluginConfig);
   const stateDir = api.runtime.state.resolveStateDir();
 
-  // Load configuration files from state directory
-  const [scopeResolver, priceTable] = await Promise.all([
-    loadScopeResolver(stateDir, config.hierarchyFile, api.logger),
-    loadPriceTable(stateDir, config.priceTableFile, api.logger),
-  ]);
-
   const ledger = new Ledger(stateDir, api.logger);
 
-  api.logger.info(
-    `budget-manager: initialized (enforcement=${config.enforcement}, window=${config.defaultWindow})`,
-  );
+  // Async config loading is deferred to the service start hook where
+  // Promise<void> is supported by the plugin lifecycle.
+  api.registerService({
+    id: "ocx-budget-manager",
+    async start(ctx) {
+      const [scopeResolver, priceTable] = await Promise.all([
+        loadScopeResolver(stateDir, config.hierarchyFile, ctx.logger),
+        loadPriceTable(stateDir, config.priceTableFile, ctx.logger),
+      ]);
 
-  // Register hooks
-  registerAdmissionHook(api, scopeResolver, ledger, config);
-  registerTrackerHook(api, scopeResolver, ledger, priceTable, config);
-  registerMidRunGuardHook(api, scopeResolver, ledger, config);
+      // Register hooks now that async dependencies are ready
+      registerAdmissionHook(api, scopeResolver, ledger, config);
+      registerTrackerHook(api, scopeResolver, ledger, priceTable, config);
+      registerMidRunGuardHook(api, scopeResolver, ledger, config);
 
-  // Register gateway methods for reporting
-  registerReportingMethods(api, scopeResolver, ledger, config, stateDir);
+      // Register gateway methods for reporting
+      registerReportingMethods(api, scopeResolver, ledger, config, stateDir);
+
+      ctx.logger.info(
+        `budget-manager: initialized (enforcement=${config.enforcement}, window=${config.defaultWindow})`,
+      );
+    },
+  });
 }

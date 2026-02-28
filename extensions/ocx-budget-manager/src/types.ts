@@ -1,3 +1,5 @@
+import type { ISOTimestamp } from "@openclaw/ocx-platform";
+
 /**
  * Budget scope within the hierarchy: system -> organization -> team -> agent -> session.
  */
@@ -49,8 +51,8 @@ export type BudgetAllocation = {
  */
 export type BudgetUsage = {
   scope: BudgetScope;
-  windowStart: string;
-  windowEnd: string;
+  windowStart: ISOTimestamp;
+  windowEnd: ISOTimestamp;
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
@@ -85,7 +87,7 @@ export type UsageIncrement = {
  * A single JSONL ledger entry persisted to disk.
  */
 export type LedgerEntry = {
-  ts: string;
+  ts: ISOTimestamp;
   scopeLevel: BudgetScope["level"];
   scopeId: string;
   inputTokens: number;
@@ -104,5 +106,5 @@ export type BudgetAlert = {
   threshold: number;
   dimension: string;
   currentPct: number;
-  timestamp: string;
+  timestamp: ISOTimestamp;
 };

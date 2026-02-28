@@ -17,15 +17,17 @@ export function createScopedPairingAccess(params: {
   return {
     accountId: resolvedAccountId,
     readAllowFromStore: () =>
-      params.core.channel.pairing.readAllowFromStore({
-        channel: params.channel,
-        accountId: resolvedAccountId,
-      }),
+      params.core.channel.pairing.readAllowFromStore(
+        params.channel,
+        process.env,
+        resolvedAccountId,
+      ),
     readStoreForDmPolicy: (provider: ChannelId, accountId: string) =>
-      params.core.channel.pairing.readAllowFromStore({
-        channel: provider,
-        accountId: normalizeAccountId(accountId),
-      }),
+      params.core.channel.pairing.readAllowFromStore(
+        provider,
+        process.env,
+        normalizeAccountId(accountId),
+      ),
     upsertPairingRequest: (input: ScopedUpsertInput) =>
       params.core.channel.pairing.upsertPairingRequest({
         channel: params.channel,

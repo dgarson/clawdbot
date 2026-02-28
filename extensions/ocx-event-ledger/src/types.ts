@@ -5,6 +5,8 @@
  * Families group related event types for filtering and retention.
  */
 
+import type { ISOTimestamp } from "@openclaw/ocx-platform";
+
 // ---------------------------------------------------------------------------
 // Event families — groups related event types
 // ---------------------------------------------------------------------------
@@ -29,7 +31,7 @@ export type EventEnvelope = {
   /** Monotonic event ID within the ledger instance */
   eventId: string;
   /** ISO-8601 timestamp */
-  ts: string;
+  ts: ISOTimestamp;
   /** Schema version for this envelope format */
   version: 1;
   /** Event family — groups related event types */
@@ -62,8 +64,8 @@ export type RunSummary = {
   lineageId?: string;
   agentId: string;
   sessionKey: string;
-  startedAt: string;
-  endedAt: string;
+  startedAt: ISOTimestamp;
+  endedAt: ISOTimestamp;
   durationMs: number;
   model: string;
   provider: string;
@@ -86,9 +88,9 @@ export type EventQueryFilter = {
   sessionKey?: string;
   agentId?: string;
   /** ISO-8601 inclusive lower bound */
-  from?: string;
+  from?: ISOTimestamp;
   /** ISO-8601 inclusive upper bound */
-  to?: string;
+  to?: ISOTimestamp;
   /** Pagination: number of events to return (default 100) */
   limit?: number;
   /** Pagination: opaque cursor from a previous response */

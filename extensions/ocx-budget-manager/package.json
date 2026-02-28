@@ -4,6 +4,9 @@
   "private": true,
   "description": "OpenClaw budget manager plugin",
   "type": "module",
+  "devDependencies": {
+    "@openclaw/ocx-platform": "workspace:*"
+  },
   "openclaw": {
     "extensions": [
       "./index.ts"

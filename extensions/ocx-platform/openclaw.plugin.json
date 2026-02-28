@@ -1,0 +1,43 @@
+{
+  "id": "ocx-platform",
+  "name": "OCX Platform",
+  "description": "Shared ops tools for the OpenClaw control plane. Provides ocx_ops for cross-extension incident investigation and session quality scores.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "scoreRetentionDays": {
+        "type": "number",
+        "minimum": 1,
+        "default": 90,
+        "description": "Days to retain session score JSONL files before cleanup"
+      },
+      "defaultEventLimit": {
+        "type": "number",
+        "minimum": 1,
+        "default": 20,
+        "description": "Default maximum events returned by ops query"
+      },
+      "defaultScoreLimit": {
+        "type": "number",
+        "minimum": 1,
+        "default": 50,
+        "description": "Default maximum scores returned by scores list"
+      }
+    }
+  },
+  "uiHints": {
+    "scoreRetentionDays": {
+      "label": "Score Retention (days)",
+      "help": "How long to retain session quality score JSONL files before cleanup"
+    },
+    "defaultEventLimit": {
+      "label": "Default Event Limit",
+      "help": "Maximum events returned by ops query when --event-limit is not specified"
+    },
+    "defaultScoreLimit": {
+      "label": "Default Score Limit",
+      "help": "Maximum scores returned by scores list when --limit is not specified"
+    }
+  }
+}

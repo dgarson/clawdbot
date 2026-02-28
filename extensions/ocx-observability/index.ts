@@ -50,7 +50,7 @@ import { createPolicyEngine } from "./src/reaper/policy-engine.js";
 // =============================================================================
 
 const observabilityPlugin = {
-  id: "observability",
+  id: "ocx-observability",
   name: "Observability",
   description: "OTEL bridge, agent health monitoring, anomaly detection, and reaper policies.",
   configSchema: {

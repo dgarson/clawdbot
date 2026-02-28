@@ -285,6 +285,8 @@ export async function detectAndLoadPromptImages(params: {
   workspaceDir: string;
   model: { input?: string[] };
   existingImages?: ImageContent[];
+  /** Conversation history messages for scanning follow-up image references. */
+  historyMessages?: unknown[];
   maxBytes?: number;
   maxDimensionPx?: number;
   workspaceOnly?: boolean;
@@ -295,6 +297,8 @@ export async function detectAndLoadPromptImages(params: {
   detectedRefs: DetectedImageRef[];
   loadedCount: number;
   skippedCount: number;
+  /** Map of message index → loaded images for history messages (stub: empty until implemented). */
+  historyImagesByIndex: Map<number, ImageContent[]>;
 }> {
   // If model doesn't support images, return empty results
   if (!modelSupportsImages(params.model)) {
@@ -303,6 +307,7 @@ export async function detectAndLoadPromptImages(params: {
       detectedRefs: [],
       loadedCount: 0,
       skippedCount: 0,
+      historyImagesByIndex: new Map(),
     };
   }
 
@@ -315,6 +320,7 @@ export async function detectAndLoadPromptImages(params: {
       detectedRefs: [],
       loadedCount: 0,
       skippedCount: 0,
+      historyImagesByIndex: new Map(),
     };
   }
 
@@ -349,10 +355,12 @@ export async function detectAndLoadPromptImages(params: {
     imageSanitization,
   );
 
+  // TODO: implement history message scanning for follow-up image references
   return {
     images: sanitizedPromptImages,
     detectedRefs: allRefs,
     loadedCount,
     skippedCount,
+    historyImagesByIndex: new Map(),
   };
 }

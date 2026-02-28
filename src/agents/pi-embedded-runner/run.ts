@@ -11,7 +11,7 @@ import type {
 import { enqueueCommandInLane } from "../../process/command-queue.js";
 import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
-import { resolveAgentConfig } from "../agent-scope.js";
+import { resolveAgentConfig, resolveAgentModelFallbacksOverride } from "../agent-scope.js";
 import {
   isProfileInCooldown,
   markAuthProfileFailure,
@@ -238,7 +238,10 @@ export async function runEmbeddedPiAgent(
       let modelId = (params.model ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
       const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
       const fallbackConfigured =
-        resolveAgentModelFallbackValues(params.config?.agents?.defaults?.model).length > 0;
+        (
+          resolveAgentModelFallbacksOverride(params.config ?? {}, params.agentId ?? "main") ??
+          resolveAgentModelFallbackValues(params.config?.agents?.defaults?.model)
+        ).length > 0;
       await ensureOpenClawModelsJson(params.config, agentDir);
 
       // Run before_model_resolve hooks early so plugins can override the

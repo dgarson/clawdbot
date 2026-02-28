@@ -4,9 +4,6 @@
   "private": true,
   "description": "OpenClaw evaluation plugin",
   "type": "module",
-  "devDependencies": {
-    "@openclaw/ocx-platform": "workspace:*"
-  },
   "openclaw": {
     "extensions": [
       "./index.ts"

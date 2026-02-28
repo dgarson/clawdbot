@@ -206,7 +206,7 @@ export async function runScenarioFile(filePath: string): Promise<void> {
 }
 
 export async function runScenario(scenario: ScenarioFile): Promise<void> {
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), `mail-scenario-${scenario.id}-`));
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "mail-scenario-"));
 
   try {
     const parsed = parsePluginConfig(scenario.config as Record<string, unknown> | undefined);

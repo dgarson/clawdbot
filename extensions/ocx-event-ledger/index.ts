@@ -49,7 +49,7 @@ const configSchema = {
 // ---------------------------------------------------------------------------
 
 const plugin = {
-  id: "event-ledger",
+  id: "ocx-event-ledger",
   name: "Event Ledger",
   description: "Canonical event capture and query system for agent lifecycle events.",
   configSchema,

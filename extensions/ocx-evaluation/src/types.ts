@@ -3,8 +3,6 @@
  * Mirrors the shapes defined in the plan document (agent-platform-05).
  */
 
-import type { ClassificationLabel } from "@openclaw/ocx-platform";
-
 // ---------------------------------------------------------------------------
 // Judge Profiles
 // ---------------------------------------------------------------------------
@@ -68,7 +66,7 @@ export type Scorecard = {
   /** Provider used for the run. */
   provider?: string;
   /** Classification label from routing. */
-  classificationLabel?: ClassificationLabel;
+  classificationLabel?: string;
   /** Cost in USD for the run. */
   costUsd?: number;
   /** Total tokens consumed. */
@@ -126,7 +124,7 @@ export type ModelComparisonEntry = {
 };
 
 export type ModelComparison = {
-  classificationLabel: ClassificationLabel;
+  classificationLabel: string;
   timeRange: { from: string; to: string };
   models: ModelComparisonEntry[];
 };
