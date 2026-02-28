@@ -4,6 +4,7 @@ import path from "node:path";
 import type { App } from "@slack/bolt";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { expectInboundContextContract } from "../../../../test/helpers/inbound-contract.js";
+import { ChannelSnapshotStore } from "../../../auto-reply/reply/channel-snapshot-store.js";
 import type { OpenClawConfig } from "../../../config/config.js";
 import {
   initializeGlobalHookRunner,
@@ -735,6 +736,7 @@ describe("prepareSlackMessage sender prefix", () => {
       apiAppId: "A1",
       historyLimit: 0,
       channelHistories: new Map(),
+      channelSnapshots: new ChannelSnapshotStore(0),
       sessionScope: "per-sender",
       mainKey: "agent:main:main",
       dmEnabled: true,

@@ -1,4 +1,5 @@
 import type { App } from "@slack/bolt";
+import { ChannelSnapshotStore } from "../../auto-reply/reply/channel-snapshot-store.js";
 import type { HistoryEntry } from "../../auto-reply/reply/history.js";
 import { formatAllowlistMatchMeta } from "../../channels/allowlist-match.js";
 import type { OpenClawConfig, SlackReactionNotificationMode } from "../../config/config.js";
@@ -67,6 +68,7 @@ export type SlackMonitorContext = {
 
   historyLimit: number;
   channelHistories: Map<string, HistoryEntry[]>;
+  channelSnapshots: ChannelSnapshotStore;
   sessionScope: SessionScope;
   mainKey: string;
 
@@ -154,6 +156,7 @@ export function createSlackMonitorContext(params: {
   removeAckAfterReply: boolean;
 }): SlackMonitorContext {
   const channelHistories = new Map<string, HistoryEntry[]>();
+  const channelSnapshots = new ChannelSnapshotStore(params.historyLimit);
   const logger = getChildLogger({ module: "slack-auto-reply" });
 
   const channelCache = new Map<
@@ -393,6 +396,7 @@ export function createSlackMonitorContext(params: {
     apiAppId: params.apiAppId,
     historyLimit: params.historyLimit,
     channelHistories,
+    channelSnapshots,
     sessionScope: params.sessionScope,
     mainKey: params.mainKey,
     dmEnabled: params.dmEnabled,
