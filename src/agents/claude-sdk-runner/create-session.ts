@@ -403,7 +403,6 @@ export async function createClaudeSdkSession(
     refsEntry && Array.isArray(refsEntry.data)
       ? (refsEntry.data as unknown[]).filter((x): x is string => typeof x === "string")
       : [];
-
   // Internal adapter state
   const state: ClaudeSdkEventAdapterState = {
     subscribers: [],
