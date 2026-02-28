@@ -5,6 +5,8 @@
  * prompt conditions, classification results, and prompt context.
  */
 
+import type { ClassificationLabel, ModelProviderRef } from "@openclaw/ocx-platform";
+
 // ---------------------------------------------------------------------------
 // Routing Policy
 // ---------------------------------------------------------------------------
@@ -23,10 +25,7 @@ export type RoutingPolicy = {
   /** Conditions that must ALL match for this policy to apply. */
   conditions: RoutingCondition[];
   /** Model/provider to use when conditions match. */
-  target: {
-    model?: string;
-    provider?: string;
-  };
+  target: ModelProviderRef;
   /** Higher priority wins when multiple policies match. */
   priority: number;
 };
@@ -68,7 +67,9 @@ export type PromptContributor = {
 // Classification
 // ---------------------------------------------------------------------------
 
-export type ClassificationLabel = "simple" | "code" | "complex" | "multi-step";
+// ClassificationLabel is re-exported from @openclaw/ocx-platform for consumers
+// that import this module. The canonical definition lives in ocx-platform.
+export type { ClassificationLabel };
 
 export type ClassificationMethod = "heuristic" | "llm";
 
