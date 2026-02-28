@@ -29,6 +29,14 @@ export const ClaudeSdkConfigSchema = z
       .object({
         enabled: z.boolean().optional(),
         maxChars: z.number().int().positive().optional(),
+        /** Nudge when scratchpad is empty after N turns. 0 = off. */
+        nudgeAfterTurns: z.number().int().nonnegative().optional(),
+        /** Nudge when plan-like patterns detected in assistant output and scratchpad is empty. 0 = off, 1+ = on. */
+        nudgeOnPlanDetected: z.number().int().nonnegative().optional(),
+        /** Nudge after context compaction. 0 = off, 1+ = on. */
+        nudgeAfterCompaction: z.number().int().nonnegative().optional(),
+        /** Nudge when scratchpad hasn't been updated in N turns. 0 = off. */
+        nudgeTurnsSinceLastUse: z.number().int().nonnegative().optional(),
       })
       .strict()
       .optional(),

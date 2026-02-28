@@ -16,6 +16,7 @@
  * messages, plus text/thinking/lifecycle/streaming/compaction events.
  */
 
+import { emitDiagnosticEvent } from "../../infra/diagnostic-events.js";
 import type { EmbeddedPiSubscribeEvent } from "../pi-embedded-subscribe.handlers.types.js";
 import type { ClaudeSdkEventAdapterState } from "./types.js";
 
@@ -51,10 +52,18 @@ type SdkAssistantMessage = {
   };
 };
 
+type SdkModelUsageEntry = {
+  cacheCreationInputTokens?: number;
+  cacheReadInputTokens?: number;
+  inputTokens?: number;
+};
+
 type SdkResultMessage = {
   type: "result";
   subtype: string;
   result?: unknown;
+  /** Per-model token breakdown emitted on the final result message. */
+  modelUsage?: Record<string, SdkModelUsageEntry>;
 };
 
 // SDKCompactBoundaryMessage — emitted when the SDK compacts the conversation context.
@@ -261,6 +270,13 @@ export function translateSdkMessageToEvents(
       const pre_tokens = compactMsg.compact_metadata?.pre_tokens;
       const trigger = compactMsg.compact_metadata?.trigger;
       const willRetry = extractCompactionWillRetry(compactMsg);
+      emitDiagnosticEvent({
+        type: "session.compaction",
+        sessionKey: state.diagnosticSessionKey,
+        preTokens: pre_tokens,
+        trigger,
+        willRetry,
+      });
       if (state.compacting && state.pendingCompactionEnd) {
         // Defensive: close any prior deferred compaction before starting a new one.
         emit({
@@ -346,7 +362,11 @@ export function translateSdkMessageToEvents(
   // result — emit agent_end; propagate error when subtype is "error_*"
   // -------------------------------------------------------------------------
   if (msgType === "result") {
-    const resultMsg = message as SdkResultErrorMessage;
+    const resultMsg = message as SdkResultMessage & SdkResultErrorMessage;
+    // Capture per-model usage breakdown for diagnostics logging.
+    if (resultMsg.modelUsage && typeof resultMsg.modelUsage === "object") {
+      state.sdkModelUsage = resultMsg.modelUsage;
+    }
     // Detect error results: SDK sets subtype to "error_*" or is_error: true.
     if (resultMsg.subtype?.startsWith("error_") || resultMsg.is_error) {
       const firstErrorMsg = extractSdkResultErrorMessage(resultMsg);

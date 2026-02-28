@@ -8,7 +8,9 @@
  * pi-runtime-baseline.md Section 3 (session interface surface used by attempt.ts).
  */
 
+import { createHash } from "node:crypto";
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
+import { onDiagnosticEvent, resetDiagnosticEventsForTest } from "../../infra/diagnostic-events.js";
 import {
   initializeGlobalHookRunner,
   resetGlobalHookRunner,
@@ -1681,6 +1683,134 @@ describe("session lifecycle — attachment manifest", () => {
   });
 });
 
+describe("session lifecycle — attachment diagnostics", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetDiagnosticEventsForTest();
+  });
+
+  it("emits per-turn session.attachments telemetry with dedup and post-compaction reattach stats", async () => {
+    const duplicateBytes = Buffer.from("duplicate-image-bytes");
+    const newBytes = Buffer.from("brand-new-image-bytes");
+    const duplicateBase64 = duplicateBytes.toString("base64");
+    const newBase64 = newBytes.toString("base64");
+    const duplicateHash = createHash("sha256").update(duplicateBase64).digest("hex");
+
+    const {
+      createAttachmentManifest,
+      recordAttachment,
+      serializeManifest,
+      ATTACHMENT_MANIFEST_KEY,
+    } = await import("./attachment-manifest.js");
+
+    const previousManifest = createAttachmentManifest();
+    recordAttachment(previousManifest, {
+      artifactId: "img-known",
+      displayName: "known.jpg",
+      mediaType: "image/jpeg",
+      contentHash: duplicateHash,
+      sourceMessageId: "M001",
+      sourceThreadId: "thread-1",
+      turn: 0,
+    });
+    const serialized = serializeManifest(previousManifest);
+
+    const queryMock = await importQuery();
+    queryMock
+      .mockImplementationOnce(() =>
+        makeMockQueryGen([
+          { type: "system", subtype: "init", session_id: "sess_server_abc123" },
+          {
+            type: "system",
+            subtype: "compact_boundary",
+            session_id: "sess_server_abc123",
+            compact_metadata: { trigger: "auto", pre_tokens: 120000 },
+          },
+          { type: "result", subtype: "success", result: "ok" },
+        ])(),
+      )
+      .mockImplementationOnce(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const emitted: Array<Record<string, unknown>> = [];
+    const stop = onDiagnosticEvent((evt) => {
+      if (evt.type === "session.attachments") {
+        emitted.push(evt as Record<string, unknown>);
+      }
+    });
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        diagnosticsEnabled: true,
+        sessionManager: {
+          appendMessage: vi.fn(() => "msg-id"),
+          getEntries: vi.fn(() => [
+            { type: "custom", customType: ATTACHMENT_MANIFEST_KEY, data: serialized },
+          ]),
+        },
+        structuredContextInput: makeStructuredContextInput({
+          anchor: {
+            messageId: "M001",
+            ts: "1700000000.000000",
+            authorId: "U001",
+            authorName: "Alice",
+            authorIsBot: false,
+            text: "hello",
+            threadId: "thread-1",
+          },
+        }),
+      }),
+    );
+
+    await session.prompt("first turn");
+    await session.prompt("second turn with images", {
+      images: [
+        { data: duplicateBase64, mimeType: "image/jpeg" },
+        { data: newBase64, mimeType: "image/jpeg" },
+      ],
+    });
+
+    stop();
+
+    const last = emitted[emitted.length - 1];
+    expect(last).toEqual(
+      expect.objectContaining({
+        type: "session.attachments",
+        sessionKey: "sess_local_001",
+        attachmentsTotal: 2,
+        deduplicated: 1,
+        reattachedAfterCompaction: 1,
+        totalMediaBytes: newBytes.length,
+      }),
+    );
+  });
+
+  it("does not emit session.attachments when diagnostics are disabled", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const emitted: Array<Record<string, unknown>> = [];
+    const stop = onDiagnosticEvent((evt) => {
+      if (evt.type === "session.attachments") {
+        emitted.push(evt as Record<string, unknown>);
+      }
+    });
+
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        diagnosticsEnabled: false,
+      }),
+    );
+    await session.prompt("no diagnostics", {
+      images: [{ data: Buffer.from("img").toString("base64"), mimeType: "image/jpeg" }],
+    });
+
+    stop();
+    expect(emitted).toHaveLength(0);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // before_session_create hook: plugin subscriber integration
 // ---------------------------------------------------------------------------
@@ -1781,5 +1911,79 @@ describe("session lifecycle — before_session_create hook", () => {
     expect(idxB).toBeGreaterThan(-1);
     // Higher-priority subscriber (plugin-a, priority 10) section appears before lower-priority
     expect(idxA).toBeLessThan(idxB);
+  });
+
+  it("emits diagnostics hook profile metrics when diagnostics are enabled", async () => {
+    resetDiagnosticEventsForTest();
+    addBeforeSessionCreateHook(() => ({
+      systemPromptSections: ["## Extra Section\nFrom plugin."],
+      tools: [
+        {
+          name: "plugin.custom",
+          description: "A plugin-provided tool",
+          parameters: { type: "object", properties: {} },
+          execute: vi.fn(),
+        },
+      ],
+    }));
+
+    const emitted: Array<Record<string, unknown>> = [];
+    const stop = onDiagnosticEvent((evt) => {
+      if (evt.type === "session.hook") {
+        emitted.push(evt as Record<string, unknown>);
+      }
+    });
+
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        diagnosticsEnabled: true,
+      }),
+    );
+    await session.prompt("Hello");
+    stop();
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0]).toEqual(
+      expect.objectContaining({
+        type: "session.hook",
+        sessionKey: "sess_local_001",
+        hook: "before_session_create",
+        sectionsAdded: 1,
+        sectionsTotalChars: "## Extra Section\nFrom plugin.".length,
+        toolsAdded: 1,
+      }),
+    );
+    expect(typeof emitted[0]?.hookDurationMs).toBe("number");
+    expect((emitted[0]?.hookDurationMs as number) >= 0).toBe(true);
+  });
+
+  it("does not emit diagnostics hook profile metrics when diagnostics are disabled", async () => {
+    resetDiagnosticEventsForTest();
+    addBeforeSessionCreateHook(() => ({
+      systemPromptSections: ["## Extra Section\nFrom plugin."],
+    }));
+
+    const emitted: Array<Record<string, unknown>> = [];
+    const stop = onDiagnosticEvent((evt) => {
+      if (evt.type === "session.hook") {
+        emitted.push(evt as Record<string, unknown>);
+      }
+    });
+
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        diagnosticsEnabled: false,
+      }),
+    );
+    await session.prompt("Hello");
+    stop();
+
+    expect(emitted).toHaveLength(0);
   });
 });

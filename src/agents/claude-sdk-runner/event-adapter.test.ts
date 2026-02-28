@@ -10,6 +10,7 @@
  */
 
 import { describe, it, expect, vi } from "vitest";
+import { onDiagnosticEvent, resetDiagnosticEventsForTest } from "../../infra/diagnostic-events.js";
 import { translateSdkMessageToEvents } from "./event-adapter.js";
 import type { ClaudeSdkEventAdapterState } from "./types.js";
 
@@ -34,6 +35,7 @@ function makeState(overrides?: Partial<ClaudeSdkEventAdapterState>): ClaudeSdkEv
     claudeSdkSessionId: undefined,
     sessionIdPersisted: false,
     sdkResultError: undefined,
+    sdkModelUsage: undefined,
     lastStderr: undefined,
     streamingBlockTypes: new Map(),
     streamingPartialMessage: null,
@@ -42,6 +44,8 @@ function makeState(overrides?: Partial<ClaudeSdkEventAdapterState>): ClaudeSdkEv
     transcriptProvider: "anthropic",
     transcriptApi: "anthropic-messages",
     modelCost: undefined,
+    refs: [],
+    pendingCompactionReattachments: 0,
     ...overrides,
   };
 }
@@ -955,6 +959,40 @@ describe("event translation — compaction events", () => {
 
     const endEvt = events.find((e) => e.type === "auto_compaction_end");
     expect(endEvt?.willRetry).toBe(true);
+  });
+
+  it("emits session.compaction diagnostic event with metadata and session key", () => {
+    resetDiagnosticEventsForTest();
+    const state = makeState({ diagnosticSessionKey: "session:diag:1" });
+    const emitted: Array<Record<string, unknown>> = [];
+    const stop = onDiagnosticEvent((evt) => {
+      if (evt.type === "session.compaction") {
+        emitted.push(evt as Record<string, unknown>);
+      }
+    });
+
+    translateSdkMessageToEvents(
+      {
+        type: "system",
+        subtype: "compact_boundary",
+        session_id: "sess_diag",
+        compact_metadata: { trigger: "manual", pre_tokens: 31415, will_retry: true },
+      } as never,
+      state,
+    );
+
+    stop();
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0]).toEqual(
+      expect.objectContaining({
+        type: "session.compaction",
+        sessionKey: "session:diag:1",
+        preTokens: 31415,
+        trigger: "manual",
+        willRetry: true,
+      }),
+    );
   });
 
   it("uses top-level willRetry when compact_metadata omits retry fields", () => {

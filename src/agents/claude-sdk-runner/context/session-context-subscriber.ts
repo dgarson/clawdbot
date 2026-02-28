@@ -10,12 +10,15 @@
  * register it via api.on("before_session_create", handler).
  */
 
+import { createSubsystemLogger } from "../../../logging/subsystem.js";
 import type {
   PluginHookBeforeSessionCreateEvent,
   PluginHookBeforeSessionCreateResult,
 } from "../../../plugins/types.js";
 import { buildChannelSnapshot } from "./channel-snapshot.js";
-import { buildThreadContext } from "./thread-context.js";
+import { buildThreadContextWithTelemetry } from "./thread-context.js";
+
+const log = createSubsystemLogger("agent/claude-sdk");
 
 export function coreSessionContextSubscriber(
   event: PluginHookBeforeSessionCreateEvent,
@@ -26,12 +29,20 @@ export function coreSessionContextSubscriber(
 
   const input = event.structuredContextInput;
   const snapshot = buildChannelSnapshot(input);
-  const thread = buildThreadContext(input.thread ?? null);
+  const snapshotJson = JSON.stringify(snapshot, null, 2);
+  const { threadContext: thread, budgetUtilization } = buildThreadContextWithTelemetry(
+    input.thread ?? null,
+  );
+  if (event.diagnosticsEnabled && budgetUtilization) {
+    log.debug(
+      `structured context thread budget: sessionKey=${event.sessionKey ?? "unknown"} threadBudgetTokens=${budgetUtilization.threadBudgetTokens} actualTokens=${budgetUtilization.actualTokens} messagesTruncated=${budgetUtilization.messagesTruncated} channelSnapshotChars=${snapshotJson.length}`,
+    );
+  }
 
   // Build the channel context / thread context / tool guidance section.
   // Note: no leading "\n\n" — the caller (createClaudeSdkSession) prepends "\n\n"
   // when joining sections returned by all subscribers.
-  const parts = ["### Channel Context", "```json", JSON.stringify(snapshot, null, 2), "```"];
+  const parts = ["### Channel Context", "```json", snapshotJson, "```"];
   if (thread) {
     parts.push("\n### Thread Context", "```json", JSON.stringify(thread, null, 2), "```");
   }

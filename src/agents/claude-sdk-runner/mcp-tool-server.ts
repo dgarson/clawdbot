@@ -15,6 +15,7 @@
 import { createSdkMcpServer, tool } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { TSchema } from "@sinclair/typebox";
+import { emitDiagnosticEvent } from "../../infra/diagnostic-events.js";
 import {
   HARD_MAX_TOOL_RESULT_CHARS,
   truncateToolResultText,
@@ -240,6 +241,7 @@ export function createClaudeSdkMcpToolServer(
         // Yield once so block-reply handlers can flush before heavy tool execution.
         await new Promise((resolve) => setTimeout(resolve, 0));
 
+        const startMs = Date.now();
         try {
           const result = await invokeToolExecute({
             execute: openClawTool.execute as (...args: unknown[]) => Promise<unknown>,
@@ -267,15 +269,31 @@ export function createClaudeSdkMcpToolServer(
 
           const mcpResult = formatToolResultForMcp(result);
 
-          // Guard against oversized tool results.
+          // Guard against oversized tool results; track whether truncation fired.
+          let truncated = false;
           mcpResult.content = mcpResult.content.map((block) => {
             if (block.type === "text") {
-              return {
-                ...block,
-                text: truncateToolResultText(block.text, HARD_MAX_TOOL_RESULT_CHARS),
-              };
+              const truncatedText = truncateToolResultText(block.text, HARD_MAX_TOOL_RESULT_CHARS);
+              if (truncatedText.length < block.text.length) {
+                truncated = true;
+              }
+              return { ...block, text: truncatedText };
             }
             return block;
+          });
+
+          const resultChars = mcpResult.content.reduce(
+            (sum, b) => sum + (b.type === "text" ? b.text.length : 0),
+            0,
+          );
+          emitDiagnosticEvent({
+            type: "tool.execution",
+            toolName: openClawTool.name,
+            toolCallId,
+            durationMs: Date.now() - startMs,
+            resultChars,
+            truncated,
+            isError: false,
           });
 
           const toolResultMessage = {
@@ -307,6 +325,16 @@ export function createClaudeSdkMcpToolServer(
             result: errorText,
             isError: true,
           } as never);
+
+          emitDiagnosticEvent({
+            type: "tool.execution",
+            toolName: openClawTool.name,
+            toolCallId,
+            durationMs: Date.now() - startMs,
+            resultChars: errorText.length,
+            truncated: false,
+            isError: true,
+          });
 
           const toolResultMessage = {
             role: "toolResult",

@@ -21,11 +21,6 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
-import {
-  buildScratchpadTool,
-  SCRATCHPAD_ENTRY_KEY,
-  type ScratchpadState,
-} from "../../../extensions/scratchpad/scratchpad-tool.js";
 import { emitDiagnosticEvent } from "../../infra/diagnostic-events.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
@@ -43,6 +38,16 @@ import { mapSdkError } from "./error-mapping.js";
 import { translateSdkMessageToEvents } from "./event-adapter.js";
 import { createClaudeSdkMcpToolServer } from "./mcp-tool-server.js";
 import { buildProviderEnv } from "./provider-env.js";
+import {
+  buildScratchpadTool,
+  buildScratchpadNudge,
+  detectPlanPatterns,
+  SCRATCHPAD_ENTRY_KEY,
+  SCRATCHPAD_NOTES_KEY,
+  SCRATCHPAD_PLAN_KEY,
+  SCRATCHPAD_REFS_KEY,
+  type ScratchpadState,
+} from "./scratchpad/index.js";
 import {
   CLAUDE_SDK_STDERR_TAIL_MAX_CHARS,
   CLAUDE_SDK_STDOUT_TAIL_MAX_CHARS,
@@ -374,12 +379,30 @@ export async function createClaudeSdkSession(
   const allEntries = params.sessionManager?.getEntries?.() ?? [];
   const manifest = loadManifestFromEntries(allEntries);
 
-  // Load scratchpad from session history (last openclaw:scratchpad entry).
-  const scratchpadEntry = [...allEntries]
-    .toReversed()
-    .find((e) => e.type === "custom" && e.customType === SCRATCHPAD_ENTRY_KEY);
-  const initialScratchpad =
-    scratchpadEntry && typeof scratchpadEntry.data === "string" ? scratchpadEntry.data : undefined;
+  // Load each scratchpad space from session history (last entry per key).
+  const reversedEntries = [...allEntries].toReversed();
+  const findLast = (key: string) =>
+    reversedEntries.find((e) => e.type === "custom" && e.customType === key);
+
+  const notesEntry = findLast(SCRATCHPAD_NOTES_KEY);
+  const planEntry = findLast(SCRATCHPAD_PLAN_KEY);
+  const refsEntry = findLast(SCRATCHPAD_REFS_KEY);
+
+  // Backwards compat: if no new-format notes entry, load old monolithic key into notes.
+  let initialNotes: string | undefined =
+    notesEntry && typeof notesEntry.data === "string" ? notesEntry.data : undefined;
+  if (initialNotes === undefined) {
+    const legacyEntry = findLast(SCRATCHPAD_ENTRY_KEY);
+    if (legacyEntry && typeof legacyEntry.data === "string") {
+      initialNotes = legacyEntry.data;
+    }
+  }
+  const initialPlan: string | undefined =
+    planEntry && typeof planEntry.data === "string" ? planEntry.data : undefined;
+  const initialRefs: string[] =
+    refsEntry && Array.isArray(refsEntry.data)
+      ? (refsEntry.data as unknown[]).filter((x): x is string => typeof x === "string")
+      : [];
 
   // Internal adapter state
   const state: ClaudeSdkEventAdapterState = {
@@ -409,7 +432,13 @@ export async function createClaudeSdkSession(
     sessionIdPersisted: false,
     diagnosticSessionKey: params.sessionId,
     pendingCompactionReattachments: 0,
-    scratchpad: initialScratchpad,
+    notes: initialNotes,
+    plan: initialPlan,
+    refs: initialRefs,
+    turnCount: 0,
+    pendingPlanNudge: false,
+    pendingCompactionNudge: false,
+    lastScratchpadUseTurn: 0,
   };
 
   const clearTurnToolCorrelationState = (): void => {
@@ -426,13 +455,27 @@ export async function createClaudeSdkSession(
   const scratchpadEnabled = params.claudeSdkConfig?.scratchpad?.enabled !== false;
   const scratchpadTools: Array<(typeof hookTools)[number]> = [];
   if (scratchpadEnabled) {
-    const maxChars = params.claudeSdkConfig?.scratchpad?.maxChars ?? 8000;
     const scratchpadState: ScratchpadState = {
-      get scratchpad() {
-        return state.scratchpad;
+      get notes() {
+        return state.notes;
       },
-      set scratchpad(v) {
-        state.scratchpad = v;
+      set notes(v) {
+        state.notes = v;
+        state.lastScratchpadUseTurn = state.turnCount;
+      },
+      get plan() {
+        return state.plan;
+      },
+      set plan(v) {
+        state.plan = v;
+        state.lastScratchpadUseTurn = state.turnCount;
+      },
+      get refs() {
+        return state.refs;
+      },
+      set refs(v) {
+        state.refs = v;
+        state.lastScratchpadUseTurn = state.turnCount;
       },
       appendCustomEntry: (key, value) => {
         if (params.sessionManager?.appendCustomEntry) {
@@ -440,23 +483,49 @@ export async function createClaudeSdkSession(
         }
       },
     };
-    const tool = buildScratchpadTool({ state: scratchpadState, maxChars });
+    const tool = buildScratchpadTool({ state: scratchpadState });
     scratchpadTools.push(tool as never);
-    // Inject scratchpad section into system prompt so Claude knows it has this capability.
-    const scratchpadPromptSection = [
+    // Inject scratchpad guidance into system prompt so Claude knows the three-space API.
+    const scratchpadPromptLines = [
       "## Session Scratchpad",
-      "You have a persistent scratchpad tool (`session.scratchpad`) that survives context compaction.",
-      "The scratchpad is prepended to every message you receive — use it as your working memory.",
       "",
-      "**When to use it:**",
-      "- You formulate a multi-step plan → save it immediately",
-      "- You discover a key fact (error, root cause, config value) → append it",
-      "- You complete a plan step → replace with updated plan (mark step done)",
-      "- You sense you've lost context from earlier turns → reconstruct and save",
+      "`session.scratchpad` — call with `action` (required). All three spaces are prepended to every message, surviving compaction.",
       "",
-      "**Structure:** Keep it scannable — use `## Plan`, `## Findings`, `## Decisions` headers.",
-      `**Budget:** ~${maxChars} characters. Mode "replace" to overwrite, "append" to add. Summarize when approaching the limit.`,
-    ].join("\n");
+      "| Space | Limit | Use for |",
+      "|-------|-------|---------|",
+      "| notes | 4,000 chars | findings, decisions, constraints, partial state |",
+      "| plan  | 2,000 chars | ordered step list; update as work progresses |",
+      "| refs  | 50 items    | file paths, URLs, PR/issue links, identifiers |",
+      "",
+      "| action | params | budget enforcement |",
+      "|--------|--------|-------------------|",
+      "| `set_notes`    | `content` (str) | truncates to 4,000 with warning |",
+      "| `append_notes` | `content` (str) | rejected if combined > 4,000; notes unchanged — use set_notes to overwrite |",
+      "| `set_plan`     | `content` (str) | truncates to 2,000 with warning |",
+      "| `refs.add`     | `ref` (non-empty str) | drops oldest atomically when at 50 |",
+      "| `refs.remove`  | `ref` (non-empty str) | exact-match; returns error if not found |",
+      "| `refs.set`     | `items` (str[]) | caps to first 50; non-strings dropped silently |",
+      "",
+      "Trigger `set_plan` as soon as a multi-step plan forms. Use `append_notes` for discoveries; `set_notes` when notes are getting full or need restructuring. Add refs as you identify them; remove when done.",
+      "",
+      "Never store: full file contents, conversation history, speculation, or the user's original request.",
+    ];
+    const nudgeAfterTurnsVal = params.claudeSdkConfig?.scratchpad?.nudgeAfterTurns ?? 0;
+    const nudgeOnPlanVal = params.claudeSdkConfig?.scratchpad?.nudgeOnPlanDetected ?? 0;
+    const nudgeCompactionVal = params.claudeSdkConfig?.scratchpad?.nudgeAfterCompaction ?? 0;
+    const nudgeStaleVal = params.claudeSdkConfig?.scratchpad?.nudgeTurnsSinceLastUse ?? 0;
+    if (
+      nudgeAfterTurnsVal > 0 ||
+      nudgeOnPlanVal > 0 ||
+      nudgeCompactionVal > 0 ||
+      nudgeStaleVal > 0
+    ) {
+      scratchpadPromptLines.push("");
+      scratchpadPromptLines.push(
+        "**Auto-nudges enabled:** You may see `[Hint: ...]` reminders to use your scratchpad. Follow these hints — they are triggered by turn count, plan detection, context compaction, or stale content.",
+      );
+    }
+    const scratchpadPromptSection = scratchpadPromptLines.join("\n");
     state.systemPrompt = state.systemPrompt + "\n\n" + scratchpadPromptSection;
   }
 
@@ -500,6 +569,42 @@ export async function createClaudeSdkSession(
     });
   }
 
+  // Plan detection subscriber: watch assistant text for plan-like patterns.
+  const nudgeOnPlanDetected =
+    scratchpadEnabled && (params.claudeSdkConfig?.scratchpad?.nudgeOnPlanDetected ?? 0) > 0;
+  if (nudgeOnPlanDetected) {
+    let currentTurnText = "";
+    state.subscribers.push((evt) => {
+      const evtType = (evt as { type: string }).type;
+      if (evtType === "message_start") {
+        currentTurnText = "";
+      } else if (evtType === "message_update") {
+        const ame = (evt as { assistantMessageEvent?: { type?: string; delta?: string } })
+          .assistantMessageEvent;
+        if (ame?.type === "text_delta" && ame.delta) {
+          currentTurnText += ame.delta;
+        }
+      } else if (evtType === "message_end") {
+        const hasContent = !!state.notes || !!state.plan || state.refs.length > 0;
+        if (!hasContent && currentTurnText.length > 0 && detectPlanPatterns(currentTurnText)) {
+          state.pendingPlanNudge = true;
+        }
+        currentTurnText = "";
+      }
+    });
+  }
+
+  // Compaction nudge subscriber: set flag after compaction completes.
+  const nudgeAfterCompaction =
+    scratchpadEnabled && (params.claudeSdkConfig?.scratchpad?.nudgeAfterCompaction ?? 0) > 0;
+  if (nudgeAfterCompaction) {
+    state.subscribers.push((evt) => {
+      if ((evt as { type: string }).type === "auto_compaction_end") {
+        state.pendingCompactionNudge = true;
+      }
+    });
+  }
+
   let lastSyncedTs = params.structuredContextInput?.anchor.ts;
   if (params.structuredContextInput?.thread) {
     const threadReplies = params.structuredContextInput.thread.replies;
@@ -525,6 +630,38 @@ export async function createClaudeSdkSession(
     async prompt(text, options) {
       if (state.streaming) {
         throw new Error("Claude SDK session already has an in-flight prompt");
+      }
+      state.turnCount += 1;
+
+      // --- Scratchpad auto-trigger nudges (inject into pendingSteer BEFORE draining) ---
+      if (scratchpadEnabled) {
+        const hasContent = !!state.notes || !!state.plan || state.refs.length > 0;
+        const nudgeAfterTurns = params.claudeSdkConfig?.scratchpad?.nudgeAfterTurns ?? 0;
+        if (nudgeAfterTurns > 0 && state.turnCount >= nudgeAfterTurns && !hasContent) {
+          state.pendingSteer.push(buildScratchpadNudge("turn-count", state.turnCount));
+        }
+        if (state.pendingPlanNudge) {
+          state.pendingPlanNudge = false;
+          if (!hasContent) {
+            state.pendingSteer.push(buildScratchpadNudge("plan-detected"));
+          }
+        }
+        if (state.pendingCompactionNudge) {
+          state.pendingCompactionNudge = false;
+          state.pendingSteer.push(buildScratchpadNudge("post-compaction"));
+        }
+        const nudgeTurnsSinceLastUse =
+          params.claudeSdkConfig?.scratchpad?.nudgeTurnsSinceLastUse ?? 0;
+        if (
+          nudgeTurnsSinceLastUse > 0 &&
+          hasContent &&
+          state.lastScratchpadUseTurn > 0 &&
+          state.turnCount - state.lastScratchpadUseTurn >= nudgeTurnsSinceLastUse
+        ) {
+          state.pendingSteer.push(
+            buildScratchpadNudge("stale-scratchpad", state.turnCount - state.lastScratchpadUseTurn),
+          );
+        }
       }
 
       if (
@@ -609,10 +746,35 @@ export async function createClaudeSdkSession(
       effectivePrompt = steerText ? `${steerText}\n\n${effectivePrompt}` : effectivePrompt;
       const persistedUserContent = buildPersistedUserContent(effectivePrompt, promptImages);
 
-      // Prepend scratchpad for SDK only (not persisted to JSONL)
+      // Prepend scratchpad for SDK only (not persisted to JSONL).
+      // Only include sections that have content; omit the block entirely if all empty.
       let sdkPrompt = effectivePrompt;
-      if (state.scratchpad) {
-        sdkPrompt = `[Session Scratchpad - your persistent working memory]\n${state.scratchpad}\n[End Scratchpad]\n\n${sdkPrompt}`;
+      const hasNotes = !!state.notes;
+      const hasPlan = !!state.plan;
+      const hasRefs = state.refs.length > 0;
+      if (hasNotes || hasPlan || hasRefs) {
+        const parts: string[] = ["[Session Scratchpad]"];
+        if (hasNotes) {
+          parts.push(state.notes as string);
+        }
+        if (hasPlan) {
+          if (hasNotes) {
+            parts.push("");
+          }
+          parts.push("Plan:");
+          parts.push(state.plan as string);
+        }
+        if (hasRefs) {
+          if (hasNotes || hasPlan) {
+            parts.push("");
+          }
+          parts.push("References:");
+          for (const ref of state.refs) {
+            parts.push(`• ${ref}`);
+          }
+        }
+        parts.push("[End Scratchpad]");
+        sdkPrompt = `${parts.join("\n")}\n\n${sdkPrompt}`;
       }
       const claudePromptInput = buildClaudePromptInput(sdkPrompt, promptImages);
 

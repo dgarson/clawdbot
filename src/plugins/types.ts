@@ -655,6 +655,8 @@ export type PluginHookBeforeSessionCreateEvent = {
   structuredContextInput?: StructuredContextInput;
   platform?: string;
   channelId?: string;
+  sessionKey?: string;
+  diagnosticsEnabled?: boolean;
 };
 
 export type PluginHookBeforeSessionCreateResult = {

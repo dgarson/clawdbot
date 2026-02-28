@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildThreadContext } from "./thread-context.js";
+import { buildThreadContext, buildThreadContextWithTelemetry } from "./thread-context.js";
 import type { StructuredContextInput } from "./types.js";
 
 const baseThread: NonNullable<StructuredContextInput["thread"]> = {
@@ -96,5 +96,25 @@ describe("buildThreadContext", () => {
         expect(reply.text.endsWith("…")).toBe(true);
       }
     }
+  });
+
+  it("reports budget utilization telemetry", () => {
+    const longText = "x".repeat(600); // ~150 tokens each
+    const manyReplies = Array.from({ length: 20 }, (_, i) => ({
+      messageId: `r${i}`,
+      ts: `${1000 + i}`,
+      authorId: "U1",
+      authorName: "Alice",
+      authorIsBot: false,
+      text: longText,
+      files: undefined,
+    }));
+    const thread = { ...baseThread, replies: manyReplies, totalReplyCount: 20 };
+    const result = buildThreadContextWithTelemetry(thread, 1000);
+    expect(result.threadContext).toBeTruthy();
+    expect(result.budgetUtilization).toBeDefined();
+    expect(result.budgetUtilization?.threadBudgetTokens).toBe(1000);
+    expect(result.budgetUtilization?.actualTokens).toBeLessThanOrEqual(1000);
+    expect(result.budgetUtilization?.messagesTruncated).toBeGreaterThan(0);
   });
 });

@@ -12,6 +12,7 @@ import { resolveHeartbeatPrompt } from "../../../auto-reply/heartbeat.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
 import type { OpenClawConfig } from "../../../config/config.js";
 import type { ClaudeSdkConfig } from "../../../config/zod-schema.agent-runtime.js";
+import { isDiagnosticsEnabled } from "../../../infra/diagnostic-events.js";
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
 import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
@@ -78,7 +79,7 @@ import {
   resolveSkillsPromptForRun,
 } from "../../skills.js";
 import { buildSystemPromptParams } from "../../system-prompt-params.js";
-import { buildSystemPromptReport } from "../../system-prompt-report.js";
+import { buildSectionStats, buildSystemPromptReport } from "../../system-prompt-report.js";
 import { sanitizeToolCallIdsForCloudCodeAssist } from "../../tool-call-id.js";
 import { resolveEffectiveToolFsWorkspaceOnly } from "../../tool-fs-policy.js";
 import { resolveTranscriptPolicy } from "../../transcript-policy.js";
@@ -636,6 +637,14 @@ export async function runEmbeddedAttempt(
       skillsPrompt,
       tools,
     });
+    if (isDiagnosticsEnabled(params.config)) {
+      const sectionStats = buildSectionStats(appendPrompt);
+      const formatted = Object.entries(sectionStats)
+        .toSorted((a, b) => b[1] - a[1])
+        .map(([name, chars]) => `  ${name}: ${chars}`)
+        .join("\n");
+      log.debug(`system-prompt sections (chars):\n${formatted}`);
+    }
     const systemPromptOverride = createSystemPromptOverride(appendPrompt);
     let systemPromptText = systemPromptOverride();
 

@@ -8,8 +8,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
-import { SCRATCHPAD_ENTRY_KEY } from "../../../extensions/scratchpad/scratchpad-tool.js";
 import { resetGlobalHookRunner } from "../../plugins/hook-runner-global.js";
+import { SCRATCHPAD_ENTRY_KEY, SCRATCHPAD_NOTES_KEY } from "./scratchpad/scratchpad-tool.js";
 import type { ClaudeSdkSessionParams } from "./types.js";
 
 // ---------------------------------------------------------------------------
@@ -331,6 +331,206 @@ describe("scratchpad integration", () => {
       const sdkPrompt = queryMock.mock.calls[0][0].prompt;
       const promptText = typeof sdkPrompt === "string" ? sdkPrompt : JSON.stringify(sdkPrompt);
       expect(promptText).not.toContain("[Session Scratchpad");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Auto-trigger nudge tests
+  // -------------------------------------------------------------------------
+
+  describe("auto-trigger nudges", () => {
+    describe("turn-count nudge", () => {
+      it("injects nudge after configured number of turns when scratchpad is empty", async () => {
+        const queryMock = await importQuery();
+        queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+        const createSession = await importCreateSession();
+        const session = await createSession(
+          makeParams({
+            claudeSdkConfig: { scratchpad: { nudgeAfterTurns: 3 } },
+          }),
+        );
+
+        // Turns 1 and 2: no nudge
+        await session.prompt("turn 1");
+        await session.prompt("turn 2");
+        for (let i = 0; i < 2; i++) {
+          const p = queryMock.mock.calls[i][0].prompt;
+          const t = typeof p === "string" ? p : JSON.stringify(p);
+          expect(t).not.toContain("[Hint:");
+        }
+
+        // Turn 3: should have nudge
+        await session.prompt("turn 3");
+        const sdkPrompt = queryMock.mock.calls[2][0].prompt;
+        const promptText = typeof sdkPrompt === "string" ? sdkPrompt : JSON.stringify(sdkPrompt);
+        expect(promptText).toContain("[Hint:");
+        expect(promptText).toContain("scratchpad");
+      });
+
+      it("does not inject nudge when scratchpad has content", async () => {
+        const queryMock = await importQuery();
+        queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+        const createSession = await importCreateSession();
+        const session = await createSession(
+          makeParams({
+            claudeSdkConfig: { scratchpad: { nudgeAfterTurns: 1 } },
+            sessionManager: {
+              appendMessage: vi.fn(() => "msg-id"),
+              getEntries: () => [
+                { type: "custom", customType: SCRATCHPAD_NOTES_KEY, data: "existing notes" },
+              ],
+            },
+          }),
+        );
+
+        await session.prompt("turn 1");
+        const sdkPrompt = queryMock.mock.calls[0][0].prompt;
+        const promptText = typeof sdkPrompt === "string" ? sdkPrompt : JSON.stringify(sdkPrompt);
+        expect(promptText).not.toContain("[Hint:");
+      });
+
+      it("does not inject nudge when nudgeAfterTurns is 0", async () => {
+        const queryMock = await importQuery();
+        queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+        const createSession = await importCreateSession();
+        const session = await createSession(
+          makeParams({
+            claudeSdkConfig: { scratchpad: { nudgeAfterTurns: 0 } },
+          }),
+        );
+
+        for (let i = 0; i < 10; i++) {
+          await session.prompt(`turn ${i + 1}`);
+        }
+
+        for (const call of queryMock.mock.calls) {
+          const p = call[0].prompt;
+          const t = typeof p === "string" ? p : JSON.stringify(p);
+          expect(t).not.toContain("[Hint:");
+        }
+      });
+
+      it("does not inject nudge when nudgeAfterTurns is not set", async () => {
+        const queryMock = await importQuery();
+        queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+        const createSession = await importCreateSession();
+        const session = await createSession(makeParams());
+
+        for (let i = 0; i < 5; i++) {
+          await session.prompt(`turn ${i + 1}`);
+        }
+
+        for (const call of queryMock.mock.calls) {
+          const p = call[0].prompt;
+          const t = typeof p === "string" ? p : JSON.stringify(p);
+          expect(t).not.toContain("[Hint:");
+        }
+      });
+    });
+
+    describe("post-compaction nudge", () => {
+      it("injects nudge after compaction when enabled", async () => {
+        const queryMock = await importQuery();
+        const compactionMessages = [
+          { type: "system", subtype: "init", session_id: "sess_1" },
+          {
+            type: "system",
+            subtype: "compact_boundary",
+            session_id: "sess_1",
+            compact_metadata: { trigger: "auto", pre_tokens: 50000 },
+          },
+          {
+            type: "assistant",
+            message: { role: "assistant", content: [{ type: "text", text: "Compacted!" }] },
+          },
+          { type: "result", subtype: "success", result: "Compacted!" },
+        ];
+        queryMock
+          .mockImplementationOnce(() => makeMockQueryGen(compactionMessages)())
+          .mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+        const createSession = await importCreateSession();
+        const session = await createSession(
+          makeParams({
+            claudeSdkConfig: { scratchpad: { nudgeAfterCompaction: 1 } },
+          }),
+        );
+
+        await session.prompt("first");
+        await session.prompt("second");
+        const sdkPrompt = queryMock.mock.calls[1][0].prompt;
+        const promptText = typeof sdkPrompt === "string" ? sdkPrompt : JSON.stringify(sdkPrompt);
+        expect(promptText).toContain("[Hint:");
+        expect(promptText).toContain("compact");
+      });
+
+      it("does not inject nudge when nudgeAfterCompaction is 0", async () => {
+        const queryMock = await importQuery();
+        const compactionMessages = [
+          { type: "system", subtype: "init", session_id: "sess_1" },
+          {
+            type: "system",
+            subtype: "compact_boundary",
+            session_id: "sess_1",
+            compact_metadata: { trigger: "auto", pre_tokens: 50000 },
+          },
+          {
+            type: "assistant",
+            message: { role: "assistant", content: [{ type: "text", text: "Compacted!" }] },
+          },
+          { type: "result", subtype: "success", result: "Compacted!" },
+        ];
+        queryMock
+          .mockImplementationOnce(() => makeMockQueryGen(compactionMessages)())
+          .mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+        const createSession = await importCreateSession();
+        const session = await createSession(
+          makeParams({
+            claudeSdkConfig: { scratchpad: { nudgeAfterCompaction: 0 } },
+          }),
+        );
+
+        await session.prompt("first");
+        await session.prompt("second");
+        const sdkPrompt = queryMock.mock.calls[1][0].prompt;
+        const promptText = typeof sdkPrompt === "string" ? sdkPrompt : JSON.stringify(sdkPrompt);
+        expect(promptText).not.toContain("[Hint:");
+      });
+    });
+
+    describe("system prompt auto-nudge notice", () => {
+      it("includes auto-nudge notice in system prompt when triggers enabled", async () => {
+        const queryMock = await importQuery();
+        queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+        const createSession = await importCreateSession();
+        const session = await createSession(
+          makeParams({
+            claudeSdkConfig: { scratchpad: { nudgeAfterTurns: 5 } },
+          }),
+        );
+        await session.prompt("hello");
+
+        const callArgs = queryMock.mock.calls[0][0];
+        expect(callArgs.options.systemPrompt).toContain("Auto-nudges enabled");
+      });
+
+      it("does not include auto-nudge notice when no triggers enabled", async () => {
+        const queryMock = await importQuery();
+        queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+        const createSession = await importCreateSession();
+        const session = await createSession(makeParams());
+        await session.prompt("hello");
+
+        const callArgs = queryMock.mock.calls[0][0];
+        expect(callArgs.options.systemPrompt).not.toContain("Auto-nudges enabled");
+      });
     });
   });
 });

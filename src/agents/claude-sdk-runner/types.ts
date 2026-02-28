@@ -144,8 +144,24 @@ export type ClaudeSdkEventAdapterState = {
   transcriptProvider: string;
   transcriptApi: string;
   modelCost?: ModelCostConfig;
-  /** Current scratchpad content. Updated by session.scratchpad tool. */
-  scratchpad?: string;
+  /** Current notes space. Updated by session.scratchpad set_notes/append_notes. */
+  notes?: string;
+  /** Current plan space. Updated by session.scratchpad set_plan. */
+  plan?: string;
+  /** Current refs list. Updated by session.scratchpad refs.* actions. */
+  refs: string[];
+  /** Stable runtime session key for diagnostics event correlation. */
+  diagnosticSessionKey?: string;
+  /** Count of compaction-triggered thread attachments queued for the next turn. */
+  pendingCompactionReattachments: number;
+  /** Number of prompt() calls made on this session. Incremented at start of each prompt(). */
+  turnCount: number;
+  /** Set true when assistant produces plan-like content and scratchpad is empty. Cleared after nudge injected. */
+  pendingPlanNudge: boolean;
+  /** Set true after compaction event when nudgeAfterCompaction is enabled. Cleared after nudge injected. */
+  pendingCompactionNudge: boolean;
+  /** Turn number when session.scratchpad tool was last called. Used for stale-scratchpad nudge. */
+  lastScratchpadUseTurn: number;
 };
 
 // ---------------------------------------------------------------------------

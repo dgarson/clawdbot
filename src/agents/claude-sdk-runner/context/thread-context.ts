@@ -1,4 +1,4 @@
-import { applyThreadBudget, estimateTokens } from "./budget.js";
+import { applyThreadBudget, estimateTokens, THREAD_BUDGET_TOKENS } from "./budget.js";
 import type {
   Author,
   MediaRef,
@@ -31,18 +31,30 @@ function buildMediaRefs(
 
 const REPLY_TOKEN_BUDGET = 300;
 
-export function buildThreadContext(
+export type ThreadBudgetUtilization = {
+  threadBudgetTokens: number;
+  actualTokens: number;
+  messagesTruncated: number;
+};
+
+export function buildThreadContextWithTelemetry(
   thread: NonNullable<StructuredContextInput["thread"]> | null,
   budgetTokens?: number,
-): ThreadContext | null {
+): {
+  threadContext: ThreadContext | null;
+  budgetUtilization?: ThreadBudgetUtilization;
+} {
   if (!thread) {
-    return null;
+    return { threadContext: null };
   }
 
+  const threadBudgetTokens = budgetTokens ?? THREAD_BUDGET_TOKENS;
   const { included, truncation } = applyThreadBudget({
     replies: thread.replies,
-    budgetTokens,
+    budgetTokens: threadBudgetTokens,
   });
+  const actualTokens = included.reduce((sum, reply) => sum + estimateTokens(reply.text), 0);
+  const messagesTruncated = Math.max(0, thread.replies.length - included.length);
 
   const replies: ThreadReply[] = included.map((r) => {
     const tokens = estimateTokens(r.text);
@@ -59,23 +71,37 @@ export function buildThreadContext(
   });
 
   return {
-    schema_version: "1.0",
-    thread_id: thread.rootTs, // thread_id === root message ts (platform convention)
-    root: {
-      message_id: thread.rootMessageId,
-      ts: thread.rootTs,
-      author: buildAuthor({
-        authorId: thread.rootAuthorId,
-        authorName: thread.rootAuthorName,
-        authorIsBot: thread.rootAuthorIsBot,
-      }),
-      text: thread.rootText,
-      media: buildMediaRefs(thread.rootFiles),
+    threadContext: {
+      schema_version: "1.0",
+      thread_id: thread.rootTs, // thread_id === root message ts (platform convention)
+      root: {
+        message_id: thread.rootMessageId,
+        ts: thread.rootTs,
+        author: buildAuthor({
+          authorId: thread.rootAuthorId,
+          authorName: thread.rootAuthorName,
+          authorIsBot: thread.rootAuthorIsBot,
+        }),
+        text: thread.rootText,
+        media: buildMediaRefs(thread.rootFiles),
+      },
+      replies,
+      truncation: {
+        ...truncation,
+        total_replies: thread.totalReplyCount,
+      },
     },
-    replies,
-    truncation: {
-      ...truncation,
-      total_replies: thread.totalReplyCount,
+    budgetUtilization: {
+      threadBudgetTokens,
+      actualTokens,
+      messagesTruncated,
     },
   };
+}
+
+export function buildThreadContext(
+  thread: NonNullable<StructuredContextInput["thread"]> | null,
+  budgetTokens?: number,
+): ThreadContext | null {
+  return buildThreadContextWithTelemetry(thread, budgetTokens).threadContext;
 }
