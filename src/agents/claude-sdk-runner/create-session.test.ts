@@ -237,7 +237,12 @@ describe("session lifecycle — session creation and resume", () => {
     );
 
     const createSession = await importCreateSession();
-    const session = await createSession(makeParams({ systemPrompt: "Original prompt" }));
+    const session = await createSession(
+      makeParams({
+        systemPrompt: "Original prompt",
+        claudeSdkConfig: { scratchpad: { enabled: false } },
+      }),
+    );
 
     await session.prompt("First question");
     session.setSystemPrompt?.("Updated prompt");
@@ -1494,7 +1499,12 @@ describe("session lifecycle — structured context injection", () => {
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
 
     const createSession = await importCreateSession();
-    const session = await createSession(makeParams({ systemPrompt: "Base prompt." }));
+    const session = await createSession(
+      makeParams({
+        systemPrompt: "Base prompt.",
+        claudeSdkConfig: { scratchpad: { enabled: false } },
+      }),
+    );
 
     await session.prompt("Hello");
 
