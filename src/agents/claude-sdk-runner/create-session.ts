@@ -21,6 +21,11 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
+import {
+  buildScratchpadTool,
+  SCRATCHPAD_ENTRY_KEY,
+  type ScratchpadState,
+} from "../../../extensions/scratchpad/scratchpad-tool.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import {
@@ -340,6 +345,13 @@ export async function createClaudeSdkSession(
   const allEntries = params.sessionManager?.getEntries?.() ?? [];
   const manifest = loadManifestFromEntries(allEntries);
 
+  // Load scratchpad from session history (last openclaw:scratchpad entry).
+  const scratchpadEntry = [...allEntries]
+    .toReversed()
+    .find((e) => e.type === "custom" && e.customType === SCRATCHPAD_ENTRY_KEY);
+  const initialScratchpad =
+    scratchpadEntry && typeof scratchpadEntry.data === "string" ? scratchpadEntry.data : undefined;
+
   // Internal adapter state
   const state: ClaudeSdkEventAdapterState = {
     subscribers: [],
@@ -356,6 +368,7 @@ export async function createClaudeSdkSession(
     streamingMessageId: null,
     claudeSdkSessionId: params.claudeSdkResumeSessionId,
     sdkResultError: undefined,
+    sdkModelUsage: undefined,
     lastStderr: undefined,
     streamingBlockTypes: new Map(),
     streamingPartialMessage: null,
@@ -365,6 +378,7 @@ export async function createClaudeSdkSession(
     transcriptApi,
     modelCost: params.modelCost,
     sessionIdPersisted: false,
+    scratchpad: initialScratchpad,
   };
 
   const clearTurnToolCorrelationState = (): void => {
@@ -377,11 +391,42 @@ export async function createClaudeSdkSession(
     state.toolNameByUseId.clear();
   };
 
+  // Build scratchpad tool if enabled (default: on).
+  const scratchpadEnabled = params.claudeSdkConfig?.scratchpad?.enabled !== false;
+  const scratchpadTools: Array<(typeof hookTools)[number]> = [];
+  if (scratchpadEnabled) {
+    const maxTokens = params.claudeSdkConfig?.scratchpad?.maxTokens ?? 2000;
+    const scratchpadState: ScratchpadState = {
+      get scratchpad() {
+        return state.scratchpad;
+      },
+      set scratchpad(v) {
+        state.scratchpad = v;
+      },
+      appendCustomEntry: (key, value) => {
+        if (params.sessionManager?.appendCustomEntry) {
+          params.sessionManager.appendCustomEntry(key, value);
+        }
+      },
+    };
+    const tool = buildScratchpadTool({ state: scratchpadState, maxTokens });
+    scratchpadTools.push(tool as never);
+    // Inject scratchpad section into system prompt so Claude knows it has this capability.
+    const scratchpadPromptSection = [
+      "## Session Scratchpad",
+      "You have a persistent scratchpad tool (`session.scratchpad`) that survives context compaction.",
+      "Use it to save: multi-step plans, key findings, important decisions, accumulated state.",
+      "The scratchpad is prepended to each message you receive so you always see it.",
+      `Budget: ~${maxTokens} tokens. Call with mode "replace" to overwrite, or "append" to add incrementally.`,
+    ].join("\n");
+    state.systemPrompt = state.systemPrompt + "\n\n" + scratchpadPromptSection;
+  }
+
   // Build in-process MCP tool server from OpenClaw tools (already wrapped with
   // before_tool_call hooks, abort signal propagation, and loop detection upstream).
   // Hook-contributed tools (e.g. channel.context, channel.messages) are appended last
   // so they can't shadow user-provided tools.
-  const allTools = [...params.tools, ...params.customTools, ...hookTools];
+  const allTools = [...params.tools, ...params.customTools, ...hookTools, ...scratchpadTools];
 
   const toolServer = createClaudeSdkMcpToolServer({
     tools: allTools,
@@ -506,7 +551,13 @@ export async function createClaudeSdkSession(
 
       effectivePrompt = steerText ? `${steerText}\n\n${effectivePrompt}` : effectivePrompt;
       const persistedUserContent = buildPersistedUserContent(effectivePrompt, promptImages);
-      const claudePromptInput = buildClaudePromptInput(effectivePrompt, promptImages);
+
+      // Prepend scratchpad for SDK only (not persisted to JSONL)
+      let sdkPrompt = effectivePrompt;
+      if (state.scratchpad) {
+        sdkPrompt = `[Session Scratchpad - your persistent working memory]\n${state.scratchpad}\n[End Scratchpad]\n\n${sdkPrompt}`;
+      }
+      const claudePromptInput = buildClaudePromptInput(sdkPrompt, promptImages);
 
       state.streaming = true;
       state.abortController = new AbortController();
@@ -556,6 +607,24 @@ export async function createClaudeSdkSession(
         } finally {
           signal.removeEventListener("abort", onAbort);
         }
+
+        // After the query loop: log per-model cache/token usage when diagnostics enabled.
+        if (params.diagnosticsEnabled && state.sdkModelUsage) {
+          const promptChars = state.systemPrompt.length;
+          const usageLines = Object.entries(state.sdkModelUsage)
+            .map(([model, u]) => {
+              const parts = [
+                `model=${model}`,
+                `cacheWrite=${u.cacheCreationInputTokens ?? 0}`,
+                `cacheRead=${u.cacheReadInputTokens ?? 0}`,
+                `input=${u.inputTokens ?? 0}`,
+              ];
+              return `  ${parts.join(" ")}`;
+            })
+            .join("\n");
+          log.debug(`claude-sdk turn usage (system prompt ${promptChars} chars):\n${usageLines}`);
+        }
+        state.sdkModelUsage = undefined;
 
         // After the query loop: throw if the SDK returned an error result message.
         // translateSdkMessageToEvents() stores the error in state.sdkResultError
