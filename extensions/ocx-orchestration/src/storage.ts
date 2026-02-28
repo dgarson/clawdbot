@@ -26,9 +26,22 @@ async function writeJsonl<T>(filePath: string, records: T[]): Promise<void> {
   await fsp.mkdir(dir, { recursive: true });
   const content =
     records.map((r) => JSON.stringify(r)).join("\n") + (records.length > 0 ? "\n" : "");
-  const tmp = filePath + ".tmp." + process.pid;
+  // Use a random suffix to avoid collisions on rapid restarts (same PID reuse).
+  const tmp = filePath + ".tmp." + process.pid + "." + Math.random().toString(36).slice(2, 8);
   await fsp.writeFile(tmp, content, "utf8");
-  await fsp.rename(tmp, filePath);
+  try {
+    await fsp.rename(tmp, filePath);
+  } catch (err) {
+    // EXDEV: cross-device rename not supported (e.g. Docker with separate
+    // volume mounts). Fall back to a direct overwrite and clean up the tmp.
+    if ((err as NodeJS.ErrnoException).code === "EXDEV") {
+      await fsp.writeFile(filePath, content, "utf8");
+      await fsp.unlink(tmp).catch(() => undefined);
+    } else {
+      await fsp.unlink(tmp).catch(() => undefined);
+      throw err;
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

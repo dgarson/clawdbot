@@ -11,7 +11,7 @@ import type {
   OpenClawPluginApi,
   OpenClawPluginServiceContext,
 } from "openclaw/plugin-sdk";
-import { emitAgentEvent } from "openclaw/plugin-sdk";
+import { emitAgentEvent, onAgentEvent, type AgentEventPayload } from "openclaw/plugin-sdk";
 import { aggregateModelComparison } from "./src/comparison.js";
 import { resolveEvaluationConfig } from "./src/config.js";
 import { createEvaluationService, type EvaluatorDeps, type PendingRun } from "./src/evaluator.js";
@@ -33,6 +33,23 @@ export default function register(api: OpenClawPluginApi) {
   // Pending runs collected via hooks (until event ledger is available)
   const pendingRuns = new Map<string, Partial<PendingRun>>();
   const completedUnscored: PendingRun[] = [];
+
+  // -------------------------------------------------------------------------
+  // Cross-plugin event bus: receive classification labels from routing-policy
+  // -------------------------------------------------------------------------
+  //
+  // ocx-routing-policy emits { family: "model", type: "model.classification",
+  // label } via emitAgentEvent during before_model_resolve (before llm_input).
+  // We pre-populate the pending run so agent_end never falls back to "general"
+  // when routing-policy is active.
+
+  const unsubClassification = onAgentEvent((evt: AgentEventPayload) => {
+    if (evt.data["family"] !== "model" || evt.data["type"] !== "model.classification") return;
+    if (typeof evt.data["label"] !== "string") return;
+    const existing = pendingRuns.get(evt.runId) ?? {};
+    existing.classificationLabel = evt.data["label"] as string;
+    pendingRuns.set(evt.runId, existing);
+  });
 
   // -------------------------------------------------------------------------
   // Hooks: collect run data from agent lifecycle events
@@ -200,6 +217,23 @@ export default function register(api: OpenClawPluginApi) {
         logger.info(`evaluation: purged ${purged} expired scorecard file(s)`);
       }
 
+      // Warn if any configured judge profiles require an LLM invocation, since
+      // the LLM judge is not yet wired to provider infrastructure. Operators
+      // configuring "llm" or "hybrid" profiles would otherwise receive low-
+      // confidence fallback scores silently.
+      const nonHeuristicProfiles = judgeStore
+        .list()
+        .filter((p) => p.method === "llm" || p.method === "hybrid");
+      if (nonHeuristicProfiles.length > 0) {
+        logger.warn(
+          `evaluation: ${nonHeuristicProfiles.length} judge profile(s) use method "llm" or "hybrid" ` +
+            `(${nonHeuristicProfiles.map((p) => p.id).join(", ")}), ` +
+            `but LLM judge invocation is not yet wired to provider infrastructure. ` +
+            `These profiles will return low-confidence fallback scores. ` +
+            `Use method "heuristic" for reliable scoring until LLM invocation is available.`,
+        );
+      }
+
       const inner = createEvaluationService(deps);
       await inner.start(ctx);
 
@@ -207,6 +241,9 @@ export default function register(api: OpenClawPluginApi) {
       (this as Record<string, unknown>)._innerStop = inner.stop;
     },
     async stop(ctx) {
+      // Unsubscribe from the cross-plugin event bus
+      unsubClassification();
+
       const innerStop = (this as Record<string, unknown>)._innerStop as
         | ((ctx: OpenClawPluginServiceContext) => Promise<void>)
         | undefined;

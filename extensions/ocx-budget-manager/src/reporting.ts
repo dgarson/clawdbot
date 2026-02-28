@@ -36,7 +36,7 @@ export function registerReportingMethods(
         return;
       }
 
-      const usage = ledger.getCurrentUsage(allocation);
+      const usage = await ledger.getCurrentUsage(allocation);
       respond(true, { usage, allocation });
     },
   );
@@ -152,7 +152,7 @@ export function registerReportingMethods(
         return;
       }
 
-      const usage = ledger.getCurrentUsage(allocation);
+      const usage = await ledger.getCurrentUsage(allocation);
       const windowStart = new Date(usage.windowStart);
       const windowEnd = new Date(usage.windowEnd);
       const elapsed = Date.now() - windowStart.getTime();

@@ -9,13 +9,13 @@ import type { AdmissionDecision } from "./types.js";
  * Evaluate admission for an agent run by checking all applicable budget scopes
  * bottom-up (agent -> team -> org -> system).
  */
-function evaluateAdmission(
+async function evaluateAdmission(
   agentId: string,
   scopeResolver: ScopeResolver,
   ledger: Ledger,
   config: BudgetManagerConfig,
   sessionKey?: string,
-): AdmissionDecision {
+): Promise<AdmissionDecision> {
   const allocations = scopeResolver.resolveScopes(agentId, sessionKey);
 
   // In read-only mode, always allow
@@ -24,7 +24,7 @@ function evaluateAdmission(
   }
 
   for (const allocation of allocations) {
-    const usage = ledger.getCurrentUsage(allocation);
+    const usage = await ledger.getCurrentUsage(allocation);
 
     // Check if any dimension has hit or exceeded 100%
     const maxUtilization = Math.max(0, ...Object.values(usage.utilizationPct));
@@ -107,10 +107,10 @@ export function registerAdmissionHook(
   // Model-stage routing can only perform degradations (model override).
   api.on(
     "before_model_resolve",
-    (event, ctx) => {
+    async (event, ctx) => {
       const agentId = ctx.agentId ?? "default";
       const sessionKey = ctx.sessionKey;
-      const admission = evaluateAdmission(agentId, scopeResolver, ledger, config, sessionKey);
+      const admission = await evaluateAdmission(agentId, scopeResolver, ledger, config, sessionKey);
 
       if (admission.decision === "degrade") {
         api.logger.info(
@@ -129,9 +129,15 @@ export function registerAdmissionHook(
   // Run-stage gating performs deterministic hard blocks.
   api.on(
     "before_agent_run",
-    (event, ctx) => {
+    async (event, ctx) => {
       const agentId = ctx.agentId ?? event.agentId ?? "default";
-      const admission = evaluateAdmission(agentId, scopeResolver, ledger, config, ctx.sessionKey);
+      const admission = await evaluateAdmission(
+        agentId,
+        scopeResolver,
+        ledger,
+        config,
+        ctx.sessionKey,
+      );
       emitAdmissionEvent({ runId: ctx.runId, agentId, admission });
 
       if (admission.decision !== "block") {

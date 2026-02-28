@@ -80,7 +80,10 @@ vi.mock("openclaw/plugin-sdk", () => ({
 const { registerAdmissionHook } = await import("./admission.js");
 
 describe("admission", () => {
-  let hookHandler: (event: Record<string, unknown>, ctx: Record<string, unknown>) => unknown;
+  let hookHandler: (
+    event: Record<string, unknown>,
+    ctx: Record<string, unknown>,
+  ) => Promise<unknown>;
 
   function setup(
     allocations: BudgetAllocation[],
@@ -111,63 +114,143 @@ describe("admission", () => {
     vi.clearAllMocks();
   });
 
-  it("allows when under budget", () => {
+  it("allows when under budget", async () => {
     const alloc = makeAllocation();
     const usageMap = new Map([["agent:test-agent", { utilizationPct: { costUsd: 0.3 } }]]);
 
     setup([alloc], usageMap, "hard");
 
-    const result = hookHandler({ prompt: "hello" }, { agentId: "test-agent" });
+    const result = await hookHandler({ prompt: "hello" }, { agentId: "test-agent" });
     // Allow returns undefined (no model override)
     expect(result).toBeUndefined();
   });
 
-  it("returns degrade decision when soft limit hit with degradeModel", () => {
+  it("returns degrade decision when soft limit hit with degradeModel", async () => {
     const alloc = makeAllocation({ breachAction: "degrade", degradeModel: "gpt-4.1-mini" });
     const usageMap = new Map([["agent:test-agent", { utilizationPct: { costUsd: 1.05 } }]]);
 
     setup([alloc], usageMap, "hard");
 
-    const result = hookHandler({ prompt: "hello" }, { agentId: "test-agent" }) as {
+    const result = (await hookHandler({ prompt: "hello" }, { agentId: "test-agent" })) as {
       modelOverride?: string;
     };
     expect(result).toBeDefined();
     expect(result.modelOverride).toBe("gpt-4.1-mini");
   });
 
-  it("returns block decision when hard limit hit", () => {
+  it("defers hard block to before_agent_run — before_model_resolve returns undefined", async () => {
     const alloc = makeAllocation({ breachAction: "block" });
     const usageMap = new Map([["agent:test-agent", { utilizationPct: { costUsd: 1.2 } }]]);
 
     setup([alloc], usageMap, "hard");
 
-    const result = hookHandler({ prompt: "hello" }, { agentId: "test-agent" }) as {
-      modelOverride?: string;
-    };
-    expect(result).toBeDefined();
-    expect(result.modelOverride).toContain("__budget_blocked__");
+    // PluginHookBeforeModelResolveResult has no reject field — the hook type
+    // is structurally incapable of rejecting a run. Block decisions are passed
+    // through here and hard-rejected in before_agent_run instead.
+    const result = await hookHandler({ prompt: "hello" }, { agentId: "test-agent" });
+    expect(result).toBeUndefined();
   });
 
-  it("always allows in read-only mode regardless of utilization", () => {
+  it("always allows in read-only mode regardless of utilization", async () => {
     const alloc = makeAllocation({ breachAction: "block" });
     const usageMap = new Map([["agent:test-agent", { utilizationPct: { costUsd: 5.0 } }]]);
 
     setup([alloc], usageMap, "read-only");
 
-    const result = hookHandler({ prompt: "hello" }, { agentId: "test-agent" });
+    const result = await hookHandler({ prompt: "hello" }, { agentId: "test-agent" });
     expect(result).toBeUndefined();
   });
 
-  it("degrades instead of blocking in soft enforcement mode with degradeModel", () => {
+  it("degrades instead of blocking in soft enforcement mode with degradeModel", async () => {
     const alloc = makeAllocation({ breachAction: "block", degradeModel: "gpt-4.1-nano" });
     const usageMap = new Map([["agent:test-agent", { utilizationPct: { costUsd: 1.5 } }]]);
 
     setup([alloc], usageMap, "soft");
 
-    const result = hookHandler({ prompt: "hello" }, { agentId: "test-agent" }) as {
+    const result = (await hookHandler({ prompt: "hello" }, { agentId: "test-agent" })) as {
       modelOverride?: string;
     };
     expect(result).toBeDefined();
     expect(result.modelOverride).toBe("gpt-4.1-nano");
+  });
+
+  // ---------------------------------------------------------------------------
+  // before_agent_run — the only hook that can hard-reject a run
+  // ---------------------------------------------------------------------------
+
+  describe("before_agent_run", () => {
+    type HookFn = (
+      event: Record<string, unknown>,
+      ctx: Record<string, unknown>,
+    ) => Promise<unknown>;
+
+    function setupAgentRun(
+      allocations: BudgetAllocation[],
+      usageByScope: Map<string, { utilizationPct: Record<string, number> }>,
+      enforcement: "read-only" | "soft" | "hard" = "hard",
+    ): { agentRunHandler: HookFn } {
+      const api = createMockApi();
+      const scopeResolver = createMockScopeResolver(allocations);
+      const ledger = createMockLedger(usageByScope);
+      const config = {
+        enforcement,
+        defaultWindow: "daily" as const,
+        priceTableFile: "price-table.json",
+        alertDelivery: "broadcast" as const,
+        alertWebhookUrl: "",
+        hierarchyFile: "budget-hierarchy.json",
+      };
+
+      registerAdmissionHook(api as never, scopeResolver as never, ledger as never, config);
+
+      // before_agent_run is the second hook registered (index 1)
+      const agentRunCall = api.on.mock.calls[1];
+      expect(agentRunCall[0]).toBe("before_agent_run");
+      return { agentRunHandler: agentRunCall[1] as HookFn };
+    }
+
+    it("hard-blocks run and returns reject with user-facing scope message", async () => {
+      const alloc = makeAllocation({ breachAction: "block" });
+      const usageMap = new Map([["agent:test-agent", { utilizationPct: { costUsd: 1.2 } }]]);
+
+      const { agentRunHandler } = setupAgentRun([alloc], usageMap, "hard");
+
+      const result = (await agentRunHandler(
+        { agentId: "test-agent" },
+        { agentId: "test-agent", runId: "run-block-1" },
+      )) as { reject?: boolean; rejectReason?: string; rejectUserMessage?: string };
+
+      expect(result.reject).toBe(true);
+      expect(result.rejectReason).toContain("agent/test-agent");
+      expect(result.rejectUserMessage).toContain("agent/test-agent");
+    });
+
+    it("does not reject for degrade decision — degrade is handled by before_model_resolve", async () => {
+      const alloc = makeAllocation({ breachAction: "degrade", degradeModel: "gpt-4.1-mini" });
+      const usageMap = new Map([["agent:test-agent", { utilizationPct: { costUsd: 1.2 } }]]);
+
+      const { agentRunHandler } = setupAgentRun([alloc], usageMap, "hard");
+
+      const result = await agentRunHandler(
+        { agentId: "test-agent" },
+        { agentId: "test-agent", runId: "run-degrade-1" },
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it("does not reject in read-only mode regardless of utilization", async () => {
+      const alloc = makeAllocation({ breachAction: "block" });
+      const usageMap = new Map([["agent:test-agent", { utilizationPct: { costUsd: 5.0 } }]]);
+
+      const { agentRunHandler } = setupAgentRun([alloc], usageMap, "read-only");
+
+      const result = await agentRunHandler(
+        { agentId: "test-agent" },
+        { agentId: "test-agent", runId: "run-readonly-1" },
+      );
+
+      expect(result).toBeUndefined();
+    });
   });
 });

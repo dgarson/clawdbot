@@ -16,7 +16,7 @@ export function registerMidRunGuardHook(
   ledger: Ledger,
   config: BudgetManagerConfig,
 ): void {
-  api.on("before_tool_call", (_event, ctx) => {
+  api.on("before_tool_call", async (_event, ctx) => {
     // Only enforce mid-run guards in hard mode
     if (config.enforcement !== "hard") return;
 
@@ -28,7 +28,7 @@ export function registerMidRunGuardHook(
       // Mid-run guard only applies to scopes with "block" breach action
       if (allocation.breachAction !== "block") continue;
 
-      const usage = ledger.getCurrentUsage(allocation);
+      const usage = await ledger.getCurrentUsage(allocation);
       const maxUtilization = Math.max(0, ...Object.values(usage.utilizationPct));
 
       if (maxUtilization >= HARD_BLOCK_THRESHOLD) {

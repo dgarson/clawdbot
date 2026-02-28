@@ -27,11 +27,20 @@ import {
   savePolicies,
 } from "./src/policy-store.js";
 import { buildPromptContext, composePrompt } from "./src/prompt-pipeline.js";
-import type { ClassifierInput, PromptContributor, RoutingPolicy } from "./src/types.js";
+import type {
+  ClassificationResult,
+  ClassifierInput,
+  PromptContributor,
+  RoutingPolicy,
+} from "./src/types.js";
 
 export default function register(api: OpenClawPluginApi) {
   const config = resolveConfig(api.pluginConfig as Record<string, unknown> | undefined);
   const stateDir = api.runtime.state.resolveStateDir();
+
+  // Cache classification results per runId so before_prompt_build can reuse
+  // the result computed in before_model_resolve without a second classify() call.
+  const classificationCache = new Map<string, ClassificationResult>();
 
   const policyFilePath = join(stateDir, config.policyFile);
   const contributorsFilePath = join(stateDir, config.contributorsFile);
@@ -49,11 +58,13 @@ export default function register(api: OpenClawPluginApi) {
       return;
     }
 
-    // Classify the prompt
+    // Classify the prompt and cache the result for before_prompt_build
     const classification = await classify({ text: event.prompt } satisfies ClassifierInput, config);
+    const cacheKey = ctx.runId ?? ctx.sessionKey ?? "unknown";
+    classificationCache.set(cacheKey, classification);
 
     emitAgentEvent({
-      runId: ctx.runId ?? ctx.sessionKey ?? "unknown",
+      runId: cacheKey,
       stream: "lifecycle",
       data: {
         family: "model",
@@ -70,7 +81,7 @@ export default function register(api: OpenClawPluginApi) {
     const result = buildModelRouteResult(policy, config);
 
     emitAgentEvent({
-      runId: ctx.runId ?? ctx.sessionKey ?? "unknown",
+      runId: cacheKey,
       stream: "lifecycle",
       data: {
         family: "model",
@@ -101,12 +112,17 @@ export default function register(api: OpenClawPluginApi) {
       return;
     }
 
-    const classificationLabel = await classify(
-      { text: event.prompt } satisfies ClassifierInput,
-      config,
-    )
-      .then((result) => result.label)
-      .catch(() => undefined);
+    // Reuse the classification computed in before_model_resolve; fall back to a
+    // fresh classify() only if the hook fired without a preceding model-resolve
+    // (e.g. when no routing policies are configured).
+    const cacheKey = ctx.runId ?? ctx.sessionKey ?? "unknown";
+    const cached = classificationCache.get(cacheKey);
+    classificationCache.delete(cacheKey); // consumed — clean up regardless of path
+    const classificationLabel = cached
+      ? cached.label
+      : await classify({ text: event.prompt } satisfies ClassifierInput, config)
+          .then((result) => result.label)
+          .catch(() => undefined);
     const sessionType = (() => {
       const sessionKey = ctx.sessionKey ?? "";
       if (sessionKey.includes(":subagent:")) return "subagent";
@@ -138,6 +154,15 @@ export default function register(api: OpenClawPluginApi) {
       );
       return { systemPrompt: composed };
     }
+  });
+
+  // -------------------------------------------------------------------------
+  // Hook: agent_end — evict any leftover cache entries (runs that were blocked
+  // before before_prompt_build fired, e.g. rejected in before_agent_run).
+  // -------------------------------------------------------------------------
+  api.on("agent_end", (_event, ctx) => {
+    const cacheKey = ctx.runId ?? ctx.sessionKey;
+    if (cacheKey) classificationCache.delete(cacheKey);
   });
 
   // -------------------------------------------------------------------------

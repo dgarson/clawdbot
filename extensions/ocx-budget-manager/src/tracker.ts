@@ -60,7 +60,7 @@ export function registerTrackerHook(
       await ledger.accumulateUsage(allocation, usage);
 
       // Check alert thresholds after accumulation
-      const currentUsage = ledger.getCurrentUsage(allocation);
+      const currentUsage = await ledger.getCurrentUsage(allocation);
       const alerts = checkAlerts(allocation, currentUsage, api.logger);
 
       if (alerts.length > 0) {

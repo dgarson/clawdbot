@@ -108,6 +108,10 @@ export class Ledger {
   private counters = new Map<string, UsageCounter>();
   private stateDir: string;
   private logger: Logger;
+  /** Tracks which (scope, window-period) keys have been rebuilt from JSONL history. */
+  private initializedCounterKeys = new Set<string>();
+  /** Deduplicates concurrent initialization requests for the same key. */
+  private initInflight = new Map<string, Promise<void>>();
 
   constructor(stateDir: string, logger: Logger) {
     this.stateDir = stateDir;
@@ -115,10 +119,80 @@ export class Ledger {
   }
 
   /**
+   * Rebuild in-memory counter from JSONL history for a scope's current window.
+   * Called once per (scope, window-period) combination on first access after a restart.
+   */
+  private async rebuildFromHistory(allocation: BudgetAllocation): Promise<void> {
+    const { start, end } = computeWindowBounds(allocation.window);
+    const entries = await this.getHistoricalUsage(allocation.scope, start, end);
+    if (entries.length === 0) return;
+
+    const key = counterKey(allocation.scope, allocation.window);
+    const counter: UsageCounter = {
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 0,
+      estimatedCostUsd: 0,
+      runCount: 0,
+      runIds: new Set(),
+      windowStart: start,
+      windowEnd: end,
+    };
+
+    for (const entry of entries) {
+      counter.inputTokens += entry.inputTokens;
+      counter.outputTokens += entry.outputTokens;
+      counter.totalTokens += entry.totalTokens;
+      counter.estimatedCostUsd += entry.estimatedCostUsd;
+      if (entry.runId && !counter.runIds.has(entry.runId)) {
+        counter.runIds.add(entry.runId);
+      }
+    }
+    counter.runCount = counter.runIds.size;
+
+    this.counters.set(key, counter);
+    this.logger.info(
+      `budget-manager: rebuilt counter for ${allocation.scope.level}/${allocation.scope.id} ` +
+        `from ${entries.length} ledger entr${entries.length === 1 ? "y" : "ies"} — ` +
+        `${counter.totalTokens} tokens, $${counter.estimatedCostUsd.toFixed(6)} ` +
+        `across ${counter.runCount} run(s)`,
+    );
+  }
+
+  /**
+   * Ensure the in-memory counter for a scope has been initialized from JSONL history.
+   * No-op for rolling windows (boundary moves continuously; in-process accumulation suffices).
+   * Deduplicates concurrent initialization requests via an inflight promise map.
+   */
+  private async ensureInitialized(allocation: BudgetAllocation): Promise<void> {
+    // Rolling windows have a continuously moving boundary; skip pre-initialization.
+    if (allocation.window.kind === "rolling") return;
+
+    const key = counterKey(allocation.scope, allocation.window);
+    if (this.initializedCounterKeys.has(key)) return;
+
+    const inflight = this.initInflight.get(key);
+    if (inflight) {
+      await inflight;
+      return;
+    }
+
+    const promise = this.rebuildFromHistory(allocation);
+    this.initInflight.set(key, promise);
+    try {
+      await promise;
+      this.initializedCounterKeys.add(key);
+    } finally {
+      this.initInflight.delete(key);
+    }
+  }
+
+  /**
    * Accumulate a usage increment into a scope's current window counter.
    * Also appends the entry to the JSONL ledger on disk.
    */
   async accumulateUsage(allocation: BudgetAllocation, usage: UsageIncrement): Promise<void> {
+    await this.ensureInitialized(allocation);
     const key = counterKey(allocation.scope, allocation.window);
     let counter = this.counters.get(key);
 
@@ -155,7 +229,8 @@ export class Ledger {
   }
 
   /** Get current usage for a scope and window. */
-  getCurrentUsage(allocation: BudgetAllocation): BudgetUsage {
+  async getCurrentUsage(allocation: BudgetAllocation): Promise<BudgetUsage> {
+    await this.ensureInitialized(allocation);
     const key = counterKey(allocation.scope, allocation.window);
     const counter = this.counters.get(key);
     const { start, end } = computeWindowBounds(allocation.window);
