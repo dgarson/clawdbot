@@ -26,6 +26,7 @@ import {
   SCRATCHPAD_ENTRY_KEY,
   type ScratchpadState,
 } from "../../../extensions/scratchpad/scratchpad-tool.js";
+import { emitDiagnosticEvent } from "../../infra/diagnostic-events.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import {
@@ -326,6 +327,8 @@ export async function createClaudeSdkSession(
     structuredContextInput: params.structuredContextInput,
     platform: params.structuredContextInput?.platform,
     channelId: params.structuredContextInput?.channelId,
+    sessionKey: params.sessionId,
+    diagnosticsEnabled: params.diagnosticsEnabled,
   };
   const runner = getGlobalHookRunner();
   const hookContrib = runner
@@ -378,6 +381,8 @@ export async function createClaudeSdkSession(
     transcriptApi,
     modelCost: params.modelCost,
     sessionIdPersisted: false,
+    diagnosticSessionKey: params.sessionId,
+    pendingCompactionReattachments: 0,
     scratchpad: initialScratchpad,
   };
 
@@ -412,12 +417,20 @@ export async function createClaudeSdkSession(
     const tool = buildScratchpadTool({ state: scratchpadState, maxTokens });
     scratchpadTools.push(tool as never);
     // Inject scratchpad section into system prompt so Claude knows it has this capability.
+    const maxChars = maxTokens * 4;
     const scratchpadPromptSection = [
       "## Session Scratchpad",
       "You have a persistent scratchpad tool (`session.scratchpad`) that survives context compaction.",
-      "Use it to save: multi-step plans, key findings, important decisions, accumulated state.",
-      "The scratchpad is prepended to each message you receive so you always see it.",
-      `Budget: ~${maxTokens} tokens. Call with mode "replace" to overwrite, or "append" to add incrementally.`,
+      "The scratchpad is prepended to every message you receive — use it as your working memory.",
+      "",
+      "**When to use it:**",
+      "- You formulate a multi-step plan → save it immediately",
+      "- You discover a key fact (error, root cause, config value) → append it",
+      "- You complete a plan step → replace with updated plan (mark step done)",
+      "- You sense you've lost context from earlier turns → reconstruct and save",
+      "",
+      "**Structure:** Keep it scannable — use `## Plan`, `## Findings`, `## Decisions` headers.",
+      `**Budget:** ~${maxChars} characters. Mode "replace" to overwrite, "append" to add. Summarize when approaching the limit.`,
     ].join("\n");
     state.systemPrompt = state.systemPrompt + "\n\n" + scratchpadPromptSection;
   }
@@ -453,6 +466,7 @@ export async function createClaudeSdkSession(
       if ((evt as { type: string }).type === "auto_compaction_start") {
         const threadAttachments = getThreadAttachments(manifest, threadId);
         if (threadAttachments.length > 0) {
+          state.pendingCompactionReattachments += threadAttachments.length;
           state.pendingSteer.push(
             `[Post-compaction context recovery: re-attaching ${threadAttachments.length} media item(s) from this thread: ${threadAttachments.map((a) => a.display_name).join(", ")}]`,
           );
@@ -515,8 +529,13 @@ export async function createClaudeSdkSession(
       // Drain any pending steer text by prepending to the current prompt
       let steerText = state.pendingSteer.splice(0).join("\n");
       let effectivePrompt = text;
+      const reattachedAfterCompaction = state.pendingCompactionReattachments;
+      state.pendingCompactionReattachments = 0;
 
       let promptImages = normalizePromptImages(options?.images as RuntimePromptImage[] | undefined);
+      const attachmentsTotal = promptImages.length;
+      let deduplicated = 0;
+      let totalMediaBytes = 0;
 
       // Deduplicate images using attachment manifest
       if (promptImages.length > 0) {
@@ -531,6 +550,7 @@ export async function createClaudeSdkSession(
             alreadyAttached.push(artifactId);
           } else {
             newImages.push(img);
+            totalMediaBytes += img.data.length;
             recordAttachment(manifest, {
               artifactId,
               displayName: `Attached Image (${img.mimeType})`,
@@ -543,10 +563,22 @@ export async function createClaudeSdkSession(
           }
         }
         promptImages = newImages;
+        deduplicated = alreadyAttached.length;
         if (alreadyAttached.length > 0) {
           const prefix = steerText ? "\n" : "";
           steerText += `${prefix}[Note: ${alreadyAttached.length} image(s) omitted because they were already attached in previous turns.]`;
         }
+      }
+
+      if (params.diagnosticsEnabled) {
+        emitDiagnosticEvent({
+          type: "session.attachments",
+          sessionKey: state.diagnosticSessionKey,
+          attachmentsTotal,
+          deduplicated,
+          reattachedAfterCompaction,
+          totalMediaBytes,
+        });
       }
 
       effectivePrompt = steerText ? `${steerText}\n\n${effectivePrompt}` : effectivePrompt;
