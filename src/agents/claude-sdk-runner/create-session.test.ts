@@ -1992,4 +1992,24 @@ describe("session lifecycle — before_session_create hook", () => {
 
     expect(emitted).toHaveLength(0);
   });
+
+  it("createCoreHookRunner fallback: injects channel context when no global hook runner is initialized", async () => {
+    // Reset so no global runner is present; createClaudeSdkSession must use createCoreHookRunner.
+    resetGlobalHookRunner();
+
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        systemPrompt: "Base prompt.",
+        structuredContextInput: makeStructuredContextInput(),
+      }),
+    );
+    await session.prompt("Hello");
+
+    const systemPrompt = queryMock.mock.calls[0][0].options?.systemPrompt as string;
+    expect(systemPrompt).toContain("Base prompt.");
+    expect(systemPrompt).toContain("### Channel Context");
+  });
 });

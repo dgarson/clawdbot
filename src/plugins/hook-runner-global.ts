@@ -15,6 +15,7 @@ import type {
   PluginHookBeforeSessionCreateEvent,
   PluginHookGatewayContext,
   PluginHookGatewayStopEvent,
+  PluginHookRegistration,
 } from "./types.js";
 
 const log = createSubsystemLogger("plugins");
@@ -112,7 +113,7 @@ export function createCoreHookRunner(): HookRunner {
       coreSessionContextSubscriber(event),
     priority: 1000,
     source: "core",
-  });
+  } satisfies PluginHookRegistration<"before_session_create">);
   return createHookRunner(registry, {
     logger: {
       debug: (msg) => log.debug(msg),

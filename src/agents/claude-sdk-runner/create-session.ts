@@ -333,8 +333,8 @@ export async function createClaudeSdkSession(
 
   // Fire before_session_create hook: collect system prompt sections and tools from
   // all registered subscribers (built-in core subscriber + plugin subscribers).
-  // When the global hook runner is nil (e.g. in tests), fall back to calling the
-  // core subscriber directly so channel/thread context injection still works.
+  // Falls back to a core-only HookRunner containing just the built-in
+  // coreSessionContextSubscriber when the global hook runner hasn't been initialized.
   const hookEvent = {
     systemPrompt: params.systemPrompt,
     structuredContextInput: params.structuredContextInput,

@@ -33,9 +33,10 @@ import type {
   OpenClawPluginDefinition,
   OpenClawPluginModule,
   PluginDiagnostic,
+  PluginHookAgentContext,
   PluginHookBeforeSessionCreateEvent,
   PluginHookMessageContextBuildEvent,
-  PluginHookAgentContext,
+  PluginHookRegistration,
   PluginLogger,
 } from "./types.js";
 
@@ -731,7 +732,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
       coreSessionContextSubscriber(event),
     priority: 1000,
     source: "core",
-  });
+  } satisfies PluginHookRegistration<"before_session_create">);
   // Register the built-in channel tools factory so channel.context and channel.messages
   // arrive via resolvePluginTools() → params.customTools rather than the hook system.
   // The factory reads ctx.structuredContextInput; absent for Pi sessions → returns [].
@@ -765,7 +766,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
     },
     priority: 500,
     source: "core",
-  });
+  } satisfies PluginHookRegistration<"message_context_build">);
   initializeGlobalHookRunner(registry);
   return registry;
 }
