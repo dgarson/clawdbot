@@ -189,5 +189,6 @@ export async function prepareClaudeSdkSession(
     claudeSdkConfig,
     resolvedProviderAuth,
     structuredContextInput: params.structuredContextInput,
+    diagnosticsEnabled: params.config?.diagnostics?.enabled === true,
   });
 }

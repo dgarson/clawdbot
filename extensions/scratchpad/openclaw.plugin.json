@@ -1,0 +1,9 @@
+{
+  "id": "scratchpad",
+  "kind": "agent",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
