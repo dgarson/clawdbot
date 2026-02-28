@@ -9,6 +9,7 @@ import type { AnyAgentTool } from "./tools/common.js";
 export type HookContext = {
   agentId?: string;
   sessionKey?: string;
+  runId?: string;
   loopDetection?: ToolLoopDetectionConfig;
 };
 
@@ -148,6 +149,7 @@ export async function runBeforeToolCallHook(args: {
         toolName,
         agentId: args.ctx?.agentId,
         sessionKey: args.ctx?.sessionKey,
+        runId: args.ctx?.runId,
       },
     );
 
@@ -167,6 +169,10 @@ export async function runBeforeToolCallHook(args: {
   } catch (err) {
     const toolCallId = args.toolCallId ? ` toolCallId=${args.toolCallId}` : "";
     log.warn(`before_tool_call hook failed: tool=${toolName}${toolCallId} error=${String(err)}`);
+    return {
+      blocked: true,
+      reason: "Tool call blocked because policy enforcement failed.",
+    };
   }
 
   return { blocked: false, params };
