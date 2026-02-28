@@ -9,12 +9,16 @@ export type AgentEventPayload = {
   ts: number;
   data: Record<string, unknown>;
   sessionKey?: string;
+  traceId?: string;
+  spanId?: string;
+  lineageId?: string;
 };
 
 export type AgentRunContext = {
   sessionKey?: string;
   verboseLevel?: VerboseLevel;
   isHeartbeat?: boolean;
+  lineageId?: string;
 };
 
 // Keep per-run counters so streams stay strictly monotonic per runId.
@@ -65,6 +69,7 @@ export function emitAgentEvent(event: Omit<AgentEventPayload, "seq" | "ts">) {
   const enriched: AgentEventPayload = {
     ...event,
     sessionKey,
+    lineageId: event.lineageId ?? context?.lineageId,
     seq: nextSeq,
     ts: Date.now(),
   };

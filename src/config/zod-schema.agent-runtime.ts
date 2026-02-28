@@ -26,7 +26,6 @@ export const HeartbeatSchema = z
     session: z.string().optional(),
     includeReasoning: z.boolean().optional(),
     target: z.string().optional(),
-    directPolicy: z.union([z.literal("allow"), z.literal("block")]).optional(),
     to: z.string().optional(),
     accountId: z.string().optional(),
     prompt: z.string().optional(),
@@ -704,6 +703,12 @@ export const AgentEntrySchema = z
       .optional(),
     sandbox: AgentSandboxSchema,
     tools: AgentToolsSchema,
+    /**
+     * Free-form plugin-defined metadata for this agent.
+     * Core ignores this field; plugins use it for team membership, role,
+     * budget groups, escalation paths, capability tags, etc.
+     */
+    metadata: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 
