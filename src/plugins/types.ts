@@ -2,6 +2,8 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { Command } from "commander";
 import type { AuthProfileCredential, OAuthCredential } from "../agents/auth-profiles/types.js";
+import type { StructuredContextInput } from "../agents/claude-sdk-runner/context/types.js";
+import type { ClaudeSdkCompatibleTool } from "../agents/claude-sdk-runner/types.js";
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import type { ChannelDock } from "../channels/dock.js";
@@ -76,6 +78,8 @@ export type OpenClawPluginToolContext = {
   messageChannel?: string;
   agentAccountId?: string;
   sandboxed?: boolean;
+  /** Per-message structured context (Slack/channel sessions). Absent for Pi sessions. */
+  structuredContextInput?: StructuredContextInput;
 };
 
 export type OpenClawPluginToolFactory = (
@@ -365,7 +369,9 @@ export type PluginHookName =
   | "subagent_spawned"
   | "subagent_ended"
   | "gateway_start"
-  | "gateway_stop";
+  | "gateway_stop"
+  | "before_session_create"
+  | "message_context_build";
 
 // Agent context shared across agent hooks
 export type PluginHookAgentContext = {
@@ -788,6 +794,47 @@ export type PluginHookSubagentEndedEvent = {
   error?: string;
 };
 
+// before_session_create hook — fires in createClaudeSdkSession() before the session state
+// object is built. Subscribers contribute system prompt sections and tools that are
+// accumulated across all subscribers and merged into the final session configuration.
+export type PluginHookBeforeSessionCreateEvent = {
+  systemPrompt: string;
+  /** Channel context built during message prepare (via message_context_build hook).
+   *  Read-only at this stage — subscribers should consume this, not rebuild it. */
+  structuredContextInput?: StructuredContextInput;
+  platform?: string;
+  channelId?: string;
+  sessionKey?: string;
+  diagnosticsEnabled?: boolean;
+};
+
+export type PluginHookBeforeSessionCreateResult = {
+  /** Sections appended to the system prompt, joined with "\n\n" in registration order. */
+  systemPromptSections?: string[];
+  /** Tools injected into the session alongside the standard channel/agent tools. */
+  tools?: ClaudeSdkCompatibleTool[];
+};
+
+// message_context_build hook — fires during channel message prepare to let subscribers
+// contribute StructuredContextInput without touching channel prepare code.
+// Semantics: first subscriber to return a non-null structuredContext wins ("claim" pattern).
+export type PluginHookMessageContextBuildEvent = {
+  /** Platform identifier, e.g. "slack" | "discord" | "telegram" */
+  platform: string;
+  channelId: string;
+  channelType: "direct" | "group" | "unknown";
+  /** The anchor message's ts identifier */
+  anchorTs: string;
+  /** thread_ts when the anchor is a thread reply, null otherwise */
+  threadTs: string | null;
+  /** Platform-specific resolved data; cast to your platform's shape in the subscriber */
+  resolvedData: unknown;
+};
+
+export type PluginHookMessageContextBuildResult = {
+  structuredContext?: StructuredContextInput;
+};
+
 // Gateway context
 export type PluginHookGatewayContext = {
   port?: number;
@@ -940,6 +987,20 @@ export type PluginHookHandlerMap = {
     event: PluginHookGatewayStopEvent,
     ctx: PluginHookGatewayContext,
   ) => Promise<void> | void;
+  before_session_create: (
+    event: PluginHookBeforeSessionCreateEvent,
+    ctx: PluginHookAgentContext,
+  ) =>
+    | Promise<PluginHookBeforeSessionCreateResult | void>
+    | PluginHookBeforeSessionCreateResult
+    | void;
+  message_context_build: (
+    event: PluginHookMessageContextBuildEvent,
+    ctx: Record<string, never>,
+  ) =>
+    | Promise<PluginHookMessageContextBuildResult | void>
+    | PluginHookMessageContextBuildResult
+    | void;
 };
 
 export type PluginHookRegistration<K extends PluginHookName = PluginHookName> = {

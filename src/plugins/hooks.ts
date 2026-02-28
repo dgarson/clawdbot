@@ -22,6 +22,10 @@ import type {
   PluginHookBeforePromptBuildEvent,
   PluginHookBeforePromptBuildResult,
   PluginHookBeforeCompactionEvent,
+  PluginHookBeforeSessionCreateEvent,
+  PluginHookBeforeSessionCreateResult,
+  PluginHookMessageContextBuildEvent,
+  PluginHookMessageContextBuildResult,
   PluginHookLlmInputEvent,
   PluginHookLlmOutputEvent,
   PluginHookBeforeResetEvent,
@@ -77,6 +81,8 @@ export type {
   PluginHookBeforeCompactionEvent,
   PluginHookBeforeResetEvent,
   PluginHookAfterCompactionEvent,
+  PluginHookBeforeSessionCreateEvent,
+  PluginHookBeforeSessionCreateResult,
   PluginHookMessageContext,
   PluginHookMessageReceivedEvent,
   PluginHookMessageSendingEvent,
@@ -107,6 +113,8 @@ export type {
   PluginHookGatewayContext,
   PluginHookGatewayStartEvent,
   PluginHookGatewayStopEvent,
+  PluginHookMessageContextBuildEvent,
+  PluginHookMessageContextBuildResult,
 };
 
 export type HookRunnerLogger = {
@@ -291,6 +299,10 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
           } else {
             result = handlerResult;
           }
+        } else {
+          logger?.debug?.(
+            `[hooks] ${hookName} handler from ${hook.pluginId} returned ${handlerResult === null ? "null" : "undefined"}`,
+          );
         }
       } catch (err) {
         handleHookError({ hookName, pluginId: hook.pluginId, error: err });
@@ -769,6 +781,30 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
   // =========================================================================
 
   /**
+   * Run before_session_create hook.
+   * Fired in createClaudeSdkSession() before the session state object is built.
+   * Each subscriber may contribute systemPromptSections and tools; results are
+   * accumulated (not replaced) across all subscribers in priority order.
+   */
+  async function runBeforeSessionCreate(
+    event: PluginHookBeforeSessionCreateEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<PluginHookBeforeSessionCreateResult | undefined> {
+    return runModifyingHook<"before_session_create", PluginHookBeforeSessionCreateResult>(
+      "before_session_create",
+      event,
+      ctx,
+      (acc, next) => ({
+        systemPromptSections: [
+          ...(acc?.systemPromptSections ?? []),
+          ...(next.systemPromptSections ?? []),
+        ],
+        tools: [...(acc?.tools ?? []), ...(next.tools ?? [])],
+      }),
+    );
+  }
+
+  /**
    * Run session_start hook.
    * Runs in parallel (fire-and-forget).
    */
@@ -845,6 +881,28 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
   }
 
   // =========================================================================
+  // Channel Context Hooks
+  // =========================================================================
+
+  /**
+   * Run message_context_build hook.
+   * Fires during channel message prepare so subscribers can contribute StructuredContextInput.
+   * Uses "claim" semantics: first subscriber that returns a non-null structuredContext wins.
+   */
+  async function runMessageContextBuild(
+    event: PluginHookMessageContextBuildEvent,
+  ): Promise<PluginHookMessageContextBuildResult | undefined> {
+    return runModifyingHook<"message_context_build", PluginHookMessageContextBuildResult>(
+      "message_context_build",
+      event,
+      // Empty context — all relevant info is in the event itself
+      {} as Record<string, never>,
+      // First subscriber to return a structuredContext wins; ignore later ones.
+      (acc, _next) => acc ?? _next,
+    );
+  }
+
+  // =========================================================================
   // Gateway Hooks
   // =========================================================================
 
@@ -913,6 +971,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     // Message write hooks
     runBeforeMessageWrite,
     // Session hooks
+    runBeforeSessionCreate,
     runSessionStart,
     runSessionEnd,
     runBeforeSubagentSpawn,
@@ -920,6 +979,8 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     runSubagentDeliveryTarget,
     runSubagentSpawned,
     runSubagentEnded,
+    // Channel context hooks
+    runMessageContextBuild,
     // Gateway hooks
     runGatewayStart,
     runGatewayStop,

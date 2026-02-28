@@ -5,10 +5,18 @@
  * and can be called from anywhere in the codebase.
  */
 
+import { coreSessionContextSubscriber } from "../agents/claude-sdk-runner/context/session-context-subscriber.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { createHookRunner, type HookRunner } from "./hooks.js";
+import { createEmptyPluginRegistry } from "./registry.js";
 import type { PluginRegistry } from "./registry.js";
-import type { PluginHookGatewayContext, PluginHookGatewayStopEvent } from "./types.js";
+import type {
+  PluginHookAgentContext,
+  PluginHookBeforeSessionCreateEvent,
+  PluginHookGatewayContext,
+  PluginHookGatewayStopEvent,
+  PluginHookRegistration,
+} from "./types.js";
 
 const log = createSubsystemLogger("plugins");
 
@@ -85,4 +93,33 @@ export async function runGlobalGatewayStopSafely(params: {
 export function resetGlobalHookRunner(): void {
   globalHookRunner = null;
   globalRegistry = null;
+}
+
+/**
+ * Creates a minimal HookRunner containing only the built-in core subscribers.
+ *
+ * Used as a fallback in createClaudeSdkSession() when the global hook runner
+ * hasn't been initialized (e.g. isolated unit tests that don't load plugins).
+ * This ensures the before_session_create code path is identical in both
+ * production (full runner) and test environments (core-only runner), which
+ * prevents coverage gaps from a direct-call fallback.
+ */
+export function createCoreHookRunner(): HookRunner {
+  const registry = createEmptyPluginRegistry();
+  registry.typedHooks.push({
+    pluginId: "openclaw-core",
+    hookName: "before_session_create",
+    handler: (event: PluginHookBeforeSessionCreateEvent, _ctx: PluginHookAgentContext) =>
+      coreSessionContextSubscriber(event),
+    priority: 1000,
+    source: "core",
+  } satisfies PluginHookRegistration<"before_session_create">);
+  return createHookRunner(registry, {
+    logger: {
+      debug: (msg) => log.debug(msg),
+      warn: (msg) => log.warn(msg),
+      error: (msg) => log.error(msg),
+    },
+    catchErrors: true,
+  });
 }

@@ -117,6 +117,34 @@ function extractToolListText(systemPrompt: string): string {
   return extracted.text.replace(markerA, "").trim();
 }
 
+/**
+ * Parse a built system prompt into per-section character counts.
+ * Sections are delimited by Markdown headings (`## Name` or `# Name`).
+ * Characters that appear before the first heading are attributed to "(preamble)".
+ */
+export function buildSectionStats(systemPrompt: string): Record<string, number> {
+  const stats: Record<string, number> = {};
+  const lines = systemPrompt.split("\n");
+  let currentSection = "(preamble)";
+  let currentChars = 0;
+  for (const line of lines) {
+    const heading = /^(#{1,2}) (.+)/.exec(line);
+    if (heading) {
+      if (currentChars > 0) {
+        stats[currentSection] = (stats[currentSection] ?? 0) + currentChars;
+      }
+      currentSection = heading[2].trim();
+      currentChars = line.length + 1; // +1 for the newline
+    } else {
+      currentChars += line.length + 1;
+    }
+  }
+  if (currentChars > 0) {
+    stats[currentSection] = (stats[currentSection] ?? 0) + currentChars;
+  }
+  return stats;
+}
+
 export function buildSystemPromptReport(params: {
   source: SessionSystemPromptReport["source"];
   generatedAt: number;

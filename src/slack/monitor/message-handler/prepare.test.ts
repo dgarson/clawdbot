@@ -2,9 +2,14 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { App } from "@slack/bolt";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { expectInboundContextContract } from "../../../../test/helpers/inbound-contract.js";
 import type { OpenClawConfig } from "../../../config/config.js";
+import {
+  initializeGlobalHookRunner,
+  resetGlobalHookRunner,
+} from "../../../plugins/hook-runner-global.js";
+import { createMockPluginRegistry } from "../../../plugins/hooks.test-helpers.js";
 import { resolveAgentRoute } from "../../../routing/resolve-route.js";
 import { resolveThreadSessionKeys } from "../../../routing/session-key.js";
 import type { RuntimeEnv } from "../../../runtime.js";
@@ -607,6 +612,99 @@ describe("slack prepareSlackMessage inbound contract", () => {
     expect(prepared!.ctxPayload.Body).toMatch(/\[slack message id: 1\.000 channel: D123\]$/);
     expect(prepared!.ctxPayload.Body).not.toContain("thread_ts");
     expect(prepared!.ctxPayload.Body).not.toContain("parent_user_id");
+  });
+
+  // ---------------------------------------------------------------------------
+  // message_context_build hook firing
+  // ---------------------------------------------------------------------------
+
+  describe("message_context_build hook", () => {
+    afterEach(() => {
+      resetGlobalHookRunner();
+    });
+
+    it("uses StructuredContext returned by hook subscriber", async () => {
+      const fixedSc = {
+        platform: "slack",
+        channelId: "D123",
+        channelName: "#dm",
+        anchor: {
+          messageId: "1.0",
+          ts: "1.0",
+          authorId: "U1",
+          authorName: "Alice",
+          authorIsBot: false,
+          text: "hi",
+          threadId: null,
+        },
+        adjacentMessages: [],
+        thread: null,
+      };
+      const handler = vi.fn().mockReturnValue({ structuredContext: fixedSc });
+      initializeGlobalHookRunner(
+        createMockPluginRegistry([{ hookName: "message_context_build", handler }]),
+      );
+
+      const prepared = await prepareWithDefaultCtx(createSlackMessage({ text: "hi" }));
+
+      expect(prepared).toBeTruthy();
+      expect(prepared!.ctxPayload.StructuredContext).toBe(fixedSc);
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ platform: "slack", channelId: "D123" }),
+        expect.any(Object),
+      );
+    });
+
+    it("fires hook with correct channelType for DMs", async () => {
+      const handler = vi.fn().mockReturnValue({ structuredContext: null });
+      initializeGlobalHookRunner(
+        createMockPluginRegistry([{ hookName: "message_context_build", handler }]),
+      );
+
+      await prepareWithDefaultCtx(createSlackMessage({ channel: "D123", channel_type: "im" }));
+
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ channelType: "direct", platform: "slack" }),
+        expect.any(Object),
+      );
+    });
+
+    it("fires hook with resolvedData containing Slack-specific fields", async () => {
+      const handler = vi.fn().mockReturnValue(undefined);
+      initializeGlobalHookRunner(
+        createMockPluginRegistry([{ hookName: "message_context_build", handler }]),
+      );
+
+      await prepareWithDefaultCtx(createSlackMessage({ text: "test msg", ts: "5.000" }));
+
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          platform: "slack",
+          anchorTs: "5.000",
+          resolvedData: expect.objectContaining({
+            rawBody: "test msg",
+            senderName: "Alice",
+          }),
+        }),
+        expect.any(Object),
+      );
+    });
+
+    it("returns null structuredContext when hook subscriber does not claim", async () => {
+      // Handler returns void (no structuredContext) — no fallback, structuredContext is null
+      const handler = vi.fn().mockReturnValue(undefined);
+      initializeGlobalHookRunner(
+        createMockPluginRegistry([{ hookName: "message_context_build", handler }]),
+      );
+
+      const prepared = await prepareWithDefaultCtx(
+        createSlackMessage({ text: "no-claim test", ts: "1700000000.000" }),
+      );
+
+      expect(prepared).toBeTruthy();
+      const sc = prepared!.ctxPayload.StructuredContext;
+      expect(sc).toBeNull();
+    });
   });
 });
 

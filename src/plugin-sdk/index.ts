@@ -435,6 +435,9 @@ export {
 } from "../infra/diagnostic-events.js";
 export type {
   DiagnosticEventPayload,
+  DiagnosticAttachmentEvent,
+  DiagnosticCompactionEvent,
+  DiagnosticHookProfileEvent,
   DiagnosticHeartbeatEvent,
   DiagnosticLaneDequeueEvent,
   DiagnosticLaneEnqueueEvent,

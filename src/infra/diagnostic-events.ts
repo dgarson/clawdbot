@@ -181,6 +181,43 @@ export type DiagnosticSessionScoreEvent = DiagnosticBaseEvent & {
   data?: Record<string, unknown>;
 };
 
+export type DiagnosticCompactionEvent = DiagnosticBaseEvent & {
+  type: "session.compaction";
+  sessionKey?: string;
+  preTokens?: number;
+  trigger?: "manual" | "auto";
+  willRetry: boolean;
+};
+
+export type DiagnosticAttachmentEvent = DiagnosticBaseEvent & {
+  type: "session.attachments";
+  sessionKey?: string;
+  attachmentsTotal: number;
+  deduplicated: number;
+  reattachedAfterCompaction: number;
+  totalMediaBytes: number;
+};
+
+export type DiagnosticHookProfileEvent = DiagnosticBaseEvent & {
+  type: "session.hook";
+  sessionKey?: string;
+  hook: "before_session_create";
+  hookDurationMs: number;
+  sectionsAdded: number;
+  sectionsTotalChars: number;
+  toolsAdded: number;
+};
+
+export type DiagnosticToolExecutionEvent = DiagnosticBaseEvent & {
+  type: "tool.execution";
+  toolName: string;
+  toolCallId: string;
+  durationMs: number;
+  resultChars: number;
+  truncated: boolean;
+  isError: boolean;
+};
+
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
   | DiagnosticWebhookReceivedEvent
@@ -196,7 +233,11 @@ export type DiagnosticEventPayload =
   | DiagnosticHeartbeatEvent
   | DiagnosticToolLoopEvent
   | DiagnosticPluginEvent
-  | DiagnosticSessionScoreEvent;
+  | DiagnosticSessionScoreEvent
+  | DiagnosticCompactionEvent
+  | DiagnosticAttachmentEvent
+  | DiagnosticHookProfileEvent
+  | DiagnosticToolExecutionEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload

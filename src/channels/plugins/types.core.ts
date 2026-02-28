@@ -1,5 +1,6 @@
 import type { AgentTool, AgentToolResult } from "@mariozechner/pi-agent-core";
 import type { TSchema } from "@sinclair/typebox";
+import type { StructuredContextInput } from "../../agents/claude-sdk-runner/context/types.js";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { PollInput } from "../../polls.js";
@@ -287,6 +288,21 @@ export type ChannelMessagingAdapter = {
 export type ChannelAgentPromptAdapter = {
   messageToolHints?: (params: { cfg: OpenClawConfig; accountId?: string | null }) => string[];
 };
+
+/**
+ * Adapter that builds a StructuredContextInput from platform-specific resolved data.
+ *
+ * Extension channels declare this on their ChannelPlugin; it is auto-registered as a
+ * message_context_build hook subscriber during registerChannel(). Core dock channels
+ * (e.g. Slack) register their builder directly in loader.ts instead.
+ */
+export type ChannelContextBuilderAdapter = (params: {
+  resolvedData: unknown;
+  channelId: string;
+  channelType: "direct" | "group" | "unknown";
+  anchorTs: string;
+  threadTs: string | null;
+}) => StructuredContextInput | null | undefined;
 
 export type ChannelDirectoryEntryKind = "user" | "group" | "channel";
 

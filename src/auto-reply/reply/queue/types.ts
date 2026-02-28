@@ -1,4 +1,5 @@
 import type { ExecToolDefaults } from "../../../agents/bash-tools.js";
+import type { StructuredContextInput } from "../../../agents/claude-sdk-runner/context/types.js";
 import type { SkillSnapshot } from "../../../agents/skills.js";
 import type { OpenClawConfig } from "../../../config/config.js";
 import type { SessionEntry } from "../../../config/sessions.js";
@@ -79,6 +80,10 @@ export type FollowupRun = {
     ownerNumbers?: string[];
     extraSystemPrompt?: string;
     enforceFinalTag?: boolean;
+    /** Structured context for Claude SDK sessions (replaces flat string thread prefixes). */
+    structuredContextInput?: StructuredContextInput;
+    /** Unprefixed message text for SDK sessions when structuredContextInput is present. */
+    rawBodyForSdk?: string;
   };
 };
 

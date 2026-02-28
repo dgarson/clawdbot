@@ -4,6 +4,7 @@ import type { AgentModelConfig, AgentSandboxConfig } from "./types.agents-shared
 import type { HumanDelayConfig, IdentityConfig } from "./types.base.js";
 import type { GroupChatConfig } from "./types.messages.js";
 import type { AgentToolsConfig, MemorySearchConfig } from "./types.tools.js";
+import type { ClaudeSdkConfig } from "./zod-schema.agent-runtime.js";
 
 export type AgentConfig = {
   id: string;
@@ -38,6 +39,8 @@ export type AgentConfig = {
    * budget groups, escalation paths, capability tags, etc.
    */
   metadata?: Record<string, unknown>;
+  /** Claude SDK runtime config (false = disable even if set in defaults). */
+  claudeSdk?: ClaudeSdkConfig | false;
 };
 
 export type AgentsConfig = {

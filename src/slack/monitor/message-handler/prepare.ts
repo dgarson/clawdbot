@@ -27,6 +27,10 @@ import { recordInboundSession } from "../../../channels/session.js";
 import { readSessionUpdatedAt, resolveStorePath } from "../../../config/sessions.js";
 import { logVerbose, shouldLogVerbose } from "../../../globals.js";
 import { enqueueSystemEvent } from "../../../infra/system-events.js";
+import { createSubsystemLogger } from "../../../logging/subsystem.js";
+import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
+
+const log = createSubsystemLogger("slack/prepare");
 import { resolveAgentRoute } from "../../../routing/resolve-route.js";
 import { resolveThreadSessionKeys } from "../../../routing/session-key.js";
 import type { ResolvedSlackAccount } from "../../accounts.js";
@@ -47,7 +51,9 @@ import {
   resolveSlackThreadHistory,
   resolveSlackThreadStarter,
 } from "../media.js";
+import { cacheThreadReply } from "../media.thread-replies.js";
 import { resolveSlackRoomContextHints } from "../room-context.js";
+import type { SlackContextBuildData } from "./context-builder.js";
 import type { PreparedSlackMessage } from "./types.js";
 
 export async function prepareSlackMessage(params: {
@@ -476,6 +482,10 @@ export async function prepareSlackMessage(params: {
   let threadSessionPreviousTimestamp: number | undefined;
   let threadLabel: string | undefined;
   let threadStarterMedia: Awaited<ReturnType<typeof resolveSlackMedia>> = null;
+  // Hoisted for StructuredContextInput building after the thread block
+  let threadHistoryForCtx: Awaited<ReturnType<typeof resolveSlackThreadHistory>> = [];
+  let threadStarterForCtx: Awaited<ReturnType<typeof resolveSlackThreadStarter>> = null;
+  let threadUserMapForCtx = new Map<string, { name?: string }>();
   if (isThreadReply && threadTs) {
     const starter = await resolveSlackThreadStarter({
       channelId: message.channel,
@@ -560,8 +570,64 @@ export async function prepareSlackMessage(params: {
         logVerbose(
           `slack: populated thread history with ${threadHistory.length} messages for new session`,
         );
+        // Hoist for StructuredContextInput building below
+        threadHistoryForCtx = threadHistory;
+        threadUserMapForCtx = userMap;
+        // Cache for subsequent turns in the same thread (e.g., tool calls)
+        cacheThreadReply(message.channel, threadTs, threadHistory);
       }
     }
+    // Hoist starter for StructuredContextInput building below
+    threadStarterForCtx = starter;
+  }
+
+  // Build StructuredContextInput for Claude SDK sessions.
+  // Pi sessions still use the flat ThreadStarterBody/ThreadHistoryBody strings above.
+  const historyEntries =
+    isRoomish && ctx.historyLimit > 0 ? (ctx.channelHistories.get(historyKey) ?? []) : [];
+
+  const contextBuildData: SlackContextBuildData = {
+    message,
+    roomLabel,
+    senderId,
+    senderName,
+    isBotMessage,
+    rawBody,
+    isThreadReply,
+    threadTs: threadTs ?? null,
+    threadHistory: threadHistoryForCtx,
+    threadStarter: threadStarterForCtx,
+    threadUserMap: threadUserMapForCtx,
+    client: ctx.app.client,
+    adjacentMessages: historyEntries,
+    channelType: isDirectMessage ? "direct" : "group",
+  };
+
+  // Fire message_context_build hook — first subscriber that claims wins.
+  // The core Slack context builder is registered in loader.ts as a hook subscriber.
+  const contextBuildRunner = getGlobalHookRunner();
+  if (!contextBuildRunner) {
+    log.warn(
+      "message_context_build: hook runner not initialized; structured context will be skipped for this message",
+    );
+  }
+  const hookResult = await contextBuildRunner?.runMessageContextBuild({
+    platform: "slack",
+    channelId: message.channel,
+    channelType: isDirectMessage ? "direct" : "group",
+    anchorTs: message.ts ?? "",
+    threadTs: isThreadReply ? (threadTs ?? null) : null,
+    resolvedData: contextBuildData,
+  });
+  const structuredContext = hookResult?.structuredContext ?? null;
+  if (!structuredContext) {
+    log.warn(
+      `message_context_build returned no structuredContext for slack channel message channel=${message.channel}`,
+    );
+  } else {
+    log.debug(
+      `structuredContext built: adjacentMessages=${structuredContext.adjacentMessages?.length ?? 0} hasThread=${!!structuredContext.thread} channelType=${structuredContext.channelType} anchorTs=${structuredContext.anchor?.ts ?? "none"}`,
+    );
   }
 
   // Use direct media (including forwarded attachment media) if available, else thread starter media
@@ -603,6 +669,7 @@ export async function prepareSlackMessage(params: {
     ParentSessionKey: threadKeys.parentSessionKey,
     ThreadStarterBody: threadStarterBody,
     ThreadHistoryBody: threadHistoryBody,
+    StructuredContext: structuredContext,
     IsFirstThreadTurn:
       isThreadReply && threadTs && !threadSessionPreviousTimestamp ? true : undefined,
     ThreadLabel: threadLabel,

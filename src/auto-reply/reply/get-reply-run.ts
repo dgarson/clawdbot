@@ -16,6 +16,7 @@ import {
   updateSessionStore,
 } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { clearCommandLane, getQueueSize } from "../../process/command-queue.js";
 import { normalizeMainKey } from "../../routing/session-key.js";
 import { isReasoningTagProvider } from "../../utils/provider-utils.js";
@@ -49,6 +50,8 @@ import { resolveTypingMode } from "./typing-mode.js";
 import { resolveRunTypingPolicy } from "./typing-policy.js";
 import type { TypingController } from "./typing.js";
 import { appendUntrustedContext } from "./untrusted-context.js";
+
+const log = createSubsystemLogger("get-reply-run");
 
 type AgentDefaults = NonNullable<OpenClawConfig["agents"]>["defaults"];
 type ExecOverrides = Pick<ExecToolDefaults, "host" | "security" | "ask" | "node">;
@@ -339,11 +342,16 @@ export async function runPreparedReply(
   prefixedBodyBase = appendUntrustedContext(prefixedBodyBase, sessionCtx.UntrustedContext);
   const threadStarterBody = ctx.ThreadStarterBody?.trim();
   const threadHistoryBody = ctx.ThreadHistoryBody?.trim();
-  const threadContextNote = threadHistoryBody
-    ? `[Thread history - for context]\n${threadHistoryBody}`
-    : threadStarterBody
-      ? `[Thread starter - for context]\n${threadStarterBody}`
-      : undefined;
+  // When structured context is provided (SDK sessions), skip thread prefix —
+  // ChannelSnapshot + ThreadContext carry the thread data natively.
+  const threadContextNote =
+    ctx.StructuredContext != null
+      ? undefined
+      : threadHistoryBody
+        ? `[Thread history - for context]\n${threadHistoryBody}`
+        : threadStarterBody
+          ? `[Thread starter - for context]\n${threadStarterBody}`
+          : undefined;
   const skillResult = await ensureSkillSnapshot({
     sessionEntry,
     sessionStore,
@@ -454,6 +462,17 @@ export async function runPreparedReply(
     isNewSession,
   });
   const authProfileIdSource = sessionEntry?.authProfileOverrideSource;
+
+  // Diagnostic: trace structuredContextInput handoff to agent runner
+  log.debug(
+    `get-reply-run: structuredContextInput=${ctx.StructuredContext != null ? "present" : "absent"} sessionKey=${sessionKey}`,
+  );
+  if (ctx.StructuredContext == null && ctx.ChatType === "group") {
+    log.warn(
+      `get-reply-run: structuredContextInput absent for group/channel message sessionKey=${sessionKey}`,
+    );
+  }
+
   const followupRun = {
     prompt: queuedBody,
     messageId: sessionCtx.MessageSidFull ?? sessionCtx.MessageSid,
@@ -506,6 +525,11 @@ export async function runPreparedReply(
       ownerNumbers: command.ownerList.length > 0 ? command.ownerList : undefined,
       extraSystemPrompt: extraSystemPrompt || undefined,
       ...(isReasoningTagProvider(provider) ? { enforceFinalTag: true } : {}),
+      structuredContextInput: ctx.StructuredContext ?? undefined,
+      // Only set rawBodyForSdk for SDK sessions (where StructuredContext is present),
+      // so attempt.ts can use the unprefixed text without double-counting thread history.
+      rawBodyForSdk:
+        ctx.StructuredContext != null ? ctx.BodyForAgent?.trim() || undefined : undefined,
     },
   };
 

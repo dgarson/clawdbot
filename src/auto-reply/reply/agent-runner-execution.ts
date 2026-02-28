@@ -303,6 +303,8 @@ export async function runAgentTurnWithFallback(params: {
             ...runBaseParams,
             prompt: params.commandBody,
             extraSystemPrompt: params.followupRun.run.extraSystemPrompt,
+            structuredContextInput: params.followupRun.run.structuredContextInput,
+            rawBodyForSdk: params.followupRun.run.rawBodyForSdk,
             toolResultFormat: (() => {
               const channel = resolveMessageChannel(
                 params.sessionCtx.Surface,
