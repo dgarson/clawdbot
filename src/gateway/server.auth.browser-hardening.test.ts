@@ -117,6 +117,34 @@ describe("gateway auth browser hardening", () => {
     });
   });
 
+  test("rate-limits browser-origin auth failures on loopback with default limiter when config is unset", async () => {
+    testState.gatewayAuth = {
+      mode: "token",
+      token: "secret",
+    };
+    await withGatewayServer(async ({ port }) => {
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        const ws = await openWs(port, { origin: originForPort(port) });
+        try {
+          const res = await connectReq(ws, { token: "wrong" });
+          expect(res.ok).toBe(false);
+          expect(res.error?.message ?? "").not.toContain("retry later");
+        } finally {
+          ws.close();
+        }
+      }
+
+      const blockedWs = await openWs(port, { origin: originForPort(port) });
+      try {
+        const blocked = await connectReq(blockedWs, { token: "wrong" });
+        expect(blocked.ok).toBe(false);
+        expect(blocked.error?.message ?? "").toContain("retry later");
+      } finally {
+        blockedWs.close();
+      }
+    });
+  });
+
   test("does not silently auto-pair non-control-ui browser clients on loopback", async () => {
     const { listDevicePairing } = await import("../infra/device-pairing.js");
     testState.gatewayAuth = { mode: "token", token: "secret" };

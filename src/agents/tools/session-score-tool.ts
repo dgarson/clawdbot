@@ -72,10 +72,11 @@ export function createSessionScoreTool(params: {
       if (!rubric) {
         return jsonResult({ ok: false, error: "rubric is required" });
       }
+      const resolvedSessionId = p.sessionId ?? params.sessionId ?? params.sessionKey;
 
       emitDiagnosticEvent({
         type: "session.score",
-        sessionId: p.sessionId ?? params.sessionId,
+        sessionId: resolvedSessionId,
         agentId: params.agentId,
         score,
         rubric,
@@ -89,7 +90,7 @@ export function createSessionScoreTool(params: {
         score,
         rubric,
         tags: p.tags,
-        sessionId: p.sessionId ?? params.sessionId,
+        sessionId: resolvedSessionId,
       });
     },
   };
