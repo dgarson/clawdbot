@@ -1,0 +1,96 @@
+{
+  "id": "ocx-event-ledger",
+  "name": "Event Ledger",
+  "description": "Canonical event capture and query system for agent lifecycle events.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "flushIntervalMs": {
+        "type": "number",
+        "minimum": 100,
+        "default": 1000,
+        "description": "Flush interval for buffered writes (ms)"
+      },
+      "maxBufferSize": {
+        "type": "number",
+        "minimum": 1,
+        "default": 100,
+        "description": "Maximum buffer size before forced flush"
+      },
+      "hotRetentionHours": {
+        "type": "number",
+        "minimum": 1,
+        "default": 24,
+        "description": "Hours to keep events in hot tier (in-memory index)"
+      },
+      "warmRetentionDays": {
+        "type": "number",
+        "minimum": 1,
+        "default": 30,
+        "description": "Days to keep events in warm tier (on-disk JSONL)"
+      },
+      "coldRetentionDays": {
+        "type": "number",
+        "minimum": 1,
+        "default": 365,
+        "description": "Days to keep events in cold tier (compressed archives)"
+      },
+      "families": {
+        "type": "array",
+        "items": { "type": "string" },
+        "default": [],
+        "description": "Families to capture (empty = all)"
+      },
+      "excludeFamilies": {
+        "type": "array",
+        "items": { "type": "string" },
+        "default": [],
+        "description": "Families to exclude from capture"
+      },
+      "maxPayloadSize": {
+        "type": "number",
+        "minimum": 256,
+        "default": 8192,
+        "description": "Maximum payload size before truncation (bytes)"
+      }
+    }
+  },
+  "uiHints": {
+    "flushIntervalMs": {
+      "label": "Flush Interval (ms)",
+      "help": "How often buffered events are flushed to disk",
+      "advanced": true
+    },
+    "maxBufferSize": {
+      "label": "Max Buffer Size",
+      "help": "Number of events to buffer before forcing a flush",
+      "advanced": true
+    },
+    "hotRetentionHours": {
+      "label": "Hot Retention (hours)",
+      "help": "Hours to keep events in the fast in-memory index"
+    },
+    "warmRetentionDays": {
+      "label": "Warm Retention (days)",
+      "help": "Days to keep events in on-disk JSONL files"
+    },
+    "coldRetentionDays": {
+      "label": "Cold Retention (days)",
+      "help": "Days to keep events in compressed archives before deletion"
+    },
+    "families": {
+      "label": "Capture Families",
+      "help": "Event families to capture (empty captures all): model, tool, session, message, subagent, prompt, budget, orchestration, evaluation, system"
+    },
+    "excludeFamilies": {
+      "label": "Exclude Families",
+      "help": "Event families to exclude from capture"
+    },
+    "maxPayloadSize": {
+      "label": "Max Payload Size (bytes)",
+      "help": "Events with payloads larger than this are truncated",
+      "advanced": true
+    }
+  }
+}
