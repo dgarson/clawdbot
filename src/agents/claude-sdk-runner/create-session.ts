@@ -21,15 +21,14 @@ import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import {
   ATTACHMENT_MANIFEST_KEY,
   loadManifestFromEntries,
   serializeManifest,
 } from "./attachment-manifest.js";
 import { resolveClaudeSubprocessEnv } from "./config.js";
-import { buildChannelSnapshot } from "./context/channel-snapshot.js";
-import { buildThreadContext } from "./context/thread-context.js";
-import { buildChannelTools } from "./context/tools.js";
+import { coreSessionContextSubscriber } from "./context/session-context-subscriber.js";
 import { mapSdkError } from "./error-mapping.js";
 import { translateSdkMessageToEvents } from "./event-adapter.js";
 import { createClaudeSdkMcpToolServer } from "./mcp-tool-server.js";
@@ -309,43 +308,33 @@ export async function createClaudeSdkSession(
 ): Promise<ClaudeSdkSession> {
   const { transcriptProvider, transcriptApi } = resolveTranscriptMetadata(params.provider);
 
-  // Build enriched system prompt with structured channel/thread context if provided.
-  // The context is injected as a labeled JSON section so Claude can reference the
-  // channel snapshot and thread history without needing history concatenation.
-  let systemPrompt = params.systemPrompt;
-  if (params.structuredContextInput) {
-    const snapshot = buildChannelSnapshot(params.structuredContextInput);
-    const thread = buildThreadContext(params.structuredContextInput.thread ?? null);
-    const parts = ["\n\n### Channel Context", "```json", JSON.stringify(snapshot, null, 2), "```"];
-    if (thread) {
-      parts.push("\n### Thread Context", "```json", JSON.stringify(thread, null, 2), "```");
-    }
-    parts.push(
-      "\n### Channel Tools",
-      "You have two tools for progressive context discovery:",
-      "",
-      "- **channel.context** — keyword/intent search across channel messages. Use it when you need broader context, want to understand the history behind a reference, or are unsure whether you have enough information to answer confidently.",
-      "- **channel.messages** — fetch a specific thread or set of messages by ID. Use it when a message in the snapshot references a thread you want to read in full.",
-      "",
-      "**When to reach for these tools:**",
-      "- You see a reference (e.g. 'the rollout', 'that PR', 'last week's incident') but lack enough context to answer accurately → use channel.context.",
-      "- You are asked about a thread and only have the root message → use channel.messages with the thread_id.",
-      "- Your conversation history has been compacted and you sense you are missing relevant prior context → use channel.context to reconstruct it rather than guessing.",
-      "- You are uncertain about a fact that plausibly exists in recent channel history → prefer a quick channel.context lookup over a hedged non-answer.",
-      "",
-      "Prefer a confident, grounded answer backed by a tool call over a vague reply that forces the user to repeat themselves.",
-    );
-    systemPrompt = params.systemPrompt + parts.join("\n");
-  }
+  // Fire before_session_create hook: collect system prompt sections and tools from
+  // all registered subscribers (built-in core subscriber + plugin subscribers).
+  // When the global hook runner is nil (e.g. in tests), fall back to calling the
+  // core subscriber directly so channel/thread context injection still works.
+  const hookEvent = {
+    systemPrompt: params.systemPrompt,
+    structuredContextInput: params.structuredContextInput,
+    platform: params.structuredContextInput?.platform,
+    channelId: params.structuredContextInput?.channelId,
+  };
+  const runner = getGlobalHookRunner();
+  const hookContrib = runner
+    ? await runner.runBeforeSessionCreate(hookEvent, { sessionId: params.sessionId })
+    : coreSessionContextSubscriber(hookEvent);
+
+  const hookSections = hookContrib?.systemPromptSections ?? [];
+  const hookTools = hookContrib?.tools ?? [];
+
+  // Append subscriber sections to the base system prompt.
+  const systemPrompt =
+    hookSections.length > 0
+      ? params.systemPrompt + "\n\n" + hookSections.join("\n\n")
+      : params.systemPrompt;
 
   // Load attachment manifest from session history for cross-turn media deduplication.
   const allEntries = params.sessionManager?.getEntries?.() ?? [];
   const manifest = loadManifestFromEntries(allEntries);
-
-  // Build channel exploration tools from structured context (if provided).
-  const channelTools = params.structuredContextInput
-    ? buildChannelTools(params.structuredContextInput)
-    : [];
 
   // Internal adapter state
   const state: ClaudeSdkEventAdapterState = {
@@ -386,8 +375,9 @@ export async function createClaudeSdkSession(
 
   // Build in-process MCP tool server from OpenClaw tools (already wrapped with
   // before_tool_call hooks, abort signal propagation, and loop detection upstream).
-  // Channel tools are appended last so they can't shadow user-provided tools.
-  const allTools = [...params.tools, ...params.customTools, ...channelTools];
+  // Hook-contributed tools (e.g. channel.context, channel.messages) are appended last
+  // so they can't shadow user-provided tools.
+  const allTools = [...params.tools, ...params.customTools, ...hookTools];
 
   const toolServer = createClaudeSdkMcpToolServer({
     tools: allTools,

@@ -1,7 +1,3 @@
-import type {
-  ChannelFetcher,
-  StructuredContextInput,
-} from "../../../agents/claude-sdk-runner/context/types.js";
 import { resolveAckReaction } from "../../../agents/identity.js";
 import { hasControlCommand } from "../../../auto-reply/command-detection.js";
 import { shouldHandleTextCommands } from "../../../auto-reply/commands-registry.js";
@@ -31,6 +27,7 @@ import { recordInboundSession } from "../../../channels/session.js";
 import { readSessionUpdatedAt, resolveStorePath } from "../../../config/sessions.js";
 import { logVerbose, shouldLogVerbose } from "../../../globals.js";
 import { enqueueSystemEvent } from "../../../infra/system-events.js";
+import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
 import { resolveAgentRoute } from "../../../routing/resolve-route.js";
 import { resolveThreadSessionKeys } from "../../../routing/session-key.js";
 import type { ResolvedSlackAccount } from "../../accounts.js";
@@ -53,6 +50,7 @@ import {
 } from "../media.js";
 import { cacheThreadReply } from "../media.thread-replies.js";
 import { resolveSlackRoomContextHints } from "../room-context.js";
+import type { SlackContextBuildData } from "./context-builder.js";
 import type { PreparedSlackMessage } from "./types.js";
 
 export async function prepareSlackMessage(params: {
@@ -585,96 +583,34 @@ export async function prepareSlackMessage(params: {
   const historyEntries =
     isRoomish && ctx.historyLimit > 0 ? (ctx.channelHistories.get(historyKey) ?? []) : [];
 
-  const adjacentMessagesForCtx: StructuredContextInput["adjacentMessages"] = historyEntries.map(
-    (entry) => ({
-      messageId: entry.messageId ?? "",
-      ts: entry.messageId ?? "",
-      authorId: entry.sender ?? "",
-      authorName: entry.sender ?? "",
-      authorIsBot: false,
-      text: entry.body,
-      threadId: null,
-      replyCount: 0,
-      hasMedia: false,
-      reactions: [],
-    }),
-  );
-
-  let threadDataForCtx: StructuredContextInput["thread"] = null;
-  if (isThreadReply && threadTs && threadStarterForCtx) {
-    // Filter replies: exclude the root/starter (same ts as threadTs) but include all others
-    const replies = threadHistoryForCtx
-      .filter((m) => m.ts !== threadTs)
-      .map((r) => ({
-        messageId: r.ts ?? "",
-        ts: r.ts ?? "",
-        authorId: r.userId ?? r.botId ?? "",
-        authorName: r.userId
-          ? (threadUserMapForCtx.get(r.userId)?.name ?? r.userId)
-          : r.botId
-            ? `Bot (${r.botId})`
-            : "Unknown",
-        authorIsBot: Boolean(r.botId),
-        text: r.text,
-      }));
-    threadDataForCtx = {
-      rootMessageId: threadTs,
-      rootTs: threadTs,
-      rootAuthorId: threadStarterForCtx.userId ?? "",
-      rootAuthorName: threadStarterForCtx.userId
-        ? (threadUserMapForCtx.get(threadStarterForCtx.userId)?.name ?? threadStarterForCtx.userId)
-        : "Unknown",
-      rootAuthorIsBot: false,
-      rootText: threadStarterForCtx.text,
-      replies,
-      totalReplyCount: replies.length,
-    };
-  }
-
-  const channelId = message.channel;
-  const slackFetcher: ChannelFetcher = {
-    async fetchThread(threadId: string, maxReplies: number) {
-      const msgs = await resolveSlackThreadHistory({
-        channelId,
-        threadTs: threadId,
-        client: ctx.app.client,
-        limit: maxReplies,
-      });
-      const replies = msgs
-        .filter((m) => m.ts !== threadId)
-        .map((m) => ({
-          messageId: m.ts ?? "",
-          ts: m.ts ?? "",
-          authorId: m.userId ?? m.botId ?? "",
-          authorName: m.userId ?? m.botId ?? "Unknown",
-          authorIsBot: Boolean(m.botId),
-          text: m.text,
-        }));
-      return { replies, totalCount: replies.length };
-    },
-    async fetchMessages(_messageIds: string[]) {
-      // Slack has no batch message-by-ID API; adjacentMessages cover the snapshot window
-      return [];
-    },
+  const contextBuildData: SlackContextBuildData = {
+    message,
+    roomLabel,
+    senderId,
+    senderName,
+    isBotMessage,
+    rawBody,
+    isThreadReply,
+    threadTs: threadTs ?? null,
+    threadHistory: threadHistoryForCtx,
+    threadStarter: threadStarterForCtx,
+    threadUserMap: threadUserMapForCtx,
+    client: ctx.app.client,
+    adjacentMessages: historyEntries,
+    channelType: isDirectMessage ? "direct" : "group",
   };
 
-  const structuredContext: StructuredContextInput = {
+  // Fire message_context_build hook — first subscriber that claims wins.
+  // The core Slack context builder is registered in loader.ts as a hook subscriber.
+  const hookResult = await getGlobalHookRunner()?.runMessageContextBuild({
     platform: "slack",
-    channelId,
-    channelName: roomLabel,
-    anchor: {
-      messageId: message.ts ?? "",
-      ts: message.ts ?? "",
-      authorId: senderId ?? "",
-      authorName: senderName,
-      authorIsBot: isBotMessage,
-      text: rawBody,
-      threadId: isThreadReply && threadTs ? threadTs : null,
-    },
-    adjacentMessages: adjacentMessagesForCtx,
-    thread: threadDataForCtx,
-    fetcher: slackFetcher,
-  };
+    channelId: message.channel,
+    channelType: isDirectMessage ? "direct" : "group",
+    anchorTs: message.ts ?? "",
+    threadTs: isThreadReply ? (threadTs ?? null) : null,
+    resolvedData: contextBuildData,
+  });
+  const structuredContext = hookResult?.structuredContext ?? null;
 
   // Use direct media (including forwarded attachment media) if available, else thread starter media
   const effectiveMedia = effectiveDirectMedia ?? threadStarterMedia;

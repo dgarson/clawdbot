@@ -1,11 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { buildChannelTools } from "./tools.js";
-import type { StructuredContextInput } from "./types.js";
+import type { ChannelFetcher, StructuredContextInput } from "./types.js";
+
+const noopFetcher: ChannelFetcher = {
+  async fetchThread() {
+    return { replies: [], totalCount: 0 };
+  },
+  async fetchMessages() {
+    return [];
+  },
+};
 
 const input: StructuredContextInput = {
   platform: "slack",
   channelId: "C123",
   channelName: "general",
+  channelType: "group",
   anchor: {
     messageId: "1234",
     ts: "1234",
@@ -42,6 +52,7 @@ const input: StructuredContextInput = {
     },
   ],
   thread: null,
+  fetcher: noopFetcher,
 };
 
 describe("buildChannelTools", () => {

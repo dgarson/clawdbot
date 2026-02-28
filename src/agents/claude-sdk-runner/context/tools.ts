@@ -20,7 +20,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
   const channelContextTool: ClaudeSdkCompatibleTool = {
     name: "channel.context",
     description:
-      "Search for relevant messages and threads in this channel. Use when you need broader context beyond the provided snapshot.",
+      "Search for relevant messages in the channel message snapshot provided at conversation start. Use when you need broader context beyond the anchor message. Results come from the pre-captured snapshot, not a live search.",
     parameters: {
       type: "object",
       properties: {
@@ -87,6 +87,8 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
           time_range: [oldest, newest],
         },
       });
+      // Return type is string (JSON), not AgentToolResult — the MCP tool server
+      // handles stringification generically, so the cast is safe at the boundary.
     }) as unknown as AgentTool["execute"],
   };
 
@@ -130,34 +132,29 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
           const threadCtx = buildThreadContext(input.thread);
           return JSON.stringify({ thread: threadCtx });
         }
-        // Lazy API call via fetcher if available
-        if (input.fetcher) {
-          try {
-            const fetched = await input.fetcher.fetchThread(
-              params.thread_id,
-              params.max_replies ?? 50,
-            );
-            // Build minimal thread context from fetched data
-            const threadCtx = buildThreadContext({
-              rootMessageId: params.thread_id,
-              rootTs: params.thread_id,
-              rootAuthorId: "",
-              rootAuthorName: "Unknown",
-              rootAuthorIsBot: false,
-              rootText: "",
-              replies: fetched.replies.map((r) => ({ ...r, files: undefined })),
-              totalReplyCount: fetched.totalCount,
-            });
-            return JSON.stringify({ thread: threadCtx });
-          } catch {
-            return JSON.stringify({
-              error: `Thread ${params.thread_id} not found in channel snapshot`,
-            });
-          }
+        // Lazy API call via fetcher
+        try {
+          const fetched = await input.fetcher.fetchThread(
+            params.thread_id,
+            params.max_replies ?? 50,
+          );
+          // Build thread context from fetched data, using root info when available
+          const threadCtx = buildThreadContext({
+            rootMessageId: params.thread_id,
+            rootTs: params.thread_id,
+            rootAuthorId: fetched.root?.authorId ?? "",
+            rootAuthorName: fetched.root?.authorName ?? "Unknown",
+            rootAuthorIsBot: fetched.root?.authorIsBot ?? false,
+            rootText: fetched.root?.text ?? "",
+            replies: fetched.replies.map((r) => ({ ...r, files: undefined })),
+            totalReplyCount: fetched.totalCount,
+          });
+          return JSON.stringify({ thread: threadCtx });
+        } catch {
+          return JSON.stringify({
+            error: `Thread ${params.thread_id} not found in channel snapshot`,
+          });
         }
-        return JSON.stringify({
-          error: `Thread ${params.thread_id} not found in channel snapshot`,
-        });
       }
 
       if (params.message_ids && params.message_ids.length > 0) {
@@ -181,6 +178,8 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
       }
 
       return JSON.stringify({ error: "No valid query parameters provided" });
+      // Return type is string (JSON), not AgentToolResult — the MCP tool server
+      // handles stringification generically, so the cast is safe at the boundary.
     }) as unknown as AgentTool["execute"],
   };
 
