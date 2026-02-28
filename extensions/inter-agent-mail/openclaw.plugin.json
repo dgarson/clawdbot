@@ -1,0 +1,78 @@
+{
+  "id": "inter-agent-mail",
+  "name": "Inter-Agent Mail",
+  "description": "Secure asynchronous messaging between agents with ACLs, urgency levels, tags, and forwarding chains.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "rules": {
+        "type": "object",
+        "description": "ACL routing rules controlling which agents can send mail to which agents.",
+        "additionalProperties": false,
+        "properties": {
+          "allow": {
+            "type": "array",
+            "description": "Explicit allow rules. Default is [{from:'*',to:'*'}] (allow all).",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["from", "to"],
+              "properties": {
+                "from": { "type": "string", "description": "Sender agent id or '*' for any." },
+                "to": { "type": "string", "description": "Recipient agent id or '*' for any." }
+              }
+            }
+          },
+          "deny": {
+            "type": "array",
+            "description": "Explicit deny rules. Deny is evaluated before allow.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["from", "to"],
+              "properties": {
+                "from": { "type": "string" },
+                "to": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "mailbox_acls": {
+        "type": "object",
+        "description": "Delegated mailbox access. Keys are owner agent ids, values are maps of delegate agent id to permission level.",
+        "additionalProperties": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["peek", "read_mark", "read_write"]
+          }
+        }
+      },
+      "delivery_policies": {
+        "type": "object",
+        "description": "Per-agent delivery behavior. Keys are agent ids.",
+        "additionalProperties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "wakeOnUrgent": {
+              "type": "boolean",
+              "description": "When true, receiving an urgent message immediately wakes the agent. Default: true."
+            },
+            "inboxOnlyDuringHeartbeat": {
+              "type": "boolean",
+              "description": "When true, the mail notification is only injected during heartbeat runs, not during active user conversations. Default: false."
+            },
+            "defaultUrgency": {
+              "type": "string",
+              "enum": ["low", "normal", "high", "urgent"],
+              "description": "Default urgency for outbound mail from this agent."
+            }
+          }
+        }
+      }
+    }
+  }
+}
