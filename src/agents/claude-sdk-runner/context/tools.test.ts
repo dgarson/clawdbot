@@ -163,10 +163,14 @@ describe("buildChannelTools", () => {
       null,
       null,
     );
-    const parsed = JSON.parse(result.content[0].text);
-    expect(parsed.media).toBeDefined();
-    expect(parsed.media.media_type).toBe("image/png");
-    expect(parsed.media.content).toBe("base64data-F123");
+    // media_artifact_id now returns an image content block so Claude's vision
+    // system can process the image, not just read a base64 string.
+    expect(result.content).toHaveLength(2);
+    expect(result.content[0].type).toBe("text");
+    expect(result.content[0].text).toContain("F123");
+    expect(result.content[1].type).toBe("image");
+    expect(result.content[1].data).toBe("base64data-F123");
+    expect(result.content[1].mimeType).toBe("image/png");
   });
 
   it("channel.context surfaces media messages even without keyword match", async () => {

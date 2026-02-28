@@ -104,7 +104,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
             text: t.rootText,
             threadId: t.rootMessageId,
             replyCount: t.totalReplyCount,
-            hasMedia: false,
+            hasMedia: (t.rootFiles?.length ?? 0) > 0,
             reactions: [],
           });
         }
@@ -119,7 +119,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
               text: r.text,
               threadId: t.rootMessageId,
               replyCount: 0,
-              hasMedia: false,
+              hasMedia: (r.files?.length ?? 0) > 0,
               reactions: [],
             });
           }
@@ -236,7 +236,8 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
             rootAuthorName: fetched.root?.authorName ?? "Unknown",
             rootAuthorIsBot: fetched.root?.authorIsBot ?? false,
             rootText: fetched.root?.text ?? "",
-            replies: fetched.replies.map((r) => ({ ...r, files: undefined })),
+            rootFiles: fetched.root?.files,
+            replies: fetched.replies,
             totalReplyCount: fetched.totalCount,
           });
           return jsonResult({ thread: threadCtx });
@@ -274,13 +275,26 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
         }
         try {
           const media = await input.fetcher.fetchMedia(params.media_artifact_id);
-          return jsonResult({
-            media: {
-              artifact_id: params.media_artifact_id,
-              media_type: media.mimeType,
-              content: media.data,
-            },
-          });
+          // Return as a proper image content block so Claude's vision system can
+          // process the image, not just read a base64 string. The content array
+          // format is handled by formatToolResultForMcp() in mcp-tool-server.ts
+          // which promotes { type: "image" } blocks through the MCP protocol.
+          // We skip the imageResult() sanitization pipeline here because
+          // resolveSlackMedia + saveMediaBuffer already validates size/content.
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `[Media: ${params.media_artifact_id} (${media.mimeType})]`,
+              },
+              {
+                type: "image" as const,
+                data: media.data,
+                mimeType: media.mimeType,
+              },
+            ],
+            details: { artifact_id: params.media_artifact_id, media_type: media.mimeType },
+          };
         } catch {
           return jsonResult({
             error: `Failed to fetch media ${params.media_artifact_id}`,
