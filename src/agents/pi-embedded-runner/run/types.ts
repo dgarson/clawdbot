@@ -28,6 +28,7 @@ export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   routingMetadata?: Record<string, unknown>;
   /** Pre-collected plugin prompt sections (P8). Appended after core prompt content. */
   pluginSections?: import("../../system-prompt.plugin-sections.js").PluginPromptSection[];
+  previousSystemPromptReport?: SessionSystemPromptReport;
   lineageId?: string;
 };
 

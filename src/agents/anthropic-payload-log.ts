@@ -88,6 +88,11 @@ function findLastAssistantUsage(messages: AgentMessage[]): Record<string, unknow
   return null;
 }
 
+function getNumericUsageField(usage: Record<string, unknown>, key: string): number | undefined {
+  const value = usage[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
 export type AnthropicPayloadLogger = {
   enabled: true;
   wrapStreamFn: (streamFn: StreamFn) => StreamFn;
@@ -173,10 +178,14 @@ export function createAnthropicPayloadLogger(params: {
       usage,
       error: errorMessage,
     });
+    const outputTokens = getNumericUsageField(usage, "output_tokens");
+    const thinkingTokens = getNumericUsageField(usage, "thinking_tokens") ?? 0;
     log.info("anthropic usage", {
       runId: params.runId,
       sessionId: params.sessionId,
       usage,
+      outputTokens,
+      thinkingTokens,
     });
   };
 

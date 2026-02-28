@@ -24,6 +24,14 @@ import { normalizeToolName } from "./tool-policy.js";
 /** Track tool execution start times and args for after_tool_call hook */
 const toolStartData = new Map<string, { startTime: number; args: unknown }>();
 
+function getJsonStringLength(value: unknown): number {
+  try {
+    return JSON.stringify(value).length;
+  } catch {
+    return 0;
+  }
+}
+
 function isCronAddAction(args: unknown): boolean {
   if (!args || typeof args !== "object") {
     return false;
@@ -405,8 +413,10 @@ export async function handleToolExecutionEnd(
     },
   });
 
+  const toolInputLength = getJsonStringLength(startData?.args);
+  const toolOutputLength = getJsonStringLength(result);
   ctx.log.debug(
-    `embedded run tool end: runId=${ctx.params.runId} tool=${toolName} toolCallId=${toolCallId}`,
+    `embedded run tool end: runId=${ctx.params.runId} tool=${toolName} toolCallId=${toolCallId} toolInputChars=${toolInputLength} toolOutputChars=${toolOutputLength}`,
   );
 
   emitToolResultOutput({ ctx, toolName, meta, isToolError, result, sanitizedResult });

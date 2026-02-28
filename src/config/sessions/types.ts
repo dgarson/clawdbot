@@ -324,7 +324,29 @@ export type SessionSystemPromptReport = {
       propertiesCount?: number | null;
     }>;
   };
+  cacheDiagnostics?: CacheDiagnostics;
 };
+
+export interface PromptSectionHash {
+  name: string;
+  source: string;
+  contentLength: number;
+  contentHash: string;
+  volatile: boolean;
+  status?: "retained" | "invalidated_changed" | "invalidated_downstream";
+}
+
+export interface CacheDiagnostics {
+  previousPromptHash: string;
+  currentPromptHash: string;
+  invalidatorBlock?: {
+    name: string;
+    source: string;
+    byteOffset: number;
+    wastedTokensEstimated?: number;
+  };
+  sequence: PromptSectionHash[];
+}
 
 export const DEFAULT_RESET_TRIGGER = "/new";
 export const DEFAULT_RESET_TRIGGERS = ["/new", "/reset"];

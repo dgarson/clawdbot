@@ -641,6 +641,8 @@ export async function runEmbeddedAttempt(
       injectedFiles: contextFiles,
       skillsPrompt,
       tools,
+      pluginSections: params.pluginSections,
+      previousSystemPromptReport: params.previousSystemPromptReport,
     });
     if (isDiagnosticsEnabled(params.config)) {
       const sectionStats = buildSectionStats(appendPrompt);

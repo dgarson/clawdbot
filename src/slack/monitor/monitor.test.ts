@@ -323,6 +323,33 @@ describe("resolveSlackThreadStarter cache", () => {
 });
 
 describe("createSlackThreadTsResolver", () => {
+  it("retries thread_ts lookup when a transient history call failure occurs", async () => {
+    const historyMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("history failed"))
+      .mockResolvedValueOnce({ messages: [{ ts: "1", thread_ts: "9" }] });
+
+    const resolver = createSlackThreadTsResolver({
+      // oxlint-disable-next-line typescript/no-explicit-any
+      client: { conversations: { history: historyMock } } as any,
+      cacheTtlMs: 60_000,
+      maxSize: 5,
+    });
+
+    const message = {
+      channel: "C1",
+      parent_user_id: "U2",
+      ts: "1",
+    } as SlackMessageEvent;
+
+    const first = await resolver.resolve({ message, source: "message" });
+    const second = await resolver.resolve({ message, source: "message" });
+
+    expect(first.thread_ts).toBeUndefined();
+    expect(second.thread_ts).toBe("9");
+    expect(historyMock).toHaveBeenCalledTimes(2);
+  });
+
   it("caches resolved thread_ts lookups", async () => {
     const historyMock = vi.fn().mockResolvedValue({
       messages: [{ ts: "1", thread_ts: "9" }],
