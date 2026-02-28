@@ -170,6 +170,15 @@ function normalizePromptImages(images: RuntimePromptImage[] | undefined): ImageC
   return normalized;
 }
 
+function estimateImageDataBytes(data: string): number {
+  const normalized = data.replace(/\s+/g, "");
+  if (normalized.length === 0) {
+    return 0;
+  }
+  const decoded = Buffer.from(normalized, "base64");
+  return decoded.length > 0 ? decoded.length : Buffer.byteLength(data);
+}
+
 function toAnthropicImageMediaType(mimeType: string): AnthropicBase64ImageMediaType {
   const normalized = mimeType.trim().toLowerCase();
   if (normalized === "image/jpg") {
@@ -330,13 +339,30 @@ export async function createClaudeSdkSession(
     sessionKey: params.sessionId,
     diagnosticsEnabled: params.diagnosticsEnabled,
   };
+  const hookStartMs = Date.now();
   const runner = getGlobalHookRunner();
   const hookContrib = runner
     ? await runner.runBeforeSessionCreate(hookEvent, { sessionId: params.sessionId })
     : coreSessionContextSubscriber(hookEvent);
+  const hookDurationMs = Date.now() - hookStartMs;
 
   const hookSections = hookContrib?.systemPromptSections ?? [];
   const hookTools = hookContrib?.tools ?? [];
+  const sectionsTotalChars = hookSections.reduce((sum, section) => sum + section.length, 0);
+  if (params.diagnosticsEnabled) {
+    log.debug(
+      `before_session_create profile: sessionKey=${params.sessionId} hookDurationMs=${hookDurationMs} sectionsAdded=${hookSections.length} sectionsTotalChars=${sectionsTotalChars} toolsAdded=${hookTools.length}`,
+    );
+    emitDiagnosticEvent({
+      type: "session.hook",
+      sessionKey: params.sessionId,
+      hook: "before_session_create",
+      hookDurationMs,
+      sectionsAdded: hookSections.length,
+      sectionsTotalChars,
+      toolsAdded: hookTools.length,
+    });
+  }
 
   // Append subscriber sections to the base system prompt.
   const systemPrompt =
@@ -400,7 +426,7 @@ export async function createClaudeSdkSession(
   const scratchpadEnabled = params.claudeSdkConfig?.scratchpad?.enabled !== false;
   const scratchpadTools: Array<(typeof hookTools)[number]> = [];
   if (scratchpadEnabled) {
-    const maxTokens = params.claudeSdkConfig?.scratchpad?.maxTokens ?? 2000;
+    const maxChars = params.claudeSdkConfig?.scratchpad?.maxChars ?? 8000;
     const scratchpadState: ScratchpadState = {
       get scratchpad() {
         return state.scratchpad;
@@ -414,10 +440,9 @@ export async function createClaudeSdkSession(
         }
       },
     };
-    const tool = buildScratchpadTool({ state: scratchpadState, maxTokens });
+    const tool = buildScratchpadTool({ state: scratchpadState, maxChars });
     scratchpadTools.push(tool as never);
     // Inject scratchpad section into system prompt so Claude knows it has this capability.
-    const maxChars = maxTokens * 4;
     const scratchpadPromptSection = [
       "## Session Scratchpad",
       "You have a persistent scratchpad tool (`session.scratchpad`) that survives context compaction.",
@@ -550,7 +575,7 @@ export async function createClaudeSdkSession(
             alreadyAttached.push(artifactId);
           } else {
             newImages.push(img);
-            totalMediaBytes += img.data.length;
+            totalMediaBytes += estimateImageDataBytes(img.data);
             recordAttachment(manifest, {
               artifactId,
               displayName: `Attached Image (${img.mimeType})`,

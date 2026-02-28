@@ -25,14 +25,14 @@ describe("session.scratchpad tool", () => {
     expect(result).toMatch(/saved \(replace\)/);
   });
 
-  it("replace mode: truncates when content exceeds maxTokens, includes 'truncated' in response", () => {
+  it("replace mode: truncates when content exceeds maxChars, includes 'truncated' in response", () => {
     const state = makeState();
-    const maxTokens = 10;
-    const tool = buildScratchpadTool({ state, maxTokens });
-    // 41 chars = 11 tokens, over budget of 10
+    const maxChars = 40;
+    const tool = buildScratchpadTool({ state, maxChars });
+    // 41 chars — over budget of 40
     const longContent = "a".repeat(41);
     const result = tool.execute("id", { content: longContent });
-    expect(state.scratchpad).toBe("a".repeat(maxTokens * 4));
+    expect(state.scratchpad).toBe("a".repeat(maxChars));
     expect(result).toMatch(/truncated/);
   });
 
@@ -50,9 +50,9 @@ describe("session.scratchpad tool", () => {
 
   it("append mode: rejects when combined content exceeds budget, scratchpad unchanged", () => {
     const state = makeState("existing");
-    const maxTokens = 5;
-    const tool = buildScratchpadTool({ state, maxTokens });
-    // "existing\n" + long content will exceed 5 tokens (20 chars)
+    const maxChars = 20;
+    const tool = buildScratchpadTool({ state, maxChars });
+    // "existing\n" (9 chars) + 20 chars = 29 chars, over budget of 20
     const longContent = "x".repeat(20);
     const result = tool.execute("id", { content: longContent, mode: "append" });
     expect(state.scratchpad).toBe("existing");

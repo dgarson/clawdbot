@@ -28,7 +28,7 @@ export const ClaudeSdkConfigSchema = z
     scratchpad: z
       .object({
         enabled: z.boolean().optional(),
-        maxTokens: z.number().int().positive().optional(),
+        maxChars: z.number().int().positive().optional(),
       })
       .strict()
       .optional(),

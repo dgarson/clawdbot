@@ -14,7 +14,7 @@ import { emptyPluginConfigSchema } from "openclaw/plugin-sdk";
  *
  * Configuration: agents.defaults.claudeSdk.scratchpad
  *   enabled: boolean (default: true)
- *   maxTokens: number (default: 2000)
+ *   maxChars: number (default: 8000)
  */
 const scratchpadPlugin = {
   id: "scratchpad",

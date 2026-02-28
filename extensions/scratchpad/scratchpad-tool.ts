@@ -1,5 +1,3 @@
-import { estimateTokens } from "../../src/agents/claude-sdk-runner/context/budget.js";
-
 export const SCRATCHPAD_ENTRY_KEY = "openclaw:scratchpad";
 
 export type ScratchpadState = {
@@ -9,11 +7,11 @@ export type ScratchpadState = {
 
 export type ScratchpadToolOptions = {
   state: ScratchpadState;
-  maxTokens?: number;
+  maxChars?: number;
 };
 
 export function buildScratchpadTool(opts: ScratchpadToolOptions) {
-  const { state, maxTokens = 2000 } = opts;
+  const { state, maxChars = 8000 } = opts;
 
   return {
     name: "session.scratchpad",
@@ -41,11 +39,11 @@ export function buildScratchpadTool(opts: ScratchpadToolOptions) {
       let warning = "";
 
       if (mode === "replace") {
-        const tokens = estimateTokens(content);
-        if (tokens > maxTokens) {
+        const chars = content.length;
+        if (chars > maxChars) {
           // Truncate to budget
-          updated = content.slice(0, maxTokens * 4);
-          warning = ` (truncated from ${tokens} to ${maxTokens} tokens)`;
+          updated = content.slice(0, maxChars);
+          warning = ` (truncated from ${chars} to ${maxChars} characters)`;
         } else {
           updated = content;
         }
@@ -54,9 +52,9 @@ export function buildScratchpadTool(opts: ScratchpadToolOptions) {
         // append mode
         const existing = state.scratchpad ?? "";
         const combined = existing ? `${existing}\n${content}` : content;
-        const tokens = estimateTokens(combined);
-        if (tokens > maxTokens) {
-          return `Scratchpad append rejected: combined content would be ${tokens} tokens (budget: ${maxTokens}). Scratchpad unchanged.`;
+        const chars = combined.length;
+        if (chars > maxChars) {
+          return `Scratchpad append rejected: combined content would be ${chars} characters (budget: ${maxChars}). Scratchpad unchanged.`;
         }
         state.scratchpad = combined;
         updated = combined;
@@ -68,8 +66,8 @@ export function buildScratchpadTool(opts: ScratchpadToolOptions) {
         // non-fatal
       }
 
-      const savedTokens = estimateTokens(state.scratchpad ?? "");
-      return `Scratchpad saved (${mode}): ${savedTokens} tokens used of ${maxTokens} budget.${warning}`;
+      const savedChars = (state.scratchpad ?? "").length;
+      return `Scratchpad saved (${mode}): ${savedChars} characters used of ${maxChars} budget.${warning}`;
     },
   };
 }
