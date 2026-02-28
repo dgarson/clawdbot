@@ -1,7 +1,8 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import fs from "node:fs/promises";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
 import { resolveAgentModelFallbackValues } from "../../config/model-input.js";
+import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
 import { generateSecureToken } from "../../infra/secure-random.js";
 import { getGlobalHookRunner, getGlobalPluginRegistry } from "../../plugins/hook-runner-global.js";
 import type {
@@ -1344,6 +1345,27 @@ export async function runEmbeddedPiAgent(
           log.debug(
             `embedded run done: runId=${params.runId} sessionId=${params.sessionId} durationMs=${Date.now() - started} aborted=${aborted}`,
           );
+          if (isDiagnosticsEnabled(params.config)) {
+            log.debug(
+              `[trace-export] ${JSON.stringify({
+                runId: params.runId,
+                sessionId: params.sessionId,
+                durationMs: Date.now() - started,
+                aborted,
+                payloads: payloads.length,
+                provider,
+                modelId,
+                didSendViaMessagingTool: attempt.didSendViaMessagingTool,
+                promptHash: attempt.systemPromptReport
+                  ? createHash("md5")
+                      .update(JSON.stringify(attempt.systemPromptReport))
+                      .digest("hex")
+                      .substring(0, 8)
+                  : undefined,
+                systemPromptReport: attempt.systemPromptReport,
+              })}`,
+            );
+          }
           if (lastProfileId) {
             await markAuthProfileGood({
               store: authStore,

@@ -9,7 +9,7 @@ import type { ISOTimestamp } from "@openclaw/ocx-platform";
 // Health State
 // =============================================================================
 
-export type HealthState = "healthy" | "degraded" | "stuck" | "rogue" | "zombie";
+export type HealthState = "healthy" | "degraded" | "stuck" | "rogue";
 
 export type HealthEvaluation = {
   agentId: string;
@@ -57,9 +57,6 @@ export type HealthCriteria = {
   /** Tool loop detection: same tool called > N times in M minutes */
   toolLoopCallThreshold: number;
   toolLoopWindowMinutes: number;
-
-  /** Heartbeat timeout for zombie detection */
-  heartbeatTimeoutMinutes: number;
 };
 
 // =============================================================================
@@ -91,7 +88,6 @@ export type AnomalyEvalContext = {
 
 export type AgentStats = {
   lastEventAt: number;
-  lastHeartbeatAt: number;
   totalTokensWindow: number;
   movingAvgTokens: number;
   errorsInWindow: number;
@@ -125,7 +121,7 @@ export type SuppressionRule = {
 
 export type ReaperPolicy = {
   /** Health state that triggers this policy */
-  triggerState: "stuck" | "rogue" | "zombie";
+  triggerState: "stuck" | "rogue";
   /** Actions to take, in order */
   actions: ReaperAction[];
   /** Require human confirmation before destructive actions */

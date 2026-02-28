@@ -1,8 +1,8 @@
 /**
- * Periodic health evaluation: healthy / degraded / stuck / rogue / zombie.
+ * Periodic health evaluation: healthy / degraded / stuck / rogue.
  *
  * Evaluates each active agent using deterministic criteria (not AI-based).
- * State derivation priority: zombie > rogue > stuck > degraded > healthy.
+ * State derivation priority: rogue > stuck > degraded > healthy.
  */
 
 import type { ObservabilityConfig } from "../config.js";
@@ -39,16 +39,11 @@ let monitorInterval: ReturnType<typeof setInterval> | undefined;
 
 /**
  * Derive overall health state from a set of signals.
- * Priority: zombie > rogue > stuck > degraded > healthy.
+ * Priority: rogue > stuck > degraded > healthy.
  */
 export function deriveHealthState(signals: HealthSignal[]): HealthState {
   const criticalSignals = signals.filter((s) => s.severity === "critical");
   const warningSignals = signals.filter((s) => s.severity === "warning");
-
-  // Zombie: heartbeat timeout (critical)
-  if (criticalSignals.some((s) => s.kind === "heartbeat_timeout")) {
-    return "zombie";
-  }
 
   // Rogue: token spike OR tool loop (critical)
   if (criticalSignals.some((s) => s.kind === "token_spike" || s.kind === "tool_loop")) {
@@ -76,7 +71,6 @@ export function deriveHealthState(signals: HealthSignal[]): HealthState {
 export function createDefaultStats(): AgentStats {
   return {
     lastEventAt: Date.now(),
-    lastHeartbeatAt: Date.now(),
     totalTokensWindow: 0,
     movingAvgTokens: 0,
     errorsInWindow: 0,
@@ -128,19 +122,6 @@ export function evaluateAgent(agentId: string, criteria: HealthCriteria): Health
       value: timeSinceLastEvent / 60_000,
       threshold: criteria.stuckTimeoutMinutes,
       message: `No events for ${Math.round(timeSinceLastEvent / 60_000)} minutes`,
-    });
-  }
-
-  // Check zombie: heartbeat timeout
-  const heartbeatThresholdMs = criteria.heartbeatTimeoutMinutes * 60 * 1000;
-  const timeSinceHeartbeat = now - stats.lastHeartbeatAt;
-  if (timeSinceHeartbeat > heartbeatThresholdMs) {
-    signals.push({
-      kind: "heartbeat_timeout",
-      severity: "critical",
-      value: timeSinceHeartbeat / 60_000,
-      threshold: criteria.heartbeatTimeoutMinutes,
-      message: `No heartbeat for ${Math.round(timeSinceHeartbeat / 60_000)} minutes`,
     });
   }
 

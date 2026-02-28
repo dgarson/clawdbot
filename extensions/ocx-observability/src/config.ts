@@ -47,7 +47,6 @@ export const DEFAULT_HEALTH_CRITERIA: HealthCriteria = {
   maxConsecutiveToolFailures: 5,
   toolLoopCallThreshold: 10,
   toolLoopWindowMinutes: 5,
-  heartbeatTimeoutMinutes: 10,
 };
 
 export const DEFAULT_SUPPRESSION_RULES: SuppressionRule[] = [
@@ -113,10 +112,6 @@ export function resolveConfig(raw: Record<string, unknown>): ObservabilityConfig
     toolLoopWindowMinutes: asNumber(
       raw.toolLoopWindowMinutes,
       DEFAULT_HEALTH_CRITERIA.toolLoopWindowMinutes,
-    ),
-    heartbeatTimeoutMinutes: asNumber(
-      raw.heartbeatTimeoutMinutes,
-      DEFAULT_HEALTH_CRITERIA.heartbeatTimeoutMinutes,
     ),
   };
 

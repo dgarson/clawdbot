@@ -808,9 +808,15 @@ export type PluginHookBeforeSessionCreateEvent = {
   diagnosticsEnabled?: boolean;
 };
 
+export interface SystemPromptSection {
+  text: string;
+  source?: string;
+  volatile?: boolean;
+}
+
 export type PluginHookBeforeSessionCreateResult = {
   /** Sections appended to the system prompt, joined with "\n\n" in registration order. */
-  systemPromptSections?: string[];
+  systemPromptSections?: (string | SystemPromptSection)[];
   /** Tools injected into the session alongside the standard channel/agent tools. */
   tools?: ClaudeSdkCompatibleTool[];
 };

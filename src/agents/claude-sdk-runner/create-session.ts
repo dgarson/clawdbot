@@ -355,7 +355,10 @@ export async function createClaudeSdkSession(
 
   const hookSections = hookContrib?.systemPromptSections ?? [];
   const hookTools = hookContrib?.tools ?? [];
-  const sectionsTotalChars = hookSections.reduce((sum, section) => sum + section.length, 0);
+  const sectionsTotalChars = hookSections.reduce((sum, section) => {
+    const text = typeof section === "string" ? section : section.text;
+    return sum + text.length;
+  }, 0);
   if (params.diagnosticsEnabled) {
     log.debug(
       `before_session_create profile: sessionKey=${params.sessionId} hookDurationMs=${hookDurationMs} sectionsAdded=${hookSections.length} sectionsTotalChars=${sectionsTotalChars} toolsAdded=${hookTools.length}`,
@@ -374,7 +377,9 @@ export async function createClaudeSdkSession(
   // Append subscriber sections to the base system prompt.
   const systemPrompt =
     hookSections.length > 0
-      ? params.systemPrompt + "\n\n" + hookSections.join("\n\n")
+      ? params.systemPrompt +
+        "\n\n" +
+        hookSections.map((s) => (typeof s === "string" ? s : s.text)).join("\n\n")
       : params.systemPrompt;
 
   // Load attachment manifest from session history for cross-turn media deduplication.
@@ -443,9 +448,12 @@ export async function createClaudeSdkSession(
   };
 
   const clearTurnToolCorrelationState = (): void => {
-    if (state.pendingToolUses.length > 0 || state.toolNameByUseId.size > 0) {
+    if (
+      (state.pendingToolUses.length > 0 || state.toolNameByUseId.size > 0) &&
+      state.pendingToolUses.length > state.toolNameByUseId.size
+    ) {
       log.debug(
-        `claude-sdk: clearing turn-local tool correlation state pending=${state.pendingToolUses.length} mapped=${state.toolNameByUseId.size}`,
+        `claude-sdk: tool correlation state with unmatched tool uses: pending=${state.pendingToolUses.length}, mapped=${state.toolNameByUseId.size}`,
       );
     }
     state.pendingToolUses.length = 0;
@@ -960,6 +968,8 @@ export async function createClaudeSdkSession(
       supportsStreamFnWrapping: false,
       sessionFile: params.sessionFile,
     } satisfies AgentRuntimeHints,
+
+    systemPromptSections: hookSections as import("../../plugins/types.js").SystemPromptSection[],
   };
 
   return session;

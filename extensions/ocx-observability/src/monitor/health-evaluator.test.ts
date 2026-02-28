@@ -24,19 +24,6 @@ describe("deriveHealthState", () => {
     expect(deriveHealthState(signals)).toBe("degraded");
   });
 
-  it("returns zombie when heartbeat_timeout is critical", () => {
-    const signals: HealthSignal[] = [
-      {
-        kind: "heartbeat_timeout",
-        severity: "critical",
-        value: 15,
-        threshold: 10,
-        message: "No heartbeat for 15 minutes",
-      },
-    ];
-    expect(deriveHealthState(signals)).toBe("zombie");
-  });
-
   it("returns rogue when token_spike is critical", () => {
     const signals: HealthSignal[] = [
       {
@@ -74,26 +61,6 @@ describe("deriveHealthState", () => {
       },
     ];
     expect(deriveHealthState(signals)).toBe("stuck");
-  });
-
-  it("prioritizes zombie over rogue when both are present", () => {
-    const signals: HealthSignal[] = [
-      {
-        kind: "heartbeat_timeout",
-        severity: "critical",
-        value: 15,
-        threshold: 10,
-        message: "No heartbeat for 15 minutes",
-      },
-      {
-        kind: "token_spike",
-        severity: "critical",
-        value: 50000,
-        threshold: 15000,
-        message: "Token spike",
-      },
-    ];
-    expect(deriveHealthState(signals)).toBe("zombie");
   });
 
   it("prioritizes rogue over stuck when both are present", () => {

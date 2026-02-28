@@ -6,7 +6,6 @@ import { evaluateAnomalyRules } from "./anomaly-rules.js";
 function createDefaultStats(overrides: Partial<AgentStats> = {}): AgentStats {
   return {
     lastEventAt: Date.now(),
-    lastHeartbeatAt: Date.now(),
     totalTokensWindow: 0,
     movingAvgTokens: 0,
     errorsInWindow: 0,

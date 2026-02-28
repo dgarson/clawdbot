@@ -179,6 +179,11 @@ const observabilityPlugin = {
     });
 
     // Track tool calls
+    const consecutiveToolCalls = new Map<
+      string,
+      { toolName: string; paramsStr: string; count: number }
+    >();
+
     api.on("before_tool_call", async (event, ctx) => {
       const agentId = ctx.agentId ?? "unknown";
       const runId = ctx.runId ?? ctx.sessionKey ?? agentId;
@@ -193,6 +198,33 @@ const observabilityPlugin = {
       const throttleDelay = getThrottleDelay(agentId);
       if (throttleDelay && throttleDelay > 0) {
         await new Promise((resolve) => setTimeout(resolve, throttleDelay));
+      }
+
+      // Tool loop telemetry
+      try {
+        const sessionKey = ctx.sessionKey ?? runId;
+        const paramsStr = JSON.stringify(event.params ?? {});
+        const lastCall = consecutiveToolCalls.get(sessionKey);
+
+        if (lastCall && lastCall.toolName === event.toolName && lastCall.paramsStr === paramsStr) {
+          lastCall.count += 1;
+          if (lastCall.count > 2) {
+            api.logger.warn(
+              `[trace-export] ${JSON.stringify({
+                anomaly: "tool_loop",
+                agentId,
+                sessionKey,
+                toolName: event.toolName,
+                count: lastCall.count,
+                params: event.params,
+              })}`,
+            );
+          }
+        } else {
+          consecutiveToolCalls.set(sessionKey, { toolName: event.toolName, paramsStr, count: 1 });
+        }
+      } catch (err) {
+        // ignore stringify errors
       }
 
       spanBuilder?.startChildSpan(runId, "tool_call", ctx.toolName, {
@@ -294,7 +326,6 @@ const observabilityPlugin = {
       const stats = getOrCreateStats(agentId);
       stats.activeSessions += 1;
       stats.lastEventAt = Date.now();
-      stats.lastHeartbeatAt = Date.now();
     });
 
     api.on("session_end", (event, ctx) => {

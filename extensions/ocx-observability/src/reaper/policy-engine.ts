@@ -4,7 +4,6 @@
  * Default policies:
  *   stuck:  alert (broadcast), requireConfirmation: false
  *   rogue:  alert + throttle + cancel_run, requireConfirmation: true
- *   zombie: alert + terminate_session, requireConfirmation: true
  */
 
 import { randomUUID } from "node:crypto";
@@ -36,14 +35,6 @@ export const DEFAULT_REAPER_POLICIES: Record<string, ReaperPolicy> = {
       { kind: "alert", target: "broadcast" },
       { kind: "throttle", delayMs: 30_000 },
       { kind: "cancel_run" },
-    ],
-    requireConfirmation: true,
-  },
-  zombie: {
-    triggerState: "zombie",
-    actions: [
-      { kind: "alert", target: "broadcast" },
-      { kind: "terminate_session", reason: "Zombie session detected" },
     ],
     requireConfirmation: true,
   },

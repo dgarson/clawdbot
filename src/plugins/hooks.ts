@@ -257,8 +257,13 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     }
 
     const promises = hooks.map(async (hook) => {
+      const start = Date.now();
       try {
         await (hook.handler as (event: unknown, ctx: unknown) => Promise<void>)(event, ctx);
+        const elapsed = Date.now() - start;
+        if (elapsed > 100) {
+          logger?.debug?.(`[hooks] ${hookName} handler ${hook.pluginId} took ${elapsed}ms`);
+        }
       } catch (err) {
         handleHookError({ hookName, pluginId: hook.pluginId, error: err });
       }
@@ -275,7 +280,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     hookName: K,
     event: Parameters<NonNullable<PluginHookRegistration<K>["handler"]>>[0],
     ctx: Parameters<NonNullable<PluginHookRegistration<K>["handler"]>>[1],
-    mergeResults?: (accumulated: TResult | undefined, next: TResult) => TResult,
+    mergeResults?: (accumulated: TResult | undefined, next: TResult, pluginId: string) => TResult,
   ): Promise<TResult | undefined> {
     const hooks = getHooksForName(registry, hookName);
     if (hooks.length === 0) {
@@ -285,14 +290,24 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     let result: TResult | undefined;
 
     for (const hook of hooks) {
+      const start = Date.now();
       try {
         const handlerResult = await (
           hook.handler as (event: unknown, ctx: unknown) => Promise<TResult>
         )(event, ctx);
 
+        const elapsed = Date.now() - start;
+        if (elapsed > 100) {
+          logger?.debug?.(`[hooks] ${hookName} handler ${hook.pluginId} took ${elapsed}ms`);
+        }
+
         if (handlerResult !== undefined && handlerResult !== null) {
-          if (mergeResults && result !== undefined) {
-            result = mergeResults(result, handlerResult);
+          const resultStr = JSON.stringify(handlerResult) ?? "undefined";
+          logger?.debug?.(
+            `[hooks] ${hookName} handler ${hook.pluginId} returned mutation: ${resultStr.length > 200 ? resultStr.substring(0, 200) + "..." : resultStr}`,
+          );
+          if (mergeResults) {
+            result = mergeResults(result, handlerResult, hook.pluginId);
           } else {
             result = handlerResult;
           }
@@ -341,11 +356,10 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       return undefined;
     }
 
-    logger?.debug?.(`[hooks] running before_message_route (${hooks.length} handlers, sequential)`);
-
     let result: PluginHookBeforeMessageRouteResult | undefined;
 
     for (const hook of hooks) {
+      const start = Date.now();
       try {
         const handlerResult = await (
           hook.handler as (
@@ -353,7 +367,18 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
           ) => Promise<PluginHookBeforeMessageRouteResult>
         )(event);
 
+        const elapsed = Date.now() - start;
+        if (elapsed > 100) {
+          logger?.debug?.(
+            `[hooks] before_message_route handler ${hook.pluginId} took ${elapsed}ms`,
+          );
+        }
+
         if (handlerResult !== undefined && handlerResult !== null) {
+          const resultStr = JSON.stringify(handlerResult) ?? "undefined";
+          logger?.debug?.(
+            `[hooks] before_message_route handler ${hook.pluginId} returned mutation: ${resultStr.length > 200 ? resultStr.substring(0, 200) + "..." : resultStr}`,
+          );
           result =
             result !== undefined ? mergeBeforeMessageRoute(result, handlerResult) : handlerResult;
         }
@@ -787,10 +812,14 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       "before_session_create",
       event,
       ctx,
-      (acc, next) => ({
+      (acc, next, pluginId) => ({
         systemPromptSections: [
           ...(acc?.systemPromptSections ?? []),
-          ...(next.systemPromptSections ?? []),
+          ...(next.systemPromptSections?.map((s) =>
+            typeof s === "string"
+              ? { text: s, source: `hook:${pluginId}` }
+              : { ...s, source: s.source ?? `hook:${pluginId}` },
+          ) ?? []),
         ],
         tools: [...(acc?.tools ?? []), ...(next.tools ?? [])],
       }),

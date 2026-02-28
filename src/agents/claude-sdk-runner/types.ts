@@ -71,6 +71,8 @@ export type ClaudeSdkSessionParams = {
 export type ClaudeSdkSession = AgentRuntimeSession & {
   /** Claude Agent SDK server-side session ID, set after first prompt. */
   readonly claudeSdkSessionId: string | undefined;
+  /** Sections appended to the core system prompt, tracked for cache invalidation diffing. */
+  readonly systemPromptSections?: import("../../plugins/types.js").SystemPromptSection[];
 };
 
 // Re-export for use in create-session.ts without an additional import

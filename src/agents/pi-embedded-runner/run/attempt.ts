@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
@@ -643,11 +644,46 @@ export async function runEmbeddedAttempt(
     });
     if (isDiagnosticsEnabled(params.config)) {
       const sectionStats = buildSectionStats(appendPrompt);
-      const formatted = Object.entries(sectionStats)
+      const promptHash = createHash("md5").update(appendPrompt).digest("hex").substring(0, 8);
+
+      const buckets = {
+        "0-250 chars": [] as string[],
+        "251-500 chars": [] as string[],
+        "501-750 chars": [] as string[],
+        "751-1000 chars": [] as string[],
+        "1001-2000 chars": [] as string[],
+      };
+
+      const largeSections: [string, number][] = [];
+
+      for (const [name, chars] of Object.entries(sectionStats)) {
+        if (chars <= 250) {
+          buckets["0-250 chars"].push(name);
+        } else if (chars <= 500) {
+          buckets["251-500 chars"].push(name);
+        } else if (chars <= 750) {
+          buckets["501-750 chars"].push(name);
+        } else if (chars <= 1000) {
+          buckets["751-1000 chars"].push(name);
+        } else if (chars <= 2000) {
+          buckets["1001-2000 chars"].push(name);
+        } else {
+          largeSections.push([name, chars]);
+        }
+      }
+
+      let formatted = largeSections
         .toSorted((a, b) => b[1] - a[1])
         .map(([name, chars]) => `  ${name}: ${chars}`)
         .join("\n");
-      log.debug(`system-prompt sections (chars):\n${formatted}`);
+
+      for (const [range, items] of Object.entries(buckets)) {
+        if (items.length > 0) {
+          formatted += `\n  ${range}: [${items.join(", ")}]`;
+        }
+      }
+
+      log.debug(`system-prompt sections [hash: ${promptHash}]:\n${formatted}`);
     }
     const systemPromptOverride = createSystemPromptOverride(appendPrompt);
     let systemPromptText = systemPromptOverride();
