@@ -96,7 +96,7 @@ describe("before_tool_call hook integration", () => {
     expect(execute).not.toHaveBeenCalled();
   });
 
-  it("continues execution when hook throws", async () => {
+  it("fail-closes when hook throws", async () => {
     hookRunner.hasHooks.mockReturnValue(true);
     hookRunner.runBeforeToolCall.mockRejectedValue(new Error("boom"));
     const execute = vi.fn().mockResolvedValue({ content: [], details: { ok: true } });
@@ -104,14 +104,10 @@ describe("before_tool_call hook integration", () => {
     const tool = wrapToolWithBeforeToolCallHook({ name: "read", execute } as any);
     const extensionContext = {} as Parameters<typeof tool.execute>[3];
 
-    await tool.execute("call-4", { path: "/tmp/file" }, undefined, extensionContext);
-
-    expect(execute).toHaveBeenCalledWith(
-      "call-4",
-      { path: "/tmp/file" },
-      undefined,
-      extensionContext,
-    );
+    await expect(
+      tool.execute("call-4", { path: "/tmp/file" }, undefined, extensionContext),
+    ).rejects.toThrow("Tool call blocked because policy enforcement failed.");
+    expect(execute).not.toHaveBeenCalled();
   });
 
   it("normalizes non-object params for hook contract", async () => {

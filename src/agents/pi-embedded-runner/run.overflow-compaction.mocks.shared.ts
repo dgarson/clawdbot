@@ -30,6 +30,7 @@ export const mockedGlobalHookRunner = {
 
 vi.mock("../../plugins/hook-runner-global.js", () => ({
   getGlobalHookRunner: vi.fn(() => mockedGlobalHookRunner),
+  getGlobalPluginRegistry: vi.fn(() => null),
 }));
 
 vi.mock("../auth-profiles.js", () => ({

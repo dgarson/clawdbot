@@ -587,6 +587,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     // by messaging surfaces (Telegram, Discord) that pass a local callback.
     emitAgentEvent({
       runId: params.runId,
+      lineageId: params.lineageId,
       stream: "thinking",
       data: {
         text: formatted,
