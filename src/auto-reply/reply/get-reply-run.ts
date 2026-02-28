@@ -16,6 +16,7 @@ import {
   updateSessionStore,
 } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
+import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { clearCommandLane, getQueueSize } from "../../process/command-queue.js";
 import { normalizeMainKey } from "../../routing/session-key.js";
 import { isReasoningTagProvider } from "../../utils/provider-utils.js";
@@ -49,6 +50,8 @@ import { resolveTypingMode } from "./typing-mode.js";
 import { resolveRunTypingPolicy } from "./typing-policy.js";
 import type { TypingController } from "./typing.js";
 import { appendUntrustedContext } from "./untrusted-context.js";
+
+const log = createSubsystemLogger("get-reply-run");
 
 type AgentDefaults = NonNullable<OpenClawConfig["agents"]>["defaults"];
 type ExecOverrides = Pick<ExecToolDefaults, "host" | "security" | "ask" | "node">;
@@ -459,6 +462,17 @@ export async function runPreparedReply(
     isNewSession,
   });
   const authProfileIdSource = sessionEntry?.authProfileOverrideSource;
+
+  // Diagnostic: trace structuredContextInput handoff to agent runner
+  log.debug(
+    `get-reply-run: structuredContextInput=${ctx.StructuredContext != null ? "present" : "absent"} sessionKey=${sessionKey}`,
+  );
+  if (ctx.StructuredContext == null && ctx.ChatType === "group") {
+    log.warn(
+      `get-reply-run: structuredContextInput absent for group/channel message sessionKey=${sessionKey}`,
+    );
+  }
+
   const followupRun = {
     prompt: queuedBody,
     messageId: sessionCtx.MessageSidFull ?? sessionCtx.MessageSid,

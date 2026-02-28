@@ -24,6 +24,9 @@ export function coreSessionContextSubscriber(
   event: PluginHookBeforeSessionCreateEvent,
 ): PluginHookBeforeSessionCreateResult {
   if (!event.structuredContextInput) {
+    log.warn(
+      `coreSessionContextSubscriber: no structuredContextInput — channel context will be missing sessionKey=${event.sessionKey ?? "unknown"} platform=${event.platform ?? "unknown"} channelId=${event.channelId ?? "unknown"}`,
+    );
     return {};
   }
 

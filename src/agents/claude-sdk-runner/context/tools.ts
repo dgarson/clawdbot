@@ -40,13 +40,13 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
   const channelContextTool: ClaudeSdkCompatibleTool = {
     name: "channel.context",
     description:
-      "Search for relevant messages in the channel message snapshot provided at conversation start. Use when you need broader context beyond the anchor message. Results come from the pre-captured snapshot, not a live search.",
+      "Search for relevant messages in the channel message snapshot provided at conversation start. Use when you need broader context beyond the anchor message. Results come from the pre-captured snapshot, not a live search. Required parameter: intent.",
     parameters: {
       type: "object",
       properties: {
         intent: {
           type: "string",
-          description: "What you are trying to understand or find context for",
+          description: "(Required) What you are trying to understand or find context for",
         },
         since: {
           type: "string",
@@ -76,6 +76,9 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
         max_results?: number;
         offset?: number;
       };
+      if (!params.intent || typeof params.intent !== "string") {
+        return jsonResult({ error: "Missing required parameter: intent" });
+      }
       const keywords = extractKeywords(params.intent);
       const maxResults = params.max_results ?? 8;
       const offset = params.offset ?? 0;
@@ -125,7 +128,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
   const channelMessagesTool: ClaudeSdkCompatibleTool = {
     name: "channel.messages",
     description:
-      "Fetch specific content by ID — a full thread, specific messages, or a media attachment.",
+      "Fetch specific content by ID — a full thread, specific messages, or a media attachment. Provide exactly one of: thread_id, message_ids, or media_artifact_id.",
     parameters: {
       type: "object",
       properties: {

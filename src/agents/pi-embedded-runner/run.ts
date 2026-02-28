@@ -645,32 +645,26 @@ export async function runEmbeddedPiAgent(
           const prompt =
             provider === "anthropic" ? scrubAnthropicRefusalMagic(params.prompt) : params.prompt;
 
+          // Spread passthrough fields from params, then override the ones
+          // that run.ts resolves locally (model, provider, auth, workspace, etc.).
+          // This ensures new fields added to RunEmbeddedPiAgentParams flow through
+          // automatically without needing to update this call site.
+          const {
+            provider: _provider,
+            model: _model,
+            authProfileId: _authProfileId,
+            authProfileIdSource: _authProfileIdSource,
+            thinkLevel: _thinkLevel,
+            lane: _lane,
+            enqueue: _enqueue,
+            ...attemptPassthrough
+          } = params;
           const attempt = await runEmbeddedAttempt({
-            sessionId: params.sessionId,
-            sessionKey: params.sessionKey,
-            messageChannel: params.messageChannel,
-            messageProvider: params.messageProvider,
-            agentAccountId: params.agentAccountId,
-            messageTo: params.messageTo,
-            messageThreadId: params.messageThreadId,
-            groupId: params.groupId,
-            groupChannel: params.groupChannel,
-            groupSpace: params.groupSpace,
-            spawnedBy: params.spawnedBy,
-            senderIsOwner: params.senderIsOwner,
-            currentChannelId: params.currentChannelId,
-            currentThreadTs: params.currentThreadTs,
-            currentMessageId: params.currentMessageId,
-            replyToMode: params.replyToMode,
-            hasRepliedRef: params.hasRepliedRef,
-            sessionFile: params.sessionFile,
+            ...attemptPassthrough,
+            // Fields resolved locally by run.ts:
             workspaceDir: resolvedWorkspace,
             agentDir,
-            config: params.config,
-            skillsSnapshot: params.skillsSnapshot,
             prompt,
-            images: params.images,
-            disableTools: params.disableTools,
             provider,
             modelId,
             model,
@@ -681,31 +675,7 @@ export async function runEmbeddedPiAgent(
             agentId: workspaceResolution.agentId,
             legacyBeforeAgentStartResult,
             thinkLevel,
-            verboseLevel: params.verboseLevel,
-            reasoningLevel: params.reasoningLevel,
             toolResultFormat: resolvedToolResultFormat,
-            execOverrides: params.execOverrides,
-            bashElevated: params.bashElevated,
-            timeoutMs: params.timeoutMs,
-            runId: params.runId,
-            abortSignal: params.abortSignal,
-            shouldEmitToolResult: params.shouldEmitToolResult,
-            shouldEmitToolOutput: params.shouldEmitToolOutput,
-            onPartialReply: params.onPartialReply,
-            onAssistantMessageStart: params.onAssistantMessageStart,
-            onBlockReply: params.onBlockReply,
-            onBlockReplyFlush: params.onBlockReplyFlush,
-            blockReplyBreak: params.blockReplyBreak,
-            blockReplyChunking: params.blockReplyChunking,
-            onReasoningStream: params.onReasoningStream,
-            onReasoningEnd: params.onReasoningEnd,
-            onToolResult: params.onToolResult,
-            onAgentEvent: params.onAgentEvent,
-            extraSystemPrompt: params.extraSystemPrompt,
-            inputProvenance: params.inputProvenance,
-            streamParams: params.streamParams,
-            ownerNumbers: params.ownerNumbers,
-            enforceFinalTag: params.enforceFinalTag,
           });
 
           const {

@@ -189,6 +189,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       params.error,
     )}`;
     if (catchErrors) {
+      logger?.warn(msg);
       logger?.error(msg);
       return;
     }
@@ -253,6 +254,10 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
           } else {
             result = handlerResult;
           }
+        } else {
+          logger?.debug?.(
+            `[hooks] ${hookName} handler from ${hook.pluginId} returned ${handlerResult === null ? "null" : "undefined"}`,
+          );
         }
       } catch (err) {
         handleHookError({ hookName, pluginId: hook.pluginId, error: err });

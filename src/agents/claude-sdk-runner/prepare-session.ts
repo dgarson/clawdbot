@@ -161,6 +161,16 @@ export async function prepareClaudeSdkSession(
   const claudeSdkResumeSessionId =
     typeof claudeSdkEntry?.data === "string" ? claudeSdkEntry.data : undefined;
 
+  // 3. Diagnostic: trace structuredContextInput before session creation
+  log.debug(
+    `prepareClaudeSdkSession: structuredContextInput=${params.structuredContextInput != null ? "present" : "absent"} sessionId=${params.sessionId}`,
+  );
+  if (params.structuredContextInput == null && params.sessionId.includes(":")) {
+    log.warn(
+      `prepareClaudeSdkSession: structuredContextInput absent for what looks like a channel session sessionId=${params.sessionId}`,
+    );
+  }
+
   // 3. Create and return the session
   return createClaudeSdkSession({
     workspaceDir: resolvedWorkspace,

@@ -17,8 +17,8 @@
  */
 
 import { createHash } from "node:crypto";
-import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
+import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import { emitDiagnosticEvent } from "../../infra/diagnostic-events.js";
@@ -343,6 +343,9 @@ export async function createClaudeSdkSession(
     sessionKey: params.sessionId,
     diagnosticsEnabled: params.diagnosticsEnabled,
   };
+  log.debug(
+    `createClaudeSdkSession: structuredContextInput=${params.structuredContextInput != null ? "present" : "absent"} platform=${hookEvent.platform ?? "none"} channelId=${hookEvent.channelId ?? "none"} sessionKey=${params.sessionId}`,
+  );
   const hookStartMs = Date.now();
   const runner = getGlobalHookRunner() ?? createCoreHookRunner();
   const hookContrib = await runner.runBeforeSessionCreate(hookEvent, {

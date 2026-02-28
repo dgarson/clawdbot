@@ -53,6 +53,7 @@ export type PluginLoadOptions = {
 
 const registryCache = new Map<string, PluginRegistry>();
 
+const log = createSubsystemLogger("plugins");
 const defaultLogger = () => createSubsystemLogger("plugins");
 
 const resolvePluginSdkAliasFile = (params: {
@@ -750,19 +751,30 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
     pluginId: "openclaw-core",
     hookName: "message_context_build",
     handler: (event: PluginHookMessageContextBuildEvent) => {
+      log.debug(
+        `message_context_build handler: platform=${event.platform} channelId=${event.channelId}`,
+      );
       if (event.platform !== "slack") {
+        log.warn(
+          `message_context_build handler: returning early — platform is "${event.platform}", not "slack"`,
+        );
         return;
       }
       const data = event.resolvedData;
       if (!data || typeof data !== "object" || !("message" in data)) {
+        log.warn(
+          `message_context_build handler: returning early — resolvedData missing or has no "message" key`,
+        );
         return;
       }
-      return {
-        structuredContext: buildSlackStructuredContext({
-          ...(data as SlackContextBuildData),
-          channelId: event.channelId,
-        }),
-      };
+      const structuredContext = buildSlackStructuredContext({
+        ...(data as SlackContextBuildData),
+        channelId: event.channelId,
+      });
+      log.debug(
+        `message_context_build handler: built structuredContext adjacentMessages=${structuredContext.adjacentMessages?.length ?? 0} hasThread=${!!structuredContext.thread} anchor=${structuredContext.anchor?.messageId ?? "none"}`,
+      );
+      return { structuredContext };
     },
     priority: 500,
     source: "core",

@@ -620,6 +620,15 @@ export async function prepareSlackMessage(params: {
     resolvedData: contextBuildData,
   });
   const structuredContext = hookResult?.structuredContext ?? null;
+  if (!structuredContext) {
+    log.warn(
+      `message_context_build returned no structuredContext for slack channel message channel=${message.channel}`,
+    );
+  } else {
+    log.debug(
+      `structuredContext built: adjacentMessages=${structuredContext.adjacentMessages?.length ?? 0} hasThread=${!!structuredContext.thread} channelType=${structuredContext.channelType} anchorTs=${structuredContext.anchor?.ts ?? "none"}`,
+    );
+  }
 
   // Use direct media (including forwarded attachment media) if available, else thread starter media
   const effectiveMedia = effectiveDirectMedia ?? threadStarterMedia;
