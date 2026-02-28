@@ -2,6 +2,7 @@ import path from "node:path";
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { ChannelDock } from "../channels/dock.js";
 import type { ChannelPlugin } from "../channels/plugins/types.js";
+import { resolveStateDir } from "../config/paths.js";
 import type {
   GatewayRequestHandler,
   GatewayRequestHandlers,
@@ -11,6 +12,8 @@ import type { HookEntry } from "../hooks/types.js";
 import { resolveUserPath } from "../utils.js";
 import { registerPluginCommand } from "./commands.js";
 import { normalizePluginHttpPath } from "./http-path.js";
+import { createPluginCronScheduler } from "./runtime/cron.js";
+import { createPluginKvStore } from "./runtime/kv.js";
 import type { PluginRuntime } from "./runtime/types.js";
 import type {
   OpenClawPluginApi,
@@ -32,6 +35,9 @@ import type {
   PluginHookName,
   PluginHookHandlerMap,
   PluginHookRegistration as TypedPluginHookRegistration,
+  PromptSectionBuilder,
+  PromptSectionOptions,
+  PromptSectionRegistration as PluginPromptSectionRegistration,
 } from "./types.js";
 
 export type PluginToolRegistration = {
@@ -134,6 +140,8 @@ export type PluginRegistry = {
   cliRegistrars: PluginCliRegistration[];
   services: PluginServiceRegistration[];
   commands: PluginCommandRegistration[];
+  /** Prompt section contributors registered via api.registerPromptSection() (P8). */
+  promptSections: PluginPromptSectionRegistration[];
   diagnostics: PluginDiagnostic[];
 };
 
@@ -157,6 +165,7 @@ export function createEmptyPluginRegistry(): PluginRegistry {
     cliRegistrars: [],
     services: [],
     commands: [],
+    promptSections: [],
     diagnostics: [],
   };
 }
@@ -446,6 +455,33 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     });
   };
 
+  const registerPromptSection = (
+    record: PluginRecord,
+    name: string,
+    builder: PromptSectionBuilder,
+    opts?: PromptSectionOptions,
+  ) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: "registerPromptSection: name must not be empty",
+      });
+      return;
+    }
+    registry.promptSections.push({
+      pluginId: record.id,
+      name: trimmedName,
+      builder,
+      priority: opts?.priority ?? 100,
+      slot: opts?.slot ?? "end",
+      condition: opts?.condition,
+      addHeading: opts?.addHeading !== false,
+    });
+  };
+
   const registerTypedHook = <K extends PluginHookName>(
     record: PluginRecord,
     hookName: K,
@@ -476,6 +512,15 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       pluginConfig?: Record<string, unknown>;
     },
   ): OpenClawPluginApi => {
+    // Per-plugin kv and cron namespaces — namespaced by plugin ID so stores don't collide.
+    const stateDir = resolveStateDir();
+    const pluginKv = createPluginKvStore(stateDir, record.id);
+    const pluginCron = createPluginCronScheduler(record.id);
+    const pluginRuntime: PluginRuntime = {
+      ...registryParams.runtime,
+      kv: pluginKv,
+      cron: pluginCron,
+    };
     return {
       id: record.id,
       name: record.name,
@@ -484,7 +529,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       source: record.source,
       config: params.config,
       pluginConfig: params.pluginConfig,
-      runtime: registryParams.runtime,
+      runtime: pluginRuntime,
       logger: normalizeLogger(registryParams.logger),
       registerTool: (tool, opts) => registerTool(record, tool, opts),
       registerHook: (events, handler, opts) =>
@@ -497,6 +542,8 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       registerCli: (registrar, opts) => registerCli(record, registrar, opts),
       registerService: (service) => registerService(record, service),
       registerCommand: (command) => registerCommand(record, command),
+      registerPromptSection: (name, builder, opts) =>
+        registerPromptSection(record, name, builder, opts),
       resolvePath: (input: string) => resolveUserPath(input),
       on: (hookName, handler, opts) => registerTypedHook(record, hookName, handler, opts),
     };
