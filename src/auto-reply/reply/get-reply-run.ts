@@ -512,7 +512,10 @@ export async function runPreparedReply(
       extraSystemPrompt: extraSystemPrompt || undefined,
       ...(isReasoningTagProvider(provider) ? { enforceFinalTag: true } : {}),
       structuredContextInput: ctx.StructuredContext ?? undefined,
-      rawBodyForSdk: ctx.BodyForAgent?.trim() ?? undefined,
+      // Only set rawBodyForSdk for SDK sessions (where StructuredContext is present),
+      // so attempt.ts can use the unprefixed text without double-counting thread history.
+      rawBodyForSdk:
+        ctx.StructuredContext != null ? ctx.BodyForAgent?.trim() || undefined : undefined,
     },
   };
 

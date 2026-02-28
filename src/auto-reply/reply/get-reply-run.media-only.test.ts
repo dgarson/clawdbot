@@ -294,4 +294,97 @@ describe("runPreparedReply media-only handling", () => {
       | undefined;
     expect(call?.suppressTyping).toBe(true);
   });
+
+  it("omits thread prefix from prompt when StructuredContext is present", async () => {
+    const structuredContext = { platform: "slack", channelId: "C123" };
+    await runPreparedReply(
+      baseParams({
+        ctx: {
+          Body: "user question",
+          BodyForAgent: "user question",
+          RawBody: "user question",
+          CommandBody: "user question",
+          ThreadHistoryBody: "Earlier message in this thread",
+          StructuredContext: structuredContext as never,
+          OriginatingChannel: "slack",
+          OriginatingTo: "C123",
+          ChatType: "group",
+        },
+        sessionCtx: {
+          Body: "user question",
+          BodyStripped: "user question",
+          ThreadHistoryBody: "Earlier message in this thread",
+          Provider: "slack",
+          ChatType: "group",
+          OriginatingChannel: "slack",
+          OriginatingTo: "C123",
+        },
+      }),
+    );
+
+    const call = vi.mocked(runReplyAgent).mock.calls[0]?.[0];
+    expect(call).toBeTruthy();
+    expect(call?.followupRun.prompt).not.toContain("[Thread history - for context]");
+    expect(call?.followupRun.prompt).not.toContain("Earlier message in this thread");
+    expect(call?.followupRun.run.structuredContextInput).toEqual(structuredContext);
+  });
+
+  it("sets rawBodyForSdk only when StructuredContext is present", async () => {
+    const structuredContext = { platform: "slack", channelId: "C123" };
+
+    // With StructuredContext → rawBodyForSdk should be the unprefixed body
+    await runPreparedReply(
+      baseParams({
+        ctx: {
+          Body: "user question",
+          BodyForAgent: "user question",
+          RawBody: "user question",
+          CommandBody: "user question",
+          ThreadHistoryBody: "Earlier message",
+          StructuredContext: structuredContext as never,
+          OriginatingChannel: "slack",
+          OriginatingTo: "C123",
+          ChatType: "group",
+        },
+        sessionCtx: {
+          Body: "user question",
+          BodyStripped: "user question",
+          Provider: "slack",
+          ChatType: "group",
+          OriginatingChannel: "slack",
+          OriginatingTo: "C123",
+        },
+      }),
+    );
+    const withCtx = vi.mocked(runReplyAgent).mock.calls[0]?.[0];
+    expect(withCtx?.followupRun.run.rawBodyForSdk).toBe("user question");
+
+    vi.clearAllMocks();
+
+    // Without StructuredContext → rawBodyForSdk should be undefined
+    await runPreparedReply(
+      baseParams({
+        ctx: {
+          Body: "user question",
+          BodyForAgent: "user question",
+          RawBody: "user question",
+          CommandBody: "user question",
+          ThreadHistoryBody: "Earlier message",
+          OriginatingChannel: "slack",
+          OriginatingTo: "C123",
+          ChatType: "group",
+        },
+        sessionCtx: {
+          Body: "user question",
+          BodyStripped: "user question",
+          Provider: "slack",
+          ChatType: "group",
+          OriginatingChannel: "slack",
+          OriginatingTo: "C123",
+        },
+      }),
+    );
+    const withoutCtx = vi.mocked(runReplyAgent).mock.calls[0]?.[0];
+    expect(withoutCtx?.followupRun.run.rawBodyForSdk).toBeUndefined();
+  });
 });
