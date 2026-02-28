@@ -53,6 +53,7 @@ import {
 } from "../media.js";
 import { cacheThreadReply } from "../media.thread-replies.js";
 import { resolveSlackRoomContextHints } from "../room-context.js";
+import { createSlackChannelHistoryFetcher } from "../slack-channel-history-fetcher.js";
 import type { SlackContextBuildData } from "./context-builder.js";
 import type { PreparedSlackMessage } from "./types.js";
 
@@ -307,19 +308,24 @@ export async function prepareSlackMessage(params: {
         ? "[Slack file]"
         : "";
     const pendingBody = pendingText || fallbackFile;
+    const bystanderEntry = pendingBody
+      ? {
+          sender: senderName,
+          body: pendingBody,
+          timestamp: message.ts ? Math.round(Number(message.ts) * 1000) : undefined,
+          messageId: message.ts,
+        }
+      : null;
     recordPendingHistoryEntryIfEnabled({
       historyMap: ctx.channelHistories,
       historyKey,
       limit: ctx.historyLimit,
-      entry: pendingBody
-        ? {
-            sender: senderName,
-            body: pendingBody,
-            timestamp: message.ts ? Math.round(Number(message.ts) * 1000) : undefined,
-            messageId: message.ts,
-          }
-        : null,
+      entry: bystanderEntry,
     });
+    // Also record to snapshot store (survives dispatch clearing)
+    if (bystanderEntry) {
+      ctx.channelSnapshots.record(historyKey, bystanderEntry);
+    }
     return null;
   }
 
@@ -583,8 +589,17 @@ export async function prepareSlackMessage(params: {
 
   // Build StructuredContextInput for Claude SDK sessions.
   // Pi sessions still use the flat ThreadStarterBody/ThreadHistoryBody strings above.
+  // Seed snapshot store from API (once per channel per process lifetime) so
+  // adjacentMessages is populated even on process restart or first message.
+  if (isRoomish && ctx.historyLimit > 0) {
+    const fetcher = createSlackChannelHistoryFetcher({
+      client: ctx.app.client,
+      resolveUserName: ctx.resolveUserName,
+    });
+    await ctx.channelSnapshots.seedOnce(historyKey, fetcher);
+  }
   const historyEntries =
-    isRoomish && ctx.historyLimit > 0 ? (ctx.channelHistories.get(historyKey) ?? []) : [];
+    isRoomish && ctx.historyLimit > 0 ? ctx.channelSnapshots.get(historyKey) : [];
 
   const contextBuildData: SlackContextBuildData = {
     message,
