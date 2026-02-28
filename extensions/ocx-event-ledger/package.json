@@ -1,0 +1,12 @@
+{
+  "name": "@openclaw/ocx-event-ledger",
+  "version": "2026.2.24",
+  "private": true,
+  "description": "OpenClaw event ledger and telemetry plugin",
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
