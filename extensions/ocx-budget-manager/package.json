@@ -1,0 +1,12 @@
+{
+  "name": "@openclaw/ocx-budget-manager",
+  "version": "2026.2.24",
+  "private": true,
+  "description": "OpenClaw budget manager plugin",
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
