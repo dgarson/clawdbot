@@ -52,6 +52,8 @@ export type ClaudeSdkSessionParams = {
   structuredContextInput?: StructuredContextInput;
   /** Full auth-resolution output (profile/source/mode/key) for provider env mapping. */
   resolvedProviderAuth?: ResolvedProviderAuth;
+  /** When true, emit detailed debug logs for cache/token usage after each turn. */
+  diagnosticsEnabled?: boolean;
   /** SessionManager instance for persisting the claude SDK session ID and messages. */
   sessionManager?: {
     appendCustomEntry?: (key: string, value: unknown) => void;
@@ -104,6 +106,18 @@ export type ClaudeSdkEventAdapterState = {
    *  prompt() method throws this after the for-await loop so callers receive
    *  a proper rejection rather than a silent successful resolution. */
   sdkResultError: string | undefined;
+  /** Captured from the final SDK result message's modelUsage field.
+   *  Keys are model names; values hold per-model token breakdowns. */
+  sdkModelUsage:
+    | Record<
+        string,
+        {
+          cacheCreationInputTokens?: number;
+          cacheReadInputTokens?: number;
+          inputTokens?: number;
+        }
+      >
+    | undefined;
   /** Last stderr output captured from the Claude Code subprocess.
    *  Attached to process-exit errors for actionable diagnostics. */
   lastStderr: string | undefined;
@@ -130,6 +144,8 @@ export type ClaudeSdkEventAdapterState = {
   transcriptProvider: string;
   transcriptApi: string;
   modelCost?: ModelCostConfig;
+  /** Current scratchpad content. Updated by session.scratchpad tool. */
+  scratchpad?: string;
 };
 
 // ---------------------------------------------------------------------------

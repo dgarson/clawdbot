@@ -25,6 +25,13 @@ export const ClaudeSdkConfigSchema = z
      * propagated to the Claude subprocess as CLAUDE_CONFIG_DIR.
      */
     configDir: z.string().trim().min(1).optional(),
+    scratchpad: z
+      .object({
+        enabled: z.boolean().optional(),
+        maxTokens: z.number().int().positive().optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict()
   .optional();
