@@ -226,8 +226,13 @@ describe("buildSlackStructuredContext", () => {
   });
 
   it("fetcher.fetchMedia throws when no token is available", async () => {
-    const clientWithoutToken = makeClient();
-    clientWithoutToken.token = undefined;
+    const clientWithoutToken = {
+      conversations: {
+        replies: vi
+          .fn()
+          .mockResolvedValue({ messages: [], response_metadata: { next_cursor: "" } }),
+      },
+    } as unknown as Parameters<typeof buildSlackStructuredContext>[0]["client"];
     const sc = buildSlackStructuredContext(baseDmParams({ client: clientWithoutToken }));
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     await expect(sc.fetcher.fetchMedia!("F123")).rejects.toThrow(
@@ -236,11 +241,15 @@ describe("buildSlackStructuredContext", () => {
   });
 
   it("fetcher.fetchMedia throws when file is not found", async () => {
-    const clientWithToken = makeClient();
-    clientWithToken.token = "xoxb-test";
-    clientWithToken.files = {
-      info: vi.fn().mockResolvedValue({ ok: true, file: null }),
-    } as unknown as Parameters<typeof buildSlackStructuredContext>[0]["client"]["files"];
+    const clientWithToken = {
+      conversations: {
+        replies: vi
+          .fn()
+          .mockResolvedValue({ messages: [], response_metadata: { next_cursor: "" } }),
+      },
+      token: "xoxb-test",
+      files: { info: vi.fn().mockResolvedValue({ ok: true, file: null }) },
+    } as unknown as Parameters<typeof buildSlackStructuredContext>[0]["client"];
 
     const sc = buildSlackStructuredContext(baseDmParams({ client: clientWithToken }));
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

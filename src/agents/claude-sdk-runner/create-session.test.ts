@@ -1765,8 +1765,8 @@ describe("session lifecycle — attachment diagnostics", () => {
     await session.prompt("first turn");
     await session.prompt("second turn with images", {
       images: [
-        { data: duplicateBase64, mimeType: "image/jpeg" },
-        { data: newBase64, mimeType: "image/jpeg" },
+        { type: "image" as const, data: duplicateBase64, mimeType: "image/jpeg" },
+        { type: "image" as const, data: newBase64, mimeType: "image/jpeg" },
       ],
     });
 
@@ -1803,7 +1803,13 @@ describe("session lifecycle — attachment diagnostics", () => {
       }),
     );
     await session.prompt("no diagnostics", {
-      images: [{ data: Buffer.from("img").toString("base64"), mimeType: "image/jpeg" }],
+      images: [
+        {
+          type: "image" as const,
+          data: Buffer.from("img").toString("base64"),
+          mimeType: "image/jpeg",
+        },
+      ],
     });
 
     stop();

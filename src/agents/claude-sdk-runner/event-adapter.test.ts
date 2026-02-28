@@ -45,6 +45,10 @@ function makeState(overrides?: Partial<ClaudeSdkEventAdapterState>): ClaudeSdkEv
     transcriptApi: "anthropic-messages",
     modelCost: undefined,
     refs: [],
+    turnCount: 0,
+    pendingPlanNudge: false,
+    pendingCompactionNudge: false,
+    lastScratchpadUseTurn: 0,
     pendingCompactionReattachments: 0,
     ...overrides,
   };
