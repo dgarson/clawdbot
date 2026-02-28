@@ -92,6 +92,12 @@ export function buildSlackStructuredContext(
             : "Unknown",
         authorIsBot: Boolean(r.botId),
         text: r.text,
+        files: r.files?.map((f) => ({
+          artifactId: f.id ?? "",
+          mimeType: f.mimetype ?? "application/octet-stream",
+          filename: f.name,
+          byteLength: f.size ?? 0,
+        })),
       }));
     threadData = {
       rootMessageId: threadTs,
@@ -102,6 +108,12 @@ export function buildSlackStructuredContext(
         : "Unknown",
       rootAuthorIsBot: false,
       rootText: threadStarter.text,
+      rootFiles: threadStarter.files?.map((f) => ({
+        artifactId: f.id ?? "",
+        mimeType: f.mimetype ?? "application/octet-stream",
+        filename: f.name,
+        byteLength: f.size ?? 0,
+      })),
       replies,
       totalReplyCount: replies.length,
     };
@@ -131,6 +143,12 @@ export function buildSlackStructuredContext(
           authorName: m.userId ?? m.botId ?? "Unknown",
           authorIsBot: Boolean(m.botId),
           text: m.text,
+          files: m.files?.map((f) => ({
+            artifactId: f.id ?? "",
+            mimeType: f.mimetype ?? "application/octet-stream",
+            filename: f.name,
+            byteLength: f.size ?? 0,
+          })),
         }));
       return {
         root: starter
@@ -141,6 +159,12 @@ export function buildSlackStructuredContext(
               authorName: starter.userId ?? "Unknown",
               authorIsBot: false,
               text: starter.text,
+              files: starter.files?.map((f) => ({
+                artifactId: f.id ?? "",
+                mimeType: f.mimetype ?? "application/octet-stream",
+                filename: f.name,
+                byteLength: f.size ?? 0,
+              })),
             }
           : undefined,
         replies,
@@ -190,6 +214,12 @@ export function buildSlackStructuredContext(
           authorName: m.userId ?? m.botId ?? "Unknown",
           authorIsBot: Boolean(m.botId),
           text: m.text,
+          files: m.files?.map((f) => ({
+            artifactId: f.id ?? "",
+            mimeType: f.mimetype ?? "application/octet-stream",
+            filename: f.name,
+            byteLength: f.size ?? 0,
+          })),
         }));
     },
   };
@@ -207,6 +237,12 @@ export function buildSlackStructuredContext(
       authorIsBot: isBotMessage,
       text: rawBody,
       threadId: isThreadReply && threadTs ? threadTs : null,
+      files: message.files?.map((f) => ({
+        artifactId: f.id ?? "",
+        mimeType: f.mimetype ?? "application/octet-stream",
+        filename: f.name,
+        byteLength: f.size ?? 0,
+      })),
     },
     adjacentMessages: adjacentMessagesForCtx,
     thread: threadData,

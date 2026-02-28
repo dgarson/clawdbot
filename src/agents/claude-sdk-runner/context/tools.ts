@@ -104,7 +104,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
             text: t.rootText,
             threadId: t.rootMessageId,
             replyCount: t.totalReplyCount,
-            hasMedia: false,
+            hasMedia: (t.rootFiles?.length ?? 0) > 0,
             reactions: [],
           });
         }
@@ -119,7 +119,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
               text: r.text,
               threadId: t.rootMessageId,
               replyCount: 0,
-              hasMedia: false,
+              hasMedia: (r.files?.length ?? 0) > 0,
               reactions: [],
             });
           }
@@ -236,7 +236,8 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
             rootAuthorName: fetched.root?.authorName ?? "Unknown",
             rootAuthorIsBot: fetched.root?.authorIsBot ?? false,
             rootText: fetched.root?.text ?? "",
-            replies: fetched.replies.map((r) => ({ ...r, files: undefined })),
+            rootFiles: fetched.root?.files,
+            replies: fetched.replies,
             totalReplyCount: fetched.totalCount,
           });
           return jsonResult({ thread: threadCtx });
