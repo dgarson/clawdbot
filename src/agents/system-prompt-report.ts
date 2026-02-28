@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import path from "node:path";
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import type { SessionSystemPromptReport } from "../config/sessions/types.js";
@@ -161,6 +162,8 @@ export function buildSystemPromptReport(params: {
   injectedFiles: EmbeddedContextFile[];
   skillsPrompt: string;
   tools: AgentTool[];
+  pluginSections?: import("./system-prompt.plugin-sections.js").PluginPromptSection[];
+  previousSystemPromptReport?: SessionSystemPromptReport;
 }): SessionSystemPromptReport {
   const systemPrompt = params.systemPrompt.trim();
   const projectContext = extractBetween(
@@ -174,6 +177,11 @@ export function buildSystemPromptReport(params: {
   const toolsEntries = buildToolsEntries(params.tools);
   const toolsSchemaChars = toolsEntries.reduce((sum, t) => sum + (t.schemaChars ?? 0), 0);
   const skillsEntries = parseSkillBlocks(params.skillsPrompt);
+
+  const cacheDiagnostics = buildCacheDiagnostics({
+    systemPrompt: params.systemPrompt,
+    previousReport: params.previousSystemPromptReport,
+  });
 
   return {
     source: params.source,
@@ -204,5 +212,97 @@ export function buildSystemPromptReport(params: {
       schemaChars: toolsSchemaChars,
       entries: toolsEntries,
     },
+    cacheDiagnostics,
+  };
+}
+
+function buildCacheDiagnostics(params: {
+  systemPrompt: string;
+  previousReport?: SessionSystemPromptReport;
+}): SessionSystemPromptReport["cacheDiagnostics"] {
+  const sequence: import("../config/sessions/types.js").PromptSectionHash[] = [];
+  const lines = params.systemPrompt.split("\n");
+  let currentSection = "(preamble)";
+  let currentChars = 0;
+  let currentContent = "";
+
+  const isVolatile = (name: string) =>
+    name.toLowerCase().includes("time") || name.toLowerCase().includes("date");
+
+  for (const line of lines) {
+    const heading = /^(#{1,2}) (.+)/.exec(line);
+    if (heading) {
+      if (currentChars > 0) {
+        sequence.push({
+          name: currentSection,
+          source: "(unknown)",
+          contentLength: currentChars,
+          contentHash: createHash("md5").update(currentContent).digest("hex").substring(0, 8),
+          volatile: isVolatile(currentSection),
+        });
+      }
+      currentSection = heading[2].trim();
+      currentChars = line.length + 1;
+      currentContent = line + "\n";
+    } else {
+      currentChars += line.length + 1;
+      currentContent += line + "\n";
+    }
+  }
+  if (currentChars > 0) {
+    sequence.push({
+      name: currentSection,
+      source: "(unknown)",
+      contentLength: currentChars,
+      contentHash: createHash("md5").update(currentContent).digest("hex").substring(0, 8),
+      volatile: isVolatile(currentSection),
+    });
+  }
+
+  const currentPromptHash = createHash("md5")
+    .update(params.systemPrompt)
+    .digest("hex")
+    .substring(0, 8);
+  const previousReport = params.previousReport;
+  const previousPromptHash = previousReport?.cacheDiagnostics?.currentPromptHash ?? "";
+
+  if (!previousReport?.cacheDiagnostics?.sequence) {
+    return { currentPromptHash, previousPromptHash, sequence };
+  }
+
+  let invalidatorBlock: import("../config/sessions/types.js").CacheDiagnostics["invalidatorBlock"] =
+    undefined;
+  let byteOffset = 0;
+  let foundInvalidator = false;
+
+  const prevSequence = previousReport.cacheDiagnostics.sequence;
+
+  for (let i = 0; i < sequence.length; i++) {
+    const current = sequence[i];
+    const prev = prevSequence[i];
+
+    if (!foundInvalidator && (!prev || current.contentHash !== prev.contentHash)) {
+      foundInvalidator = true;
+      current.status = "invalidated_changed";
+      invalidatorBlock = {
+        name: current.name,
+        source: current.source,
+        byteOffset,
+        wastedTokensEstimated: Math.floor((params.systemPrompt.length - byteOffset) / 4),
+      };
+    } else if (foundInvalidator) {
+      current.status = "invalidated_downstream";
+    } else {
+      current.status = "retained";
+    }
+
+    byteOffset += current.contentLength;
+  }
+
+  return {
+    previousPromptHash,
+    currentPromptHash,
+    sequence,
+    invalidatorBlock,
   };
 }

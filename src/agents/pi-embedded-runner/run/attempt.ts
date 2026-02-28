@@ -645,6 +645,13 @@ export async function runEmbeddedAttempt(
       previousSystemPromptReport: params.previousSystemPromptReport,
     });
     if (isDiagnosticsEnabled(params.config)) {
+      if (systemPromptReport.cacheDiagnostics?.invalidatorBlock) {
+        const inv = systemPromptReport.cacheDiagnostics.invalidatorBlock;
+        log.warn(
+          `[prompt-cache] invalidate detected at block '${inv.name}' (offset: ${inv.byteOffset}, wasted_tokens: ~${inv.wastedTokensEstimated})`,
+        );
+      }
+
       const sectionStats = buildSectionStats(appendPrompt);
       const promptHash = createHash("md5").update(appendPrompt).digest("hex").substring(0, 8);
 
