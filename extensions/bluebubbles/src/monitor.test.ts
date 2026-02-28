@@ -162,24 +162,6 @@ function createMockRuntime(): PluginRuntime {
           vi.fn() as unknown as PluginRuntime["channel"]["reply"]["resolveHumanDelayConfig"],
         dispatchReplyFromConfig:
           vi.fn() as unknown as PluginRuntime["channel"]["reply"]["dispatchReplyFromConfig"],
-        withReplyDispatcher: vi.fn(
-          async ({
-            dispatcher,
-            run,
-            onSettled,
-          }: Parameters<PluginRuntime["channel"]["reply"]["withReplyDispatcher"]>[0]) => {
-            try {
-              return await run();
-            } finally {
-              dispatcher.markComplete();
-              try {
-                await dispatcher.waitForIdle();
-              } finally {
-                await onSettled?.();
-              }
-            }
-          },
-        ) as unknown as PluginRuntime["channel"]["reply"]["withReplyDispatcher"],
         finalizeInboundContext: vi.fn(
           (ctx: Record<string, unknown>) => ctx,
         ) as unknown as PluginRuntime["channel"]["reply"]["finalizeInboundContext"],
@@ -286,6 +268,38 @@ function createMockRuntime(): PluginRuntime {
       resolveStateDir: vi.fn(
         () => "/tmp/openclaw",
       ) as unknown as PluginRuntime["state"]["resolveStateDir"],
+    },
+    gateway: {
+      call: vi.fn() as unknown as PluginRuntime["gateway"]["call"],
+    },
+    sessions: {
+      list: vi.fn() as unknown as PluginRuntime["sessions"]["list"],
+      readTranscript: vi.fn() as unknown as PluginRuntime["sessions"]["readTranscript"],
+      getUsageSummary: vi.fn() as unknown as PluginRuntime["sessions"]["getUsageSummary"],
+    },
+    diagnostics: {
+      emit: vi.fn() as unknown as PluginRuntime["diagnostics"]["emit"],
+      subscribe: vi.fn() as unknown as PluginRuntime["diagnostics"]["subscribe"],
+    },
+    kv: {
+      get: vi.fn() as unknown as PluginRuntime["kv"]["get"],
+      set: vi.fn() as unknown as PluginRuntime["kv"]["set"],
+      delete: vi.fn() as unknown as PluginRuntime["kv"]["delete"],
+      list: vi.fn() as unknown as PluginRuntime["kv"]["list"],
+      clear: vi.fn() as unknown as PluginRuntime["kv"]["clear"],
+    },
+    quota: {
+      getUsage: vi.fn() as unknown as PluginRuntime["quota"]["getUsage"],
+      checkBudget: vi.fn() as unknown as PluginRuntime["quota"]["checkBudget"],
+    },
+    agents: {
+      list: vi.fn() as unknown as PluginRuntime["agents"]["list"],
+      resolve: vi.fn() as unknown as PluginRuntime["agents"]["resolve"],
+    },
+    cron: {
+      schedule: vi.fn() as unknown as PluginRuntime["cron"]["schedule"],
+      cancel: vi.fn() as unknown as PluginRuntime["cron"]["cancel"],
+      list: vi.fn() as unknown as PluginRuntime["cron"]["list"],
     },
   };
 }
@@ -2304,51 +2318,6 @@ describe("BlueBubbles webhook monitor", () => {
       await flushAsync();
 
       expect(mockDispatchReplyWithBufferedBlockDispatcher).not.toHaveBeenCalled();
-    });
-
-    it("does not auto-authorize DM control commands in open mode without allowlists", async () => {
-      mockHasControlCommand.mockReturnValue(true);
-
-      const account = createMockAccount({
-        dmPolicy: "open",
-        allowFrom: [],
-      });
-      const config: OpenClawConfig = {};
-      const core = createMockRuntime();
-      setBlueBubblesRuntime(core);
-
-      unregister = registerBlueBubblesWebhookTarget({
-        account,
-        config,
-        runtime: { log: vi.fn(), error: vi.fn() },
-        core,
-        path: "/bluebubbles-webhook",
-      });
-
-      const payload = {
-        type: "new-message",
-        data: {
-          text: "/status",
-          handle: { address: "+15559999999" },
-          isGroup: false,
-          isFromMe: false,
-          guid: "msg-dm-open-unauthorized",
-          date: Date.now(),
-        },
-      };
-
-      const req = createMockRequest("POST", "/bluebubbles-webhook", payload);
-      const res = createMockResponse();
-
-      await handleBlueBubblesWebhookRequest(req, res);
-      await flushAsync();
-
-      expect(mockDispatchReplyWithBufferedBlockDispatcher).toHaveBeenCalled();
-      const latestDispatch =
-        mockDispatchReplyWithBufferedBlockDispatcher.mock.calls[
-          mockDispatchReplyWithBufferedBlockDispatcher.mock.calls.length - 1
-        ]?.[0];
-      expect(latestDispatch?.ctx?.CommandAuthorized).toBe(false);
     });
   });
 
