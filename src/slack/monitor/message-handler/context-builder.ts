@@ -68,11 +68,11 @@ export function buildSlackStructuredContext(
       ts: entry.messageId ?? "",
       authorId: entry.sender ?? "",
       authorName: entry.sender ?? "",
-      authorIsBot: false,
+      authorIsBot: entry.isBot ?? false,
       text: entry.body,
       threadId: null,
       replyCount: 0,
-      hasMedia: false,
+      hasMedia: entry.hasMedia ?? false,
       reactions: [],
     }),
   );

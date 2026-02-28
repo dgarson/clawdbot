@@ -169,6 +169,187 @@ describe("buildChannelTools", () => {
     expect(parsed.media.content).toBe("base64data-F123");
   });
 
+  it("channel.context surfaces media messages even without keyword match", async () => {
+    const inputWithMedia: StructuredContextInput = {
+      ...input,
+      adjacentMessages: [
+        ...input.adjacentMessages,
+        {
+          messageId: "1150",
+          ts: "1150",
+          authorId: "U2",
+          authorName: "Bob",
+          authorIsBot: false,
+          text: "[Slack file: brain-scan.png (id:F999)]",
+          threadId: null,
+          replyCount: 0,
+          hasMedia: true,
+          reactions: [],
+        },
+      ],
+    };
+    const tools = buildChannelTools(inputWithMedia);
+    const contextTool = tools.find((t) => t.name === "channel.context")!;
+    // Search for "weather" — no keyword match on any message
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (contextTool.execute as any)(
+      "test-call-id",
+      { intent: "weather forecast" },
+      null,
+      null,
+    );
+    const parsed = JSON.parse(result.content[0].text);
+    // Media message should still appear even with no keyword match
+    const mediaResult = parsed.results.find((r: { message_id: string }) => r.message_id === "1150");
+    expect(mediaResult).toBeDefined();
+    expect(mediaResult.has_media).toBe(true);
+    expect(mediaResult.relevance_signal).toBe("recent_media");
+  });
+
+  it("channel.context passes isBot through to results", async () => {
+    const inputWithBot: StructuredContextInput = {
+      ...input,
+      adjacentMessages: [
+        {
+          messageId: "1050",
+          ts: "1050",
+          authorId: "B1",
+          authorName: "Bot",
+          authorIsBot: true,
+          text: "The rollout schedule shows three phases",
+          threadId: null,
+          replyCount: 0,
+          hasMedia: false,
+          reactions: [],
+        },
+      ],
+    };
+    const tools = buildChannelTools(inputWithBot);
+    const contextTool = tools.find((t) => t.name === "channel.context")!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (contextTool.execute as any)(
+      "test-call-id",
+      { intent: "rollout schedule" },
+      null,
+      null,
+    );
+    const parsed = JSON.parse(result.content[0].text);
+    expect(parsed.results.length).toBe(1);
+    expect(parsed.results[0].author.is_bot).toBe(true);
+  });
+
+  it("channel.context includes thread replies in keyword search", async () => {
+    const inputWithThread: StructuredContextInput = {
+      ...input,
+      thread: {
+        rootMessageId: "root1",
+        rootTs: "900",
+        rootAuthorId: "U1",
+        rootAuthorName: "Alice",
+        rootAuthorIsBot: false,
+        rootText: "Thread about the deployment pipeline",
+        replies: [
+          {
+            messageId: "r1",
+            ts: "901",
+            authorId: "U2",
+            authorName: "Bob",
+            authorIsBot: false,
+            text: "The deployment failed because of a config issue",
+            files: undefined,
+          },
+          {
+            messageId: "r2",
+            ts: "902",
+            authorId: "U3",
+            authorName: "Carol",
+            authorIsBot: false,
+            text: "I fixed the deployment config",
+            files: undefined,
+          },
+        ],
+        totalReplyCount: 2,
+      },
+    };
+    const tools = buildChannelTools(inputWithThread);
+    const contextTool = tools.find((t) => t.name === "channel.context")!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (contextTool.execute as any)(
+      "test-call-id",
+      { intent: "deployment config" },
+      null,
+      null,
+    );
+    const parsed = JSON.parse(result.content[0].text);
+    // Should find thread root + both replies (all contain "deployment")
+    const ids = parsed.results.map((r: { message_id: string }) => r.message_id);
+    expect(ids).toContain("root1");
+    expect(ids).toContain("r1");
+    expect(ids).toContain("r2");
+    // Thread replies should have thread_id set
+    const reply = parsed.results.find((r: { message_id: string }) => r.message_id === "r1");
+    expect(reply.thread_id).toBe("root1");
+  });
+
+  it("channel.context deduplicates thread messages already in adjacent", async () => {
+    // If a thread root is also in adjacentMessages, it shouldn't appear twice
+    const inputWithOverlap: StructuredContextInput = {
+      ...input,
+      adjacentMessages: [
+        ...input.adjacentMessages,
+        {
+          messageId: "root1",
+          ts: "900",
+          authorId: "U1",
+          authorName: "Alice",
+          authorIsBot: false,
+          text: "Thread about the deployment pipeline",
+          threadId: null,
+          replyCount: 2,
+          hasMedia: false,
+          reactions: [],
+        },
+      ],
+      thread: {
+        rootMessageId: "root1",
+        rootTs: "900",
+        rootAuthorId: "U1",
+        rootAuthorName: "Alice",
+        rootAuthorIsBot: false,
+        rootText: "Thread about the deployment pipeline",
+        replies: [
+          {
+            messageId: "r1",
+            ts: "901",
+            authorId: "U2",
+            authorName: "Bob",
+            authorIsBot: false,
+            text: "The deployment is ready",
+            files: undefined,
+          },
+        ],
+        totalReplyCount: 1,
+      },
+    };
+    const tools = buildChannelTools(inputWithOverlap);
+    const contextTool = tools.find((t) => t.name === "channel.context")!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (contextTool.execute as any)(
+      "test-call-id",
+      { intent: "deployment pipeline" },
+      null,
+      null,
+    );
+    const parsed = JSON.parse(result.content[0].text);
+    // root1 should only appear once (from adjacent, not duplicated from thread)
+    const root1Results = parsed.results.filter(
+      (r: { message_id: string }) => r.message_id === "root1",
+    );
+    expect(root1Results.length).toBe(1);
+    // r1 should still appear (only in thread, not in adjacent)
+    expect(parsed.results.find((r: { message_id: string }) => r.message_id === "r1")).toBeDefined();
+  });
+
   it("channel.messages fetches specific messages by ID", async () => {
     const tools = buildChannelTools(input);
     const msgTool = tools.find((t) => t.name === "channel.messages")!;

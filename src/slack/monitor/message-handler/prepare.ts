@@ -595,6 +595,7 @@ export async function prepareSlackMessage(params: {
     const fetcher = createSlackChannelHistoryFetcher({
       client: ctx.app.client,
       resolveUserName: ctx.resolveUserName,
+      botUserId: ctx.botUserId,
     });
     await ctx.channelSnapshots.seedOnce(historyKey, fetcher);
   }
