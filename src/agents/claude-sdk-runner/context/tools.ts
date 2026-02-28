@@ -275,13 +275,26 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
         }
         try {
           const media = await input.fetcher.fetchMedia(params.media_artifact_id);
-          return jsonResult({
-            media: {
-              artifact_id: params.media_artifact_id,
-              media_type: media.mimeType,
-              content: media.data,
-            },
-          });
+          // Return as a proper image content block so Claude's vision system can
+          // process the image, not just read a base64 string. The content array
+          // format is handled by formatToolResultForMcp() in mcp-tool-server.ts
+          // which promotes { type: "image" } blocks through the MCP protocol.
+          // We skip the imageResult() sanitization pipeline here because
+          // resolveSlackMedia + saveMediaBuffer already validates size/content.
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `[Media: ${params.media_artifact_id} (${media.mimeType})]`,
+              },
+              {
+                type: "image" as const,
+                data: media.data,
+                mimeType: media.mimeType,
+              },
+            ],
+            details: { artifact_id: params.media_artifact_id, media_type: media.mimeType },
+          };
         } catch {
           return jsonResult({
             error: `Failed to fetch media ${params.media_artifact_id}`,

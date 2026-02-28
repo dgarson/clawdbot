@@ -256,8 +256,6 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       return;
     }
 
-    logger?.debug?.(`[hooks] running ${hookName} (${hooks.length} handlers)`);
-
     const promises = hooks.map(async (hook) => {
       try {
         await (hook.handler as (event: unknown, ctx: unknown) => Promise<void>)(event, ctx);
@@ -284,8 +282,6 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       return undefined;
     }
 
-    logger?.debug?.(`[hooks] running ${hookName} (${hooks.length} handlers, sequential)`);
-
     let result: TResult | undefined;
 
     for (const hook of hooks) {
@@ -300,10 +296,6 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
           } else {
             result = handlerResult;
           }
-        } else {
-          logger?.debug?.(
-            `[hooks] ${hookName} handler from ${hook.pluginId} returned ${handlerResult === null ? "null" : "undefined"}`,
-          );
         }
       } catch (err) {
         handleHookError({ hookName, pluginId: hook.pluginId, error: err });
