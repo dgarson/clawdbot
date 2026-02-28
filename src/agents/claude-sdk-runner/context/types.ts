@@ -156,6 +156,12 @@ export interface ChannelFetcher {
       authorName: string;
       authorIsBot: boolean;
       text: string;
+      files?: Array<{
+        artifactId: string;
+        mimeType: string;
+        filename?: string;
+        byteLength: number;
+      }>;
     };
     replies: Array<{
       messageId: string;
@@ -164,6 +170,12 @@ export interface ChannelFetcher {
       authorName: string;
       authorIsBot: boolean;
       text: string;
+      files?: Array<{
+        artifactId: string;
+        mimeType: string;
+        filename?: string;
+        byteLength: number;
+      }>;
     }>;
     totalCount: number;
   }>;
@@ -192,6 +204,12 @@ export interface ChannelFetcher {
       authorName: string;
       authorIsBot: boolean;
       text: string;
+      files?: Array<{
+        artifactId: string;
+        mimeType: string;
+        filename?: string;
+        byteLength: number;
+      }>;
     }>
   >;
 }

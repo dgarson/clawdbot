@@ -83,28 +83,79 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
       const maxResults = params.max_results ?? 8;
       const offset = params.offset ?? 0;
 
-      const candidates = input.adjacentMessages.filter(
+      // Build candidate pool: adjacent channel messages + thread replies (if present)
+      const adjacentCandidates = input.adjacentMessages.filter(
         (m) => m.messageId !== input.anchor.messageId,
       );
+      const adjacentIds = new Set(adjacentCandidates.map((m) => m.messageId));
+
+      // Include thread root + replies as searchable candidates (dedup against adjacent)
+      type Candidate = (typeof adjacentCandidates)[number];
+      const threadCandidates: Candidate[] = [];
+      if (input.thread) {
+        const t = input.thread;
+        if (!adjacentIds.has(t.rootMessageId) && t.rootMessageId !== input.anchor.messageId) {
+          threadCandidates.push({
+            messageId: t.rootMessageId,
+            ts: t.rootTs,
+            authorId: t.rootAuthorId,
+            authorName: t.rootAuthorName,
+            authorIsBot: t.rootAuthorIsBot,
+            text: t.rootText,
+            threadId: t.rootMessageId,
+            replyCount: t.totalReplyCount,
+            hasMedia: (t.rootFiles?.length ?? 0) > 0,
+            reactions: [],
+          });
+        }
+        for (const r of t.replies) {
+          if (!adjacentIds.has(r.messageId) && r.messageId !== input.anchor.messageId) {
+            threadCandidates.push({
+              messageId: r.messageId,
+              ts: r.ts,
+              authorId: r.authorId,
+              authorName: r.authorName,
+              authorIsBot: r.authorIsBot,
+              text: r.text,
+              threadId: t.rootMessageId,
+              replyCount: 0,
+              hasMedia: (r.files?.length ?? 0) > 0,
+              reactions: [],
+            });
+          }
+        }
+      }
+      const candidates = [...adjacentCandidates, ...threadCandidates];
 
       const scored = candidates
         .map((m) => ({ m, score: scoreMessage(m.text, keywords) }))
         .filter(({ score }) => score > 0)
         .toSorted((a, b) => b.score - a.score || Number(b.m.ts) - Number(a.m.ts));
 
-      const sliced = scored.slice(offset, offset + maxResults);
+      // Also surface recent media-bearing messages that may not match keywords
+      // (e.g. an image the user is asking about). Dedup against keyword results.
+      const keywordIds = new Set(scored.map(({ m }) => m.messageId));
+      const mediaMessages = candidates
+        .filter((m) => m.hasMedia && !keywordIds.has(m.messageId))
+        .toSorted((a, b) => Number(b.ts) - Number(a.ts))
+        .slice(0, 3)
+        .map((m) => ({ m, score: 0 }));
 
-      const results = sliced.map(({ m }) => ({
+      const combined = [...scored, ...mediaMessages];
+      const sliced = combined.slice(offset, offset + maxResults);
+
+      const results = sliced.map(({ m, score }) => ({
         message_id: m.messageId,
         thread_id: m.threadId,
         ts: m.ts,
         author: { user_id: m.authorId, display_name: m.authorName, is_bot: m.authorIsBot },
         text: m.text,
+        has_media: m.hasMedia || undefined,
         thread_summary:
           m.replyCount > 0
             ? { reply_count: m.replyCount, last_reply_ts: null, participant_names: [] }
             : null,
-        relevance_signal: `keyword_match:${keywords.join(",")}`,
+        relevance_signal: score > 0 ? `keyword_match:${keywords.join(",")}` : "recent_media",
       }));
 
       const oldest = candidates.length > 0 ? candidates[0].ts : "";
@@ -117,7 +168,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
           time_range: [oldest, newest],
         },
         pagination: {
-          total: scored.length,
+          total: combined.length,
           offset,
           limit: maxResults,
         },
@@ -185,7 +236,8 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
             rootAuthorName: fetched.root?.authorName ?? "Unknown",
             rootAuthorIsBot: fetched.root?.authorIsBot ?? false,
             rootText: fetched.root?.text ?? "",
-            replies: fetched.replies.map((r) => ({ ...r, files: undefined })),
+            rootFiles: fetched.root?.files,
+            replies: fetched.replies,
             totalReplyCount: fetched.totalCount,
           });
           return jsonResult({ thread: threadCtx });
