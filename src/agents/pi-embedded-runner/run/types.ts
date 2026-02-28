@@ -21,6 +21,11 @@ export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   modelRegistry: ModelRegistry;
   thinkLevel: ThinkLevel;
   legacyBeforeAgentStartResult?: PluginHookBeforeAgentStartResult;
+  /** Routing metadata from before_model_resolve hook result, passed to llm_input/llm_output. */
+  routingMetadata?: Record<string, unknown>;
+  /** Pre-collected plugin prompt sections (P8). Appended after core prompt content. */
+  pluginSections?: import("../../system-prompt.plugin-sections.js").PluginPromptSection[];
+  lineageId?: string;
 };
 
 export type EmbeddedRunAttemptResult = {
@@ -52,4 +57,6 @@ export type EmbeddedRunAttemptResult = {
   compactionCount?: number;
   /** Client tool call detected (OpenResponses hosted tools). */
   clientToolCall?: { name: string; params: Record<string, unknown> };
+  /** Number of before_session_end continuation retries performed. */
+  continuationCount?: number;
 };

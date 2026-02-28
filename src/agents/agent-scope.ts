@@ -7,7 +7,6 @@ import {
   DEFAULT_AGENT_ID,
   normalizeAgentId,
   parseAgentSessionKey,
-  resolveAgentIdFromSessionKey,
 } from "../routing/session-key.js";
 import { resolveUserPath } from "../utils.js";
 import { normalizeSkillFilter } from "./skills/filter.js";
@@ -20,7 +19,7 @@ function stripNullBytes(s: string): string {
   return s.replace(/\0/g, "");
 }
 
-export { resolveAgentIdFromSessionKey };
+export { resolveAgentIdFromSessionKey } from "../routing/session-key.js";
 
 type AgentEntry = NonNullable<NonNullable<OpenClawConfig["agents"]>["list"]>[number];
 
@@ -38,6 +37,8 @@ type ResolvedAgentConfig = {
   subagents?: AgentEntry["subagents"];
   sandbox?: AgentEntry["sandbox"];
   tools?: AgentEntry["tools"];
+  /** Plugin-defined metadata from the agent entry (see AgentConfig.metadata). */
+  metadata?: AgentEntry["metadata"];
 };
 
 let defaultAgentWarned = false;
@@ -140,6 +141,7 @@ export function resolveAgentConfig(
     subagents: typeof entry.subagents === "object" && entry.subagents ? entry.subagents : undefined,
     sandbox: entry.sandbox,
     tools: entry.tools,
+    metadata: entry.metadata,
   };
 }
 
@@ -202,41 +204,6 @@ export function resolveAgentModelFallbacksOverride(
     return undefined;
   }
   return Array.isArray(raw.fallbacks) ? raw.fallbacks : undefined;
-}
-
-export function resolveFallbackAgentId(params: {
-  agentId?: string | null;
-  sessionKey?: string | null;
-}): string {
-  const explicitAgentId = typeof params.agentId === "string" ? params.agentId.trim() : "";
-  if (explicitAgentId) {
-    return normalizeAgentId(explicitAgentId);
-  }
-  return resolveAgentIdFromSessionKey(params.sessionKey);
-}
-
-export function resolveRunModelFallbacksOverride(params: {
-  cfg: OpenClawConfig | undefined;
-  agentId?: string | null;
-  sessionKey?: string | null;
-}): string[] | undefined {
-  if (!params.cfg) {
-    return undefined;
-  }
-  return resolveAgentModelFallbacksOverride(
-    params.cfg,
-    resolveFallbackAgentId({ agentId: params.agentId, sessionKey: params.sessionKey }),
-  );
-}
-
-export function hasConfiguredModelFallbacks(params: {
-  cfg: OpenClawConfig | undefined;
-  agentId?: string | null;
-  sessionKey?: string | null;
-}): boolean {
-  const fallbacksOverride = resolveRunModelFallbacksOverride(params);
-  const defaultFallbacks = resolveAgentModelFallbackValues(params.cfg?.agents?.defaults?.model);
-  return (fallbacksOverride ?? defaultFallbacks).length > 0;
 }
 
 export function resolveEffectiveModelFallbacks(params: {

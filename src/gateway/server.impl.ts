@@ -45,6 +45,7 @@ import { startDiagnosticHeartbeat, stopDiagnosticHeartbeat } from "../logging/di
 import { createSubsystemLogger, runtimeForLogger } from "../logging/subsystem.js";
 import { getGlobalHookRunner, runGlobalGatewayStopSafely } from "../plugins/hook-runner-global.js";
 import { createEmptyPluginRegistry } from "../plugins/registry.js";
+import { setGatewayDispatcher, shutdownAllCronJobs } from "../plugins/runtime/index.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import { getTotalQueueSize } from "../process/command-queue.js";
 import type { RuntimeEnv } from "../runtime.js";
@@ -65,6 +66,7 @@ import {
 } from "./events.js";
 import { ExecApprovalManager } from "./exec-approval-manager.js";
 import { NodeRegistry } from "./node-registry.js";
+import { createPluginGatewayDispatcher } from "./plugin-gateway-dispatch.js";
 import type { startBrowserControlServerIfEnabled } from "./server-browser.js";
 import { createChannelManager } from "./server-channels.js";
 import { createAgentEventHandler } from "./server-chat.js";
@@ -693,6 +695,64 @@ export async function startGatewayServer(
 
   const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
 
+  // Named so they can be reused for the in-process plugin gateway dispatcher below.
+  const wsExtraHandlers = {
+    ...pluginRegistry.gatewayHandlers,
+    ...execApprovalHandlers,
+    ...secretsHandlers,
+  };
+  const wsRequestContext = {
+    deps,
+    cron,
+    cronStorePath,
+    execApprovalManager,
+    loadGatewayModelCatalog,
+    getHealthCache,
+    refreshHealthSnapshot: refreshGatewayHealthSnapshot,
+    logHealth,
+    logGateway: log,
+    incrementPresenceVersion,
+    getHealthVersion,
+    broadcast,
+    broadcastToConnIds,
+    nodeSendToSession,
+    nodeSendToAllSubscribed,
+    nodeSubscribe,
+    nodeUnsubscribe,
+    nodeUnsubscribeAll,
+    hasConnectedMobileNode: hasMobileNodeConnected,
+    hasExecApprovalClients: () => {
+      for (const gatewayClient of clients) {
+        const scopes = Array.isArray(gatewayClient.connect.scopes)
+          ? gatewayClient.connect.scopes
+          : [];
+        if (scopes.includes("operator.admin") || scopes.includes("operator.approvals")) {
+          return true;
+        }
+      }
+      return false;
+    },
+    nodeRegistry,
+    agentRunSeq,
+    chatAbortControllers,
+    chatAbortedRuns: chatRunState.abortedRuns,
+    chatRunBuffers: chatRunState.buffers,
+    chatDeltaSentAt: chatRunState.deltaSentAt,
+    addChatRun,
+    removeChatRun,
+    registerToolEventRecipient: toolEventRecipients.add,
+    dedupe,
+    wizardSessions,
+    findRunningWizard,
+    purgeWizardSession,
+    getRuntimeSnapshot,
+    startChannel,
+    stopChannel,
+    markChannelLoggedOut,
+    wizardRunner,
+    broadcastVoiceWakeChanged,
+  };
+
   attachGatewayWsHandlers({
     wss,
     clients,
@@ -708,64 +768,20 @@ export async function startGatewayServer(
     logGateway: log,
     logHealth,
     logWsControl,
-    extraHandlers: {
-      ...pluginRegistry.gatewayHandlers,
-      ...execApprovalHandlers,
-      ...secretsHandlers,
-    },
+    extraHandlers: wsExtraHandlers,
     broadcast,
-    context: {
-      deps,
-      cron,
-      cronStorePath,
-      execApprovalManager,
-      loadGatewayModelCatalog,
-      getHealthCache,
-      refreshHealthSnapshot: refreshGatewayHealthSnapshot,
-      logHealth,
-      logGateway: log,
-      incrementPresenceVersion,
-      getHealthVersion,
-      broadcast,
-      broadcastToConnIds,
-      nodeSendToSession,
-      nodeSendToAllSubscribed,
-      nodeSubscribe,
-      nodeUnsubscribe,
-      nodeUnsubscribeAll,
-      hasConnectedMobileNode: hasMobileNodeConnected,
-      hasExecApprovalClients: () => {
-        for (const gatewayClient of clients) {
-          const scopes = Array.isArray(gatewayClient.connect.scopes)
-            ? gatewayClient.connect.scopes
-            : [];
-          if (scopes.includes("operator.admin") || scopes.includes("operator.approvals")) {
-            return true;
-          }
-        }
-        return false;
-      },
-      nodeRegistry,
-      agentRunSeq,
-      chatAbortControllers,
-      chatAbortedRuns: chatRunState.abortedRuns,
-      chatRunBuffers: chatRunState.buffers,
-      chatDeltaSentAt: chatRunState.deltaSentAt,
-      addChatRun,
-      removeChatRun,
-      registerToolEventRecipient: toolEventRecipients.add,
-      dedupe,
-      wizardSessions,
-      findRunningWizard,
-      purgeWizardSession,
-      getRuntimeSnapshot,
-      startChannel,
-      stopChannel,
-      markChannelLoggedOut,
-      wizardRunner,
-      broadcastVoiceWakeChanged,
-    },
+    context: wsRequestContext,
   });
+
+  // Wire the in-process gateway dispatcher for plugins. This must happen after
+  // the full handler map (core + plugin methods) is assembled so plugins can
+  // call any registered method directly without WebSocket overhead.
+  setGatewayDispatcher(
+    createPluginGatewayDispatcher({
+      allHandlers: { ...coreGatewayHandlers, ...wsExtraHandlers },
+      context: wsRequestContext,
+    }),
+  );
   logGatewayStartup({
     cfg: cfgAtStart,
     bindHost,
@@ -917,6 +933,8 @@ export async function startGatewayServer(
         ctx: { port },
         onError: (err) => log.warn(`gateway_stop hook failed: ${String(err)}`),
       });
+      // Shut down all plugin cron timers so no intervals outlive the process.
+      shutdownAllCronJobs();
       if (diagnosticsEnabled) {
         stopDiagnosticHeartbeat();
       }

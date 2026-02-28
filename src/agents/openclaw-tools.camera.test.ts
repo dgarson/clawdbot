@@ -15,21 +15,22 @@ import { createOpenClawTools } from "./openclaw-tools.js";
 
 const NODE_ID = "mac-1";
 const BASE_RUN_INPUT = { action: "run", node: NODE_ID, command: ["echo", "hi"] } as const;
+type OpenClawToolOptions = Parameters<typeof createOpenClawTools>[0];
 
 function unexpectedGatewayMethod(method: unknown): never {
   throw new Error(`unexpected method: ${String(method)}`);
 }
 
-function getNodesTool() {
-  const tool = createOpenClawTools().find((candidate) => candidate.name === "nodes");
+function getNodesTool(options?: OpenClawToolOptions) {
+  const tool = createOpenClawTools(options).find((candidate) => candidate.name === "nodes");
   if (!tool) {
     throw new Error("missing nodes tool");
   }
   return tool;
 }
 
-async function executeNodes(input: Record<string, unknown>) {
-  return getNodesTool().execute("call1", input as never);
+async function executeNodes(input: Record<string, unknown>, options?: OpenClawToolOptions) {
+  return getNodesTool(options).execute("call1", input as never);
 }
 
 function mockNodeList(commands?: string[]) {
@@ -386,6 +387,12 @@ describe("nodes run", () => {
   it("requests approval and retries with allow-once decision", async () => {
     let invokeCalls = 0;
     let approvalId: string | null = null;
+    const turnSource = {
+      agentChannel: "slack" as const,
+      agentAccountId: "work",
+      currentChannelId: "C123",
+      currentThreadTs: "1712345678.000100",
+    };
     callGateway.mockImplementation(async ({ method, params }) => {
       if (method === "node.list") {
         return mockNodeList(["system.run"]);
@@ -413,6 +420,10 @@ describe("nodes run", () => {
           command: "echo hi",
           nodeId: NODE_ID,
           host: "node",
+          turnSourceChannel: "slack",
+          turnSourceTo: "C123",
+          turnSourceAccountId: "work",
+          turnSourceThreadId: "1712345678.000100",
           timeoutMs: 120_000,
         });
         approvalId =
@@ -424,7 +435,7 @@ describe("nodes run", () => {
       return unexpectedGatewayMethod(method);
     });
 
-    await executeNodes(BASE_RUN_INPUT);
+    await executeNodes(BASE_RUN_INPUT, turnSource);
     expect(invokeCalls).toBe(2);
   });
 
