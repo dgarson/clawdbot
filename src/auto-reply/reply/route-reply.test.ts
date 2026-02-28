@@ -74,6 +74,7 @@ const createRegistry = (channels: PluginRegistry["channels"]): PluginRegistry =>
   httpRoutes: [],
   cliRegistrars: [],
   services: [],
+  promptSections: [],
   diagnostics: [],
 });
 
@@ -168,7 +169,7 @@ describe("routeReply", () => {
     expect(mocks.sendMessageSlack).not.toHaveBeenCalled();
   });
 
-  it("does not drop payloads that merely start with the silent token", async () => {
+  it("drops payloads that start with the silent token", async () => {
     mocks.sendMessageSlack.mockClear();
     const res = await routeReply({
       payload: { text: `${SILENT_REPLY_TOKEN} -- (why am I here?)` },
@@ -177,11 +178,7 @@ describe("routeReply", () => {
       cfg: {} as never,
     });
     expect(res.ok).toBe(true);
-    expect(mocks.sendMessageSlack).toHaveBeenCalledWith(
-      "channel:C123",
-      `${SILENT_REPLY_TOKEN} -- (why am I here?)`,
-      expect.any(Object),
-    );
+    expect(mocks.sendMessageSlack).not.toHaveBeenCalled();
   });
 
   it("applies responsePrefix when routing", async () => {
