@@ -32,6 +32,10 @@ export type HistoryEntry = {
   body: string;
   timestamp?: number;
   messageId?: string;
+  /** True when the message was sent by a bot (the agent's own replies). */
+  isBot?: boolean;
+  /** True when the message had file attachments. */
+  hasMedia?: boolean;
 };
 
 export function buildHistoryContext(params: {
