@@ -16,20 +16,23 @@
  * Per implementation-plan.md Section 4.1 and 4.4.
  */
 
+import { createHash } from "node:crypto";
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
+import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import {
   ATTACHMENT_MANIFEST_KEY,
+  getThreadAttachments,
+  isAlreadyAttached,
   loadManifestFromEntries,
+  recordAttachment,
   serializeManifest,
 } from "./attachment-manifest.js";
 import { resolveClaudeSubprocessEnv } from "./config.js";
-import { buildChannelSnapshot } from "./context/channel-snapshot.js";
-import { buildThreadContext } from "./context/thread-context.js";
-import { buildChannelTools } from "./context/tools.js";
+import { coreSessionContextSubscriber } from "./context/session-context-subscriber.js";
 import { mapSdkError } from "./error-mapping.js";
 import { translateSdkMessageToEvents } from "./event-adapter.js";
 import { createClaudeSdkMcpToolServer } from "./mcp-tool-server.js";
@@ -309,43 +312,33 @@ export async function createClaudeSdkSession(
 ): Promise<ClaudeSdkSession> {
   const { transcriptProvider, transcriptApi } = resolveTranscriptMetadata(params.provider);
 
-  // Build enriched system prompt with structured channel/thread context if provided.
-  // The context is injected as a labeled JSON section so Claude can reference the
-  // channel snapshot and thread history without needing history concatenation.
-  let systemPrompt = params.systemPrompt;
-  if (params.structuredContextInput) {
-    const snapshot = buildChannelSnapshot(params.structuredContextInput);
-    const thread = buildThreadContext(params.structuredContextInput.thread ?? null);
-    const parts = ["\n\n### Channel Context", "```json", JSON.stringify(snapshot, null, 2), "```"];
-    if (thread) {
-      parts.push("\n### Thread Context", "```json", JSON.stringify(thread, null, 2), "```");
-    }
-    parts.push(
-      "\n### Channel Tools",
-      "You have two tools for progressive context discovery:",
-      "",
-      "- **channel.context** — keyword/intent search across channel messages. Use it when you need broader context, want to understand the history behind a reference, or are unsure whether you have enough information to answer confidently.",
-      "- **channel.messages** — fetch a specific thread or set of messages by ID. Use it when a message in the snapshot references a thread you want to read in full.",
-      "",
-      "**When to reach for these tools:**",
-      "- You see a reference (e.g. 'the rollout', 'that PR', 'last week's incident') but lack enough context to answer accurately → use channel.context.",
-      "- You are asked about a thread and only have the root message → use channel.messages with the thread_id.",
-      "- Your conversation history has been compacted and you sense you are missing relevant prior context → use channel.context to reconstruct it rather than guessing.",
-      "- You are uncertain about a fact that plausibly exists in recent channel history → prefer a quick channel.context lookup over a hedged non-answer.",
-      "",
-      "Prefer a confident, grounded answer backed by a tool call over a vague reply that forces the user to repeat themselves.",
-    );
-    systemPrompt = params.systemPrompt + parts.join("\n");
-  }
+  // Fire before_session_create hook: collect system prompt sections and tools from
+  // all registered subscribers (built-in core subscriber + plugin subscribers).
+  // When the global hook runner is nil (e.g. in tests), fall back to calling the
+  // core subscriber directly so channel/thread context injection still works.
+  const hookEvent = {
+    systemPrompt: params.systemPrompt,
+    structuredContextInput: params.structuredContextInput,
+    platform: params.structuredContextInput?.platform,
+    channelId: params.structuredContextInput?.channelId,
+  };
+  const runner = getGlobalHookRunner();
+  const hookContrib = runner
+    ? await runner.runBeforeSessionCreate(hookEvent, { sessionId: params.sessionId })
+    : coreSessionContextSubscriber(hookEvent);
+
+  const hookSections = hookContrib?.systemPromptSections ?? [];
+  const hookTools = hookContrib?.tools ?? [];
+
+  // Append subscriber sections to the base system prompt.
+  const systemPrompt =
+    hookSections.length > 0
+      ? params.systemPrompt + "\n\n" + hookSections.join("\n\n")
+      : params.systemPrompt;
 
   // Load attachment manifest from session history for cross-turn media deduplication.
   const allEntries = params.sessionManager?.getEntries?.() ?? [];
   const manifest = loadManifestFromEntries(allEntries);
-
-  // Build channel exploration tools from structured context (if provided).
-  const channelTools = params.structuredContextInput
-    ? buildChannelTools(params.structuredContextInput)
-    : [];
 
   // Internal adapter state
   const state: ClaudeSdkEventAdapterState = {
@@ -386,8 +379,9 @@ export async function createClaudeSdkSession(
 
   // Build in-process MCP tool server from OpenClaw tools (already wrapped with
   // before_tool_call hooks, abort signal propagation, and loop detection upstream).
-  // Channel tools are appended last so they can't shadow user-provided tools.
-  const allTools = [...params.tools, ...params.customTools, ...channelTools];
+  // Hook-contributed tools (e.g. channel.context, channel.messages) are appended last
+  // so they can't shadow user-provided tools.
+  const allTools = [...params.tools, ...params.customTools, ...hookTools];
 
   const toolServer = createClaudeSdkMcpToolServer({
     tools: allTools,
@@ -406,6 +400,33 @@ export async function createClaudeSdkSession(
     sessionManager: state.sessionManager,
   });
 
+  if (params.structuredContextInput?.anchor.threadId) {
+    const threadId = params.structuredContextInput.anchor.threadId;
+    // On compaction start, queue thread media re-attachment
+    // (uses existing pendingSteer mechanism)
+    state.subscribers.push((evt) => {
+      if ((evt as { type: string }).type === "auto_compaction_start") {
+        const threadAttachments = getThreadAttachments(manifest, threadId);
+        if (threadAttachments.length > 0) {
+          state.pendingSteer.push(
+            `[Post-compaction context recovery: re-attaching ${threadAttachments.length} media item(s) from this thread: ${threadAttachments.map((a) => a.display_name).join(", ")}]`,
+          );
+        }
+      }
+    });
+  }
+
+  let lastSyncedTs = params.structuredContextInput?.anchor.ts;
+  if (params.structuredContextInput?.thread) {
+    const threadReplies = params.structuredContextInput.thread.replies;
+    if (threadReplies.length > 0) {
+      const lastReplyTs = threadReplies[threadReplies.length - 1].ts;
+      if (Number(lastReplyTs) > Number(lastSyncedTs)) {
+        lastSyncedTs = lastReplyTs;
+      }
+    }
+  }
+
   const session: ClaudeSdkSession = {
     subscribe(handler) {
       state.subscribers.push(handler);
@@ -422,12 +443,68 @@ export async function createClaudeSdkSession(
         throw new Error("Claude SDK session already has an in-flight prompt");
       }
 
+      if (
+        params.structuredContextInput?.anchor.threadId &&
+        params.structuredContextInput.fetcher.fetchNewReplies &&
+        lastSyncedTs
+      ) {
+        try {
+          const newReplies = await params.structuredContextInput.fetcher.fetchNewReplies(
+            params.structuredContextInput.anchor.threadId,
+            lastSyncedTs,
+          );
+          if (newReplies.length > 0) {
+            const newRepliesText = newReplies
+              .map((r) => `- ${r.authorName}: "${r.text}"`)
+              .join("\n");
+            state.pendingSteer.push(
+              `[New messages received in this thread since your last turn:]\n${newRepliesText}`,
+            );
+            lastSyncedTs = newReplies[newReplies.length - 1].ts;
+          }
+        } catch (e) {
+          log.warn("Failed to fetch new replies for context sync", { error: e });
+        }
+      }
+
       // Drain any pending steer text by prepending to the current prompt
-      const steerText = state.pendingSteer.splice(0).join("\n");
-      const effectivePrompt = steerText ? `${steerText}\n\n${text}` : text;
-      const promptImages = normalizePromptImages(
-        options?.images as RuntimePromptImage[] | undefined,
-      );
+      let steerText = state.pendingSteer.splice(0).join("\n");
+      let effectivePrompt = text;
+
+      let promptImages = normalizePromptImages(options?.images as RuntimePromptImage[] | undefined);
+
+      // Deduplicate images using attachment manifest
+      if (promptImages.length > 0) {
+        const newImages: ImageContent[] = [];
+        const alreadyAttached: string[] = [];
+        for (const img of promptImages) {
+          const hash = createHash("sha256").update(img.data).digest("hex");
+          // Generate a synthetic artifact ID if actual is unavailable
+          const artifactId = `img-${hash.slice(0, 12)}`;
+
+          if (isAlreadyAttached(manifest, artifactId, hash)) {
+            alreadyAttached.push(artifactId);
+          } else {
+            newImages.push(img);
+            recordAttachment(manifest, {
+              artifactId,
+              displayName: `Attached Image (${img.mimeType})`,
+              mediaType: img.mimeType,
+              contentHash: hash,
+              sourceMessageId: params.structuredContextInput?.anchor.messageId || "unknown",
+              sourceThreadId: params.structuredContextInput?.anchor.threadId || null,
+              turn: state.messages.length,
+            });
+          }
+        }
+        promptImages = newImages;
+        if (alreadyAttached.length > 0) {
+          const prefix = steerText ? "\n" : "";
+          steerText += `${prefix}[Note: ${alreadyAttached.length} image(s) omitted because they were already attached in previous turns.]`;
+        }
+      }
+
+      effectivePrompt = steerText ? `${steerText}\n\n${effectivePrompt}` : effectivePrompt;
       const persistedUserContent = buildPersistedUserContent(effectivePrompt, promptImages);
       const claudePromptInput = buildClaudePromptInput(effectivePrompt, promptImages);
 

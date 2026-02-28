@@ -31,6 +31,7 @@ import type {
   PluginKind,
   PluginHookName,
   PluginHookHandlerMap,
+  PluginHookMessageContextBuildEvent,
   PluginHookRegistration as TypedPluginHookRegistration,
 } from "./types.js";
 
@@ -355,6 +356,30 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       dock: normalized.dock,
       source: record.source,
     });
+
+    // Auto-register contextBuilder as a message_context_build hook subscriber.
+    if (plugin.contextBuilder) {
+      const builder = plugin.contextBuilder;
+      const channelId = id;
+      registry.typedHooks.push({
+        pluginId: record.id,
+        hookName: "message_context_build",
+        handler: (event: PluginHookMessageContextBuildEvent) => {
+          if (event.platform !== channelId) {
+            return;
+          }
+          const result = builder({
+            resolvedData: event.resolvedData,
+            channelId: event.channelId,
+            channelType: event.channelType,
+            anchorTs: event.anchorTs,
+            threadTs: event.threadTs,
+          });
+          return result ? { structuredContext: result } : undefined;
+        },
+        source: record.source,
+      } as TypedPluginHookRegistration);
+    }
   };
 
   const registerProvider = (record: PluginRecord, provider: ProviderPlugin) => {

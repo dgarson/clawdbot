@@ -1,4 +1,4 @@
-import type { AgentTool } from "@mariozechner/pi-agent-core";
+import { jsonResult } from "../../tools/common.js";
 import type { ClaudeSdkCompatibleTool } from "../types.js";
 import { buildThreadContext } from "./thread-context.js";
 import type { StructuredContextInput } from "./types.js";
@@ -17,10 +17,30 @@ function scoreMessage(text: string, keywords: string[]): number {
 }
 
 export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompatibleTool[] {
+  const apiCallTimestamps: number[] = [];
+  const MAX_API_CALLS_PER_MINUTE = 15;
+
+  function checkRateLimit(): boolean {
+    const now = Date.now();
+    const oneMinuteAgo = now - 60_000;
+
+    // Remove timestamps older than 1 minute
+    while (apiCallTimestamps.length > 0 && apiCallTimestamps[0] < oneMinuteAgo) {
+      apiCallTimestamps.shift();
+    }
+
+    if (apiCallTimestamps.length >= MAX_API_CALLS_PER_MINUTE) {
+      return false;
+    }
+
+    apiCallTimestamps.push(now);
+    return true;
+  }
+
   const channelContextTool: ClaudeSdkCompatibleTool = {
     name: "channel.context",
     description:
-      "Search for relevant messages and threads in this channel. Use when you need broader context beyond the provided snapshot.",
+      "Search for relevant messages in the channel message snapshot provided at conversation start. Use when you need broader context beyond the anchor message. Results come from the pre-captured snapshot, not a live search.",
     parameters: {
       type: "object",
       properties: {
@@ -41,18 +61,24 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
           type: "number",
           description: "Max results to return (default 8)",
         },
+        offset: {
+          type: "number",
+          description: "Offset for pagination (default 0)",
+        },
       },
       required: ["intent"],
     },
-    execute: (async (_toolCallId: string, toolInput: unknown) => {
+    execute: async (_toolCallId: string, toolInput: unknown) => {
       const params = toolInput as {
         intent: string;
         since?: string;
         authors?: string[];
         max_results?: number;
+        offset?: number;
       };
       const keywords = extractKeywords(params.intent);
       const maxResults = params.max_results ?? 8;
+      const offset = params.offset ?? 0;
 
       const candidates = input.adjacentMessages.filter(
         (m) => m.messageId !== input.anchor.messageId,
@@ -61,10 +87,11 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
       const scored = candidates
         .map((m) => ({ m, score: scoreMessage(m.text, keywords) }))
         .filter(({ score }) => score > 0)
-        .toSorted((a, b) => b.score - a.score || Number(b.m.ts) - Number(a.m.ts))
-        .slice(0, maxResults);
+        .toSorted((a, b) => b.score - a.score || Number(b.m.ts) - Number(a.m.ts));
 
-      const results = scored.map(({ m }) => ({
+      const sliced = scored.slice(offset, offset + maxResults);
+
+      const results = sliced.map(({ m }) => ({
         message_id: m.messageId,
         thread_id: m.threadId,
         ts: m.ts,
@@ -80,14 +107,19 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
       const oldest = candidates.length > 0 ? candidates[0].ts : "";
       const newest = candidates.length > 0 ? candidates[candidates.length - 1].ts : "";
 
-      return JSON.stringify({
+      return jsonResult({
         results,
         coverage: {
           messages_scanned: candidates.length,
           time_range: [oldest, newest],
         },
+        pagination: {
+          total: scored.length,
+          offset,
+          limit: maxResults,
+        },
       });
-    }) as unknown as AgentTool["execute"],
+    },
   };
 
   const channelMessagesTool: ClaudeSdkCompatibleTool = {
@@ -116,7 +148,7 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
         },
       },
     },
-    execute: (async (_toolCallId: string, toolInput: unknown) => {
+    execute: async (_toolCallId: string, toolInput: unknown) => {
       const params = toolInput as {
         thread_id?: string;
         message_ids?: string[];
@@ -128,36 +160,42 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
         // Check snapshot first
         if (input.thread && input.thread.rootTs === params.thread_id) {
           const threadCtx = buildThreadContext(input.thread);
-          return JSON.stringify({ thread: threadCtx });
+          return jsonResult({ thread: threadCtx });
         }
-        // Lazy API call via fetcher if available
-        if (input.fetcher) {
-          try {
-            const fetched = await input.fetcher.fetchThread(
-              params.thread_id,
-              params.max_replies ?? 50,
-            );
-            // Build minimal thread context from fetched data
-            const threadCtx = buildThreadContext({
-              rootMessageId: params.thread_id,
-              rootTs: params.thread_id,
-              rootAuthorId: "",
-              rootAuthorName: "Unknown",
-              rootAuthorIsBot: false,
-              rootText: "",
-              replies: fetched.replies.map((r) => ({ ...r, files: undefined })),
-              totalReplyCount: fetched.totalCount,
-            });
-            return JSON.stringify({ thread: threadCtx });
-          } catch {
-            return JSON.stringify({
-              error: `Thread ${params.thread_id} not found in channel snapshot`,
-            });
-          }
+        // Lazy API call via fetcher
+        if (!input.fetcher) {
+          return jsonResult({
+            error: "On-demand fetching is not supported in this channel context.",
+          });
         }
-        return JSON.stringify({
-          error: `Thread ${params.thread_id} not found in channel snapshot`,
-        });
+        if (!checkRateLimit()) {
+          return jsonResult({
+            error:
+              "Rate limit reached. Stop fetching messages and answer using the context you have.",
+          });
+        }
+        try {
+          const fetched = await input.fetcher.fetchThread(
+            params.thread_id,
+            params.max_replies ?? 50,
+          );
+          // Build thread context from fetched data, using root info when available
+          const threadCtx = buildThreadContext({
+            rootMessageId: params.thread_id,
+            rootTs: params.thread_id,
+            rootAuthorId: fetched.root?.authorId ?? "",
+            rootAuthorName: fetched.root?.authorName ?? "Unknown",
+            rootAuthorIsBot: fetched.root?.authorIsBot ?? false,
+            rootText: fetched.root?.text ?? "",
+            replies: fetched.replies.map((r) => ({ ...r, files: undefined })),
+            totalReplyCount: fetched.totalCount,
+          });
+          return jsonResult({ thread: threadCtx });
+        } catch {
+          return jsonResult({
+            error: `Thread ${params.thread_id} not found in channel snapshot`,
+          });
+        }
       }
 
       if (params.message_ids && params.message_ids.length > 0) {
@@ -170,18 +208,39 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
             text: m.text,
             media: [],
           }));
-        return JSON.stringify({ messages });
+        return jsonResult({ messages });
       }
 
       if (params.media_artifact_id) {
-        return JSON.stringify({
-          error:
-            "Media retrieval requires explicit inclusion via tool. Use media_artifact_id only when you have confirmed the artifact ID from the ChannelSnapshot or ThreadContext.",
-        });
+        if (!input.fetcher || typeof input.fetcher.fetchMedia !== "function") {
+          return jsonResult({
+            error: "Media retrieval is not supported by this channel fetcher.",
+          });
+        }
+        if (!checkRateLimit()) {
+          return jsonResult({
+            error:
+              "Rate limit reached. Stop fetching messages and answer using the context you have.",
+          });
+        }
+        try {
+          const media = await input.fetcher.fetchMedia(params.media_artifact_id);
+          return jsonResult({
+            media: {
+              artifact_id: params.media_artifact_id,
+              media_type: media.mimeType,
+              content: media.data,
+            },
+          });
+        } catch {
+          return jsonResult({
+            error: `Failed to fetch media ${params.media_artifact_id}`,
+          });
+        }
       }
 
-      return JSON.stringify({ error: "No valid query parameters provided" });
-    }) as unknown as AgentTool["execute"],
+      return jsonResult({ error: "No valid query parameters provided" });
+    },
   };
 
   return [channelContextTool, channelMessagesTool];

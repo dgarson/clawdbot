@@ -1,11 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { buildChannelTools } from "./tools.js";
-import type { StructuredContextInput } from "./types.js";
+import type { ChannelFetcher, StructuredContextInput } from "./types.js";
+
+const noopFetcher: ChannelFetcher = {
+  async fetchThread() {
+    return { replies: [], totalCount: 0 };
+  },
+  async fetchMessages() {
+    return [];
+  },
+};
 
 const input: StructuredContextInput = {
   platform: "slack",
   channelId: "C123",
   channelName: "general",
+  channelType: "group",
   anchor: {
     messageId: "1234",
     ts: "1234",
@@ -42,6 +52,7 @@ const input: StructuredContextInput = {
     },
   ],
   thread: null,
+  fetcher: noopFetcher,
 };
 
 describe("buildChannelTools", () => {
@@ -61,7 +72,7 @@ describe("buildChannelTools", () => {
       null,
       null,
     );
-    const parsed = JSON.parse(result);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed.results.length).toBeGreaterThan(0);
     expect(parsed.results[0].text).toContain("rollout");
   });
@@ -76,7 +87,7 @@ describe("buildChannelTools", () => {
       null,
       null,
     );
-    const parsed = JSON.parse(result);
+    const parsed = JSON.parse(result.content[0].text);
     // May or may not match — just verify structure
     expect(parsed).toHaveProperty("results");
     expect(parsed).toHaveProperty("coverage");
@@ -110,8 +121,67 @@ describe("buildChannelTools", () => {
     const msgTool = tools.find((t) => t.name === "channel.messages")!;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (msgTool.execute as any)("test-call-id", { thread_id: "900" }, null, null);
-    const parsed = JSON.parse(result);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed.thread).toBeDefined();
     expect(parsed.thread.root.text).toBe("Thread root");
+  });
+
+  it("channel.messages enforces rate limits", async () => {
+    const tools = buildChannelTools(input);
+    const msgTool = tools.find((t) => t.name === "channel.messages")!;
+    // Call it 15 times (the limit)
+    for (let i = 0; i < 15; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (msgTool.execute as any)("test-call-id", { thread_id: "900" }, null, null);
+    }
+    // 16th call should fail
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const limitResult = await (msgTool.execute as any)(
+      "test-call-id",
+      { thread_id: "900" },
+      null,
+      null,
+    );
+    const parsed = JSON.parse(limitResult.content[0].text);
+    expect(parsed.error).toContain("Rate limit reached");
+  });
+
+  it("channel.messages retrieves media via fetcher", async () => {
+    const fetcherWithMedia: ChannelFetcher = {
+      ...noopFetcher,
+      async fetchMedia(artifactId) {
+        return { mimeType: "image/png", data: `base64data-${artifactId}` };
+      },
+    };
+    const inputWithMediaFetcher = { ...input, fetcher: fetcherWithMedia };
+    const tools = buildChannelTools(inputWithMediaFetcher);
+    const msgTool = tools.find((t) => t.name === "channel.messages")!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (msgTool.execute as any)(
+      "test-call-id",
+      { media_artifact_id: "F123" },
+      null,
+      null,
+    );
+    const parsed = JSON.parse(result.content[0].text);
+    expect(parsed.media).toBeDefined();
+    expect(parsed.media.media_type).toBe("image/png");
+    expect(parsed.media.content).toBe("base64data-F123");
+  });
+
+  it("channel.messages fetches specific messages by ID", async () => {
+    const tools = buildChannelTools(input);
+    const msgTool = tools.find((t) => t.name === "channel.messages")!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (msgTool.execute as any)(
+      "test-call-id",
+      { message_ids: ["1100"] },
+      null,
+      null,
+    );
+    const parsed = JSON.parse(result.content[0].text);
+    expect(parsed.messages).toBeDefined();
+    expect(parsed.messages.length).toBe(1);
+    expect(parsed.messages[0].text).toContain("The rollout was discussed yesterday");
   });
 });

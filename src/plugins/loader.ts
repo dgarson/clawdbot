@@ -2,10 +2,16 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createJiti } from "jiti";
+import { channelToolsFactory } from "../agents/claude-sdk-runner/context/channel-tools-registration.js";
+import { coreSessionContextSubscriber } from "../agents/claude-sdk-runner/context/session-context-subscriber.js";
 import type { OpenClawConfig } from "../config/config.js";
 import type { GatewayRequestHandler } from "../gateway/server-methods/types.js";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
+import {
+  buildSlackStructuredContext,
+  type SlackContextBuildData,
+} from "../slack/monitor/message-handler/context-builder.js";
 import { resolveUserPath } from "../utils.js";
 import { clearPluginCommands } from "./commands.js";
 import {
@@ -27,6 +33,9 @@ import type {
   OpenClawPluginDefinition,
   OpenClawPluginModule,
   PluginDiagnostic,
+  PluginHookBeforeSessionCreateEvent,
+  PluginHookMessageContextBuildEvent,
+  PluginHookAgentContext,
   PluginLogger,
 } from "./types.js";
 
@@ -712,6 +721,51 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
     registryCache.set(cacheKey, registry);
   }
   setActivePluginRegistry(registry, cacheKey);
+  // Register the built-in core subscriber for before_session_create with the highest
+  // priority so it runs before any plugin-provided subscribers. This replicates the
+  // channel/thread context injection that previously lived inline in createClaudeSdkSession().
+  registry.typedHooks.push({
+    pluginId: "openclaw-core",
+    hookName: "before_session_create",
+    handler: (event: PluginHookBeforeSessionCreateEvent, _ctx: PluginHookAgentContext) =>
+      coreSessionContextSubscriber(event),
+    priority: 1000,
+    source: "core",
+  });
+  // Register the built-in channel tools factory so channel.context and channel.messages
+  // arrive via resolvePluginTools() → params.customTools rather than the hook system.
+  // The factory reads ctx.structuredContextInput; absent for Pi sessions → returns [].
+  registry.tools.push({
+    pluginId: "openclaw-core",
+    factory: channelToolsFactory,
+    names: ["channel.context", "channel.messages"],
+    optional: false,
+    source: "core",
+  });
+  // Register the core Slack context builder as a message_context_build hook subscriber.
+  // Extension channels declare contextBuilder on ChannelPlugin (auto-registered in
+  // registerChannel above); core dock channels register their builder here instead.
+  registry.typedHooks.push({
+    pluginId: "openclaw-core",
+    hookName: "message_context_build",
+    handler: (event: PluginHookMessageContextBuildEvent) => {
+      if (event.platform !== "slack") {
+        return;
+      }
+      const data = event.resolvedData;
+      if (!data || typeof data !== "object" || !("message" in data)) {
+        return;
+      }
+      return {
+        structuredContext: buildSlackStructuredContext({
+          ...(data as SlackContextBuildData),
+          channelId: event.channelId,
+        }),
+      };
+    },
+    priority: 500,
+    source: "core",
+  });
   initializeGlobalHookRunner(registry);
   return registry;
 }

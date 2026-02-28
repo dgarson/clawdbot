@@ -35,6 +35,7 @@ export type {
   ChannelAgentTool,
   ChannelAgentToolFactory,
   ChannelCapabilities,
+  ChannelContextBuilderAdapter,
   ChannelDirectoryEntry,
   ChannelDirectoryEntryKind,
   ChannelGroupContext,

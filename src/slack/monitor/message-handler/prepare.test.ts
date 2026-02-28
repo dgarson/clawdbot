@@ -2,9 +2,14 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { App } from "@slack/bolt";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { expectInboundContextContract } from "../../../../test/helpers/inbound-contract.js";
 import type { OpenClawConfig } from "../../../config/config.js";
+import {
+  initializeGlobalHookRunner,
+  resetGlobalHookRunner,
+} from "../../../plugins/hook-runner-global.js";
+import { createMockPluginRegistry } from "../../../plugins/hooks.test-helpers.js";
 import { resolveAgentRoute } from "../../../routing/resolve-route.js";
 import { resolveThreadSessionKeys } from "../../../routing/session-key.js";
 import type { RuntimeEnv } from "../../../runtime.js";
@@ -610,138 +615,96 @@ describe("slack prepareSlackMessage inbound contract", () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Task 9: StructuredContextInput population
+  // message_context_build hook firing
   // ---------------------------------------------------------------------------
 
-  it("populates StructuredContext for simple direct messages", async () => {
-    const prepared = await prepareWithDefaultCtx(
-      createSlackMessage({ text: "hello there", ts: "1700000000.000" }),
-    );
-
-    expect(prepared).toBeTruthy();
-    const sc = prepared!.ctxPayload.StructuredContext;
-    expect(sc).toBeDefined();
-    expect(sc!.platform).toBe("slack");
-    expect(sc!.channelId).toBe("D123");
-    expect(sc!.anchor.text).toBe("hello there");
-    expect(sc!.anchor.ts).toBe("1700000000.000");
-    expect(sc!.thread).toBeNull();
-  });
-
-  it("populates StructuredContext with thread data for thread reply messages", async () => {
-    // Use thread_ts "900.000" to avoid THREAD_STARTER_CACHE collisions from other tests
-    const replies = vi
-      .fn()
-      .mockResolvedValueOnce({
-        messages: [{ text: "root question", user: "U2", ts: "900.000" }],
-      })
-      .mockResolvedValueOnce({
-        messages: [
-          { text: "root question", user: "U2", ts: "900.000" },
-          { text: "first thread reply", user: "U1", ts: "900.500" },
-          { text: "current message", user: "U1", ts: "901.000" },
-        ],
-        response_metadata: { next_cursor: "" },
-      });
-
-    const slackCtx = createThreadSlackCtx({
-      cfg: {
-        channels: { slack: { enabled: true, replyToMode: "all", groupPolicy: "open" } },
-      } as OpenClawConfig,
-      replies,
+  describe("message_context_build hook", () => {
+    afterEach(() => {
+      resetGlobalHookRunner();
     });
-    slackCtx.resolveUserName = async (id: string) => ({ name: id === "U1" ? "Alice" : "Bob" });
-    slackCtx.resolveChannelName = async () => ({ name: "general", type: "channel" });
 
-    const prepared = await prepareMessageWith(
-      slackCtx,
-      createThreadAccount(),
-      createSlackMessage({
-        channel: "C123",
-        channel_type: "channel",
-        thread_ts: "900.000",
-        text: "current message",
-        ts: "901.000",
-      }),
-    );
+    it("uses StructuredContext returned by hook subscriber", async () => {
+      const fixedSc = {
+        platform: "slack",
+        channelId: "D123",
+        channelName: "#dm",
+        anchor: {
+          messageId: "1.0",
+          ts: "1.0",
+          authorId: "U1",
+          authorName: "Alice",
+          authorIsBot: false,
+          text: "hi",
+          threadId: null,
+        },
+        adjacentMessages: [],
+        thread: null,
+      };
+      const handler = vi.fn().mockReturnValue({ structuredContext: fixedSc });
+      initializeGlobalHookRunner(
+        createMockPluginRegistry([{ hookName: "message_context_build", handler }]),
+      );
 
-    expect(prepared).toBeTruthy();
-    const sc = prepared!.ctxPayload.StructuredContext;
-    expect(sc).toBeDefined();
-    expect(sc!.platform).toBe("slack");
-    expect(sc!.channelId).toBe("C123");
-    expect(sc!.anchor.text).toBe("current message");
-    expect(sc!.anchor.ts).toBe("901.000");
-    expect(sc!.thread).toBeDefined();
-    expect(sc!.thread!.rootText).toBe("root question");
-    // Replies should include the intermediate reply but not the root or current message
-    expect(sc!.thread!.replies.some((r) => r.text === "first thread reply")).toBe(true);
-    expect(sc!.thread!.replies.every((r) => r.text !== "root question")).toBe(true);
-  });
+      const prepared = await prepareWithDefaultCtx(createSlackMessage({ text: "hi" }));
 
-  it("attaches a fetcher that delegates fetchThread to resolveSlackThreadHistory", async () => {
-    // Use a distinct thread_ts to avoid THREAD_STARTER_CACHE collisions
-    const replies = vi
-      .fn()
-      .mockResolvedValueOnce({
-        // resolveSlackThreadStarter call (limit:1)
-        messages: [{ text: "fetcher root", user: "U1", ts: "800.000" }],
-      })
-      .mockResolvedValueOnce({
-        // resolveSlackThreadHistory call for thread snapshot
-        messages: [
-          { text: "fetcher root", user: "U1", ts: "800.000" },
-          { text: "fetcher reply", user: "U2", ts: "800.500" },
-        ],
-        response_metadata: { next_cursor: "" },
-      })
-      .mockResolvedValueOnce({
-        // fetcher.fetchThread call for a different thread ("700.000")
-        messages: [
-          { text: "other root", user: "U3", ts: "700.000" },
-          { text: "other reply", user: "U4", ts: "700.100" },
-        ],
-        response_metadata: { next_cursor: "" },
-      });
-
-    const slackCtx = createThreadSlackCtx({
-      cfg: {
-        channels: { slack: { enabled: true, replyToMode: "all", groupPolicy: "open" } },
-      } as OpenClawConfig,
-      replies,
+      expect(prepared).toBeTruthy();
+      expect(prepared!.ctxPayload.StructuredContext).toBe(fixedSc);
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ platform: "slack", channelId: "D123" }),
+        expect.any(Object),
+      );
     });
-    slackCtx.resolveUserName = async (id: string) => ({ name: id });
-    slackCtx.resolveChannelName = async () => ({ name: "general", type: "channel" });
 
-    const prepared = await prepareMessageWith(
-      slackCtx,
-      createThreadAccount(),
-      createSlackMessage({
-        channel: "C123",
-        channel_type: "channel",
-        thread_ts: "800.000",
-        text: "current reply",
-        ts: "800.500",
-      }),
-    );
+    it("fires hook with correct channelType for DMs", async () => {
+      const handler = vi.fn().mockReturnValue({ structuredContext: null });
+      initializeGlobalHookRunner(
+        createMockPluginRegistry([{ hookName: "message_context_build", handler }]),
+      );
 
-    expect(prepared).toBeTruthy();
-    const sc = prepared!.ctxPayload.StructuredContext;
-    expect(sc!.fetcher).toBeDefined();
+      await prepareWithDefaultCtx(createSlackMessage({ channel: "D123", channel_type: "im" }));
 
-    // Invoke the fetcher for a different thread not in the snapshot
-    const result = await sc!.fetcher!.fetchThread("700.000", 50);
-    expect(result.replies.length).toBe(1);
-    expect(result.replies[0].text).toBe("other reply");
-    // Root message (ts === threadId) must be excluded from replies
-    expect(result.replies.every((r) => r.ts !== "700.000")).toBe(true);
-  });
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ channelType: "direct", platform: "slack" }),
+        expect.any(Object),
+      );
+    });
 
-  it("fetcher.fetchMessages returns empty array (no Slack batch message API)", async () => {
-    const prepared = await prepareWithDefaultCtx(createSlackMessage({ text: "hello" }));
-    const fetcher = prepared!.ctxPayload.StructuredContext!.fetcher!;
-    const result = await fetcher.fetchMessages(["M1", "M2"]);
-    expect(result).toEqual([]);
+    it("fires hook with resolvedData containing Slack-specific fields", async () => {
+      const handler = vi.fn().mockReturnValue(undefined);
+      initializeGlobalHookRunner(
+        createMockPluginRegistry([{ hookName: "message_context_build", handler }]),
+      );
+
+      await prepareWithDefaultCtx(createSlackMessage({ text: "test msg", ts: "5.000" }));
+
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          platform: "slack",
+          anchorTs: "5.000",
+          resolvedData: expect.objectContaining({
+            rawBody: "test msg",
+            senderName: "Alice",
+          }),
+        }),
+        expect.any(Object),
+      );
+    });
+
+    it("returns null structuredContext when hook subscriber does not claim", async () => {
+      // Handler returns void (no structuredContext) — no fallback, structuredContext is null
+      const handler = vi.fn().mockReturnValue(undefined);
+      initializeGlobalHookRunner(
+        createMockPluginRegistry([{ hookName: "message_context_build", handler }]),
+      );
+
+      const prepared = await prepareWithDefaultCtx(
+        createSlackMessage({ text: "no-claim test", ts: "1700000000.000" }),
+      );
+
+      expect(prepared).toBeTruthy();
+      const sc = prepared!.ctxPayload.StructuredContext;
+      expect(sc).toBeNull();
+    });
   });
 });
 

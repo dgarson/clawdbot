@@ -9,6 +9,16 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
+import {
+  initializeGlobalHookRunner,
+  resetGlobalHookRunner,
+} from "../../plugins/hook-runner-global.js";
+import { createEmptyPluginRegistry } from "../../plugins/registry.js";
+import type {
+  PluginHookBeforeSessionCreateResult,
+  PluginHookRegistration,
+} from "../../plugins/types.js";
+import { buildChannelTools } from "./context/tools.js";
 import type { StructuredContextInput } from "./context/types.js";
 import type { ClaudeSdkSessionParams } from "./types.js";
 
@@ -90,6 +100,9 @@ const INIT_MESSAGES = [
 
 afterEach(() => {
   vi.unstubAllEnvs();
+  // Reset global hook runner so plugin-subscriber tests don't leak state into
+  // other describe blocks (e.g. the structured context injection tests).
+  resetGlobalHookRunner();
 });
 
 // ---------------------------------------------------------------------------
@@ -1407,6 +1420,15 @@ describe("session lifecycle — dispose warning", () => {
 // Helper: minimal StructuredContextInput for tests
 // ---------------------------------------------------------------------------
 
+const noopFetcher: StructuredContextInput["fetcher"] = {
+  async fetchThread() {
+    return { replies: [], totalCount: 0 };
+  },
+  async fetchMessages() {
+    return [];
+  },
+};
+
 function makeStructuredContextInput(
   overrides?: Partial<StructuredContextInput>,
 ): StructuredContextInput {
@@ -1414,6 +1436,7 @@ function makeStructuredContextInput(
     platform: "slack",
     channelId: "C123",
     channelName: "general",
+    channelType: "group",
     anchor: {
       messageId: "M001",
       ts: "1700000000.000000",
@@ -1425,6 +1448,7 @@ function makeStructuredContextInput(
     },
     adjacentMessages: [],
     thread: null,
+    fetcher: noopFetcher,
     ...overrides,
   };
 }
@@ -1520,14 +1544,21 @@ describe("session lifecycle — channel tools registration", () => {
     vi.clearAllMocks();
   });
 
-  it("registers channel.context and channel.messages tools when structuredContextInput is provided", async () => {
+  it("registers channel.context and channel.messages tools when provided via customTools", async () => {
+    // Channel tools now arrive via params.customTools (built by channelToolsFactory in the
+    // plugin tool factory path). createClaudeSdkSession() is responsible for registering
+    // whatever is in customTools into the MCP server, regardless of source.
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
     const toolMock = await importTool();
 
+    const structuredContextInput = makeStructuredContextInput();
     const createSession = await importCreateSession();
     const session = await createSession(
-      makeParams({ structuredContextInput: makeStructuredContextInput() }),
+      makeParams({
+        structuredContextInput,
+        customTools: buildChannelTools(structuredContextInput) as never[],
+      }),
     );
 
     await session.prompt("Hello");
@@ -1537,7 +1568,7 @@ describe("session lifecycle — channel tools registration", () => {
     expect(registeredNames).toContain("channel.messages");
   });
 
-  it("does NOT register channel tools when structuredContextInput is absent", async () => {
+  it("does NOT register channel tools when customTools does not include them", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
     const toolMock = await importTool();
@@ -1637,5 +1668,108 @@ describe("session lifecycle — attachment manifest", () => {
     );
     // But manifest is NOT persisted (nothing to persist)
     expect(appendCustomEntry).not.toHaveBeenCalledWith(ATTACHMENT_MANIFEST_KEY, expect.anything());
+  });
+});
+
+// ---------------------------------------------------------------------------
+// before_session_create hook: plugin subscriber integration
+// ---------------------------------------------------------------------------
+
+describe("session lifecycle — before_session_create hook", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function addBeforeSessionCreateHook(
+    handler: () =>
+      | PluginHookBeforeSessionCreateResult
+      | Promise<PluginHookBeforeSessionCreateResult>,
+    pluginId = "test-plugin",
+    priority?: number,
+  ) {
+    const registry = createEmptyPluginRegistry();
+    registry.typedHooks.push({
+      pluginId,
+      hookName: "before_session_create",
+      handler: handler as PluginHookRegistration["handler"],
+      priority,
+      source: "test",
+    });
+    initializeGlobalHookRunner(registry);
+  }
+
+  it("a plugin subscriber can append an additional system prompt section", async () => {
+    addBeforeSessionCreateHook(() => ({
+      systemPromptSections: ["## Extra Section\nContent from plugin."],
+    }));
+
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ systemPrompt: "Base." }));
+    await session.prompt("Hello");
+
+    const systemPrompt = queryMock.mock.calls[0][0].options?.systemPrompt as string;
+    expect(systemPrompt).toContain("Base.");
+    expect(systemPrompt).toContain("## Extra Section");
+    expect(systemPrompt).toContain("Content from plugin.");
+  });
+
+  it("a plugin subscriber can inject additional tools", async () => {
+    const pluginTool = {
+      name: "plugin.custom",
+      description: "A plugin-provided tool",
+      parameters: { type: "object", properties: {} },
+      execute: vi.fn(),
+    };
+    addBeforeSessionCreateHook(() => ({ tools: [pluginTool] }));
+
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+    const toolMock = await importTool();
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams());
+    await session.prompt("Hello");
+
+    const registeredNames = toolMock.mock.calls.map((c: unknown[]) => c[0] as string);
+    expect(registeredNames).toContain("plugin.custom");
+  });
+
+  it("subscriber sections are joined in registration order", async () => {
+    // Two subscribers: first (priority 10) contributes Section A, second (priority 5) Section B
+    const registry = createEmptyPluginRegistry();
+    registry.typedHooks.push({
+      pluginId: "plugin-a",
+      hookName: "before_session_create",
+      handler: (() => ({
+        systemPromptSections: ["## Section A"],
+      })) as PluginHookRegistration["handler"],
+      priority: 10,
+      source: "test",
+    });
+    registry.typedHooks.push({
+      pluginId: "plugin-b",
+      hookName: "before_session_create",
+      handler: (() => ({
+        systemPromptSections: ["## Section B"],
+      })) as PluginHookRegistration["handler"],
+      priority: 5,
+      source: "test",
+    });
+    initializeGlobalHookRunner(registry);
+
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ systemPrompt: "Base." }));
+    await session.prompt("Hello");
+
+    const systemPrompt = queryMock.mock.calls[0][0].options?.systemPrompt as string;
+    const idxA = systemPrompt.indexOf("## Section A");
+    const idxB = systemPrompt.indexOf("## Section B");
+    expect(idxA).toBeGreaterThan(-1);
+    expect(idxB).toBeGreaterThan(-1);
+    // Higher-priority subscriber (plugin-a, priority 10) section appears before lower-priority
+    expect(idxA).toBeLessThan(idxB);
   });
 });

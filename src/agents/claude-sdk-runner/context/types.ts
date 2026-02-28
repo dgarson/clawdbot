@@ -76,6 +76,8 @@ export interface StructuredContextInput {
   platform: string;
   channelId: string;
   channelName: string;
+  /** "direct" for DMs, "group" for channels/group-DMs. Drives tool registration gating. */
+  channelType: "direct" | "group";
   anchor: {
     messageId: string;
     ts: string;
@@ -135,8 +137,10 @@ export interface StructuredContextInput {
     }>;
     totalReplyCount: number;
   } | null;
-  /** Generic fetcher for lazy tool API calls */
-  fetcher?: ChannelFetcher;
+  /** Platform-agnostic interface for lazily fetching channel data.
+   *  Every platform must provide a fetcher — use a no-op implementation
+   *  (returning empty results) if the platform doesn't support on-demand fetching. */
+  fetcher: ChannelFetcher;
 }
 
 /** Platform-agnostic interface for lazily fetching channel data */
@@ -145,6 +149,14 @@ export interface ChannelFetcher {
     threadId: string,
     maxReplies: number,
   ): Promise<{
+    root?: {
+      messageId: string;
+      ts: string;
+      authorId: string;
+      authorName: string;
+      authorIsBot: boolean;
+      text: string;
+    };
     replies: Array<{
       messageId: string;
       ts: string;
@@ -156,6 +168,23 @@ export interface ChannelFetcher {
     totalCount: number;
   }>;
   fetchMessages(messageIds: string[]): Promise<
+    Array<{
+      messageId: string;
+      ts: string;
+      authorId: string;
+      authorName: string;
+      authorIsBot: boolean;
+      text: string;
+    }>
+  >;
+  fetchMedia?(artifactId: string): Promise<{
+    mimeType: string;
+    data: string;
+  }>;
+  fetchNewReplies?(
+    threadId: string,
+    sinceTs: string,
+  ): Promise<
     Array<{
       messageId: string;
       ts: string;

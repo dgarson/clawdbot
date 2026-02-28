@@ -19,6 +19,7 @@ import type {
   ChannelAgentTool,
   ChannelAgentToolFactory,
   ChannelCapabilities,
+  ChannelContextBuilderAdapter,
   ChannelId,
   ChannelAgentPromptAdapter,
   ChannelMentionAdapter,
@@ -82,4 +83,6 @@ export type ChannelPlugin<ResolvedAccount = any, Probe = unknown, Audit = unknow
   heartbeat?: ChannelHeartbeatAdapter;
   // Channel-owned agent tools (login flows, etc.).
   agentTools?: ChannelAgentToolFactory | ChannelAgentTool[];
+  // Builds StructuredContextInput from platform-specific resolvedData for this channel.
+  contextBuilder?: ChannelContextBuilderAdapter;
 };
