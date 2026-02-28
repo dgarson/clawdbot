@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+import { resolveAgentConfig, resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import { resolveEffectiveMessagesConfig, resolveHumanDelayConfig } from "../../agents/identity.js";
 import { createMemoryGetTool, createMemorySearchTool } from "../../agents/tools/memory-tool.js";
 import { handleSlackAction } from "../../agents/tools/slack-actions.js";
@@ -17,7 +18,6 @@ import {
   shouldComputeCommandAuthorized,
 } from "../../auto-reply/command-detection.js";
 import { shouldHandleTextCommands } from "../../auto-reply/commands-registry.js";
-import { withReplyDispatcher } from "../../auto-reply/dispatch.js";
 import {
   formatAgentEnvelope,
   formatInboundEnvelope,
@@ -72,6 +72,7 @@ import { monitorIMessageProvider } from "../../imessage/monitor.js";
 import { probeIMessage } from "../../imessage/probe.js";
 import { sendMessageIMessage } from "../../imessage/send.js";
 import { getChannelActivity, recordChannelActivity } from "../../infra/channel-activity.js";
+import { emitDiagnosticEvent, onDiagnosticEvent } from "../../infra/diagnostic-events.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
 import {
   listLineAccountIds,
@@ -108,6 +109,7 @@ import {
 } from "../../pairing/pairing-store.js";
 import { runCommandWithTimeout } from "../../process/exec.js";
 import { resolveAgentRoute } from "../../routing/resolve-route.js";
+import { normalizeAgentId } from "../../routing/session-key.js";
 import { monitorSignalProvider } from "../../signal/index.js";
 import { probeSignal } from "../../signal/probe.js";
 import { sendMessageSignal } from "../../signal/send.js";
@@ -138,10 +140,43 @@ import {
   webAuthExists,
 } from "../../web/auth-store.js";
 import { loadWebMedia } from "../../web/media.js";
+import { createPluginCronScheduler, shutdownAllCronJobs as _shutdownAllCronJobs } from "./cron.js";
+import { createPluginKvStore } from "./kv.js";
 import { formatNativeDependencyHint } from "./native-deps.js";
-import type { PluginRuntime } from "./types.js";
+import { createRuntimeQuota } from "./quota.js";
+import type { PluginAgentsNamespace } from "./types.agents.js";
+import type {
+  PluginGatewayDispatcher,
+  PluginRuntime,
+  PluginSessionEntry,
+  PluginSessionUsageSummary,
+} from "./types.js";
+
+export { shutdownAllCronJobs } from "./cron.js";
 
 let cachedVersion: string | null = null;
+
+// Gateway dispatcher is set after the full handler map is assembled during gateway startup.
+// Before that point, calls will throw a clear error rather than silently failing.
+let gatewayDispatcher: PluginGatewayDispatcher | null = null;
+
+/**
+ * Inject the in-process gateway dispatcher after all handlers (core + plugin) are assembled.
+ * Called once during gateway startup. Subsequent calls replace the dispatcher (e.g. for reload).
+ */
+export function setGatewayDispatcher(dispatcher: PluginGatewayDispatcher): void {
+  gatewayDispatcher = dispatcher;
+}
+
+const pluginGatewayCall: PluginGatewayDispatcher = async (method, params, opts) => {
+  if (!gatewayDispatcher) {
+    throw new Error(
+      `runtime.gateway.call("${method}") called before gateway startup completed. ` +
+        `Register a service or use gateway hooks for post-startup dispatch.`,
+    );
+  }
+  return gatewayDispatcher(method, params, opts);
+};
 
 function resolveVersion(): string {
   if (cachedVersion) {
@@ -237,9 +272,17 @@ function loadWhatsAppActions() {
   return whatsappActionsPromise;
 }
 
-export function createPluginRuntime(): PluginRuntime {
+export function createPluginRuntime(params?: {
+  /** Plugin identifier used to namespace the kv store and cron scheduler. */
+  pluginId?: string;
+  /** State directory for the kv store (defaults to resolved stateDir). */
+  stateDir?: string;
+}): PluginRuntime {
+  const pluginId = params?.pluginId ?? "__global__";
+  const stateDir = params?.stateDir ?? resolveStateDir();
   return {
     version: resolveVersion(),
+    gateway: { call: pluginGatewayCall },
     config: createRuntimeConfig(),
     system: createRuntimeSystem(),
     media: createRuntimeMedia(),
@@ -248,6 +291,114 @@ export function createPluginRuntime(): PluginRuntime {
     channel: createRuntimeChannel(),
     logging: createRuntimeLogging(),
     state: { resolveStateDir },
+    sessions: createRuntimeSessions(),
+    diagnostics: createRuntimeDiagnostics(),
+    kv: createPluginKvStore(stateDir, pluginId),
+    quota: createRuntimeQuota(),
+    agents: createRuntimeAgents(),
+    cron: createPluginCronScheduler(pluginId),
+  };
+}
+
+function createRuntimeAgents(): PluginAgentsNamespace {
+  return {
+    async list() {
+      const cfg = loadConfig();
+      const defaultAgentId = resolveDefaultAgentId(cfg);
+      const agentIds: string[] = [];
+
+      // Collect IDs from agents.list and agents.named sections.
+      if (Array.isArray(cfg?.agents?.list)) {
+        for (const entry of cfg.agents.list) {
+          if (entry?.id) {
+            agentIds.push(normalizeAgentId(String(entry.id)));
+          }
+        }
+      }
+      const named = (cfg?.agents as Record<string, unknown>)?.named;
+      if (named && typeof named === "object" && !Array.isArray(named)) {
+        for (const key of Object.keys(named)) {
+          const normalized = normalizeAgentId(key);
+          if (!agentIds.includes(normalized)) {
+            agentIds.push(normalized);
+          }
+        }
+      }
+      if (agentIds.length === 0) {
+        agentIds.push(normalizeAgentId(defaultAgentId));
+      }
+
+      return agentIds.map((id) => {
+        const agentCfg = resolveAgentConfig(cfg, id);
+        return {
+          id,
+          // ResolvedAgentConfig uses "name" for display label.
+          label: typeof agentCfg?.name === "string" ? agentCfg.name : undefined,
+          metadata: agentCfg?.metadata,
+          isDefault: id === normalizeAgentId(defaultAgentId),
+        };
+      });
+    },
+
+    async resolve(agentId: string) {
+      const cfg = loadConfig();
+      const normalized = normalizeAgentId(agentId);
+      const agentCfg = resolveAgentConfig(cfg, normalized);
+      if (!agentCfg && normalized !== normalizeAgentId(resolveDefaultAgentId(cfg))) {
+        return null;
+      }
+      return {
+        id: normalized,
+        label: typeof agentCfg?.name === "string" ? agentCfg.name : undefined,
+        metadata: agentCfg?.metadata,
+        isDefault: normalized === normalizeAgentId(resolveDefaultAgentId(cfg)),
+      };
+    },
+  };
+}
+
+function createRuntimeDiagnostics(): PluginRuntime["diagnostics"] {
+  return {
+    emit(event, opts) {
+      emitDiagnosticEvent({
+        type: "plugin.event",
+        pluginId: opts?.pluginId,
+        eventType: event.type,
+        data: event.data,
+      });
+    },
+
+    subscribe(typeFilter, handler) {
+      return onDiagnosticEvent((evt) => {
+        // Match "plugin.event" events by eventType, and native events by type.
+        let matchType: string;
+        let matchData: Record<string, unknown>;
+        let matchPluginId: string | undefined;
+
+        if (evt.type === "plugin.event") {
+          matchType = evt.eventType;
+          matchData = evt.data;
+          matchPluginId = evt.pluginId;
+        } else {
+          // For native events, expose the whole event as data.
+          matchType = evt.type;
+          matchData = evt as unknown as Record<string, unknown>;
+          matchPluginId = undefined;
+        }
+
+        if (typeFilter !== "*" && !matchType.startsWith(typeFilter)) {
+          return;
+        }
+
+        handler({
+          type: matchType,
+          ts: evt.ts,
+          seq: evt.seq,
+          data: matchData,
+          pluginId: matchPluginId,
+        });
+      });
+    },
   };
 }
 
@@ -305,7 +456,6 @@ function createRuntimeChannel(): PluginRuntime["channel"] {
       resolveEffectiveMessagesConfig,
       resolveHumanDelayConfig,
       dispatchReplyFromConfig,
-      withReplyDispatcher,
       finalizeInboundContext,
       formatAgentEnvelope,
       /** @deprecated Prefer `BodyForAgent` + structured user-context blocks (do not build plaintext envelopes for prompts). */
@@ -317,17 +467,8 @@ function createRuntimeChannel(): PluginRuntime["channel"] {
     },
     pairing: {
       buildPairingReply,
-      readAllowFromStore: ({ channel, accountId, env }) =>
-        readChannelAllowFromStore(channel, env, accountId),
-      upsertPairingRequest: ({ channel, id, accountId, meta, env, pairingAdapter }) =>
-        upsertChannelPairingRequest({
-          channel,
-          id,
-          accountId,
-          meta,
-          env,
-          pairingAdapter,
-        }),
+      readAllowFromStore: readChannelAllowFromStore,
+      upsertPairingRequest: upsertChannelPairingRequest,
     },
     media: {
       fetchRemoteMedia,
@@ -459,6 +600,84 @@ function createRuntimeLogging(): PluginRuntime["logging"] {
         warn: (message) => logger.warn(message),
         error: (message) => logger.error(message),
       };
+    },
+  };
+}
+
+function createRuntimeSessions(): PluginRuntime["sessions"] {
+  return {
+    async list(opts) {
+      const { discoverAllSessions } = await import("../../infra/session-cost-usage.js");
+      const discovered = await discoverAllSessions({
+        agentId: opts?.agentId,
+        startMs: opts?.startMs,
+        endMs: opts?.endMs,
+      });
+      return discovered.map(
+        (s): PluginSessionEntry => ({
+          sessionId: s.sessionId,
+          agentId: opts?.agentId,
+          filePath: s.sessionFile,
+          firstUserMessage: s.firstUserMessage,
+          mtimeMs: s.mtime,
+        }),
+      );
+    },
+
+    async readTranscript(opts) {
+      const { resolveSessionFilePath } = await import("../../config/sessions/paths.js");
+      const filePath = resolveSessionFilePath(opts.sessionId, undefined, { agentId: opts.agentId });
+      if (!filePath) {
+        return [];
+      }
+      const nodeFs = await import("node:fs/promises");
+      let raw: string;
+      try {
+        raw = await nodeFs.readFile(filePath, "utf-8");
+      } catch {
+        return [];
+      }
+      const records: Record<string, unknown>[] = [];
+      for (const line of raw.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          continue;
+        }
+        try {
+          const parsed = JSON.parse(trimmed) as unknown;
+          if (parsed && typeof parsed === "object") {
+            records.push(parsed as Record<string, unknown>);
+          }
+        } catch {
+          // Skip malformed lines
+        }
+      }
+      return records;
+    },
+
+    async getUsageSummary(opts) {
+      const { loadSessionCostSummary } = await import("../../infra/session-cost-usage.js");
+      const summary = await loadSessionCostSummary({
+        sessionId: opts.sessionId,
+        agentId: opts.agentId,
+        startMs: opts.startMs,
+        endMs: opts.endMs,
+      });
+      if (!summary) {
+        return null;
+      }
+      return {
+        totalTokens: summary.totalTokens,
+        totalCostUsd: summary.totalCost,
+        inputTokens: summary.input,
+        outputTokens: summary.output,
+        cacheReadTokens: summary.cacheRead,
+        cacheWriteTokens: summary.cacheWrite,
+        firstActivityMs: summary.firstActivity,
+        lastActivityMs: summary.lastActivity,
+        turnCount: summary.messageCounts?.assistant,
+        toolCallCount: summary.messageCounts?.toolCalls,
+      } satisfies PluginSessionUsageSummary;
     },
   };
 }

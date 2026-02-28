@@ -1,4 +1,8 @@
 import type { LogLevel } from "../../logging/levels.js";
+import type { PluginAgentsNamespace } from "./types.agents.js";
+import type { PluginCronNamespace } from "./types.cron.js";
+import type { PluginKvNamespace } from "./types.kv.js";
+import type { PluginQuotaNamespace } from "./types.quota.js";
 
 type ShouldLogVerbose = typeof import("../../globals.js").shouldLogVerbose;
 type DispatchReplyWithBufferedBlockDispatcher =
@@ -14,14 +18,6 @@ type ReadChannelAllowFromStore =
   typeof import("../../pairing/pairing-store.js").readChannelAllowFromStore;
 type UpsertChannelPairingRequest =
   typeof import("../../pairing/pairing-store.js").upsertChannelPairingRequest;
-type ReadChannelAllowFromStoreForAccount = (params: {
-  channel: Parameters<ReadChannelAllowFromStore>[0];
-  accountId: string;
-  env?: Parameters<ReadChannelAllowFromStore>[1];
-}) => ReturnType<ReadChannelAllowFromStore>;
-type UpsertChannelPairingRequestForAccount = (
-  params: Omit<Parameters<UpsertChannelPairingRequest>[0], "accountId"> & { accountId: string },
-) => ReturnType<UpsertChannelPairingRequest>;
 type FetchRemoteMedia = typeof import("../../media/fetch.js").fetchRemoteMedia;
 type SaveMediaBuffer = typeof import("../../media/store.js").saveMediaBuffer;
 type TextToSpeechTelephony = typeof import("../../tts/tts.js").textToSpeechTelephony;
@@ -63,7 +59,6 @@ type ShouldHandleTextCommands =
   typeof import("../../auto-reply/commands-registry.js").shouldHandleTextCommands;
 type DispatchReplyFromConfig =
   typeof import("../../auto-reply/reply/dispatch-from-config.js").dispatchReplyFromConfig;
-type WithReplyDispatcher = typeof import("../../auto-reply/dispatch.js").withReplyDispatcher;
 type FinalizeInboundContext =
   typeof import("../../auto-reply/reply/inbound-context.js").finalizeInboundContext;
 type FormatAgentEnvelope = typeof import("../../auto-reply/envelope.js").formatAgentEnvelope;
@@ -185,8 +180,23 @@ export type RuntimeLogger = {
   error: (message: string, meta?: Record<string, unknown>) => void;
 };
 
+// Gateway dispatcher type lives in types.gateway.ts
+export type { PluginGatewayDispatcher } from "./types.gateway.js";
+import type { PluginGatewayDispatcher } from "./types.gateway.js";
+
+// Session types live in types.sessions.ts
+export type { PluginSessionEntry, PluginSessionUsageSummary } from "./types.sessions.js";
+import type { PluginSessionEntry, PluginSessionUsageSummary } from "./types.sessions.js";
+
 export type PluginRuntime = {
   version: string;
+  /**
+   * In-process gateway method dispatch. Calls gateway methods directly without
+   * WebSocket overhead. Available after gateway startup completes.
+   */
+  gateway: {
+    call: PluginGatewayDispatcher;
+  };
   config: {
     loadConfig: LoadConfig;
     writeConfigFile: WriteConfigFile;
@@ -231,7 +241,6 @@ export type PluginRuntime = {
       resolveEffectiveMessagesConfig: ResolveEffectiveMessagesConfig;
       resolveHumanDelayConfig: ResolveHumanDelayConfig;
       dispatchReplyFromConfig: DispatchReplyFromConfig;
-      withReplyDispatcher: WithReplyDispatcher;
       finalizeInboundContext: FinalizeInboundContext;
       formatAgentEnvelope: FormatAgentEnvelope;
       /** @deprecated Prefer `BodyForAgent` + structured user-context blocks (do not build plaintext envelopes for prompts). */
@@ -243,8 +252,8 @@ export type PluginRuntime = {
     };
     pairing: {
       buildPairingReply: BuildPairingReply;
-      readAllowFromStore: ReadChannelAllowFromStoreForAccount;
-      upsertPairingRequest: UpsertChannelPairingRequestForAccount;
+      readAllowFromStore: ReadChannelAllowFromStore;
+      upsertPairingRequest: UpsertChannelPairingRequest;
     };
     media: {
       fetchRemoteMedia: FetchRemoteMedia;
@@ -371,4 +380,109 @@ export type PluginRuntime = {
   state: {
     resolveStateDir: ResolveStateDir;
   };
+  /**
+   * Diagnostic event bus for plugins.
+   * Enables custom metric emission and system event subscription.
+   */
+  diagnostics: {
+    /**
+     * Emit a custom diagnostic event from a plugin.
+     * The event is dispatched to all subscribers (OTel extension, monitors, dashboards).
+     */
+    emit(
+      event: {
+        /** Semantic event name (e.g. "budget.warning", "score.computed", "routing.decision"). */
+        type: string;
+        data: Record<string, unknown>;
+      },
+      opts?: { pluginId?: string },
+    ): void;
+
+    /**
+     * Subscribe to all diagnostic events matching the given type prefix.
+     * Pass "*" to receive all events. Returns an unsubscribe function.
+     */
+    subscribe(
+      typeFilter: string,
+      handler: (event: {
+        type: string;
+        ts: number;
+        seq: number;
+        data: Record<string, unknown>;
+        pluginId?: string;
+      }) => void,
+    ): () => void;
+  };
+
+  /**
+   * Read-only session data access for plugins.
+   * Enables session replay, retrospectives, quality scoring, and async evaluation.
+   */
+  sessions: {
+    /**
+     * List discovered sessions, optionally filtered by agentId and date range.
+     * Returns lightweight session summaries (no transcript content).
+     */
+    list(opts?: {
+      agentId?: string;
+      startMs?: number;
+      endMs?: number;
+    }): Promise<PluginSessionEntry[]>;
+
+    /**
+     * Read the raw JSONL messages from a session transcript file.
+     * Returns an array of parsed records (messages, tool calls, usage entries, etc.).
+     */
+    readTranscript(opts: {
+      sessionId: string;
+      agentId?: string;
+    }): Promise<Record<string, unknown>[]>;
+
+    /**
+     * Compute usage/cost summary for a session.
+     * Returns null if the session file does not exist.
+     */
+    getUsageSummary(opts: {
+      sessionId: string;
+      agentId?: string;
+      startMs?: number;
+      endMs?: number;
+    }): Promise<PluginSessionUsageSummary | null>;
+  };
+
+  /**
+   * Per-plugin key-value store with optional TTL (#6).
+   * Values are persisted to disk so they survive across runs.
+   */
+  kv: PluginKvNamespace;
+
+  /**
+   * Token/cost quota tracking across sessions (#5).
+   * Aggregates usage for budgeting, alerting, and cost optimization.
+   */
+  quota: PluginQuotaNamespace;
+
+  /**
+   * Typed agent config query API (#2).
+   * Provides a clean interface to enumerate and resolve configured agents.
+   */
+  agents: PluginAgentsNamespace;
+
+  /**
+   * In-process interval-based cron scheduler (#7).
+   * Handlers are registered per-plugin and cleaned up on gateway_stop.
+   */
+  cron: PluginCronNamespace;
 };
+
+// Re-export new namespace types so they're accessible from types.ts.
+export type { PluginKvNamespace, PluginKvSetOptions } from "./types.kv.js";
+export type {
+  PluginQuotaNamespace,
+  PluginQuotaScope,
+  PluginQuotaUsage,
+  PluginBudgetLimits,
+  PluginBudgetCheckResult,
+} from "./types.quota.js";
+export type { PluginAgentsNamespace, PluginAgentEntry } from "./types.agents.js";
+export type { PluginCronNamespace } from "./types.cron.js";
