@@ -163,7 +163,9 @@ describe("scratchpad integration", () => {
       expect(promptText).toContain("My Plan");
 
       // Persisted message should NOT contain scratchpad prefix
-      const persistedContent = appendMessage.mock.calls[0]?.[0]?.content;
+      // eslint-disable-next-line -- mock.calls tuple type doesn't reflect runtime shape
+      const calls = appendMessage.mock.calls as unknown[][];
+      const persistedContent = (calls[0]?.[0] as { content?: unknown } | undefined)?.content;
       const persistedText =
         typeof persistedContent === "string" ? persistedContent : JSON.stringify(persistedContent);
       expect(persistedText).not.toContain("[Session Scratchpad");
@@ -230,7 +232,9 @@ describe("scratchpad integration", () => {
       );
       await session.prompt("user input text");
 
-      const persistedContent = appendMessage.mock.calls[0]?.[0]?.content;
+      // eslint-disable-next-line -- mock.calls tuple type doesn't reflect runtime shape
+      const calls = appendMessage.mock.calls as unknown[][];
+      const persistedContent = (calls[0]?.[0] as { content?: unknown } | undefined)?.content;
       const persistedText =
         typeof persistedContent === "string" ? persistedContent : JSON.stringify(persistedContent);
       expect(persistedText).toContain("user input text");
