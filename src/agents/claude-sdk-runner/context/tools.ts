@@ -163,11 +163,6 @@ export function buildChannelTools(input: StructuredContextInput): ClaudeSdkCompa
           return jsonResult({ thread: threadCtx });
         }
         // Lazy API call via fetcher
-        if (!input.fetcher) {
-          return jsonResult({
-            error: "On-demand fetching is not supported in this channel context.",
-          });
-        }
         if (!checkRateLimit()) {
           return jsonResult({
             error:

@@ -23,7 +23,7 @@ import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import { emitDiagnosticEvent } from "../../infra/diagnostic-events.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
-import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
+import { createCoreHookRunner, getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import {
   ATTACHMENT_MANIFEST_KEY,
   getThreadAttachments,
@@ -33,7 +33,6 @@ import {
   serializeManifest,
 } from "./attachment-manifest.js";
 import { resolveClaudeSubprocessEnv } from "./config.js";
-import { coreSessionContextSubscriber } from "./context/session-context-subscriber.js";
 import { mapSdkError } from "./error-mapping.js";
 import { translateSdkMessageToEvents } from "./event-adapter.js";
 import { createClaudeSdkMcpToolServer } from "./mcp-tool-server.js";
@@ -345,10 +344,10 @@ export async function createClaudeSdkSession(
     diagnosticsEnabled: params.diagnosticsEnabled,
   };
   const hookStartMs = Date.now();
-  const runner = getGlobalHookRunner();
-  const hookContrib = runner
-    ? await runner.runBeforeSessionCreate(hookEvent, { sessionId: params.sessionId })
-    : coreSessionContextSubscriber(hookEvent);
+  const runner = getGlobalHookRunner() ?? createCoreHookRunner();
+  const hookContrib = await runner.runBeforeSessionCreate(hookEvent, {
+    sessionId: params.sessionId,
+  });
   const hookDurationMs = Date.now() - hookStartMs;
 
   const hookSections = hookContrib?.systemPromptSections ?? [];

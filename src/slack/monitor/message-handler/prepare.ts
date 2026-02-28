@@ -27,7 +27,10 @@ import { recordInboundSession } from "../../../channels/session.js";
 import { readSessionUpdatedAt, resolveStorePath } from "../../../config/sessions.js";
 import { logVerbose, shouldLogVerbose } from "../../../globals.js";
 import { enqueueSystemEvent } from "../../../infra/system-events.js";
+import { createSubsystemLogger } from "../../../logging/subsystem.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
+
+const log = createSubsystemLogger("slack/prepare");
 import { resolveAgentRoute } from "../../../routing/resolve-route.js";
 import { resolveThreadSessionKeys } from "../../../routing/session-key.js";
 import type { ResolvedSlackAccount } from "../../accounts.js";
@@ -602,7 +605,13 @@ export async function prepareSlackMessage(params: {
 
   // Fire message_context_build hook — first subscriber that claims wins.
   // The core Slack context builder is registered in loader.ts as a hook subscriber.
-  const hookResult = await getGlobalHookRunner()?.runMessageContextBuild({
+  const contextBuildRunner = getGlobalHookRunner();
+  if (!contextBuildRunner) {
+    log.warn(
+      "message_context_build: hook runner not initialized; structured context will be skipped for this message",
+    );
+  }
+  const hookResult = await contextBuildRunner?.runMessageContextBuild({
     platform: "slack",
     channelId: message.channel,
     channelType: isDirectMessage ? "direct" : "group",
