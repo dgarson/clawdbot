@@ -235,6 +235,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       params.error,
     )}`;
     if (catchErrors && !failClosedHooks.has(params.hookName)) {
+      logger?.warn(msg);
       logger?.error(msg);
       return;
     }
