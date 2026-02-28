@@ -16,30 +16,30 @@ const normalizeThreadTs = (threadTs?: string | null) => {
   return trimmed ? trimmed : undefined;
 };
 
+type ResolveContext = {
+  channelId: string;
+  messageTs: string;
+};
+
 async function resolveThreadTsFromHistory(params: {
   client: SlackWebClient;
   channelId: string;
   messageTs: string;
-}) {
-  try {
-    const response = (await params.client.conversations.history({
-      channel: params.channelId,
-      latest: params.messageTs,
-      oldest: params.messageTs,
-      inclusive: true,
-      limit: 1,
-    })) as { messages?: Array<{ ts?: string; thread_ts?: string }> };
-    const message =
-      response.messages?.find((entry) => entry.ts === params.messageTs) ?? response.messages?.[0];
-    return normalizeThreadTs(message?.thread_ts);
-  } catch (err) {
-    if (shouldLogVerbose()) {
-      logVerbose(
-        `slack inbound: failed to resolve thread_ts via conversations.history for channel=${params.channelId} ts=${params.messageTs}: ${String(err)}`,
-      );
-    }
-    return undefined;
-  }
+}): Promise<string | null> {
+  const response = (await params.client.conversations.history({
+    channel: params.channelId,
+    latest: params.messageTs,
+    oldest: params.messageTs,
+    inclusive: true,
+    limit: 1,
+  })) as { messages?: Array<{ ts?: string; thread_ts?: string }> };
+  const message =
+    response.messages?.find((entry) => entry.ts === params.messageTs) ?? response.messages?.[0];
+  return normalizeThreadTs(message?.thread_ts);
+}
+
+function toErrorContext(params: ResolveContext): string {
+  return `channel=${params.channelId} ts=${params.messageTs}`;
 }
 
 export function createSlackThreadTsResolver(params: {
@@ -50,7 +50,7 @@ export function createSlackThreadTsResolver(params: {
   const ttlMs = Math.max(0, params.cacheTtlMs ?? DEFAULT_THREAD_TS_CACHE_TTL_MS);
   const maxSize = Math.max(0, params.maxSize ?? DEFAULT_THREAD_TS_CACHE_MAX);
   const cache = new Map<string, ThreadTsCacheEntry>();
-  const inflight = new Map<string, Promise<string | undefined>>();
+  const inflight = new Map<string, Promise<string | null>>();
 
   const getCached = (key: string, now: number) => {
     const entry = cache.get(key);
@@ -105,14 +105,26 @@ export function createSlackThreadTsResolver(params: {
         inflight.set(cacheKey, pending);
       }
 
-      let resolved: string | undefined;
+      let resolved: string | null;
       try {
         resolved = await pending;
+      } catch (err) {
+        if (shouldLogVerbose()) {
+          logVerbose(
+            `slack inbound: failed to resolve thread_ts via conversations.history for ${toErrorContext(
+              {
+                channelId: message.channel,
+                messageTs: message.ts,
+              },
+            )}: ${String(err)}`,
+          );
+        }
+        return message;
       } finally {
         inflight.delete(cacheKey);
       }
 
-      setCached(cacheKey, resolved ?? null, Date.now());
+      setCached(cacheKey, resolved, Date.now());
 
       if (resolved) {
         if (shouldLogVerbose()) {

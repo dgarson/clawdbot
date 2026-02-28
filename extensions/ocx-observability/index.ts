@@ -17,6 +17,8 @@ import {
   getAllCurrentHealth,
   getHealthHistory,
   getOrCreateStats,
+  recordSessionEnd,
+  recordSessionStart,
   resetHealthState,
   startHealthMonitor,
   stopHealthMonitor,
@@ -291,17 +293,12 @@ const observabilityPlugin = {
     // Track sessions
     api.on("session_start", (event, ctx) => {
       const agentId = ctx.agentId ?? "unknown";
-      const stats = getOrCreateStats(agentId);
-      stats.activeSessions += 1;
-      stats.lastEventAt = Date.now();
-      stats.lastHeartbeatAt = Date.now();
+      recordSessionStart(agentId);
     });
 
     api.on("session_end", (event, ctx) => {
       const agentId = ctx.agentId ?? "unknown";
-      const stats = getOrCreateStats(agentId);
-      stats.activeSessions = Math.max(0, stats.activeSessions - 1);
-      stats.lastEventAt = Date.now();
+      recordSessionEnd(agentId);
     });
 
     // Track subagent events

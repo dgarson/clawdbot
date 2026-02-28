@@ -15,10 +15,12 @@ type ToolExecutionEndEvent = Extract<AgentEvent, { type: "tool_execution_end" }>
 
 function createTestContext(): {
   ctx: ToolHandlerContext;
+  debug: ReturnType<typeof vi.fn>;
   warn: ReturnType<typeof vi.fn>;
   onBlockReplyFlush: ReturnType<typeof vi.fn>;
 } {
   const onBlockReplyFlush = vi.fn();
+  const debug = vi.fn();
   const warn = vi.fn();
   const ctx: ToolHandlerContext = {
     params: {
@@ -30,7 +32,7 @@ function createTestContext(): {
     flushBlockReplyBuffer: vi.fn(),
     hookRunner: undefined,
     log: {
-      debug: vi.fn(),
+      debug,
       warn,
     },
     state: {
@@ -53,7 +55,7 @@ function createTestContext(): {
     trimMessagingToolSent: vi.fn(),
   };
 
-  return { ctx, warn, onBlockReplyFlush };
+  return { ctx, debug, warn, onBlockReplyFlush };
 }
 
 describe("handleToolExecutionStart read path checks", () => {
@@ -330,5 +332,33 @@ describe("messaging tool media URL tracking", () => {
 
     expect(ctx.state.messagingToolSentMediaUrls).toHaveLength(0);
     expect(ctx.state.pendingMessagingMediaUrls.has("tool-m3")).toBe(false);
+  });
+});
+
+describe("tool end logging", () => {
+  it("appends tool input/output JSON lengths to tool end log", async () => {
+    const { ctx, debug } = createTestContext();
+
+    await handleToolExecutionStart(ctx, {
+      type: "tool_execution_start",
+      toolName: "exec",
+      toolCallId: "tool-log-1",
+      args: { cmd: "echo hi", cwd: "/tmp" },
+    } as never);
+
+    await handleToolExecutionEnd(ctx, {
+      type: "tool_execution_end",
+      toolName: "exec",
+      toolCallId: "tool-log-1",
+      isError: false,
+      result: { stdout: "hi\n", exitCode: 0 },
+    } as never);
+
+    const endLog = debug.mock.calls
+      .map((call) => String(call[0] ?? ""))
+      .find((line) => line.startsWith("embedded run tool end:"));
+    expect(endLog).toBeDefined();
+    expect(endLog).toContain("toolInputChars=");
+    expect(endLog).toContain("toolOutputChars=");
   });
 });

@@ -118,56 +118,62 @@ export function evaluateAgent(agentId: string, criteria: HealthCriteria): Health
   const now = Date.now();
   const signals: HealthSignal[] = [];
 
-  // Check stuck: no events for stuckTimeoutMinutes
-  const stuckThresholdMs = criteria.stuckTimeoutMinutes * 60 * 1000;
-  const timeSinceLastEvent = now - stats.lastEventAt;
-  if (timeSinceLastEvent > stuckThresholdMs) {
-    signals.push({
-      kind: "no_events_timeout",
-      severity: "critical",
-      value: timeSinceLastEvent / 60_000,
-      threshold: criteria.stuckTimeoutMinutes,
-      message: `No events for ${Math.round(timeSinceLastEvent / 60_000)} minutes`,
-    });
-  }
+  // If no sessions are currently active for this agent, treat the agent as dormant and
+  // skip lifecycle-only health transitions (stuck/zombie) that can fire after completion.
+  const hasActiveSessions = stats.activeSessions > 0;
 
-  // Check zombie: heartbeat timeout
-  const heartbeatThresholdMs = criteria.heartbeatTimeoutMinutes * 60 * 1000;
-  const timeSinceHeartbeat = now - stats.lastHeartbeatAt;
-  if (timeSinceHeartbeat > heartbeatThresholdMs) {
-    signals.push({
-      kind: "heartbeat_timeout",
-      severity: "critical",
-      value: timeSinceHeartbeat / 60_000,
-      threshold: criteria.heartbeatTimeoutMinutes,
-      message: `No heartbeat for ${Math.round(timeSinceHeartbeat / 60_000)} minutes`,
-    });
-  }
+  if (hasActiveSessions) {
+    // Check stuck: no events for stuckTimeoutMinutes
+    const stuckThresholdMs = criteria.stuckTimeoutMinutes * 60 * 1000;
+    const timeSinceLastEvent = now - stats.lastEventAt;
+    if (timeSinceLastEvent > stuckThresholdMs) {
+      signals.push({
+        kind: "no_events_timeout",
+        severity: "critical",
+        value: timeSinceLastEvent / 60_000,
+        threshold: criteria.stuckTimeoutMinutes,
+        message: `No events for ${Math.round(timeSinceLastEvent / 60_000)} minutes`,
+      });
+    }
 
-  // Anomaly rules (token_spike, error_burst, tool_loop, cost_spike, etc.)
-  const anomalySignals = evaluateAnomalyRules({ agentId, criteria, stats });
-  signals.push(...anomalySignals);
+    // Check zombie: heartbeat timeout
+    const heartbeatThresholdMs = criteria.heartbeatTimeoutMinutes * 60 * 1000;
+    const timeSinceHeartbeat = now - stats.lastHeartbeatAt;
+    if (timeSinceHeartbeat > heartbeatThresholdMs) {
+      signals.push({
+        kind: "heartbeat_timeout",
+        severity: "critical",
+        value: timeSinceHeartbeat / 60_000,
+        threshold: criteria.heartbeatTimeoutMinutes,
+        message: `No heartbeat for ${Math.round(timeSinceHeartbeat / 60_000)} minutes`,
+      });
+    }
 
-  // Check budget degradation
-  if (stats.budgetUtilization > criteria.budgetDegradedThreshold) {
-    signals.push({
-      kind: "budget_high",
-      severity: "warning",
-      value: stats.budgetUtilization,
-      threshold: criteria.budgetDegradedThreshold,
-      message: `Budget utilization at ${Math.round(stats.budgetUtilization * 100)}%`,
-    });
-  }
+    // Anomaly rules (token_spike, error_burst, tool_loop, cost_spike, etc.)
+    const anomalySignals = evaluateAnomalyRules({ agentId, criteria, stats });
+    signals.push(...anomalySignals);
 
-  // Check consecutive tool failures
-  if (stats.consecutiveToolFailures > criteria.maxConsecutiveToolFailures) {
-    signals.push({
-      kind: "consecutive_tool_failures",
-      severity: "warning",
-      value: stats.consecutiveToolFailures,
-      threshold: criteria.maxConsecutiveToolFailures,
-      message: `${stats.consecutiveToolFailures} consecutive tool failures`,
-    });
+    // Check budget degradation
+    if (stats.budgetUtilization > criteria.budgetDegradedThreshold) {
+      signals.push({
+        kind: "budget_high",
+        severity: "warning",
+        value: stats.budgetUtilization,
+        threshold: criteria.budgetDegradedThreshold,
+        message: `Budget utilization at ${Math.round(stats.budgetUtilization * 100)}%`,
+      });
+    }
+
+    // Check consecutive tool failures
+    if (stats.consecutiveToolFailures > criteria.maxConsecutiveToolFailures) {
+      signals.push({
+        kind: "consecutive_tool_failures",
+        severity: "warning",
+        value: stats.consecutiveToolFailures,
+        threshold: criteria.maxConsecutiveToolFailures,
+        message: `${stats.consecutiveToolFailures} consecutive tool failures`,
+      });
+    }
   }
 
   const state = deriveHealthState(signals);
@@ -259,4 +265,33 @@ export function resetHealthState(): void {
   currentHealth.clear();
   healthHistory.length = 0;
   stopHealthMonitor();
+}
+
+/** Remove all in-memory health and stats for an agent once it becomes dormant. */
+export function retireAgentState(agentId: string): void {
+  agentStatsMap.delete(agentId);
+  currentHealth.delete(agentId);
+}
+
+/** Record a session start for an agent and mark it as active. */
+export function recordSessionStart(agentId: string): void {
+  const stats = getOrCreateStats(agentId);
+  stats.activeSessions += 1;
+  stats.lastEventAt = Date.now();
+  stats.lastHeartbeatAt = Date.now();
+}
+
+/** Record a session end for an agent and retire inactive session state. */
+export function recordSessionEnd(agentId: string): void {
+  const stats = agentStatsMap.get(agentId);
+  if (!stats) {
+    return;
+  }
+
+  stats.activeSessions = Math.max(0, stats.activeSessions - 1);
+  stats.lastEventAt = Date.now();
+
+  if (stats.activeSessions === 0) {
+    retireAgentState(agentId);
+  }
 }
