@@ -148,6 +148,7 @@ const TRUSTED_TOOL_RESULT_MEDIA = new Set([
   "nodes",
   "process",
   "read",
+  "session_score",
   "session_status",
   "sessions_history",
   "sessions_list",

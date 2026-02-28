@@ -1,12 +1,14 @@
 import fs from "node:fs/promises";
 import os from "node:os";
-import type { AgentMessage, StreamFn } from "@mariozechner/pi-agent-core";
+import type { AgentMessage } from "@mariozechner/pi-agent-core";
+import type { ImageContent } from "@mariozechner/pi-ai";
 import { streamSimple } from "@mariozechner/pi-ai";
 import {
   createAgentSession,
   DefaultResourceLoader,
   SessionManager,
 } from "@mariozechner/pi-coding-agent";
+import { SettingsManager } from "@mariozechner/pi-coding-agent";
 import { resolveHeartbeatPrompt } from "../../../auto-reply/heartbeat.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
 import type { OpenClawConfig } from "../../../config/config.js";
@@ -35,6 +37,7 @@ import {
   listChannelSupportedActions,
   resolveChannelMessageToolHints,
 } from "../../channel-tools.js";
+import { runInCleanupHookScope } from "../../cleanup-hook-gate.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../../defaults.js";
 import { resolveOpenClawDocsPath } from "../../docs-path.js";
 import { isTimeoutError } from "../../failover-error.js";
@@ -51,7 +54,7 @@ import {
   validateGeminiTurns,
 } from "../../pi-embedded-helpers.js";
 import { subscribeEmbeddedPiSession } from "../../pi-embedded-subscribe.js";
-import { createPreparedEmbeddedPiSettingsManager } from "../../pi-project-settings.js";
+import { applyPiCompactionSettingsFromConfig } from "../../pi-settings.js";
 import { toClientToolDefinitions } from "../../pi-tool-definition-adapter.js";
 import { createOpenClawCodingTools, resolveToolLoopDetectionConfig } from "../../pi-tools.js";
 import { resolveSandboxContext } from "../../sandbox.js";
@@ -111,14 +114,13 @@ import {
   selectCompactionTimeoutSnapshot,
   shouldFlagCompactionTimeout,
 } from "./compaction-timeout.js";
-import { pruneProcessedHistoryImages } from "./history-image-prune.js";
 import { detectAndLoadPromptImages } from "./images.js";
 import type { EmbeddedRunAttemptParams, EmbeddedRunAttemptResult } from "./types.js";
 
 type PromptBuildHookRunner = {
   hasHooks: (hookName: "before_prompt_build" | "before_agent_start") => boolean;
   runBeforePromptBuild: (
-    event: { prompt: string; messages: unknown[] },
+    event: { runId?: string; prompt: string; messages: unknown[] },
     ctx: PluginHookAgentContext,
   ) => Promise<PluginHookBeforePromptBuildResult | undefined>;
   runBeforeAgentStart: (
@@ -127,79 +129,56 @@ type PromptBuildHookRunner = {
   ) => Promise<PluginHookBeforeAgentStartResult | undefined>;
 };
 
-function trimWhitespaceFromToolCallNamesInMessage(message: unknown): void {
-  if (!message || typeof message !== "object") {
-    return;
+export function injectHistoryImagesIntoMessages(
+  messages: AgentMessage[],
+  historyImagesByIndex: Map<number, ImageContent[]>,
+): boolean {
+  if (historyImagesByIndex.size === 0) {
+    return false;
   }
-  const content = (message as { content?: unknown }).content;
-  if (!Array.isArray(content)) {
-    return;
-  }
-  for (const block of content) {
-    if (!block || typeof block !== "object") {
+  let didMutate = false;
+
+  for (const [msgIndex, images] of historyImagesByIndex) {
+    // Bounds check: ensure index is valid before accessing
+    if (msgIndex < 0 || msgIndex >= messages.length) {
       continue;
     }
-    const typedBlock = block as { type?: unknown; name?: unknown };
-    if (typedBlock.type !== "toolCall" || typeof typedBlock.name !== "string") {
-      continue;
-    }
-    const trimmed = typedBlock.name.trim();
-    if (trimmed !== typedBlock.name) {
-      typedBlock.name = trimmed;
-    }
-  }
-}
-
-function wrapStreamTrimToolCallNames(
-  stream: ReturnType<typeof streamSimple>,
-): ReturnType<typeof streamSimple> {
-  const originalResult = stream.result.bind(stream);
-  stream.result = async () => {
-    const message = await originalResult();
-    trimWhitespaceFromToolCallNamesInMessage(message);
-    return message;
-  };
-
-  const originalAsyncIterator = stream[Symbol.asyncIterator].bind(stream);
-  (stream as { [Symbol.asyncIterator]: typeof originalAsyncIterator })[Symbol.asyncIterator] =
-    function () {
-      const iterator = originalAsyncIterator();
-      return {
-        async next() {
-          const result = await iterator.next();
-          if (!result.done && result.value && typeof result.value === "object") {
-            const event = result.value as {
-              partial?: unknown;
-              message?: unknown;
-            };
-            trimWhitespaceFromToolCallNamesInMessage(event.partial);
-            trimWhitespaceFromToolCallNamesInMessage(event.message);
+    const msg = messages[msgIndex];
+    if (msg && msg.role === "user") {
+      // Convert string content to array format if needed
+      if (typeof msg.content === "string") {
+        msg.content = [{ type: "text", text: msg.content }];
+        didMutate = true;
+      }
+      if (Array.isArray(msg.content)) {
+        // Check for existing image content to avoid duplicates across turns
+        const existingImageData = new Set(
+          msg.content
+            .filter(
+              (c): c is ImageContent =>
+                c != null &&
+                typeof c === "object" &&
+                c.type === "image" &&
+                typeof c.data === "string",
+            )
+            .map((c) => c.data),
+        );
+        for (const img of images) {
+          // Only add if this image isn't already in the message
+          if (!existingImageData.has(img.data)) {
+            msg.content.push(img);
+            didMutate = true;
           }
-          return result;
-        },
-        async return(value?: unknown) {
-          return iterator.return?.(value) ?? { done: true as const, value: undefined };
-        },
-        async throw(error?: unknown) {
-          return iterator.throw?.(error) ?? { done: true as const, value: undefined };
-        },
-      };
-    };
-
-  return stream;
-}
-
-export function wrapStreamFnTrimToolCallNames(baseFn: StreamFn): StreamFn {
-  return (model, context, options) => {
-    const maybeStream = baseFn(model, context, options);
-    if (maybeStream && typeof maybeStream === "object" && "then" in maybeStream) {
-      return Promise.resolve(maybeStream).then((stream) => wrapStreamTrimToolCallNames(stream));
+        }
+      }
     }
-    return wrapStreamTrimToolCallNames(maybeStream);
-  };
+  }
+
+  return didMutate;
 }
 
 export async function resolvePromptBuildHookResult(params: {
+  runId?: string;
   prompt: string;
   messages: unknown[];
   hookCtx: PluginHookAgentContext;
@@ -210,6 +189,7 @@ export async function resolvePromptBuildHookResult(params: {
     ? await params.hookRunner
         .runBeforePromptBuild(
           {
+            runId: params.runId,
             prompt: params.prompt,
             messages: params.messages,
           },
@@ -568,7 +548,6 @@ export async function runEmbeddedAttempt(
       workspaceNotes,
       reactionGuidance,
       promptMode,
-      acpEnabled: params.config?.acp?.enabled !== false,
       runtimeInfo,
       messageToolHints,
       sandboxInfo,
@@ -579,6 +558,7 @@ export async function runEmbeddedAttempt(
       userTimeFormat,
       contextFiles,
       memoryCitationsMode: params.config?.memory?.citations,
+      pluginSections: params.pluginSections,
     });
     const systemPromptReport = buildSystemPromptReport({
       source: "run",
@@ -650,9 +630,9 @@ export async function runEmbeddedAttempt(
         cwd: effectiveWorkspace,
       });
 
-      const settingsManager = createPreparedEmbeddedPiSettingsManager({
-        cwd: effectiveWorkspace,
-        agentDir,
+      const settingsManager = SettingsManager.create(effectiveWorkspace, agentDir);
+      applyPiCompactionSettingsFromConfig({
+        settingsManager,
         cfg: params.config,
       });
 
@@ -684,6 +664,11 @@ export async function runEmbeddedAttempt(
       const { builtInTools, customTools } = splitSdkTools({
         tools,
         sandboxEnabled: !!sandbox?.enabled,
+        hookContext: {
+          agentId: sessionAgentId,
+          sessionKey: params.sessionKey,
+          runId: params.runId,
+        },
       });
 
       // Add client tools (OpenResponses hosted tools) to customTools
@@ -701,6 +686,7 @@ export async function runEmbeddedAttempt(
             {
               agentId: sessionAgentId,
               sessionKey: params.sessionKey,
+              runId: params.runId,
               loopDetection: clientToolLoopDetection,
             },
           )
@@ -841,11 +827,6 @@ export async function runEmbeddedAttempt(
         };
       }
 
-      // Some models emit tool names with surrounding whitespace (e.g. " read ").
-      // pi-agent-core dispatches tool calls with exact string matching, so normalize
-      // names on the live response stream before tool execution.
-      activeSession.agent.streamFn = wrapStreamFnTrimToolCallNames(activeSession.agent.streamFn);
-
       if (anthropicPayloadLogger) {
         activeSession.agent.streamFn = anthropicPayloadLogger.wrapStreamFn(
           activeSession.agent.streamFn,
@@ -949,6 +930,7 @@ export async function runEmbeddedAttempt(
       const subscription = subscribeEmbeddedPiSession({
         session: activeSession,
         runId: params.runId,
+        lineageId: params.lineageId,
         hookRunner: getGlobalHookRunner() ?? undefined,
         verboseLevel: params.verboseLevel,
         reasoningMode: params.reasoningLevel ?? "off",
@@ -1071,10 +1053,12 @@ export async function runEmbeddedAttempt(
           agentId: hookAgentId,
           sessionKey: params.sessionKey,
           sessionId: params.sessionId,
+          runId: params.runId,
           workspaceDir: params.workspaceDir,
           messageProvider: params.messageProvider ?? undefined,
         };
         const hookResult = await resolvePromptBuildHookResult({
+          runId: params.runId,
           prompt: params.prompt,
           messages: activeSession.messages,
           hookCtx,
@@ -1091,9 +1075,12 @@ export async function runEmbeddedAttempt(
           const legacySystemPrompt =
             typeof hookResult?.systemPrompt === "string" ? hookResult.systemPrompt.trim() : "";
           if (legacySystemPrompt) {
-            applySystemPromptOverrideToSession(activeSession, legacySystemPrompt);
-            systemPromptText = legacySystemPrompt;
-            log.debug(`hooks: applied systemPrompt override (${legacySystemPrompt.length} chars)`);
+            const mergedSystemPrompt = [systemPromptText.trim(), legacySystemPrompt]
+              .filter((part) => part.length > 0)
+              .join("\n\n");
+            applySystemPromptOverrideToSession(activeSession, mergedSystemPrompt);
+            systemPromptText = mergedSystemPrompt;
+            log.debug(`hooks: appended systemPrompt content (${legacySystemPrompt.length} chars)`);
           }
         }
 
@@ -1120,20 +1107,16 @@ export async function runEmbeddedAttempt(
         }
 
         try {
-          // Idempotent cleanup for legacy sessions with persisted image payloads.
-          // Called each run; only mutates already-answered user turns that still carry image blocks.
-          const didPruneImages = pruneProcessedHistoryImages(activeSession.messages);
-          if (didPruneImages) {
-            activeSession.agent.replaceMessages(activeSession.messages);
-          }
-
           // Detect and load images referenced in the prompt for vision-capable models.
-          // Images are prompt-local only (pi-like behavior).
+          // This eliminates the need for an explicit "view" tool call by injecting
+          // images directly into the prompt when the model supports it.
+          // Also scans conversation history to enable follow-up questions about earlier images.
           const imageResult = await detectAndLoadPromptImages({
             prompt: effectivePrompt,
             workspaceDir: effectiveWorkspace,
             model: params.model,
             existingImages: params.images,
+            historyMessages: activeSession.messages,
             maxBytes: MAX_IMAGE_BYTES,
             maxDimensionPx: resolveImageSanitizationLimits(params.config).maxDimensionPx,
             workspaceOnly: effectiveFsWorkspaceOnly,
@@ -1144,10 +1127,21 @@ export async function runEmbeddedAttempt(
                 : undefined,
           });
 
+          // Inject history images into their original message positions.
+          // This ensures the model sees images in context (e.g., "compare to the first image").
+          const didMutate = injectHistoryImagesIntoMessages(
+            activeSession.messages,
+            imageResult.historyImagesByIndex,
+          );
+          if (didMutate) {
+            // Persist message mutations (e.g., injected history images) so we don't re-scan/reload.
+            activeSession.agent.replaceMessages(activeSession.messages);
+          }
+
           cacheTrace?.recordStage("prompt:images", {
             prompt: effectivePrompt,
             messages: activeSession.messages,
-            note: `images: prompt=${imageResult.images.length}`,
+            note: `images: prompt=${imageResult.images.length} history=${imageResult.historyImagesByIndex.size}`,
           });
 
           // Diagnostic: log context sizes before prompt to help debug early overflow errors.
@@ -1164,6 +1158,7 @@ export async function runEmbeddedAttempt(
                 `historyImageBlocks=${sessionSummary.totalImageBlocks} ` +
                 `systemPromptChars=${systemLen} promptChars=${promptLen} ` +
                 `promptImages=${imageResult.images.length} ` +
+                `historyImageMessages=${imageResult.historyImagesByIndex.size} ` +
                 `provider=${params.provider}/${params.modelId} sessionFile=${params.sessionFile}`,
             );
           }
@@ -1180,6 +1175,7 @@ export async function runEmbeddedAttempt(
                   prompt: effectivePrompt,
                   historyMessages: activeSession.messages,
                   imagesCount: imageResult.images.length,
+                  routingMetadata: params.routingMetadata,
                 },
                 {
                   agentId: hookAgentId,
@@ -1238,15 +1234,13 @@ export async function runEmbeddedAttempt(
           }
         }
 
-        const compactionOccurredThisAttempt = getCompactionCount() > 0;
-
         // Append cache-TTL timestamp AFTER prompt + compaction retry completes.
         // Previously this was before the prompt, which caused a custom entry to be
         // inserted between compaction and the next prompt — breaking the
         // prepareCompaction() guard that checks the last entry type, leading to
         // double-compaction. See: https://github.com/openclaw/openclaw/issues/9282
         // Skip when timed out during compaction — session state may be inconsistent.
-        if (!timedOutDuringCompaction && !compactionOccurredThisAttempt) {
+        if (!timedOutDuringCompaction) {
           const shouldTrackCacheTtl =
             params.config?.agents?.defaults?.contextPruning?.mode === "cache-ttl" &&
             isCacheTtlEligibleProvider(params.provider, params.modelId);
@@ -1278,7 +1272,7 @@ export async function runEmbeddedAttempt(
         messagesSnapshot = snapshotSelection.messagesSnapshot;
         sessionIdUsed = snapshotSelection.sessionIdUsed;
 
-        if (promptError && promptErrorSource === "prompt" && !compactionOccurredThisAttempt) {
+        if (promptError && promptErrorSource === "prompt") {
           try {
             sessionManager.appendCustomEntry("openclaw:prompt-error", {
               timestamp: Date.now(),
@@ -1304,29 +1298,71 @@ export async function runEmbeddedAttempt(
         });
         anthropicPayloadLogger?.recordUsage(messagesSnapshot, promptError);
 
-        // Run agent_end hooks to allow plugins to analyze the conversation
-        // This is fire-and-forget, so we don't await
-        // Run even on compaction timeout so plugins can log/cleanup
+        // Run agent_end hooks to allow plugins to analyze the conversation.
+        // For root-agent non-ok outcomes, awaited (up to ROOT_AGENT_ERROR_HOOK_TIMEOUT_MS)
+        // so cleanup plugins (mail, task state) can act before the run returns.
+        // Subagent runs and success paths remain fire-and-forget.
         if (hookRunner?.hasHooks("agent_end")) {
-          hookRunner
-            .runAgentEnd(
-              {
-                messages: messagesSnapshot,
-                success: !aborted && !promptError,
-                error: promptError ? describeUnknownError(promptError) : undefined,
-                durationMs: Date.now() - promptStartedAt,
-              },
-              {
-                agentId: hookAgentId,
-                sessionKey: params.sessionKey,
-                sessionId: params.sessionId,
-                workspaceDir: params.workspaceDir,
-                messageProvider: params.messageProvider ?? undefined,
-              },
-            )
-            .catch((err) => {
-              log.warn(`agent_end hook failed: ${err}`);
+          // Note: timedOutDuringCompaction also maps to "timeout" — documented gap.
+          const outcome: "ok" | "error" | "timeout" | "killed" = timedOut
+            ? "timeout"
+            : aborted
+              ? "killed"
+              : promptError
+                ? "error"
+                : "ok";
+
+          const isRootAgent = !params.spawnedBy;
+
+          const agentEndEvent = {
+            runId: params.runId,
+            messages: messagesSnapshot,
+            success: !aborted && !promptError,
+            error: promptError ? describeUnknownError(promptError) : undefined,
+            durationMs: Date.now() - promptStartedAt,
+            outcome,
+          };
+          const agentEndCtx = {
+            agentId: hookAgentId,
+            sessionKey: params.sessionKey,
+            sessionId: params.sessionId,
+            runId: params.runId,
+            workspaceDir: params.workspaceDir,
+            messageProvider: params.messageProvider ?? undefined,
+            isSubagent: !isRootAgent,
+          };
+
+          if (isRootAgent && outcome !== "ok") {
+            // Awaited for root-agent error paths so cleanup plugins can act before the run returns.
+            // Wrapped in runInCleanupHookScope to block subagent spawning during cleanup.
+            const ROOT_AGENT_ERROR_HOOK_TIMEOUT_MS = 5_000;
+            let didTimeout = false;
+            const timeoutPromise = new Promise<void>((resolve) => {
+              setTimeout(() => {
+                didTimeout = true;
+                resolve();
+              }, ROOT_AGENT_ERROR_HOOK_TIMEOUT_MS);
             });
+            await Promise.race([
+              runInCleanupHookScope(() =>
+                hookRunner.runAgentEnd(agentEndEvent, agentEndCtx).catch((err) => {
+                  log.error(`agent_end cleanup hook failed: ${String(err)}`);
+                }),
+              ),
+              timeoutPromise,
+            ]);
+            if (didTimeout) {
+              log.warn(
+                `agent_end cleanup hooks timed out after ${ROOT_AGENT_ERROR_HOOK_TIMEOUT_MS}ms` +
+                  ` (runId=${params.runId} outcome=${outcome})`,
+              );
+            }
+          } else {
+            // Fire-and-forget for success paths and subagents (subagents use subagent_ended).
+            hookRunner.runAgentEnd(agentEndEvent, agentEndCtx).catch((err) => {
+              log.warn(`agent_end hook failed: ${String(err)}`);
+            });
+          }
         }
       } finally {
         clearTimeout(abortTimer);
@@ -1375,6 +1411,14 @@ export async function runEmbeddedAttempt(
               assistantTexts,
               lastAssistant,
               usage: getUsageTotals(),
+              routingMetadata: params.routingMetadata,
+              inputTokens: getUsageTotals()?.input,
+              outputTokens: getUsageTotals()?.output,
+              totalTokens: getUsageTotals()?.total,
+              // estimatedCostUsd is not available from upstream pi-ai types.
+              // Plugins can compute cost from inputTokens/outputTokens + model pricing
+              // via the llm_output hook.
+              estimatedCostUsd: undefined,
             },
             {
               agentId: hookAgentId,

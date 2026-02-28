@@ -62,56 +62,6 @@ function describeToolExecutionError(err: unknown): {
   return { message: String(err) };
 }
 
-function stringifyToolPayload(payload: unknown): string {
-  if (typeof payload === "string") {
-    return payload;
-  }
-  try {
-    const encoded = JSON.stringify(payload, null, 2);
-    if (typeof encoded === "string") {
-      return encoded;
-    }
-  } catch {
-    // Fall through to String(payload) for non-serializable values.
-  }
-  return String(payload);
-}
-
-function normalizeToolExecutionResult(params: {
-  toolName: string;
-  result: unknown;
-}): AgentToolResult<unknown> {
-  const { toolName, result } = params;
-  if (result && typeof result === "object") {
-    const record = result as Record<string, unknown>;
-    if (Array.isArray(record.content)) {
-      return result as AgentToolResult<unknown>;
-    }
-    logDebug(`tools: ${toolName} returned non-standard result (missing content[]); coercing`);
-    const details = "details" in record ? record.details : record;
-    const safeDetails = details ?? { status: "ok", tool: toolName };
-    return {
-      content: [
-        {
-          type: "text",
-          text: stringifyToolPayload(safeDetails),
-        },
-      ],
-      details: safeDetails,
-    };
-  }
-  const safeDetails = result ?? { status: "ok", tool: toolName };
-  return {
-    content: [
-      {
-        type: "text",
-        text: stringifyToolPayload(safeDetails),
-      },
-    ],
-    details: safeDetails,
-  };
-}
-
 function splitToolExecuteArgs(args: ToolExecuteArgsAny): {
   toolCallId: string;
   params: unknown;
@@ -136,7 +86,10 @@ function splitToolExecuteArgs(args: ToolExecuteArgsAny): {
   };
 }
 
-export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
+export function toToolDefinitions(
+  tools: AnyAgentTool[],
+  hookContext?: HookContext,
+): ToolDefinition[] {
   return tools.map((tool) => {
     const name = tool.name || "tool";
     const normalizedName = normalizeToolName(name);
@@ -155,33 +108,42 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
               toolName: name,
               params,
               toolCallId,
+              ctx: hookContext,
             });
             if (hookOutcome.blocked) {
               throw new Error(hookOutcome.reason);
             }
             executeParams = hookOutcome.params;
           }
-          const rawResult = await tool.execute(toolCallId, executeParams, signal, onUpdate);
-          const result = normalizeToolExecutionResult({
-            toolName: normalizedName,
-            result: rawResult,
-          });
+          const result = await tool.execute(toolCallId, executeParams, signal, onUpdate);
           const afterParams = beforeHookWrapped
             ? (consumeAdjustedParamsForToolCall(toolCallId) ?? executeParams)
             : executeParams;
 
-          // Call after_tool_call hook
+          // Call after_tool_call hook — may return a resultOverride to rewrite the result.
           const hookRunner = getGlobalHookRunner();
+          let finalResult = result;
           if (hookRunner?.hasHooks("after_tool_call")) {
             try {
-              await hookRunner.runAfterToolCall(
+              const afterHookResult = await hookRunner.runAfterToolCall(
                 {
                   toolName: name,
                   params: isPlainObject(afterParams) ? afterParams : {},
                   result,
                 },
-                { toolName: name },
+                {
+                  toolName: name,
+                  agentId: hookContext?.agentId,
+                  sessionKey: hookContext?.sessionKey,
+                  runId: hookContext?.runId,
+                },
               );
+              if (afterHookResult?.resultOverride !== undefined) {
+                finalResult = {
+                  content: [{ type: "text", text: afterHookResult.resultOverride }],
+                  details: afterHookResult.resultOverride,
+                };
+              }
             } catch (hookErr) {
               logDebug(
                 `after_tool_call hook failed: tool=${normalizedName} error=${String(hookErr)}`,
@@ -189,7 +151,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             }
           }
 
-          return result;
+          return finalResult;
         } catch (err) {
           if (signal?.aborted) {
             throw err;
@@ -216,18 +178,30 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             error: described.message,
           });
 
-          // Call after_tool_call hook for errors too
-          const hookRunner = getGlobalHookRunner();
-          if (hookRunner?.hasHooks("after_tool_call")) {
+          // Call after_tool_call hook for errors too — may rewrite the error result.
+          const hookRunnerErr = getGlobalHookRunner();
+          let finalErrorResult = errorResult;
+          if (hookRunnerErr?.hasHooks("after_tool_call")) {
             try {
-              await hookRunner.runAfterToolCall(
+              const afterHookErrResult = await hookRunnerErr.runAfterToolCall(
                 {
                   toolName: normalizedName,
                   params: isPlainObject(params) ? params : {},
                   error: described.message,
                 },
-                { toolName: normalizedName },
+                {
+                  toolName: normalizedName,
+                  agentId: hookContext?.agentId,
+                  sessionKey: hookContext?.sessionKey,
+                  runId: hookContext?.runId,
+                },
               );
+              if (afterHookErrResult?.resultOverride !== undefined) {
+                finalErrorResult = {
+                  content: [{ type: "text", text: afterHookErrResult.resultOverride }],
+                  details: afterHookErrResult.resultOverride,
+                };
+              }
             } catch (hookErr) {
               logDebug(
                 `after_tool_call hook failed: tool=${normalizedName} error=${String(hookErr)}`,
@@ -235,7 +209,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             }
           }
 
-          return errorResult;
+          return finalErrorResult;
         }
       },
     } satisfies ToolDefinition;
