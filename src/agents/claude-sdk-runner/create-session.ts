@@ -320,6 +320,21 @@ export async function createClaudeSdkSession(
     if (thread) {
       parts.push("\n### Thread Context", "```json", JSON.stringify(thread, null, 2), "```");
     }
+    parts.push(
+      "\n### Channel Tools",
+      "You have two tools for progressive context discovery:",
+      "",
+      "- **channel.context** — keyword/intent search across channel messages. Use it when you need broader context, want to understand the history behind a reference, or are unsure whether you have enough information to answer confidently.",
+      "- **channel.messages** — fetch a specific thread or set of messages by ID. Use it when a message in the snapshot references a thread you want to read in full.",
+      "",
+      "**When to reach for these tools:**",
+      "- You see a reference (e.g. 'the rollout', 'that PR', 'last week's incident') but lack enough context to answer accurately → use channel.context.",
+      "- You are asked about a thread and only have the root message → use channel.messages with the thread_id.",
+      "- Your conversation history has been compacted and you sense you are missing relevant prior context → use channel.context to reconstruct it rather than guessing.",
+      "- You are uncertain about a fact that plausibly exists in recent channel history → prefer a quick channel.context lookup over a hedged non-answer.",
+      "",
+      "Prefer a confident, grounded answer backed by a tool call over a vague reply that forces the user to repeat themselves.",
+    );
     systemPrompt = params.systemPrompt + parts.join("\n");
   }
 

@@ -1458,6 +1458,11 @@ describe("session lifecycle — structured context injection", () => {
     expect(systemPrompt).toContain("Channel Context");
     expect(systemPrompt).toContain('"schema_version"');
     expect(systemPrompt).toContain('"channel"');
+    // Tool discovery guidance is always present alongside context blocks
+    expect(systemPrompt).toContain("Channel Tools");
+    expect(systemPrompt).toContain("channel.context");
+    expect(systemPrompt).toContain("channel.messages");
+    expect(systemPrompt).toContain("compacted");
   });
 
   it("does NOT modify system prompt when structuredContextInput is absent", async () => {
