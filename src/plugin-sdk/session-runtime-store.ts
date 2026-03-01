@@ -359,6 +359,14 @@ export class SessionRuntimeStore<T, TRunState = void> {
     }
   }
 
+  /**
+   * Flush all dirty entries immediately without stopping the periodic timer.
+   * Use this for a manual checkpoint while the store continues running.
+   */
+  async flushAll(): Promise<void> {
+    await this.flushDirty();
+  }
+
   /** Flush all dirty entries and stop the periodic timer. */
   async close(): Promise<void> {
     this.closed = true;
@@ -770,4 +778,62 @@ export function wireSessionHooks<T, TRunState = void>(
       }
     });
   }
+}
+
+/**
+ * Wire session lifecycle hooks (`session_start` and `session_end`) to a
+ * SessionRuntimeStore.
+ *
+ * - `session_start` with `resumedFrom`: eagerly loads (pre-warms) the session
+ *   entry from disk so it is ready before the first run starts.
+ * - `session_start` without `resumedFrom`: no-op (state will be created lazily
+ *   on first `update()` / `getOrCreate()` call).
+ * - `session_end`: flushes the session state to disk.
+ *
+ * Unlike `wireSessionHooks`, this function does NOT wire `run_start` or
+ * `agent_end`, and does NOT eagerly create new entries on `session_start`.
+ *
+ * @param api - The plugin API from `register()` or `activate()`.
+ * @param store - The SessionRuntimeStore to wire.
+ * @param opts - Optional callbacks.
+ */
+export function wireSessionLifecycleHooks<T, TRunState = void>(
+  api: {
+    on: (
+      hookName: string,
+      handler: (...args: unknown[]) => void,
+      opts?: { priority?: number },
+    ) => void;
+  },
+  store: SessionRuntimeStore<T, TRunState>,
+  opts?: {
+    onSessionStart?: (sessionId: string, state: T) => void;
+    onSessionEnd?: (sessionId: string, state: T | undefined) => void;
+  },
+): void {
+  api.on("session_start", (...args: unknown[]) => {
+    const event = (args[0] ?? {}) as Record<string, unknown>;
+    const sessionId = event.sessionId as string | undefined;
+    if (!sessionId) {
+      return;
+    }
+    // Only pre-warm when resuming — avoids eagerly creating new session entries.
+    const resumedFrom = event.resumedFrom as string | undefined;
+    if (resumedFrom) {
+      // getOrCreate pre-warms from disk if the entry was evicted or never loaded.
+      const state = store.getOrCreate(sessionId);
+      opts?.onSessionStart?.(sessionId, state);
+    }
+  });
+
+  api.on("session_end", (...args: unknown[]) => {
+    const event = (args[0] ?? {}) as Record<string, unknown>;
+    const sessionId = event.sessionId as string | undefined;
+    if (!sessionId) {
+      return;
+    }
+    const state = store.get(sessionId);
+    opts?.onSessionEnd?.(sessionId, state);
+    void store.flush(sessionId);
+  });
 }

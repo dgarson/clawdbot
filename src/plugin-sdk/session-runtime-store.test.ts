@@ -7,6 +7,7 @@ import {
   createSessionRuntimeStore,
   SessionRuntimeStore,
   wireSessionHooks,
+  wireSessionLifecycleHooks,
 } from "./session-runtime-store.js";
 
 function makeTempDir(): string {
@@ -824,6 +825,188 @@ describe("SessionRuntimeStore debounce flush strategy", () => {
     const raw = fs.readFileSync(path.join(sessionsDir, filesAfter[0]), "utf-8");
     const envelope = JSON.parse(raw);
     expect(envelope.state.count).toBe(99);
+
+    await store.close();
+    cleanup(dir);
+  });
+});
+
+describe("SessionRuntimeStore flushAll", () => {
+  it("flushAll writes all dirty entries without stopping the timer", async () => {
+    const dir = makeTempDir();
+    const store = createSessionRuntimeStore<{ n: number }>({
+      stateDir: dir,
+      create: () => ({ n: 0 }),
+      flushIntervalMs: 60_000, // long interval — won't auto-flush
+    });
+
+    store.update("a", (s) => {
+      s.n = 1;
+    });
+    store.update("b", (s) => {
+      s.n = 2;
+    });
+    await store.flushAll();
+
+    // Both files written
+    const store2 = createSessionRuntimeStore<{ n: number }>({
+      stateDir: dir,
+      create: () => ({ n: 0 }),
+    });
+    expect(store2.get("a")?.n).toBe(1);
+    expect(store2.get("b")?.n).toBe(2);
+
+    // Store still functional (timer not stopped)
+    store.update("a", (s) => {
+      s.n = 99;
+    });
+    expect(store.get("a")?.n).toBe(99);
+
+    await store.close();
+    await store2.close();
+    cleanup(dir);
+  });
+});
+
+describe("wireSessionLifecycleHooks", () => {
+  it("session_start with resumedFrom calls onSessionStart callback", async () => {
+    const dir = makeTempDir();
+    const store1 = createSessionRuntimeStore<{ val: number }>({
+      stateDir: dir,
+      create: () => ({ val: 0 }),
+      flushIntervalMs: 0,
+    });
+    store1.update("sess1", (s) => {
+      s.val = 42;
+    });
+    await store1.close();
+
+    const store2 = createSessionRuntimeStore<{ val: number }>({
+      stateDir: dir,
+      create: () => ({ val: 0 }),
+      flushIntervalMs: 0,
+    });
+    const started: string[] = [];
+    const handlers: Record<string, (...args: unknown[]) => void> = {};
+    wireSessionLifecycleHooks(
+      {
+        on: (name: string, h: (...args: unknown[]) => void) => {
+          handlers[name] = h;
+        },
+      },
+      store2,
+      { onSessionStart: (id) => started.push(id) },
+    );
+
+    // Trigger session_start with resumedFrom — callback should fire
+    handlers["session_start"]?.({ sessionId: "sess1", resumedFrom: "prev-session-id" }, {});
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(started).toContain("sess1");
+    expect(store2.get("sess1")?.val).toBe(42);
+
+    await store2.close();
+    cleanup(dir);
+  });
+
+  it("session_start without resumedFrom does not eagerly create new entries", async () => {
+    const dir = makeTempDir();
+    // Use a fresh dir with no existing state — nothing to recover on construction
+    const store2 = createSessionRuntimeStore<{ val: number }>({
+      stateDir: dir,
+      create: () => ({ val: 0 }),
+      flushIntervalMs: 0,
+    });
+    const handlers: Record<string, (...args: unknown[]) => void> = {};
+    wireSessionLifecycleHooks(
+      {
+        on: (name: string, h: (...args: unknown[]) => void) => {
+          handlers[name] = h;
+        },
+      },
+      store2,
+    );
+
+    // Trigger session_start WITHOUT resumedFrom — hook should not create an entry
+    handlers["session_start"]?.({ sessionId: "new-session" }, {});
+    await new Promise((r) => setTimeout(r, 10));
+
+    // The hook must NOT have called getOrCreate — entry should not exist in memory
+    expect(store2.size()).toBe(0);
+    expect(store2.get("new-session")).toBeUndefined();
+
+    await store2.close();
+    cleanup(dir);
+  });
+
+  it("session_end flushes the session to disk", async () => {
+    const dir = makeTempDir();
+    const store = createSessionRuntimeStore<{ val: number }>({
+      stateDir: dir,
+      create: () => ({ val: 0 }),
+      flushIntervalMs: 60_000, // long interval — won't auto-flush
+    });
+    const handlers: Record<string, (...args: unknown[]) => void> = {};
+    wireSessionLifecycleHooks(
+      {
+        on: (name: string, h: (...args: unknown[]) => void) => {
+          handlers[name] = h;
+        },
+      },
+      store,
+    );
+
+    store.update("sess1", (s) => {
+      s.val = 77;
+    });
+    handlers["session_end"]?.({ sessionId: "sess1" }, {});
+    await new Promise((r) => setTimeout(r, 20));
+
+    // Verify it flushed to disk
+    const store2 = createSessionRuntimeStore<{ val: number }>({
+      stateDir: dir,
+      create: () => ({ val: 0 }),
+      flushIntervalMs: 0,
+    });
+    expect(store2.get("sess1")?.val).toBe(77);
+
+    await store.close();
+    await store2.close();
+    cleanup(dir);
+  });
+
+  it("onSessionStart and onSessionEnd callbacks are called", async () => {
+    const dir = makeTempDir();
+    const store = createSessionRuntimeStore<{ val: number }>({
+      stateDir: dir,
+      create: () => ({ val: 0 }),
+      flushIntervalMs: 0,
+    });
+    const started: string[] = [];
+    const ended: string[] = [];
+    const handlers: Record<string, (...args: unknown[]) => void> = {};
+    wireSessionLifecycleHooks(
+      {
+        on: (name: string, h: (...args: unknown[]) => void) => {
+          handlers[name] = h;
+        },
+      },
+      store,
+      {
+        onSessionStart: (id) => started.push(id),
+        onSessionEnd: (id) => ended.push(id),
+      },
+    );
+
+    store.update("sess1", (s) => {
+      s.val = 1;
+    });
+    handlers["session_start"]?.({ sessionId: "sess1", resumedFrom: "prev" }, {});
+    handlers["session_end"]?.({ sessionId: "sess1" }, {});
+    await new Promise((r) => setTimeout(r, 20));
+
+    expect(started).toContain("sess1");
+    expect(ended).toContain("sess1");
 
     await store.close();
     cleanup(dir);
