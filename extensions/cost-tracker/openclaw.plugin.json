@@ -1,0 +1,5 @@
+{
+  "id": "cost-tracker",
+  "name": "Cost Tracker",
+  "description": "Tracks LLM and extension usage costs per session and run."
+}
