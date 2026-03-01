@@ -7,6 +7,7 @@ import type { ToolDefinition } from "@mariozechner/pi-coding-agent";
 import { logDebug, logError } from "../logger.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { isPlainObject } from "../utils.js";
+import { runWithAgentCallContext } from "./call-context.js";
 import type { ClientToolDefinition } from "./pi-embedded-runner/run/params.js";
 import type { HookContext } from "./pi-tools.before-tool-call.js";
 import {
@@ -136,7 +137,17 @@ function splitToolExecuteArgs(args: ToolExecuteArgsAny): {
   };
 }
 
-export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
+export type ToolExecutionContext = {
+  sessionId?: string;
+  sessionKey?: string;
+  agentId?: string;
+  runId?: string;
+};
+
+export function toToolDefinitions(
+  tools: AnyAgentTool[],
+  ctx?: ToolExecutionContext,
+): ToolDefinition[] {
   return tools.map((tool) => {
     const name = tool.name || "tool";
     const normalizedName = normalizeToolName(name);
@@ -161,7 +172,9 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
             }
             executeParams = hookOutcome.params;
           }
-          const rawResult = await tool.execute(toolCallId, executeParams, signal, onUpdate);
+          const rawResult = await runWithAgentCallContext({ ...ctx, toolCallId }, () =>
+            tool.execute(toolCallId, executeParams, signal, onUpdate),
+          );
           const result = normalizeToolExecutionResult({
             toolName: normalizedName,
             result: rawResult,

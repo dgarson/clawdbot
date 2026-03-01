@@ -782,6 +782,12 @@ export async function runEmbeddedAttempt(
       const { builtInTools, customTools } = splitSdkTools({
         tools,
         sandboxEnabled: !!sandbox?.enabled,
+        ctx: {
+          sessionId: params.sessionId,
+          sessionKey: params.sessionKey,
+          agentId: sessionAgentId,
+          runId: params.runId,
+        },
       });
 
       // Add client tools (OpenResponses hosted tools) to customTools
@@ -1182,7 +1188,6 @@ export async function runEmbeddedAttempt(
       let promptErrorSource: "prompt" | "compaction" | null = null;
       const promptStartedAt = Date.now();
       try {
-
         // Run before_prompt_build hooks to allow plugins to inject prompt context.
         // Legacy compatibility: before_agent_start is also checked for context fields.
         let effectivePrompt = params.prompt;
@@ -1452,14 +1457,15 @@ export async function runEmbeddedAttempt(
                     }
                   : undefined,
                 toolCallCount: toolMetas.length,
-                toolNames: [...new Set(toolMetas.map((t) => t.toolName).filter(Boolean))] as string[],
+                toolNames: [
+                  ...new Set(toolMetas.map((t) => t.toolName).filter(Boolean)),
+                ] as string[],
                 compactionCount: getCompactionCount(),
                 stopReason: (lastAssistantMsg as Record<string, unknown> | undefined)?.stopReason as
                   | string
                   | undefined,
-                lastAssistantMessage: assistantTexts.length > 0
-                  ? assistantTexts[assistantTexts.length - 1]
-                  : undefined,
+                lastAssistantMessage:
+                  assistantTexts.length > 0 ? assistantTexts[assistantTexts.length - 1] : undefined,
               },
               {
                 agentId: hookAgentId,
