@@ -358,13 +358,10 @@ async function completeSubagentRun(params: {
       },
     );
 
-    if (result.block) {
+    if (result?.block) {
       if (steerCount < 3) {
         entry.steerCount = steerCount + 1;
-        entry.outcome = {
-          status: "ok",
-          value: "steered",
-        };
+        entry.outcome = undefined;
         entry.suppressAnnounceReason = "steer-restart";
         persistSubagentRuns();
 
