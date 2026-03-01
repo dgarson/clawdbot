@@ -236,7 +236,12 @@ export { createLoggerBackedRuntime } from "./runtime.js";
 export { chunkTextForOutbound } from "./text-chunking.js";
 export { readJsonFileWithFallback, writeJsonFileAtomically } from "./json-store.js";
 export type { SessionRuntimeStoreOptions } from "./session-runtime-store.js";
-export { SessionRuntimeStore, createSessionRuntimeStore } from "./session-runtime-store.js";
+export {
+  SessionRuntimeStore,
+  appendBounded,
+  createSessionRuntimeStore,
+  wireSessionHooks,
+} from "./session-runtime-store.js";
 export type { SessionRelationship, RelatedSessions } from "./session-relationship-tracker.js";
 export {
   SessionRelationshipTracker,

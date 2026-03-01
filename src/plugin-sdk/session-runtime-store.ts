@@ -28,6 +28,8 @@ export type SessionRuntimeStoreOptions<T> = {
   create: () => T;
   /** Flush interval in ms. 0 = flush on every update. Default: 5000. */
   flushIntervalMs?: number;
+  /** Time-to-live in ms. Entries older than this are evicted during periodic flush. 0 = no TTL. Default: 0. */
+  ttlMs?: number;
   /** Called when an entry is evicted from memory (after file write). */
   onEvict?: (key: string, state: T) => void;
   /** Called on startup for each recovered entry. */
@@ -58,6 +60,7 @@ export class SessionRuntimeStore<T> {
   private readonly stateDir: string;
   private readonly sessionsDir: string;
   private readonly maxEntries: number;
+  private readonly ttlMs: number;
   private readonly createFn: () => T;
   private readonly onEvict?: (key: string, state: T) => void;
   private flushTimer: ReturnType<typeof setInterval> | null = null;
@@ -67,6 +70,7 @@ export class SessionRuntimeStore<T> {
     this.stateDir = options.stateDir;
     this.sessionsDir = path.join(options.stateDir, "sessions");
     this.maxEntries = options.maxEntries ?? 128;
+    this.ttlMs = options.ttlMs ?? 0;
     this.createFn = options.create;
     this.onEvict = options.onEvict;
 
@@ -89,8 +93,8 @@ export class SessionRuntimeStore<T> {
     }
   }
 
-  /** Get state for a key. Loads from disk if evicted, creates if new. */
-  get(key: string): T {
+  /** Get state for a key if it exists (in-memory or on disk). Returns undefined if not found. */
+  get(key: string): T | undefined {
     const existing = this.entries.get(key);
     if (existing) {
       // LRU touch: delete and re-insert to move to end of Map iteration order
@@ -106,7 +110,16 @@ export class SessionRuntimeStore<T> {
       return loaded.state;
     }
 
-    // Create new
+    return undefined;
+  }
+
+  /** Get state for a key. Loads from disk if evicted, creates if new. */
+  getOrCreate(key: string): T {
+    const existing = this.get(key);
+    if (existing !== undefined) {
+      return existing;
+    }
+
     const now = Date.now();
     const entry: Entry<T> = {
       key,
@@ -119,9 +132,22 @@ export class SessionRuntimeStore<T> {
     return entry.state;
   }
 
+  /** Check whether a key exists (in memory or on disk). */
+  has(key: string): boolean {
+    if (this.entries.has(key)) return true;
+    // Check disk without loading into memory
+    const filePath = this.filePathForKey(key);
+    try {
+      fs.accessSync(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /** Update state with a mutator. Marks the entry as dirty for next flush. */
   update(key: string, mutator: (state: T) => void): void {
-    const state = this.get(key);
+    const state = this.getOrCreate(key);
     mutator(state);
     const entry = this.entries.get(key);
     if (entry) {
@@ -194,6 +220,18 @@ export class SessionRuntimeStore<T> {
     return this.entries.size;
   }
 
+  /**
+   * Create an OpenClawPluginService that ties this store's lifecycle to the plugin.
+   * Registers start (no-op) and stop (flushes + closes) handlers.
+   */
+  toPluginService(id: string): { id: string; start: () => void; stop: () => Promise<void> } {
+    return {
+      id,
+      start: () => {},
+      stop: () => this.close(),
+    };
+  }
+
   // ---------------------------------------------------------------------------
   // Private
   // ---------------------------------------------------------------------------
@@ -259,10 +297,25 @@ export class SessionRuntimeStore<T> {
   }
 
   private async flushDirty(): Promise<void> {
+    const now = Date.now();
+    const toEvict: string[] = [];
+
     for (const entry of this.entries.values()) {
       if (entry.dirty) {
         this.writeToDisk(entry);
         entry.dirty = false;
+      }
+      // TTL eviction: mark stale entries for removal
+      if (this.ttlMs > 0 && now - entry.updatedAt > this.ttlMs) {
+        toEvict.push(entry.key);
+      }
+    }
+
+    for (const key of toEvict) {
+      const entry = this.entries.get(key);
+      if (entry) {
+        this.onEvict?.(entry.key, entry.state);
+        this.entries.delete(key);
       }
     }
   }
@@ -336,4 +389,62 @@ export function createSessionRuntimeStore<T>(
   options: SessionRuntimeStoreOptions<T>,
 ): SessionRuntimeStore<T> {
   return new SessionRuntimeStore(options);
+}
+
+// ---------------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------------
+
+/**
+ * Append an item to an array, evicting the oldest entry if the array exceeds
+ * `maxItems`. Mutates the array in place.
+ *
+ * Useful for bounded event logs, recent-tool lists, or any rolling window
+ * inside session state.
+ */
+export function appendBounded<TItem>(arr: TItem[], item: TItem, maxItems: number): void {
+  arr.push(item);
+  while (arr.length > maxItems) {
+    arr.shift();
+  }
+}
+
+/**
+ * Auto-wire common session lifecycle hooks to a SessionRuntimeStore.
+ *
+ * Registers `run_start` (creates session state) and `agent_end` (flushes)
+ * so plugin authors don't need boilerplate wiring.
+ *
+ * @param api - The plugin API from `register()` or `activate()`.
+ * @param store - The SessionRuntimeStore to wire.
+ * @param opts - Optional overrides.
+ * @param opts.onRunStart - Called when a run starts. Receives sessionKey and state.
+ * @param opts.onAgentEnd - Called when an agent ends. Receives sessionKey and state.
+ */
+export function wireSessionHooks<T>(
+  api: {
+    on: (hookName: string, handler: (...args: unknown[]) => void, opts?: { priority?: number }) => void;
+  },
+  store: SessionRuntimeStore<T>,
+  opts?: {
+    onRunStart?: (sessionKey: string, state: T) => void;
+    onAgentEnd?: (sessionKey: string, state: T) => void;
+  },
+): void {
+  api.on("run_start", (event: Record<string, unknown>) => {
+    const sessionKey = event.sessionKey as string | undefined;
+    if (!sessionKey) return;
+    const state = store.getOrCreate(sessionKey);
+    opts?.onRunStart?.(sessionKey, state);
+  });
+
+  api.on("agent_end", (event: Record<string, unknown>) => {
+    const sessionKey = event.sessionKey as string | undefined;
+    if (!sessionKey) return;
+    const state = store.get(sessionKey);
+    if (state !== undefined) {
+      opts?.onAgentEnd?.(sessionKey, state);
+      void store.flush(sessionKey);
+    }
+  });
 }

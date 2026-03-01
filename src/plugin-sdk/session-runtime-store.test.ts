@@ -2,7 +2,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createSessionRuntimeStore, SessionRuntimeStore } from "./session-runtime-store.js";
+import {
+  appendBounded,
+  createSessionRuntimeStore,
+  SessionRuntimeStore,
+  wireSessionHooks,
+} from "./session-runtime-store.js";
 
 function makeTempDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), "session-store-test-"));
@@ -25,13 +30,22 @@ describe("SessionRuntimeStore", () => {
     cleanup(dir);
   });
 
-  it("creates new state on first access", () => {
+  it("get returns undefined for unknown key", () => {
     store = createSessionRuntimeStore({
       stateDir: dir,
       create: () => ({ count: 0 }),
       flushIntervalMs: 0,
     });
-    const state = store.get("session-1");
+    expect(store.get("nonexistent")).toBeUndefined();
+  });
+
+  it("getOrCreate creates new state on first access", () => {
+    store = createSessionRuntimeStore({
+      stateDir: dir,
+      create: () => ({ count: 0 }),
+      flushIntervalMs: 0,
+    });
+    const state = store.getOrCreate("session-1");
     expect(state).toEqual({ count: 0 });
   });
 
@@ -41,10 +55,10 @@ describe("SessionRuntimeStore", () => {
       create: () => ({ count: 0 }),
       flushIntervalMs: 0,
     });
-    const s1 = store.get("session-1");
+    const s1 = store.getOrCreate("session-1");
     s1.count = 42;
     const s2 = store.get("session-1");
-    expect(s2.count).toBe(42);
+    expect(s2?.count).toBe(42);
   });
 
   it("tracks independent state per key", () => {
@@ -59,8 +73,8 @@ describe("SessionRuntimeStore", () => {
     store.update("b", (s) => {
       s.count = 2;
     });
-    expect(store.get("a").count).toBe(1);
-    expect(store.get("b").count).toBe(2);
+    expect(store.get("a")?.count).toBe(1);
+    expect(store.get("b")?.count).toBe(2);
   });
 
   it("update marks entry dirty and flush persists to disk", async () => {
@@ -106,7 +120,7 @@ describe("SessionRuntimeStore", () => {
       onRecover: (key) => recovered.push(key),
     });
 
-    expect(store.get("session-1").count).toBe(99);
+    expect(store.get("session-1")?.count).toBe(99);
     expect(recovered).toContain("session-1");
   });
 
@@ -141,7 +155,7 @@ describe("SessionRuntimeStore", () => {
     expect(evicted).toContain("a");
 
     // Evicted entry should still be loadable from disk
-    expect(store.get("a").count).toBe(1);
+    expect(store.get("a")?.count).toBe(1);
   });
 
   it("LRU touch: accessing a key moves it to end of eviction order", async () => {
@@ -195,8 +209,10 @@ describe("SessionRuntimeStore", () => {
     const files = fs.readdirSync(sessionsDir).filter((f) => f.endsWith(".json"));
     expect(files.length).toBe(0);
 
-    // get() should return fresh state
-    expect(store.get("session-1").count).toBe(0);
+    // get() should return undefined after delete
+    expect(store.get("session-1")).toBeUndefined();
+    // getOrCreate() should return fresh state
+    expect(store.getOrCreate("session-1").count).toBe(0);
   });
 
   it("keys() includes both in-memory and on-disk keys", async () => {
@@ -274,5 +290,171 @@ describe("SessionRuntimeStore", () => {
     const sessionsDir = path.join(dir, "sessions");
     const files = fs.readdirSync(sessionsDir).filter((f) => f.endsWith(".json"));
     expect(files.length).toBe(1);
+  });
+
+  it("has() checks existence without loading", () => {
+    store = createSessionRuntimeStore({
+      stateDir: dir,
+      create: () => ({ count: 0 }),
+      flushIntervalMs: 0,
+    });
+
+    expect(store.has("nope")).toBe(false);
+    store.getOrCreate("yes");
+    expect(store.has("yes")).toBe(true);
+  });
+
+  it("TTL eviction removes stale entries during flush", async () => {
+    const evicted: string[] = [];
+    store = createSessionRuntimeStore({
+      stateDir: dir,
+      create: () => ({ count: 0 }),
+      ttlMs: 50,
+      flushIntervalMs: 0,
+      onEvict: (key) => evicted.push(key),
+    });
+
+    store.update("stale", (s) => {
+      s.count = 1;
+    });
+
+    // Wait for the entry to become stale
+    await new Promise((r) => setTimeout(r, 80));
+
+    // Trigger flush (which also runs TTL eviction)
+    await store.close();
+
+    expect(evicted).toContain("stale");
+    expect(store.size()).toBe(0);
+  });
+
+  it("TTL eviction preserves recently-updated entries", async () => {
+    const evicted: string[] = [];
+    store = createSessionRuntimeStore({
+      stateDir: dir,
+      create: () => ({ count: 0 }),
+      ttlMs: 200,
+      flushIntervalMs: 0,
+      onEvict: (key) => evicted.push(key),
+    });
+
+    store.update("fresh", (s) => {
+      s.count = 1;
+    });
+
+    // Flush immediately — should not evict (entry is fresh)
+    await store.close();
+
+    expect(evicted).not.toContain("fresh");
+  });
+
+  it("toPluginService returns valid service", async () => {
+    store = createSessionRuntimeStore({
+      stateDir: dir,
+      create: () => ({ count: 0 }),
+      flushIntervalMs: 0,
+    });
+
+    const service = store.toPluginService("my-store");
+    expect(service.id).toBe("my-store");
+
+    // start is a no-op
+    service.start();
+
+    store.update("key", (s) => {
+      s.count = 42;
+    });
+
+    // stop flushes to disk
+    await service.stop();
+
+    // Verify flushed
+    const sessionsDir = path.join(dir, "sessions");
+    const files = fs.readdirSync(sessionsDir).filter((f) => f.endsWith(".json"));
+    expect(files.length).toBe(1);
+  });
+});
+
+describe("appendBounded", () => {
+  it("appends and evicts oldest when over max", () => {
+    const arr = [1, 2, 3];
+    appendBounded(arr, 4, 3);
+    expect(arr).toEqual([2, 3, 4]);
+  });
+
+  it("appends without eviction when under max", () => {
+    const arr = [1];
+    appendBounded(arr, 2, 5);
+    expect(arr).toEqual([1, 2]);
+  });
+
+  it("handles maxItems of 1", () => {
+    const arr: number[] = [];
+    appendBounded(arr, 10, 1);
+    expect(arr).toEqual([10]);
+    appendBounded(arr, 20, 1);
+    expect(arr).toEqual([20]);
+  });
+});
+
+describe("wireSessionHooks", () => {
+  it("wires run_start and agent_end to store", () => {
+    const handlers = new Map<string, (...args: unknown[]) => void>();
+    const mockApi = {
+      on: (hookName: string, handler: (...args: unknown[]) => void) => {
+        handlers.set(hookName, handler);
+      },
+    };
+
+    const dir = makeTempDir();
+    const store = createSessionRuntimeStore<{ initialized: boolean }>({
+      stateDir: dir,
+      create: () => ({ initialized: false }),
+      flushIntervalMs: 0,
+    });
+
+    const startCalls: string[] = [];
+    wireSessionHooks(mockApi, store, {
+      onRunStart: (key, state) => {
+        state.initialized = true;
+        startCalls.push(key);
+      },
+    });
+
+    expect(handlers.has("run_start")).toBe(true);
+    expect(handlers.has("agent_end")).toBe(true);
+
+    // Simulate run_start
+    handlers.get("run_start")!({ sessionKey: "sess-1" });
+    expect(startCalls).toEqual(["sess-1"]);
+    expect(store.get("sess-1")?.initialized).toBe(true);
+
+    store.close();
+    cleanup(dir);
+  });
+
+  it("skips events without sessionKey", () => {
+    const handlers = new Map<string, (...args: unknown[]) => void>();
+    const mockApi = {
+      on: (hookName: string, handler: (...args: unknown[]) => void) => {
+        handlers.set(hookName, handler);
+      },
+    };
+
+    const dir = makeTempDir();
+    const store = createSessionRuntimeStore<{ count: number }>({
+      stateDir: dir,
+      create: () => ({ count: 0 }),
+      flushIntervalMs: 0,
+    });
+
+    wireSessionHooks(mockApi, store);
+
+    // Should not throw
+    handlers.get("run_start")!({});
+    expect(store.size()).toBe(0);
+
+    store.close();
+    cleanup(dir);
   });
 });

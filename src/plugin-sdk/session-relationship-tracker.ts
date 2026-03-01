@@ -119,7 +119,7 @@ export class SessionRelationshipTracker {
    */
   collectRelatedStates<T>(
     sessionKey: string,
-    store: { get(key: string): T },
+    store: { get(key: string): T | undefined },
   ): Map<string, T> {
     const related = this.getRelated(sessionKey);
     const result = new Map<string, T>();
