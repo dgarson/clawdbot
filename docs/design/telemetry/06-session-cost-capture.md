@@ -274,3 +274,176 @@ const summary = ledger.summarize("session-key-123");
 2. Index cost entries in SQLite alongside existing events
 3. Add `telemetry costs` CLI command
 4. Add `/telemetry/costs` HTTP route
+
+---
+
+## Alignment with the Comprehensive Telemetry Proposal
+
+This section documents how the implementation aligns with the richer telemetry
+proposal described in `04-implementation-proposal.md` and the extended design
+work tracked separately.
+
+### `llm_api_call` Hook
+
+A new `"llm_api_call"` plugin hook fires for every completed LLM API call
+across all subsystems (agent runner, compaction, tool calls, extensions):
+
+```typescript
+type PluginHookLlmApiCallEvent = {
+  callId: string;
+  source: "agent" | "compaction" | "tool" | "extension";
+  purpose?: string;
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  toolCallId?: string;
+  parentSessionKey?: string;
+  parentRunId?: string;
+  agentId?: string;
+  provider?: string;
+  model?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  totalTokens?: number;
+  costUsd?: number;
+  durationMs?: number;
+};
+```
+
+This hook complements `llm_input`/`llm_output` by providing a single
+attribution point that bundles cost, token counts, and call provenance in
+one payload, making it the canonical hook for cost-tracker extensions.
+
+### `api.recordUsage()` and `api.emitLlmApiCall()`
+
+Two new methods on `OpenClawPluginApi` let plugins record cost/usage data
+without depending on internal diagnostic machinery:
+
+- **`recordUsage(entry: PluginUsageRecord)`** — submits a structured usage
+  record. Implementations emit a `usage.record` diagnostic event that
+  subscribers (telemetry plugins, cost dashboards) can consume.
+- **`emitLlmApiCall(entry)`** — lets extension code that makes its own LLM
+  calls fire the same `llm_api_call` hook as the core runtime, ensuring
+  unified cost tracking across first-party and third-party call paths.
+
+### `AgentCallContext` (AsyncLocalStorage)
+
+`src/agents/call-context.ts` provides an `AsyncLocalStorage`-backed context
+that propagates `runId`, `sessionId`, `agentId`, and `toolCallId` implicitly
+through the call stack:
+
+```typescript
+// Set context at the entry point of each run:
+runWithAgentCallContext({ runId, sessionId, agentId }, () => {
+  // Any function called here can retrieve context:
+  const ctx = getAgentCallContext();
+  // ctx.runId, ctx.sessionId, etc.
+});
+```
+
+This eliminates the need to thread context parameters through every function
+that might need to emit a cost entry, and is the foundation for zero-overhead
+attribution in TTS, embedding, and transcription call sites.
+
+### Enhanced `SessionRuntimeStore` with Per-Run State
+
+`SessionRuntimeStore<T, TRunState>` now supports an optional second type
+parameter for per-run sub-state:
+
+```typescript
+const store = createSessionRuntimeStore<SessionState, RunState>({
+  stateDir: path.join(ctx.stateDir, "cost-tracker"),
+  create: () => ({ totalCost: 0 }),
+  initialRun: () => ({ callCount: 0, tokens: 0 }),
+});
+
+// Accumulate per-run data:
+store.updateRun(sessionId, runId, (run) => {
+  run.callCount += 1;
+  run.tokens += inputTokens + outputTokens;
+});
+
+// Read all runs for a session:
+const runs = store.allRuns(sessionId);
+```
+
+Run sub-states are persisted in the session envelope and recovered on restart,
+so cost data survives gateway restarts and session resumes.
+
+### Flush Strategies
+
+`SessionRuntimeStoreOptions.flush` now accepts a `FlushStrategy` or array:
+
+| Strategy                           | Behaviour                                                            |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| `{ kind: "periodic", intervalMs }` | Flush all dirty entries on a fixed interval (default).               |
+| `{ kind: "debounce", delayMs }`    | Flush each entry `delayMs` after its last mutation.                  |
+| `{ kind: "on-hooks", hooks }`      | Flush when specified hook names fire (wired via `wireSessionHooks`). |
+| `{ kind: "manual" }`               | Caller is responsible for calling `store.flush(key)`.                |
+
+Multiple strategies can be combined by passing an array.
+
+### `DiagnosticUsageRecordEvent`
+
+A new `"usage.record"` diagnostic event carries the same fields as
+`PluginUsageRecord`, making it available to any `onDiagnosticEvent` subscriber:
+
+```typescript
+type DiagnosticUsageRecordEvent = DiagnosticBaseEvent & {
+  type: "usage.record";
+  kind: string;
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  llm?: { apiCallCount: number; costUsd?: number; ... };
+  billing?: { units?: number; costUsd?: number; ... };
+  metadata?: Record<string, unknown>;
+};
+```
+
+### Cost-Tracker Extension Design (Part 4 Summary)
+
+The canonical way to build a cost-tracking extension using these primitives:
+
+```typescript
+import {
+  createSessionRuntimeStore,
+  wireSessionHooks,
+  type PluginHookLlmApiCallEvent,
+} from "openclaw/plugin-sdk";
+
+type SessionState = { totalCostUsd: number; callCount: number };
+type RunState = { callCount: number; costUsd: number };
+
+export default {
+  activate(api) {
+    const store = createSessionRuntimeStore<SessionState, RunState>({
+      stateDir: path.join(api.runtime.stateDir, "cost-tracker"),
+      create: () => ({ totalCostUsd: 0, callCount: 0 }),
+      initialRun: () => ({ callCount: 0, costUsd: 0 }),
+      flush: [
+        { kind: "periodic", intervalMs: 5000 },
+        { kind: "on-hooks", hooks: ["session_end"] },
+      ],
+    });
+
+    wireSessionHooks(api, store);
+    api.registerService(store.toPluginService("cost-tracker-store"));
+
+    // Accumulate per-call costs:
+    api.on("llm_api_call", (event: PluginHookLlmApiCallEvent) => {
+      if (!event.sessionId || !event.runId) return;
+      store.update(event.sessionId, (s) => {
+        s.totalCostUsd += event.costUsd ?? 0;
+        s.callCount += 1;
+      });
+      store.updateRun(event.sessionId, event.runId, (run) => {
+        run.callCount += 1;
+        run.costUsd += event.costUsd ?? 0;
+      });
+    });
+  },
+};
+```
