@@ -242,6 +242,16 @@ export {
   createSessionRuntimeStore,
   wireSessionHooks,
 } from "./session-runtime-store.js";
+export type { AsyncWriteQueueOptions } from "./async-write-queue.js";
+export { AsyncWriteQueue, createAsyncWriteQueue } from "./async-write-queue.js";
+export type {
+  CostEntry,
+  CostEntryInput,
+  CostSource,
+  CostSummary,
+  SessionCostLedgerOptions,
+} from "./session-cost-ledger.js";
+export { SessionCostLedger, createSessionCostLedger } from "./session-cost-ledger.js";
 export type { SessionRelationship, RelatedSessions } from "./session-relationship-tracker.js";
 export {
   SessionRelationshipTracker,
