@@ -235,6 +235,13 @@ export type { MediaPayload, MediaPayloadInput } from "../channels/plugins/media-
 export { createLoggerBackedRuntime } from "./runtime.js";
 export { chunkTextForOutbound } from "./text-chunking.js";
 export { readJsonFileWithFallback, writeJsonFileAtomically } from "./json-store.js";
+export type { SessionRuntimeStoreOptions } from "./session-runtime-store.js";
+export { SessionRuntimeStore, createSessionRuntimeStore } from "./session-runtime-store.js";
+export type { SessionRelationship, RelatedSessions } from "./session-relationship-tracker.js";
+export {
+  SessionRelationshipTracker,
+  createSessionRelationshipTracker,
+} from "./session-relationship-tracker.js";
 export { buildRandomTempFilePath, withTempDownloadPath } from "./temp-path.js";
 export { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
 export {
