@@ -20,7 +20,10 @@ import path from "node:path";
 // ---------------------------------------------------------------------------
 
 export type SessionRuntimeStoreOptions<T> = {
-  /** Directory for per-key state files (e.g. `<stateDir>/cost-tracker`) */
+  /**
+   * Directory for per-key state files (e.g. `<stateDir>/cost-tracker`).
+   * Ignored when `ephemeral` is true.
+   */
   stateDir: string;
   /** Maximum entries to keep in memory (LRU eviction). Default: 128. */
   maxEntries?: number;
@@ -30,6 +33,12 @@ export type SessionRuntimeStoreOptions<T> = {
   flushIntervalMs?: number;
   /** Time-to-live in ms. Entries older than this are evicted during periodic flush. 0 = no TTL. Default: 0. */
   ttlMs?: number;
+  /**
+   * When true, the store never reads from or writes to disk — purely in-memory.
+   * Evicted entries are lost. Useful for extensions that only need intra-process
+   * state and want zero I/O overhead. Default: false.
+   */
+  ephemeral?: boolean;
   /** Called when an entry is evicted from memory (after file write). */
   onEvict?: (key: string, state: T) => void;
   /** Called on startup for each recovered entry. */
@@ -61,6 +70,7 @@ export class SessionRuntimeStore<T> {
   private readonly sessionsDir: string;
   private readonly maxEntries: number;
   private readonly ttlMs: number;
+  private readonly ephemeral: boolean;
   private readonly createFn: () => T;
   private readonly onEvict?: (key: string, state: T) => void;
   private flushTimer: ReturnType<typeof setInterval> | null = null;
@@ -71,21 +81,25 @@ export class SessionRuntimeStore<T> {
     this.sessionsDir = path.join(options.stateDir, "sessions");
     this.maxEntries = options.maxEntries ?? 128;
     this.ttlMs = options.ttlMs ?? 0;
+    this.ephemeral = options.ephemeral ?? false;
     this.createFn = options.create;
     this.onEvict = options.onEvict;
 
-    // Ensure directories exist
-    fs.mkdirSync(this.sessionsDir, { recursive: true });
+    if (!this.ephemeral) {
+      // Ensure directories exist
+      fs.mkdirSync(this.sessionsDir, { recursive: true });
 
-    // Recover existing state from disk
-    this.recover(options.onRecover);
+      // Recover existing state from disk
+      this.recover(options.onRecover);
+    }
 
-    // Start periodic flush
+    // Start periodic flush/TTL timer (even ephemeral stores use it for TTL eviction)
     const interval = options.flushIntervalMs ?? 5000;
-    if (interval > 0) {
+    const needsTimer = this.ephemeral ? this.ttlMs > 0 : interval > 0;
+    if (needsTimer) {
       this.flushTimer = setInterval(() => {
         void this.flushDirty();
-      }, interval);
+      }, interval || 5000);
       // Allow the process to exit even if the timer is still running.
       if (this.flushTimer && "unref" in this.flushTimer) {
         this.flushTimer.unref();
@@ -103,11 +117,13 @@ export class SessionRuntimeStore<T> {
       return existing.state;
     }
 
-    // Try loading from disk
-    const loaded = this.loadFromDisk(key);
-    if (loaded) {
-      this.insertWithEviction(key, loaded);
-      return loaded.state;
+    if (!this.ephemeral) {
+      // Try loading from disk
+      const loaded = this.loadFromDisk(key);
+      if (loaded) {
+        this.insertWithEviction(key, loaded);
+        return loaded.state;
+      }
     }
 
     return undefined;
@@ -135,6 +151,7 @@ export class SessionRuntimeStore<T> {
   /** Check whether a key exists (in memory or on disk). */
   has(key: string): boolean {
     if (this.entries.has(key)) return true;
+    if (this.ephemeral) return false;
     // Check disk without loading into memory
     const filePath = this.filePathForKey(key);
     try {
@@ -178,11 +195,13 @@ export class SessionRuntimeStore<T> {
   /** Remove a key's state from memory and disk. */
   async delete(key: string): Promise<void> {
     this.entries.delete(key);
-    const filePath = this.filePathForKey(key);
-    try {
-      fs.unlinkSync(filePath);
-    } catch {
-      // File may not exist — harmless.
+    if (!this.ephemeral) {
+      const filePath = this.filePathForKey(key);
+      try {
+        fs.unlinkSync(filePath);
+      } catch {
+        // File may not exist — harmless.
+      }
     }
   }
 
@@ -193,23 +212,25 @@ export class SessionRuntimeStore<T> {
       memKeys.add(entry.key);
     }
 
-    // Scan disk for additional keys
-    try {
-      const files = fs.readdirSync(this.sessionsDir);
-      for (const file of files) {
-        if (!file.endsWith(".json")) continue;
-        try {
-          const raw = fs.readFileSync(path.join(this.sessionsDir, file), "utf-8");
-          const envelope = JSON.parse(raw) as PersistedEnvelope<T>;
-          if (envelope.key) {
-            memKeys.add(envelope.key);
+    if (!this.ephemeral) {
+      // Scan disk for additional keys
+      try {
+        const files = fs.readdirSync(this.sessionsDir);
+        for (const file of files) {
+          if (!file.endsWith(".json")) continue;
+          try {
+            const raw = fs.readFileSync(path.join(this.sessionsDir, file), "utf-8");
+            const envelope = JSON.parse(raw) as PersistedEnvelope<T>;
+            if (envelope.key) {
+              memKeys.add(envelope.key);
+            }
+          } catch {
+            // Corrupted file — skip.
           }
-        } catch {
-          // Corrupted file — skip.
         }
+      } catch {
+        // Directory read failure — return what we have.
       }
-    } catch {
-      // Directory read failure — return what we have.
     }
 
     return [...memKeys];
@@ -287,7 +308,7 @@ export class SessionRuntimeStore<T> {
       if (oldest === undefined) break;
       const evicted = this.entries.get(oldest);
       if (evicted) {
-        if (evicted.dirty) {
+        if (!this.ephemeral && evicted.dirty) {
           this.writeToDisk(evicted);
         }
         this.onEvict?.(evicted.key, evicted.state);
@@ -301,7 +322,7 @@ export class SessionRuntimeStore<T> {
     const toEvict: string[] = [];
 
     for (const entry of this.entries.values()) {
-      if (entry.dirty) {
+      if (!this.ephemeral && entry.dirty) {
         this.writeToDisk(entry);
         entry.dirty = false;
       }

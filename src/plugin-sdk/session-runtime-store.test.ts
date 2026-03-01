@@ -348,6 +348,61 @@ describe("SessionRuntimeStore", () => {
     expect(evicted).not.toContain("fresh");
   });
 
+  it("ephemeral mode never touches disk", async () => {
+    store = createSessionRuntimeStore({
+      stateDir: dir,
+      create: () => ({ count: 0 }),
+      ephemeral: true,
+      flushIntervalMs: 0,
+    });
+
+    store.update("key1", (s) => {
+      s.count = 42;
+    });
+    await store.flush("key1");
+    await store.close();
+
+    // No sessions directory should have been created
+    const sessionsDir = path.join(dir, "sessions");
+    expect(fs.existsSync(sessionsDir)).toBe(false);
+  });
+
+  it("ephemeral mode evicts without writing to disk", () => {
+    const evicted: string[] = [];
+    store = createSessionRuntimeStore({
+      stateDir: dir,
+      maxEntries: 2,
+      create: () => ({ count: 0 }),
+      ephemeral: true,
+      flushIntervalMs: 0,
+      onEvict: (key) => evicted.push(key),
+    });
+
+    store.update("a", (s) => { s.count = 1; });
+    store.update("b", (s) => { s.count = 2; });
+    store.update("c", (s) => { s.count = 3; }); // evicts "a"
+
+    expect(evicted).toContain("a");
+    // Evicted entry is gone — no disk to recover from
+    expect(store.get("a")).toBeUndefined();
+  });
+
+  it("ephemeral mode has() returns false for evicted keys", () => {
+    store = createSessionRuntimeStore({
+      stateDir: dir,
+      maxEntries: 1,
+      create: () => ({ count: 0 }),
+      ephemeral: true,
+      flushIntervalMs: 0,
+    });
+
+    store.getOrCreate("a");
+    store.getOrCreate("b"); // evicts "a"
+
+    expect(store.has("a")).toBe(false);
+    expect(store.has("b")).toBe(true);
+  });
+
   it("toPluginService returns valid service", async () => {
     store = createSessionRuntimeStore({
       stateDir: dir,
