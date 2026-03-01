@@ -1,0 +1,63 @@
+{
+  "id": "ttl-recovery",
+  "description": "A message stuck in 'processing' with an expired TTL is automatically recovered to 'unread' on the next inbox call.",
+
+  "steps": [
+    {
+      "id": "seed-expired-lease",
+      "description": "Inject a message already in 'processing' with an expired lease (simulates agent crash mid-flight)",
+      "action": "seed_message",
+      "params": {
+        "to": "agent-b",
+        "from": "agent-a",
+        "subject": "Work item (leaked lease)",
+        "body": "This was being processed but the agent crashed.",
+        "status": "processing",
+        "processing_at": "$past",
+        "processing_expires_at": "$past"
+      },
+      "expect": {
+        "mailbox": {
+          "agent": "agent-b",
+          "processing_count": 1,
+          "unread_count": 0
+        }
+      }
+    },
+    {
+      "id": "recover",
+      "description": "Agent B calls inbox; the expired lease should be recovered and re-claimed",
+      "actor": "agent-b",
+      "action": "mail.inbox",
+      "params": {},
+      "capture": {
+        "recovered_id": { "source": "mailbox", "agent": "agent-b", "path": "messages[0].id" }
+      },
+      "expect": {
+        "result_contains": "1 message",
+        "mailbox": {
+          "agent": "agent-b",
+          "unread_count": 0,
+          "processing_count": 1
+        }
+      }
+    },
+    {
+      "id": "ack-recovered",
+      "description": "Agent B successfully acks the recovered message",
+      "actor": "agent-b",
+      "action": "mail.ack",
+      "params": {
+        "message_ids": ["${recover.recovered_id}"]
+      },
+      "expect": {
+        "result_contains": "Acked 1",
+        "mailbox": {
+          "agent": "agent-b",
+          "read_count": 1,
+          "processing_count": 0
+        }
+      }
+    }
+  ]
+}

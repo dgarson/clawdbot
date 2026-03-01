@@ -1,0 +1,12 @@
+{
+  "name": "@openclaw/ocx-evaluation",
+  "version": "2026.2.24",
+  "private": true,
+  "description": "OpenClaw evaluation plugin",
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
