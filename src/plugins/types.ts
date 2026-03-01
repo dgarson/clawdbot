@@ -282,6 +282,20 @@ export type OpenClawPluginApi = {
     handler: PluginHookHandlerMap[K],
     opts?: { priority?: number },
   ) => void;
+  /**
+   * Record a usage entry for cost tracking and telemetry.
+   * Emits a `usage.record` diagnostic event and forwards to any registered
+   * cost ledger. Fire-and-forget; never blocks the caller.
+   * Optional for backwards compatibility with existing api implementations.
+   */
+  recordUsage?: (entry: PluginUsageRecord) => void;
+  /**
+   * Emit a synthetic `llm_api_call` hook event from within a plugin.
+   * Useful for extensions that make their own LLM calls and want them
+   * reflected in telemetry.
+   * Optional for backwards compatibility with existing api implementations.
+   */
+  emitLlmApiCall?: (entry: Omit<PluginHookLlmApiCallEvent, "callId"> & { callId?: string }) => void;
 };
 
 export type PluginOrigin = "bundled" | "global" | "workspace" | "config";
@@ -303,6 +317,7 @@ export type PluginHookName =
   | "before_agent_start"
   | "llm_input"
   | "llm_output"
+  | "llm_api_call"
   | "agent_end"
   | "before_compaction"
   | "after_compaction"
@@ -757,6 +772,58 @@ export type PluginHookSubagentStoppingContext = {
   requesterSessionKey: string;
 };
 
+// llm_api_call hook — fired for every completed LLM API call across all subsystems
+export type PluginHookLlmApiCallEvent = {
+  callId: string;
+  source: "agent" | "compaction" | "tool" | "extension";
+  purpose?: string;
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  toolCallId?: string;
+  parentSessionKey?: string;
+  parentRunId?: string;
+  agentId?: string;
+  provider?: string;
+  model?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  totalTokens?: number;
+  costUsd?: number;
+  durationMs?: number;
+};
+
+// Usage record submitted via api.recordUsage()
+export type PluginUsageRecord = {
+  kind: string;
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  toolCallId?: string;
+  agentId?: string;
+  provider?: string;
+  model?: string;
+  llm?: {
+    apiCallCount: number;
+    totalDurationMs?: number;
+    avgDurationMs?: number;
+    inputTokens?: number;
+    outputTokens?: number;
+    cacheReadTokens?: number;
+    cacheWriteTokens?: number;
+    costUsd?: number;
+  };
+  billing?: {
+    units?: number;
+    unitType?: string;
+    costUsd?: number;
+    currency?: string;
+  };
+  metadata?: Record<string, unknown>;
+};
+
 // Gateway context
 export type PluginHookGatewayContext = {
   port?: number;
@@ -774,10 +841,7 @@ export type PluginHookGatewayStopEvent = {
 
 // Hook handler types mapped by hook name
 export type PluginHookHandlerMap = {
-  run_start: (
-    event: PluginHookRunStartEvent,
-    ctx: PluginHookAgentContext,
-  ) => Promise<void> | void;
+  run_start: (event: PluginHookRunStartEvent, ctx: PluginHookAgentContext) => Promise<void> | void;
   before_model_resolve: (
     event: PluginHookBeforeModelResolveEvent,
     ctx: PluginHookAgentContext,
@@ -796,6 +860,10 @@ export type PluginHookHandlerMap = {
   llm_input: (event: PluginHookLlmInputEvent, ctx: PluginHookAgentContext) => Promise<void> | void;
   llm_output: (
     event: PluginHookLlmOutputEvent,
+    ctx: PluginHookAgentContext,
+  ) => Promise<void> | void;
+  llm_api_call: (
+    event: PluginHookLlmApiCallEvent,
     ctx: PluginHookAgentContext,
   ) => Promise<void> | void;
   agent_end: (event: PluginHookAgentEndEvent, ctx: PluginHookAgentContext) => Promise<void> | void;

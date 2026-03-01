@@ -103,6 +103,8 @@ export type {
   PluginLogger,
   ProviderAuthContext,
   ProviderAuthResult,
+  PluginHookLlmApiCallEvent,
+  PluginUsageRecord,
 } from "../plugins/types.js";
 export type {
   GatewayRequestHandler,
@@ -235,7 +237,11 @@ export type { MediaPayload, MediaPayloadInput } from "../channels/plugins/media-
 export { createLoggerBackedRuntime } from "./runtime.js";
 export { chunkTextForOutbound } from "./text-chunking.js";
 export { readJsonFileWithFallback, writeJsonFileAtomically } from "./json-store.js";
-export type { SessionRuntimeStoreOptions } from "./session-runtime-store.js";
+export type {
+  SessionRuntimeStoreOptions,
+  FlushStrategy,
+  BoundedListConfig,
+} from "./session-runtime-store.js";
 export {
   SessionRuntimeStore,
   appendBounded,
@@ -466,10 +472,13 @@ export type {
   DiagnosticSessionStateEvent,
   DiagnosticSessionStuckEvent,
   DiagnosticUsageEvent,
+  DiagnosticUsageRecordEvent,
   DiagnosticWebhookErrorEvent,
   DiagnosticWebhookProcessedEvent,
   DiagnosticWebhookReceivedEvent,
 } from "../infra/diagnostic-events.js";
+export type { AgentCallContext } from "../agents/call-context.js";
+export { getAgentCallContext, runWithAgentCallContext } from "../agents/call-context.js";
 export { detectMime, extensionForMime, getFileExtension } from "../media/mime.js";
 export { extractOriginalFilename } from "../media/store.js";
 

@@ -177,6 +177,35 @@ export type DiagnosticModelCallEvent = DiagnosticBaseEvent & {
   durationMs?: number;
 };
 
+export type DiagnosticUsageRecordEvent = DiagnosticBaseEvent & {
+  type: "usage.record";
+  kind: string;
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  toolCallId?: string;
+  agentId?: string;
+  provider?: string;
+  model?: string;
+  llm?: {
+    apiCallCount: number;
+    totalDurationMs?: number;
+    avgDurationMs?: number;
+    inputTokens?: number;
+    outputTokens?: number;
+    cacheReadTokens?: number;
+    cacheWriteTokens?: number;
+    costUsd?: number;
+  };
+  billing?: {
+    units?: number;
+    unitType?: string;
+    costUsd?: number;
+    currency?: string;
+  };
+  metadata?: Record<string, unknown>;
+};
+
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
   | DiagnosticModelCallEvent
@@ -191,7 +220,8 @@ export type DiagnosticEventPayload =
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent
   | DiagnosticHeartbeatEvent
-  | DiagnosticToolLoopEvent;
+  | DiagnosticToolLoopEvent
+  | DiagnosticUsageRecordEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload

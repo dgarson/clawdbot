@@ -6,7 +6,9 @@
  *
  * Features:
  * - LRU eviction to bound memory (configurable capacity)
- * - Periodic flush of dirty entries to per-key JSON files
+ * - Pluggable flush strategies: periodic, debounce, on-hooks, or manual
+ * - Per-run sub-state within each session entry
+ * - Typed appendToList with optional bounded-list config
  * - Automatic recovery from disk on startup or cache-miss
  * - Atomic writes via temp-file + rename
  */
@@ -19,7 +21,29 @@ import path from "node:path";
 // Types
 // ---------------------------------------------------------------------------
 
-export type SessionRuntimeStoreOptions<T> = {
+/**
+ * Flush strategy for SessionRuntimeStore.
+ * - `periodic`: flush all dirty entries on a fixed interval (default behaviour).
+ * - `debounce`: after each mutation, wait `delayMs` before flushing that entry.
+ * - `on-hooks`: flush when the listed hook names fire (wired via `wireSessionHooks`).
+ * - `manual`: never flush automatically; caller must call `store.flush(key)`.
+ */
+export type FlushStrategy =
+  | { kind: "debounce"; delayMs: number }
+  | { kind: "periodic"; intervalMs: number }
+  | { kind: "on-hooks"; hooks: string[] }
+  | { kind: "manual" };
+
+/**
+ * Configuration for a bounded list field within session state.
+ * When `appendToList` is called for `key`, the array is trimmed to `maxItems`.
+ */
+export type BoundedListConfig<TState> = {
+  key: keyof TState;
+  maxItems: number;
+};
+
+export type SessionRuntimeStoreOptions<T, TRunState = void> = {
   /**
    * Directory for per-key state files (e.g. `<stateDir>/cost-tracker`).
    * Ignored when `ephemeral` is true.
@@ -29,7 +53,17 @@ export type SessionRuntimeStoreOptions<T> = {
   maxEntries?: number;
   /** Factory for creating fresh state when a key is accessed for the first time. */
   create: () => T;
-  /** Flush interval in ms. 0 = flush on every update. Default: 5000. */
+  /**
+   * Flush strategy. Defaults to `{ kind: "periodic", intervalMs: 5000 }`.
+   * Can be an array to combine multiple strategies.
+   * `on-hooks` entries are wired via `wireSessionHooks`.
+   */
+  flush?: FlushStrategy | FlushStrategy[];
+  /**
+   * @deprecated Use `flush: { kind: "periodic", intervalMs: N }` instead.
+   * Flush interval in ms. 0 = flush on every update. Default: 5000.
+   * Ignored when `flush` is provided.
+   */
   flushIntervalMs?: number;
   /** Time-to-live in ms. Entries older than this are evicted during periodic flush. 0 = no TTL. Default: 0. */
   ttlMs?: number;
@@ -43,47 +77,73 @@ export type SessionRuntimeStoreOptions<T> = {
   onEvict?: (key: string, state: T) => void;
   /** Called on startup for each recovered entry. */
   onRecover?: (key: string, state: T) => void;
+  /** Factory for new run sub-state. Required if you want per-run tracking. */
+  initialRun?: () => TRunState;
+  /** Bounded-list configs for typed array fields in T. */
+  boundedLists?: BoundedListConfig<T>[];
 };
 
-type Entry<T> = {
+type Entry<T, TRunState> = {
   key: string;
   state: T;
+  /** Per-run sub-state keyed by runId. */
+  runs: Map<string, TRunState>;
   dirty: boolean;
   createdAt: number;
   updatedAt: number;
 };
 
-type PersistedEnvelope<T> = {
+type PersistedEnvelope<T, TRunState> = {
   key: string;
   createdAt: number;
   updatedAt: number;
   state: T;
+  /** Serialised as a plain object; converted back to Map on load. */
+  runs?: Record<string, TRunState>;
 };
 
 // ---------------------------------------------------------------------------
 // Implementation
 // ---------------------------------------------------------------------------
 
-export class SessionRuntimeStore<T> {
-  private readonly entries = new Map<string, Entry<T>>();
+export class SessionRuntimeStore<T, TRunState = void> {
+  private readonly entries = new Map<string, Entry<T, TRunState>>();
   private readonly stateDir: string;
   private readonly sessionsDir: string;
   private readonly maxEntries: number;
   private readonly ttlMs: number;
   private readonly ephemeral: boolean;
   private readonly createFn: () => T;
+  private readonly initialRunFn?: () => TRunState;
+  private readonly boundedLists?: BoundedListConfig<T>[];
   private readonly onEvict?: (key: string, state: T) => void;
   private flushTimer: ReturnType<typeof setInterval> | null = null;
   private closed = false;
 
-  constructor(options: SessionRuntimeStoreOptions<T>) {
+  // Per-session debounce timers (keyed by sessionId).
+  private readonly debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  // Resolved flush strategies (normalised from options).
+  private readonly flushStrategies: FlushStrategy[];
+
+  constructor(options: SessionRuntimeStoreOptions<T, TRunState>) {
     this.stateDir = options.stateDir;
     this.sessionsDir = path.join(options.stateDir, "sessions");
     this.maxEntries = options.maxEntries ?? 128;
     this.ttlMs = options.ttlMs ?? 0;
     this.ephemeral = options.ephemeral ?? false;
     this.createFn = options.create;
+    this.initialRunFn = options.initialRun;
+    this.boundedLists = options.boundedLists;
     this.onEvict = options.onEvict;
+
+    // Normalise flush strategies
+    if (options.flush !== undefined) {
+      this.flushStrategies = Array.isArray(options.flush) ? options.flush : [options.flush];
+    } else {
+      // Legacy flushIntervalMs fallback
+      const intervalMs = options.flushIntervalMs ?? 5000;
+      this.flushStrategies = [{ kind: "periodic", intervalMs }];
+    }
 
     if (!this.ephemeral) {
       // Ensure directories exist
@@ -93,13 +153,17 @@ export class SessionRuntimeStore<T> {
       this.recover(options.onRecover);
     }
 
-    // Start periodic flush/TTL timer (even ephemeral stores use it for TTL eviction)
-    const interval = options.flushIntervalMs ?? 5000;
-    const needsTimer = this.ephemeral ? this.ttlMs > 0 : interval > 0;
+    // Start periodic timer if a periodic strategy is configured (or for TTL eviction on ephemeral)
+    const periodicStrategy = this.flushStrategies.find((s) => s.kind === "periodic");
+
+    const effectiveInterval = periodicStrategy?.intervalMs ?? (this.ephemeral ? 0 : 5000);
+    const needsTimer = this.ephemeral ? this.ttlMs > 0 : effectiveInterval > 0 || this.ttlMs > 0;
+
     if (needsTimer) {
+      const timerInterval = effectiveInterval > 0 ? effectiveInterval : this.ttlMs;
       this.flushTimer = setInterval(() => {
         void this.flushDirty();
-      }, interval || 5000);
+      }, timerInterval);
       // Allow the process to exit even if the timer is still running.
       if (this.flushTimer && "unref" in this.flushTimer) {
         this.flushTimer.unref();
@@ -137,9 +201,10 @@ export class SessionRuntimeStore<T> {
     }
 
     const now = Date.now();
-    const entry: Entry<T> = {
+    const entry: Entry<T, TRunState> = {
       key,
       state: this.createFn(),
+      runs: new Map(),
       dirty: false,
       createdAt: now,
       updatedAt: now,
@@ -150,8 +215,12 @@ export class SessionRuntimeStore<T> {
 
   /** Check whether a key exists (in memory or on disk). */
   has(key: string): boolean {
-    if (this.entries.has(key)) return true;
-    if (this.ephemeral) return false;
+    if (this.entries.has(key)) {
+      return true;
+    }
+    if (this.ephemeral) {
+      return false;
+    }
     // Check disk without loading into memory
     const filePath = this.filePathForKey(key);
     try {
@@ -170,8 +239,116 @@ export class SessionRuntimeStore<T> {
     if (entry) {
       entry.dirty = true;
       entry.updatedAt = Date.now();
+      this.scheduleDebounce(key);
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Per-run state
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Get per-run sub-state for a session/run pair.
+   * Returns undefined if the session or run does not exist.
+   */
+  getRun(sessionId: string, runId: string): TRunState | undefined {
+    const entry = this.entries.get(sessionId);
+    if (!entry) {
+      return undefined;
+    }
+    return entry.runs.get(runId);
+  }
+
+  /**
+   * Update per-run sub-state. Creates the session and run entries if they don't exist.
+   * Requires `initialRun` option to be provided.
+   */
+  updateRun(sessionId: string, runId: string, fn: (draft: TRunState) => void): void {
+    // Ensure the session entry exists
+    this.getOrCreate(sessionId);
+    const entry = this.entries.get(sessionId)!;
+
+    if (!entry.runs.has(runId)) {
+      if (this.initialRunFn === undefined) {
+        // No factory provided; cannot create run state
+        return;
+      }
+      entry.runs.set(runId, this.initialRunFn());
+    }
+
+    const runState = entry.runs.get(runId)!;
+    fn(runState);
+
+    entry.dirty = true;
+    entry.updatedAt = Date.now();
+    this.scheduleDebounce(sessionId);
+  }
+
+  /**
+   * Delete per-run sub-state for a session/run pair.
+   * No-op if the session or run does not exist.
+   */
+  deleteRun(sessionId: string, runId: string): void {
+    const entry = this.entries.get(sessionId);
+    if (!entry) {
+      return;
+    }
+    if (entry.runs.delete(runId)) {
+      entry.dirty = true;
+      entry.updatedAt = Date.now();
+      this.scheduleDebounce(sessionId);
+    }
+  }
+
+  /**
+   * Return all per-run sub-states for a session.
+   * Returns an empty Map if the session does not exist.
+   */
+  allRuns(sessionId: string): Map<string, TRunState> {
+    const entry = this.entries.get(sessionId);
+    return entry ? entry.runs : new Map();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Typed list append
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Append an item to an array field in session state.
+   * Enforces `maxItems` from the matching `boundedLists` config (if any).
+   */
+  appendToList<K extends keyof T>(
+    sessionId: string,
+    key: K,
+    item: T[K] extends Array<infer U> ? U : never,
+  ): void {
+    this.getOrCreate(sessionId);
+    const entry = this.entries.get(sessionId);
+    if (!entry) {
+      return;
+    }
+
+    const arr = entry.state[key];
+    if (!Array.isArray(arr)) {
+      return;
+    }
+
+    arr.push(item as unknown);
+
+    const config = this.boundedLists?.find((c) => c.key === key);
+    const maxItems = config?.maxItems ?? Infinity;
+    while (arr.length > maxItems) {
+      arr.shift();
+    }
+
+    entry.dirty = true;
+    entry.updatedAt = Date.now();
+    this.scheduleDebounce(sessionId);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Persistence
+  // ---------------------------------------------------------------------------
 
   /** Explicitly flush a single key to disk. */
   async flush(key: string): Promise<void> {
@@ -189,6 +366,11 @@ export class SessionRuntimeStore<T> {
       clearInterval(this.flushTimer);
       this.flushTimer = null;
     }
+    // Clear all debounce timers
+    for (const timer of this.debounceTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.debounceTimers.clear();
     await this.flushDirty();
   }
 
@@ -217,10 +399,12 @@ export class SessionRuntimeStore<T> {
       try {
         const files = fs.readdirSync(this.sessionsDir);
         for (const file of files) {
-          if (!file.endsWith(".json")) continue;
+          if (!file.endsWith(".json")) {
+            continue;
+          }
           try {
             const raw = fs.readFileSync(path.join(this.sessionsDir, file), "utf-8");
-            const envelope = JSON.parse(raw) as PersistedEnvelope<T>;
+            const envelope = JSON.parse(raw) as PersistedEnvelope<T, TRunState>;
             if (envelope.key) {
               memKeys.add(envelope.key);
             }
@@ -242,6 +426,20 @@ export class SessionRuntimeStore<T> {
   }
 
   /**
+   * Expose the configured `on-hooks` hook names so `wireSessionHooks` can
+   * register flush triggers for them.
+   */
+  getOnHookNames(): string[] {
+    const names: string[] = [];
+    for (const s of this.flushStrategies) {
+      if (s.kind === "on-hooks") {
+        names.push(...s.hooks);
+      }
+    }
+    return names;
+  }
+
+  /**
    * Create an OpenClawPluginService that ties this store's lifecycle to the plugin.
    * Registers start (no-op) and stop (flushes + closes) handlers.
    */
@@ -256,6 +454,34 @@ export class SessionRuntimeStore<T> {
   // ---------------------------------------------------------------------------
   // Private
   // ---------------------------------------------------------------------------
+
+  /**
+   * Schedule a debounce flush for a session key, if a debounce strategy is configured.
+   * Each mutation resets the debounce timer for that key.
+   */
+  private scheduleDebounce(key: string): void {
+    const debounceStrategy = this.flushStrategies.find((s) => s.kind === "debounce");
+    if (!debounceStrategy) {
+      return;
+    }
+
+    const existing = this.debounceTimers.get(key);
+    if (existing !== undefined) {
+      clearTimeout(existing);
+    }
+
+    const timer = setTimeout(() => {
+      this.debounceTimers.delete(key);
+      void this.flush(key);
+    }, debounceStrategy.delayMs);
+
+    // Allow process to exit if only debounce timers remain.
+    if (timer && "unref" in timer) {
+      (timer as ReturnType<typeof setTimeout> & { unref: () => void }).unref();
+    }
+
+    this.debounceTimers.set(key, timer);
+  }
 
   private recover(onRecover?: (key: string, state: T) => void): void {
     let files: string[];
@@ -278,15 +504,23 @@ export class SessionRuntimeStore<T> {
     withMtime.sort((a, b) => b.mtime - a.mtime);
 
     for (const { file } of withMtime) {
-      if (this.entries.size >= this.maxEntries) break;
+      if (this.entries.size >= this.maxEntries) {
+        break;
+      }
       try {
         const raw = fs.readFileSync(path.join(this.sessionsDir, file), "utf-8");
-        const envelope = JSON.parse(raw) as PersistedEnvelope<T>;
-        if (!envelope.key) continue;
+        const envelope = JSON.parse(raw) as PersistedEnvelope<T, TRunState>;
+        if (!envelope.key) {
+          continue;
+        }
 
-        const entry: Entry<T> = {
+        // Convert persisted runs Record back to Map
+        const runs = new Map<string, TRunState>(envelope.runs ? Object.entries(envelope.runs) : []);
+
+        const entry: Entry<T, TRunState> = {
           key: envelope.key,
           state: envelope.state,
+          runs,
           dirty: false,
           createdAt: envelope.createdAt,
           updatedAt: envelope.updatedAt,
@@ -299,13 +533,15 @@ export class SessionRuntimeStore<T> {
     }
   }
 
-  private insertWithEviction(key: string, entry: Entry<T>): void {
+  private insertWithEviction(key: string, entry: Entry<T, TRunState>): void {
     this.entries.set(key, entry);
 
     // Evict LRU entries if over capacity
     while (this.entries.size > this.maxEntries) {
       const oldest = this.entries.keys().next().value;
-      if (oldest === undefined) break;
+      if (oldest === undefined) {
+        break;
+      }
       const evicted = this.entries.get(oldest);
       if (evicted) {
         if (!this.ephemeral && evicted.dirty) {
@@ -341,12 +577,19 @@ export class SessionRuntimeStore<T> {
     }
   }
 
-  private writeToDisk(entry: Entry<T>): void {
-    const envelope: PersistedEnvelope<T> = {
+  private writeToDisk(entry: Entry<T, TRunState>): void {
+    // Convert runs Map to a plain Record for JSON serialisation
+    const runsRecord: Record<string, TRunState> = {};
+    for (const [runId, runState] of entry.runs) {
+      runsRecord[runId] = runState;
+    }
+
+    const envelope: PersistedEnvelope<T, TRunState> = {
       key: entry.key,
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
       state: entry.state,
+      runs: Object.keys(runsRecord).length > 0 ? runsRecord : undefined,
     };
 
     const filePath = this.filePathForKey(entry.key);
@@ -365,14 +608,18 @@ export class SessionRuntimeStore<T> {
     }
   }
 
-  private loadFromDisk(key: string): Entry<T> | undefined {
+  private loadFromDisk(key: string): Entry<T, TRunState> | undefined {
     const filePath = this.filePathForKey(key);
     try {
       const raw = fs.readFileSync(filePath, "utf-8");
-      const envelope = JSON.parse(raw) as PersistedEnvelope<T>;
+      const envelope = JSON.parse(raw) as PersistedEnvelope<T, TRunState>;
+
+      const runs = new Map<string, TRunState>(envelope.runs ? Object.entries(envelope.runs) : []);
+
       return {
         key: envelope.key,
         state: envelope.state,
+        runs,
         dirty: false,
         createdAt: envelope.createdAt,
         updatedAt: envelope.updatedAt,
@@ -406,9 +653,9 @@ export class SessionRuntimeStore<T> {
  * });
  * ```
  */
-export function createSessionRuntimeStore<T>(
-  options: SessionRuntimeStoreOptions<T>,
-): SessionRuntimeStore<T> {
+export function createSessionRuntimeStore<T, TRunState = void>(
+  options: SessionRuntimeStoreOptions<T, TRunState>,
+): SessionRuntimeStore<T, TRunState> {
   return new SessionRuntimeStore(options);
 }
 
@@ -433,39 +680,94 @@ export function appendBounded<TItem>(arr: TItem[], item: TItem, maxItems: number
 /**
  * Auto-wire common session lifecycle hooks to a SessionRuntimeStore.
  *
- * Registers `run_start` (creates session state) and `agent_end` (flushes)
- * so plugin authors don't need boilerplate wiring.
+ * Registers:
+ * - `run_start` — ensures session state exists; calls `onRunStart`.
+ * - `agent_end` — flushes session state; calls `onAgentEnd`.
+ * - `session_start` — optionally loads from checkpoint when `resumedFrom` is set; calls `onSessionStart`.
+ * - `session_end` — flushes session state; calls `onSessionEnd`.
+ * - Any `on-hooks` flush triggers configured on the store.
  *
  * @param api - The plugin API from `register()` or `activate()`.
  * @param store - The SessionRuntimeStore to wire.
- * @param opts - Optional overrides.
- * @param opts.onRunStart - Called when a run starts. Receives sessionKey and state.
- * @param opts.onAgentEnd - Called when an agent ends. Receives sessionKey and state.
+ * @param opts - Optional callbacks.
  */
-export function wireSessionHooks<T>(
+export function wireSessionHooks<T, TRunState = void>(
   api: {
-    on: (hookName: string, handler: (...args: unknown[]) => void, opts?: { priority?: number }) => void;
+    on: (
+      hookName: string,
+      handler: (...args: unknown[]) => void,
+      opts?: { priority?: number },
+    ) => void;
   },
-  store: SessionRuntimeStore<T>,
+  store: SessionRuntimeStore<T, TRunState>,
   opts?: {
     onRunStart?: (sessionKey: string, state: T) => void;
     onAgentEnd?: (sessionKey: string, state: T) => void;
+    onSessionStart?: (sessionId: string, state: T) => void;
+    onSessionEnd?: (sessionId: string, state: T) => void;
   },
 ): void {
-  api.on("run_start", (event: Record<string, unknown>) => {
+  api.on("run_start", (...args: unknown[]) => {
+    const event = (args[0] ?? {}) as Record<string, unknown>;
     const sessionKey = event.sessionKey as string | undefined;
-    if (!sessionKey) return;
+    if (!sessionKey) {
+      return;
+    }
     const state = store.getOrCreate(sessionKey);
     opts?.onRunStart?.(sessionKey, state);
   });
 
-  api.on("agent_end", (event: Record<string, unknown>) => {
+  api.on("agent_end", (...args: unknown[]) => {
+    const event = (args[0] ?? {}) as Record<string, unknown>;
     const sessionKey = event.sessionKey as string | undefined;
-    if (!sessionKey) return;
+    if (!sessionKey) {
+      return;
+    }
     const state = store.get(sessionKey);
     if (state !== undefined) {
       opts?.onAgentEnd?.(sessionKey, state);
       void store.flush(sessionKey);
     }
   });
+
+  api.on("session_start", (...args: unknown[]) => {
+    const event = (args[0] ?? {}) as Record<string, unknown>;
+    const sessionId = event.sessionId as string | undefined;
+    if (!sessionId) {
+      return;
+    }
+    // If resuming, trigger a disk load so state is warm before the run starts.
+    const resumedFrom = event.resumedFrom as string | undefined;
+    if (resumedFrom) {
+      store.get(sessionId);
+    }
+    const state = store.getOrCreate(sessionId);
+    opts?.onSessionStart?.(sessionId, state);
+  });
+
+  api.on("session_end", (...args: unknown[]) => {
+    const event = (args[0] ?? {}) as Record<string, unknown>;
+    const sessionId = event.sessionId as string | undefined;
+    if (!sessionId) {
+      return;
+    }
+    const state = store.get(sessionId);
+    if (state !== undefined) {
+      opts?.onSessionEnd?.(sessionId, state);
+      void store.flush(sessionId);
+    }
+  });
+
+  // Wire `on-hooks` flush triggers
+  for (const hookName of store.getOnHookNames()) {
+    api.on(hookName, (...args: unknown[]) => {
+      const event = (args[0] ?? {}) as Record<string, unknown>;
+      // Best-effort: try sessionId, then sessionKey
+      const key =
+        (event.sessionId as string | undefined) ?? (event.sessionKey as string | undefined);
+      if (key) {
+        void store.flush(key);
+      }
+    });
+  }
 }
