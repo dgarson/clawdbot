@@ -247,6 +247,7 @@ export {
   appendBounded,
   createSessionRuntimeStore,
   wireSessionHooks,
+  wireSessionLifecycleHooks,
 } from "./session-runtime-store.js";
 export type { AsyncWriteQueueOptions } from "./async-write-queue.js";
 export { AsyncWriteQueue, createAsyncWriteQueue } from "./async-write-queue.js";
