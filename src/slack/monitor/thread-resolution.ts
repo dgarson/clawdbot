@@ -11,9 +11,9 @@ type ThreadTsCacheEntry = {
 const DEFAULT_THREAD_TS_CACHE_TTL_MS = 60_000;
 const DEFAULT_THREAD_TS_CACHE_MAX = 500;
 
-const normalizeThreadTs = (threadTs?: string | null) => {
+const normalizeThreadTs = (threadTs?: string | null): string | null => {
   const trimmed = threadTs?.trim();
-  return trimmed ? trimmed : undefined;
+  return trimmed ? trimmed : null;
 };
 
 type ResolveContext = {
