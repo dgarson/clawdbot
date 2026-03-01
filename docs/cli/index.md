@@ -825,6 +825,8 @@ Tip: when calling `config.set`/`config.apply`/`config.patch` directly, pass `bas
 
 See [/concepts/models](/concepts/models) for fallback behavior and scanning strategy.
 
+> Important policy disclaimer (Anthropic): Anthropic still PROHIBITS using Claude subscription credentials with the Agent SDK except for personal, non-business experimentation and learning (including exploring and developing multi-agent systems for learning purposes). Full-time autonomous use, or any business/revenue-generating use, is strictly prohibited. If your usage goes beyond that narrow personal-learning scope, switch to Anthropic API billing (API key) before continuing.
+
 Preferred Anthropic auth (setup-token):
 
 ```bash

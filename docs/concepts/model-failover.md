@@ -29,6 +29,25 @@ Credential types:
 
 - `type: "api_key"` → `{ provider, key }`
 - `type: "oauth"` → `{ provider, access, refresh, expires, email? }` (+ `projectId`/`enterpriseUrl` for some providers)
+- `type: "token"` → provider tokens (including synthetic `system-keychain` markers for Claude Code runtime providers)
+
+## Claude Code keychain providers
+
+> Important policy disclaimer (Anthropic): Anthropic still PROHIBITS using Claude subscription credentials with the Agent SDK except for personal, non-business experimentation and learning (including exploring and developing multi-agent systems for learning purposes). Full-time autonomous use, or any business/revenue-generating use, is strictly prohibited. If your usage goes beyond that narrow personal-learning scope, switch to Anthropic API billing (API key) before continuing.
+
+For `claude-pro` and `claude-max`, OpenClaw uses Claude Code system-keychain
+auth and routes turns to Claude SDK runtime first (when the selected model ID
+starts with `claude-`).
+
+- Synthetic profile IDs use `<provider>:system-keychain`.
+- You can pre-create these profiles during onboarding:
+
+```bash
+openclaw models auth setup-claude-pro
+```
+
+- If keychain auth cannot be resolved for a turn, OpenClaw retries that turn on
+  Pi runtime, then continues normal profile/model failover rules.
 
 ## Profile IDs
 

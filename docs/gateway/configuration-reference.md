@@ -762,6 +762,8 @@ Claude SDK runtime options for agents.
 
 Supported `provider` values: `claude-sdk`, `anthropic`, `zai`, `minimax`, `minimax-portal`, `openrouter`, `custom`.
 
+> Important policy disclaimer (Anthropic): Anthropic still PROHIBITS using Claude subscription credentials with the Agent SDK except for personal, non-business experimentation and learning (including exploring and developing multi-agent systems for learning purposes). Full-time autonomous use, or any business/revenue-generating use, is strictly prohibited. If your usage goes beyond that narrow personal-learning scope, switch to Anthropic API billing (API key) before continuing.
+
 Common fields:
 
 - `thinkingDefault`: `none | low | medium | high`
@@ -788,6 +790,7 @@ OpenClaw does not infer these values for `custom`. They must be explicit.
   agents: {
     defaults: {
       claudeSdk: {
+        thinkingDefault: "low",
         provider: "custom",
         baseUrl: "https://example.gateway/v1",
         authProfileId: "custom-bridge:work",

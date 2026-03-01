@@ -1,5 +1,5 @@
 ---
-summary: "Agent runtime (embedded pi-mono), workspace contract, and session bootstrap"
+summary: "Agent runtimes (Pi and Claude SDK), workspace contract, and session bootstrap"
 read_when:
   - Changing agent runtime, workspace bootstrap, or session behavior
 title: "Agent Runtime"
@@ -7,7 +7,12 @@ title: "Agent Runtime"
 
 # Agent Runtime 🤖
 
-OpenClaw runs a single embedded agent runtime derived from **pi-mono**.
+OpenClaw runs one agent loop with two runtime backends:
+
+- **Pi runtime** for standard API-key/OAuth provider paths.
+- **Claude SDK runtime** for `claude-pro` / `claude-max` when the selected model ID starts with `claude-`.
+
+The loop, sessions, hooks, and tool surfaces are OpenClaw-owned across both paths.
 
 ## Workspace (required)
 
