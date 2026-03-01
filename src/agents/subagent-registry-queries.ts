@@ -1,3 +1,12 @@
+import path from "node:path";
+import { SessionManager } from "@mariozechner/pi-coding-agent";
+
+type SessionEntry = { type: string; message?: { role?: string; content?: unknown } };
+type ContentPart = { type?: string; text?: string };
+import { resolveAgentIdFromSessionKey } from "../config/sessions.js";
+import { resolveDefaultSessionStorePath } from "../config/sessions/paths.js";
+import { resolveAndPersistSessionFile } from "../config/sessions/session-file.js";
+import { loadSessionStore } from "../config/sessions/store.js";
 import type { DeliveryContext } from "../utils/delivery-context.js";
 import type { SubagentRunRecord } from "./subagent-registry.types.js";
 
@@ -143,4 +152,51 @@ export function listDescendantRunsForRequesterFromRuns(
     }
   }
   return descendants;
+}
+
+export async function readLastAssistantMessageFromSession(
+  sessionKey: string,
+): Promise<string | undefined> {
+  const key = sessionKey.trim();
+  if (!key) {
+    return undefined;
+  }
+
+  const agentId = resolveAgentIdFromSessionKey(key);
+  const storePath = resolveDefaultSessionStorePath(agentId);
+  const store = loadSessionStore(storePath, { skipCache: true });
+  const entry = store[key];
+  if (!entry?.sessionId) {
+    return undefined;
+  }
+
+  try {
+    const { sessionFile } = await resolveAndPersistSessionFile({
+      sessionId: entry.sessionId,
+      sessionKey: key,
+      sessionStore: store,
+      storePath,
+      sessionEntry: entry,
+      agentId,
+      sessionsDir: path.dirname(storePath),
+    });
+    const sm = SessionManager.open(sessionFile);
+    const messages = (sm.getEntries() as SessionEntry[])
+      .filter((e) => e.type === "message")
+      .map((e) => e.message);
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      if (msg?.role === "assistant") {
+        if (Array.isArray(msg.content)) {
+          return (msg.content as ContentPart[])
+            .map((c) => (c.type === "text" ? (c.text ?? "") : ""))
+            .join("");
+        }
+        return typeof msg.content === "string" ? msg.content : undefined;
+      }
+    }
+  } catch {
+    // Ignore errors reading session file
+  }
+  return undefined;
 }

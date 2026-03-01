@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { rmSync } from "node:fs";
 import { completeSimple, type TextContent } from "@mariozechner/pi-ai";
 import { EdgeTTS } from "node-edge-tts";
@@ -10,6 +11,9 @@ import {
 } from "../agents/model-selection.js";
 import { resolveModel } from "../agents/pi-embedded-runner/model.js";
 import type { OpenClawConfig } from "../config/config.js";
+import { emitDiagnosticEvent } from "../infra/diagnostic-events.js";
+import { ExecutionContextStore } from "../infra/execution-context.js";
+import { instrumentModelCall } from "../infra/llm-metrics.js";
 import type {
   ResolvedTtsConfig,
   ResolvedTtsModelOverrides,
@@ -445,27 +449,29 @@ export async function summarizeText(params: {
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      const res = await completeSimple(
-        resolved.model,
-        {
-          messages: [
-            {
-              role: "user",
-              content:
-                `You are an assistant that summarizes texts concisely while keeping the most important information. ` +
-                `Summarize the text to approximately ${targetLength} characters. Maintain the original tone and style. ` +
-                `Reply only with the summary, without additional explanations.\n\n` +
-                `<text_to_summarize>\n${text}\n</text_to_summarize>`,
-              timestamp: Date.now(),
-            },
-          ],
-        },
-        {
-          apiKey,
-          maxTokens: Math.ceil(targetLength / 2),
-          temperature: 0.3,
-          signal: controller.signal,
-        },
+      const res = await instrumentModelCall(resolved.model, () =>
+        completeSimple(
+          resolved.model!, // we asserted it's defined above
+          {
+            messages: [
+              {
+                role: "user",
+                content:
+                  `You are an assistant that summarizes texts concisely while keeping the most important information. ` +
+                  `Summarize the text to approximately ${targetLength} characters. Maintain the original tone and style. ` +
+                  `Reply only with the summary, without additional explanations.\n\n` +
+                  `<text_to_summarize>\n${text}\n</text_to_summarize>`,
+                timestamp: Date.now(),
+              },
+            ],
+          },
+          {
+            apiKey,
+            maxTokens: Math.ceil(targetLength / 2),
+            temperature: 0.3,
+            signal: controller.signal,
+          },
+        ),
       );
 
       const summary = res.content
@@ -547,6 +553,7 @@ export async function elevenLabsTTS(params: {
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const startMs = Date.now();
 
   try {
     const url = new URL(`${normalizeElevenLabsBaseUrl(baseUrl)}/v1/text-to-speech/${voiceId}`);
@@ -582,6 +589,26 @@ export async function elevenLabsTTS(params: {
       throw new Error(`ElevenLabs API error (${response.status})`);
     }
 
+    const durationMs = Date.now() - startMs;
+    const ctx = ExecutionContextStore.get();
+    if (ctx?.runId) {
+      emitDiagnosticEvent({
+        type: "resource.usage",
+        sessionKey: ctx.sessionKey,
+        sessionId: ctx.agentId,
+        runId: ctx.runId,
+        toolCallId: ctx.toolCallId,
+        actionType: "tts.elevenlabs",
+        provider: "elevenlabs",
+        model: modelId,
+        metrics: {
+          apiCalls: 1,
+          durationMs: durationMs > 0 ? durationMs : 1000,
+          units: text.length,
+        },
+      });
+    }
+
     return Buffer.from(await response.arrayBuffer());
   } finally {
     clearTimeout(timeout);
@@ -597,6 +624,7 @@ export async function openaiTTS(params: {
   timeoutMs: number;
 }): Promise<Buffer> {
   const { text, apiKey, model, voice, responseFormat, timeoutMs } = params;
+  const startMs = Date.now();
 
   if (!isValidOpenAIModel(model)) {
     throw new Error(`Invalid model: ${model}`);
@@ -626,6 +654,26 @@ export async function openaiTTS(params: {
 
     if (!response.ok) {
       throw new Error(`OpenAI TTS API error (${response.status})`);
+    }
+
+    const durationMs = Date.now() - startMs;
+    const ctx = ExecutionContextStore.get();
+    if (ctx?.runId) {
+      emitDiagnosticEvent({
+        type: "resource.usage",
+        sessionKey: ctx.sessionKey,
+        sessionId: ctx.agentId,
+        runId: ctx.runId,
+        toolCallId: ctx.toolCallId,
+        actionType: "tts.openai",
+        provider: "openai",
+        model,
+        metrics: {
+          apiCalls: 1,
+          durationMs: durationMs > 0 ? durationMs : 1000,
+          units: text.length,
+        },
+      });
     }
 
     return Buffer.from(await response.arrayBuffer());
@@ -669,5 +717,26 @@ export async function edgeTTS(params: {
     volume: config.volume,
     timeout: config.timeoutMs ?? timeoutMs,
   });
+  const startMs = Date.now();
   await tts.ttsPromise(text, outputPath);
+
+  const durationMs = Date.now() - startMs;
+  const ctx = ExecutionContextStore.get();
+  if (ctx?.runId) {
+    emitDiagnosticEvent({
+      type: "resource.usage",
+      sessionKey: ctx.sessionKey,
+      sessionId: ctx.agentId,
+      runId: ctx.runId,
+      toolCallId: ctx.toolCallId,
+      actionType: "tts.edge",
+      provider: "edge",
+      model: config.voice,
+      metrics: {
+        apiCalls: 1,
+        durationMs: durationMs > 0 ? durationMs : 1000,
+        units: text.length,
+      },
+    });
+  }
 }

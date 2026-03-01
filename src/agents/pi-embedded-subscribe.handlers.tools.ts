@@ -418,6 +418,7 @@ export async function handleToolExecutionEnd(
     const toolArgs = startData?.args;
     const hookEvent: PluginHookAfterToolCallEvent = {
       toolName,
+      toolCallId,
       params: (toolArgs && typeof toolArgs === "object" ? toolArgs : {}) as Record<string, unknown>,
       result: sanitizedResult,
       error: isToolError ? extractToolErrorMessage(sanitizedResult) : undefined,
@@ -428,6 +429,7 @@ export async function handleToolExecutionEnd(
         toolName,
         agentId: undefined,
         sessionKey: undefined,
+        runId: ctx.params.runId,
       })
       .catch((err) => {
         ctx.log.warn(`after_tool_call hook failed: tool=${toolName} error=${String(err)}`);

@@ -546,6 +546,10 @@ async function resolveSubagentCompletionOrigin(params: {
         runId: params.childRunId,
         childSessionKey: params.childSessionKey,
         requesterSessionKey: params.requesterSessionKey,
+        agentId: resolveAgentIdFromSessionKey(params.childSessionKey),
+        requesterAgentId: params.requesterSessionKey
+          ? resolveAgentIdFromSessionKey(params.requesterSessionKey)
+          : undefined,
       },
     );
     const hookOrigin = normalizeDeliveryContext(result?.origin);

@@ -167,7 +167,7 @@ export async function dispatchReplyFromConfig(params: {
     typeof ctx.Timestamp === "number" && Number.isFinite(ctx.Timestamp) ? ctx.Timestamp : undefined;
   const messageIdForHook =
     ctx.MessageSidFull ?? ctx.MessageSid ?? ctx.MessageSidFirst ?? ctx.MessageSidLast;
-  const content =
+  let content =
     typeof ctx.BodyForCommands === "string"
       ? ctx.BodyForCommands
       : typeof ctx.RawBody === "string"
@@ -177,6 +177,52 @@ export async function dispatchReplyFromConfig(params: {
           : "";
   const channelId = (ctx.OriginatingChannel ?? ctx.Surface ?? ctx.Provider ?? "").toLowerCase();
   const conversationId = ctx.OriginatingTo ?? ctx.To ?? ctx.From ?? undefined;
+
+  if (hookRunner?.hasHooks("before_message_process")) {
+    const hookResult = await hookRunner.runBeforeMessageProcess(
+      {
+        from: ctx.From ?? "",
+        content,
+        metadata: {
+          to: ctx.To,
+          provider: ctx.Provider,
+          surface: ctx.Surface,
+          threadId: ctx.MessageThreadId,
+          originatingChannel: ctx.OriginatingChannel,
+          originatingTo: ctx.OriginatingTo,
+          messageId: messageIdForHook,
+          senderId: ctx.SenderId,
+          senderName: ctx.SenderName,
+          senderUsername: ctx.SenderUsername,
+          senderE164: ctx.SenderE164,
+          guildId: ctx.GroupSpace,
+          channelName: ctx.GroupChannel,
+        },
+      },
+      {
+        channelId,
+        accountId: ctx.AccountId,
+        conversationId,
+      },
+    );
+
+    if (hookResult?.block) {
+      logVerbose(
+        `dispatch-from-config: Message blocked by before_message_process hook: ${hookResult.blockReason || "no reason given"}`,
+      );
+      recordProcessed("skipped", {
+        reason: `hook_blocked: ${hookResult.blockReason || "unknown"}`,
+      });
+      return { queuedFinal: false, counts: dispatcher.getQueuedCounts() };
+    }
+
+    if (hookResult?.content !== undefined) {
+      content = hookResult.content;
+      ctx.Body = content;
+      ctx.RawBody = content;
+      ctx.BodyForCommands = content;
+    }
+  }
 
   // Trigger plugin hooks (fire-and-forget)
   if (hookRunner?.hasHooks("message_received")) {

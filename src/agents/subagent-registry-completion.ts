@@ -1,3 +1,4 @@
+import { resolveAgentIdFromSessionKey } from "../config/sessions.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import type { SubagentRunOutcome } from "./subagent-announce.js";
 import {
@@ -74,6 +75,7 @@ export async function emitSubagentEndedHookOnce(params: {
           sendFarewell: params.sendFarewell,
           accountId: params.accountId,
           runId: params.entry.runId,
+          agentId: resolveAgentIdFromSessionKey(params.entry.childSessionKey),
           endedAt: params.entry.endedAt,
           outcome: params.outcome,
           error: params.error,
@@ -82,6 +84,10 @@ export async function emitSubagentEndedHookOnce(params: {
           runId: params.entry.runId,
           childSessionKey: params.entry.childSessionKey,
           requesterSessionKey: params.entry.requesterSessionKey,
+          agentId: resolveAgentIdFromSessionKey(params.entry.childSessionKey),
+          requesterAgentId: params.entry.requesterSessionKey
+            ? resolveAgentIdFromSessionKey(params.entry.requesterSessionKey)
+            : undefined,
         },
       );
     }

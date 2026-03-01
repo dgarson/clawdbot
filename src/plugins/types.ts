@@ -300,6 +300,7 @@ export type PluginHookName =
   | "before_model_resolve"
   | "before_prompt_build"
   | "before_agent_start"
+  | "run_start"
   | "llm_input"
   | "llm_output"
   | "agent_end"
@@ -318,9 +319,11 @@ export type PluginHookName =
   | "subagent_spawning"
   | "subagent_delivery_target"
   | "subagent_spawned"
+  | "subagent_stopping"
   | "subagent_ended"
   | "gateway_start"
-  | "gateway_stop";
+  | "gateway_stop"
+  | "before_message_process";
 
 // Agent context shared across agent hooks
 export type PluginHookAgentContext = {
@@ -366,6 +369,13 @@ export type PluginHookBeforeAgentStartEvent = {
 export type PluginHookBeforeAgentStartResult = PluginHookBeforePromptBuildResult &
   PluginHookBeforeModelResolveResult;
 
+// run_start hook
+export type PluginHookRunStartEvent = {
+  runId: string;
+  provider: string;
+  model: string;
+};
+
 // llm_input hook
 export type PluginHookLlmInputEvent = {
   runId: string;
@@ -401,6 +411,8 @@ export type PluginHookAgentEndEvent = {
   success: boolean;
   error?: string;
   durationMs?: number;
+  runId?: string;
+  stopReason?: string;
 };
 
 // Compaction hooks
@@ -441,6 +453,19 @@ export type PluginHookMessageContext = {
   conversationId?: string;
 };
 
+// before_message_process hook
+export type PluginHookBeforeMessageProcessEvent = {
+  from: string;
+  content: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type PluginHookBeforeMessageProcessResult = {
+  block?: boolean;
+  blockReason?: string;
+  content?: string;
+};
+
 // message_received hook
 export type PluginHookMessageReceivedEvent = {
   from: string;
@@ -474,11 +499,17 @@ export type PluginHookToolContext = {
   agentId?: string;
   sessionKey?: string;
   toolName: string;
+  runId?: string;
+  turnSourceChannel?: string;
+  turnSourceTo?: string;
+  turnSourceAccountId?: string;
+  turnSourceThreadId?: string | number;
 };
 
 // before_tool_call hook
 export type PluginHookBeforeToolCallEvent = {
   toolName: string;
+  toolCallId?: string;
   params: Record<string, unknown>;
 };
 
@@ -491,6 +522,7 @@ export type PluginHookBeforeToolCallResult = {
 // after_tool_call hook
 export type PluginHookAfterToolCallEvent = {
   toolName: string;
+  toolCallId?: string;
   params: Record<string, unknown>;
   result?: unknown;
   error?: string;
@@ -557,6 +589,8 @@ export type PluginHookSubagentContext = {
   runId?: string;
   childSessionKey?: string;
   requesterSessionKey?: string;
+  agentId?: string;
+  requesterAgentId?: string;
 };
 
 export type PluginHookSubagentTargetKind = "subagent" | "acp";
@@ -626,6 +660,20 @@ export type PluginHookSubagentSpawnedEvent = {
   threadRequested: boolean;
 };
 
+// subagent_stopping hook
+export type PluginHookSubagentStoppingEvent = {
+  childSessionKey: string;
+  requesterSessionKey: string;
+  runId?: string;
+  agentId: string;
+  steerCount: number;
+};
+
+export type PluginHookSubagentStoppingResult = {
+  block?: boolean;
+  steerPrompt?: string;
+};
+
 // subagent_ended hook
 export type PluginHookSubagentEndedEvent = {
   targetSessionKey: string;
@@ -634,6 +682,7 @@ export type PluginHookSubagentEndedEvent = {
   sendFarewell?: boolean;
   accountId?: string;
   runId?: string;
+  agentId?: string;
   endedAt?: number;
   outcome?: "ok" | "error" | "timeout" | "killed" | "reset" | "deleted";
   error?: string;
@@ -671,6 +720,7 @@ export type PluginHookHandlerMap = {
     event: PluginHookBeforeAgentStartEvent,
     ctx: PluginHookAgentContext,
   ) => Promise<PluginHookBeforeAgentStartResult | void> | PluginHookBeforeAgentStartResult | void;
+  run_start: (event: PluginHookRunStartEvent, ctx: PluginHookAgentContext) => Promise<void> | void;
   llm_input: (event: PluginHookLlmInputEvent, ctx: PluginHookAgentContext) => Promise<void> | void;
   llm_output: (
     event: PluginHookLlmOutputEvent,
@@ -689,6 +739,13 @@ export type PluginHookHandlerMap = {
     event: PluginHookBeforeResetEvent,
     ctx: PluginHookAgentContext,
   ) => Promise<void> | void;
+  before_message_process: (
+    event: PluginHookBeforeMessageProcessEvent,
+    ctx: PluginHookMessageContext,
+  ) =>
+    | Promise<PluginHookBeforeMessageProcessResult | void>
+    | PluginHookBeforeMessageProcessResult
+    | void;
   message_received: (
     event: PluginHookMessageReceivedEvent,
     ctx: PluginHookMessageContext,
@@ -701,6 +758,7 @@ export type PluginHookHandlerMap = {
     event: PluginHookMessageSentEvent,
     ctx: PluginHookMessageContext,
   ) => Promise<void> | void;
+
   before_tool_call: (
     event: PluginHookBeforeToolCallEvent,
     ctx: PluginHookToolContext,
@@ -740,6 +798,10 @@ export type PluginHookHandlerMap = {
     event: PluginHookSubagentSpawnedEvent,
     ctx: PluginHookSubagentContext,
   ) => Promise<void> | void;
+  subagent_stopping: (
+    event: PluginHookSubagentStoppingEvent,
+    ctx: PluginHookSubagentContext,
+  ) => Promise<PluginHookSubagentStoppingResult | void> | PluginHookSubagentStoppingResult | void;
   subagent_ended: (
     event: PluginHookSubagentEndedEvent,
     ctx: PluginHookSubagentContext,

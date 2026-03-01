@@ -1,3 +1,4 @@
+import type { AgentToolUpdateCallback } from "@mariozechner/pi-agent-core";
 import type { ToolLoopDetectionConfig } from "../config/types.tools.js";
 import type { SessionState } from "../logging/diagnostic-session-state.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
@@ -9,6 +10,11 @@ import type { AnyAgentTool } from "./tools/common.js";
 export type HookContext = {
   agentId?: string;
   sessionKey?: string;
+  runId?: string;
+  turnSourceChannel?: string;
+  turnSourceTo?: string;
+  turnSourceAccountId?: string;
+  turnSourceThreadId?: string | number;
   loopDetection?: ToolLoopDetectionConfig;
 };
 
@@ -142,12 +148,18 @@ export async function runBeforeToolCallHook(args: {
     const hookResult = await hookRunner.runBeforeToolCall(
       {
         toolName,
+        toolCallId: args.toolCallId,
         params: normalizedParams,
       },
       {
         toolName,
         agentId: args.ctx?.agentId,
         sessionKey: args.ctx?.sessionKey,
+        runId: args.ctx?.runId,
+        turnSourceChannel: args.ctx?.turnSourceChannel,
+        turnSourceTo: args.ctx?.turnSourceTo,
+        turnSourceAccountId: args.ctx?.turnSourceAccountId,
+        turnSourceThreadId: args.ctx?.turnSourceThreadId,
       },
     );
 
@@ -183,46 +195,54 @@ export function wrapToolWithBeforeToolCallHook(
   const toolName = tool.name || "tool";
   const wrappedTool: AnyAgentTool = {
     ...tool,
-    execute: async (toolCallId, params, signal, onUpdate) => {
-      const outcome = await runBeforeToolCallHook({
-        toolName,
-        params,
-        toolCallId,
-        ctx,
-      });
-      if (outcome.blocked) {
-        throw new Error(outcome.reason);
-      }
-      if (toolCallId) {
-        adjustedParamsByToolCallId.set(toolCallId, outcome.params);
-        if (adjustedParamsByToolCallId.size > MAX_TRACKED_ADJUSTED_PARAMS) {
-          const oldest = adjustedParamsByToolCallId.keys().next().value;
-          if (oldest) {
-            adjustedParamsByToolCallId.delete(oldest);
+    execute: async (
+      toolCallId: string,
+      params: unknown,
+      signal?: AbortSignal,
+      onUpdate?: AgentToolUpdateCallback<unknown>,
+    ) => {
+      const { ExecutionContextStore } = await import("../infra/execution-context.js");
+      return ExecutionContextStore.runAsync({ toolCallId }, async () => {
+        const outcome = await runBeforeToolCallHook({
+          toolName,
+          params,
+          toolCallId,
+          ctx,
+        });
+        if (outcome.blocked) {
+          throw new Error(outcome.reason);
+        }
+        if (toolCallId) {
+          adjustedParamsByToolCallId.set(toolCallId, outcome.params);
+          if (adjustedParamsByToolCallId.size > MAX_TRACKED_ADJUSTED_PARAMS) {
+            const oldest = adjustedParamsByToolCallId.keys().next().value;
+            if (oldest) {
+              adjustedParamsByToolCallId.delete(oldest);
+            }
           }
         }
-      }
-      const normalizedToolName = normalizeToolName(toolName || "tool");
-      try {
-        const result = await execute(toolCallId, outcome.params, signal, onUpdate);
-        await recordLoopOutcome({
-          ctx,
-          toolName: normalizedToolName,
-          toolParams: outcome.params,
-          toolCallId,
-          result,
-        });
-        return result;
-      } catch (err) {
-        await recordLoopOutcome({
-          ctx,
-          toolName: normalizedToolName,
-          toolParams: outcome.params,
-          toolCallId,
-          error: err,
-        });
-        throw err;
-      }
+        const normalizedToolName = normalizeToolName(toolName || "tool");
+        try {
+          const result = await execute(toolCallId, outcome.params, signal, onUpdate);
+          await recordLoopOutcome({
+            ctx,
+            toolName: normalizedToolName,
+            toolParams: outcome.params,
+            toolCallId,
+            result,
+          });
+          return result;
+        } catch (err) {
+          await recordLoopOutcome({
+            ctx,
+            toolName: normalizedToolName,
+            toolParams: outcome.params,
+            toolCallId,
+            error: err,
+          });
+          throw err;
+        }
+      });
     },
   };
   Object.defineProperty(wrappedTool, BEFORE_TOOL_CALL_WRAPPED, {

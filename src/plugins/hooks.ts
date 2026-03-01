@@ -17,6 +17,7 @@ import type {
   PluginHookBeforeModelResolveResult,
   PluginHookBeforePromptBuildEvent,
   PluginHookBeforePromptBuildResult,
+  PluginHookRunStartEvent,
   PluginHookBeforeCompactionEvent,
   PluginHookLlmInputEvent,
   PluginHookLlmOutputEvent,
@@ -26,6 +27,8 @@ import type {
   PluginHookGatewayContext,
   PluginHookGatewayStartEvent,
   PluginHookGatewayStopEvent,
+  PluginHookBeforeMessageProcessEvent,
+  PluginHookBeforeMessageProcessResult,
   PluginHookMessageContext,
   PluginHookMessageReceivedEvent,
   PluginHookMessageSendingEvent,
@@ -49,6 +52,8 @@ import type {
   PluginHookToolResultPersistResult,
   PluginHookBeforeMessageWriteEvent,
   PluginHookBeforeMessageWriteResult,
+  PluginHookSubagentStoppingEvent,
+  PluginHookSubagentStoppingResult,
 } from "./types.js";
 
 // Re-export types for consumers
@@ -60,12 +65,15 @@ export type {
   PluginHookBeforeModelResolveResult,
   PluginHookBeforePromptBuildEvent,
   PluginHookBeforePromptBuildResult,
+  PluginHookRunStartEvent,
   PluginHookLlmInputEvent,
   PluginHookLlmOutputEvent,
   PluginHookAgentEndEvent,
   PluginHookBeforeCompactionEvent,
   PluginHookBeforeResetEvent,
   PluginHookAfterCompactionEvent,
+  PluginHookBeforeMessageProcessEvent,
+  PluginHookBeforeMessageProcessResult,
   PluginHookMessageContext,
   PluginHookMessageReceivedEvent,
   PluginHookMessageSendingEvent,
@@ -89,6 +97,8 @@ export type {
   PluginHookSubagentSpawningEvent,
   PluginHookSubagentSpawningResult,
   PluginHookSubagentSpawnedEvent,
+  PluginHookSubagentStoppingEvent,
+  PluginHookSubagentStoppingResult,
   PluginHookSubagentEndedEvent,
   PluginHookGatewayContext,
   PluginHookGatewayStartEvent,
@@ -310,6 +320,18 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
   }
 
   /**
+   * Run run_start hook.
+   * Allows plugins to observe the start of a run with its definitive runId.
+   * Runs in parallel (fire-and-forget).
+   */
+  async function runRunStart(
+    event: PluginHookRunStartEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<void> {
+    return runVoidHook("run_start", event, ctx);
+  }
+
+  /**
    * Run agent_end hook.
    * Allows plugins to analyze completed conversations.
    * Runs in parallel (fire-and-forget).
@@ -374,6 +396,27 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
   // =========================================================================
   // Message Hooks
   // =========================================================================
+
+  /**
+   * Run before_message_process hook.
+   * Allows plugins to inspect and optionally block incoming messages before processing.
+   * Runs sequentially.
+   */
+  async function runBeforeMessageProcess(
+    event: PluginHookBeforeMessageProcessEvent,
+    ctx: PluginHookMessageContext,
+  ): Promise<PluginHookBeforeMessageProcessResult | undefined> {
+    return runModifyingHook<"before_message_process", PluginHookBeforeMessageProcessResult>(
+      "before_message_process",
+      event,
+      ctx,
+      (acc, next) => ({
+        content: next.content ?? acc?.content,
+        block: next.block ?? acc?.block,
+        blockReason: next.blockReason ?? acc?.blockReason,
+      }),
+    );
+  }
 
   /**
    * Run message_received hook.
@@ -659,6 +702,37 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
   }
 
   /**
+   * Run subagent_stopping hook sequentially.
+   * Gives plugins a chance to block completion and issue a steer prompt.
+   */
+  async function runSubagentStopping(
+    event: PluginHookSubagentStoppingEvent,
+    ctx: PluginHookSubagentContext,
+  ): Promise<PluginHookSubagentStoppingResult | undefined> {
+    return runModifyingHook(
+      "subagent_stopping",
+      event,
+      ctx,
+      (
+        prevResult: PluginHookSubagentStoppingResult | undefined,
+        hookResult: PluginHookSubagentStoppingResult,
+      ) => {
+        if (!hookResult) {
+          return prevResult ?? {};
+        }
+        const merged: PluginHookSubagentStoppingResult = { ...prevResult };
+        if (hookResult.block !== undefined) {
+          merged.block = hookResult.block;
+        }
+        if (hookResult.steerPrompt !== undefined) {
+          merged.steerPrompt = hookResult.steerPrompt;
+        }
+        return merged;
+      },
+    );
+  }
+
+  /**
    * Run subagent_ended hook.
    * Runs in parallel (fire-and-forget).
    */
@@ -718,6 +792,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     runBeforeModelResolve,
     runBeforePromptBuild,
     runBeforeAgentStart,
+    runRunStart,
     runLlmInput,
     runLlmOutput,
     runAgentEnd,
@@ -725,6 +800,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     runAfterCompaction,
     runBeforeReset,
     // Message hooks
+    runBeforeMessageProcess,
     runMessageReceived,
     runMessageSending,
     runMessageSent,
@@ -740,6 +816,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     runSubagentSpawning,
     runSubagentDeliveryTarget,
     runSubagentSpawned,
+    runSubagentStopping,
     runSubagentEnded,
     // Gateway hooks
     runGatewayStart,

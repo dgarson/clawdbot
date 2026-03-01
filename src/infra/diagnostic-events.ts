@@ -37,6 +37,40 @@ export type DiagnosticUsageEvent = DiagnosticBaseEvent & {
   durationMs?: number;
 };
 
+export type DiagnosticModelCallEvent = DiagnosticBaseEvent & {
+  type: "model.call";
+  sessionKey?: string;
+  sessionId?: string;
+  runId: string;
+  provider: string;
+  model: string;
+  usage: {
+    input?: number;
+    output?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+    total?: number;
+  };
+};
+
+export type DiagnosticSyntheticUsageEvent = DiagnosticBaseEvent & {
+  type: "resource.usage";
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  toolCallId?: string;
+  actionType: string;
+  provider?: string;
+  model?: string;
+  metrics: {
+    apiCalls: number;
+    durationMs: number;
+    costUsd?: number;
+    units?: number;
+  };
+  meta?: Record<string, unknown>;
+};
+
 export type DiagnosticWebhookReceivedEvent = DiagnosticBaseEvent & {
   type: "webhook.received";
   channel: string;
@@ -160,7 +194,9 @@ export type DiagnosticEventPayload =
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent
   | DiagnosticHeartbeatEvent
-  | DiagnosticToolLoopEvent;
+  | DiagnosticToolLoopEvent
+  | DiagnosticModelCallEvent
+  | DiagnosticSyntheticUsageEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload

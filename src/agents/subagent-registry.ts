@@ -328,6 +328,59 @@ async function completeSubagentRun(params: {
     return;
   }
 
+  const hookRunner = await import("../plugins/hook-runner-global.js").then((m) =>
+    m.getGlobalHookRunner(),
+  );
+
+  // If subagent_stopping hook exists and we are actually stopping (not killed immediately)
+  if (
+    hookRunner?.hasHooks("subagent_stopping") &&
+    params.triggerCleanup &&
+    params.reason !== SUBAGENT_ENDED_REASON_KILLED
+  ) {
+    const steerCount = entry.steerCount ?? 0;
+    const result = await hookRunner.runSubagentStopping(
+      {
+        childSessionKey: entry.childSessionKey,
+        requesterSessionKey: entry.requesterSessionKey,
+        runId: entry.runId,
+        agentId: resolveAgentIdFromSessionKey(entry.childSessionKey),
+        steerCount,
+      },
+      {
+        runId: entry.runId,
+        childSessionKey: entry.childSessionKey,
+        requesterSessionKey: entry.requesterSessionKey,
+        agentId: resolveAgentIdFromSessionKey(entry.childSessionKey),
+        requesterAgentId: entry.requesterSessionKey
+          ? resolveAgentIdFromSessionKey(entry.requesterSessionKey)
+          : undefined,
+      },
+    );
+
+    if (result.block) {
+      if (steerCount < 3) {
+        entry.steerCount = steerCount + 1;
+        entry.outcome = {
+          status: "ok",
+          value: "steered",
+        };
+        entry.suppressAnnounceReason = "steer-restart";
+        persistSubagentRuns();
+
+        if (result.steerPrompt?.trim()) {
+          const { enqueueSystemEvent } = await import("../infra/system-events.js");
+          enqueueSystemEvent(result.steerPrompt, { sessionKey: entry.childSessionKey });
+        }
+        return;
+      } else {
+        defaultRuntime.log(
+          `[warn] Subagent ${entry.childSessionKey} exceeded max steer-restarts (${steerCount}). Proceeding to completion.`,
+        );
+      }
+    }
+  }
+
   let mutated = false;
   const endedAt = typeof params.endedAt === "number" ? params.endedAt : Date.now();
   if (entry.endedAt !== endedAt) {

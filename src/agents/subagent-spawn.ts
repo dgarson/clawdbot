@@ -109,6 +109,7 @@ async function ensureThreadBindingForSubagentSpawn(params: {
   label?: string;
   mode: SpawnSubagentMode;
   requesterSessionKey?: string;
+  requesterAgentId?: string;
   requester: {
     channel?: string;
     accountId?: string;
@@ -138,6 +139,8 @@ async function ensureThreadBindingForSubagentSpawn(params: {
       {
         childSessionKey: params.childSessionKey,
         requesterSessionKey: params.requesterSessionKey,
+        agentId: params.agentId,
+        requesterAgentId: params.requesterAgentId,
       },
     );
     if (result?.status === "error") {
@@ -358,6 +361,7 @@ export async function spawnSubagentDirect(
       label: label || undefined,
       mode: spawnMode,
       requesterSessionKey: requesterInternalKey,
+      requesterAgentId,
       requester: {
         channel: requesterOrigin?.channel,
         accountId: requesterOrigin?.accountId,
@@ -446,6 +450,7 @@ export async function spawnSubagentDirect(
               sendFarewell: true,
               accountId: requesterOrigin?.accountId,
               runId: childRunId,
+              agentId: targetAgentId,
               outcome: "error",
               error: "Session failed to start",
             },
@@ -453,6 +458,8 @@ export async function spawnSubagentDirect(
               runId: childRunId,
               childSessionKey,
               requesterSessionKey: requesterInternalKey,
+              agentId: targetAgentId,
+              requesterAgentId,
             },
           );
           endedHookEmitted = true;
@@ -521,6 +528,8 @@ export async function spawnSubagentDirect(
           runId: childRunId,
           childSessionKey,
           requesterSessionKey: requesterInternalKey,
+          agentId: targetAgentId,
+          requesterAgentId,
         },
       );
     } catch {

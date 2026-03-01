@@ -363,12 +363,38 @@ export async function runReplyAgent(params: {
       cleanupTranscripts: true,
     });
   try {
+    const runId = opts?.runId ?? generateSecureUuid();
     const runStartedAt = Date.now();
+
+    // Fire run_start hook
+    const hookRunnerResolved = await import("../../plugins/hook-runner-global.js").then((m) =>
+      m.getGlobalHookRunner(),
+    );
+    if (hookRunnerResolved?.hasHooks("run_start")) {
+      hookRunnerResolved
+        .runRunStart(
+          {
+            runId,
+            provider: followupRun.run.provider,
+            model: followupRun.run.model,
+          },
+          {
+            agentId: sessionKey ? resolveAgentIdFromSessionKey(sessionKey) : undefined,
+            sessionKey,
+            sessionId: followupRun.run.sessionId,
+            messageProvider: sessionCtx.Provider ?? undefined,
+          },
+        )
+        .catch((err) => {
+          defaultRuntime.error(`run_start hook failed: ${String(err)}`);
+        });
+    }
+
     const runOutcome = await runAgentTurnWithFallback({
       commandBody,
       followupRun,
       sessionCtx,
-      opts,
+      opts: { ...opts, runId },
       typingSignals,
       blockReplyPipeline,
       blockStreamingEnabled,
@@ -392,14 +418,8 @@ export async function runReplyAgent(params: {
       return finalizeWithFollowup(runOutcome.payload, queueKey, runFollowupTurn);
     }
 
-    const {
-      runId,
-      runResult,
-      fallbackProvider,
-      fallbackModel,
-      fallbackAttempts,
-      directlySentBlockKeys,
-    } = runOutcome;
+    const { runResult, fallbackProvider, fallbackModel, fallbackAttempts, directlySentBlockKeys } =
+      runOutcome;
     let { didLogHeartbeatStrip, autoCompactionCompleted } = runOutcome;
 
     if (
