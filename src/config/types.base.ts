@@ -209,6 +209,19 @@ export type DiagnosticsConfig = {
   cacheTrace?: DiagnosticsCacheTraceConfig;
 };
 
+export type JournalConfig = {
+  /** Enable structured event journaling. Default: true. */
+  enabled?: boolean;
+  /** Max journal file size in MB before writes stop. Default: 100. */
+  maxFileMb?: number;
+  /** Days to retain journal files before pruning. Default: 30. */
+  retentionDays?: number;
+  /** Write cross-agent activity bucket files. Default: true. */
+  activityBuckets?: boolean;
+  /** Use summary-level console output when journal captures full detail. Default: true. */
+  consoleSummary?: boolean;
+};
+
 export type WebReconnectConfig = {
   initialMs?: number;
   maxMs?: number;

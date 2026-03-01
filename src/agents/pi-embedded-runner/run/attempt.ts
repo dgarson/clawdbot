@@ -14,7 +14,7 @@ import { resolveHeartbeatPrompt } from "../../../auto-reply/heartbeat.js";
 import { resolveChannelCapabilities } from "../../../config/channel-capabilities.js";
 import type { OpenClawConfig } from "../../../config/config.js";
 import type { ClaudeSdkConfig } from "../../../config/zod-schema.agent-runtime.js";
-import { isDiagnosticsEnabled } from "../../../infra/diagnostic-events.js";
+import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../../../infra/diagnostic-events.js";
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
 import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
 import { getGlobalHookRunner } from "../../../plugins/hook-runner-global.js";
@@ -650,6 +650,20 @@ export async function runEmbeddedAttempt(
         log.warn(
           `[prompt-cache] invalidate detected at block '${inv.name}' (offset: ${inv.byteOffset}, wasted_tokens: ~${inv.wastedTokensEstimated})`,
         );
+      }
+
+      // Emit cache diagnostic event for journal recording
+      if (systemPromptReport.cacheDiagnostics) {
+        const cd = systemPromptReport.cacheDiagnostics;
+        emitDiagnosticEvent({
+          type: "cache.check",
+          sessionKey: params.sessionKey,
+          sessionId: params.sessionId,
+          runId: params.runId,
+          currentPromptHash: cd.currentPromptHash,
+          previousPromptHash: cd.previousPromptHash,
+          invalidatorBlock: cd.invalidatorBlock,
+        });
       }
 
       const sectionStats = buildSectionStats(appendPrompt);

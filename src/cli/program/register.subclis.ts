@@ -65,6 +65,15 @@ const entries: SubCliEntry[] = [
     },
   },
   {
+    name: "journal",
+    description: "Query and tail structured event journals",
+    hasSubcommands: true,
+    register: async (program) => {
+      const mod = await import("../journal-cli.js");
+      mod.registerJournalCli(program);
+    },
+  },
+  {
     name: "logs",
     description: "Tail gateway file logs via RPC",
     hasSubcommands: false,

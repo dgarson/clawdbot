@@ -31,6 +31,13 @@ import { logAcceptedEnvOption } from "../infra/env.js";
 import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { startHeartbeatRunner, type HeartbeatRunner } from "../infra/heartbeat-runner.js";
+import { enableJournalConsoleSummary } from "../infra/journal/console-bridge.js";
+import {
+  type JournalSubscriberHandle,
+  startJournalSubscriber,
+} from "../infra/journal/subscriber.js";
+import { resolveJournalConfig } from "../infra/journal/types.js";
+import { JournalWriter } from "../infra/journal/writer.js";
 import { getMachineDisplayName } from "../infra/machine-name.js";
 import { ensureOpenClawCliOnPath } from "../infra/path-env.js";
 import { setGatewaySigusr1RestartPolicy, setPreRestartDeferralCheck } from "../infra/restart.js";
@@ -375,6 +382,22 @@ export async function startGatewayServer(
   if (diagnosticsEnabled) {
     startDiagnosticHeartbeat();
   }
+
+  // Initialize structured event journal
+  const journalConfig = resolveJournalConfig(cfgAtStart.journal);
+  let journalWriter: JournalWriter | undefined;
+  let journalSubscriber: JournalSubscriberHandle | undefined;
+  if (journalConfig.enabled) {
+    journalWriter = new JournalWriter(journalConfig);
+    journalSubscriber = startJournalSubscriber(journalWriter);
+    if (journalConfig.consoleSummary) {
+      enableJournalConsoleSummary();
+    }
+    log.info(
+      `journal enabled: retentionDays=${journalConfig.retentionDays} maxFileMb=${journalConfig.maxFileMb} consoleSummary=${journalConfig.consoleSummary}`,
+    );
+  }
+
   setGatewaySigusr1RestartPolicy({ allowExternal: isRestartEnabled(cfgAtStart) });
   setPreRestartDeferralCheck(
     () => getTotalQueueSize() + getTotalPendingReplies() + getActiveEmbeddedRunCount(),
@@ -938,6 +961,11 @@ export async function startGatewayServer(
       if (diagnosticsEnabled) {
         stopDiagnosticHeartbeat();
       }
+      if (journalSubscriber) {
+        journalSubscriber.stopDiagnostic();
+        journalSubscriber.stopAgent();
+      }
+      journalWriter?.stop();
       if (skillsRefreshTimer) {
         clearTimeout(skillsRefreshTimer);
         skillsRefreshTimer = null;

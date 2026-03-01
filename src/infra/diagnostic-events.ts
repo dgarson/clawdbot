@@ -218,6 +218,21 @@ export type DiagnosticToolExecutionEvent = DiagnosticBaseEvent & {
   isError: boolean;
 };
 
+export type DiagnosticCacheEvent = DiagnosticBaseEvent & {
+  type: "cache.check";
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  currentPromptHash: string;
+  previousPromptHash: string;
+  invalidatorBlock?: {
+    name: string;
+    source: string;
+    byteOffset: number;
+    wastedTokensEstimated?: number;
+  };
+};
+
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
   | DiagnosticWebhookReceivedEvent
@@ -237,7 +252,8 @@ export type DiagnosticEventPayload =
   | DiagnosticCompactionEvent
   | DiagnosticAttachmentEvent
   | DiagnosticHookProfileEvent
-  | DiagnosticToolExecutionEvent;
+  | DiagnosticToolExecutionEvent
+  | DiagnosticCacheEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload
