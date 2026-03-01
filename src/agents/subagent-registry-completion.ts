@@ -77,6 +77,11 @@ export async function emitSubagentEndedHookOnce(params: {
           endedAt: params.entry.endedAt,
           outcome: params.outcome,
           error: params.error,
+          entry: structuredClone(params.entry),
+          durationMs:
+            params.entry.endedAt && params.entry.startedAt
+              ? params.entry.endedAt - params.entry.startedAt
+              : undefined,
         },
         {
           runId: params.entry.runId,

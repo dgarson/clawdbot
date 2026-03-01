@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { Command } from "commander";
 import type { AuthProfileCredential, OAuthCredential } from "../agents/auth-profiles/types.js";
+import type { SubagentRunRecord } from "../agents/subagent-registry.types.js";
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import type { ChannelDock } from "../channels/dock.js";
@@ -319,6 +320,8 @@ export type PluginHookName =
   | "subagent_delivery_target"
   | "subagent_spawned"
   | "subagent_ended"
+  | "subagent_stopping"
+  | "run_start"
   | "gateway_start"
   | "gateway_stop";
 
@@ -329,6 +332,21 @@ export type PluginHookAgentContext = {
   sessionId?: string;
   workspaceDir?: string;
   messageProvider?: string;
+};
+
+// run_start hook
+export type PluginHookRunStartEvent = {
+  runId: string;
+  sessionKey: string;
+  sessionId: string;
+  agentId: string;
+  model: string;
+  provider: string;
+  isHeartbeat: boolean;
+  isFollowup: boolean;
+  messageCount: number;
+  compactionCount: number;
+  originChannel?: string;
 };
 
 // before_model_resolve hook
@@ -393,6 +411,9 @@ export type PluginHookLlmOutputEvent = {
     cacheWrite?: number;
     total?: number;
   };
+  durationMs?: number;
+  stopReason?: string;
+  messageCount?: number;
 };
 
 // agent_end hook
@@ -401,6 +422,21 @@ export type PluginHookAgentEndEvent = {
   success: boolean;
   error?: string;
   durationMs?: number;
+  runId?: string;
+  provider?: string;
+  model?: string;
+  usage?: {
+    input?: number;
+    output?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+    total?: number;
+  };
+  toolCallCount?: number;
+  toolNames?: string[];
+  compactionCount?: number;
+  stopReason?: string;
+  lastAssistantMessage?: string;
 };
 
 // Compaction hooks
@@ -473,12 +509,14 @@ export type PluginHookMessageSentEvent = {
 export type PluginHookToolContext = {
   agentId?: string;
   sessionKey?: string;
+  runId?: string;
   toolName: string;
 };
 
 // before_tool_call hook
 export type PluginHookBeforeToolCallEvent = {
   toolName: string;
+  toolCallId?: string;
   params: Record<string, unknown>;
 };
 
@@ -491,6 +529,8 @@ export type PluginHookBeforeToolCallResult = {
 // after_tool_call hook
 export type PluginHookAfterToolCallEvent = {
   toolName: string;
+  toolCallId?: string;
+  isError?: boolean;
   params: Record<string, unknown>;
   result?: unknown;
   error?: string;
@@ -637,6 +677,49 @@ export type PluginHookSubagentEndedEvent = {
   endedAt?: number;
   outcome?: "ok" | "error" | "timeout" | "killed" | "reset" | "deleted";
   error?: string;
+  /** Full subagent run record (structuredClone) for future-proofing */
+  entry?: SubagentRunRecord;
+  /** Wall-clock duration (endedAt - startedAt) */
+  durationMs?: number;
+};
+
+// subagent_stopping hook
+export type PluginHookSubagentStoppingEvent = {
+  runId: string;
+  childSessionKey: string;
+  requesterSessionKey: string;
+  agentId: string;
+  task?: string;
+  label?: string;
+  outcome: "ok" | "error" | "timeout";
+  reason: string;
+  error?: string;
+  lastAssistantMessage?: string;
+  usage?: {
+    input?: number;
+    output?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+    total?: number;
+  };
+  durationMs?: number;
+  toolsUsed?: string[];
+  steerCount: number;
+  maxSteers: number;
+};
+
+export type PluginHookSubagentStoppingResult = {
+  allow?: boolean;
+  prompt?: string;
+  reason?: string;
+  extendMaxSteers?: number;
+};
+
+export type PluginHookSubagentStoppingContext = {
+  agentId: string;
+  runId: string;
+  childSessionKey: string;
+  requesterSessionKey: string;
 };
 
 // Gateway context
@@ -656,6 +739,10 @@ export type PluginHookGatewayStopEvent = {
 
 // Hook handler types mapped by hook name
 export type PluginHookHandlerMap = {
+  run_start: (
+    event: PluginHookRunStartEvent,
+    ctx: PluginHookAgentContext,
+  ) => Promise<void> | void;
   before_model_resolve: (
     event: PluginHookBeforeModelResolveEvent,
     ctx: PluginHookAgentContext,
@@ -744,6 +831,10 @@ export type PluginHookHandlerMap = {
     event: PluginHookSubagentEndedEvent,
     ctx: PluginHookSubagentContext,
   ) => Promise<void> | void;
+  subagent_stopping: (
+    event: PluginHookSubagentStoppingEvent,
+    ctx: PluginHookSubagentStoppingContext,
+  ) => Promise<PluginHookSubagentStoppingResult | void> | PluginHookSubagentStoppingResult | void;
   gateway_start: (
     event: PluginHookGatewayStartEvent,
     ctx: PluginHookGatewayContext,

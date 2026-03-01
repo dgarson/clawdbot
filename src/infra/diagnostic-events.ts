@@ -147,8 +147,39 @@ export type DiagnosticToolLoopEvent = DiagnosticBaseEvent & {
   pairedToolName?: string;
 };
 
+export type DiagnosticModelCallEvent = DiagnosticBaseEvent & {
+  type: "model.call";
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  callIndex: number;
+  provider?: string;
+  model?: string;
+  delta: {
+    input?: number;
+    output?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+    total?: number;
+  };
+  cumulative: {
+    input: number;
+    output: number;
+    cacheRead: number;
+    cacheWrite: number;
+    total: number;
+  };
+  context?: {
+    limit?: number;
+    used?: number;
+  };
+  costUsd?: number;
+  durationMs?: number;
+};
+
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
+  | DiagnosticModelCallEvent
   | DiagnosticWebhookReceivedEvent
   | DiagnosticWebhookProcessedEvent
   | DiagnosticWebhookErrorEvent

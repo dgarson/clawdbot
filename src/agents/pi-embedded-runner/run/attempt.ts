@@ -1180,8 +1180,8 @@ export async function runEmbeddedAttempt(
 
       let promptError: unknown = null;
       let promptErrorSource: "prompt" | "compaction" | null = null;
+      const promptStartedAt = Date.now();
       try {
-        const promptStartedAt = Date.now();
 
         // Run before_prompt_build hooks to allow plugins to inject prompt context.
         // Legacy compatibility: before_agent_start is also checked for context fields.
@@ -1427,6 +1427,11 @@ export async function runEmbeddedAttempt(
         // This is fire-and-forget, so we don't await
         // Run even on compaction timeout so plugins can log/cleanup
         if (hookRunner?.hasHooks("agent_end")) {
+          const usageTotals = getUsageTotals();
+          const lastAssistantMsg = messagesSnapshot
+            .slice()
+            .toReversed()
+            .find((m) => m.role === "assistant");
           hookRunner
             .runAgentEnd(
               {
@@ -1434,6 +1439,27 @@ export async function runEmbeddedAttempt(
                 success: !aborted && !promptError,
                 error: promptError ? describeUnknownError(promptError) : undefined,
                 durationMs: Date.now() - promptStartedAt,
+                runId: params.runId,
+                provider: params.provider,
+                model: params.modelId,
+                usage: usageTotals
+                  ? {
+                      input: usageTotals.input,
+                      output: usageTotals.output,
+                      cacheRead: usageTotals.cacheRead,
+                      cacheWrite: usageTotals.cacheWrite,
+                      total: usageTotals.total,
+                    }
+                  : undefined,
+                toolCallCount: toolMetas.length,
+                toolNames: [...new Set(toolMetas.map((t) => t.toolName).filter(Boolean))] as string[],
+                compactionCount: getCompactionCount(),
+                stopReason: (lastAssistantMsg as Record<string, unknown> | undefined)?.stopReason as
+                  | string
+                  | undefined,
+                lastAssistantMessage: assistantTexts.length > 0
+                  ? assistantTexts[assistantTexts.length - 1]
+                  : undefined,
               },
               {
                 agentId: hookAgentId,
@@ -1494,6 +1520,11 @@ export async function runEmbeddedAttempt(
               assistantTexts,
               lastAssistant,
               usage: getUsageTotals(),
+              durationMs: Date.now() - promptStartedAt,
+              stopReason: (lastAssistant as Record<string, unknown> | undefined)?.stopReason as
+                | string
+                | undefined,
+              messageCount: messagesSnapshot.length,
             },
             {
               agentId: hookAgentId,

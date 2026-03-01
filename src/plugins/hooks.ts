@@ -18,6 +18,7 @@ import type {
   PluginHookBeforePromptBuildEvent,
   PluginHookBeforePromptBuildResult,
   PluginHookBeforeCompactionEvent,
+  PluginHookRunStartEvent,
   PluginHookLlmInputEvent,
   PluginHookLlmOutputEvent,
   PluginHookBeforeResetEvent,
@@ -43,6 +44,9 @@ import type {
   PluginHookSubagentSpawningResult,
   PluginHookSubagentEndedEvent,
   PluginHookSubagentSpawnedEvent,
+  PluginHookSubagentStoppingContext,
+  PluginHookSubagentStoppingEvent,
+  PluginHookSubagentStoppingResult,
   PluginHookToolContext,
   PluginHookToolResultPersistContext,
   PluginHookToolResultPersistEvent,
@@ -60,6 +64,7 @@ export type {
   PluginHookBeforeModelResolveResult,
   PluginHookBeforePromptBuildEvent,
   PluginHookBeforePromptBuildResult,
+  PluginHookRunStartEvent,
   PluginHookLlmInputEvent,
   PluginHookLlmOutputEvent,
   PluginHookAgentEndEvent,
@@ -90,6 +95,9 @@ export type {
   PluginHookSubagentSpawningResult,
   PluginHookSubagentSpawnedEvent,
   PluginHookSubagentEndedEvent,
+  PluginHookSubagentStoppingContext,
+  PluginHookSubagentStoppingEvent,
+  PluginHookSubagentStoppingResult,
   PluginHookGatewayContext,
   PluginHookGatewayStartEvent,
   PluginHookGatewayStopEvent,
@@ -257,6 +265,18 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
   // =========================================================================
   // Agent Hooks
   // =========================================================================
+
+  /**
+   * Run run_start hook.
+   * Fires at the beginning of each agent run with run metadata.
+   * Runs in parallel (fire-and-forget).
+   */
+  async function runRunStart(
+    event: PluginHookRunStartEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<void> {
+    return runVoidHook("run_start", event, ctx);
+  }
 
   /**
    * Run before_model_resolve hook.
@@ -669,6 +689,18 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     return runVoidHook("subagent_ended", event, ctx);
   }
 
+  /**
+   * Run subagent_stopping hook.
+   * Sequential/modifying hook that can intercept subagent completion.
+   * First handler returning { allow: false, prompt: "..." } wins.
+   */
+  async function runSubagentStopping(
+    event: PluginHookSubagentStoppingEvent,
+    ctx: PluginHookSubagentStoppingContext,
+  ): Promise<PluginHookSubagentStoppingResult | void> {
+    return runModifyingHook("subagent_stopping", event, ctx);
+  }
+
   // =========================================================================
   // Gateway Hooks
   // =========================================================================
@@ -715,6 +747,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
 
   return {
     // Agent hooks
+    runRunStart,
     runBeforeModelResolve,
     runBeforePromptBuild,
     runBeforeAgentStart,
@@ -741,6 +774,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     runSubagentDeliveryTarget,
     runSubagentSpawned,
     runSubagentEnded,
+    runSubagentStopping,
     // Gateway hooks
     runGatewayStart,
     runGatewayStop,

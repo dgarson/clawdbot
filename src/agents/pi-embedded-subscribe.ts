@@ -3,6 +3,7 @@ import { parseReplyDirectives } from "../auto-reply/reply/reply-directives.js";
 import { createStreamingDirectiveAccumulator } from "../auto-reply/reply/streaming-directives.js";
 import { formatToolAggregate } from "../auto-reply/tool-meta.js";
 import { emitAgentEvent } from "../infra/agent-events.js";
+import { emitDiagnosticEvent } from "../infra/diagnostic-events.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import type { InlineCodeState } from "../markdown/code-spans.js";
 import { buildCodeSpanIndex, createInlineCodeState } from "../markdown/code-spans.js";
@@ -87,6 +88,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     total: 0,
   };
   let compactionCount = 0;
+  let callIndex = 0;
 
   const assistantTexts = state.assistantTexts;
   const toolMetas = state.toolMetas;
@@ -269,6 +271,28 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
       usage.total ??
       (usage.input ?? 0) + (usage.output ?? 0) + (usage.cacheRead ?? 0) + (usage.cacheWrite ?? 0);
     usageTotals.total += usageTotal;
+
+    // Emit per-call diagnostic snapshot for telemetry consumers.
+    emitDiagnosticEvent({
+      type: "model.call",
+      sessionKey: params.sessionKey,
+      runId: params.runId,
+      callIndex: callIndex++,
+      delta: {
+        input: usage.input,
+        output: usage.output,
+        cacheRead: usage.cacheRead,
+        cacheWrite: usage.cacheWrite,
+        total: usageTotal,
+      },
+      cumulative: {
+        input: usageTotals.input,
+        output: usageTotals.output,
+        cacheRead: usageTotals.cacheRead,
+        cacheWrite: usageTotals.cacheWrite,
+        total: usageTotals.total,
+      },
+    });
   };
   const getUsageTotals = () => {
     const hasUsage =
