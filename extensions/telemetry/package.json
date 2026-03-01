@@ -1,0 +1,15 @@
+{
+  "name": "@openclaw/telemetry",
+  "version": "0.1.0",
+  "description": "OpenClaw telemetry: session replay, tool audit, channel linkage, and usage tracking",
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "openclaw": "*"
+  }
+}

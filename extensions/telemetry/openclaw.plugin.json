@@ -1,0 +1,51 @@
+{
+  "id": "telemetry",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable or disable telemetry capture."
+      },
+      "captureToolResults": {
+        "type": "string",
+        "enum": ["none", "summary", "full"],
+        "default": "summary",
+        "description": "How much tool output to persist. 'none' = params only, 'summary' = first 500 chars, 'full' = everything."
+      },
+      "captureToolInputs": {
+        "type": "string",
+        "enum": ["none", "summary", "full"],
+        "default": "full",
+        "description": "How much tool input to persist."
+      },
+      "captureLlmPayloads": {
+        "type": "boolean",
+        "default": false,
+        "description": "Capture full LLM request/response payloads (large, use for debugging only)."
+      },
+      "rotationPolicy": {
+        "type": "string",
+        "enum": ["daily", "weekly", "none"],
+        "default": "daily",
+        "description": "JSONL file rotation policy."
+      },
+      "retentionDays": {
+        "type": "number",
+        "default": 30,
+        "description": "Auto-delete JSONL files older than this many days. 0 = keep forever."
+      },
+      "blobThresholdBytes": {
+        "type": "number",
+        "default": 4096,
+        "description": "Tool result/input size threshold (bytes) above which content is externalized to a blob file."
+      },
+      "dataDir": {
+        "type": "string",
+        "description": "Override the telemetry data directory. Defaults to ~/.openclaw/agents/{agentId}/telemetry/."
+      }
+    }
+  }
+}
