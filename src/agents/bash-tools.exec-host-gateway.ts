@@ -13,6 +13,7 @@ import {
   resolveAllowAlwaysPatterns,
   resolveExecApprovals,
 } from "../infra/exec-approvals.js";
+import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { detectCommandObfuscation } from "../infra/exec-obfuscation-detect.js";
 import type { SafeBinProfile } from "../infra/exec-safe-bin-policy.js";
 import { logInfo } from "../logger.js";
@@ -137,6 +138,45 @@ export async function processGatewayAllowlist(
     params.warnings.push(
       "Warning: heredoc execution requires explicit approval in allowlist mode.",
     );
+  }
+
+  // Fire permission_request hook (fire-and-forget) for audit/notification purposes.
+  // This fires when exec approval is required, giving plugins visibility into
+  // permission decisions before the approval flow starts.
+  if (requiresAsk) {
+    const hookRunner = getGlobalHookRunner();
+    if (hookRunner?.hasHooks("permission_request")) {
+      const permission =
+        obfuscation.detected
+          ? "exec.obfuscation"
+          : requiresHeredocApproval
+            ? "exec.heredoc"
+            : hostSecurity === "allowlist" && (!analysisOk || !allowlistSatisfied)
+              ? "exec.allowlist_miss"
+              : "exec.approval";
+      void hookRunner
+        .runPermissionRequest(
+          {
+            toolName: "exec",
+            permission,
+            granted: false, // approval is pending; decision not yet known
+            params: {
+              command: params.command,
+              workdir: params.workdir,
+              security: hostSecurity,
+              ask: hostAsk,
+            },
+          },
+          {
+            toolName: "exec",
+            agentId: params.agentId,
+            sessionKey: params.sessionKey,
+          },
+        )
+        .catch(() => {
+          // Ignore hook errors — this is fire-and-forget for audit only
+        });
+    }
   }
 
   if (requiresAsk) {

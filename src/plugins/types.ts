@@ -308,6 +308,7 @@ export type PluginHookName =
   | "after_compaction"
   | "before_reset"
   | "message_received"
+  | "before_message_process"
   | "message_sending"
   | "message_sent"
   | "before_tool_call"
@@ -322,6 +323,7 @@ export type PluginHookName =
   | "subagent_ended"
   | "subagent_stopping"
   | "run_start"
+  | "permission_request"
   | "gateway_start"
   | "gateway_stop";
 
@@ -483,6 +485,39 @@ export type PluginHookMessageReceivedEvent = {
   content: string;
   timestamp?: number;
   metadata?: Record<string, unknown>;
+};
+
+// before_message_process hook — sequential, blocking hook that fires after message_received
+// and before the message is enqueued for agent processing. Allows plugins to inspect,
+// modify, or block inbound messages (e.g. prompt injection detection, rate limiting).
+export type PluginHookBeforeMessageProcessEvent = {
+  from: string;
+  content: string;
+  channel: string;
+  timestamp?: number;
+  messageId?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type PluginHookBeforeMessageProcessResult = {
+  /** If true, drop the message without processing */
+  block?: boolean;
+  blockReason?: string;
+  /** Override the content before agent processing */
+  content?: string;
+  /** Additional metadata to attach */
+  metadata?: Record<string, unknown>;
+};
+
+// permission_request hook — fire-and-forget hook for audit/notification when a tool
+// requests elevated permissions (e.g. exec approval required).
+export type PluginHookPermissionRequestEvent = {
+  toolName: string;
+  toolCallId?: string;
+  permission: string;
+  granted: boolean;
+  reason?: string;
+  params?: Record<string, unknown>;
 };
 
 // message_sending hook
@@ -779,6 +814,17 @@ export type PluginHookHandlerMap = {
   message_received: (
     event: PluginHookMessageReceivedEvent,
     ctx: PluginHookMessageContext,
+  ) => Promise<void> | void;
+  before_message_process: (
+    event: PluginHookBeforeMessageProcessEvent,
+    ctx: PluginHookMessageContext,
+  ) =>
+    | Promise<PluginHookBeforeMessageProcessResult | void>
+    | PluginHookBeforeMessageProcessResult
+    | void;
+  permission_request: (
+    event: PluginHookPermissionRequestEvent,
+    ctx: PluginHookToolContext,
   ) => Promise<void> | void;
   message_sending: (
     event: PluginHookMessageSendingEvent,

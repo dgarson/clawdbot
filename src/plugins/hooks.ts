@@ -29,6 +29,9 @@ import type {
   PluginHookGatewayStopEvent,
   PluginHookMessageContext,
   PluginHookMessageReceivedEvent,
+  PluginHookBeforeMessageProcessEvent,
+  PluginHookBeforeMessageProcessResult,
+  PluginHookPermissionRequestEvent,
   PluginHookMessageSendingEvent,
   PluginHookMessageSendingResult,
   PluginHookMessageSentEvent,
@@ -73,6 +76,9 @@ export type {
   PluginHookAfterCompactionEvent,
   PluginHookMessageContext,
   PluginHookMessageReceivedEvent,
+  PluginHookBeforeMessageProcessEvent,
+  PluginHookBeforeMessageProcessResult,
+  PluginHookPermissionRequestEvent,
   PluginHookMessageSendingEvent,
   PluginHookMessageSendingResult,
   PluginHookMessageSentEvent,
@@ -407,6 +413,31 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
   }
 
   /**
+   * Run before_message_process hook.
+   * Sequential/modifying hook that fires after message_received and before the message is
+   * enqueued for agent processing. Allows plugins to inspect, modify, or block inbound messages.
+   * Fail-open: handler errors are logged and do not block message processing.
+   */
+  async function runBeforeMessageProcess(
+    event: PluginHookBeforeMessageProcessEvent,
+    ctx: PluginHookMessageContext,
+  ): Promise<PluginHookBeforeMessageProcessResult | undefined> {
+    return runModifyingHook<"before_message_process", PluginHookBeforeMessageProcessResult>(
+      "before_message_process",
+      event,
+      ctx,
+      (acc, next) => ({
+        // First block: true wins
+        block: next.block ?? acc?.block,
+        blockReason: next.blockReason ?? acc?.blockReason,
+        // Last content override wins (lower priority handler runs last)
+        content: acc?.content ?? next.content,
+        metadata: acc?.metadata ?? next.metadata,
+      }),
+    );
+  }
+
+  /**
    * Run message_sending hook.
    * Allows plugins to modify or cancel outgoing messages.
    * Runs sequentially.
@@ -471,6 +502,19 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     ctx: PluginHookToolContext,
   ): Promise<void> {
     return runVoidHook("after_tool_call", event, ctx);
+  }
+
+  /**
+   * Run permission_request hook.
+   * Fire-and-forget hook for audit/notification when a tool requires elevated permissions
+   * (e.g. exec approval is required). Does not block the approval flow.
+   * Runs in parallel.
+   */
+  async function runPermissionRequest(
+    event: PluginHookPermissionRequestEvent,
+    ctx: PluginHookToolContext,
+  ): Promise<void> {
+    return runVoidHook("permission_request", event, ctx);
   }
 
   /**
@@ -759,11 +803,13 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     runBeforeReset,
     // Message hooks
     runMessageReceived,
+    runBeforeMessageProcess,
     runMessageSending,
     runMessageSent,
     // Tool hooks
     runBeforeToolCall,
     runAfterToolCall,
+    runPermissionRequest,
     runToolResultPersist,
     // Message write hooks
     runBeforeMessageWrite,

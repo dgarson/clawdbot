@@ -242,6 +242,56 @@ export async function dispatchReplyFromConfig(params: {
     });
   }
 
+  // Run before_message_process hook (sequential, blocking) — fires after message_received
+  // and before any agent processing. Handlers can block or modify the message content.
+  // Fail-open: errors in handlers are caught internally by the hook runner and do not
+  // block message processing.
+  if (hookRunner?.hasHooks("before_message_process")) {
+    const processResult = await hookRunner
+      .runBeforeMessageProcess(
+        {
+          from: ctx.From ?? "",
+          content,
+          channel: channelId,
+          timestamp,
+          messageId: messageIdForHook,
+          metadata: {
+            to: ctx.To,
+            provider: ctx.Provider,
+            surface: ctx.Surface,
+            threadId: ctx.MessageThreadId,
+            originatingChannel: ctx.OriginatingChannel,
+            originatingTo: ctx.OriginatingTo,
+            senderId: ctx.SenderId,
+            senderName: ctx.SenderName,
+            senderUsername: ctx.SenderUsername,
+            senderE164: ctx.SenderE164,
+            guildId: ctx.GroupSpace,
+            channelName: ctx.GroupChannel,
+          },
+        },
+        {
+          channelId,
+          accountId: ctx.AccountId,
+          conversationId,
+        },
+      )
+      .catch((err) => {
+        logVerbose(
+          `dispatch-from-config: before_message_process plugin hook failed: ${String(err)}`,
+        );
+        return undefined;
+      });
+    if (processResult?.block) {
+      logVerbose(
+        `dispatch-from-config: message blocked by before_message_process hook` +
+          (processResult.blockReason ? `: ${processResult.blockReason}` : ""),
+      );
+      recordProcessed("skipped", { reason: "before_message_process_blocked" });
+      return { queuedFinal: false, counts: dispatcher.getQueuedCounts() };
+    }
+  }
+
   // Check if we should route replies to originating channel instead of dispatcher.
   // Only route when the originating channel is DIFFERENT from the current surface.
   // This handles cross-provider routing (e.g., message from Telegram being processed
