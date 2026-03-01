@@ -56,6 +56,7 @@ import type {
   PluginHookToolResultPersistResult,
   PluginHookBeforeMessageWriteEvent,
   PluginHookBeforeMessageWriteResult,
+  PluginHookLlmApiCallEvent,
 } from "./types.js";
 
 // Re-export types for consumers
@@ -107,6 +108,7 @@ export type {
   PluginHookGatewayContext,
   PluginHookGatewayStartEvent,
   PluginHookGatewayStopEvent,
+  PluginHookLlmApiCallEvent,
 };
 
 export type HookRunnerLogger = {
@@ -771,6 +773,17 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     return runVoidHook("gateway_stop", event, ctx);
   }
 
+  /**
+   * Run llm_api_call hook.
+   * Runs in parallel (fire-and-forget). Used for cross-path LLM observability.
+   */
+  async function runLlmApiCall(
+    event: PluginHookLlmApiCallEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<void> {
+    return runVoidHook("llm_api_call", event, ctx);
+  }
+
   // =========================================================================
   // Utility
   // =========================================================================
@@ -824,6 +837,8 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     // Gateway hooks
     runGatewayStart,
     runGatewayStop,
+    // LLM observability
+    runLlmApiCall,
     // Utility
     hasHooks,
     getHookCount,
