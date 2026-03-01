@@ -177,6 +177,7 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
               await hookRunner.runAfterToolCall(
                 {
                   toolName: name,
+                  toolCallId,
                   params: isPlainObject(afterParams) ? afterParams : {},
                   result,
                 },
@@ -223,6 +224,8 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
               await hookRunner.runAfterToolCall(
                 {
                   toolName: normalizedName,
+                  toolCallId,
+                  isError: true,
                   params: isPlainObject(params) ? params : {},
                   error: described.message,
                 },
