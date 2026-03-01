@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import path from "node:path";
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { ChannelDock } from "../channels/dock.js";
@@ -8,8 +9,10 @@ import type {
 } from "../gateway/server-methods/types.js";
 import { registerInternalHook } from "../hooks/internal-hooks.js";
 import type { HookEntry } from "../hooks/types.js";
+import { emitDiagnosticEvent } from "../infra/diagnostic-events.js";
 import { resolveUserPath } from "../utils.js";
 import { registerPluginCommand } from "./commands.js";
+import { getGlobalHookRunner } from "./hook-runner-global.js";
 import { normalizePluginHttpPath } from "./http-path.js";
 import type { PluginRuntime } from "./runtime/types.js";
 import type {
@@ -32,6 +35,9 @@ import type {
   PluginHookName,
   PluginHookHandlerMap,
   PluginHookRegistration as TypedPluginHookRegistration,
+  PluginHookAgentContext,
+  PluginHookLlmApiCallEvent,
+  PluginUsageRecord,
 } from "./types.js";
 
 export type PluginToolRegistration = {
@@ -499,6 +505,28 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       registerCommand: (command) => registerCommand(record, command),
       resolvePath: (input: string) => resolveUserPath(input),
       on: (hookName, handler, opts) => registerTypedHook(record, hookName, handler, opts),
+      recordUsage: (entry: PluginUsageRecord): void => {
+        emitDiagnosticEvent({
+          type: "usage.record",
+          ...entry,
+        });
+      },
+      emitLlmApiCall: (
+        entry: Omit<PluginHookLlmApiCallEvent, "callId"> & { callId?: string },
+      ): void => {
+        const hookRunner = getGlobalHookRunner();
+        if (!hookRunner?.hasHooks("llm_api_call")) {
+          return;
+        }
+        const callId = entry.callId ?? crypto.randomUUID();
+        const fullEvent: PluginHookLlmApiCallEvent = { ...entry, callId };
+        const ctx: PluginHookAgentContext = {
+          agentId: entry.agentId ?? record.id,
+          sessionKey: entry.sessionKey,
+          sessionId: entry.sessionId,
+        };
+        void hookRunner.runLlmApiCall(fullEvent, ctx);
+      },
     };
   };
 
