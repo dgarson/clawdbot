@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Type } from "@sinclair/typebox";
 import Ajv from "ajv";
-import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk";
+import { getAgentCallContext, resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk";
 // NOTE: This extension is intended to be bundled with OpenClaw.
 // When running from source (tests/dev), OpenClaw internals live under src/.
 // When running from a built install, internals live under dist/ (no src/ tree).
@@ -89,6 +89,8 @@ export function createLlmTaskTool(api: OpenClawPluginApi) {
     }),
 
     async execute(_id: string, params: Record<string, unknown>) {
+      // Capture parent agent context before any async work for attribution
+      const parentCtx = getAgentCallContext();
       const prompt = typeof params.prompt === "string" ? params.prompt : "";
       if (!prompt.trim()) {
         throw new Error("prompt required");
@@ -188,6 +190,7 @@ export function createLlmTaskTool(api: OpenClawPluginApi) {
 
         const runEmbeddedPiAgent = await loadRunEmbeddedPiAgent();
 
+        const taskStartMs = Date.now();
         const result = await runEmbeddedPiAgent({
           sessionId,
           sessionFile,
@@ -202,6 +205,20 @@ export function createLlmTaskTool(api: OpenClawPluginApi) {
           authProfileIdSource: authProfileId ? "user" : "auto",
           streamParams,
           disableTools: true,
+        });
+
+        // Emit llm_api_call with parent attribution for cross-session cost tracking
+        api.emitLlmApiCall?.({
+          source: "tool",
+          purpose: "llm-task",
+          sessionId,
+          parentSessionKey: parentCtx?.sessionKey,
+          parentRunId: parentCtx?.runId,
+          toolCallId: parentCtx?.toolCallId,
+          agentId: parentCtx?.agentId,
+          provider,
+          model,
+          durationMs: Date.now() - taskStartMs,
         });
 
         // oxlint-disable-next-line typescript/no-explicit-any

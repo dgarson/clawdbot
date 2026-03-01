@@ -1,6 +1,7 @@
 import { rmSync } from "node:fs";
 import { completeSimple, type TextContent } from "@mariozechner/pi-ai";
 import { EdgeTTS } from "node-edge-tts";
+import { getAgentCallContext } from "../agents/call-context.js";
 import { getApiKeyForModel, requireApiKey } from "../agents/model-auth.js";
 import {
   buildModelAliasIndex,
@@ -10,6 +11,7 @@ import {
 } from "../agents/model-selection.js";
 import { resolveModel } from "../agents/pi-embedded-runner/model.js";
 import type { OpenClawConfig } from "../config/config.js";
+import { emitDiagnosticEvent } from "../infra/diagnostic-events.js";
 import type {
   ResolvedTtsConfig,
   ResolvedTtsModelOverrides,
@@ -479,9 +481,26 @@ export async function summarizeText(params: {
         throw new Error("No summary returned");
       }
 
+      const latencyMs = Date.now() - startTime;
+
+      // Emit usage record for this direct LLM completion call
+      const callCtx = getAgentCallContext();
+      emitDiagnosticEvent({
+        type: "usage.record",
+        kind: "completion",
+        sessionKey: callCtx?.sessionKey,
+        sessionId: callCtx?.sessionId,
+        runId: callCtx?.runId,
+        toolCallId: callCtx?.toolCallId,
+        agentId: callCtx?.agentId,
+        provider: ref.provider,
+        model: ref.model,
+        llm: { apiCallCount: 1, totalDurationMs: latencyMs },
+      });
+
       return {
         summary,
-        latencyMs: Date.now() - startTime,
+        latencyMs,
         inputLength: text.length,
         outputLength: summary.length,
       };
@@ -582,7 +601,24 @@ export async function elevenLabsTTS(params: {
       throw new Error(`ElevenLabs API error (${response.status})`);
     }
 
-    return Buffer.from(await response.arrayBuffer());
+    const buf = Buffer.from(await response.arrayBuffer());
+
+    // Emit usage record for this direct TTS synthesis call
+    const callCtx = getAgentCallContext();
+    emitDiagnosticEvent({
+      type: "usage.record",
+      kind: "tts",
+      sessionKey: callCtx?.sessionKey,
+      sessionId: callCtx?.sessionId,
+      runId: callCtx?.runId,
+      toolCallId: callCtx?.toolCallId,
+      agentId: callCtx?.agentId,
+      provider: "elevenlabs",
+      model: modelId,
+      billing: { units: text.length, unitType: "characters" },
+    });
+
+    return buf;
   } finally {
     clearTimeout(timeout);
   }
@@ -628,7 +664,24 @@ export async function openaiTTS(params: {
       throw new Error(`OpenAI TTS API error (${response.status})`);
     }
 
-    return Buffer.from(await response.arrayBuffer());
+    const buf = Buffer.from(await response.arrayBuffer());
+
+    // Emit usage record for this direct TTS synthesis call
+    const callCtx = getAgentCallContext();
+    emitDiagnosticEvent({
+      type: "usage.record",
+      kind: "tts",
+      sessionKey: callCtx?.sessionKey,
+      sessionId: callCtx?.sessionId,
+      runId: callCtx?.runId,
+      toolCallId: callCtx?.toolCallId,
+      agentId: callCtx?.agentId,
+      provider: "openai",
+      model,
+      billing: { units: text.length, unitType: "characters" },
+    });
+
+    return buf;
   } finally {
     clearTimeout(timeout);
   }
