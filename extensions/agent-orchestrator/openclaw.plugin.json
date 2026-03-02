@@ -1,0 +1,6 @@
+{
+  "id": "agent-orchestrator",
+  "name": "Agent Orchestrator",
+  "description": "Multi-agent task decomposition with role-based boundaries and inter-agent messaging",
+  "version": "2026.3.1"
+}
