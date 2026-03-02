@@ -4,6 +4,9 @@
   "private": true,
   "description": "Multi-agent task decomposition with role-based boundaries, inter-agent messaging, and lifecycle management",
   "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0"
+  },
   "peerDependencies": {
     "openclaw": ">=2026.1.26"
   },
