@@ -1473,6 +1473,69 @@ describe("agent-orchestrator integration", () => {
         expect((blockResult as { block?: boolean }).block).toBe(true);
       });
     });
+
+    // ── agent_end hook guard + fire-and-forget behavior ──────────────────────
+
+    describe("agent_end hook (memory reflection)", () => {
+      const mfConfig = {
+        enabled: true,
+        model: "claude-haiku-4-5-20251001",
+        autoWriteThreshold: 0.85,
+        maxContextMessages: 50,
+      };
+
+      it("returns early when ctx.agentId is missing", async () => {
+        const { hooks } = await setupPlugin({ memoryFeedback: mfConfig });
+        const hook = findHook(hooks, "agent_end")!;
+        const result = await hook.handler(
+          { messages: [], success: true, assistantTexts: ["done"], toolMetas: [] },
+          { sessionKey: "sk1" }, // no agentId
+        );
+        expect(result).toBeUndefined();
+      });
+
+      it("returns early when sessionKey is missing", async () => {
+        const { hooks } = await setupPlugin({ memoryFeedback: mfConfig });
+        const hook = findHook(hooks, "agent_end")!;
+        const result = await hook.handler(
+          { messages: [], success: true, assistantTexts: ["done"], toolMetas: [] },
+          { agentId: "a1" }, // no sessionKey
+        );
+        expect(result).toBeUndefined();
+      });
+
+      it("skips failed runs with both texts and toolMetas empty", async () => {
+        const { hooks, api } = await setupPlugin({ memoryFeedback: mfConfig });
+        const hook = findHook(hooks, "agent_end")!;
+        await hook.handler(
+          { messages: [], success: false, assistantTexts: [], toolMetas: [] },
+          { agentId: "a1", sessionKey: "sk1" },
+        );
+        // Reflector never fires → no warn logged
+        expect(api.logger.warn).not.toHaveBeenCalled();
+      });
+
+      it("fires reflector and catches error when run has content (no real API key)", async () => {
+        const { hooks, api } = await setupPlugin({ memoryFeedback: mfConfig });
+        const hook = findHook(hooks, "agent_end")!;
+        // Fire with real content — reflector will fail (no ANTHROPIC_API_KEY) and log warn
+        await hook.handler(
+          {
+            messages: [],
+            success: true,
+            assistantTexts: ["checked auth"],
+            toolMetas: [],
+            runId: "r1",
+          },
+          { agentId: "a1", sessionKey: "sk1" },
+        );
+        // Give the fire-and-forget promise a tick to settle
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        expect(api.logger.warn).toHaveBeenCalledWith(
+          expect.stringContaining("memory-reflector failed"),
+        );
+      });
+    });
   });
 
   // ==========================================================================
@@ -1534,6 +1597,39 @@ describe("agent-orchestrator integration", () => {
         (t) => t.opts?.name === "mail" || t.opts?.names?.includes("mail"),
       );
       expect(mailTool).toBeUndefined();
+    });
+
+    it("registers agent_end hook when memoryFeedback.enabled is true", () => {
+      const { api, hooks } = createMockApi({
+        memoryFeedback: {
+          enabled: true,
+          model: "claude-haiku-4-5-20251001",
+          autoWriteThreshold: 0.9,
+          maxContextMessages: 30,
+        },
+      });
+      plugin.register(api as never);
+      const agentEndHook = findHook(hooks, "agent_end");
+      expect(agentEndHook).toBeDefined();
+    });
+
+    it("does not register agent_end hook when memoryFeedback not configured", () => {
+      const { api, hooks } = createMockApi({});
+      plugin.register(api as never);
+      expect(findHook(hooks, "agent_end")).toBeUndefined();
+    });
+
+    it("does not register agent_end hook when memoryFeedback.enabled is false", () => {
+      const { api, hooks } = createMockApi({
+        memoryFeedback: {
+          enabled: false,
+          model: "claude-haiku-4-5-20251001",
+          autoWriteThreshold: 0.85,
+          maxContextMessages: 50,
+        },
+      });
+      plugin.register(api as never);
+      expect(findHook(hooks, "agent_end")).toBeUndefined();
     });
 
     it("wires mail.logging tracing config into mail tool execution", async () => {
