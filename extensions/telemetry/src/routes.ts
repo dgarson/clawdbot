@@ -2,12 +2,21 @@
  * Telemetry HTTP API routes registered via api.registerHttpRoute().
  *
  * Routes:
- *   GET /telemetry/runs           → listRuns (query params: session, limit, since, until)
- *   GET /telemetry/runs/:runId    → getRun
- *   GET /telemetry/tools          → getToolCalls (query params: run, name, limit)
- *   GET /telemetry/timeline/:key  → getSessionTimeline (query params: limit, kinds)
- *   GET /telemetry/usage          → getUsageSummary (query params: since, until, session)
- *   GET /telemetry/events         → listEvents (query params: kind, limit, since, session)
+ *   GET /telemetry/runs              → listRuns
+ *   GET /telemetry/runs/:runId       → getRun
+ *   GET /telemetry/tools             → getToolCalls
+ *   GET /telemetry/timeline/:key     → getSessionTimeline
+ *   GET /telemetry/usage             → getUsageSummary
+ *   GET /telemetry/events            → listEvents
+ *   GET /telemetry/sessions          → listSessions
+ *   GET /telemetry/sessions/:key     → getSessionDetail
+ *   GET /telemetry/costs             → getCostBreakdown
+ *   GET /telemetry/subagents         → listSubagents
+ *   GET /telemetry/tree/:key         → getSubagentTree
+ *   GET /telemetry/messages          → listMessages
+ *   GET /telemetry/errors            → listErrors
+ *   GET /telemetry/top/:dimension    → getLeaderboard
+ *   GET /telemetry/model-calls       → getModelCalls
  */
 
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -20,7 +29,17 @@ import {
   getSessionTimeline,
   getUsageSummary,
   listEvents,
+  listSessions,
+  getSessionDetail,
+  getCostBreakdown,
+  listSubagents,
+  getSubagentTree,
+  listMessages,
+  listErrors,
+  getLeaderboard,
+  getModelCalls,
 } from "./queries.js";
+import type { CostGroupBy, LeaderboardDimension } from "./queries.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -87,7 +106,10 @@ function extractPathParam(url: string, prefix: string): string | null {
 /**
  * Register all /telemetry/* HTTP routes.
  */
-export function registerTelemetryRoutes(api: OpenClawPluginApi, getIndexer: () => Indexer | null): void {
+export function registerTelemetryRoutes(
+  api: OpenClawPluginApi,
+  getIndexer: () => Indexer | null,
+): void {
   // GET /telemetry/runs
   api.registerHttpRoute({
     path: "/telemetry/runs",
@@ -244,6 +266,241 @@ export function registerTelemetryRoutes(api: OpenClawPluginApi, getIndexer: () =
         sessionKey: q.session || undefined,
       });
       json(res, 200, { events });
+    },
+  });
+
+  // GET /telemetry/sessions
+  api.registerHttpRoute({
+    path: "/telemetry/sessions",
+    handler: (req: IncomingMessage, res: ServerResponse) => {
+      if (req.method !== "GET") {
+        json(res, 405, { error: "Method not allowed" });
+        return;
+      }
+      const url = req.url ?? "";
+      const path = url.split("?")[0];
+      if (path !== "/telemetry/sessions" && !path.startsWith("/telemetry/sessions?")) return;
+      const indexer = getIndexer();
+      if (!indexer) {
+        json(res, 503, { error: "Telemetry indexer not available" });
+        return;
+      }
+      const q = parseQuery(url);
+      const sessions = listSessions(indexer.db, {
+        agentId: q.agent || undefined,
+        since: parseDate(q.since),
+        until: parseDate(q.until),
+        limit: q.limit ? parseInt(q.limit, 10) : 50,
+      });
+      json(res, 200, { sessions });
+    },
+  });
+
+  // GET /telemetry/sessions/:key
+  api.registerHttpRoute({
+    path: "/telemetry/sessions/:key",
+    handler: (req: IncomingMessage, res: ServerResponse) => {
+      if (req.method !== "GET") {
+        json(res, 405, { error: "Method not allowed" });
+        return;
+      }
+      const key = extractPathParam(req.url ?? "", "/telemetry/sessions/");
+      if (!key) {
+        json(res, 400, { error: "Missing session key" });
+        return;
+      }
+      const indexer = getIndexer();
+      if (!indexer) {
+        json(res, 503, { error: "Telemetry indexer not available" });
+        return;
+      }
+      const detail = getSessionDetail(indexer.db, key);
+      if (!detail) {
+        json(res, 404, { error: "Session not found" });
+        return;
+      }
+      json(res, 200, { session: detail });
+    },
+  });
+
+  // GET /telemetry/costs
+  api.registerHttpRoute({
+    path: "/telemetry/costs",
+    handler: (req: IncomingMessage, res: ServerResponse) => {
+      if (req.method !== "GET") {
+        json(res, 405, { error: "Method not allowed" });
+        return;
+      }
+      const indexer = getIndexer();
+      if (!indexer) {
+        json(res, 503, { error: "Telemetry indexer not available" });
+        return;
+      }
+      const q = parseQuery(req.url ?? "");
+      const costs = getCostBreakdown(indexer.db, {
+        groupBy: (q.groupBy || "model") as CostGroupBy,
+        agentId: q.agent || undefined,
+        sessionKey: q.session || undefined,
+        since: parseDate(q.since),
+        until: parseDate(q.until),
+        limit: q.limit ? parseInt(q.limit, 10) : 50,
+      });
+      json(res, 200, { costs });
+    },
+  });
+
+  // GET /telemetry/subagents
+  api.registerHttpRoute({
+    path: "/telemetry/subagents",
+    handler: (req: IncomingMessage, res: ServerResponse) => {
+      if (req.method !== "GET") {
+        json(res, 405, { error: "Method not allowed" });
+        return;
+      }
+      const indexer = getIndexer();
+      if (!indexer) {
+        json(res, 503, { error: "Telemetry indexer not available" });
+        return;
+      }
+      const q = parseQuery(req.url ?? "");
+      const subagents = listSubagents(indexer.db, {
+        parentSessionKey: q.session || undefined,
+        runId: q.run || undefined,
+        agentId: q.agent || undefined,
+        limit: q.limit ? parseInt(q.limit, 10) : 50,
+      });
+      json(res, 200, { subagents });
+    },
+  });
+
+  // GET /telemetry/tree/:key
+  api.registerHttpRoute({
+    path: "/telemetry/tree/:key",
+    handler: (req: IncomingMessage, res: ServerResponse) => {
+      if (req.method !== "GET") {
+        json(res, 405, { error: "Method not allowed" });
+        return;
+      }
+      const key = extractPathParam(req.url ?? "", "/telemetry/tree/");
+      if (!key) {
+        json(res, 400, { error: "Missing session key" });
+        return;
+      }
+      const indexer = getIndexer();
+      if (!indexer) {
+        json(res, 503, { error: "Telemetry indexer not available" });
+        return;
+      }
+      const tree = getSubagentTree(indexer.db, key);
+      json(res, 200, { sessionKey: key, tree });
+    },
+  });
+
+  // GET /telemetry/messages
+  api.registerHttpRoute({
+    path: "/telemetry/messages",
+    handler: (req: IncomingMessage, res: ServerResponse) => {
+      if (req.method !== "GET") {
+        json(res, 405, { error: "Method not allowed" });
+        return;
+      }
+      const indexer = getIndexer();
+      if (!indexer) {
+        json(res, 503, { error: "Telemetry indexer not available" });
+        return;
+      }
+      const q = parseQuery(req.url ?? "");
+      const messages = listMessages(indexer.db, {
+        sessionKey: q.session || undefined,
+        direction: (q.direction as "inbound" | "outbound") || undefined,
+        channel: q.channel || undefined,
+        agentId: q.agent || undefined,
+        limit: q.limit ? parseInt(q.limit, 10) : 50,
+      });
+      json(res, 200, { messages });
+    },
+  });
+
+  // GET /telemetry/errors
+  api.registerHttpRoute({
+    path: "/telemetry/errors",
+    handler: (req: IncomingMessage, res: ServerResponse) => {
+      if (req.method !== "GET") {
+        json(res, 405, { error: "Method not allowed" });
+        return;
+      }
+      const indexer = getIndexer();
+      if (!indexer) {
+        json(res, 503, { error: "Telemetry indexer not available" });
+        return;
+      }
+      const q = parseQuery(req.url ?? "");
+      const errors = listErrors(indexer.db, {
+        since: parseDate(q.since),
+        sessionKey: q.session || undefined,
+        runId: q.run || undefined,
+        agentId: q.agent || undefined,
+        limit: q.limit ? parseInt(q.limit, 10) : 50,
+      });
+      json(res, 200, { errors });
+    },
+  });
+
+  // GET /telemetry/top/:dimension
+  api.registerHttpRoute({
+    path: "/telemetry/top/:dimension",
+    handler: (req: IncomingMessage, res: ServerResponse) => {
+      if (req.method !== "GET") {
+        json(res, 405, { error: "Method not allowed" });
+        return;
+      }
+      const dimension = extractPathParam(req.url ?? "", "/telemetry/top/");
+      if (!dimension) {
+        json(res, 400, { error: "Missing dimension" });
+        return;
+      }
+      const valid = ["runs", "tools", "models", "sessions"];
+      if (!valid.includes(dimension)) {
+        json(res, 400, { error: `Invalid dimension: ${dimension}. Expected: ${valid.join(", ")}` });
+        return;
+      }
+      const indexer = getIndexer();
+      if (!indexer) {
+        json(res, 503, { error: "Telemetry indexer not available" });
+        return;
+      }
+      const q = parseQuery(req.url ?? "");
+      const leaderboard = getLeaderboard(indexer.db, dimension as LeaderboardDimension, {
+        since: parseDate(q.since),
+        agentId: q.agent || undefined,
+        limit: q.limit ? parseInt(q.limit, 10) : 10,
+      });
+      json(res, 200, { dimension, leaderboard });
+    },
+  });
+
+  // GET /telemetry/model-calls
+  api.registerHttpRoute({
+    path: "/telemetry/model-calls",
+    handler: (req: IncomingMessage, res: ServerResponse) => {
+      if (req.method !== "GET") {
+        json(res, 405, { error: "Method not allowed" });
+        return;
+      }
+      const indexer = getIndexer();
+      if (!indexer) {
+        json(res, 503, { error: "Telemetry indexer not available" });
+        return;
+      }
+      const q = parseQuery(req.url ?? "");
+      const calls = getModelCalls(indexer.db, {
+        runId: q.run || undefined,
+        sessionKey: q.session || undefined,
+        model: q.model || undefined,
+        agentId: q.agent || undefined,
+        limit: q.limit ? parseInt(q.limit, 10) : 100,
+      });
+      json(res, 200, { calls });
     },
   });
 }

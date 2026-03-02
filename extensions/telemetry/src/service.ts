@@ -1,16 +1,21 @@
 import node_fs from "node:fs";
 import node_os from "node:os";
 import node_path from "node:path";
-import type { OpenClawPluginApi, OpenClawPluginService, OpenClawPluginServiceContext } from "openclaw/plugin-sdk";
-import type { TelemetryConfig } from "./types.js";
-import type { Indexer } from "./indexer.js";
+import type {
+  OpenClawPluginApi,
+  OpenClawPluginService,
+  OpenClawPluginServiceContext,
+} from "openclaw/plugin-sdk";
 import { BlobWriter } from "./blob-writer.js";
+import { registerTelemetryCli } from "./cli/index.js";
 import { registerCollector } from "./collector.js";
-import { createIndexer } from "./indexer.js";
+import { registerTelemetryGatewayMethods } from "./gateway-methods.js";
 import { generateEventId } from "./helpers.js";
+import type { Indexer } from "./indexer.js";
+import { createIndexer } from "./indexer.js";
 import { enforceRetention } from "./retention.js";
-import { registerTelemetryCli } from "./cli.js";
 import { registerTelemetryRoutes } from "./routes.js";
+import type { TelemetryConfig } from "./types.js";
 import { createJsonlWriter } from "./writer.js";
 
 /**
@@ -20,10 +25,7 @@ import { createJsonlWriter } from "./writer.js";
  *  1. `dataDir` from plugin config (overrides everything; ~ is expanded)
  *  2. `<stateDir>/telemetry/`  (alongside ~/.openclaw config)
  */
-function resolveTelemetryDir(
-  ctx: OpenClawPluginServiceContext,
-  cfg: TelemetryConfig,
-): string {
+function resolveTelemetryDir(ctx: OpenClawPluginServiceContext, cfg: TelemetryConfig): string {
   if (cfg.dataDir) {
     return cfg.dataDir.replace(/^~/, node_os.homedir());
   }
@@ -49,6 +51,7 @@ export function createTelemetryService(api: OpenClawPluginApi): OpenClawPluginSe
   // The indexer reference is resolved at call time via a closure.
   registerTelemetryCli(api, () => indexer);
   registerTelemetryRoutes(api, () => indexer);
+  registerTelemetryGatewayMethods(api, () => indexer);
 
   return {
     id: "telemetry-collector",
