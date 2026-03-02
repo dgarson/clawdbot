@@ -400,6 +400,11 @@ export type GetSessionTimelineOptions = {
 /**
  * Get all events for a session, ordered by ts then seq (raw event rows).
  * Returns parsed TelemetryEvent-like objects (id, kind, ts, data).
+ *
+ * Includes events stored with null session_key but a run_id belonging to
+ * this session (e.g. tool.start / llm.input written from hook contexts where
+ * ctx.sessionKey was not available). Uses UNION to avoid duplicates for rows
+ * that match both conditions.
  */
 export function getSessionTimeline(
   db: Db,
@@ -407,18 +412,33 @@ export function getSessionTimeline(
   opts: GetSessionTimelineOptions = {},
 ): Array<{ id: string; kind: string; ts: number; runId: string | null; data: unknown }> {
   const { limit = 500, kinds } = opts;
-  const params: unknown[] = [sessionKey];
   let kindsClause = "";
+  const kindParams: unknown[] = [];
 
   if (kinds && kinds.length > 0) {
     kindsClause = ` AND kind IN (${kinds.map(() => "?").join(",")})`;
-    params.push(...kinds);
+    kindParams.push(...kinds);
   }
 
-  params.push(limit);
-  const sql = `SELECT id, kind, ts, run_id, data FROM events
-               WHERE session_key = ?${kindsClause}
-               ORDER BY ts ASC, rowid ASC LIMIT ?`;
+  // First branch: events with a direct session_key match.
+  // Second branch: events with null session_key but a run_id that belongs
+  // to this session (handles tool/llm events where ctx.sessionKey was null).
+  // UNION (not UNION ALL) deduplicates rows that match both branches.
+  // rowid cannot be used in ORDER BY inside a UNION, so we wrap in a subquery.
+  const params: unknown[] = [sessionKey, ...kindParams, sessionKey, ...kindParams, limit];
+
+  const sql = `
+    SELECT id, kind, ts, run_id, data FROM (
+      SELECT id, kind, ts, run_id, data, rowid FROM events
+      WHERE session_key = ?${kindsClause}
+      UNION
+      SELECT id, kind, ts, run_id, data, rowid FROM events
+      WHERE session_key IS NULL
+        AND run_id IN (SELECT run_id FROM runs WHERE session_key = ?)${kindsClause}
+    )
+    ORDER BY ts ASC, rowid ASC
+    LIMIT ?
+  `;
 
   const rows = db.prepare<unknown[], EventRow>(sql).all(...params);
   return rows.map((r) => ({
@@ -892,6 +912,89 @@ export function listSessions(db: Db, opts: ListSessionsOptions = {}): SessionSum
     errorCount: r.error_count,
     totalCostUsd: r.total_cost_usd ?? 0,
   }));
+}
+
+/**
+ * Count distinct sessions matching the given filters.
+ * Uses COUNT(DISTINCT session_key) — O(index scan), no row materialisation.
+ */
+export function countSessions(db: Db, opts: Omit<ListSessionsOptions, "limit"> = {}): number {
+  const { sessionKey, agentId, since, until } = opts;
+  const conditions: string[] = ["session_key IS NOT NULL"];
+  const params: unknown[] = [];
+
+  if (sessionKey) {
+    conditions.push("session_key = ?");
+    params.push(sessionKey);
+  }
+  if (agentId) {
+    conditions.push("agent_id = ?");
+    params.push(agentId);
+  }
+  if (since !== undefined) {
+    conditions.push("started_at >= ?");
+    params.push(since);
+  }
+  if (until !== undefined) {
+    conditions.push("COALESCE(ended_at, started_at) <= ?");
+    params.push(until);
+  }
+
+  const where = `WHERE ${conditions.join(" AND ")}`;
+  const sql = `SELECT COUNT(DISTINCT session_key) as cnt FROM runs ${where}`;
+  const row = db.prepare<unknown[], { cnt: number }>(sql).get(...params);
+  return row?.cnt ?? 0;
+}
+
+/**
+ * Count errors across runs and tool calls matching the given filters.
+ * Uses COUNT(*) on each half of the UNION — O(index scan), no row materialisation.
+ */
+export function countErrors(db: Db, opts: Omit<ListErrorsOptions, "limit"> = {}): number {
+  const { since, sessionKey, runId, agentId } = opts;
+
+  const runConds: string[] = ["error IS NOT NULL"];
+  const toolConds: string[] = ["is_error = 1"];
+  const runParams: unknown[] = [];
+  const toolParams: unknown[] = [];
+
+  if (since !== undefined) {
+    runConds.push("COALESCE(ended_at, started_at) >= ?");
+    runParams.push(since);
+    toolConds.push("COALESCE(ended_at, started_at) >= ?");
+    toolParams.push(since);
+  }
+  if (sessionKey) {
+    runConds.push("session_key = ?");
+    runParams.push(sessionKey);
+    toolConds.push("session_key = ?");
+    toolParams.push(sessionKey);
+  }
+  if (runId) {
+    runConds.push("run_id = ?");
+    runParams.push(runId);
+    toolConds.push("run_id = ?");
+    toolParams.push(runId);
+  }
+  if (agentId) {
+    runConds.push("agent_id = ?");
+    runParams.push(agentId);
+    toolConds.push("run_id IN (SELECT run_id FROM runs WHERE agent_id = ?)");
+    toolParams.push(agentId);
+  }
+
+  const runWhere = `WHERE ${runConds.join(" AND ")}`;
+  const toolWhere = `WHERE ${toolConds.join(" AND ")}`;
+
+  const sql = `
+    SELECT
+      (SELECT COUNT(*) FROM runs ${runWhere}) +
+      (SELECT COUNT(*) FROM tool_calls ${toolWhere})
+    AS cnt
+  `;
+  const allParams = [...runParams, ...toolParams];
+  const row = db.prepare<unknown[], { cnt: number }>(sql).get(...allParams);
+  return row?.cnt ?? 0;
 }
 
 /**

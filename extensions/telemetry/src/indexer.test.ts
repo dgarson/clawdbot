@@ -1,8 +1,8 @@
 import node_fs from "node:fs";
 import node_os from "node:os";
 import node_path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type BetterSqlite3 from "better-sqlite3";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createIndexerFromDb, indexEvent, catchUp } from "./indexer.js";
 import type { TelemetryEvent } from "./types.js";
 
@@ -200,10 +200,7 @@ describe("indexEvent", () => {
     );
 
     const row = db
-      .prepare<
-        unknown[],
-        RunRow
-      >(
+      .prepare<unknown[], RunRow>(
         "SELECT duration_ms, stop_reason, tool_call_count, input_tokens, output_tokens, total_tokens FROM runs WHERE run_id = ?",
       )
       .get("run-002");
@@ -324,10 +321,7 @@ describe("indexEvent", () => {
     indexEvent(db, event);
 
     const row = db
-      .prepare<
-        unknown[],
-        SubagentRow
-      >(
+      .prepare<unknown[], SubagentRow>(
         "SELECT id, parent_session_key, child_session_key, label FROM subagents WHERE id = ?",
       )
       .get(event.id);
@@ -366,6 +360,39 @@ describe("indexEvent", () => {
     expect(row!.call_index).toBe(2);
     expect(row!.input_tokens).toBe(500);
     expect(row!.cost_usd).toBeCloseTo(0.0012);
+  });
+
+  it("llm.call reads tokens from nested delta/cumulative (model.call diagnostic format)", async () => {
+    // model.call diagnostic events nest token counts under delta/cumulative
+    // rather than exposing them at the top level. The indexer must unwrap these.
+    const db = await openMemoryDb();
+    createIndexerFromDb(db, ":none:");
+
+    const event = makeEvent({
+      kind: "llm.call",
+      runId: "run-006",
+      data: {
+        callIndex: 1,
+        provider: "anthropic",
+        model: "claude-opus-4",
+        // Top-level token fields absent — nested under cumulative (as model.call emits)
+        delta: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
+        cumulative: { inputTokens: 200, outputTokens: 100, totalTokens: 300 },
+        costUsd: 0.005,
+        durationMs: 800,
+      },
+    });
+    indexEvent(db, event);
+
+    const row = db
+      .prepare<unknown[], ModelCallRow>(
+        "SELECT id, call_index, input_tokens, cost_usd FROM model_calls WHERE id = ?",
+      )
+      .get(event.id);
+    expect(row).toBeTruthy();
+    // Should prefer cumulative over delta
+    expect(row!.input_tokens).toBe(200);
+    expect(row!.cost_usd).toBeCloseTo(0.005);
   });
 });
 

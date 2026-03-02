@@ -26,6 +26,7 @@ import { loadNodes } from "./controllers/nodes.ts";
 import { loadPresence } from "./controllers/presence.ts";
 import { loadSessions } from "./controllers/sessions.ts";
 import { loadSkills } from "./controllers/skills.ts";
+import { loadTelemetryDashboard } from "./controllers/telemetry.ts";
 import {
   inferBasePathFromPathname,
   normalizeBasePath,
@@ -237,6 +238,9 @@ export async function refreshActiveTab(host: SettingsHost) {
       host as unknown as Parameters<typeof scheduleChatScroll>[0],
       !host.chatHasAutoScrolled,
     );
+  }
+  if (host.tab === "telemetry") {
+    await loadTelemetryDashboard(host as unknown as OpenClawApp);
   }
   if (host.tab === "config") {
     await loadConfigSchema(host as unknown as OpenClawApp);

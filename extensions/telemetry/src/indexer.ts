@@ -175,13 +175,14 @@ export function indexEvent(db: Db, event: TelemetryEvent): void {
         safeStr(d.provider),
         safeStr(d.model),
         event.ts,
-        (d.isHeartbeat ? 1 : 0),
+        d.isHeartbeat ? 1 : 0,
         safeStr(d.originChannel),
       );
       break;
 
     case "run.end": {
-      const usage = d.usage && typeof d.usage === "object" ? (d.usage as Record<string, unknown>) : {};
+      const usage =
+        d.usage && typeof d.usage === "object" ? (d.usage as Record<string, unknown>) : {};
       db.prepare(
         `UPDATE runs SET
            ended_at = ?,
@@ -244,7 +245,7 @@ export function indexEvent(db: Db, event: TelemetryEvent): void {
         ).run(
           event.ts,
           safeNum(d.durationMs),
-          (d.isError ? 1 : 0),
+          d.isError ? 1 : 0,
           safeStr(d.error),
           safeStr(d.filePath),
           safeStr(d.execCommand),
@@ -265,7 +266,7 @@ export function indexEvent(db: Db, event: TelemetryEvent): void {
           null,
           event.ts,
           safeNum(d.durationMs),
-          (d.isError ? 1 : 0),
+          d.isError ? 1 : 0,
           safeStr(d.error),
           safeStr(d.filePath),
           safeStr(d.execCommand),
@@ -334,18 +335,45 @@ export function indexEvent(db: Db, event: TelemetryEvent): void {
         `UPDATE subagents SET
            ended_at = ?, duration_ms = ?, outcome = ?
          WHERE child_session_key = ? AND (run_id = ? OR run_id IS NULL)`,
-      ).run(
-        event.ts,
-        safeNum(d.durationMs),
-        safeStr(d.outcome),
-        childKey,
-        event.runId ?? null,
-      );
+      ).run(event.ts, safeNum(d.durationMs), safeStr(d.outcome), childKey, event.runId ?? null);
       break;
     }
 
     case "llm.call":
-    case "usage.snapshot":
+    case "usage.snapshot": {
+      // Token counts may be at top level (d.inputTokens) or nested under d.delta
+      // or d.cumulative (from model.call diagnostic events), or under d.usage
+      // (from usage.snapshot). Check all three locations in priority order.
+      const delta =
+        d.delta && typeof d.delta === "object" ? (d.delta as Record<string, unknown>) : {};
+      const cumulative =
+        d.cumulative && typeof d.cumulative === "object"
+          ? (d.cumulative as Record<string, unknown>)
+          : {};
+      const usageNested =
+        d.usage && typeof d.usage === "object" ? (d.usage as Record<string, unknown>) : {};
+      // Prefer cumulative > delta > top-level > usage-nested for token fields.
+      const inputTokens = safeNum(
+        cumulative.inputTokens ?? delta.inputTokens ?? d.inputTokens ?? usageNested.input,
+      );
+      const outputTokens = safeNum(
+        cumulative.outputTokens ?? delta.outputTokens ?? d.outputTokens ?? usageNested.output,
+      );
+      const cacheReadTokens = safeNum(
+        cumulative.cacheReadTokens ??
+          delta.cacheReadTokens ??
+          d.cacheReadTokens ??
+          usageNested.cacheRead,
+      );
+      const cacheWriteTokens = safeNum(
+        cumulative.cacheWriteTokens ??
+          delta.cacheWriteTokens ??
+          d.cacheWriteTokens ??
+          usageNested.cacheWrite,
+      );
+      const totalTokens = safeNum(
+        cumulative.totalTokens ?? delta.totalTokens ?? d.totalTokens ?? usageNested.total,
+      );
       db.prepare(
         `INSERT OR IGNORE INTO model_calls
            (id, run_id, session_key, call_index, provider, model,
@@ -359,16 +387,17 @@ export function indexEvent(db: Db, event: TelemetryEvent): void {
         safeNum(d.callIndex),
         safeStr(d.provider),
         safeStr(d.model),
-        safeNum(d.inputTokens ?? (d.usage as Record<string, unknown> | undefined)?.input),
-        safeNum(d.outputTokens ?? (d.usage as Record<string, unknown> | undefined)?.output),
-        safeNum(d.cacheReadTokens ?? (d.usage as Record<string, unknown> | undefined)?.cacheRead),
-        safeNum(d.cacheWriteTokens ?? (d.usage as Record<string, unknown> | undefined)?.cacheWrite),
-        safeNum(d.totalTokens ?? (d.usage as Record<string, unknown> | undefined)?.total),
+        inputTokens,
+        outputTokens,
+        cacheReadTokens,
+        cacheWriteTokens,
+        totalTokens,
         typeof d.costUsd === "number" ? d.costUsd : null,
         safeNum(d.durationMs),
         event.ts,
       );
       break;
+    }
 
     default:
       // session.start, session.end, compaction.start, compaction.end, error, etc.
@@ -416,9 +445,7 @@ export function catchUp(db: Db, jsonlPath: string): number {
   const lines = chunk.split("\n");
 
   let indexed = 0;
-  const insertState = db.prepare(
-    "INSERT OR REPLACE INTO indexer_state (key, value) VALUES (?, ?)",
-  );
+  const insertState = db.prepare("INSERT OR REPLACE INTO indexer_state (key, value) VALUES (?, ?)");
 
   const runBatch = db.transaction(() => {
     for (const line of lines) {
