@@ -133,6 +133,109 @@ function appendTail(currentTail: string | undefined, chunk: string, maxChars: nu
   return next.slice(-maxChars);
 }
 
+const LEGACY_HISTORY_CONTEXT_MARKER = "[Chat messages since your last reply - for context]";
+const LEGACY_CURRENT_MESSAGE_MARKER = "[Current message - respond to this]";
+const THREAD_CONTEXT_MARKERS = [
+  "[Thread history - for context]",
+  "[Thread starter - for context]",
+] as const;
+const THREAD_CONTEXT_FOLLOWUP_PREFIXES = [
+  "Conversation info (untrusted metadata):",
+  "Sender (untrusted metadata):",
+  "Thread starter (untrusted, for context):",
+  "Replied message (untrusted, for context):",
+  "Forwarded message context (untrusted metadata):",
+  "Chat history since last reply (untrusted, for context):",
+  "[User sent media without caption]",
+] as const;
+
+function isLineBoundary(text: string, index: number): boolean {
+  return index === 0 || text[index - 1] === "\n";
+}
+
+function stripLegacyHistoryScaffold(prompt: string): { prompt: string; strippedChars: number } {
+  const historyStart = prompt.indexOf(LEGACY_HISTORY_CONTEXT_MARKER);
+  if (historyStart === -1 || !isLineBoundary(prompt, historyStart)) {
+    return { prompt, strippedChars: 0 };
+  }
+
+  const currentStart = prompt.indexOf(
+    LEGACY_CURRENT_MESSAGE_MARKER,
+    historyStart + LEGACY_HISTORY_CONTEXT_MARKER.length,
+  );
+  if (currentStart === -1 || !isLineBoundary(prompt, currentStart)) {
+    return { prompt, strippedChars: 0 };
+  }
+
+  let currentBodyStart = currentStart + LEGACY_CURRENT_MESSAGE_MARKER.length;
+  if (prompt.startsWith("\r\n", currentBodyStart)) {
+    currentBodyStart += 2;
+  } else if (prompt.startsWith("\n", currentBodyStart)) {
+    currentBodyStart += 1;
+  } else {
+    return { prompt, strippedChars: 0 };
+  }
+  const currentBody = prompt.slice(currentBodyStart).trimStart();
+  if (!currentBody) {
+    return { prompt, strippedChars: 0 };
+  }
+
+  const prefix = prompt.slice(0, historyStart).trimEnd();
+  const nextPrompt = prefix ? `${prefix}\n\n${currentBody}` : currentBody;
+  return { prompt: nextPrompt, strippedChars: Math.max(0, prompt.length - nextPrompt.length) };
+}
+
+function stripThreadContextScaffold(prompt: string): { prompt: string; strippedChars: number } {
+  for (const marker of THREAD_CONTEXT_MARKERS) {
+    const markerStart = prompt.indexOf(marker);
+    if (markerStart === -1 || !isLineBoundary(prompt, markerStart)) {
+      continue;
+    }
+
+    const paragraphBreak = /\r?\n\r?\n/g;
+    paragraphBreak.lastIndex = markerStart + marker.length;
+    let match: RegExpExecArray | null = null;
+    let matchedBreak: RegExpExecArray | null = null;
+    while ((match = paragraphBreak.exec(prompt)) !== null) {
+      const suffix = prompt.slice(match.index + match[0].length).trimStart();
+      if (!suffix) {
+        continue;
+      }
+      if (THREAD_CONTEXT_FOLLOWUP_PREFIXES.some((prefix) => suffix.startsWith(prefix))) {
+        matchedBreak = match;
+        break;
+      }
+    }
+    if (!matchedBreak) {
+      continue;
+    }
+
+    const prefix = prompt.slice(0, markerStart).trimEnd();
+    const suffix = prompt.slice(matchedBreak.index + matchedBreak[0].length).trimStart();
+    if (!suffix) {
+      continue;
+    }
+    const nextPrompt = prefix ? `${prefix}\n\n${suffix}` : suffix;
+    return { prompt: nextPrompt, strippedChars: Math.max(0, prompt.length - nextPrompt.length) };
+  }
+  return { prompt, strippedChars: 0 };
+}
+
+function stripResumedPromptScaffolding(
+  prompt: string,
+  shouldStrip: boolean,
+): { prompt: string; strippedChars: number } {
+  if (!shouldStrip) {
+    return { prompt, strippedChars: 0 };
+  }
+  const legacyResult = stripLegacyHistoryScaffold(prompt);
+  const threadResult = stripThreadContextScaffold(legacyResult.prompt);
+  return {
+    prompt: threadResult.prompt,
+    strippedChars: legacyResult.strippedChars + threadResult.strippedChars,
+  };
+}
+
 function buildQueryOptions(
   params: ClaudeSdkSessionParams,
   state: ClaudeSdkEventAdapterState,
@@ -319,6 +422,16 @@ export async function createClaudeSdkSession(
       // Drain any pending steer text by prepending to the current prompt
       const steerText = state.pendingSteer.splice(0).join("\n");
       let effectivePrompt = steerText ? `${steerText}\n\n${text}` : text;
+      const strippedPrompt = stripResumedPromptScaffolding(
+        effectivePrompt,
+        Boolean(state.claudeSdkSessionId),
+      );
+      effectivePrompt = strippedPrompt.prompt;
+      if (strippedPrompt.strippedChars > 0) {
+        log.debug(
+          `claude-sdk: stripped resumed prompt scaffolding (${strippedPrompt.strippedChars} chars)`,
+        );
+      }
 
       state.streaming = true;
       state.abortController = new AbortController();

@@ -211,6 +211,116 @@ describe("session lifecycle — session creation and resume", () => {
     expect(secondCall[0].prompt).not.toContain("Earlier response");
   });
 
+  it("strips queued chat-history scaffold from resumed prompts", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success", result: "done" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ claudeSdkResumeSessionId: "sess_prev_999" }));
+
+    const prompt = [
+      "Hook prepend context",
+      "",
+      "[Chat messages since your last reply - for context]",
+      "[WhatsApp g1 2026-03-02T18:00Z] Someone: earlier line",
+      "",
+      "[Current message - respond to this]",
+      "[WhatsApp g1 2026-03-02T18:01Z] User: latest line",
+    ].join("\n");
+
+    await session.prompt(prompt);
+
+    const call = queryMock.mock.calls[0]?.[0];
+    const sentPrompt = call?.prompt as string;
+    expect(call?.options?.resume).toBe("sess_prev_999");
+    expect(sentPrompt).toContain("Hook prepend context");
+    expect(sentPrompt).toContain("[WhatsApp g1 2026-03-02T18:01Z] User: latest line");
+    expect(sentPrompt).not.toContain("[Chat messages since your last reply - for context]");
+    expect(sentPrompt).not.toContain("[Current message - respond to this]");
+    expect(sentPrompt).not.toContain("Someone: earlier line");
+  });
+
+  it("strips thread-context scaffold from resumed prompts even with prefixes", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success", result: "done" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ claudeSdkResumeSessionId: "sess_prev_999" }));
+
+    const prompt = [
+      "Media note: user attached an image.",
+      "",
+      "[Thread history - for context]",
+      "Earlier thread message that should not be resent.",
+      "",
+      "Conversation info (untrusted metadata):",
+      "```json",
+      '{"message_id":"m-1"}',
+      "```",
+      "",
+      "Current message body",
+    ].join("\n");
+
+    await session.prompt(prompt);
+
+    const call = queryMock.mock.calls[0]?.[0];
+    const sentPrompt = call?.prompt as string;
+    expect(sentPrompt).toContain("Media note: user attached an image.");
+    expect(sentPrompt).toContain("Conversation info (untrusted metadata):");
+    expect(sentPrompt).toContain("Current message body");
+    expect(sentPrompt).not.toContain("[Thread history - for context]");
+    expect(sentPrompt).not.toContain("Earlier thread message that should not be resent.");
+  });
+
+  it("keeps scaffold text on fresh sessions (no resume id)", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams());
+
+    const prompt = [
+      "[Chat messages since your last reply - for context]",
+      "Older message",
+      "",
+      "[Current message - respond to this]",
+      "Latest user message",
+    ].join("\n");
+
+    await session.prompt(prompt);
+
+    const sentPrompt = queryMock.mock.calls[0]?.[0]?.prompt as string;
+    expect(sentPrompt).toBe(prompt);
+  });
+
+  it("does not strip malformed chat-history scaffold on resumed prompts", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success", result: "done" }])(),
+    );
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ claudeSdkResumeSessionId: "sess_prev_999" }));
+
+    const prompt = [
+      "Hook prepend context",
+      "",
+      "[Chat messages since your last reply - for context]",
+      "Older message without current marker",
+      "",
+      "Latest user message",
+    ].join("\n");
+
+    await session.prompt(prompt);
+
+    const sentPrompt = queryMock.mock.calls[0]?.[0]?.prompt as string;
+    expect(sentPrompt).toBe(prompt);
+  });
+
   it("setSystemPrompt() updates systemPrompt for subsequent query() calls", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() =>
