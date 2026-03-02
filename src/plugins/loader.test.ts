@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, afterEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import { withEnv } from "../test-utils/env.js";
 import { __testing, loadOpenClawPlugins } from "./loader.js";
 
@@ -631,6 +631,126 @@ describe("loadOpenClawPlugins", () => {
         ),
       ).toBe(true);
     });
+  });
+
+  it("logs startup timing diagnostics for plugins slower than 500ms", () => {
+    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+    const plugin = writePlugin({
+      id: "slow-plugin",
+      body: `export default { id: "slow-plugin", register() {} };`,
+    });
+    const infos: string[] = [];
+    const warnings: string[] = [];
+    let nowMs = 0;
+    const nowSpy = vi.spyOn(Date, "now").mockImplementation(() => {
+      nowMs += 1_000;
+      return nowMs;
+    });
+
+    try {
+      loadOpenClawPlugins({
+        cache: false,
+        logger: {
+          info: (msg) => infos.push(msg),
+          warn: (msg) => warnings.push(msg),
+          error: () => {},
+        },
+        config: {
+          diagnostics: { enabled: true },
+          plugins: {
+            allow: [plugin.id],
+            load: { paths: [plugin.file] },
+          },
+        },
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
+
+    expect(
+      infos.some(
+        (msg) =>
+          msg.includes(`plugin/extension "${plugin.id}"`) &&
+          msg.includes("startup diagnostic") &&
+          msg.includes("loaded in "),
+      ),
+    ).toBe(true);
+    expect(warnings.length).toBe(0);
+  });
+
+  it("logs startup timing warnings for plugins slower than 10s", () => {
+    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+    const plugin = writePlugin({
+      id: "very-slow-plugin",
+      body: `export default { id: "very-slow-plugin", register() {} };`,
+    });
+    const warnings: string[] = [];
+    let nowMs = 0;
+    const nowSpy = vi.spyOn(Date, "now").mockImplementation(() => {
+      nowMs += 11_000;
+      return nowMs;
+    });
+
+    try {
+      loadOpenClawPlugins({
+        cache: false,
+        logger: {
+          info: () => {},
+          warn: (msg) => warnings.push(msg),
+          error: () => {},
+        },
+        config: {
+          diagnostics: { enabled: true },
+          plugins: {
+            allow: [plugin.id],
+            load: { paths: [plugin.file] },
+          },
+        },
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
+
+    expect(
+      warnings.some(
+        (msg) => msg.includes(`plugin/extension "${plugin.id}"`) && msg.includes("exceeded 10s"),
+      ),
+    ).toBe(true);
+  });
+
+  it("does not log startup timing diagnostics when diagnostics are disabled", () => {
+    process.env.OPENCLAW_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+    const plugin = writePlugin({
+      id: "diagnostics-off-plugin",
+      body: `export default { id: "diagnostics-off-plugin", register() {} };`,
+    });
+    const infos: string[] = [];
+    const warnings: string[] = [];
+    const nowSpy = vi.spyOn(Date, "now");
+    nowSpy.mockImplementationOnce(() => 2_000).mockImplementationOnce(() => 3_000);
+
+    try {
+      loadOpenClawPlugins({
+        cache: false,
+        logger: {
+          info: (msg) => infos.push(msg),
+          warn: (msg) => warnings.push(msg),
+          error: () => {},
+        },
+        config: {
+          diagnostics: { enabled: false },
+          plugins: {
+            allow: [plugin.id],
+            load: { paths: [plugin.file] },
+          },
+        },
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
+
+    expect(infos.some((msg) => msg.includes("startup diagnostic"))).toBe(false);
+    expect(warnings.some((msg) => msg.includes("startup diagnostic"))).toBe(false);
   });
 
   it("rejects plugin entry files that escape plugin root via symlink", () => {

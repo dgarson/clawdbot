@@ -204,7 +204,7 @@ export function logSessionStateChange(
 export function logSessionStuck(params: SessionRef & { state: SessionStateValue; ageMs: number }) {
   const state = getDiagnosticSessionState(params);
   diag.warn(
-    `stuck session: sessionId=${state.sessionId ?? "unknown"} sessionKey=${
+    `long running session: sessionId=${state.sessionId ?? "unknown"} sessionKey=${
       state.sessionKey ?? "unknown"
     } state=${params.state} age=${Math.round(params.ageMs / 1000)}s queueDepth=${state.queueDepth}`,
   );

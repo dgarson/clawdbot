@@ -2,32 +2,36 @@ import { Type } from "@sinclair/typebox";
 import { SILENT_REPLY_TOKEN } from "../../auto-reply/tokens.js";
 import type { OpenClawConfig } from "../../config/config.js";
 import { loadConfig } from "../../config/config.js";
-import { textToSpeech } from "../../tts/tts.js";
+import { textToSpeech, resolveTtsConfig } from "../../tts/tts.js";
 import type { GatewayMessageChannel } from "../../utils/message-channel.js";
 import type { AnyAgentTool } from "./common.js";
 import { readStringParam } from "./common.js";
-
-const TtsToolSchema = Type.Object({
-  text: Type.String({ description: "Text to convert to speech." }),
-  channel: Type.Optional(
-    Type.String({ description: "Optional channel id to pick output format (e.g. telegram)." }),
-  ),
-});
 
 export function createTtsTool(opts?: {
   config?: OpenClawConfig;
   agentChannel?: GatewayMessageChannel;
 }): AnyAgentTool {
+  const cfg = opts?.config ?? loadConfig();
+  const maxChars = resolveTtsConfig(cfg).maxTextLength;
+
+  const TtsToolSchema = Type.Object({
+    text: Type.String({
+      description: `Text to convert to speech. Must be ≤${maxChars} characters — the call will fail if exceeded. Keep scripts concise; aim for well under the limit.`,
+    }),
+    channel: Type.Optional(
+      Type.String({ description: "Optional channel id to pick output format (e.g. telegram)." }),
+    ),
+  });
+
   return {
     label: "TTS",
     name: "tts",
-    description: `Convert text to speech. Audio is delivered automatically from the tool result — reply with ${SILENT_REPLY_TOKEN} after a successful call to avoid duplicate messages.`,
+    description: `Convert text to speech (max ${maxChars} chars). Audio is delivered automatically from the tool result — reply with ${SILENT_REPLY_TOKEN} after a successful call to avoid duplicate messages.`,
     parameters: TtsToolSchema,
     execute: async (_toolCallId, args) => {
       const params = args as Record<string, unknown>;
       const text = readStringParam(params, "text", { required: true });
       const channel = readStringParam(params, "channel");
-      const cfg = opts?.config ?? loadConfig();
       const result = await textToSpeech({
         text,
         cfg,

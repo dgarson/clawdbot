@@ -1,5 +1,6 @@
 import { Type } from "@sinclair/typebox";
 import type { OpenClawConfig } from "../../config/config.js";
+import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
 import { SsrFBlockedError } from "../../infra/net/ssrf.js";
 import { logDebug } from "../../logger.js";
 import { wrapExternalContent, wrapWebContent } from "../../security/external-content.js";
@@ -358,6 +359,7 @@ export async function fetchFirecrawlContent(params: {
   proxy: "auto" | "basic" | "stealth";
   storeInCache: boolean;
   timeoutSeconds: number;
+  diagnosticsEnabled: boolean;
 }): Promise<{
   text: string;
   title?: string;
@@ -403,9 +405,13 @@ export async function fetchFirecrawlContent(params: {
 
   if (!res.ok || payload?.success === false) {
     const detail = payload?.error ?? "";
-    throw new Error(
-      `Firecrawl fetch failed (${res.status}): ${wrapWebContent(detail || res.statusText, "web_fetch")}`.trim(),
-    );
+    const wrappedDetail = wrapWebContent(detail || res.statusText, "web_fetch");
+    if (params.diagnosticsEnabled && wrappedDetail) {
+      logDebug(
+        `[web-fetch] firecrawl failure detail: status=${res.status} url=${params.url} detail=${wrappedDetail}`,
+      );
+    }
+    throw new Error(`Firecrawl fetch failed (${res.status}) for URL: ${params.url}`);
   }
 
   const data = payload?.data ?? {};
@@ -434,6 +440,7 @@ type FirecrawlRuntimeParams = {
   firecrawlProxy: "auto" | "basic" | "stealth";
   firecrawlStoreInCache: boolean;
   firecrawlTimeoutSeconds: number;
+  diagnosticsEnabled: boolean;
 };
 
 type WebFetchRuntimeParams = FirecrawlRuntimeParams & {
@@ -464,6 +471,7 @@ function toFirecrawlContentParams(
     proxy: params.firecrawlProxy,
     storeInCache: params.firecrawlStoreInCache,
     timeoutSeconds: params.firecrawlTimeoutSeconds,
+    diagnosticsEnabled: params.diagnosticsEnabled,
   };
 }
 
@@ -585,7 +593,12 @@ async function runWebFetch(params: WebFetchRuntimeParams): Promise<Record<string
         maxChars: DEFAULT_ERROR_MAX_CHARS,
       });
       const wrappedDetail = wrapWebFetchContent(detail || res.statusText, DEFAULT_ERROR_MAX_CHARS);
-      throw new Error(`Web fetch failed (${res.status}): ${wrappedDetail.text}`);
+      if (params.diagnosticsEnabled && wrappedDetail.text) {
+        logDebug(
+          `[web-fetch] failure detail: status=${res.status} url=${params.url} detail=${wrappedDetail.text}`,
+        );
+      }
+      throw new Error(`Web fetch failed (${res.status}) for URL: ${params.url}`);
     }
 
     const contentType = res.headers.get("content-type") ?? "application/octet-stream";
@@ -728,6 +741,7 @@ export function createWebFetchTool(options?: {
     firecrawl?.timeoutSeconds ?? fetch?.timeoutSeconds,
     DEFAULT_TIMEOUT_SECONDS,
   );
+  const diagnosticsEnabled = isDiagnosticsEnabled(options?.config);
   const userAgent =
     (fetch && "userAgent" in fetch && typeof fetch.userAgent === "string" && fetch.userAgent) ||
     DEFAULT_FETCH_USER_AGENT;
@@ -766,6 +780,7 @@ export function createWebFetchTool(options?: {
         firecrawlProxy: "auto",
         firecrawlStoreInCache: true,
         firecrawlTimeoutSeconds,
+        diagnosticsEnabled,
       });
       return jsonResult(result);
     },

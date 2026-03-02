@@ -1087,5 +1087,53 @@ describe("agent-orchestrator integration", () => {
       );
       expect(mailTool).toBeUndefined();
     });
+
+    it("wires mail.logging tracing config into mail tool execution", async () => {
+      const { api, tools, services } = createMockApi({
+        mail: {
+          enabled: true,
+          logging: {
+            enabled: true,
+            includeBodyPreview: false,
+            bodyPreviewChars: 64,
+            events: { send: true, receipt: false, forward: false, ack: false, bounce: false },
+          },
+        },
+        orchestration: { ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration, enabled: false },
+      });
+      plugin.register(api as never);
+
+      if (services[0]) {
+        await services[0].start({
+          stateDir: tmpDir,
+          logger: api.logger,
+          config: {},
+          workspaceDir: tmpDir,
+        });
+      }
+
+      const mailFactory = findTool(tools, "mail")?.factory as
+        | ((ctx: unknown) => { execute: (...args: unknown[]) => Promise<string> } | null)
+        | undefined;
+      expect(mailFactory).toBeDefined();
+      const mailTool = mailFactory?.({
+        agentId: "agent-a",
+        sessionKey: "sess-a",
+        config: {},
+      });
+      expect(mailTool).toBeDefined();
+
+      await mailTool!.execute(
+        {
+          action: "send",
+          to_agent_id: "agent-b",
+          subject: "Tracing integration",
+          body: "hello world",
+        },
+        { agentId: "agent-a", sessionKey: "sess-a" },
+      );
+
+      expect(api.logger.debug).toHaveBeenCalledWith(expect.stringContaining("[mail][send]"));
+    });
   });
 });

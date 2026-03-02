@@ -1,3 +1,5 @@
+import type { InterAgentMailPluginConfig } from "./mail/config.js";
+
 // Agent roles in the orchestration hierarchy
 export type AgentRole = "orchestrator" | "lead" | "scout" | "builder" | "reviewer";
 
@@ -20,11 +22,11 @@ export const SPAWN_RULES: Record<AgentRole, AgentRole[]> = {
 
 // Tools blocked per role (tool names from Pi agent tool registry)
 export const ROLE_BLOCKED_TOOLS: Record<AgentRole, string[]> = {
-  orchestrator: ["write_file", "edit_file", "execute_command"],
-  lead: ["write_file", "edit_file", "execute_command"],
-  scout: ["write_file", "edit_file", "execute_command"],
+  orchestrator: ["write", "edit", "exec", "apply_patch"],
+  lead: ["write", "edit", "exec", "apply_patch"],
+  scout: ["write", "edit", "exec", "apply_patch"],
   builder: [], // full access
-  reviewer: ["write_file", "edit_file", "execute_command"],
+  reviewer: ["write", "edit", "exec", "apply_patch"],
 };
 
 // Tools only available to orchestrator/lead
@@ -44,10 +46,26 @@ export type OrchestratorSessionState = {
 };
 
 // Orchestration plugin config (parsed from openclaw.plugin.json)
-export type OrchestratorConfig = {
-  mail: {
-    enabled: boolean;
+export type OrchestratorMailLoggingConfig = {
+  enabled: boolean;
+  includeBodyPreview: boolean;
+  bodyPreviewChars: number;
+  events: {
+    send: boolean;
+    receipt: boolean;
+    forward: boolean;
+    ack: boolean;
+    bounce: boolean;
   };
+};
+
+export type OrchestratorMailConfig = InterAgentMailPluginConfig & {
+  enabled: boolean;
+  logging: OrchestratorMailLoggingConfig;
+};
+
+export type OrchestratorConfig = {
+  mail: OrchestratorMailConfig;
   orchestration: {
     enabled: boolean;
     maxDepth: number;
@@ -59,7 +77,21 @@ export type OrchestratorConfig = {
 
 // Default config values
 export const DEFAULT_ORCHESTRATOR_CONFIG: OrchestratorConfig = {
-  mail: { enabled: true },
+  mail: {
+    enabled: true,
+    logging: {
+      enabled: false,
+      includeBodyPreview: false,
+      bodyPreviewChars: 160,
+      events: {
+        send: true,
+        receipt: true,
+        forward: true,
+        ack: true,
+        bounce: true,
+      },
+    },
+  },
   orchestration: {
     enabled: true,
     maxDepth: 2,

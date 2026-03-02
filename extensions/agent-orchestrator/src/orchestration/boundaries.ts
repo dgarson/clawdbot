@@ -1,24 +1,43 @@
-import { ROLE_BLOCKED_TOOLS, ORCHESTRATION_ONLY_TOOLS, type AgentRole } from "../types.js";
+import path from "node:path";
+import { normalizeToolName } from "../../../../src/agents/tool-policy.js";
+import { ORCHESTRATION_ONLY_TOOLS, ROLE_BLOCKED_TOOLS, type AgentRole } from "../types.js";
 
 export type BlockResult = { block: true; reason: string } | null;
 
+const ORCHESTRATOR_TOOL_ALIASES: Record<string, string> = {
+  write_file: "write",
+  edit_file: "edit",
+  execute_command: "exec",
+  read_file: "read",
+};
+
+export function normalizeOrchestratorToolName(toolName: string): string {
+  const normalized = normalizeToolName(toolName);
+  return ORCHESTRATOR_TOOL_ALIASES[normalized] ?? normalized;
+}
+
 export function shouldBlockTool(role: AgentRole | undefined, toolName: string): BlockResult {
   if (!role) return null;
+  const normalizedToolName = normalizeOrchestratorToolName(toolName);
 
   // Check role-specific blocked tools
   const blocked = ROLE_BLOCKED_TOOLS[role];
-  if (blocked?.includes(toolName)) {
+  if (blocked?.includes(normalizedToolName)) {
     return {
       block: true,
-      reason: `[orchestrator] ${role} agents cannot use ${toolName}`,
+      reason: `[orchestrator] ${role} agents cannot use ${normalizedToolName}`,
     };
   }
 
   // Check orchestration-only tools
-  if (ORCHESTRATION_ONLY_TOOLS.includes(toolName) && role !== "orchestrator" && role !== "lead") {
+  if (
+    ORCHESTRATION_ONLY_TOOLS.includes(normalizedToolName) &&
+    role !== "orchestrator" &&
+    role !== "lead"
+  ) {
     return {
       block: true,
-      reason: `[orchestrator] ${role} agents cannot use ${toolName} (orchestration-only)`,
+      reason: `[orchestrator] ${role} agents cannot use ${normalizedToolName} (orchestration-only)`,
     };
   }
 
@@ -39,17 +58,23 @@ export function checkFileScope(
   // No path to check
   if (!filePath) return null;
 
-  const normalizedPath = normalizePath(filePath);
+  const normalizedPath = normalizeRelativePath(filePath);
+  if (normalizedPath === null) {
+    return {
+      block: true,
+      reason: `[orchestrator] file path "${filePath}" must be a relative path within the assigned scope`,
+    };
+  }
 
   for (const scope of fileScope) {
-    const normalizedScope = normalizePath(scope);
+    const normalizedScope = normalizeRelativePath(scope);
+    if (normalizedScope === null) continue;
+    if (normalizedScope === "") return null;
+
     // Exact match
     if (normalizedPath === normalizedScope) return null;
     // Directory scope: path starts with scope/
-    if (normalizedScope.endsWith("/") && normalizedPath.startsWith(normalizedScope)) return null;
-    // Directory scope without trailing slash
-    if (!normalizedScope.endsWith("/") && normalizedPath.startsWith(normalizedScope + "/"))
-      return null;
+    if (normalizedPath.startsWith(normalizedScope + "/")) return null;
   }
 
   return {
@@ -58,9 +83,26 @@ export function checkFileScope(
   };
 }
 
-function normalizePath(p: string): string {
-  // Remove leading ./ and normalize double slashes
-  return p.replace(/^\.\//, "").replace(/\/+/g, "/");
+function normalizeRelativePath(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  // Normalize to POSIX separators first so prefix checks are consistent.
+  const posixLike = trimmed.replace(/\\/g, "/");
+
+  // Absolute paths are never allowed for scoped checks.
+  if (path.posix.isAbsolute(posixLike) || /^[A-Za-z]:\//.test(posixLike)) {
+    return null;
+  }
+
+  const normalized = path.posix.normalize(posixLike.replace(/^\.\//, ""));
+  if (normalized === ".." || normalized.startsWith("../")) {
+    return null;
+  }
+  if (normalized === ".") {
+    return "";
+  }
+  return normalized.replace(/\/+$/, "");
 }
 
 /**
@@ -73,13 +115,15 @@ export function checkToolAccess(
   fileScope: string[] | undefined,
   params: Record<string, unknown>,
 ): BlockResult {
+  const normalizedToolName = normalizeOrchestratorToolName(toolName);
+
   // 1. Role-based blocking
-  const roleBlock = shouldBlockTool(role, toolName);
+  const roleBlock = shouldBlockTool(role, normalizedToolName);
   if (roleBlock) return roleBlock;
 
   // 2. File scope checking (only for file-modifying tools)
-  const FILE_TOOLS = ["write_file", "edit_file"];
-  if (FILE_TOOLS.includes(toolName) && fileScope && fileScope.length > 0) {
+  const FILE_TOOLS = new Set(["write", "edit"]);
+  if (FILE_TOOLS.has(normalizedToolName) && fileScope && fileScope.length > 0) {
     const filePath =
       typeof params.file_path === "string"
         ? params.file_path
@@ -94,10 +138,10 @@ export function checkToolAccess(
   // Shell commands can write files outside the assigned scope (e.g. redirection, mv, cp).
   // We cannot inspect the command string for path violations, so block it entirely when
   // a fileScope is in effect.
-  if (toolName === "execute_command" && fileScope && fileScope.length > 0) {
+  if (normalizedToolName === "exec" && fileScope && fileScope.length > 0) {
     return {
       block: true,
-      reason: `[orchestrator] execute_command is blocked when a file scope is set (scope: [${fileScope.join(", ")}]). Use write_file or edit_file within your assigned scope instead.`,
+      reason: `[orchestrator] exec is blocked when a file scope is set (scope: [${fileScope.join(", ")}]). Use write/edit within your assigned scope instead.`,
     };
   }
 

@@ -13,6 +13,51 @@
         "properties": {
           "enabled": {
             "type": "boolean"
+          },
+          "logging": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "includeBodyPreview": {
+                "type": "boolean"
+              },
+              "bodyPreviewChars": {
+                "type": "integer"
+              },
+              "events": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "send": {
+                    "type": "boolean"
+                  },
+                  "receipt": {
+                    "type": "boolean"
+                  },
+                  "forward": {
+                    "type": "boolean"
+                  },
+                  "ack": {
+                    "type": "boolean"
+                  },
+                  "bounce": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          },
+          "rules": {
+            "type": "object"
+          },
+          "mailbox_acls": {
+            "type": "object"
+          },
+          "delivery_policies": {
+            "type": "object"
           }
         }
       },

@@ -1,19 +1,38 @@
-import { describe, it, expect } from "vitest";
-import { shouldBlockTool, checkFileScope, checkToolAccess } from "./boundaries.js";
+import { describe, expect, it } from "vitest";
+import {
+  checkFileScope,
+  checkToolAccess,
+  normalizeOrchestratorToolName,
+  shouldBlockTool,
+} from "./boundaries.js";
+
+describe("normalizeOrchestratorToolName", () => {
+  it("maps legacy tool aliases to canonical names", () => {
+    expect(normalizeOrchestratorToolName("write_file")).toBe("write");
+    expect(normalizeOrchestratorToolName("edit_file")).toBe("edit");
+    expect(normalizeOrchestratorToolName("execute_command")).toBe("exec");
+    expect(normalizeOrchestratorToolName("bash")).toBe("exec");
+  });
+});
 
 describe("shouldBlockTool", () => {
   it("blocks write tools for scout", () => {
+    const result = shouldBlockTool("scout", "write");
+    expect(result).toEqual({ block: true, reason: expect.stringContaining("scout") });
+  });
+
+  it("blocks write_file alias for scout", () => {
     const result = shouldBlockTool("scout", "write_file");
     expect(result).toEqual({ block: true, reason: expect.stringContaining("scout") });
   });
 
   it("allows read tools for scout", () => {
-    const result = shouldBlockTool("scout", "read_file");
+    const result = shouldBlockTool("scout", "read");
     expect(result).toBeNull();
   });
 
   it("allows write tools for builder", () => {
-    const result = shouldBlockTool("builder", "write_file");
+    const result = shouldBlockTool("builder", "write");
     expect(result).toBeNull();
   });
 
@@ -75,16 +94,32 @@ describe("checkFileScope", () => {
   it("handles double slashes in paths", () => {
     expect(checkFileScope(["src/"], "src//foo.ts")).toBeNull();
   });
+
+  it("blocks path traversal attempts outside scope", () => {
+    const result = checkFileScope(["src/"], "src/../../secrets.txt");
+    expect(result).toEqual({
+      block: true,
+      reason: expect.stringContaining("must be a relative path"),
+    });
+  });
+
+  it("blocks absolute paths", () => {
+    const result = checkFileScope(["src/"], "/tmp/file.ts");
+    expect(result).toEqual({
+      block: true,
+      reason: expect.stringContaining("must be a relative path"),
+    });
+  });
 });
 
 describe("checkToolAccess", () => {
   it("blocks role-restricted tool before checking scope", () => {
-    const result = checkToolAccess("scout", "write_file", ["src/"], { file_path: "src/foo.ts" });
+    const result = checkToolAccess("scout", "write", ["src/"], { file_path: "src/foo.ts" });
     expect(result).toEqual({ block: true, reason: expect.stringContaining("scout") });
   });
 
   it("blocks out-of-scope write_file for builder", () => {
-    const result = checkToolAccess("builder", "write_file", ["src/"], { file_path: "lib/foo.ts" });
+    const result = checkToolAccess("builder", "write", ["src/"], { file_path: "lib/foo.ts" });
     expect(result).toEqual({
       block: true,
       reason: expect.stringContaining("outside assigned scope"),
@@ -92,24 +127,24 @@ describe("checkToolAccess", () => {
   });
 
   it("allows in-scope write_file for builder", () => {
-    const result = checkToolAccess("builder", "write_file", ["src/"], { file_path: "src/foo.ts" });
+    const result = checkToolAccess("builder", "write", ["src/"], { file_path: "src/foo.ts" });
     expect(result).toBeNull();
   });
 
   it("allows write_file when no scope set", () => {
-    const result = checkToolAccess("builder", "write_file", undefined, {
+    const result = checkToolAccess("builder", "write", undefined, {
       file_path: "anywhere/foo.ts",
     });
     expect(result).toBeNull();
   });
 
   it("checks file_path param for write_file", () => {
-    const result = checkToolAccess("builder", "write_file", ["src/"], { file_path: "src/bar.ts" });
+    const result = checkToolAccess("builder", "write", ["src/"], { file_path: "src/bar.ts" });
     expect(result).toBeNull();
   });
 
   it("checks path param as fallback", () => {
-    const result = checkToolAccess("builder", "edit_file", ["src/"], { path: "lib/bar.ts" });
+    const result = checkToolAccess("builder", "edit", ["src/"], { path: "lib/bar.ts" });
     expect(result).toEqual({
       block: true,
       reason: expect.stringContaining("outside assigned scope"),
@@ -117,7 +152,15 @@ describe("checkToolAccess", () => {
   });
 
   it("skips scope check for non-file tools", () => {
-    const result = checkToolAccess("builder", "read_file", ["src/"], { file_path: "lib/foo.ts" });
+    const result = checkToolAccess("builder", "read", ["src/"], { file_path: "lib/foo.ts" });
     expect(result).toBeNull();
+  });
+
+  it("blocks exec when a file scope is set", () => {
+    const result = checkToolAccess("builder", "exec", ["src/"], { command: "npm test" });
+    expect(result).toEqual({
+      block: true,
+      reason: expect.stringContaining("exec is blocked"),
+    });
   });
 });

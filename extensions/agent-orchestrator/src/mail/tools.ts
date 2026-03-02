@@ -15,7 +15,8 @@
  */
 
 import { Type } from "@sinclair/typebox";
-import type { OpenClawPluginToolContext } from "../../../../src/plugins/types.js";
+import type { OpenClawPluginToolContext, PluginLogger } from "../../../../src/plugins/types.js";
+import type { OrchestratorMailLoggingConfig } from "../types.js";
 import {
   DEFAULT_PROCESSING_TTL_MS,
   MAIL_URGENCY_LEVELS,
@@ -157,6 +158,46 @@ async function maybeWakeRecipient(
   }
 }
 
+type MailTraceEvent = keyof OrchestratorMailLoggingConfig["events"];
+
+const DEFAULT_MAIL_LOGGING: OrchestratorMailLoggingConfig = {
+  enabled: false,
+  includeBodyPreview: false,
+  bodyPreviewChars: 160,
+  events: {
+    send: true,
+    receipt: true,
+    forward: true,
+    ack: true,
+    bounce: true,
+  },
+};
+
+function buildBodyPreview(body: string, trace: OrchestratorMailLoggingConfig): string | undefined {
+  if (!trace.includeBodyPreview || trace.bodyPreviewChars <= 0) return undefined;
+  const compact = body.replace(/\s+/g, " ").trim();
+  if (!compact) return "";
+  return compact.length > trace.bodyPreviewChars
+    ? `${compact.slice(0, trace.bodyPreviewChars)}...`
+    : compact;
+}
+
+function traceMailEvent(params: {
+  logger?: PluginLogger;
+  trace: OrchestratorMailLoggingConfig;
+  event: MailTraceEvent;
+  details: Record<string, unknown>;
+}): void {
+  const { logger, trace, event, details } = params;
+  if (!trace.enabled) return;
+  if (!trace.events[event]) return;
+
+  const log = logger?.debug ?? logger?.info;
+  if (!log) return;
+
+  log(`[agent-orchestrator][mail][${event}] ${JSON.stringify(details)}`);
+}
+
 // ============================================================================
 // Unified "mail" tool
 // ============================================================================
@@ -246,8 +287,11 @@ export function createMailTool(deps: {
   stateDir: string;
   config: ResolvedInterAgentMailConfig;
   api: { runtime?: ApiRuntime };
+  trace?: OrchestratorMailLoggingConfig;
+  logger?: PluginLogger;
 }) {
-  const { stateDir, config, api } = deps;
+  const { stateDir, config, api, logger } = deps;
+  const trace = deps.trace ?? DEFAULT_MAIL_LOGGING;
 
   return {
     name: "mail",
@@ -269,15 +313,15 @@ export function createMailTool(deps: {
 
       switch (action) {
         case "inbox":
-          return handleInbox(params, callerAgentId, stateDir, config, ctx);
+          return handleInbox(params, callerAgentId, stateDir, config, ctx, trace, logger);
         case "ack":
-          return handleAck(params, callerAgentId, stateDir, config);
+          return handleAck(params, callerAgentId, stateDir, config, trace, logger);
         case "send":
-          return handleSend(params, callerAgentId, stateDir, config, api);
+          return handleSend(params, callerAgentId, stateDir, config, api, trace, logger);
         case "reply":
-          return handleReply(params, callerAgentId, stateDir, config, api);
+          return handleReply(params, callerAgentId, stateDir, config, api, trace, logger);
         case "forward":
-          return handleForward(params, callerAgentId, stateDir, config, api);
+          return handleForward(params, callerAgentId, stateDir, config, api, trace, logger);
         case "recipients":
           return handleRecipients(params, callerAgentId, config, ctx);
         default:
@@ -299,6 +343,8 @@ async function handleInbox(
   stateDir: string,
   config: ResolvedInterAgentMailConfig,
   ctx: OpenClawPluginToolContext,
+  trace: OrchestratorMailLoggingConfig,
+  logger: PluginLogger | undefined,
 ): Promise<string> {
   const mailboxId = readStr(params, "mailbox_id") ?? callerAgentId;
   const isOwner = mailboxId === callerAgentId;
@@ -323,6 +369,19 @@ async function handleInbox(
       filterUrgency: filterUrgency ?? undefined,
       filterTags: filterTags ?? undefined,
     });
+    traceMailEvent({
+      logger,
+      trace,
+      event: "receipt",
+      details: {
+        action: "inbox_peek",
+        callerAgentId,
+        mailboxId,
+        acl,
+        returned: visible.length,
+        includeStale,
+      },
+    });
     if (visible.length === 0) {
       return isOwner ? "Your inbox is empty." : `Mailbox '${mailboxId}' is empty.`;
     }
@@ -336,6 +395,22 @@ async function handleInbox(
     filterUrgency: filterUrgency ?? undefined,
     filterTags: filterTags ?? undefined,
     includeStale,
+  });
+  traceMailEvent({
+    logger,
+    trace,
+    event: "receipt",
+    details: {
+      action: "inbox_claim",
+      callerAgentId,
+      mailboxId,
+      acl,
+      claimed: result.claimed,
+      returned: result.messages.length,
+      recovered: result.recovered,
+      includeStale,
+      limit: limit ?? null,
+    },
   });
 
   if (result.messages.length === 0) {
@@ -369,6 +444,8 @@ async function handleAck(
   callerAgentId: string,
   stateDir: string,
   config: ResolvedInterAgentMailConfig,
+  trace: OrchestratorMailLoggingConfig,
+  logger: PluginLogger | undefined,
 ): Promise<string> {
   const mailboxId = readStr(params, "mailbox_id") ?? callerAgentId;
   const messageIds = readStringArray(params, "message_ids");
@@ -390,6 +467,17 @@ async function handleAck(
 
   const filePath = mailboxPath(stateDir, mailboxId);
   const { updated } = await ackMessages(filePath, new Set(messageIds), Date.now());
+  traceMailEvent({
+    logger,
+    trace,
+    event: "ack",
+    details: {
+      callerAgentId,
+      mailboxId,
+      requestedIds: messageIds.length,
+      updated,
+    },
+  });
 
   if (updated === 0) {
     return `No in-progress messages matched the provided IDs. They may have already been acked or the TTL expired and they were re-queued.`;
@@ -407,6 +495,8 @@ async function handleSend(
   stateDir: string,
   config: ResolvedInterAgentMailConfig,
   api: { runtime?: ApiRuntime },
+  trace: OrchestratorMailLoggingConfig,
+  logger: PluginLogger | undefined,
 ): Promise<string> {
   const toAgentId = requireStr(params, "to_agent_id");
   const subject = requireStr(params, "subject");
@@ -448,6 +538,21 @@ async function handleSend(
     throw error;
   }
   await maybeWakeRecipient(api, toAgentId, urgency, config);
+  traceMailEvent({
+    logger,
+    trace,
+    event: "send",
+    details: {
+      action: "send",
+      from: callerAgentId,
+      to: toAgentId,
+      messageId: message.id,
+      urgency,
+      tags,
+      subject,
+      bodyPreview: buildBodyPreview(body, trace),
+    },
+  });
 
   return `Message sent to '${toAgentId}' (id: ${message.id}, urgency: ${urgency}).`;
 }
@@ -473,6 +578,8 @@ async function handleReply(
   stateDir: string,
   config: ResolvedInterAgentMailConfig,
   api: { runtime?: ApiRuntime },
+  trace: OrchestratorMailLoggingConfig,
+  logger: PluginLogger | undefined,
 ): Promise<string> {
   const messageId = requireStr(params, "message_id");
   const replyText = requireStr(params, "body");
@@ -541,6 +648,23 @@ async function handleReply(
   await appendMessage(dstPath, reply);
   await ackMessages(srcPath, new Set([messageId]), now);
   await maybeWakeRecipient(api, toAgentId, urgency, config);
+  traceMailEvent({
+    logger,
+    trace,
+    event: "send",
+    details: {
+      action: "reply",
+      from: callerAgentId,
+      to: toAgentId,
+      mailboxId,
+      sourceMessageId: messageId,
+      replyMessageId: reply.id,
+      urgency,
+      tags: reply.tags,
+      subject,
+      bodyPreview: buildBodyPreview(replyText, trace),
+    },
+  });
 
   return (
     `Replied to message '${messageId}' (new id: ${reply.id}) to '${toAgentId}'. ` +
@@ -558,6 +682,8 @@ async function handleForward(
   stateDir: string,
   config: ResolvedInterAgentMailConfig,
   api: { runtime?: ApiRuntime },
+  trace: OrchestratorMailLoggingConfig,
+  logger: PluginLogger | undefined,
 ): Promise<string> {
   const messageId = requireStr(params, "message_id");
   const toAgentId = requireStr(params, "to_agent_id");
@@ -631,6 +757,22 @@ async function handleForward(
   await ackMessages(srcPath, new Set([messageId]), now);
 
   await maybeWakeRecipient(api, toAgentId, urgency, config);
+  traceMailEvent({
+    logger,
+    trace,
+    event: "forward",
+    details: {
+      from: callerAgentId,
+      to: toAgentId,
+      mailboxId,
+      sourceMessageId: messageId,
+      forwardedMessageId: forwarded.id,
+      urgency,
+      tags: forwarded.tags,
+      subject: forwarded.subject,
+      bodyPreview: buildBodyPreview(forwarded.body, trace),
+    },
+  });
 
   return (
     `Forwarded message '${messageId}' to '${toAgentId}' as new message '${forwarded.id}'. ` +
@@ -679,8 +821,11 @@ export function createBounceMailTool(deps: {
   stateDir: string;
   config: ResolvedInterAgentMailConfig;
   api: { runtime?: ApiRuntime };
+  trace?: OrchestratorMailLoggingConfig;
+  logger?: PluginLogger;
 }) {
-  const { stateDir, config, api } = deps;
+  const { stateDir, config, api, logger } = deps;
+  const trace = deps.trace ?? DEFAULT_MAIL_LOGGING;
 
   return {
     name: "bounce_mail",
@@ -778,6 +923,21 @@ export function createBounceMailTool(deps: {
       await ackMessages(srcPath, new Set([messageId]), now);
 
       await maybeWakeRecipient(api, originalSenderId, "normal", config);
+      traceMailEvent({
+        logger,
+        trace,
+        event: "bounce",
+        details: {
+          from: callerAgentId,
+          to: originalSenderId,
+          mailboxId,
+          sourceMessageId: messageId,
+          bounceMessageId: bounce.id,
+          confidence,
+          reason,
+          bodyPreview: buildBodyPreview(reason, trace),
+        },
+      });
 
       return (
         `Bounced message '${messageId}' back to '${originalSenderId}' (bounce id: ${bounce.id}). ` +

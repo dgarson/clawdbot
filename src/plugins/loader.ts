@@ -5,6 +5,7 @@ import { createJiti } from "jiti";
 import type { OpenClawConfig } from "../config/config.js";
 import type { GatewayRequestHandler } from "../gateway/server-methods/types.js";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
+import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveUserPath } from "../utils.js";
 import { clearPluginCommands } from "./commands.js";
@@ -44,6 +45,8 @@ export type PluginLoadOptions = {
 const registryCache = new Map<string, PluginRegistry>();
 
 const defaultLogger = () => createSubsystemLogger("plugins");
+const SLOW_PLUGIN_LOAD_LOG_THRESHOLD_MS = 500;
+const VERY_SLOW_PLUGIN_LOAD_WARN_THRESHOLD_MS = 10_000;
 
 const resolvePluginSdkAliasFile = (params: {
   srcFile: string;
@@ -213,6 +216,23 @@ function pushDiagnostics(diagnostics: PluginDiagnostic[], append: PluginDiagnost
   diagnostics.push(...append);
 }
 
+function logSlowPluginLoad(params: {
+  logger: PluginLogger;
+  record: PluginRecord;
+  elapsedMs: number;
+}) {
+  if (params.elapsedMs <= SLOW_PLUGIN_LOAD_LOG_THRESHOLD_MS) {
+    return;
+  }
+
+  const message = `[plugins] startup diagnostic: plugin/extension "${params.record.id}" loaded in ${params.elapsedMs}ms (${params.record.source})`;
+  if (params.elapsedMs > VERY_SLOW_PLUGIN_LOAD_WARN_THRESHOLD_MS) {
+    params.logger.warn(`${message}; exceeded 10s`);
+    return;
+  }
+  params.logger.info(message);
+}
+
 type PathMatcher = {
   exact: Set<string>;
   dirs: string[];
@@ -371,6 +391,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
   const cfg = applyTestPluginDefaults(options.config ?? {}, process.env);
   const logger = options.logger ?? defaultLogger();
   const validateOnly = options.mode === "validate";
+  const diagnosticsEnabled = isDiagnosticsEnabled(cfg);
   const normalized = normalizePluginsConfig(cfg.plugins);
   const cacheKey = buildCacheKey({
     workspaceDir: options.workspaceDir,
@@ -550,6 +571,7 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
     }
     const safeSource = opened.path;
     fs.closeSync(opened.fd);
+    const loadStartedAt = diagnosticsEnabled ? Date.now() : 0;
 
     let mod: OpenClawPluginModule | null = null;
     try {
@@ -680,6 +702,13 @@ export function loadOpenClawPlugins(options: PluginLoadOptions = {}): PluginRegi
       }
       registry.plugins.push(record);
       seenIds.set(pluginId, candidate.origin);
+      if (diagnosticsEnabled) {
+        logSlowPluginLoad({
+          logger,
+          record,
+          elapsedMs: Date.now() - loadStartedAt,
+        });
+      }
     } catch (err) {
       recordPluginError({
         logger,

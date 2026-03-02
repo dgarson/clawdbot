@@ -37,6 +37,35 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
+function readIntegerOption(raw: unknown, fallback: number, min: number): number {
+  if (typeof raw !== "number" || !Number.isFinite(raw)) return fallback;
+  const value = Math.trunc(raw);
+  return value >= min ? value : fallback;
+}
+
+function readBooleanOption(raw: unknown, fallback: boolean): boolean {
+  return typeof raw === "boolean" ? raw : fallback;
+}
+
+function extractMailConfigInput(raw: unknown): Record<string, unknown> | undefined {
+  if (!isRecord(raw)) return undefined;
+
+  const root = raw;
+  const nested = isRecord(root.mail) ? root.mail : undefined;
+  const read = (key: "rules" | "mailbox_acls" | "delivery_policies"): unknown =>
+    nested && key in nested ? nested[key] : root[key];
+
+  const section: Record<string, unknown> = {};
+  const rules = read("rules");
+  const acls = read("mailbox_acls");
+  const policies = read("delivery_policies");
+  if (rules !== undefined) section.rules = rules;
+  if (acls !== undefined) section.mailbox_acls = acls;
+  if (policies !== undefined) section.delivery_policies = policies;
+
+  return Object.keys(section).length > 0 ? section : undefined;
+}
+
 function parseOrchestratorConfig(raw: unknown): OrchestratorConfig {
   if (raw == null) return { ...DEFAULT_ORCHESTRATOR_CONFIG };
   if (!isRecord(raw)) return { ...DEFAULT_ORCHESTRATOR_CONFIG };
@@ -45,29 +74,66 @@ function parseOrchestratorConfig(raw: unknown): OrchestratorConfig {
 
   // Parse mail section
   const rawMail = isRecord(raw.mail) ? raw.mail : {};
-  const mail = {
+  const rawLogging = isRecord(rawMail.logging) ? rawMail.logging : {};
+  const rawLogEvents = isRecord(rawLogging.events) ? rawLogging.events : {};
+  const mail: OrchestratorConfig["mail"] = {
     enabled: typeof rawMail.enabled === "boolean" ? rawMail.enabled : defaults.mail.enabled,
+    logging: {
+      enabled: readBooleanOption(rawLogging.enabled, defaults.mail.logging.enabled),
+      includeBodyPreview: readBooleanOption(
+        rawLogging.includeBodyPreview,
+        defaults.mail.logging.includeBodyPreview,
+      ),
+      bodyPreviewChars: readIntegerOption(
+        rawLogging.bodyPreviewChars,
+        defaults.mail.logging.bodyPreviewChars,
+        0,
+      ),
+      events: {
+        send: readBooleanOption(rawLogEvents.send, defaults.mail.logging.events.send),
+        receipt: readBooleanOption(rawLogEvents.receipt, defaults.mail.logging.events.receipt),
+        forward: readBooleanOption(rawLogEvents.forward, defaults.mail.logging.events.forward),
+        ack: readBooleanOption(rawLogEvents.ack, defaults.mail.logging.events.ack),
+        bounce: readBooleanOption(rawLogEvents.bounce, defaults.mail.logging.events.bounce),
+      },
+    },
   };
+  const legacyRaw = raw;
+  const mailRules = "rules" in rawMail ? rawMail.rules : legacyRaw.rules;
+  const mailAcls = "mailbox_acls" in rawMail ? rawMail.mailbox_acls : legacyRaw.mailbox_acls;
+  const mailPolicies =
+    "delivery_policies" in rawMail ? rawMail.delivery_policies : legacyRaw.delivery_policies;
+  if (mailRules !== undefined) {
+    mail.rules = mailRules as OrchestratorConfig["mail"]["rules"];
+  }
+  if (mailAcls !== undefined) {
+    mail.mailbox_acls = mailAcls as OrchestratorConfig["mail"]["mailbox_acls"];
+  }
+  if (mailPolicies !== undefined) {
+    mail.delivery_policies = mailPolicies as OrchestratorConfig["mail"]["delivery_policies"];
+  }
 
   // Parse orchestration section
   const rawOrch = isRecord(raw.orchestration) ? raw.orchestration : {};
   const orchestration = {
     enabled:
       typeof rawOrch.enabled === "boolean" ? rawOrch.enabled : defaults.orchestration.enabled,
-    maxDepth:
-      typeof rawOrch.maxDepth === "number" ? rawOrch.maxDepth : defaults.orchestration.maxDepth,
-    maxConcurrentAgents:
-      typeof rawOrch.maxConcurrentAgents === "number"
-        ? rawOrch.maxConcurrentAgents
-        : defaults.orchestration.maxConcurrentAgents,
-    watchdogIntervalMs:
-      typeof rawOrch.watchdogIntervalMs === "number"
-        ? rawOrch.watchdogIntervalMs
-        : defaults.orchestration.watchdogIntervalMs,
-    staleThresholdMs:
-      typeof rawOrch.staleThresholdMs === "number"
-        ? rawOrch.staleThresholdMs
-        : defaults.orchestration.staleThresholdMs,
+    maxDepth: readIntegerOption(rawOrch.maxDepth, defaults.orchestration.maxDepth, 0),
+    maxConcurrentAgents: readIntegerOption(
+      rawOrch.maxConcurrentAgents,
+      defaults.orchestration.maxConcurrentAgents,
+      1,
+    ),
+    watchdogIntervalMs: readIntegerOption(
+      rawOrch.watchdogIntervalMs,
+      defaults.orchestration.watchdogIntervalMs,
+      1,
+    ),
+    staleThresholdMs: readIntegerOption(
+      rawOrch.staleThresholdMs,
+      defaults.orchestration.staleThresholdMs,
+      1,
+    ),
   };
 
   return { mail, orchestration };
@@ -185,13 +251,7 @@ const plugin = {
       // config also contains top-level "mail" and "orchestration" keys that would
       // otherwise trigger the "unknown config key" guard in parsePluginConfig and
       // silently discard any valid rules/acls/policies.
-      const mailRawConfig = isRecord(api.pluginConfig)
-        ? {
-            rules: api.pluginConfig.rules,
-            mailbox_acls: api.pluginConfig.mailbox_acls,
-            delivery_policies: api.pluginConfig.delivery_policies,
-          }
-        : undefined;
+      const mailRawConfig = extractMailConfigInput(api.pluginConfig);
       const mailParsed = parsePluginConfig(mailRawConfig);
       let mailConfig: ResolvedInterAgentMailConfig;
       if (mailParsed.ok) {
@@ -214,6 +274,8 @@ const plugin = {
             stateDir: dir,
             config: mailConfig,
             api: api.runtime as Parameters<typeof createMailTool>[0]["api"],
+            trace: config.mail.logging,
+            logger: api.logger,
           }) as unknown as AnyAgentTool;
         },
         { name: "mail", optional: true },
@@ -227,6 +289,8 @@ const plugin = {
             stateDir: dir,
             config: mailConfig,
             api: api.runtime as Parameters<typeof createBounceMailTool>[0]["api"],
+            trace: config.mail.logging,
+            logger: api.logger,
           }) as unknown as AnyAgentTool;
         },
         { name: "bounce_mail", optional: true },

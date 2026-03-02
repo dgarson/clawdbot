@@ -1,6 +1,7 @@
 import { EnvHttpProxyAgent } from "undici";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as ssrf from "../../infra/net/ssrf.js";
+import * as logger from "../../logger.js";
 import { withFetchPreconnect } from "../../test-utils/fetch-mock.js";
 import { createWebFetchTool } from "./web-tools.js";
 
@@ -102,9 +103,15 @@ function installMockFetch(
   return mockFetch;
 }
 
-function createFetchTool(fetchOverrides: Record<string, unknown> = {}) {
+function createFetchTool(
+  fetchOverrides: Record<string, unknown> = {},
+  options?: { diagnosticsEnabled?: boolean },
+) {
   return createWebFetchTool({
     config: {
+      diagnostics: {
+        enabled: options?.diagnosticsEnabled === true,
+      },
       tools: {
         web: {
           fetch: {
@@ -418,7 +425,7 @@ describe("web_fetch extraction fallbacks", () => {
     expect(details.truncated).toBe(true);
   });
 
-  it("strips and truncates HTML from error responses", async () => {
+  it("returns safe error summary for non-2xx responses", async () => {
     const long = "x".repeat(12_000);
     const html =
       "<!doctype html><html><head><title>Not Found</title></head><body><h1>Not Found</h1><p>" +
@@ -437,15 +444,15 @@ describe("web_fetch extraction fallbacks", () => {
       url: "https://example.com/missing",
     });
 
-    expect(message).toContain("Web fetch failed (404):");
-    expect(message).toMatch(/<<<EXTERNAL_UNTRUSTED_CONTENT id="[a-f0-9]{16}">>>/);
-    expect(message).toContain("SECURITY NOTICE");
-    expect(message).toContain("Not Found");
+    expect(message).toBe("Web fetch failed (404) for URL: https://example.com/missing");
+    expect(message).not.toContain("<<<EXTERNAL_UNTRUSTED_CONTENT");
+    expect(message).not.toContain("SECURITY NOTICE");
+    expect(message).not.toContain("Not Found");
     expect(message).not.toContain("<html");
     expect(message.length).toBeLessThan(5_000);
   });
 
-  it("strips HTML errors when content-type is missing", async () => {
+  it("includes status code and URL when content-type is missing", async () => {
     const html =
       "<!DOCTYPE HTML><html><head><title>Oops</title></head><body><h1>Oops</h1></body></html>";
     installMockFetch(
@@ -459,12 +466,11 @@ describe("web_fetch extraction fallbacks", () => {
       url: "https://example.com/oops",
     });
 
-    expect(message).toContain("Web fetch failed (500):");
-    expect(message).toMatch(/<<<EXTERNAL_UNTRUSTED_CONTENT id="[a-f0-9]{16}">>>/);
-    expect(message).toContain("Oops");
+    expect(message).toBe("Web fetch failed (500) for URL: https://example.com/oops");
+    expect(message).not.toContain("Oops");
   });
 
-  it("wraps firecrawl error details", async () => {
+  it("returns safe firecrawl error summary", async () => {
     installMockFetch((input: RequestInfo | URL) => {
       const url = requestUrl(input);
       if (url.includes("api.firecrawl.dev")) {
@@ -486,8 +492,33 @@ describe("web_fetch extraction fallbacks", () => {
       url: "https://example.com/firecrawl-error",
     });
 
-    expect(message).toContain("Firecrawl fetch failed (403):");
-    expect(message).toMatch(/<<<EXTERNAL_UNTRUSTED_CONTENT id="[a-f0-9]{16}">>>/);
-    expect(message).toContain("blocked");
+    expect(message).toBe(
+      "Firecrawl fetch failed (403) for URL: https://example.com/firecrawl-error",
+    );
+    expect(message).not.toContain("blocked");
+    expect(message).not.toContain("<<<EXTERNAL_UNTRUSTED_CONTENT");
+  });
+
+  it("logs error body detail only when diagnostics are enabled", async () => {
+    const logSpy = vi.spyOn(logger, "logDebug").mockImplementation(() => {});
+    const html = "<html><body><h1>Not Found</h1></body></html>";
+    installMockFetch(
+      (input: RequestInfo | URL) =>
+        Promise.resolve(errorHtmlResponse(html, 404, requestUrl(input))) as Promise<Response>,
+    );
+
+    const tool = createFetchTool({ firecrawl: { enabled: false } }, { diagnosticsEnabled: true });
+    const message = await captureToolErrorMessage({
+      tool,
+      url: "https://example.com/diagnostics",
+    });
+
+    expect(message).toBe("Web fetch failed (404) for URL: https://example.com/diagnostics");
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "[web-fetch] failure detail: status=404 url=https://example.com/diagnostics detail=",
+      ),
+    );
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("SECURITY NOTICE"));
   });
 });

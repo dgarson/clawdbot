@@ -20,7 +20,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawPluginToolContext } from "../../../../src/plugins/types.js";
+import type { OpenClawPluginToolContext, PluginLogger } from "../../../../src/plugins/types.js";
+import type { OrchestratorMailLoggingConfig } from "../types.js";
 import {
   DEFAULT_PROCESSING_TTL_MS,
   isRoutingAllowed,
@@ -97,13 +98,46 @@ function makeCtx(
 }
 
 /** Creates a mail tool with a no-op runtime. */
-function makeMailTool(stateDir: string, config: ResolvedInterAgentMailConfig) {
-  return createMailTool({ stateDir, config, api: { runtime: undefined } });
+function makeMailTool(
+  stateDir: string,
+  config: ResolvedInterAgentMailConfig,
+  opts?: {
+    trace?: OrchestratorMailLoggingConfig;
+    logger?: PluginLogger;
+  },
+) {
+  return createMailTool({ stateDir, config, api: { runtime: undefined }, ...opts });
 }
 
 /** Creates a bounce tool with a no-op runtime. */
-function makeBounceTool(stateDir: string, config: ResolvedInterAgentMailConfig) {
-  return createBounceMailTool({ stateDir, config, api: { runtime: undefined } });
+function makeBounceTool(
+  stateDir: string,
+  config: ResolvedInterAgentMailConfig,
+  opts?: {
+    trace?: OrchestratorMailLoggingConfig;
+    logger?: PluginLogger;
+  },
+) {
+  return createBounceMailTool({ stateDir, config, api: { runtime: undefined }, ...opts });
+}
+
+function traceConfig(
+  overrides?: Partial<OrchestratorMailLoggingConfig>,
+): OrchestratorMailLoggingConfig {
+  return {
+    enabled: true,
+    includeBodyPreview: true,
+    bodyPreviewChars: 120,
+    events: {
+      send: true,
+      receipt: true,
+      forward: true,
+      ack: true,
+      bounce: true,
+      ...(overrides?.events ?? {}),
+    },
+    ...overrides,
+  };
 }
 
 // ============================================================================
@@ -1470,6 +1504,79 @@ describe("bounce_mail tool", () => {
         makeCtx("agent-b"),
       ),
     ).rejects.toThrow("Bounce is disabled");
+  });
+});
+
+describe("mail tracing logs", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await makeTempDir();
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it("logs send events when tracing is enabled", async () => {
+    const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    const tool = makeMailTool(tmpDir, allowAllConfig(), {
+      trace: traceConfig({
+        events: { send: true, receipt: false, forward: false, ack: false, bounce: false },
+      }),
+      logger,
+    });
+
+    await tool.execute(
+      {
+        action: "send",
+        to_agent_id: "agent-b",
+        subject: "Trace test",
+        body: "This message should be traced",
+      },
+      makeCtx("agent-a"),
+    );
+
+    expect(logger.debug).toHaveBeenCalledWith(expect.stringContaining("[mail][send]"));
+  });
+
+  it("logs receipt events on inbox claims when tracing is enabled", async () => {
+    const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    const tool = makeMailTool(tmpDir, allowAllConfig(), {
+      trace: traceConfig({
+        events: { send: false, receipt: true, forward: false, ack: false, bounce: false },
+      }),
+      logger,
+    });
+
+    await appendMessage(
+      mailboxPath(tmpDir, "agent-b"),
+      makeMessage({ id: "msg-1", from: "agent-a", subject: "Inbox trace" }),
+    );
+    await tool.execute({ action: "inbox" }, makeCtx("agent-b"));
+
+    expect(logger.debug).toHaveBeenCalledWith(expect.stringContaining("[mail][receipt]"));
+  });
+
+  it("logs forward events when tracing is enabled", async () => {
+    const logger = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    const tool = makeMailTool(tmpDir, allowAllConfig(), {
+      trace: traceConfig({
+        events: { send: false, receipt: false, forward: true, ack: false, bounce: false },
+      }),
+      logger,
+    });
+
+    await appendMessage(
+      mailboxPath(tmpDir, "agent-b"),
+      makeMessage({ id: "msg-fwd", from: "agent-a", subject: "Forward me" }),
+    );
+    await tool.execute(
+      { action: "forward", message_id: "msg-fwd", to_agent_id: "agent-c" },
+      makeCtx("agent-b"),
+    );
+
+    expect(logger.debug).toHaveBeenCalledWith(expect.stringContaining("[mail][forward]"));
   });
 });
 
