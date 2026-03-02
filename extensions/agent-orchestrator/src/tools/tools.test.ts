@@ -37,7 +37,8 @@ function defaultConfig(
 }
 
 /** Extract the parsed JSON from a tool result. */
-function parseResult(result: { content: Array<{ type: string; text: string }> }): unknown {
+// oxlint-disable-next-line typescript/no-explicit-any
+function parseResult(result: any): unknown {
   return JSON.parse(result.content[0].text);
 }
 

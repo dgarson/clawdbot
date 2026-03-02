@@ -13,15 +13,17 @@
  */
 
 import type { AnyAgentTool, OpenClawPluginApi } from "../../src/plugins/types.js";
+import { registerOrchestratorCli } from "./src/cli/index.js";
 import { registerMailCli } from "./src/mail/cli.js";
 import { parsePluginConfig, type ResolvedInterAgentMailConfig } from "./src/mail/config.js";
 import { createBeforePromptBuildHook } from "./src/mail/hook.js";
 import { createBounceMailTool, createMailTool } from "./src/mail/tools.js";
-import { shouldBlockTool } from "./src/orchestration/boundaries.js";
+import { checkToolAccess } from "./src/orchestration/boundaries.js";
 import { extractRoleFromLabel, validateSpawn } from "./src/orchestration/lifecycle.js";
 import { buildRoleContext } from "./src/orchestration/priming.js";
 import { ROLE_MODEL_OVERRIDES } from "./src/orchestration/roles.js";
 import { createOrchestratorStore, type OrchestratorStore } from "./src/store.js";
+import { createAgentStatusTool, createDecomposeTaskTool } from "./src/tools/index.js";
 import { DEFAULT_ORCHESTRATOR_CONFIG, type OrchestratorConfig } from "./src/types.js";
 
 // ── Config parsing ───────────────────────────────────────────────────────────
@@ -161,7 +163,36 @@ const plugin = {
     // ── Orchestration layer ────────────────────────────────────────────────
 
     if (config.orchestration.enabled) {
-      // Hook: role boundary enforcement (priority 50)
+      // ── Orchestration tools ───────────────────────────────────────────────
+
+      // decompose_task (optional, requires allowlisting)
+      api.registerTool(
+        (ctx) => {
+          if (!store) return null;
+          return createDecomposeTaskTool({
+            store,
+            config,
+            sessionKey: ctx.sessionKey ?? "",
+          }) as unknown as AnyAgentTool;
+        },
+        { name: "decompose_task", optional: true },
+      );
+
+      // agent_status (optional, requires allowlisting)
+      api.registerTool(
+        (_ctx) => {
+          if (!store) return null;
+          return createAgentStatusTool({ store, config }) as unknown as AnyAgentTool;
+        },
+        { name: "agent_status", optional: true },
+      );
+
+      // CLI: openclaw orchestrator status / inspect / tree / health / kill / reset / config
+      api.registerCli(registerOrchestratorCli, { commands: ["orchestrator"] });
+
+      // ── Orchestration hooks ───────────────────────────────────────────────
+
+      // Hook: role boundary + file scope enforcement (priority 50)
       api.on(
         "before_tool_call",
         (event, ctx) => {
@@ -169,7 +200,7 @@ const plugin = {
           const state = store.get(ctx.sessionKey);
           if (!state?.role) return;
 
-          const result = shouldBlockTool(state.role, event.toolName);
+          const result = checkToolAccess(state.role, event.toolName, state.fileScope, event.params);
 
           // Update activity timestamp
           store.update(ctx.sessionKey, (s) => {
