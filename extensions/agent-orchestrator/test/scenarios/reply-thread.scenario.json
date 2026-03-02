@@ -1,0 +1,120 @@
+{
+  "id": "reply-thread",
+  "description": "Agent A sends a tagged message to Agent B. Agent B claims it, then replies. The reply lands in Agent A's mailbox with a Re: subject, quoted original body, and preserved tags. Agent A then claims and acks the reply.",
+
+  "steps": [
+    {
+      "id": "a-send",
+      "description": "Agent A sends a tagged message to Agent B",
+      "actor": "agent-a",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-b",
+        "subject": "Status update needed",
+        "body": "Please send me the latest status on project X.",
+        "urgency": "normal",
+        "tags": ["task", "project-x"]
+      },
+      "expect": {
+        "result_contains": "sent to 'agent-b'",
+        "mailbox": {
+          "agent": "agent-b",
+          "unread_count": 1
+        }
+      }
+    },
+
+    {
+      "id": "b-inbox",
+      "description": "Agent B claims the message from its inbox",
+      "actor": "agent-b",
+      "action": "mail.inbox",
+      "params": {},
+      "capture": {
+        "msg_id": { "source": "mailbox", "agent": "agent-b", "path": "messages[0].id" }
+      },
+      "expect": {
+        "mailbox": {
+          "agent": "agent-b",
+          "unread_count": 0,
+          "processing_count": 1
+        }
+      }
+    },
+
+    {
+      "id": "b-reply",
+      "description": "Agent B replies with a body; tags and urgency are inherited from the original",
+      "actor": "agent-b",
+      "action": "mail.reply",
+      "params": {
+        "message_id": "${b-inbox.msg_id}",
+        "body": "Project X is on track. Expected completion: end of week."
+      },
+      "expect": {
+        "result_contains": "Replied to message",
+        "mailboxes": [
+          {
+            "agent": "agent-b",
+            "read_count": 1,
+            "processing_count": 0,
+            "unread_count": 0
+          },
+          {
+            "agent": "agent-a",
+            "unread_count": 1,
+            "messages": [
+              {
+                "from": "agent-b",
+                "to": "agent-a",
+                "subject": "Re: Status update needed",
+                "body_contains": "> Please send me the latest status on project X.",
+                "status": "unread",
+                "urgency": "normal",
+                "has_tag": "task",
+                "is_forwarded": true,
+                "lineage_length": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "a-inbox",
+      "description": "Agent A claims the reply from its inbox",
+      "actor": "agent-a",
+      "action": "mail.inbox",
+      "params": {},
+      "capture": {
+        "reply_id": { "source": "mailbox", "agent": "agent-a", "path": "messages[0].id" }
+      },
+      "expect": {
+        "mailbox": {
+          "agent": "agent-a",
+          "unread_count": 0,
+          "processing_count": 1
+        }
+      }
+    },
+
+    {
+      "id": "a-ack",
+      "description": "Agent A acks the reply after reading it",
+      "actor": "agent-a",
+      "action": "mail.ack",
+      "params": {
+        "message_ids": ["${a-inbox.reply_id}"]
+      },
+      "expect": {
+        "result_contains": "Acked 1",
+        "mailbox": {
+          "agent": "agent-a",
+          "read_count": 1,
+          "processing_count": 0
+        }
+      }
+    }
+  ]
+}
