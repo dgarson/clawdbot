@@ -467,10 +467,15 @@ export type PluginHookAgentEndEvent = {
     total?: number;
   };
   toolCallCount?: number;
-  toolNames?: string[];
+  toolNames?: string[]; // kept for backwards compatibility
   compactionCount?: number;
   stopReason?: string;
   lastAssistantMessage?: string;
+  // New fields — all optional so existing consumers need no changes
+  assistantTexts?: string[];
+  toolMetas?: Array<{ toolName: string; meta?: string }>;
+  sessionFile?: string;
+  systemPromptText?: string;
 };
 
 // Compaction hooks
