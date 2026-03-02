@@ -77,7 +77,7 @@ const httpServer = createServer((req, res) => {
     // Long-poll: wait for a think request
     const timer = setTimeout(() => {
       const idx = pollWaiters.findIndex(w => w.res === res);
-      if (idx >= 0) pollWaiters.splice(idx, 1);
+      if (idx >= 0) {pollWaiters.splice(idx, 1);}
       res.writeHead(204);
       res.end();
     }, timeout);
@@ -88,7 +88,7 @@ const httpServer = createServer((req, res) => {
     req.on('close', () => {
       clearTimeout(timer);
       const idx = pollWaiters.findIndex(w => w.res === res);
-      if (idx >= 0) pollWaiters.splice(idx, 1);
+      if (idx >= 0) {pollWaiters.splice(idx, 1);}
     });
 
     return;

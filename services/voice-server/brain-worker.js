@@ -33,12 +33,12 @@ function loadEnv() {
     const content = readFileSync(secretsPath, 'utf-8');
     for (const line of content.split('\n')) {
       const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) continue;
+      if (!trimmed || trimmed.startsWith('#')) {continue;}
       const eqIdx = trimmed.indexOf('=');
-      if (eqIdx === -1) continue;
+      if (eqIdx === -1) {continue;}
       const key = trimmed.slice(0, eqIdx).trim();
       const val = trimmed.slice(eqIdx + 1).trim();
-      if (!process.env[key]) process.env[key] = val;
+      if (!process.env[key]) {process.env[key] = val;}
     }
   } catch {}
 }
@@ -122,7 +122,7 @@ async function poll() {
     // 204 or other = no request, return null
     return null;
   } catch (err) {
-    if (err.name === 'AbortError') return null;
+    if (err.name === 'AbortError') {return null;}
     console.error('  ❌ Poll error:', err.message);
     // Wait before retrying on error
     await new Promise(r => setTimeout(r, 2000));
