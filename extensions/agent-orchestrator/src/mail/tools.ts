@@ -2,7 +2,7 @@
  * Agent tools for the inter-agent mail system.
  *
  * Tool surface:
- *   mail        — unified inbox/ack/send/forward/recipients (always enabled when allowlisted)
+ *   mail        — unified inbox/ack/send/reply/forward/recipients (always enabled when allowlisted)
  *   bounce_mail — opt-in return-to-sender with reason + confidence (separate allowlist entry)
  *
  * Security invariants:
@@ -38,6 +38,32 @@ import {
   type MailMessage,
   type MessageStatus,
 } from "./store.js";
+
+const SEND_RATE_LIMIT_WINDOW_MS = 60_000;
+const SEND_RATE_LIMIT_MAX_PER_WINDOW = 20;
+const senderSendCounts = new Map<string, number>();
+const senderSendCountsResetTimer = setInterval(() => {
+  senderSendCounts.clear();
+}, SEND_RATE_LIMIT_WINDOW_MS);
+senderSendCountsResetTimer.unref?.();
+
+function acquireSendPermit(senderAgentId: string): () => void {
+  const count = senderSendCounts.get(senderAgentId) ?? 0;
+  if (count >= SEND_RATE_LIMIT_MAX_PER_WINDOW) {
+    throw new Error(
+      `Rate limit exceeded: '${senderAgentId}' can send at most ${SEND_RATE_LIMIT_MAX_PER_WINDOW} messages per minute.`,
+    );
+  }
+  senderSendCounts.set(senderAgentId, count + 1);
+  return () => {
+    const current = senderSendCounts.get(senderAgentId) ?? 0;
+    if (current <= 1) {
+      senderSendCounts.delete(senderAgentId);
+      return;
+    }
+    senderSendCounts.set(senderAgentId, current - 1);
+  };
+}
 
 // ============================================================================
 // Shared schema helpers (self-contained — no core imports)
@@ -88,6 +114,15 @@ function readBool(params: Record<string, unknown>, key: string, def: boolean): b
   return typeof raw === "boolean" ? raw : def;
 }
 
+function readPositiveNumber(params: Record<string, unknown>, key: string): number | undefined {
+  const raw = params[key];
+  if (raw === undefined) return undefined;
+  if (typeof raw !== "number" || !Number.isFinite(raw) || raw < 1) {
+    throw new Error(`${key} must be a positive number.`);
+  }
+  return Math.floor(raw);
+}
+
 // ============================================================================
 // Shared wakeup helper
 // ============================================================================
@@ -126,7 +161,7 @@ async function maybeWakeRecipient(
 // Unified "mail" tool
 // ============================================================================
 
-const MAIL_ACTIONS = ["inbox", "ack", "send", "forward", "recipients"] as const;
+const MAIL_ACTIONS = ["inbox", "ack", "send", "reply", "forward", "recipients"] as const;
 type MailAction = (typeof MAIL_ACTIONS)[number];
 
 const MailToolSchema = Type.Object({
@@ -137,6 +172,7 @@ const MailToolSchema = Type.Object({
       "inbox: claim unread messages as in-progress (must ack when done). " +
       "ack: mark in-progress messages as fully processed (provide message_ids). " +
       "send: send a new message (requires to_agent_id, subject, body). " +
+      "reply: reply to a mailbox message with auto-threading (requires message_id, body). " +
       "forward: route a message with lineage chain preserved (requires message_id, to_agent_id). " +
       "recipients: list agents you can send to with optional fuzzy search.",
   }),
@@ -157,6 +193,13 @@ const MailToolSchema = Type.Object({
       description:
         "Also return messages already in 'processing' state (from a prior run that hasn't yet expired). " +
         "Does not re-claim them. Useful after a crash to see what was being handled.",
+    }),
+  ),
+  limit: Type.Optional(
+    Type.Number({
+      minimum: 1,
+      description:
+        "Maximum unread messages to claim for action='inbox'. Defaults to unlimited when omitted.",
     }),
   ),
 
@@ -213,6 +256,7 @@ export function createMailTool(deps: {
       "action='inbox'  — Claim unread messages as in-progress; you MUST ack them when done.\n" +
       "action='ack'    — Mark in-progress messages as fully processed. Requires message_ids.\n" +
       "action='send'   — Send a new message. Requires to_agent_id, subject, body.\n" +
+      "action='reply'  — Reply to a mailbox message. Requires message_id, body.\n" +
       "action='forward'— Route a message to another agent with the lineage chain preserved. Requires message_id, to_agent_id.\n" +
       "action='recipients' — List agents you can send mail to; fuzzy-search by name or id with search.",
     schema: MailToolSchema,
@@ -230,6 +274,8 @@ export function createMailTool(deps: {
           return handleAck(params, callerAgentId, stateDir, config);
         case "send":
           return handleSend(params, callerAgentId, stateDir, config, api);
+        case "reply":
+          return handleReply(params, callerAgentId, stateDir, config, api);
         case "forward":
           return handleForward(params, callerAgentId, stateDir, config, api);
         case "recipients":
@@ -259,6 +305,7 @@ async function handleInbox(
   const filterUrgency = readStringArray(params, "filter_urgency") as MailUrgency[] | null;
   const filterTags = readStringArray(params, "filter_tags");
   const includeStale = readBool(params, "include_stale", false);
+  const limit = readPositiveNumber(params, "limit");
 
   const acl = resolveMailboxAcl(config, mailboxId, callerAgentId);
   if (!acl) {
@@ -285,6 +332,7 @@ async function handleInbox(
   // Owners and read_mark/read_write delegates claim messages (unread → processing)
   const result = await claimUnread(filePath, {
     ttlMs,
+    limit,
     filterUrgency: filterUrgency ?? undefined,
     filterTags: filterTags ?? undefined,
     includeStale,
@@ -392,10 +440,112 @@ async function handleSend(
   };
 
   const filePath = mailboxPath(stateDir, toAgentId);
-  await appendMessage(filePath, message);
+  const rollbackPermit = acquireSendPermit(callerAgentId);
+  try {
+    await appendMessage(filePath, message);
+  } catch (error) {
+    rollbackPermit();
+    throw error;
+  }
   await maybeWakeRecipient(api, toAgentId, urgency, config);
 
   return `Message sent to '${toAgentId}' (id: ${message.id}, urgency: ${urgency}).`;
+}
+
+// ============================================================================
+// action="reply" — respond to a message with auto-threading
+// ============================================================================
+
+function makeReplySubject(subject: string): string {
+  return /^re:\s/i.test(subject) ? subject : `Re: ${subject}`;
+}
+
+function quoteForReply(body: string): string {
+  return body
+    .split("\n")
+    .map((line) => `> ${line}`)
+    .join("\n");
+}
+
+async function handleReply(
+  params: Record<string, unknown>,
+  callerAgentId: string,
+  stateDir: string,
+  config: ResolvedInterAgentMailConfig,
+  api: { runtime?: ApiRuntime },
+): Promise<string> {
+  const messageId = requireStr(params, "message_id");
+  const replyText = requireStr(params, "body");
+  const mailboxId = readStr(params, "mailbox_id") ?? callerAgentId;
+  const subjectOverride = readStr(params, "subject");
+  const urgencyParam = readStr(params, "urgency") as MailUrgency | null;
+  const tags = readStringArray(params, "tags");
+
+  const acl = resolveMailboxAcl(config, mailboxId, callerAgentId);
+  if (!acl || acl === "peek") {
+    throw new Error(
+      acl === "peek"
+        ? `Access denied: peek access to mailbox '${mailboxId}' is read-only (cannot reply).`
+        : `Access denied: you do not have access to mailbox '${mailboxId}'.`,
+    );
+  }
+
+  const srcPath = mailboxPath(stateDir, mailboxId);
+  const srcMessages = await readMailbox(srcPath);
+  const src = srcMessages.find((m) => m.id === messageId);
+
+  if (!src) {
+    throw new Error(`Message '${messageId}' not found in mailbox '${mailboxId}'.`);
+  }
+  if (src.status === "deleted") {
+    throw new Error(`Message '${messageId}' has been deleted and cannot be replied to.`);
+  }
+
+  const toAgentId = src.from;
+  if (!isRoutingAllowed(config, callerAgentId, toAgentId)) {
+    throw new Error(`Routing denied: you are not permitted to send mail to '${toAgentId}'.`);
+  }
+
+  const now = Date.now();
+  const urgency = urgencyParam ?? src.urgency;
+  const subject = subjectOverride ?? makeReplySubject(src.subject);
+
+  const body = [
+    replyText,
+    "",
+    `--- Original from ${src.from} (${new Date(src.created_at).toISOString()}) ---`,
+    `Subject: ${src.subject}`,
+    "",
+    quoteForReply(src.body),
+  ].join("\n");
+
+  const reply: MailMessage = {
+    id: newMessageId(),
+    from: callerAgentId,
+    to: toAgentId,
+    subject,
+    body,
+    urgency,
+    tags: tags ?? src.tags,
+    status: "unread",
+    created_at: now,
+    read_at: null,
+    deleted_at: null,
+    processing_at: null,
+    processing_expires_at: null,
+    forwarded_from: src.id,
+    lineage: [...src.lineage, src.id],
+  };
+
+  const dstPath = mailboxPath(stateDir, toAgentId);
+  await appendMessage(dstPath, reply);
+  await ackMessages(srcPath, new Set([messageId]), now);
+  await maybeWakeRecipient(api, toAgentId, urgency, config);
+
+  return (
+    `Replied to message '${messageId}' (new id: ${reply.id}) to '${toAgentId}'. ` +
+    `Lineage depth: ${reply.lineage.length}.`
+  );
 }
 
 // ============================================================================
@@ -448,9 +598,7 @@ async function handleForward(
 
   // Build forwarded message with reverse lineage
   const forwardedBody = [
-    notes
-      ? `[Forwarded by ${callerAgentId}${notes ? `: ${notes}` : ""}]`
-      : `[Forwarded by ${callerAgentId}]`,
+    notes ? `[Forwarded by ${callerAgentId}: ${notes}]` : `[Forwarded by ${callerAgentId}]`,
     "",
     `--- Original from ${src.from} (${new Date(src.created_at).toISOString()}) ---`,
     `Subject: ${src.subject}`,
@@ -547,6 +695,10 @@ export function createBounceMailTool(deps: {
       ctx: OpenClawPluginToolContext,
     ): Promise<string> {
       const callerAgentId = requireAgentId(ctx);
+      const policy = resolveDeliveryPolicy(config, callerAgentId);
+      if (!policy.bounce_enabled) {
+        throw new Error("Bounce is disabled for your agent by delivery policy.");
+      }
       const messageId = requireStr(params, "message_id");
       const reason = requireStr(params, "reason");
       const rawConfidence = params["confidence"];

@@ -318,6 +318,52 @@ describe("decompose_task", () => {
     expect(data.tasks[0].model).toBe("claude-haiku-4-5");
   });
 
+  it("stores valid decomposition metadata on parent session for spawn hydration", async () => {
+    const sessions = new Map<string, OrchestratorSessionState>();
+    sessions.set("lead-1", { role: "lead", depth: 1, status: "active" });
+    const store = createMockStore(sessions);
+    const tool = createDecomposeTaskTool({
+      store: store as any,
+      config: defaultConfig(),
+      sessionKey: "lead-1",
+    });
+
+    await tool.execute("tc-1", {
+      tasks: [
+        {
+          role: "builder",
+          task: "Implement login flow",
+          label: "builder:login",
+          file_scope: ["src/auth/login.ts"],
+          model: "openai/gpt-5-mini",
+        },
+        {
+          role: "scout",
+          task: "Explore current auth flows",
+          label: "scout:auth",
+        },
+      ],
+    });
+
+    const parent = sessions.get("lead-1");
+    expect(parent?.pendingSpawnIntents).toEqual([
+      {
+        role: "builder",
+        label: "builder:login",
+        taskDescription: "Implement login flow",
+        fileScope: ["src/auth/login.ts"],
+        modelOverride: "openai/gpt-5-mini",
+      },
+      {
+        role: "scout",
+        label: "scout:auth",
+        taskDescription: "Explore current auth flows",
+        fileScope: undefined,
+        modelOverride: "claude-haiku-4-5",
+      },
+    ]);
+  });
+
   it("invalid tasks have empty spawnCommand", async () => {
     const sessions = new Map<string, OrchestratorSessionState>();
     sessions.set("orch-1", { role: "orchestrator", depth: 0, status: "active" });
@@ -561,6 +607,25 @@ describe("agent_status", () => {
 
     const orchestrator = data.agents.find((a: any) => a.sessionKey === "s4");
     expect(orchestrator.modelOverride).toBeUndefined();
+  });
+
+  it("prefers explicit per-session model override over role default", async () => {
+    const sessions = new Map<string, OrchestratorSessionState>();
+    sessions.set("s1", {
+      role: "scout",
+      status: "active",
+      modelOverride: "openai/gpt-5-mini",
+    });
+    const store = createMockStore(sessions);
+    const tool = createAgentStatusTool({
+      store: store as any,
+      config: defaultConfig(),
+    });
+
+    const result = await tool.execute("tc-1", { include_stale_check: false });
+    const data = parseResult(result) as any;
+
+    expect(data.agents[0].modelOverride).toBe("openai/gpt-5-mini");
   });
 
   it("returns error for unknown session_key", async () => {

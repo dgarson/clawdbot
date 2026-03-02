@@ -24,7 +24,12 @@ import { buildRoleContext } from "./src/orchestration/priming.js";
 import { ROLE_MODEL_OVERRIDES } from "./src/orchestration/roles.js";
 import { createOrchestratorStore, type OrchestratorStore } from "./src/store.js";
 import { createAgentStatusTool, createDecomposeTaskTool } from "./src/tools/index.js";
-import { DEFAULT_ORCHESTRATOR_CONFIG, type OrchestratorConfig } from "./src/types.js";
+import {
+  DEFAULT_ORCHESTRATOR_CONFIG,
+  type AgentRole,
+  type OrchestratorConfig,
+  type PendingSpawnIntent,
+} from "./src/types.js";
 
 // ── Config parsing ───────────────────────────────────────────────────────────
 
@@ -68,6 +73,78 @@ function parseOrchestratorConfig(raw: unknown): OrchestratorConfig {
   return { mail, orchestration };
 }
 
+function isPendingSpawnIntent(value: unknown): value is PendingSpawnIntent {
+  if (!isRecord(value)) return false;
+  if (typeof value.role !== "string") return false;
+  if (typeof value.label !== "string" || value.label.trim().length === 0) return false;
+  if (typeof value.taskDescription !== "string" || value.taskDescription.trim().length === 0) {
+    return false;
+  }
+  if (value.fileScope !== undefined) {
+    if (!Array.isArray(value.fileScope) || value.fileScope.some((v) => typeof v !== "string")) {
+      return false;
+    }
+  }
+  if (value.modelOverride !== undefined && typeof value.modelOverride !== "string") {
+    return false;
+  }
+  return true;
+}
+
+function consumePendingSpawnIntent(params: {
+  store: OrchestratorStore;
+  parentSessionKey?: string;
+  parentIntents: PendingSpawnIntent[] | undefined;
+  childRole: AgentRole;
+  childLabel?: string;
+}): PendingSpawnIntent | undefined {
+  const intents = params.parentIntents ?? [];
+  if (intents.length === 0) return undefined;
+
+  const childLabel = params.childLabel?.trim();
+  let intentIndex = -1;
+
+  if (childLabel) {
+    intentIndex = intents.findIndex(
+      (intent) => intent.role === params.childRole && intent.label === childLabel,
+    );
+  }
+
+  if (intentIndex < 0) {
+    const roleMatches = intents.filter((intent) => intent.role === params.childRole);
+    if (roleMatches.length === 1) {
+      intentIndex = intents.indexOf(roleMatches[0]);
+    }
+  }
+
+  if (intentIndex < 0) return undefined;
+  const picked = intents[intentIndex];
+  if (!picked) return undefined;
+
+  if (params.parentSessionKey) {
+    params.store.update(params.parentSessionKey, (state) => {
+      const current = Array.isArray(state.pendingSpawnIntents)
+        ? state.pendingSpawnIntents.filter(isPendingSpawnIntent)
+        : [];
+      const removeIndex = current.findIndex(
+        (intent) =>
+          intent.role === picked.role &&
+          intent.label === picked.label &&
+          intent.taskDescription === picked.taskDescription &&
+          intent.modelOverride === picked.modelOverride,
+      );
+      if (removeIndex >= 0) current.splice(removeIndex, 1);
+      if (current.length > 0) {
+        state.pendingSpawnIntents = current;
+      } else {
+        delete state.pendingSpawnIntents;
+      }
+    });
+  }
+
+  return picked;
+}
+
 // ── Plugin definition ────────────────────────────────────────────────────────
 
 const plugin = {
@@ -103,8 +180,19 @@ const plugin = {
     // ── Mail layer ─────────────────────────────────────────────────────────
 
     if (config.mail.enabled || config.orchestration.enabled) {
-      // Parse mail-specific config (best effort — fall back to defaults)
-      const mailParsed = parsePluginConfig(api.pluginConfig);
+      // Parse mail-specific config (best effort — fall back to defaults).
+      // Extract only the keys parsePluginConfig understands; the orchestrator plugin
+      // config also contains top-level "mail" and "orchestration" keys that would
+      // otherwise trigger the "unknown config key" guard in parsePluginConfig and
+      // silently discard any valid rules/acls/policies.
+      const mailRawConfig = isRecord(api.pluginConfig)
+        ? {
+            rules: api.pluginConfig.rules,
+            mailbox_acls: api.pluginConfig.mailbox_acls,
+            delivery_policies: api.pluginConfig.delivery_policies,
+          }
+        : undefined;
+      const mailParsed = parsePluginConfig(mailRawConfig);
       let mailConfig: ResolvedInterAgentMailConfig;
       if (mailParsed.ok) {
         mailConfig = mailParsed.value;
@@ -202,10 +290,8 @@ const plugin = {
 
           const result = checkToolAccess(state.role, event.toolName, state.fileScope, event.params);
 
-          // Update activity timestamp
-          store.update(ctx.sessionKey, (s) => {
-            s.lastActivity = Date.now();
-          });
+          // Note: activity tracking is handled exclusively in the after_tool_call hook below
+          // so that lastActivity only advances when a tool actually executes, not when blocked.
 
           if (result) {
             return { block: true, blockReason: result.reason };
@@ -219,12 +305,19 @@ const plugin = {
         if (!store) return;
 
         const childRole = extractRoleFromLabel(event.label);
-        if (!childRole) return { status: "ok" as const };
+        // Not an orchestrated role — let the gateway handle it normally without registering.
+        // Returning undefined (no opinion) is correct here; an explicit { status: "ok" }
+        // would imply this agent is tracked, but it won't be, making it invisible to fleet
+        // tracking and stale detection.
+        if (!childRole) return;
 
         const parentKey = ctx.requesterSessionKey;
         const parentState = parentKey ? store.get(parentKey) : undefined;
         const parentRole = parentState?.role ?? "orchestrator";
         const parentDepth = parentState?.depth ?? 0;
+        const parentIntents = Array.isArray(parentState?.pendingSpawnIntents)
+          ? parentState.pendingSpawnIntents.filter(isPendingSpawnIntent)
+          : undefined;
 
         // Count active agents
         const allKeys = store.keys();
@@ -247,6 +340,14 @@ const plugin = {
           return { status: "error" as const, error: validation.reason };
         }
 
+        const pendingIntent = consumePendingSpawnIntent({
+          store,
+          parentSessionKey: parentKey,
+          parentIntents,
+          childRole,
+          childLabel: event.label,
+        });
+
         // Register child in store
         store.update(event.childSessionKey, (s) => {
           s.role = childRole;
@@ -254,6 +355,22 @@ const plugin = {
           s.parentSessionKey = parentKey;
           s.status = "active";
           s.lastActivity = Date.now();
+          if (pendingIntent?.taskDescription) {
+            s.taskDescription = pendingIntent.taskDescription;
+          } else {
+            delete s.taskDescription;
+          }
+          if (pendingIntent?.fileScope) {
+            s.fileScope = pendingIntent.fileScope;
+          } else {
+            delete s.fileScope;
+          }
+          const explicitModel = pendingIntent?.modelOverride?.trim();
+          if (explicitModel) {
+            s.modelOverride = explicitModel;
+          } else {
+            delete s.modelOverride;
+          }
         });
 
         return { status: "ok" as const };
@@ -322,7 +439,7 @@ const plugin = {
         const state = store.get(ctx.sessionKey);
         if (!state?.role) return;
 
-        const modelOverride = ROLE_MODEL_OVERRIDES[state.role];
+        const modelOverride = state.modelOverride?.trim() || ROLE_MODEL_OVERRIDES[state.role];
         if (modelOverride) {
           return { modelOverride };
         }

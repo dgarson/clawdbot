@@ -67,7 +67,8 @@ export function registerAgentCommands(parent: Command, ctx: OpenClawPluginCliCon
       }
 
       const role = state.role ?? "unknown";
-      const modelOverride = ROLE_MODEL_OVERRIDES[role as AgentRole] ?? "(default)";
+      const modelOverride =
+        state.modelOverride?.trim() || ROLE_MODEL_OVERRIDES[role as AgentRole] || "(default)";
       const blockedTools = ROLE_BLOCKED_TOOLS[role as AgentRole]?.join(", ") ?? "none";
       const spawnableRoles = SPAWN_RULES[role as AgentRole]?.join(", ") ?? "none";
       const lastActivityIso = state.lastActivity

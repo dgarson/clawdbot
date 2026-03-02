@@ -7,7 +7,7 @@
  *  - ACL helpers: owner, delegate, no access
  *  - Store: append, peek, claim (processing leases), ack, soft-delete, TTL recovery,
  *            special-char agent ids, newMessageId uniqueness, countUnread live processing
- *  - mail tool: all 5 actions — inbox/ack/send/forward/recipients
+ *  - mail tool: all 6 actions — inbox/ack/send/reply/forward/recipients
  *  - bounce_mail tool: routing, lineage, auto-ack, boundary confidence values
  *  - contacts module: resolveContacts and formatContacts unit tests
  *  - before_prompt_build hook: notification injection, heartbeat-only policy,
@@ -415,6 +415,26 @@ describe("store", () => {
       const stored = await readMailbox(filePath);
       expect(stored.find((m) => m.id === "n")?.status).toBe("unread");
     });
+
+    it("honors claim limit when provided", async () => {
+      const filePath = mailboxPath(tmpDir, "agent-b");
+      await appendMessage(filePath, makeMessage({ id: "m1" }));
+      await appendMessage(filePath, makeMessage({ id: "m2" }));
+      await appendMessage(filePath, makeMessage({ id: "m3" }));
+
+      const { claimed, messages } = await claimUnread(filePath, {
+        ttlMs: 60_000,
+        limit: 2,
+      });
+
+      expect(claimed).toBe(2);
+      expect(messages.map((m) => m.id)).toEqual(["m1", "m2"]);
+
+      const stored = await readMailbox(filePath);
+      expect(stored.find((m) => m.id === "m1")?.status).toBe("processing");
+      expect(stored.find((m) => m.id === "m2")?.status).toBe("processing");
+      expect(stored.find((m) => m.id === "m3")?.status).toBe("unread");
+    });
   });
 
   describe("ackMessages (processing → read)", () => {
@@ -536,6 +556,38 @@ describe("store", () => {
     const { total, urgent } = await countUnread(filePath, now);
     expect(total).toBe(3); // 2 unread + 1 expired processing
     expect(urgent).toBe(2); // 1 urgent unread + 1 expired urgent processing
+  });
+
+  it("compacts deleted and old-read messages on large mailbox rewrites", async () => {
+    const filePath = mailboxPath(tmpDir, "agent-b");
+    const oldReadAt = Date.now() - 2 * 24 * 60 * 60 * 1000;
+
+    for (let i = 0; i < 505; i++) {
+      await appendMessage(
+        filePath,
+        makeMessage({
+          id: `old-read-${i}`,
+          status: "read",
+          read_at: oldReadAt,
+        }),
+      );
+    }
+    await appendMessage(filePath, makeMessage({ id: "deleted-1", status: "deleted" }));
+    await appendMessage(filePath, makeMessage({ id: "keep-unread", status: "unread" }));
+    await appendMessage(
+      filePath,
+      makeMessage({
+        id: "keep-recent-read",
+        status: "processing",
+        processing_at: Date.now(),
+        processing_expires_at: Date.now() + 60_000,
+      }),
+    );
+
+    await ackMessages(filePath, new Set(["keep-recent-read"]), Date.now());
+
+    const stored = await readMailbox(filePath);
+    expect(stored.map((m) => m.id).sort()).toEqual(["keep-recent-read", "keep-unread"]);
   });
 
   it("handles concurrent appends without data loss", async () => {
@@ -690,6 +742,35 @@ describe("mail tool — action='send'", () => {
 
     const msgs = await readMailbox(mailboxPath(tmpDir, "agent-b"));
     expect(msgs[0]?.tags).toEqual(["deploy", "prod"]);
+  });
+
+  it("enforces per-sender send rate limit (20 per minute)", async () => {
+    const tool = makeMailTool(tmpDir, allowAllConfig());
+    const sender = makeCtx("rate-limit-sender");
+
+    for (let i = 0; i < 20; i++) {
+      await tool.execute(
+        {
+          action: "send",
+          to_agent_id: "agent-b",
+          subject: `Burst ${i + 1}`,
+          body: "body",
+        },
+        sender,
+      );
+    }
+
+    await expect(
+      tool.execute(
+        {
+          action: "send",
+          to_agent_id: "agent-b",
+          subject: "Burst 21",
+          body: "body",
+        },
+        sender,
+      ),
+    ).rejects.toThrow("Rate limit exceeded");
   });
 });
 
@@ -859,6 +940,21 @@ describe("mail tool — action='inbox'", () => {
     const m = stored.find((s) => s.id === "stale");
     expect(m?.processing_expires_at).toBe(futureExpiry); // lease expiry unchanged
   });
+
+  it("supports limit to claim inbox in batches", async () => {
+    await seedMailbox("agent-b", [{ id: "u1" }, { id: "u2" }, { id: "u3" }]);
+    const tool = makeMailTool(tmpDir, allowAllConfig());
+
+    const result = await tool.execute({ action: "inbox", limit: 2 }, makeCtx("agent-b"));
+    expect(result).toContain("u1");
+    expect(result).toContain("u2");
+    expect(result).not.toContain("u3");
+
+    const stored = await readMailbox(mailboxPath(tmpDir, "agent-b"));
+    expect(stored.find((m) => m.id === "u1")?.status).toBe("processing");
+    expect(stored.find((m) => m.id === "u2")?.status).toBe("processing");
+    expect(stored.find((m) => m.id === "u3")?.status).toBe("unread");
+  });
 });
 
 // ============================================================================
@@ -936,6 +1032,64 @@ describe("mail tool — action='ack'", () => {
       makeCtx("agent-b"),
     );
     expect(result).toContain("No in-progress messages");
+  });
+});
+
+// ============================================================================
+// mail tool — action="reply"
+// ============================================================================
+
+describe("mail tool — action='reply'", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await makeTempDir();
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  async function seedMessage(
+    agentId: string,
+    overrides: Partial<MailMessage> = {},
+  ): Promise<MailMessage> {
+    const msg = makeMessage({ to: agentId, ...overrides });
+    await appendMessage(mailboxPath(tmpDir, agentId), msg);
+    return msg;
+  }
+
+  it("replies to the original sender with threading metadata and quoted body", async () => {
+    await seedMessage("agent-b", {
+      id: "msg-src",
+      from: "agent-a",
+      subject: "Need help",
+      body: "line 1\nline 2",
+      status: "processing",
+      processing_at: Date.now(),
+      processing_expires_at: Date.now() + 60_000,
+    });
+    const tool = makeMailTool(tmpDir, allowAllConfig());
+
+    await tool.execute(
+      { action: "reply", message_id: "msg-src", body: "On it." },
+      makeCtx("agent-b"),
+    );
+
+    const senderMsgs = await readMailbox(mailboxPath(tmpDir, "agent-a"));
+    expect(senderMsgs).toHaveLength(1);
+    const reply = senderMsgs[0]!;
+    expect(reply.from).toBe("agent-b");
+    expect(reply.to).toBe("agent-a");
+    expect(reply.subject).toBe("Re: Need help");
+    expect(reply.body).toContain("On it.");
+    expect(reply.body).toContain("> line 1");
+    expect(reply.body).toContain("> line 2");
+    expect(reply.forwarded_from).toBe("msg-src");
+    expect(reply.lineage).toEqual(["msg-src"]);
+
+    const srcMailbox = await readMailbox(mailboxPath(tmpDir, "agent-b"));
+    expect(srcMailbox.find((m) => m.id === "msg-src")?.status).toBe("read");
   });
 });
 
@@ -1203,9 +1357,16 @@ describe("bounce_mail tool", () => {
     return msg;
   }
 
+  function bounceEnabledConfig(agentId: string): ResolvedInterAgentMailConfig {
+    return {
+      ...allowAllConfig(),
+      deliveryPolicies: { [agentId]: { bounce_enabled: true } },
+    };
+  }
+
   it("creates a tagged bounce message back to the original sender", async () => {
     const src = await seedMessage("agent-b", { id: "msg-orig", from: "agent-a" });
-    const tool = makeBounceTool(tmpDir, allowAllConfig());
+    const tool = makeBounceTool(tmpDir, bounceEnabledConfig("agent-b"));
 
     const result = await tool.execute(
       { message_id: "msg-orig", reason: "Not in my domain.", confidence: 0.9 },
@@ -1230,7 +1391,7 @@ describe("bounce_mail tool", () => {
 
   it("marks the source message as read after bouncing", async () => {
     await seedMessage("agent-b", { id: "msg-src", from: "agent-a" });
-    const tool = makeBounceTool(tmpDir, allowAllConfig());
+    const tool = makeBounceTool(tmpDir, bounceEnabledConfig("agent-b"));
 
     await tool.execute(
       { message_id: "msg-src", reason: "Wrong agent.", confidence: 1.0 },
@@ -1246,7 +1407,7 @@ describe("bounce_mail tool", () => {
       allowRules: [{ from: "agent-a", to: "agent-b" }], // only a→b allowed
       denyRules: [],
       mailboxAcls: {},
-      deliveryPolicies: {},
+      deliveryPolicies: { "agent-b": { bounce_enabled: true } },
     };
     // agent-b received from agent-a, but routing b→a is blocked
     await seedMessage("agent-b", { id: "msg-src", from: "agent-a" });
@@ -1262,7 +1423,7 @@ describe("bounce_mail tool", () => {
 
   it("rejects invalid confidence values", async () => {
     await seedMessage("agent-b", { id: "m1", from: "agent-a" });
-    const tool = makeBounceTool(tmpDir, allowAllConfig());
+    const tool = makeBounceTool(tmpDir, bounceEnabledConfig("agent-b"));
 
     await expect(
       tool.execute({ message_id: "m1", reason: "reason", confidence: 1.5 }, makeCtx("agent-b")),
@@ -1275,7 +1436,7 @@ describe("bounce_mail tool", () => {
 
   it("refuses to bounce deleted messages", async () => {
     await seedMessage("agent-b", { id: "d1", from: "agent-a", status: "deleted" });
-    const tool = makeBounceTool(tmpDir, allowAllConfig());
+    const tool = makeBounceTool(tmpDir, bounceEnabledConfig("agent-b"));
 
     await expect(
       tool.execute({ message_id: "d1", reason: "whatever", confidence: 0.5 }, makeCtx("agent-b")),
@@ -1286,6 +1447,7 @@ describe("bounce_mail tool", () => {
     const config: ResolvedInterAgentMailConfig = {
       ...allowAllConfig(),
       mailboxAcls: { "agent-b": { "agent-c": "peek" } },
+      deliveryPolicies: { "agent-c": { bounce_enabled: true } },
     };
     await seedMessage("agent-b", { id: "m1", from: "agent-a" });
     const tool = makeBounceTool(tmpDir, config);
@@ -1296,6 +1458,18 @@ describe("bounce_mail tool", () => {
         makeCtx("agent-c"),
       ),
     ).rejects.toThrow("read-only");
+  });
+
+  it("enforces bounce_enabled policy for the caller", async () => {
+    await seedMessage("agent-b", { id: "msg-src", from: "agent-a" });
+    const tool = makeBounceTool(tmpDir, allowAllConfig());
+
+    await expect(
+      tool.execute(
+        { message_id: "msg-src", reason: "Wrong agent.", confidence: 1.0 },
+        makeCtx("agent-b"),
+      ),
+    ).rejects.toThrow("Bounce is disabled");
   });
 });
 

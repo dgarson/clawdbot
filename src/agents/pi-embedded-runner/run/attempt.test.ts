@@ -291,6 +291,9 @@ describe("resolveClaudeSdkConfig", () => {
                 provider: "custom",
                 baseUrl: "https://gateway.example/v1",
                 authProfileId: "my-profile",
+                anthropicDefaultHaikuModel: "custom-haiku",
+                anthropicDefaultSonnetModel: "custom-sonnet",
+                anthropicDefaultOpusModel: "custom-opus",
               },
             },
           ],
@@ -302,6 +305,9 @@ describe("resolveClaudeSdkConfig", () => {
       provider: "custom",
       baseUrl: "https://gateway.example/v1",
       authProfileId: "my-profile",
+      anthropicDefaultHaikuModel: "custom-haiku",
+      anthropicDefaultSonnetModel: "custom-sonnet",
+      anthropicDefaultOpusModel: "custom-opus",
     });
   });
 

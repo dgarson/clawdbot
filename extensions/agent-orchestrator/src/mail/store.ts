@@ -65,6 +65,9 @@ export type MailMessage = {
   lineage: string[];
 };
 
+const MAILBOX_COMPACTION_TRIGGER_MESSAGES = 500;
+const READ_MESSAGE_RETENTION_MS = 24 * 60 * 60 * 1000;
+
 // ============================================================================
 // Paths
 // ============================================================================
@@ -96,7 +99,11 @@ async function withLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
     return await fn();
   } finally {
     resolve();
-    // Clean up if nothing else is waiting
+    // Clean up only if no later caller has overwritten the map entry.
+    // The last caller to call writeLocks.set(key, ...) is the one whose `next`
+    // matches — it is responsible for deleting the key. Earlier callers' entries
+    // were already overwritten and they correctly skip deletion. There is no
+    // `await` between resolve() and this check, so no new caller can interleave.
     if (writeLocks.get(key) === next) {
       writeLocks.delete(key);
     }
@@ -134,9 +141,27 @@ export async function readMailbox(filePath: string): Promise<MailMessage[]> {
 // Atomic full rewrite (for all status mutations)
 // ============================================================================
 
+function compactMailboxForWrite(messages: MailMessage[], now: number): MailMessage[] {
+  if (messages.length <= MAILBOX_COMPACTION_TRIGGER_MESSAGES) {
+    return messages;
+  }
+
+  return messages.filter((m) => {
+    if (m.status === "deleted") {
+      return false;
+    }
+    if (m.status !== "read") {
+      return true;
+    }
+    const readAt = m.read_at ?? m.created_at;
+    return now - readAt <= READ_MESSAGE_RETENTION_MS;
+  });
+}
+
 async function atomicWrite(filePath: string, messages: MailMessage[]): Promise<void> {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
-  const lines = messages.map((m) => JSON.stringify(m)).join("\n");
+  const compacted = compactMailboxForWrite(messages, Date.now());
+  const lines = compacted.map((m) => JSON.stringify(m)).join("\n");
   const content = lines ? `${lines}\n` : "";
 
   const tmpPath = path.join(
@@ -206,7 +231,7 @@ export type ClaimResult = {
 /**
  * Atomically:
  *  1. Resets any expired-processing messages back to "unread".
- *  2. Claims all currently-unread messages matching the filter as "processing".
+ *  2. Claims unread messages matching the filter as "processing" (up to opts.limit).
  *
  * Also optionally returns still-live processing messages (include_stale=true)
  * so an agent that restarts before TTL can see what it was working on.
@@ -215,6 +240,7 @@ export async function claimUnread(
   filePath: string,
   opts: {
     ttlMs: number;
+    limit?: number;
     now?: number;
     filterUrgency?: MailUrgency[];
     filterTags?: string[];
@@ -224,6 +250,8 @@ export async function claimUnread(
   return withLock(filePath, async () => {
     const now = opts.now ?? Date.now();
     const expiresAt = now + opts.ttlMs;
+    const claimLimit =
+      opts.limit === undefined ? Number.POSITIVE_INFINITY : Math.max(0, Math.floor(opts.limit));
 
     let messages = await readMailbox(filePath);
 
@@ -250,6 +278,9 @@ export async function claimUnread(
       }
 
       if (m.status === "unread") {
+        if (claimed >= claimLimit) {
+          return m;
+        }
         claimed++;
         const updated: MailMessage = {
           ...m,

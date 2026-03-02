@@ -95,6 +95,10 @@ function findHook(
   return hooks.find((h) => h.name === name);
 }
 
+function findTool(tools: CapturedTool[], name: string): CapturedTool | undefined {
+  return tools.find((t) => t.opts?.name === name || t.opts?.names?.includes(name));
+}
+
 // ============================================================================
 // Test Suite
 // ============================================================================
@@ -647,6 +651,70 @@ describe("agent-orchestrator integration", () => {
 
         expect(blockResult).toBeDefined();
         expect((blockResult as { block?: boolean }).block).toBe(true);
+      });
+
+      it("hydrates child task and model override from decompose_task metadata", async () => {
+        const { hooks, tools } = await setupPlugin();
+
+        await seedAgent(hooks, { childSessionKey: "orch-meta", label: "orchestrator:main" });
+        await seedAgent(hooks, {
+          childSessionKey: "lead-meta",
+          label: "lead:auth",
+          parentSessionKey: "orch-meta",
+        });
+
+        const decomposeFactory = findTool(tools, "decompose_task")?.factory as
+          | ((ctx: { sessionKey?: string }) => {
+              execute: (toolCallId: string, args: unknown) => Promise<unknown>;
+            })
+          | undefined;
+        expect(decomposeFactory).toBeDefined();
+        const decomposeTool = decomposeFactory!({ sessionKey: "lead-meta" });
+
+        await decomposeTool.execute("tc-dcmp", {
+          tasks: [
+            {
+              role: "builder",
+              label: "builder:auth-login",
+              task: "Implement auth login API",
+              model: "openai/gpt-5-mini",
+            },
+          ],
+        });
+
+        const spawningHook = findHook(hooks, "subagent_spawning")!;
+        await spawningHook.handler(
+          {
+            childSessionKey: "builder-meta",
+            agentId: "test-agent",
+            label: "builder:auth-login",
+            mode: "run" as const,
+            threadRequested: false,
+          },
+          {
+            runId: "run-1",
+            childSessionKey: "builder-meta",
+            requesterSessionKey: "lead-meta",
+          },
+        );
+
+        const promptHook = findHook(hooks, "before_prompt_build", 90)!;
+        const promptResult = await promptHook.handler(
+          { prompt: "continue", messages: [] },
+          { agentId: "test-agent", sessionKey: "builder-meta" },
+        );
+        const prompt =
+          (promptResult as { prependContext?: string } | undefined)?.prependContext ?? "";
+        expect(prompt).toContain("[Current Task] Implement auth login API");
+
+        const modelHook = findHook(hooks, "before_model_resolve")!;
+        const modelResult = await modelHook.handler(
+          { prompt: "implement feature" },
+          { agentId: "test-agent", sessionKey: "builder-meta" },
+        );
+        expect((modelResult as { modelOverride?: string } | undefined)?.modelOverride).toBe(
+          "openai/gpt-5-mini",
+        );
       });
     });
 

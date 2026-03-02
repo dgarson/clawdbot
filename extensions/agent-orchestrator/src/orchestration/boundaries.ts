@@ -90,5 +90,16 @@ export function checkToolAccess(
     if (scopeBlock) return scopeBlock;
   }
 
+  // 3. Block execute_command for scoped builders.
+  // Shell commands can write files outside the assigned scope (e.g. redirection, mv, cp).
+  // We cannot inspect the command string for path violations, so block it entirely when
+  // a fileScope is in effect.
+  if (toolName === "execute_command" && fileScope && fileScope.length > 0) {
+    return {
+      block: true,
+      reason: `[orchestrator] execute_command is blocked when a file scope is set (scope: [${fileScope.join(", ")}]). Use write_file or edit_file within your assigned scope instead.`,
+    };
+  }
+
   return null;
 }

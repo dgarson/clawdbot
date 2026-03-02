@@ -10,6 +10,14 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+function stubOllamaTestEnv(): void {
+  vi.stubEnv("VITEST", "");
+  vi.stubEnv("NODE_ENV", "development");
+  // Keep Ollama tests isolated from unrelated provider auto-discovery.
+  vi.stubEnv("HUGGINGFACE_HUB_TOKEN", "");
+  vi.stubEnv("HF_TOKEN", "");
+}
+
 describe("resolveOllamaApiBase", () => {
   it("returns default localhost base when no configured URL is provided", () => {
     expect(resolveOllamaApiBase()).toBe("http://127.0.0.1:11434");
@@ -80,8 +88,7 @@ describe("Ollama provider", () => {
   it("discovers per-model context windows from /api/show", async () => {
     const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
     process.env.OLLAMA_API_KEY = "test-key";
-    vi.stubEnv("VITEST", "");
-    vi.stubEnv("NODE_ENV", "development");
+    stubOllamaTestEnv();
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({
@@ -110,7 +117,8 @@ describe("Ollama provider", () => {
       const llama = models.find((model) => model.id === "llama3.3:70b");
       expect(qwen?.contextWindow).toBe(131072);
       expect(llama?.contextWindow).toBe(65536);
-      expect(fetchMock).toHaveBeenCalledTimes(3);
+      const ollamaCalls = fetchMock.mock.calls.filter((call) => String(call[0]).includes("/api/"));
+      expect(ollamaCalls).toHaveLength(3);
     } finally {
       delete process.env.OLLAMA_API_KEY;
     }
@@ -119,8 +127,7 @@ describe("Ollama provider", () => {
   it("falls back to default context window when /api/show fails", async () => {
     const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
     process.env.OLLAMA_API_KEY = "test-key";
-    vi.stubEnv("VITEST", "");
-    vi.stubEnv("NODE_ENV", "development");
+    stubOllamaTestEnv();
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({
@@ -139,7 +146,8 @@ describe("Ollama provider", () => {
       const providers = await resolveImplicitProviders({ agentDir });
       const model = providers?.ollama?.models?.find((entry) => entry.id === "qwen3:32b");
       expect(model?.contextWindow).toBe(128000);
-      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const ollamaCalls = fetchMock.mock.calls.filter((call) => String(call[0]).includes("/api/"));
+      expect(ollamaCalls).toHaveLength(2);
     } finally {
       delete process.env.OLLAMA_API_KEY;
     }
@@ -148,8 +156,7 @@ describe("Ollama provider", () => {
   it("caps /api/show requests when /api/tags returns a very large model list", async () => {
     const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
     process.env.OLLAMA_API_KEY = "test-key";
-    vi.stubEnv("VITEST", "");
-    vi.stubEnv("NODE_ENV", "development");
+    stubOllamaTestEnv();
     const manyModels = Array.from({ length: 250 }, (_, idx) => ({
       name: `model-${idx}`,
       modified_at: "",
@@ -174,7 +181,8 @@ describe("Ollama provider", () => {
       const providers = await resolveImplicitProviders({ agentDir });
       const models = providers?.ollama?.models ?? [];
       // 1 call for /api/tags + 200 capped /api/show calls.
-      expect(fetchMock).toHaveBeenCalledTimes(201);
+      const ollamaCalls = fetchMock.mock.calls.filter((call) => String(call[0]).includes("/api/"));
+      expect(ollamaCalls).toHaveLength(201);
       expect(models).toHaveLength(200);
     } finally {
       delete process.env.OLLAMA_API_KEY;
@@ -198,8 +206,7 @@ describe("Ollama provider", () => {
 
   it("should skip discovery fetch when explicit models are configured", async () => {
     const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
-    vi.stubEnv("VITEST", "");
-    vi.stubEnv("NODE_ENV", "development");
+    stubOllamaTestEnv();
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
     const explicitModels: ModelDefinitionConfig[] = [
@@ -225,7 +232,8 @@ describe("Ollama provider", () => {
       },
     });
 
-    expect(fetchMock).not.toHaveBeenCalled();
+    const ollamaCalls = fetchMock.mock.calls.filter((call) => String(call[0]).includes("/api/"));
+    expect(ollamaCalls).toHaveLength(0);
     expect(providers?.ollama?.models).toEqual(explicitModels);
     expect(providers?.ollama?.baseUrl).toBe("http://remote-ollama:11434");
     expect(providers?.ollama?.api).toBe("ollama");

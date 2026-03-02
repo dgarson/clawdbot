@@ -1,6 +1,14 @@
 // Agent roles in the orchestration hierarchy
 export type AgentRole = "orchestrator" | "lead" | "scout" | "builder" | "reviewer";
 
+export type PendingSpawnIntent = {
+  role: AgentRole;
+  label: string;
+  taskDescription: string;
+  fileScope?: string[];
+  modelOverride?: string;
+};
+
 // Which roles each role can spawn
 export const SPAWN_RULES: Record<AgentRole, AgentRole[]> = {
   orchestrator: ["lead"],
@@ -31,6 +39,8 @@ export type OrchestratorSessionState = {
   lastActivity?: number;
   taskDescription?: string;
   fileScope?: string[]; // builder only: which files this agent owns
+  modelOverride?: string; // explicit per-agent override (from decomposition plan)
+  pendingSpawnIntents?: PendingSpawnIntent[]; // queued child metadata from decompose_task
 };
 
 // Orchestration plugin config (parsed from openclaw.plugin.json)
