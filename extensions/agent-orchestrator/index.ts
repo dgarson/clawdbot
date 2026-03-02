@@ -554,39 +554,35 @@ const plugin = {
         });
       });
 
-      // Hook: config-driven role bootstrap (priority 95 — after mail at 100, before role context at 90)
-      if (config.orchestration.agentRoles) {
-        const agentRoles = config.orchestration.agentRoles;
-        api.on(
-          "before_prompt_build",
-          (_event, ctx) => {
-            if (!store || !ctx.sessionKey || !ctx.agentId) return;
-            // Skip if session already has a role (idempotent — don't overwrite spawn-assigned roles)
-            const existing = store.get(ctx.sessionKey);
-            if (existing?.role) return;
-
-            const role = resolveAgentRoleFromConfig(ctx.agentId, agentRoles);
-            if (!role) return;
-
-            store.update(ctx.sessionKey, (s) => {
-              s.role = role;
-              s.depth = 0;
-              s.status = "active";
-              s.lastActivity = Date.now();
-            });
-            api.logger.info(
-              `[agent-orchestrator] bootstrap: assigned role "${role}" to agent "${ctx.agentId}" (session: ${ctx.sessionKey})`,
-            );
-          },
-          { priority: 95 },
-        );
-      }
-
-      // Hook: role context injection + memory search nudge (priority 90 — after mail at 100)
+      // Hook: config-driven role bootstrap + role context injection + memory search nudge (priority 90)
+      // Role bootstrap (was priority 95) is inlined as the first step so that config-driven role
+      // assignment and context injection happen atomically within the same hook invocation.
       api.on(
         "before_prompt_build",
         (_event, ctx) => {
           if (!store || !ctx.sessionKey) return;
+
+          // Step 1: Config-driven role bootstrap (was priority 95).
+          // Assign role from agentRoles config if session has none yet.
+          if (ctx.agentId && config.orchestration.agentRoles) {
+            const existing = store.get(ctx.sessionKey);
+            if (!existing?.role) {
+              const role = resolveAgentRoleFromConfig(ctx.agentId, config.orchestration.agentRoles);
+              if (role) {
+                store.update(ctx.sessionKey, (s) => {
+                  s.role = role;
+                  s.depth = 0;
+                  s.status = "active";
+                  s.lastActivity = Date.now();
+                });
+                api.logger.info(
+                  `[agent-orchestrator] bootstrap: assigned role "${role}" to agent "${ctx.agentId}" (session: ${ctx.sessionKey})`,
+                );
+              }
+            }
+          }
+
+          // Step 2: Role context injection (was priority 90).
           const state = store.get(ctx.sessionKey);
           if (!state?.role) return;
 

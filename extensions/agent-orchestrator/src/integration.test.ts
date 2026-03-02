@@ -1331,20 +1331,32 @@ describe("agent-orchestrator integration", () => {
 
     describe("config-driven role bootstrap (agentRoles)", () => {
       it("registers bootstrap hook only when agentRoles is configured", async () => {
-        // With agentRoles — should have priority-95 hook
+        // With agentRoles — priority-90 hook assigns role for mapped agents
         const withRoles = await setupPlugin({
           orchestration: {
             ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration,
             agentRoles: { orchestrator: "orchestrator" },
           },
         });
-        const bootstrapHook = findHook(withRoles.hooks, "before_prompt_build", 95);
+        const bootstrapHook = findHook(withRoles.hooks, "before_prompt_build", 90);
         expect(bootstrapHook).toBeDefined();
+        // Calling it with a mapped agent should set a role (verified by result containing context)
+        const result = await bootstrapHook!.handler(
+          { prompt: "hello", messages: [] },
+          { agentId: "orchestrator", sessionKey: "sess-reg-roles" },
+        );
+        expect((result as { prependContext?: string } | undefined)?.prependContext).toBeDefined();
 
-        // Without agentRoles — should NOT have priority-95 hook
+        // Without agentRoles — priority-90 hook still exists but won't assign role
         const withoutRoles = await setupPlugin();
-        const noBootstrapHook = findHook(withoutRoles.hooks, "before_prompt_build", 95);
-        expect(noBootstrapHook).toBeUndefined();
+        const noBootstrapHook = findHook(withoutRoles.hooks, "before_prompt_build", 90);
+        expect(noBootstrapHook).toBeDefined();
+        // Calling it with no pre-set role returns undefined (no role assignment without agentRoles config)
+        const noResult = await noBootstrapHook!.handler(
+          { prompt: "hello", messages: [] },
+          { agentId: "orchestrator", sessionKey: "sess-reg-no-roles" },
+        );
+        expect(noResult).toBeUndefined();
       });
 
       it("sets role from config on first prompt build", async () => {
@@ -1355,16 +1367,9 @@ describe("agent-orchestrator integration", () => {
           },
         });
 
-        // Trigger the bootstrap hook
-        const bootstrapHook = findHook(hooks, "before_prompt_build", 95)!;
-        await bootstrapHook.handler(
-          { prompt: "hello", messages: [] },
-          { agentId: "my-orchestrator", sessionKey: "sess-boot" },
-        );
-
-        // Now the role context hook (priority 90) should see the role
-        const roleHook = findHook(hooks, "before_prompt_build", 90)!;
-        const result = await roleHook.handler(
+        // Single merged hook assigns role and injects context in one invocation
+        const hook = findHook(hooks, "before_prompt_build", 90)!;
+        const result = await hook.handler(
           { prompt: "hello", messages: [] },
           { agentId: "my-orchestrator", sessionKey: "sess-boot" },
         );
@@ -1390,16 +1395,9 @@ describe("agent-orchestrator integration", () => {
           parentSessionKey: "orch-idem",
         });
 
-        // Now run bootstrap hook — it should NOT overwrite lead → scout
-        const bootstrapHook = findHook(hooks, "before_prompt_build", 95)!;
-        await bootstrapHook.handler(
-          { prompt: "hello", messages: [] },
-          { agentId: "my-lead", sessionKey: "lead-idem" },
-        );
-
-        // Verify role is still "lead" (from spawn), not "scout" (from config)
-        const roleHook = findHook(hooks, "before_prompt_build", 90)!;
-        const result = await roleHook.handler(
+        // Single merged hook — should NOT overwrite lead → scout (idempotent)
+        const hook = findHook(hooks, "before_prompt_build", 90)!;
+        const result = await hook.handler(
           { prompt: "hello", messages: [] },
           { agentId: "my-lead", sessionKey: "lead-idem" },
         );
@@ -1417,15 +1415,9 @@ describe("agent-orchestrator integration", () => {
           },
         });
 
-        const bootstrapHook = findHook(hooks, "before_prompt_build", 95)!;
-        await bootstrapHook.handler(
-          { prompt: "hello", messages: [] },
-          { agentId: "unmapped-agent", sessionKey: "sess-unmapped" },
-        );
-
-        // Role context hook should return undefined (no role set)
-        const roleHook = findHook(hooks, "before_prompt_build", 90)!;
-        const result = await roleHook.handler(
+        // Single merged hook — unmapped agent should yield no role context
+        const hook = findHook(hooks, "before_prompt_build", 90)!;
+        const result = await hook.handler(
           { prompt: "hello", messages: [] },
           { agentId: "unmapped-agent", sessionKey: "sess-unmapped" },
         );
