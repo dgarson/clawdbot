@@ -389,6 +389,7 @@ export type PluginHookBeforePromptBuildEvent = {
 export type PluginHookBeforePromptBuildResult = {
   systemPrompt?: string;
   prependContext?: string;
+  appendContext?: string;
 };
 
 // before_agent_start hook (legacy compatibility: combines both phases)

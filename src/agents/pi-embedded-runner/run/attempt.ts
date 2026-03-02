@@ -387,6 +387,10 @@ export async function resolvePromptBuildHookResult(params: {
     prependContext: [promptBuildResult?.prependContext, legacyResult?.prependContext]
       .filter((value): value is string => Boolean(value))
       .join("\n\n"),
+    appendContext:
+      [promptBuildResult?.appendContext, legacyResult?.appendContext]
+        .filter((value): value is string => Boolean(value))
+        .join("\n\n") || undefined,
   };
 }
 
@@ -1370,6 +1374,12 @@ export async function runEmbeddedAttempt(
             effectivePrompt = `${hookResult.prependContext}\n\n${params.prompt}`;
             log.debug(
               `hooks: prepended context to prompt (${hookResult.prependContext.length} chars)`,
+            );
+          }
+          if (hookResult?.appendContext) {
+            effectivePrompt = `${effectivePrompt}\n\n${hookResult.appendContext}`;
+            log.debug(
+              `hooks: appended context to prompt (${hookResult.appendContext.length} chars)`,
             );
           }
           const legacySystemPrompt =
