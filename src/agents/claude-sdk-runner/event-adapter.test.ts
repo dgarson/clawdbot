@@ -38,6 +38,7 @@ function makeState(overrides?: Partial<ClaudeSdkEventAdapterState>): ClaudeSdkEv
     streamingBlockTypes: new Map(),
     streamingPartialMessage: null,
     streamingInProgress: false,
+    pendingStreamMessageEnd: null,
     sessionManager: undefined,
     transcriptProvider: "anthropic",
     transcriptApi: "anthropic-messages",
@@ -1106,6 +1107,102 @@ describe("event translation -- stream_event handling", () => {
     expect(usage?.output_tokens).toBe(200);
   });
 
+  it("message_delta preserves prior usage when usage field is omitted", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: {
+            role: "assistant",
+            content: [],
+            usage: { input_tokens: 1000, cache_read_input_tokens: 100 },
+            model: "claude-sonnet-4-5-20250514",
+          },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_delta",
+          delta: { stop_reason: "end_turn" },
+          usage: { output_tokens: 200 },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_delta",
+          delta: { stop_reason: "end_turn" },
+        },
+      } as never,
+      state,
+    );
+
+    const usage = state.streamingPartialMessage?.usage as
+      | { input_tokens?: number; output_tokens?: number; cache_read_input_tokens?: number }
+      | undefined;
+    expect(usage?.input_tokens).toBe(1000);
+    expect(usage?.cache_read_input_tokens).toBe(100);
+    expect(usage?.output_tokens).toBe(200);
+  });
+
+  it("message_delta usage supports non-monotonic token updates", () => {
+    const state = makeState();
+    captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: {
+            role: "assistant",
+            content: [],
+            usage: { input_tokens: 1000 },
+            model: "claude-sonnet-4-5-20250514",
+          },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_delta",
+          delta: { stop_reason: "end_turn" },
+          usage: { output_tokens: 200 },
+        },
+      } as never,
+      state,
+    );
+    // Some stream implementations report per-delta increments rather than latest totals.
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_delta",
+          delta: { stop_reason: "end_turn" },
+          usage: { output_tokens: 30 },
+        },
+      } as never,
+      state,
+    );
+
+    const usage = state.streamingPartialMessage?.usage as { output_tokens?: number } | undefined;
+    expect(usage?.output_tokens).toBe(230);
+  });
+
   it("content_block_start (text) records block type", () => {
     const state = makeState();
     captureEvents(state);
@@ -1437,8 +1534,108 @@ describe("event translation -- stream_event handling", () => {
       } as never,
       state,
     );
+    // Flush deferred message_end: the SDK always delivers a final assistant message after message_stop
+    translateSdkMessageToEvents(
+      { type: "assistant", message: { role: "assistant", content: [] } } as never,
+      state,
+    );
 
     expect(events).toContainEqual(expect.objectContaining({ type: "message_end" }));
+  });
+
+  it("result flushes deferred message_end when assistant message is missing", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: { role: "assistant", content: [], model: "test" },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: { type: "message_stop" },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "result",
+        subtype: "success",
+      } as never,
+      state,
+    );
+
+    const messageEndCount = events.filter((evt) => evt.type === "message_end").length;
+    expect(messageEndCount).toBe(1);
+  });
+
+  it("message_end usage is reconciled with authoritative assistant usage", () => {
+    const state = makeState();
+    const events = captureEvents(state);
+
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_start",
+          message: {
+            role: "assistant",
+            content: [],
+            usage: { input_tokens: 1200, cache_read_input_tokens: 90 },
+            model: "test",
+          },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: {
+          type: "message_delta",
+          delta: { stop_reason: "end_turn" },
+          usage: { output_tokens: 40 },
+        },
+      } as never,
+      state,
+    );
+    translateSdkMessageToEvents(
+      {
+        type: "stream_event",
+        event: { type: "message_stop" },
+      } as never,
+      state,
+    );
+    // Final assistant usage is authoritative and may include corrected output token values.
+    translateSdkMessageToEvents(
+      {
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "done" }],
+          usage: { output_tokens: 64 },
+          stop_reason: "end_turn",
+        },
+      } as never,
+      state,
+    );
+
+    const messageEnd = events.find((e) => e.type === "message_end") as
+      | { message?: { usage?: unknown } }
+      | undefined;
+    const usage = messageEnd?.message?.usage as
+      | { input_tokens?: number; cache_read_input_tokens?: number; output_tokens?: number }
+      | undefined;
+    expect(usage?.input_tokens).toBe(1200);
+    expect(usage?.cache_read_input_tokens).toBe(90);
+    expect(usage?.output_tokens).toBe(64);
   });
 
   it("full sequence: message_start → text deltas → text_end → message_end in order", () => {
@@ -1475,6 +1672,14 @@ describe("event translation -- stream_event handling", () => {
     );
     translateSdkMessageToEvents(
       { type: "stream_event", event: { type: "message_stop" } } as never,
+      state,
+    );
+    // Flush deferred message_end via the final assistant message
+    translateSdkMessageToEvents(
+      {
+        type: "assistant",
+        message: { role: "assistant", content: [{ type: "text", text: "Hi" }] },
+      } as never,
       state,
     );
 
@@ -1637,12 +1842,16 @@ describe("event translation -- streaming + complete message dedup", () => {
       state,
     );
 
-    // No new message_start/message_update/message_end events should be emitted
+    // The assistant message flushes the deferred message_end (exactly one total).
+    // No NEW message_start or message_update events should be re-emitted.
     const newEvents = events.slice(eventCountBeforeAssistant);
-    const newMessageEvents = newEvents.filter(
-      (e) => e.type === "message_start" || e.type === "message_update" || e.type === "message_end",
+    const newMessageStartOrUpdate = newEvents.filter(
+      (e) => e.type === "message_start" || e.type === "message_update",
     );
-    expect(newMessageEvents).toHaveLength(0);
+    expect(newMessageStartOrUpdate).toHaveLength(0);
+    // Exactly one message_end across the entire turn (the deferred flush)
+    const allMessageEnds = events.filter((e) => e.type === "message_end");
+    expect(allMessageEnds).toHaveLength(1);
   });
 
   it("state.messages IS updated from the complete assistant message", () => {
@@ -2141,6 +2350,14 @@ describe("event translation -- streaming message_delta stop_reason propagation",
       { type: "stream_event", event: { type: "message_stop" } } as never,
       state,
     );
+    // Flush deferred message_end via the final assistant message
+    translateSdkMessageToEvents(
+      {
+        type: "assistant",
+        message: { role: "assistant", content: [], stop_reason: "end_turn" },
+      } as never,
+      state,
+    );
 
     const messageEnd = events.find((e) => e.type === "message_end") as
       | { message?: { stopReason?: string } }
@@ -2176,6 +2393,14 @@ describe("event translation -- streaming message_delta stop_reason propagation",
     );
     translateSdkMessageToEvents(
       { type: "stream_event", event: { type: "message_stop" } } as never,
+      state,
+    );
+    // Flush deferred message_end via the final assistant message
+    translateSdkMessageToEvents(
+      {
+        type: "assistant",
+        message: { role: "assistant", content: [], stop_reason: "tool_use" },
+      } as never,
       state,
     );
 
@@ -2230,6 +2455,14 @@ describe("event translation -- streaming message_delta stop_reason propagation",
     );
     translateSdkMessageToEvents(
       { type: "stream_event", event: { type: "message_stop" } } as never,
+      state,
+    );
+    // Flush deferred message_end via the final assistant message
+    translateSdkMessageToEvents(
+      {
+        type: "assistant",
+        message: { role: "assistant", content: [], stop_reason: "max_tokens" },
+      } as never,
       state,
     );
 
@@ -2351,6 +2584,11 @@ describe("event translation -- streaming tool_use content accumulation", () => {
       { type: "stream_event", event: { type: "message_stop" } } as never,
       state,
     );
+    // Flush deferred message_end via the final assistant message
+    translateSdkMessageToEvents(
+      { type: "assistant", message: { role: "assistant", content: [] } } as never,
+      state,
+    );
 
     const messageEnd = events.find((e) => e.type === "message_end") as
       | { message?: { content?: unknown[] } }
@@ -2408,6 +2646,11 @@ describe("event translation -- streaming tool_use content accumulation", () => {
     );
     translateSdkMessageToEvents(
       { type: "stream_event", event: { type: "message_stop" } } as never,
+      state,
+    );
+    // Flush deferred message_end via the final assistant message
+    translateSdkMessageToEvents(
+      { type: "assistant", message: { role: "assistant", content: [] } } as never,
       state,
     );
 

@@ -7,6 +7,7 @@ import { emitDiagnosticEvent } from "../infra/diagnostic-events.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import type { InlineCodeState } from "../markdown/code-spans.js";
 import { buildCodeSpanIndex, createInlineCodeState } from "../markdown/code-spans.js";
+import { estimateUsageCost, resolveModelCostConfig } from "../utils/usage-format.js";
 import { EmbeddedBlockChunker } from "./pi-embedded-block-chunker.js";
 import {
   isMessagingToolDuplicateNormalized,
@@ -87,6 +88,14 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     cacheWrite: 0,
     total: 0,
   };
+  type UsageSnapshot = {
+    input: number;
+    output: number;
+    cacheRead: number;
+    cacheWrite: number;
+  };
+  const tracksCumulativeUsage = params.session.runtimeHints?.managesOwnHistory;
+  let lastUsageSnapshot: UsageSnapshot | null = null;
   let compactionCount = 0;
   let callIndex = 0;
 
@@ -263,27 +272,80 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     if (!hasNonzeroUsage(usage)) {
       return;
     }
-    usageTotals.input += usage.input ?? 0;
-    usageTotals.output += usage.output ?? 0;
-    usageTotals.cacheRead += usage.cacheRead ?? 0;
-    usageTotals.cacheWrite += usage.cacheWrite ?? 0;
-    const usageTotal =
-      usage.total ??
-      (usage.input ?? 0) + (usage.output ?? 0) + (usage.cacheRead ?? 0) + (usage.cacheWrite ?? 0);
+    const current: UsageSnapshot = {
+      input: usage.input ?? 0,
+      output: usage.output ?? 0,
+      cacheRead: usage.cacheRead ?? 0,
+      cacheWrite: usage.cacheWrite ?? 0,
+    };
+    // Claude SDK managed-history runtimes can report usage as latest cumulative
+    // snapshots. Convert those into per-message deltas before accumulating.
+    const delta: UsageSnapshot =
+      tracksCumulativeUsage && lastUsageSnapshot
+        ? {
+            input:
+              current.input >= lastUsageSnapshot.input
+                ? current.input - lastUsageSnapshot.input
+                : current.input,
+            output:
+              current.output >= lastUsageSnapshot.output
+                ? current.output - lastUsageSnapshot.output
+                : current.output,
+            cacheRead:
+              current.cacheRead >= lastUsageSnapshot.cacheRead
+                ? current.cacheRead - lastUsageSnapshot.cacheRead
+                : current.cacheRead,
+            cacheWrite:
+              current.cacheWrite >= lastUsageSnapshot.cacheWrite
+                ? current.cacheWrite - lastUsageSnapshot.cacheWrite
+                : current.cacheWrite,
+          }
+        : current;
+    if (tracksCumulativeUsage) {
+      lastUsageSnapshot = current;
+    }
+    const hasDelta =
+      delta.input > 0 || delta.output > 0 || delta.cacheRead > 0 || delta.cacheWrite > 0;
+    if (!hasDelta) {
+      return;
+    }
+    usageTotals.input += delta.input;
+    usageTotals.output += delta.output;
+    usageTotals.cacheRead += delta.cacheRead;
+    usageTotals.cacheWrite += delta.cacheWrite;
+    // total includes all token types processed during this run.
+    const usageTotal = delta.input + delta.output + delta.cacheRead + delta.cacheWrite;
     usageTotals.total += usageTotal;
 
     // Emit per-call diagnostic snapshot for telemetry consumers.
+    const costConfig = resolveModelCostConfig({
+      provider: params.provider,
+      model: params.model,
+      config: params.config,
+    });
+    const costUsd = estimateUsageCost({
+      usage: {
+        input: delta.input || undefined,
+        output: delta.output || undefined,
+        cacheRead: delta.cacheRead || undefined,
+        cacheWrite: delta.cacheWrite || undefined,
+        total: usageTotal || undefined,
+      },
+      cost: costConfig,
+    });
     emitDiagnosticEvent({
       type: "model.call",
       sessionKey: params.sessionKey,
       runId: params.runId,
       callIndex: callIndex++,
+      provider: params.provider,
+      model: params.model,
       delta: {
-        input: usage.input,
-        output: usage.output,
-        cacheRead: usage.cacheRead,
-        cacheWrite: usage.cacheWrite,
-        total: usageTotal,
+        input: delta.input || undefined,
+        output: delta.output || undefined,
+        cacheRead: delta.cacheRead || undefined,
+        cacheWrite: delta.cacheWrite || undefined,
+        total: usageTotal || undefined,
       },
       cumulative: {
         input: usageTotals.input,
@@ -292,6 +354,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
         cacheWrite: usageTotals.cacheWrite,
         total: usageTotals.total,
       },
+      costUsd,
     });
   };
   const getUsageTotals = () => {
@@ -304,6 +367,7 @@ export function subscribeEmbeddedPiSession(params: SubscribeEmbeddedPiSessionPar
     if (!hasUsage) {
       return undefined;
     }
+    // derivedTotal includes all token types processed by the model.
     const derivedTotal =
       usageTotals.input + usageTotals.output + usageTotals.cacheRead + usageTotals.cacheWrite;
     return {

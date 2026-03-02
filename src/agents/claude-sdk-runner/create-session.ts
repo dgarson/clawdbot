@@ -365,6 +365,7 @@ export async function createClaudeSdkSession(
     streamingBlockTypes: new Map(),
     streamingPartialMessage: null,
     streamingInProgress: false,
+    pendingStreamMessageEnd: null,
     sessionManager: params.sessionManager,
     transcriptProvider,
     transcriptApi,

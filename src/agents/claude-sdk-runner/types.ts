@@ -115,6 +115,14 @@ export type ClaudeSdkEventAdapterState = {
   } | null;
   /** Set true on stream message_start; used by assistant handler to skip re-emitting events. */
   streamingInProgress: boolean;
+  /**
+   * Holds the pending message_end event from message_stop until the authoritative
+   * assistant SDK message arrives. The final assistant.message.usage includes
+   * output_tokens that the streaming message_delta may not report (Claude SDK
+   * limitation). Merging them before emitting message_end ensures recordAssistantUsage
+   * captures the correct output token count.
+   */
+  pendingStreamMessageEnd: { message: unknown } | null;
   /** SessionManager reference for JSONL persistence. */
   sessionManager?: {
     appendCustomEntry?: (key: string, value: unknown) => void;

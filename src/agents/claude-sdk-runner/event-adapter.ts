@@ -304,6 +304,27 @@ export function translateSdkMessageToEvents(
       // translateAssistantContent to avoid double-emitting. Clear streaming state
       // so subsequent turns start clean.
       state.streamingInProgress = false;
+
+      // Flush the pending message_end (stashed by message_stop) with authoritative usage.
+      // The Claude Code SDK often omits output_tokens from the streaming message_delta
+      // event, so streamingPartialMessage.usage may be missing them. The final
+      // assistant.message.usage is complete and authoritative. Merge: streaming usage
+      // supplies input/cache tokens (from message_start), final usage supplies
+      // output_tokens.
+      if (state.pendingStreamMessageEnd) {
+        const pendingMsg = state.pendingStreamMessageEnd.message as Record<string, unknown>;
+        const streamingUsage = toUsageRecord(pendingMsg.usage);
+        const finalUsage = toUsageRecord(assistantMsg.usage);
+        // Merge: streaming has input/cache from message_start; final has output_tokens.
+        // Final values win for any key present in both (final is authoritative).
+        const mergedUsage =
+          streamingUsage || finalUsage ? { ...streamingUsage, ...finalUsage } : undefined;
+        const correctedMessage =
+          mergedUsage !== undefined ? { ...pendingMsg, usage: mergedUsage } : pendingMsg;
+        emit({ type: "message_end", message: correctedMessage } as EmbeddedPiSubscribeEvent);
+        state.pendingStreamMessageEnd = null;
+      }
+
       state.streamingPartialMessage = null;
     } else {
       // Non-streaming fallback — emit full event sequence from the complete message.
@@ -346,6 +367,16 @@ export function translateSdkMessageToEvents(
   // result — emit agent_end; propagate error when subtype is "error_*"
   // -------------------------------------------------------------------------
   if (msgType === "result") {
+    // Safety flush: if message_stop arrived but the assistant message never did
+    // (e.g. error path), emit the stashed message_end as-is so subscribers
+    // don't hang waiting for message finalization.
+    if (state.pendingStreamMessageEnd) {
+      emit({
+        type: "message_end",
+        message: state.pendingStreamMessageEnd.message,
+      } as EmbeddedPiSubscribeEvent);
+      state.pendingStreamMessageEnd = null;
+    }
     const resultMsg = message as SdkResultErrorMessage;
     // Detect error results: SDK sets subtype to "error_*" or is_error: true.
     if (resultMsg.subtype?.startsWith("error_") || resultMsg.is_error) {
@@ -676,6 +707,59 @@ function buildAgentMessage(
   };
 }
 
+function toUsageRecord(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+  return value as Record<string, unknown>;
+}
+
+function isFiniteNonNegativeNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function mergeStreamingUsage(
+  prior: Record<string, unknown> | undefined,
+  incoming: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  if (!prior && !incoming) {
+    return undefined;
+  }
+  if (!prior) {
+    return incoming ? { ...incoming } : undefined;
+  }
+  if (!incoming) {
+    return { ...prior };
+  }
+
+  const merged: Record<string, unknown> = { ...prior };
+  for (const [key, incomingValue] of Object.entries(incoming)) {
+    const priorValue = merged[key];
+    if (isFiniteNonNegativeNumber(priorValue) && isFiniteNonNegativeNumber(incomingValue)) {
+      // Support both cumulative snapshots and per-delta token increments.
+      merged[key] = incomingValue >= priorValue ? incomingValue : priorValue + incomingValue;
+      continue;
+    }
+    if (
+      priorValue &&
+      typeof priorValue === "object" &&
+      !Array.isArray(priorValue) &&
+      incomingValue &&
+      typeof incomingValue === "object" &&
+      !Array.isArray(incomingValue)
+    ) {
+      merged[key] = {
+        ...(priorValue as Record<string, unknown>),
+        ...(incomingValue as Record<string, unknown>),
+      };
+      continue;
+    }
+    merged[key] = incomingValue;
+  }
+
+  return merged;
+}
+
 function normalizeStopReason(value: unknown, fallback?: PiStopReason): PiStopReason | undefined {
   if (typeof value !== "string") {
     return fallback;
@@ -882,18 +966,12 @@ function handleStreamEvent(
 
     case "message_delta": {
       if (state.streamingPartialMessage) {
-        const priorUsage =
-          state.streamingPartialMessage.usage &&
-          typeof state.streamingPartialMessage.usage === "object"
-            ? (state.streamingPartialMessage.usage as Record<string, unknown>)
-            : undefined;
-        const deltaUsage =
-          event.usage && typeof event.usage === "object"
-            ? (event.usage as Record<string, unknown>)
-            : undefined;
-        if (priorUsage && deltaUsage) {
-          state.streamingPartialMessage.usage = { ...priorUsage, ...deltaUsage };
-        } else {
+        const priorUsage = toUsageRecord(state.streamingPartialMessage.usage);
+        const deltaUsage = toUsageRecord(event.usage);
+        if (deltaUsage) {
+          state.streamingPartialMessage.usage = mergeStreamingUsage(priorUsage, deltaUsage);
+        } else if (event.usage !== undefined) {
+          // Preserve previously collected usage when a delta omits usage.
           state.streamingPartialMessage.usage = event.usage;
         }
         // Capture stop_reason so message_stop's buildAgentMessage can normalize it.
@@ -911,7 +989,12 @@ function handleStreamEvent(
         state.streamingMessageId ?? allocateMessageId(state),
         state,
       );
-      emit({ type: "message_end", message } as EmbeddedPiSubscribeEvent);
+      // Defer message_end until the authoritative assistant SDK message arrives.
+      // The Claude Code SDK often omits output_tokens from message_delta, so
+      // streamingPartialMessage.usage may lack them. The final assistant.message.usage
+      // is complete. We stash the pending event and emit it (with merged usage) from
+      // the assistant message handler to ensure recordAssistantUsage gets the real count.
+      state.pendingStreamMessageEnd = { message };
       break;
     }
   }
