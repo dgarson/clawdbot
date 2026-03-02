@@ -806,14 +806,16 @@ export async function startGatewayServer(
       });
 
   let browserControl: Awaited<ReturnType<typeof startBrowserControlServerIfEnabled>> = null;
+  let managedProcesses: { stopAll: (opts?: { reason?: string }) => Promise<void> } | null = null;
   if (!minimalTestGateway) {
-    ({ browserControl, pluginServices } = await startGatewaySidecars({
+    ({ browserControl, pluginServices, managedProcesses } = await startGatewaySidecars({
       cfg: cfgAtStart,
       pluginRegistry,
       defaultWorkspaceDir,
       deps,
       startChannels,
       log,
+      logManagedProcesses: log,
       logHooks,
       logChannels,
       logBrowser,
@@ -913,6 +915,7 @@ export async function startGatewayServer(
     clients,
     configReloader,
     browserControl,
+    managedProcesses,
     wss,
     httpServer,
     httpServers,
