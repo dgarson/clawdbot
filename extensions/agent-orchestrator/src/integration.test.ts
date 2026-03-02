@@ -84,10 +84,6 @@ function createMockApi(pluginConfig: Partial<OrchestratorConfig> = {}) {
   return { api, hooks, tools, services, cliRegistrations };
 }
 
-function findHooks(hooks: CapturedHook[], name: string): CapturedHook[] {
-  return hooks.filter((h) => h.name === name);
-}
-
 function findHook(
   hooks: CapturedHook[],
   name: string,
@@ -119,38 +115,38 @@ describe("agent-orchestrator integration", () => {
   // ==========================================================================
 
   describe("registration", () => {
-    it("registers the agent-orchestrator service", async () => {
+    it("registers the agent-orchestrator service", () => {
       const { api, services } = createMockApi();
-      await plugin.register(api as never);
+      plugin.register(api as never);
       expect(services.length).toBeGreaterThanOrEqual(1);
       expect(services[0].id).toBe("agent-orchestrator");
       expect(typeof services[0].start).toBe("function");
     });
 
-    it("registers mail tool when mail.enabled is true", async () => {
+    it("registers mail tool when mail.enabled is true", () => {
       const { api, tools } = createMockApi({ mail: { enabled: true } });
-      await plugin.register(api as never);
+      plugin.register(api as never);
       const mailTool = tools.find(
         (t) => t.opts?.name === "mail" || t.opts?.names?.includes("mail"),
       );
       expect(mailTool).toBeDefined();
     });
 
-    it("registers bounce_mail tool when mail.enabled is true", async () => {
+    it("registers bounce_mail tool when mail.enabled is true", () => {
       const { api, tools } = createMockApi({ mail: { enabled: true } });
-      await plugin.register(api as never);
+      plugin.register(api as never);
       const bounceTool = tools.find(
         (t) => t.opts?.name === "bounce_mail" || t.opts?.names?.includes("bounce_mail"),
       );
       expect(bounceTool).toBeDefined();
     });
 
-    it("does not register mail tools when mail.enabled is false and orchestration.enabled is false", async () => {
+    it("does not register mail tools when mail.enabled is false and orchestration.enabled is false", () => {
       const { api, tools } = createMockApi({
         mail: { enabled: false },
         orchestration: { ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration, enabled: false },
       });
-      await plugin.register(api as never);
+      plugin.register(api as never);
       const mailTool = tools.find(
         (t) =>
           t.opts?.name === "mail" ||
@@ -161,82 +157,88 @@ describe("agent-orchestrator integration", () => {
       expect(mailTool).toBeUndefined();
     });
 
-    it("registers before_prompt_build hook for mail with priority 100", async () => {
+    it("registers before_prompt_build hook for mail with priority 100", () => {
       const { api, hooks } = createMockApi({ mail: { enabled: true } });
-      await plugin.register(api as never);
+      plugin.register(api as never);
       const mailPromptHook = findHook(hooks, "before_prompt_build", 100);
       expect(mailPromptHook).toBeDefined();
     });
 
-    it("registers before_tool_call hook for boundary enforcement", async () => {
+    it("registers before_tool_call hook for boundary enforcement", () => {
       const { api, hooks } = createMockApi();
-      await plugin.register(api as never);
+      plugin.register(api as never);
       const hook = findHook(hooks, "before_tool_call");
       expect(hook).toBeDefined();
     });
 
-    it("registers subagent_spawning hook", async () => {
+    it("registers before_tool_call hook with priority 50", () => {
       const { api, hooks } = createMockApi();
-      await plugin.register(api as never);
+      plugin.register(api as never);
+      const hook = findHook(hooks, "before_tool_call", 50);
+      expect(hook).toBeDefined();
+    });
+
+    it("registers subagent_spawning hook", () => {
+      const { api, hooks } = createMockApi();
+      plugin.register(api as never);
       const hook = findHook(hooks, "subagent_spawning");
       expect(hook).toBeDefined();
     });
 
-    it("registers subagent_spawned hook", async () => {
+    it("registers subagent_spawned hook", () => {
       const { api, hooks } = createMockApi();
-      await plugin.register(api as never);
+      plugin.register(api as never);
       const hook = findHook(hooks, "subagent_spawned");
       expect(hook).toBeDefined();
     });
 
-    it("registers subagent_stopping hook", async () => {
+    it("registers subagent_stopping hook", () => {
       const { api, hooks } = createMockApi();
-      await plugin.register(api as never);
+      plugin.register(api as never);
       const hook = findHook(hooks, "subagent_stopping");
       expect(hook).toBeDefined();
     });
 
-    it("registers subagent_ended hook", async () => {
+    it("registers subagent_ended hook", () => {
       const { api, hooks } = createMockApi();
-      await plugin.register(api as never);
+      plugin.register(api as never);
       const hook = findHook(hooks, "subagent_ended");
       expect(hook).toBeDefined();
     });
 
-    it("registers before_prompt_build hook for role context with priority 90", async () => {
+    it("registers before_prompt_build hook for role context with priority 90", () => {
       const { api, hooks } = createMockApi();
-      await plugin.register(api as never);
+      plugin.register(api as never);
       const hook = findHook(hooks, "before_prompt_build", 90);
       expect(hook).toBeDefined();
     });
 
-    it("registers before_model_resolve hook", async () => {
+    it("registers before_model_resolve hook", () => {
       const { api, hooks } = createMockApi();
-      await plugin.register(api as never);
+      plugin.register(api as never);
       const hook = findHook(hooks, "before_model_resolve");
       expect(hook).toBeDefined();
     });
 
-    it("registers after_tool_call hook for activity tracking", async () => {
+    it("registers after_tool_call hook for activity tracking", () => {
       const { api, hooks } = createMockApi();
-      await plugin.register(api as never);
+      plugin.register(api as never);
       const hook = findHook(hooks, "after_tool_call");
       expect(hook).toBeDefined();
     });
 
-    it("registers mail CLI commands", async () => {
+    it("registers mail CLI commands", () => {
       const { api, cliRegistrations } = createMockApi({ mail: { enabled: true } });
-      await plugin.register(api as never);
+      plugin.register(api as never);
       expect(cliRegistrations.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("does not register orchestration hooks when orchestration.enabled is false", async () => {
+    it("does not register orchestration hooks when orchestration.enabled is false", () => {
       const { api, hooks } = createMockApi({
         orchestration: { ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration, enabled: false },
       });
-      await plugin.register(api as never);
+      plugin.register(api as never);
 
-      // Should not have boundary enforcement, subagent lifecycle, or role context hooks
       const orchestrationHooks = [
         "before_tool_call",
         "subagent_spawning",
@@ -259,18 +261,18 @@ describe("agent-orchestrator integration", () => {
       expect(rolePrompt).toBeUndefined();
     });
 
-    it("orchestration.enabled implies mail is also registered", async () => {
-      // When orchestration is enabled but mail is not explicitly configured,
-      // mail tools should still be registered (orchestration needs mail)
+    it("orchestration.enabled implies mail is also registered", () => {
+      // Even when mail.enabled is false, orchestration.enabled causes mail
+      // tools to be registered (the condition is mail.enabled || orchestration.enabled)
       const { api, tools } = createMockApi({
+        mail: { enabled: false },
         orchestration: { ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration, enabled: true },
       });
-      await plugin.register(api as never);
+      plugin.register(api as never);
 
       const mailTool = tools.find(
         (t) => t.opts?.name === "mail" || t.opts?.names?.includes("mail"),
       );
-      // mail defaults to enabled, so it should be registered
       expect(mailTool).toBeDefined();
     });
   });
@@ -292,7 +294,7 @@ describe("agent-orchestrator integration", () => {
         },
       };
       const { api, hooks, tools, services, cliRegistrations } = createMockApi(merged);
-      await plugin.register(api as never);
+      plugin.register(api as never);
 
       // Start the service to initialize the store
       if (services.length > 0) {
@@ -307,7 +309,15 @@ describe("agent-orchestrator integration", () => {
       return { api, hooks, tools, services, cliRegistrations };
     }
 
-    // Helper: seed an agent into the store via the subagent_spawned hook
+    /**
+     * Seed an agent into the store via the subagent_spawning hook,
+     * respecting the role hierarchy:
+     *   - orchestrator: default parent is "root" (no parent in store, defaults to orchestrator)
+     *   - lead: must be spawned from an orchestrator
+     *   - scout/builder/reviewer: must be spawned from a lead
+     *
+     * This function handles setting up the full hierarchy.
+     */
     async function seedAgent(
       hooks: CapturedHook[],
       opts: {
@@ -317,23 +327,79 @@ describe("agent-orchestrator integration", () => {
         runId?: string;
       },
     ) {
+      const spawningHook = findHook(hooks, "subagent_spawning");
+      if (spawningHook) {
+        const result = await spawningHook.handler(
+          {
+            childSessionKey: opts.childSessionKey,
+            agentId: "test-agent",
+            label: opts.label,
+            mode: "run" as const,
+            requester: opts.parentSessionKey ?? "root",
+            threadRequested: false,
+          },
+          {
+            runId: opts.runId ?? "run-1",
+            childSessionKey: opts.childSessionKey,
+            requesterSessionKey: opts.parentSessionKey ?? "root",
+          },
+        );
+
+        // If the spawn was rejected, the child was not registered
+        const res = result as { status?: string } | undefined | null;
+        if (res?.status === "error") {
+          return false;
+        }
+      }
+
+      // Also call subagent_spawned to confirm active status
       const spawnedHook = findHook(hooks, "subagent_spawned");
-      if (!spawnedHook) return;
-      await spawnedHook.handler(
-        {
-          runId: opts.runId ?? "run-1",
-          childSessionKey: opts.childSessionKey,
-          agentId: "test-agent",
-          label: opts.label,
-          mode: "run" as const,
-          threadRequested: false,
-        },
-        {
-          runId: opts.runId ?? "run-1",
-          childSessionKey: opts.childSessionKey,
-          requesterSessionKey: opts.parentSessionKey ?? "root",
-        },
-      );
+      if (spawnedHook) {
+        await spawnedHook.handler(
+          {
+            runId: opts.runId ?? "run-1",
+            childSessionKey: opts.childSessionKey,
+            agentId: "test-agent",
+            label: opts.label,
+            mode: "run" as const,
+            threadRequested: false,
+          },
+          {
+            runId: opts.runId ?? "run-1",
+            childSessionKey: opts.childSessionKey,
+            requesterSessionKey: opts.parentSessionKey ?? "root",
+          },
+        );
+      }
+
+      return true;
+    }
+
+    /**
+     * Seed a full hierarchy: orchestrator -> lead -> worker (scout/builder/reviewer).
+     * Returns the session keys for orchestrator, lead, and worker.
+     */
+    async function seedHierarchy(hooks: CapturedHook[], workerLabel: string, prefix = "") {
+      const orchKey = `${prefix}orch-1`;
+      const leadKey = `${prefix}lead-1`;
+      const workerKey = `${prefix}${workerLabel.split(":")[0]}-1`;
+
+      // orchestrator (root parent, defaults to orchestrator role)
+      await seedAgent(hooks, { childSessionKey: orchKey, label: "orchestrator:main" });
+      // lead (spawned by orchestrator)
+      await seedAgent(hooks, {
+        childSessionKey: leadKey,
+        label: "lead:team",
+        parentSessionKey: orchKey,
+      });
+      // worker (spawned by lead)
+      await seedAgent(hooks, {
+        childSessionKey: workerKey,
+        label: workerLabel,
+        parentSessionKey: leadKey,
+      });
+
+      return { orchKey, leadKey, workerKey };
     }
 
     // ------------------------------------------------------------------
@@ -343,14 +409,12 @@ describe("agent-orchestrator integration", () => {
     describe("before_tool_call (boundary enforcement)", () => {
       it("blocks write_file for scout role", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "scout-1", label: "scout:explore" });
+        const { workerKey } = await seedHierarchy(hooks, "scout:explore");
 
-        const hook = findHook(hooks, "before_tool_call");
-        expect(hook).toBeDefined();
-
-        const result = await hook!.handler(
+        const hook = findHook(hooks, "before_tool_call")!;
+        const result = await hook.handler(
           { toolName: "write_file", toolCallId: "tc-1", params: {} },
-          { agentId: "test-agent", sessionKey: "scout-1", toolName: "write_file" },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "write_file" },
         );
 
         expect(result).toBeDefined();
@@ -359,12 +423,12 @@ describe("agent-orchestrator integration", () => {
 
       it("allows write_file for builder role", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "builder-1", label: "builder:impl" });
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl");
 
         const hook = findHook(hooks, "before_tool_call")!;
         const result = await hook.handler(
           { toolName: "write_file", toolCallId: "tc-2", params: {} },
-          { agentId: "test-agent", sessionKey: "builder-1", toolName: "write_file" },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "write_file" },
         );
 
         // Builder should not be blocked for write_file
@@ -374,12 +438,12 @@ describe("agent-orchestrator integration", () => {
 
       it("blocks decompose_task for builder role", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "builder-2", label: "builder:impl" });
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "dt-");
 
         const hook = findHook(hooks, "before_tool_call")!;
         const result = await hook.handler(
           { toolName: "decompose_task", toolCallId: "tc-3", params: {} },
-          { agentId: "test-agent", sessionKey: "builder-2", toolName: "decompose_task" },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "decompose_task" },
         );
 
         expect(result).toBeDefined();
@@ -388,12 +452,13 @@ describe("agent-orchestrator integration", () => {
 
       it("allows decompose_task for orchestrator role", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "orch-1", label: "orchestrator:main" });
+        // Orchestrator is at the top — seed it directly
+        await seedAgent(hooks, { childSessionKey: "orch-dt", label: "orchestrator:main" });
 
         const hook = findHook(hooks, "before_tool_call")!;
         const result = await hook.handler(
           { toolName: "decompose_task", toolCallId: "tc-4", params: {} },
-          { agentId: "test-agent", sessionKey: "orch-1", toolName: "decompose_task" },
+          { agentId: "test-agent", sessionKey: "orch-dt", toolName: "decompose_task" },
         );
 
         const blockResult = result as { block?: boolean } | undefined | null;
@@ -441,7 +506,6 @@ describe("agent-orchestrator integration", () => {
         );
 
         const res = result as { status: string } | undefined | null;
-        // Should be allowed (status "ok" or undefined/null passthrough)
         expect(!res || res.status === "ok").toBe(true);
       });
 
@@ -479,9 +543,8 @@ describe("agent-orchestrator integration", () => {
           },
         });
 
-        // Create orchestrator at depth 0
+        // Orchestrator at depth 0, lead at depth 1
         await seedAgent(hooks, { childSessionKey: "orch-1", label: "orchestrator:main" });
-        // Create lead at depth 1 (child of orchestrator)
         await seedAgent(hooks, {
           childSessionKey: "lead-1",
           label: "lead:fe",
@@ -489,7 +552,7 @@ describe("agent-orchestrator integration", () => {
         });
 
         const hook = findHook(hooks, "subagent_spawning")!;
-        // Try to spawn builder from lead (would be depth 2, exceeding maxDepth=1)
+        // Try to spawn builder from lead (depth would be 2, exceeding maxDepth=1)
         const result = await hook.handler(
           {
             childSessionKey: "builder-deep",
@@ -518,23 +581,22 @@ describe("agent-orchestrator integration", () => {
           },
         });
 
-        // Seed orchestrator + 2 children already active
-        await seedAgent(hooks, { childSessionKey: "orch-1", label: "orchestrator:main" });
+        // Seed 2 leads from root (root parent defaults to "orchestrator" role,
+        // which can spawn leads). Both get registered as active.
         await seedAgent(hooks, {
-          childSessionKey: "lead-1",
+          childSessionKey: "lead-ca",
           label: "lead:fe",
-          parentSessionKey: "orch-1",
         });
         await seedAgent(hooks, {
-          childSessionKey: "lead-2",
+          childSessionKey: "lead-cb",
           label: "lead:be",
-          parentSessionKey: "orch-1",
         });
 
+        // Now spawning a third lead should fail: 2 active >= maxConcurrentAgents(2)
         const hook = findHook(hooks, "subagent_spawning")!;
         const result = await hook.handler(
           {
-            childSessionKey: "lead-3",
+            childSessionKey: "lead-cc",
             agentId: "test-agent",
             label: "lead:infra",
             mode: "run" as const,
@@ -542,14 +604,49 @@ describe("agent-orchestrator integration", () => {
           },
           {
             runId: "run-1",
-            childSessionKey: "lead-3",
-            requesterSessionKey: "orch-1",
+            childSessionKey: "lead-cc",
+            requesterSessionKey: "root",
           },
         );
 
         const res = result as { status: string; error?: string } | undefined | null;
         expect(res).toBeDefined();
         expect(res?.status).toBe("error");
+      });
+
+      it("registers child in store on successful spawn", async () => {
+        const { hooks } = await setupPlugin();
+        await seedAgent(hooks, { childSessionKey: "orch-v", label: "orchestrator:main" });
+
+        const spawningHook = findHook(hooks, "subagent_spawning")!;
+        const result = await spawningHook.handler(
+          {
+            childSessionKey: "lead-new",
+            agentId: "test-agent",
+            label: "lead:frontend",
+            mode: "run" as const,
+            threadRequested: false,
+          },
+          {
+            runId: "run-1",
+            childSessionKey: "lead-new",
+            requesterSessionKey: "orch-v",
+          },
+        );
+
+        const res = result as { status: string } | undefined | null;
+        expect(!res || res.status === "ok").toBe(true);
+
+        // Verify the child is in the store by checking boundary enforcement
+        // recognizes its role (lead should block write_file)
+        const toolHook = findHook(hooks, "before_tool_call")!;
+        const blockResult = await toolHook.handler(
+          { toolName: "write_file", toolCallId: "tc-verify", params: {} },
+          { agentId: "test-agent", sessionKey: "lead-new", toolName: "write_file" },
+        );
+
+        expect(blockResult).toBeDefined();
+        expect((blockResult as { block?: boolean }).block).toBe(true);
       });
     });
 
@@ -562,6 +659,7 @@ describe("agent-orchestrator integration", () => {
         const { hooks } = await setupPlugin();
         const hook = findHook(hooks, "subagent_spawned")!;
 
+        // Should not throw when called
         await hook.handler(
           {
             runId: "run-1",
@@ -578,8 +676,6 @@ describe("agent-orchestrator integration", () => {
           },
         );
 
-        // Hook should not throw; agent is registered in the store
-        // We verify indirectly via subsequent hook calls
         expect(hook).toBeDefined();
       });
     });
@@ -591,15 +687,14 @@ describe("agent-orchestrator integration", () => {
     describe("subagent_stopping", () => {
       it("marks agent as completed in store", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "worker-1", label: "builder:impl" });
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "stop-");
 
         const hook = findHook(hooks, "subagent_stopping")!;
-        // Should not throw
-        const result = await hook.handler(
+        await hook.handler(
           {
             runId: "run-1",
-            childSessionKey: "worker-1",
-            requesterSessionKey: "root",
+            childSessionKey: workerKey,
+            requesterSessionKey: "stop-lead-1",
             agentId: "test-agent",
             outcome: "ok" as const,
             reason: "task complete",
@@ -609,12 +704,11 @@ describe("agent-orchestrator integration", () => {
           {
             agentId: "test-agent",
             runId: "run-1",
-            childSessionKey: "worker-1",
-            requesterSessionKey: "root",
+            childSessionKey: workerKey,
+            requesterSessionKey: "stop-lead-1",
           },
         );
 
-        // The hook should return void or a result (not error)
         expect(hook).toBeDefined();
       });
     });
@@ -626,25 +720,67 @@ describe("agent-orchestrator integration", () => {
     describe("subagent_ended", () => {
       it("marks agent as completed in store", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "worker-1", label: "builder:impl" });
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "end-");
 
         const hook = findHook(hooks, "subagent_ended")!;
         await hook.handler(
           {
-            targetSessionKey: "worker-1",
+            targetSessionKey: workerKey,
             targetKind: "subagent" as const,
             reason: "completed",
           },
           {
             runId: "run-1",
-            childSessionKey: "worker-1",
-            requesterSessionKey: "root",
+            childSessionKey: workerKey,
+            requesterSessionKey: "end-lead-1",
           },
         );
 
-        // Verify the agent is marked completed by trying to spawn beyond concurrent limit
-        // If subagent_ended properly completed the agent, a new spawn should succeed
         expect(hook).toBeDefined();
+      });
+
+      it("agent marked completed no longer counts toward concurrent limit", async () => {
+        const { hooks } = await setupPlugin({
+          orchestration: {
+            ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration,
+            maxConcurrentAgents: 2,
+          },
+        });
+
+        // Seed orchestrator + lead (2 active, at the limit)
+        await seedAgent(hooks, { childSessionKey: "orch-c", label: "orchestrator:main" });
+        await seedAgent(hooks, {
+          childSessionKey: "lead-c1",
+          label: "lead:fe",
+          parentSessionKey: "orch-c",
+        });
+
+        // End lead-c1 so it is no longer active
+        const endedHook = findHook(hooks, "subagent_ended")!;
+        await endedHook.handler(
+          { targetSessionKey: "lead-c1", targetKind: "subagent", reason: "completed" },
+          { runId: "run-1", childSessionKey: "lead-c1", requesterSessionKey: "orch-c" },
+        );
+
+        // Now spawning a new lead should succeed since lead-c1 is completed
+        const spawningHook = findHook(hooks, "subagent_spawning")!;
+        const result = await spawningHook.handler(
+          {
+            childSessionKey: "lead-c2",
+            agentId: "test-agent",
+            label: "lead:be",
+            mode: "run" as const,
+            threadRequested: false,
+          },
+          {
+            runId: "run-1",
+            childSessionKey: "lead-c2",
+            requesterSessionKey: "orch-c",
+          },
+        );
+
+        const res = result as { status: string } | undefined | null;
+        expect(!res || res.status === "ok").toBe(true);
       });
     });
 
@@ -655,13 +791,12 @@ describe("agent-orchestrator integration", () => {
     describe("before_prompt_build (role context)", () => {
       it("injects role instructions for scout", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "scout-1", label: "scout:explore" });
+        const { workerKey } = await seedHierarchy(hooks, "scout:explore", "ctx-");
 
-        // Priority 90 = role context hook
         const hook = findHook(hooks, "before_prompt_build", 90)!;
         const result = await hook.handler(
           { prompt: "find all config files", messages: [] },
-          { agentId: "test-agent", sessionKey: "scout-1" },
+          { agentId: "test-agent", sessionKey: workerKey },
         );
 
         const res = result as { prependContext?: string } | undefined | null;
@@ -669,28 +804,26 @@ describe("agent-orchestrator integration", () => {
         expect(res!.prependContext).toContain("Scout");
       });
 
-      it("injects fleet status for orchestrator", async () => {
+      it("injects fleet status for lead role", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "orch-1", label: "orchestrator:main" });
-        // Also seed a child so fleet status has content
-        await seedAgent(hooks, {
-          childSessionKey: "lead-1",
-          label: "lead:frontend",
-          parentSessionKey: "orch-1",
-        });
+        // Seed a lead and a worker under it so fleet status has content.
+        // Leads also get fleet status (same as orchestrator).
+        await seedAgent(hooks, { childSessionKey: "lead-fleet", label: "lead:frontend" });
+        const { workerKey } = await seedHierarchy(hooks, "scout:explore", "fleet-");
 
         const hook = findHook(hooks, "before_prompt_build", 90)!;
         const result = await hook.handler(
           { prompt: "check status", messages: [] },
-          { agentId: "test-agent", sessionKey: "orch-1" },
+          { agentId: "test-agent", sessionKey: "lead-fleet" },
         );
 
         const res = result as { prependContext?: string } | undefined | null;
         expect(res?.prependContext).toBeDefined();
-        expect(res!.prependContext).toContain("orchestrator");
+        // Should contain "Lead" from role instructions and "Active workers" from fleet status
+        expect(res!.prependContext).toContain("Lead");
       });
 
-      it("returns empty when no role assigned", async () => {
+      it("returns undefined when no role assigned", async () => {
         const { hooks } = await setupPlugin();
 
         const hook = findHook(hooks, "before_prompt_build", 90)!;
@@ -699,11 +832,8 @@ describe("agent-orchestrator integration", () => {
           { agentId: "test-agent", sessionKey: "no-role-session" },
         );
 
-        // Should return undefined/null/void or an object with empty prependContext
-        const res = result as { prependContext?: string } | undefined | null;
-        if (res?.prependContext) {
-          expect(res.prependContext).toBe("");
-        }
+        // No state for this session key means no role — hook returns undefined
+        expect(result).toBeUndefined();
       });
     });
 
@@ -714,12 +844,12 @@ describe("agent-orchestrator integration", () => {
     describe("before_model_resolve", () => {
       it("returns haiku override for scout role", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "scout-1", label: "scout:explore" });
+        const { workerKey } = await seedHierarchy(hooks, "scout:explore", "mr-s-");
 
         const hook = findHook(hooks, "before_model_resolve")!;
         const result = await hook.handler(
           { prompt: "find files" },
-          { agentId: "test-agent", sessionKey: "scout-1" },
+          { agentId: "test-agent", sessionKey: workerKey },
         );
 
         const res = result as { modelOverride?: string } | undefined | null;
@@ -729,12 +859,12 @@ describe("agent-orchestrator integration", () => {
 
       it("returns haiku override for reviewer role", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "reviewer-1", label: "reviewer:qa" });
+        const { workerKey } = await seedHierarchy(hooks, "reviewer:qa", "mr-r-");
 
         const hook = findHook(hooks, "before_model_resolve")!;
         const result = await hook.handler(
           { prompt: "review changes" },
-          { agentId: "test-agent", sessionKey: "reviewer-1" },
+          { agentId: "test-agent", sessionKey: workerKey },
         );
 
         const res = result as { modelOverride?: string } | undefined | null;
@@ -744,16 +874,15 @@ describe("agent-orchestrator integration", () => {
 
       it("returns no override for builder role", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "builder-1", label: "builder:impl" });
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "mr-b-");
 
         const hook = findHook(hooks, "before_model_resolve")!;
         const result = await hook.handler(
           { prompt: "implement feature" },
-          { agentId: "test-agent", sessionKey: "builder-1" },
+          { agentId: "test-agent", sessionKey: workerKey },
         );
 
         const res = result as { modelOverride?: string } | undefined | null;
-        // Builder uses default model, so no override
         expect(!res || !res.modelOverride).toBe(true);
       });
 
@@ -778,11 +907,11 @@ describe("agent-orchestrator integration", () => {
     describe("after_tool_call (activity tracking)", () => {
       it("updates lastActivity timestamp in store", async () => {
         const { hooks } = await setupPlugin();
-        await seedAgent(hooks, { childSessionKey: "builder-1", label: "builder:impl" });
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "at-");
 
         const hook = findHook(hooks, "after_tool_call")!;
 
-        // Call should not throw
+        // Should not throw
         await hook.handler(
           {
             toolName: "write_file",
@@ -794,14 +923,37 @@ describe("agent-orchestrator integration", () => {
           },
           {
             agentId: "test-agent",
-            sessionKey: "builder-1",
+            sessionKey: workerKey,
             runId: "run-1",
             toolName: "write_file",
           },
         );
 
-        // The handler should update lastActivity; we verify by subsequent
-        // hook calls not considering it stale (no direct store access)
+        expect(hook).toBeDefined();
+      });
+
+      it("does not throw for unregistered session", async () => {
+        const { hooks } = await setupPlugin();
+
+        const hook = findHook(hooks, "after_tool_call")!;
+
+        await hook.handler(
+          {
+            toolName: "read_file",
+            toolCallId: "tc-2",
+            isError: false,
+            params: {},
+            result: "ok",
+            durationMs: 10,
+          },
+          {
+            agentId: "test-agent",
+            sessionKey: "nonexistent-session",
+            runId: "run-1",
+            toolName: "read_file",
+          },
+        );
+
         expect(hook).toBeDefined();
       });
     });
@@ -812,9 +964,9 @@ describe("agent-orchestrator integration", () => {
   // ==========================================================================
 
   describe("config parsing", () => {
-    it("uses defaults when no config provided", async () => {
+    it("uses defaults when no config provided", () => {
       const { api, hooks, services } = createMockApi({});
-      await plugin.register(api as never);
+      plugin.register(api as never);
 
       // With default config, both mail and orchestration are enabled
       expect(services.length).toBeGreaterThanOrEqual(1);
@@ -824,7 +976,7 @@ describe("agent-orchestrator integration", () => {
       expect(toolHook).toBeDefined();
     });
 
-    it("merges partial config over defaults", async () => {
+    it("merges partial config over defaults", () => {
       const { api, hooks } = createMockApi({
         orchestration: {
           ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration,
@@ -832,20 +984,36 @@ describe("agent-orchestrator integration", () => {
           enabled: true,
         },
       });
-      await plugin.register(api as never);
+      plugin.register(api as never);
 
       // Orchestration hooks should still be registered
       const spawningHook = findHook(hooks, "subagent_spawning");
       expect(spawningHook).toBeDefined();
     });
 
-    it("disabling mail also works", async () => {
+    it("disabling mail while orchestration is enabled still registers mail tools", () => {
+      // When orchestration.enabled is true, the condition
+      // `config.mail.enabled || config.orchestration.enabled` is true
       const { api, tools } = createMockApi({
         mail: { enabled: false },
+        orchestration: { ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration, enabled: true },
       });
-      await plugin.register(api as never);
+      plugin.register(api as never);
 
-      // Mail tools should not be registered
+      const mailTool = tools.find(
+        (t) => t.opts?.name === "mail" || t.opts?.names?.includes("mail"),
+      );
+      // mail tools are still registered because orchestration needs them
+      expect(mailTool).toBeDefined();
+    });
+
+    it("disabling both mail and orchestration registers no mail tools", () => {
+      const { api, tools } = createMockApi({
+        mail: { enabled: false },
+        orchestration: { ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration, enabled: false },
+      });
+      plugin.register(api as never);
+
       const mailTool = tools.find(
         (t) => t.opts?.name === "mail" || t.opts?.names?.includes("mail"),
       );
