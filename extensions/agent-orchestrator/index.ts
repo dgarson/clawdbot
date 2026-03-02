@@ -32,6 +32,7 @@ import { createAgentStatusTool, createDecomposeTaskTool } from "./src/tools/inde
 import {
   DEFAULT_ORCHESTRATOR_CONFIG,
   type AgentRole,
+  type MemoryFeedbackConfig,
   type MemorySearchEnforcementConfig,
   type OrchestratorConfig,
   type PendingSpawnIntent,
@@ -179,7 +180,21 @@ function parseOrchestratorConfig(raw: unknown): OrchestratorConfig {
     }
   }
 
-  return { mail, orchestration, enforcement };
+  // Parse memoryFeedback config (optional)
+  const rawMf = isRecord(raw.memoryFeedback) ? raw.memoryFeedback : undefined;
+  let memoryFeedback: MemoryFeedbackConfig | undefined;
+  if (rawMf) {
+    memoryFeedback = {
+      enabled: readBooleanOption(rawMf.enabled, false),
+      model: typeof rawMf.model === "string" ? rawMf.model : "claude-haiku-4-5-20251001",
+      autoWriteThreshold:
+        typeof rawMf.autoWriteThreshold === "number" ? rawMf.autoWriteThreshold : 0.85,
+      maxContextMessages:
+        typeof rawMf.maxContextMessages === "number" ? rawMf.maxContextMessages : 50,
+    };
+  }
+
+  return { mail, orchestration, enforcement, memoryFeedback };
 }
 
 function isPendingSpawnIntent(value: unknown): value is PendingSpawnIntent {

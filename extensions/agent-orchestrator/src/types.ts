@@ -60,6 +60,13 @@ export type OrchestratorEnforcementConfig = {
   memorySearch?: MemorySearchEnforcementConfig;
 };
 
+export type MemoryFeedbackConfig = {
+  enabled: boolean;
+  model: string;
+  autoWriteThreshold: number;
+  maxContextMessages: number;
+};
+
 // Orchestration plugin config (parsed from openclaw.plugin.json)
 export type OrchestratorMailLoggingConfig = {
   enabled: boolean;
@@ -90,6 +97,7 @@ export type OrchestratorConfig = {
     agentRoles?: Record<string, AgentRole>;
   };
   enforcement?: OrchestratorEnforcementConfig;
+  memoryFeedback?: MemoryFeedbackConfig;
 };
 
 // Default config values

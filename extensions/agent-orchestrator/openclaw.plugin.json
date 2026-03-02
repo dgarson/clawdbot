@@ -124,6 +124,17 @@
           }
         }
       },
+      "memoryFeedback": {
+        "type": "object",
+        "description": "Ephemeral end-of-session memory reflection config.",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "model": { "type": "string" },
+          "autoWriteThreshold": { "type": "number" },
+          "maxContextMessages": { "type": "integer" }
+        }
+      },
       "rules": {
         "type": "object"
       },
