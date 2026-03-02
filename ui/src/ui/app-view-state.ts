@@ -1,6 +1,10 @@
 import type { EventLogEntry } from "./app-events.ts";
 import type { CompactionStatus, FallbackStatus } from "./app-tool-stream.ts";
-import type { CronFieldErrors } from "./controllers/cron.ts";
+import type {
+  CronFieldErrors,
+  CronJobsLastStatusFilter,
+  CronJobsScheduleKindFilter,
+} from "./controllers/cron.ts";
 import type { DevicePairingList } from "./controllers/devices.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
@@ -42,6 +46,18 @@ import type {
 } from "./types.ts";
 import type { ChatAttachment, ChatQueueItem, CronFormState } from "./ui-types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
+import type {
+  TelemetryCostBreakdown,
+  TelemetryCostGroupBy,
+  TelemetryErrorEntry,
+  TelemetryLeaderboardEntry,
+  TelemetryReplayState,
+  TelemetrySessionSummary,
+  TelemetrySubagentNode,
+  TelemetryTimelineEvent,
+  TelemetryUsageSummary,
+  TelemetryView,
+} from "./views/telemetry-types.ts";
 import type { SessionLogEntry } from "./views/usage.ts";
 
 export type AppViewState = {
@@ -163,6 +179,7 @@ export type AppViewState = {
   sessionsFilterLimit: string;
   sessionsIncludeGlobal: boolean;
   sessionsIncludeUnknown: boolean;
+  sessionsHideCron: boolean;
   usageLoading: boolean;
   usageResult: SessionsUsageResult | null;
   usageCostSummary: CostUsageSummary | null;
@@ -198,6 +215,28 @@ export type AppViewState = {
   usageLogFilterTools: string[];
   usageLogFilterHasTools: boolean;
   usageLogFilterQuery: string;
+  // Telemetry dashboard state
+  telemetryView: TelemetryView;
+  telemetryLoading: boolean;
+  telemetryError: string | null;
+  telemetryUsage: TelemetryUsageSummary | null;
+  telemetrySessions: TelemetrySessionSummary[];
+  telemetrySessionsLoading: boolean;
+  telemetryCosts: TelemetryCostBreakdown[];
+  telemetryCostsLoading: boolean;
+  telemetryCostGroupBy: TelemetryCostGroupBy;
+  telemetryTopModels: TelemetryLeaderboardEntry[];
+  telemetryTopTools: TelemetryLeaderboardEntry[];
+  telemetryErrors: TelemetryErrorEntry[];
+  telemetryErrorsExpanded: boolean;
+  telemetrySelectedSessionKey: string | null;
+  telemetryTimeline: TelemetryTimelineEvent[];
+  telemetryTimelineLoading: boolean;
+  telemetryReplay: TelemetryReplayState;
+  telemetryTree: TelemetrySubagentNode[];
+  telemetryTreeLoading: boolean;
+  telemetryActiveMonitor: boolean;
+  telemetryActiveInterval: number | null;
   cronLoading: boolean;
   cronJobsLoadingMore: boolean;
   cronJobs: CronJob[];
@@ -207,6 +246,8 @@ export type AppViewState = {
   cronJobsLimit: number;
   cronJobsQuery: string;
   cronJobsEnabledFilter: CronJobsEnabledFilter;
+  cronJobsScheduleKindFilter: CronJobsScheduleKindFilter;
+  cronJobsLastStatusFilter: CronJobsLastStatusFilter;
   cronJobsSortBy: CronJobsSortBy;
   cronJobsSortDir: CronSortDir;
   cronStatus: CronStatus | null;

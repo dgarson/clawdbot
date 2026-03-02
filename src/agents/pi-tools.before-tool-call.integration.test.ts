@@ -130,6 +130,7 @@ describe("before_tool_call hook integration", () => {
     expect(hookRunner.runBeforeToolCall).toHaveBeenCalledWith(
       {
         toolName: "read",
+        toolCallId: "call-5",
         params: {},
       },
       {

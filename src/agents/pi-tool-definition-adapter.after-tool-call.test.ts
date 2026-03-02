@@ -53,10 +53,14 @@ async function executeReadTool(callId: string) {
   return await execute(callId, { path: "/tmp/file" }, undefined, undefined, extensionContext);
 }
 
-function expectReadAfterToolCallPayload(result: Awaited<ReturnType<typeof executeReadTool>>) {
+function expectReadAfterToolCallPayload(
+  result: Awaited<ReturnType<typeof executeReadTool>>,
+  callId: string,
+) {
   expect(hookMocks.runner.runAfterToolCall).toHaveBeenCalledWith(
     {
       toolName: "read",
+      toolCallId: callId,
       params: { mode: "safe" },
       result,
     },
@@ -90,7 +94,7 @@ describe("pi tool definition adapter after_tool_call", () => {
 
     expect(result.details).toMatchObject({ ok: true });
     expect(hookMocks.runner.runAfterToolCall).toHaveBeenCalledTimes(1);
-    expectReadAfterToolCallPayload(result);
+    expectReadAfterToolCallPayload(result, "call-ok");
   });
 
   it("uses wrapped-tool adjusted params for after_tool_call payload", async () => {
@@ -101,7 +105,7 @@ describe("pi tool definition adapter after_tool_call", () => {
 
     expect(result.details).toMatchObject({ ok: true });
     expect(hookMocks.runBeforeToolCallHook).not.toHaveBeenCalled();
-    expectReadAfterToolCallPayload(result);
+    expectReadAfterToolCallPayload(result, "call-ok-wrapped");
   });
 
   it("dispatches after_tool_call once on adapter error with normalized tool name", async () => {
@@ -133,6 +137,8 @@ describe("pi tool definition adapter after_tool_call", () => {
     expect(hookMocks.runner.runAfterToolCall).toHaveBeenCalledWith(
       {
         toolName: "exec",
+        toolCallId: "call-err",
+        isError: true,
         params: { cmd: "ls" },
         error: "boom",
       },

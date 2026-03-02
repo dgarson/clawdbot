@@ -24,8 +24,12 @@ const diagnosticMocks = vi.hoisted(() => ({
 }));
 const hookMocks = vi.hoisted(() => ({
   runner: {
-    hasHooks: vi.fn(() => false),
+    hasHooks: vi.fn((_name: string) => false),
     runMessageReceived: vi.fn(async () => {}),
+    runBeforeMessageProcess: vi.fn(
+      async () =>
+        undefined as { block?: boolean; blockReason?: string; content?: string } | undefined,
+    ),
   },
 }));
 const internalHookMocks = vi.hoisted(() => ({
@@ -207,6 +211,8 @@ describe("dispatchReplyFromConfig", () => {
   beforeEach(() => {
     acpManagerTesting.resetAcpSessionManagerForTests();
     resetInboundDedupe();
+    mocks.routeReply.mockReset();
+    mocks.routeReply.mockResolvedValue({ ok: true, messageId: "mock" });
     acpMocks.listAcpSessionEntries.mockReset().mockResolvedValue([]);
     diagnosticMocks.logMessageQueued.mockClear();
     diagnosticMocks.logMessageProcessed.mockClear();
@@ -214,6 +220,8 @@ describe("dispatchReplyFromConfig", () => {
     hookMocks.runner.hasHooks.mockClear();
     hookMocks.runner.hasHooks.mockReturnValue(false);
     hookMocks.runner.runMessageReceived.mockClear();
+    hookMocks.runner.runBeforeMessageProcess.mockClear();
+    hookMocks.runner.runBeforeMessageProcess.mockResolvedValue(undefined);
     internalHookMocks.createInternalHookEvent.mockClear();
     internalHookMocks.createInternalHookEvent.mockImplementation(createInternalHookEventPayload);
     internalHookMocks.triggerInternalHook.mockClear();
@@ -1549,5 +1557,75 @@ describe("dispatchReplyFromConfig", () => {
     await dispatchReplyFromConfig({ ctx, cfg: emptyConfig, dispatcher, replyResolver });
     expect(blockReplySentTexts).not.toContain("Reasoning:\n_thinking..._");
     expect(blockReplySentTexts).toContain("The answer is 42");
+  });
+
+  it("blocks message and skips enqueue when before_message_process returns block:true", async () => {
+    setNoAbort();
+    hookMocks.runner.hasHooks.mockImplementation(
+      (name: string) => name === "before_message_process",
+    );
+    hookMocks.runner.runBeforeMessageProcess.mockResolvedValue({
+      block: true,
+      blockReason: "spam detected",
+    });
+    const dispatcher = createDispatcher();
+    const ctx = buildTestCtx({
+      Provider: "telegram",
+      Surface: "telegram",
+      CommandBody: "some inbound message",
+    });
+    const replyResolver = vi.fn(async () => ({ text: "reply" }) satisfies ReplyPayload);
+
+    const result = await dispatchReplyFromConfig({
+      ctx,
+      cfg: emptyConfig,
+      dispatcher,
+      replyResolver,
+    });
+
+    expect(result.queuedFinal).toBe(false);
+    expect(replyResolver).not.toHaveBeenCalled();
+    expect(dispatcher.sendFinalReply).not.toHaveBeenCalled();
+    expect(dispatcher.sendBlockReply).not.toHaveBeenCalled();
+  });
+
+  it("allows message through when before_message_process returns undefined (pass-through)", async () => {
+    setNoAbort();
+    hookMocks.runner.hasHooks.mockImplementation(
+      (name: string) => name === "before_message_process",
+    );
+    hookMocks.runner.runBeforeMessageProcess.mockResolvedValue(undefined);
+    const dispatcher = createDispatcher();
+    const ctx = buildTestCtx({
+      Provider: "telegram",
+      Surface: "telegram",
+      CommandBody: "hello",
+    });
+    const replyResolver = vi.fn(async () => ({ text: "hi" }) satisfies ReplyPayload);
+
+    await dispatchReplyFromConfig({ ctx, cfg: emptyConfig, dispatcher, replyResolver });
+
+    expect(replyResolver).toHaveBeenCalledTimes(1);
+    expect(dispatcher.sendFinalReply).toHaveBeenCalledTimes(1);
+  });
+
+  it("processes message normally when before_message_process handler throws (fail-open)", async () => {
+    setNoAbort();
+    hookMocks.runner.hasHooks.mockImplementation(
+      (name: string) => name === "before_message_process",
+    );
+    hookMocks.runner.runBeforeMessageProcess.mockRejectedValue(new Error("handler crashed"));
+    const dispatcher = createDispatcher();
+    const ctx = buildTestCtx({
+      Provider: "telegram",
+      Surface: "telegram",
+      CommandBody: "hello",
+    });
+    const replyResolver = vi.fn(async () => ({ text: "hi" }) satisfies ReplyPayload);
+
+    await dispatchReplyFromConfig({ ctx, cfg: emptyConfig, dispatcher, replyResolver });
+
+    expect(replyResolver).toHaveBeenCalledTimes(1);
+    expect(dispatcher.sendFinalReply).toHaveBeenCalledTimes(1);
   });
 });

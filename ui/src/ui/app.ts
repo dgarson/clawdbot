@@ -245,6 +245,7 @@ export class OpenClawApp extends LitElement {
   @state() sessionsFilterLimit = "120";
   @state() sessionsIncludeGlobal = true;
   @state() sessionsIncludeUnknown = false;
+  @state() sessionsHideCron = true;
 
   @state() usageLoading = false;
   @state() usageResult: import("./types.js").SessionsUsageResult | null = null;
@@ -301,6 +302,35 @@ export class OpenClawApp extends LitElement {
   // Non-reactive (don’t trigger renders just for timer bookkeeping).
   usageQueryDebounceTimer: number | null = null;
 
+  // Telemetry dashboard
+  @state() telemetryView: import("./views/telemetry-types.js").TelemetryView = "dashboard";
+  @state() telemetryLoading = false;
+  @state() telemetryError: string | null = null;
+  @state() telemetryUsage: import("./views/telemetry-types.js").TelemetryUsageSummary | null = null;
+  @state() telemetrySessions: import("./views/telemetry-types.js").TelemetrySessionSummary[] = [];
+  @state() telemetrySessionsLoading = false;
+  @state() telemetryCosts: import("./views/telemetry-types.js").TelemetryCostBreakdown[] = [];
+  @state() telemetryCostsLoading = false;
+  @state() telemetryCostGroupBy: import("./views/telemetry-types.js").TelemetryCostGroupBy =
+    "model";
+  @state() telemetryTopModels: import("./views/telemetry-types.js").TelemetryLeaderboardEntry[] =
+    [];
+  @state() telemetryTopTools: import("./views/telemetry-types.js").TelemetryLeaderboardEntry[] = [];
+  @state() telemetryErrors: import("./views/telemetry-types.js").TelemetryErrorEntry[] = [];
+  @state() telemetryErrorsExpanded = false;
+  @state() telemetrySelectedSessionKey: string | null = null;
+  @state() telemetryTimeline: import("./views/telemetry-types.js").TelemetryTimelineEvent[] = [];
+  @state() telemetryTimelineLoading = false;
+  @state() telemetryReplay: import("./views/telemetry-types.js").TelemetryReplayState = {
+    playing: false,
+    speed: 1,
+    currentIndex: 0,
+  };
+  @state() telemetryTree: import("./views/telemetry-types.js").TelemetrySubagentNode[] = [];
+  @state() telemetryTreeLoading = false;
+  @state() telemetryActiveMonitor = false;
+  telemetryActiveInterval: number | null = null;
+
   @state() cronLoading = false;
   @state() cronJobsLoadingMore = false;
   @state() cronJobs: CronJob[] = [];
@@ -310,6 +340,10 @@ export class OpenClawApp extends LitElement {
   @state() cronJobsLimit = 50;
   @state() cronJobsQuery = "";
   @state() cronJobsEnabledFilter: import("./types.js").CronJobsEnabledFilter = "all";
+  @state() cronJobsScheduleKindFilter: import("./controllers/cron.js").CronJobsScheduleKindFilter =
+    "all";
+  @state() cronJobsLastStatusFilter: import("./controllers/cron.js").CronJobsLastStatusFilter =
+    "all";
   @state() cronJobsSortBy: import("./types.js").CronJobsSortBy = "nextRunAtMs";
   @state() cronJobsSortDir: import("./types.js").CronSortDir = "asc";
   @state() cronStatus: CronStatus | null = null;

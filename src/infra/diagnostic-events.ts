@@ -147,8 +147,68 @@ export type DiagnosticToolLoopEvent = DiagnosticBaseEvent & {
   pairedToolName?: string;
 };
 
+export type DiagnosticModelCallEvent = DiagnosticBaseEvent & {
+  type: "model.call";
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  callIndex: number;
+  provider?: string;
+  model?: string;
+  delta: {
+    input?: number;
+    output?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+    total?: number;
+  };
+  cumulative: {
+    input: number;
+    output: number;
+    cacheRead: number;
+    cacheWrite: number;
+    total: number;
+  };
+  context?: {
+    limit?: number;
+    used?: number;
+  };
+  costUsd?: number;
+  durationMs?: number;
+};
+
+export type DiagnosticUsageRecordEvent = DiagnosticBaseEvent & {
+  type: "usage.record";
+  kind: string;
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  toolCallId?: string;
+  agentId?: string;
+  provider?: string;
+  model?: string;
+  llm?: {
+    apiCallCount: number;
+    totalDurationMs?: number;
+    avgDurationMs?: number;
+    inputTokens?: number;
+    outputTokens?: number;
+    cacheReadTokens?: number;
+    cacheWriteTokens?: number;
+    costUsd?: number;
+  };
+  billing?: {
+    units?: number;
+    unitType?: string;
+    costUsd?: number;
+    currency?: string;
+  };
+  metadata?: Record<string, unknown>;
+};
+
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
+  | DiagnosticModelCallEvent
   | DiagnosticWebhookReceivedEvent
   | DiagnosticWebhookProcessedEvent
   | DiagnosticWebhookErrorEvent
@@ -160,7 +220,8 @@ export type DiagnosticEventPayload =
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent
   | DiagnosticHeartbeatEvent
-  | DiagnosticToolLoopEvent;
+  | DiagnosticToolLoopEvent
+  | DiagnosticUsageRecordEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload

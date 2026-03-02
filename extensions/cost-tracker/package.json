@@ -1,0 +1,12 @@
+{
+  "name": "@openclaw/cost-tracker",
+  "version": "2026.2.27",
+  "private": true,
+  "description": "OpenClaw cost tracker plugin — tracks LLM and extension usage costs per session and run",
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

@@ -20,6 +20,7 @@ import {
 } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
 import { emitAgentEvent, registerAgentRunContext } from "../../infra/agent-events.js";
+import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import { defaultRuntime } from "../../runtime.js";
 import {
   isMarkdownCapableMessageChannel,
@@ -119,6 +120,37 @@ export async function runAgentTurnWithFallback(params: {
       isHeartbeat: params.isHeartbeat,
     });
   }
+
+  // Emit run_start hook (fire-and-forget)
+  const hookRunner = getGlobalHookRunner();
+  if (hookRunner?.hasHooks("run_start")) {
+    void hookRunner
+      .runRunStart(
+        {
+          runId,
+          sessionKey: params.sessionKey ?? "",
+          sessionId: params.followupRun.run.sessionId ?? "",
+          agentId: params.followupRun.run.agentId ?? "",
+          model: params.followupRun.run.model ?? "",
+          provider: params.followupRun.run.provider ?? "",
+          isHeartbeat: params.isHeartbeat ?? false,
+          isFollowup: false,
+          messageCount: 0,
+          compactionCount: 0,
+          originChannel: params.followupRun.originatingChannel,
+        },
+        {
+          agentId: params.followupRun.run.agentId,
+          sessionKey: params.sessionKey,
+          sessionId: params.followupRun.run.sessionId,
+          workspaceDir: params.followupRun.run.workspaceDir,
+        },
+      )
+      .catch(() => {
+        // fire-and-forget, errors handled by hook runner
+      });
+  }
+
   let runResult: Awaited<ReturnType<typeof runEmbeddedPiAgent>>;
   let fallbackProvider = params.followupRun.run.provider;
   let fallbackModel = params.followupRun.run.model;

@@ -18,6 +18,7 @@ import type {
   PluginHookBeforePromptBuildEvent,
   PluginHookBeforePromptBuildResult,
   PluginHookBeforeCompactionEvent,
+  PluginHookRunStartEvent,
   PluginHookLlmInputEvent,
   PluginHookLlmOutputEvent,
   PluginHookBeforeResetEvent,
@@ -28,6 +29,9 @@ import type {
   PluginHookGatewayStopEvent,
   PluginHookMessageContext,
   PluginHookMessageReceivedEvent,
+  PluginHookBeforeMessageProcessEvent,
+  PluginHookBeforeMessageProcessResult,
+  PluginHookPermissionRequestEvent,
   PluginHookMessageSendingEvent,
   PluginHookMessageSendingResult,
   PluginHookMessageSentEvent,
@@ -43,12 +47,16 @@ import type {
   PluginHookSubagentSpawningResult,
   PluginHookSubagentEndedEvent,
   PluginHookSubagentSpawnedEvent,
+  PluginHookSubagentStoppingContext,
+  PluginHookSubagentStoppingEvent,
+  PluginHookSubagentStoppingResult,
   PluginHookToolContext,
   PluginHookToolResultPersistContext,
   PluginHookToolResultPersistEvent,
   PluginHookToolResultPersistResult,
   PluginHookBeforeMessageWriteEvent,
   PluginHookBeforeMessageWriteResult,
+  PluginHookLlmApiCallEvent,
 } from "./types.js";
 
 // Re-export types for consumers
@@ -60,6 +68,7 @@ export type {
   PluginHookBeforeModelResolveResult,
   PluginHookBeforePromptBuildEvent,
   PluginHookBeforePromptBuildResult,
+  PluginHookRunStartEvent,
   PluginHookLlmInputEvent,
   PluginHookLlmOutputEvent,
   PluginHookAgentEndEvent,
@@ -68,6 +77,9 @@ export type {
   PluginHookAfterCompactionEvent,
   PluginHookMessageContext,
   PluginHookMessageReceivedEvent,
+  PluginHookBeforeMessageProcessEvent,
+  PluginHookBeforeMessageProcessResult,
+  PluginHookPermissionRequestEvent,
   PluginHookMessageSendingEvent,
   PluginHookMessageSendingResult,
   PluginHookMessageSentEvent,
@@ -90,9 +102,13 @@ export type {
   PluginHookSubagentSpawningResult,
   PluginHookSubagentSpawnedEvent,
   PluginHookSubagentEndedEvent,
+  PluginHookSubagentStoppingContext,
+  PluginHookSubagentStoppingEvent,
+  PluginHookSubagentStoppingResult,
   PluginHookGatewayContext,
   PluginHookGatewayStartEvent,
   PluginHookGatewayStopEvent,
+  PluginHookLlmApiCallEvent,
 };
 
 export type HookRunnerLogger = {
@@ -259,6 +275,18 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
   // =========================================================================
 
   /**
+   * Run run_start hook.
+   * Fires at the beginning of each agent run with run metadata.
+   * Runs in parallel (fire-and-forget).
+   */
+  async function runRunStart(
+    event: PluginHookRunStartEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<void> {
+    return runVoidHook("run_start", event, ctx);
+  }
+
+  /**
    * Run before_model_resolve hook.
    * Allows plugins to override provider/model before model resolution.
    */
@@ -387,6 +415,31 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
   }
 
   /**
+   * Run before_message_process hook.
+   * Sequential/modifying hook that fires after message_received and before the message is
+   * enqueued for agent processing. Allows plugins to inspect, modify, or block inbound messages.
+   * Fail-open: handler errors are logged and do not block message processing.
+   */
+  async function runBeforeMessageProcess(
+    event: PluginHookBeforeMessageProcessEvent,
+    ctx: PluginHookMessageContext,
+  ): Promise<PluginHookBeforeMessageProcessResult | undefined> {
+    return runModifyingHook<"before_message_process", PluginHookBeforeMessageProcessResult>(
+      "before_message_process",
+      event,
+      ctx,
+      (acc, next) => ({
+        // First block: true wins
+        block: next.block ?? acc?.block,
+        blockReason: next.blockReason ?? acc?.blockReason,
+        // Last content override wins (lower priority handler runs last)
+        content: acc?.content ?? next.content,
+        metadata: acc?.metadata ?? next.metadata,
+      }),
+    );
+  }
+
+  /**
    * Run message_sending hook.
    * Allows plugins to modify or cancel outgoing messages.
    * Runs sequentially.
@@ -451,6 +504,19 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     ctx: PluginHookToolContext,
   ): Promise<void> {
     return runVoidHook("after_tool_call", event, ctx);
+  }
+
+  /**
+   * Run permission_request hook.
+   * Fire-and-forget hook for audit/notification when a tool requires elevated permissions
+   * (e.g. exec approval is required). Does not block the approval flow.
+   * Runs in parallel.
+   */
+  async function runPermissionRequest(
+    event: PluginHookPermissionRequestEvent,
+    ctx: PluginHookToolContext,
+  ): Promise<void> {
+    return runVoidHook("permission_request", event, ctx);
   }
 
   /**
@@ -669,6 +735,18 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     return runVoidHook("subagent_ended", event, ctx);
   }
 
+  /**
+   * Run subagent_stopping hook.
+   * Sequential/modifying hook that can intercept subagent completion.
+   * First handler returning { allow: false, prompt: "..." } wins.
+   */
+  async function runSubagentStopping(
+    event: PluginHookSubagentStoppingEvent,
+    ctx: PluginHookSubagentStoppingContext,
+  ): Promise<PluginHookSubagentStoppingResult | void> {
+    return runModifyingHook("subagent_stopping", event, ctx);
+  }
+
   // =========================================================================
   // Gateway Hooks
   // =========================================================================
@@ -695,6 +773,17 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     return runVoidHook("gateway_stop", event, ctx);
   }
 
+  /**
+   * Run llm_api_call hook.
+   * Runs in parallel (fire-and-forget). Used for cross-path LLM observability.
+   */
+  async function runLlmApiCall(
+    event: PluginHookLlmApiCallEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<void> {
+    return runVoidHook("llm_api_call", event, ctx);
+  }
+
   // =========================================================================
   // Utility
   // =========================================================================
@@ -715,6 +804,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
 
   return {
     // Agent hooks
+    runRunStart,
     runBeforeModelResolve,
     runBeforePromptBuild,
     runBeforeAgentStart,
@@ -726,11 +816,13 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     runBeforeReset,
     // Message hooks
     runMessageReceived,
+    runBeforeMessageProcess,
     runMessageSending,
     runMessageSent,
     // Tool hooks
     runBeforeToolCall,
     runAfterToolCall,
+    runPermissionRequest,
     runToolResultPersist,
     // Message write hooks
     runBeforeMessageWrite,
@@ -741,9 +833,12 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     runSubagentDeliveryTarget,
     runSubagentSpawned,
     runSubagentEnded,
+    runSubagentStopping,
     // Gateway hooks
     runGatewayStart,
     runGatewayStop,
+    // LLM observability
+    runLlmApiCall,
     // Utility
     hasHooks,
     getHookCount,

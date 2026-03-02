@@ -17,6 +17,7 @@ import {
   syncThemeWithSettings,
 } from "./app-settings.ts";
 import { loadControlUiBootstrapConfig } from "./controllers/control-ui-bootstrap.ts";
+import { stopActiveMonitor } from "./controllers/telemetry.ts";
 import type { Tab } from "./navigation.ts";
 
 type LifecycleHost = {
@@ -38,6 +39,8 @@ type LifecycleHost = {
   logsEntries: unknown[];
   popStateHandler: () => void;
   topbarObserver: ResizeObserver | null;
+  telemetryActiveMonitor: boolean;
+  telemetryActiveInterval: number | null;
 };
 
 export function handleConnected(host: LifecycleHost) {
@@ -67,6 +70,7 @@ export function handleDisconnected(host: LifecycleHost) {
   stopNodesPolling(host as unknown as Parameters<typeof stopNodesPolling>[0]);
   stopLogsPolling(host as unknown as Parameters<typeof stopLogsPolling>[0]);
   stopDebugPolling(host as unknown as Parameters<typeof stopDebugPolling>[0]);
+  stopActiveMonitor(host as unknown as Parameters<typeof stopActiveMonitor>[0]);
   host.client?.stop();
   host.client = null;
   host.connected = false;

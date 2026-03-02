@@ -80,6 +80,7 @@ export type {
   AcpRuntimeEvent,
   AcpRuntimeHandle,
   AcpRuntimePromptMode,
+  AcpSessionUpdateTag,
   AcpRuntimeSessionMode,
   AcpRuntimeStatus,
   AcpRuntimeTurnInput,
@@ -102,6 +103,8 @@ export type {
   PluginLogger,
   ProviderAuthContext,
   ProviderAuthResult,
+  PluginHookLlmApiCallEvent,
+  PluginUsageRecord,
 } from "../plugins/types.js";
 export type {
   GatewayRequestHandler,
@@ -234,6 +237,33 @@ export type { MediaPayload, MediaPayloadInput } from "../channels/plugins/media-
 export { createLoggerBackedRuntime } from "./runtime.js";
 export { chunkTextForOutbound } from "./text-chunking.js";
 export { readJsonFileWithFallback, writeJsonFileAtomically } from "./json-store.js";
+export type {
+  SessionRuntimeStoreOptions,
+  FlushStrategy,
+  BoundedListConfig,
+} from "./session-runtime-store.js";
+export {
+  SessionRuntimeStore,
+  appendBounded,
+  createSessionRuntimeStore,
+  wireSessionHooks,
+  wireSessionLifecycleHooks,
+} from "./session-runtime-store.js";
+export type { AsyncWriteQueueOptions } from "./async-write-queue.js";
+export { AsyncWriteQueue, createAsyncWriteQueue } from "./async-write-queue.js";
+export type {
+  CostEntry,
+  CostEntryInput,
+  CostSource,
+  CostSummary,
+  SessionCostLedgerOptions,
+} from "./session-cost-ledger.js";
+export { SessionCostLedger, createSessionCostLedger } from "./session-cost-ledger.js";
+export type { SessionRelationship, RelatedSessions } from "./session-relationship-tracker.js";
+export {
+  SessionRelationshipTracker,
+  createSessionRelationshipTracker,
+} from "./session-relationship-tracker.js";
 export { buildRandomTempFilePath, withTempDownloadPath } from "./temp-path.js";
 export { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
 export {
@@ -443,10 +473,13 @@ export type {
   DiagnosticSessionStateEvent,
   DiagnosticSessionStuckEvent,
   DiagnosticUsageEvent,
+  DiagnosticUsageRecordEvent,
   DiagnosticWebhookErrorEvent,
   DiagnosticWebhookProcessedEvent,
   DiagnosticWebhookReceivedEvent,
 } from "../infra/diagnostic-events.js";
+export type { AgentCallContext } from "../agents/call-context.js";
+export { getAgentCallContext, runWithAgentCallContext } from "../agents/call-context.js";
 export { detectMime, extensionForMime, getFileExtension } from "../media/mime.js";
 export { extractOriginalFilename } from "../media/store.js";
 

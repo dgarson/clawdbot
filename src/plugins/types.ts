@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { Command } from "commander";
 import type { AuthProfileCredential, OAuthCredential } from "../agents/auth-profiles/types.js";
+import type { SubagentRunRecord } from "../agents/subagent-registry.types.js";
 import type { AnyAgentTool } from "../agents/tools/common.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import type { ChannelDock } from "../channels/dock.js";
@@ -281,6 +282,20 @@ export type OpenClawPluginApi = {
     handler: PluginHookHandlerMap[K],
     opts?: { priority?: number },
   ) => void;
+  /**
+   * Record a usage entry for cost tracking and telemetry.
+   * Emits a `usage.record` diagnostic event and forwards to any registered
+   * cost ledger. Fire-and-forget; never blocks the caller.
+   * Optional for backwards compatibility with existing api implementations.
+   */
+  recordUsage?: (entry: PluginUsageRecord) => void;
+  /**
+   * Emit a synthetic `llm_api_call` hook event from within a plugin.
+   * Useful for extensions that make their own LLM calls and want them
+   * reflected in telemetry.
+   * Optional for backwards compatibility with existing api implementations.
+   */
+  emitLlmApiCall?: (entry: Omit<PluginHookLlmApiCallEvent, "callId"> & { callId?: string }) => void;
 };
 
 export type PluginOrigin = "bundled" | "global" | "workspace" | "config";
@@ -302,11 +317,13 @@ export type PluginHookName =
   | "before_agent_start"
   | "llm_input"
   | "llm_output"
+  | "llm_api_call"
   | "agent_end"
   | "before_compaction"
   | "after_compaction"
   | "before_reset"
   | "message_received"
+  | "before_message_process"
   | "message_sending"
   | "message_sent"
   | "before_tool_call"
@@ -319,6 +336,9 @@ export type PluginHookName =
   | "subagent_delivery_target"
   | "subagent_spawned"
   | "subagent_ended"
+  | "subagent_stopping"
+  | "run_start"
+  | "permission_request"
   | "gateway_start"
   | "gateway_stop";
 
@@ -329,6 +349,21 @@ export type PluginHookAgentContext = {
   sessionId?: string;
   workspaceDir?: string;
   messageProvider?: string;
+};
+
+// run_start hook
+export type PluginHookRunStartEvent = {
+  runId: string;
+  sessionKey: string;
+  sessionId: string;
+  agentId: string;
+  model: string;
+  provider: string;
+  isHeartbeat: boolean;
+  isFollowup: boolean;
+  messageCount: number;
+  compactionCount: number;
+  originChannel?: string;
 };
 
 // before_model_resolve hook
@@ -393,6 +428,9 @@ export type PluginHookLlmOutputEvent = {
     cacheWrite?: number;
     total?: number;
   };
+  durationMs?: number;
+  stopReason?: string;
+  messageCount?: number;
 };
 
 // agent_end hook
@@ -401,6 +439,21 @@ export type PluginHookAgentEndEvent = {
   success: boolean;
   error?: string;
   durationMs?: number;
+  runId?: string;
+  provider?: string;
+  model?: string;
+  usage?: {
+    input?: number;
+    output?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+    total?: number;
+  };
+  toolCallCount?: number;
+  toolNames?: string[];
+  compactionCount?: number;
+  stopReason?: string;
+  lastAssistantMessage?: string;
 };
 
 // Compaction hooks
@@ -449,6 +502,39 @@ export type PluginHookMessageReceivedEvent = {
   metadata?: Record<string, unknown>;
 };
 
+// before_message_process hook — sequential, blocking hook that fires after message_received
+// and before the message is enqueued for agent processing. Allows plugins to inspect,
+// modify, or block inbound messages (e.g. prompt injection detection, rate limiting).
+export type PluginHookBeforeMessageProcessEvent = {
+  from: string;
+  content: string;
+  channel: string;
+  timestamp?: number;
+  messageId?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type PluginHookBeforeMessageProcessResult = {
+  /** If true, drop the message without processing */
+  block?: boolean;
+  blockReason?: string;
+  /** Override the content before agent processing */
+  content?: string;
+  /** Additional metadata to attach */
+  metadata?: Record<string, unknown>;
+};
+
+// permission_request hook — fire-and-forget hook for audit/notification when a tool
+// requests elevated permissions (e.g. exec approval required).
+export type PluginHookPermissionRequestEvent = {
+  toolName: string;
+  toolCallId?: string;
+  permission: string;
+  granted: boolean;
+  reason?: string;
+  params?: Record<string, unknown>;
+};
+
 // message_sending hook
 export type PluginHookMessageSendingEvent = {
   to: string;
@@ -473,12 +559,14 @@ export type PluginHookMessageSentEvent = {
 export type PluginHookToolContext = {
   agentId?: string;
   sessionKey?: string;
+  runId?: string;
   toolName: string;
 };
 
 // before_tool_call hook
 export type PluginHookBeforeToolCallEvent = {
   toolName: string;
+  toolCallId?: string;
   params: Record<string, unknown>;
 };
 
@@ -491,6 +579,8 @@ export type PluginHookBeforeToolCallResult = {
 // after_tool_call hook
 export type PluginHookAfterToolCallEvent = {
   toolName: string;
+  toolCallId?: string;
+  isError?: boolean;
   params: Record<string, unknown>;
   result?: unknown;
   error?: string;
@@ -637,6 +727,101 @@ export type PluginHookSubagentEndedEvent = {
   endedAt?: number;
   outcome?: "ok" | "error" | "timeout" | "killed" | "reset" | "deleted";
   error?: string;
+  /** Full subagent run record (structuredClone) for future-proofing */
+  entry?: SubagentRunRecord;
+  /** Wall-clock duration (endedAt - startedAt) */
+  durationMs?: number;
+};
+
+// subagent_stopping hook
+export type PluginHookSubagentStoppingEvent = {
+  runId: string;
+  childSessionKey: string;
+  requesterSessionKey: string;
+  agentId: string;
+  task?: string;
+  label?: string;
+  outcome: "ok" | "error" | "timeout";
+  reason: string;
+  error?: string;
+  lastAssistantMessage?: string;
+  usage?: {
+    input?: number;
+    output?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+    total?: number;
+  };
+  durationMs?: number;
+  toolsUsed?: string[];
+  steerCount: number;
+  maxSteers: number;
+};
+
+export type PluginHookSubagentStoppingResult = {
+  allow?: boolean;
+  prompt?: string;
+  reason?: string;
+  extendMaxSteers?: number;
+};
+
+export type PluginHookSubagentStoppingContext = {
+  agentId: string;
+  runId: string;
+  childSessionKey: string;
+  requesterSessionKey: string;
+};
+
+// llm_api_call hook — fired for every completed LLM API call across all subsystems
+export type PluginHookLlmApiCallEvent = {
+  callId: string;
+  source: "agent" | "compaction" | "tool" | "extension";
+  purpose?: string;
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  toolCallId?: string;
+  parentSessionKey?: string;
+  parentRunId?: string;
+  agentId?: string;
+  provider?: string;
+  model?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  totalTokens?: number;
+  costUsd?: number;
+  durationMs?: number;
+};
+
+// Usage record submitted via api.recordUsage()
+export type PluginUsageRecord = {
+  kind: string;
+  sessionKey?: string;
+  sessionId?: string;
+  runId?: string;
+  toolCallId?: string;
+  agentId?: string;
+  provider?: string;
+  model?: string;
+  llm?: {
+    apiCallCount: number;
+    totalDurationMs?: number;
+    avgDurationMs?: number;
+    inputTokens?: number;
+    outputTokens?: number;
+    cacheReadTokens?: number;
+    cacheWriteTokens?: number;
+    costUsd?: number;
+  };
+  billing?: {
+    units?: number;
+    unitType?: string;
+    costUsd?: number;
+    currency?: string;
+  };
+  metadata?: Record<string, unknown>;
 };
 
 // Gateway context
@@ -656,6 +841,7 @@ export type PluginHookGatewayStopEvent = {
 
 // Hook handler types mapped by hook name
 export type PluginHookHandlerMap = {
+  run_start: (event: PluginHookRunStartEvent, ctx: PluginHookAgentContext) => Promise<void> | void;
   before_model_resolve: (
     event: PluginHookBeforeModelResolveEvent,
     ctx: PluginHookAgentContext,
@@ -676,6 +862,10 @@ export type PluginHookHandlerMap = {
     event: PluginHookLlmOutputEvent,
     ctx: PluginHookAgentContext,
   ) => Promise<void> | void;
+  llm_api_call: (
+    event: PluginHookLlmApiCallEvent,
+    ctx: PluginHookAgentContext,
+  ) => Promise<void> | void;
   agent_end: (event: PluginHookAgentEndEvent, ctx: PluginHookAgentContext) => Promise<void> | void;
   before_compaction: (
     event: PluginHookBeforeCompactionEvent,
@@ -692,6 +882,17 @@ export type PluginHookHandlerMap = {
   message_received: (
     event: PluginHookMessageReceivedEvent,
     ctx: PluginHookMessageContext,
+  ) => Promise<void> | void;
+  before_message_process: (
+    event: PluginHookBeforeMessageProcessEvent,
+    ctx: PluginHookMessageContext,
+  ) =>
+    | Promise<PluginHookBeforeMessageProcessResult | void>
+    | PluginHookBeforeMessageProcessResult
+    | void;
+  permission_request: (
+    event: PluginHookPermissionRequestEvent,
+    ctx: PluginHookToolContext,
   ) => Promise<void> | void;
   message_sending: (
     event: PluginHookMessageSendingEvent,
@@ -744,6 +945,10 @@ export type PluginHookHandlerMap = {
     event: PluginHookSubagentEndedEvent,
     ctx: PluginHookSubagentContext,
   ) => Promise<void> | void;
+  subagent_stopping: (
+    event: PluginHookSubagentStoppingEvent,
+    ctx: PluginHookSubagentStoppingContext,
+  ) => Promise<PluginHookSubagentStoppingResult | void> | PluginHookSubagentStoppingResult | void;
   gateway_start: (
     event: PluginHookGatewayStartEvent,
     ctx: PluginHookGatewayContext,

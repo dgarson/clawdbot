@@ -430,6 +430,8 @@ describe("subagent registry steer restarts", () => {
         endedAt: expect.any(Number),
         outcome: "killed",
         error: "manual kill",
+        entry: expect.objectContaining({ runId: "run-killed", childSessionKey }),
+        durationMs: expect.any(Number),
       },
       {
         runId: "run-killed",

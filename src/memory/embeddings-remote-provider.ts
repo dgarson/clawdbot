@@ -1,3 +1,5 @@
+import { getAgentCallContext } from "../agents/call-context.js";
+import { emitDiagnosticEvent } from "../infra/diagnostic-events.js";
 import type { SsrFPolicy } from "../infra/net/ssrf.js";
 import {
   resolveRemoteEmbeddingBearerClient,
@@ -26,13 +28,30 @@ export function createRemoteEmbeddingProvider(params: {
     if (input.length === 0) {
       return [];
     }
-    return await fetchRemoteEmbeddingVectors({
+    const result = await fetchRemoteEmbeddingVectors({
       url,
       headers: client.headers,
       ssrfPolicy: client.ssrfPolicy,
       body: { model: client.model, input },
       errorPrefix: params.errorPrefix,
     });
+
+    // Emit usage record for this direct embedding API call
+    const callCtx = getAgentCallContext();
+    emitDiagnosticEvent({
+      type: "usage.record",
+      kind: "embedding",
+      sessionKey: callCtx?.sessionKey,
+      sessionId: callCtx?.sessionId,
+      runId: callCtx?.runId,
+      toolCallId: callCtx?.toolCallId,
+      agentId: callCtx?.agentId,
+      provider: params.id,
+      model: client.model,
+      billing: { units: input.length, unitType: "texts" },
+    });
+
+    return result;
   };
 
   return {

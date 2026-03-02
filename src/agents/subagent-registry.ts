@@ -7,6 +7,7 @@ import {
 } from "../config/sessions.js";
 import { callGateway } from "../gateway/call.js";
 import { onAgentEvent } from "../infra/agent-events.js";
+import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { defaultRuntime } from "../runtime.js";
 import { type DeliveryContext, normalizeDeliveryContext } from "../utils/delivery-context.js";
 import { resetAnnounceQueuesForTests } from "./subagent-announce-queue.js";
@@ -16,6 +17,8 @@ import {
   SUBAGENT_ENDED_REASON_COMPLETE,
   SUBAGENT_ENDED_REASON_ERROR,
   SUBAGENT_ENDED_REASON_KILLED,
+  SUBAGENT_ENDED_REASON_SESSION_DELETE,
+  SUBAGENT_ENDED_REASON_SESSION_RESET,
   type SubagentLifecycleEndedReason,
 } from "./subagent-lifecycle-events.js";
 import {
@@ -348,6 +351,64 @@ async function completeSubagentRun(params: {
   }
 
   const suppressedForSteerRestart = suppressAnnounceForSteerRestart(entry);
+
+  // subagent_stopping hook — allows plugins to redirect subagent before announce
+  const DEFAULT_MAX_STEERS = 3;
+  const currentSteerCount = entry.steerCount ?? 0;
+
+  if (
+    !suppressedForSteerRestart &&
+    params.reason !== SUBAGENT_ENDED_REASON_KILLED &&
+    params.reason !== SUBAGENT_ENDED_REASON_SESSION_RESET &&
+    params.reason !== SUBAGENT_ENDED_REASON_SESSION_DELETE &&
+    currentSteerCount < DEFAULT_MAX_STEERS
+  ) {
+    const hookRunner = getGlobalHookRunner();
+    if (hookRunner?.hasHooks("subagent_stopping")) {
+      try {
+        const stoppingResult = await hookRunner.runSubagentStopping(
+          {
+            runId: entry.runId,
+            childSessionKey: entry.childSessionKey,
+            requesterSessionKey: entry.requesterSessionKey,
+            agentId: entry.childSessionKey.split(":")[1] ?? "",
+            task: entry.task,
+            label: entry.label,
+            outcome: (params.outcome?.status ?? "ok") as "ok" | "error" | "timeout",
+            reason: params.reason ?? "",
+            error: params.outcome?.status === "error" ? params.outcome.error : undefined,
+            durationMs:
+              entry.endedAt && entry.startedAt ? entry.endedAt - entry.startedAt : undefined,
+            steerCount: currentSteerCount,
+            maxSteers: DEFAULT_MAX_STEERS,
+          },
+          {
+            agentId: entry.childSessionKey.split(":")[1] ?? "",
+            runId: entry.runId,
+            childSessionKey: entry.childSessionKey,
+            requesterSessionKey: entry.requesterSessionKey,
+          },
+        );
+
+        if (
+          stoppingResult?.allow === false &&
+          typeof stoppingResult.prompt === "string" &&
+          stoppingResult.prompt.trim()
+        ) {
+          // Redirect: use existing steer-restart mechanism
+          markSubagentRunForSteerRestart(entry.runId);
+          persistSubagentRuns();
+          return; // skip announce + subagent_ended
+        }
+      } catch (err) {
+        // Fail-open: log error and continue with normal completion
+        defaultRuntime.log(
+          `[warn] subagent_stopping hook failed: runId=${entry.runId} error=${String(err)}`,
+        );
+      }
+    }
+  }
+
   const shouldEmitEndedHook =
     !suppressedForSteerRestart &&
     shouldEmitEndedHookForRun({
@@ -880,6 +941,7 @@ export function replaceSubagentRunAfterSteer(params: {
     spawnMode,
     archiveAtMs,
     runTimeoutSeconds,
+    steerCount: (source.steerCount ?? 0) + 1,
   };
 
   subagentRuns.set(nextRunId, next);

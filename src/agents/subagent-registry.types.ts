@@ -32,4 +32,6 @@ export type SubagentRunRecord = {
   endedReason?: SubagentLifecycleEndedReason;
   /** Set after the subagent_ended hook has been emitted successfully once. */
   endedHookEmittedAt?: number;
+  /** How many times the subagent_stopping hook has redirected this run chain. */
+  steerCount?: number;
 };
