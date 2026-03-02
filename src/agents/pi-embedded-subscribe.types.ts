@@ -32,6 +32,10 @@ export type SubscribeEmbeddedPiSessionParams = {
   config?: OpenClawConfig;
   sessionKey?: string;
   agentId?: string;
+  /** Provider name (e.g. "anthropic") — used to resolve per-call cost estimates for telemetry. */
+  provider?: string;
+  /** Model ID (e.g. "claude-sonnet-4-5") — used to resolve per-call cost estimates for telemetry. */
+  model?: string;
 };
 
 export type { BlockReplyChunking } from "./pi-embedded-block-chunker.js";

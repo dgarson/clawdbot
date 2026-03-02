@@ -74,6 +74,17 @@ function parseNum(v: unknown, fallback: number): number {
   return fallback;
 }
 
+function parseCsvList(v: string | null | undefined): string[] | undefined {
+  if (!v) {
+    return undefined;
+  }
+  const values = v
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+  return values.length > 0 ? values : undefined;
+}
+
 /** Convert epoch ms to ISO 8601 string, returning undefined for null/undefined. */
 function tsToIso(ms: number | null | undefined): string | undefined {
   if (ms == null) return undefined;
@@ -334,6 +345,107 @@ export function registerTelemetryGatewayMethods(
       until: parseTs(p.until),
       limit: parseNum(p.limit, 50),
     });
+    // Look up which of these sessions are subagents of another session
+    const parentMap = new Map<string, string>();
+    // Look up human-readable channel labels from message.inbound events
+    const channelLabelMap = new Map<string, string>();
+    const toolNamesMap = new Map<string, string[]>();
+    const modelNamesMap = new Map<string, string[]>();
+    const providerNamesMap = new Map<string, string[]>();
+    const activeDaysMap = new Map<string, string[]>();
+    if (raw.length > 0) {
+      const keys = raw.map((s) => s.sessionKey);
+      const placeholders = keys.map(() => "?").join(",");
+      type ParentRow = { child_session_key: string; parent_session_key: string };
+      const parentRows = indexer.db
+        .prepare<unknown[], ParentRow>(
+          `SELECT child_session_key, parent_session_key
+           FROM subagents
+           WHERE child_session_key IN (${placeholders})
+             AND parent_session_key IS NOT NULL`,
+        )
+        .all(...keys);
+      for (const row of parentRows) {
+        parentMap.set(row.child_session_key, row.parent_session_key);
+      }
+      type ChannelRow = { session_key: string; channel_name: string };
+      const channelRows = indexer.db
+        .prepare<unknown[], ChannelRow>(
+          `SELECT session_key, json_extract(data, '$.channelName') as channel_name
+           FROM events
+           WHERE kind = 'message.inbound'
+             AND session_key IN (${placeholders})
+             AND json_extract(data, '$.channelName') IS NOT NULL
+           GROUP BY session_key`,
+        )
+        .all(...keys);
+      for (const row of channelRows) {
+        channelLabelMap.set(row.session_key, row.channel_name);
+      }
+
+      type ToolNamesRow = { session_key: string; tool_names: string | null };
+      const toolNameRows = indexer.db
+        .prepare<unknown[], ToolNamesRow>(
+          `SELECT session_key, GROUP_CONCAT(DISTINCT tool_name) as tool_names
+           FROM tool_calls
+           WHERE session_key IN (${placeholders})
+             AND tool_name IS NOT NULL
+             AND tool_name != ''
+           GROUP BY session_key`,
+        )
+        .all(...keys);
+      for (const row of toolNameRows) {
+        const parsed = parseCsvList(row.tool_names);
+        if (parsed) {
+          toolNamesMap.set(row.session_key, parsed);
+        }
+      }
+
+      type ModelProviderRow = {
+        session_key: string;
+        model_names: string | null;
+        provider_names: string | null;
+      };
+      const modelProviderRows = indexer.db
+        .prepare<unknown[], ModelProviderRow>(
+          `SELECT
+             session_key,
+             GROUP_CONCAT(DISTINCT model) as model_names,
+             GROUP_CONCAT(DISTINCT provider) as provider_names
+           FROM model_calls
+           WHERE session_key IN (${placeholders})
+           GROUP BY session_key`,
+        )
+        .all(...keys);
+      for (const row of modelProviderRows) {
+        const modelNames = parseCsvList(row.model_names);
+        const providerNames = parseCsvList(row.provider_names);
+        if (modelNames) {
+          modelNamesMap.set(row.session_key, modelNames);
+        }
+        if (providerNames) {
+          providerNamesMap.set(row.session_key, providerNames);
+        }
+      }
+
+      type ActiveDaysRow = { session_key: string; active_days: string | null };
+      const activeDayRows = indexer.db
+        .prepare<unknown[], ActiveDaysRow>(
+          `SELECT
+             session_key,
+             GROUP_CONCAT(DISTINCT DATE(started_at / 1000, 'unixepoch')) as active_days
+           FROM runs
+           WHERE session_key IN (${placeholders})
+           GROUP BY session_key`,
+        )
+        .all(...keys);
+      for (const row of activeDayRows) {
+        const activeDays = parseCsvList(row.active_days);
+        if (activeDays) {
+          activeDaysMap.set(row.session_key, activeDays);
+        }
+      }
+    }
     const sessions = raw.map((s) => ({
       key: s.sessionKey,
       agentId: s.agentId ?? undefined,
@@ -342,8 +454,15 @@ export function registerTelemetryGatewayMethods(
       totalTokens: s.totalTokens,
       totalCost: s.totalCostUsd,
       errorCount: s.errorCount,
+      toolCallCount: s.toolCallCount,
       startedAt: tsToIso(s.firstRunAt),
       endedAt: null as string | null,
+      parentSessionKey: parentMap.get(s.sessionKey),
+      channelLabel: channelLabelMap.get(s.sessionKey),
+      toolNames: toolNamesMap.get(s.sessionKey),
+      modelNames: modelNamesMap.get(s.sessionKey),
+      providerNames: providerNamesMap.get(s.sessionKey),
+      activeDays: activeDaysMap.get(s.sessionKey),
     }));
     respond(true, { sessions });
   });
@@ -723,6 +842,7 @@ export function registerTelemetryGatewayMethods(
       id: e.id,
       timestamp: tsToIso(e.ts) ?? new Date(0).toISOString(),
       kind: e.kind,
+      runId: e.runId ?? undefined,
       data: e.data as Record<string, unknown> | undefined,
     }));
     respond(true, { sessionKey, events });

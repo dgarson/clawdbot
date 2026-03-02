@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS model_calls (
   cache_write_tokens INTEGER,
   total_tokens INTEGER,
   cost_usd REAL,
+  total_cost_usd REAL,
   duration_ms INTEGER,
   ts INTEGER
 );
@@ -134,6 +135,44 @@ function safeNum(v: unknown): number {
 
 function safeStr(v: unknown): string | null {
   return typeof v === "string" ? v : null;
+}
+
+function tableHasColumn(db: Db, table: string, column: string): boolean {
+  const rows = db.pragma(`table_info(${table})`) as Array<{ name: string }>;
+  return rows.some((r) => r.name === column);
+}
+
+// ---------------------------------------------------------------------------
+// Schema migrations — append-only, keyed by PRAGMA user_version
+// ---------------------------------------------------------------------------
+
+type Migration = (db: Db) => void;
+
+const MIGRATIONS: Migration[] = [
+  // v0 → v1: add total_cost_usd to model_calls
+  (db) => {
+    if (!tableHasColumn(db, "model_calls", "total_cost_usd")) {
+      db.exec("ALTER TABLE model_calls ADD COLUMN total_cost_usd REAL");
+    }
+  },
+];
+
+/**
+ * Run pending schema migrations inside a single transaction.
+ * Uses PRAGMA user_version to track the current schema version.
+ */
+function runMigrations(db: Db): void {
+  const current = (db.pragma("user_version", { simple: true }) as number) ?? 0;
+  const target = MIGRATIONS.length;
+  if (current >= target) return;
+
+  const migrate = db.transaction(() => {
+    for (let i = current; i < target; i++) {
+      MIGRATIONS[i](db);
+    }
+    db.pragma(`user_version = ${target}`);
+  });
+  migrate();
 }
 
 /**
@@ -339,66 +378,62 @@ export function indexEvent(db: Db, event: TelemetryEvent): void {
       break;
     }
 
-    case "llm.call":
-    case "usage.snapshot": {
-      // Token counts may be at top level (d.inputTokens) or nested under d.delta
-      // or d.cumulative (from model.call diagnostic events), or under d.usage
-      // (from usage.snapshot). Check all three locations in priority order.
+    case "llm.call": {
+      // Per-API-call snapshot emitted by pi-embedded-subscribe's model.call diagnostic event.
+      // Token counts come from d.delta (per-call) with d.cumulative as last-resort fallback.
+      //
+      // IMPORTANT: always prefer delta over cumulative. Cumulative holds running totals that
+      // grow each call; storing and then summing them causes massive overcounting in aggregates.
       const delta =
         d.delta && typeof d.delta === "object" ? (d.delta as Record<string, unknown>) : {};
       const cumulative =
         d.cumulative && typeof d.cumulative === "object"
           ? (d.cumulative as Record<string, unknown>)
           : {};
-      const usageNested =
-        d.usage && typeof d.usage === "object" ? (d.usage as Record<string, unknown>) : {};
-      // Prefer cumulative > delta > top-level > usage-nested for token fields.
+      // Prefer delta > top-level > cumulative (last resort fallback only).
       const inputTokens = safeNum(
-        cumulative.inputTokens ??
-          cumulative.input ??
-          delta.inputTokens ??
+        delta.inputTokens ??
           delta.input ??
           d.inputTokens ??
-          usageNested.input,
+          cumulative.inputTokens ??
+          cumulative.input,
       );
       const outputTokens = safeNum(
-        cumulative.outputTokens ??
-          cumulative.output ??
-          delta.outputTokens ??
+        delta.outputTokens ??
           delta.output ??
           d.outputTokens ??
-          usageNested.output,
+          cumulative.outputTokens ??
+          cumulative.output,
       );
       const cacheReadTokens = safeNum(
-        cumulative.cacheReadTokens ??
-          cumulative.cacheRead ??
-          delta.cacheReadTokens ??
+        delta.cacheReadTokens ??
           delta.cacheRead ??
           d.cacheReadTokens ??
-          usageNested.cacheRead,
+          cumulative.cacheReadTokens ??
+          cumulative.cacheRead,
       );
       const cacheWriteTokens = safeNum(
-        cumulative.cacheWriteTokens ??
-          cumulative.cacheWrite ??
-          delta.cacheWriteTokens ??
+        delta.cacheWriteTokens ??
           delta.cacheWrite ??
           d.cacheWriteTokens ??
-          usageNested.cacheWrite,
+          cumulative.cacheWriteTokens ??
+          cumulative.cacheWrite,
       );
+      // total_tokens = input + output + cacheRead + cacheWrite (all tokens the model processed).
+      // delta.total is emitted by the subscriber; fallback derives it here if missing.
       const totalTokens = safeNum(
-        cumulative.totalTokens ??
-          cumulative.total ??
-          delta.totalTokens ??
+        delta.totalTokens ??
           delta.total ??
           d.totalTokens ??
-          usageNested.total,
+          cumulative.totalTokens ??
+          cumulative.total,
       );
       db.prepare(
         `INSERT OR IGNORE INTO model_calls
            (id, run_id, session_key, call_index, provider, model,
             input_tokens, output_tokens, cache_read_tokens, cache_write_tokens,
-            total_tokens, cost_usd, duration_ms, ts)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            total_tokens, cost_usd, total_cost_usd, duration_ms, ts)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
       ).run(
         event.id,
         event.runId ?? null,
@@ -411,6 +446,34 @@ export function indexEvent(db: Db, event: TelemetryEvent): void {
         cacheReadTokens,
         cacheWriteTokens,
         totalTokens,
+        typeof d.costUsd === "number" ? d.costUsd : null,
+        safeNum(d.durationMs),
+        event.ts,
+      );
+      break;
+    }
+
+    case "usage.snapshot": {
+      // Run-level summary emitted once per run from agent-runner's model.usage diagnostic event.
+      // Token and per-call cost_usd are already captured via llm.call rows; storing them again
+      // would double-count in aggregates. We NULL out tokens and cost_usd so only incremental
+      // llm.call rows drive SUM(cost_usd). The run-level total is preserved in total_cost_usd
+      // as a cross-check / fallback for runs without per-call events.
+      const usageNested =
+        d.usage && typeof d.usage === "object" ? (d.usage as Record<string, unknown>) : {};
+      db.prepare(
+        `INSERT OR IGNORE INTO model_calls
+           (id, run_id, session_key, call_index, provider, model,
+            input_tokens, output_tokens, cache_read_tokens, cache_write_tokens,
+            total_tokens, cost_usd, total_cost_usd, duration_ms, ts)
+         VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL, NULL, ?, ?, ?)`,
+      ).run(
+        event.id,
+        event.runId ?? null,
+        event.sessionKey ?? null,
+        null, // no callIndex for run-level summary
+        safeStr(d.provider ?? usageNested.provider),
+        safeStr(d.model ?? usageNested.model),
         typeof d.costUsd === "number" ? d.costUsd : null,
         safeNum(d.durationMs),
         event.ts,
@@ -522,6 +585,7 @@ export async function createIndexer(dbPath: string, jsonlPath: string): Promise<
   db.pragma("journal_mode = WAL");
   // Execute the schema DDL (all CREATE TABLE/INDEX IF NOT EXISTS).
   db.exec(SCHEMA_SQL);
+  runMigrations(db);
 
   return {
     db,
@@ -538,6 +602,7 @@ export async function createIndexer(dbPath: string, jsonlPath: string): Promise<
 export function createIndexerFromDb(db: Db, jsonlPath: string): Indexer {
   db.pragma("journal_mode = WAL");
   db.exec(SCHEMA_SQL);
+  runMigrations(db);
   return {
     db,
     indexEvent: (event) => indexEvent(db, event),

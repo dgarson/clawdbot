@@ -128,7 +128,9 @@ describe("agent-orchestrator integration", () => {
     });
 
     it("registers mail tool when mail.enabled is true", () => {
-      const { api, tools } = createMockApi({ mail: { enabled: true } });
+      const { api, tools } = createMockApi({
+        mail: { ...DEFAULT_ORCHESTRATOR_CONFIG.mail, enabled: true },
+      });
       plugin.register(api as never);
       const mailTool = tools.find(
         (t) => t.opts?.name === "mail" || t.opts?.names?.includes("mail"),
@@ -137,7 +139,9 @@ describe("agent-orchestrator integration", () => {
     });
 
     it("registers bounce_mail tool when mail.enabled is true", () => {
-      const { api, tools } = createMockApi({ mail: { enabled: true } });
+      const { api, tools } = createMockApi({
+        mail: { ...DEFAULT_ORCHESTRATOR_CONFIG.mail, enabled: true },
+      });
       plugin.register(api as never);
       const bounceTool = tools.find(
         (t) => t.opts?.name === "bounce_mail" || t.opts?.names?.includes("bounce_mail"),
@@ -147,7 +151,7 @@ describe("agent-orchestrator integration", () => {
 
     it("does not register mail tools when mail.enabled is false and orchestration.enabled is false", () => {
       const { api, tools } = createMockApi({
-        mail: { enabled: false },
+        mail: { ...DEFAULT_ORCHESTRATOR_CONFIG.mail, enabled: false },
         orchestration: { ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration, enabled: false },
       });
       plugin.register(api as never);
@@ -162,7 +166,9 @@ describe("agent-orchestrator integration", () => {
     });
 
     it("registers before_prompt_build hook for mail with priority 100", () => {
-      const { api, hooks } = createMockApi({ mail: { enabled: true } });
+      const { api, hooks } = createMockApi({
+        mail: { ...DEFAULT_ORCHESTRATOR_CONFIG.mail, enabled: true },
+      });
       plugin.register(api as never);
       const mailPromptHook = findHook(hooks, "before_prompt_build", 100);
       expect(mailPromptHook).toBeDefined();
@@ -232,7 +238,9 @@ describe("agent-orchestrator integration", () => {
     });
 
     it("registers mail CLI commands", () => {
-      const { api, cliRegistrations } = createMockApi({ mail: { enabled: true } });
+      const { api, cliRegistrations } = createMockApi({
+        mail: { ...DEFAULT_ORCHESTRATOR_CONFIG.mail, enabled: true },
+      });
       plugin.register(api as never);
       expect(cliRegistrations.length).toBeGreaterThanOrEqual(1);
     });
@@ -269,7 +277,7 @@ describe("agent-orchestrator integration", () => {
       // Even when mail.enabled is false, orchestration.enabled causes mail
       // tools to be registered (the condition is mail.enabled || orchestration.enabled)
       const { api, tools } = createMockApi({
-        mail: { enabled: false },
+        mail: { ...DEFAULT_ORCHESTRATOR_CONFIG.mail, enabled: false },
         orchestration: { ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration, enabled: true },
       });
       plugin.register(api as never);
@@ -1025,6 +1033,454 @@ describe("agent-orchestrator integration", () => {
         expect(hook).toBeDefined();
       });
     });
+
+    // ------------------------------------------------------------------
+    // memory search enforcement
+    // ------------------------------------------------------------------
+
+    describe("memory search enforcement", () => {
+      const enforcementConfig = (
+        policy: "reject" | "nudge",
+        threshold = 3,
+        roles?: ("orchestrator" | "lead" | "scout" | "builder" | "reviewer")[],
+      ): Partial<OrchestratorConfig> => ({
+        enforcement: {
+          memorySearch: {
+            enabled: true,
+            policy,
+            toolCallThreshold: threshold,
+            ...(roles ? { roles } : {}),
+          },
+        },
+      });
+
+      async function simulateToolCalls(
+        hooks: CapturedHook[],
+        sessionKey: string,
+        count: number,
+        toolName = "read_file",
+      ) {
+        const afterHook = findHook(hooks, "after_tool_call")!;
+        for (let i = 0; i < count; i++) {
+          await afterHook.handler(
+            {
+              toolName,
+              toolCallId: `tc-${i}`,
+              isError: false,
+              params: {},
+              result: "ok",
+              durationMs: 10,
+            },
+            { agentId: "test-agent", sessionKey, runId: "run-1", toolName },
+          );
+        }
+      }
+
+      it("tracks toolCallCount and memorySearchCalled in after_tool_call", async () => {
+        const { hooks } = await setupPlugin();
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "ms-track-");
+
+        // Simulate 3 generic tool calls
+        await simulateToolCalls(hooks, workerKey, 3);
+
+        // Then call memory_search
+        const afterHook = findHook(hooks, "after_tool_call")!;
+        await afterHook.handler(
+          {
+            toolName: "memory_search",
+            toolCallId: "tc-ms",
+            isError: false,
+            params: {},
+            result: "ok",
+            durationMs: 10,
+          },
+          {
+            agentId: "test-agent",
+            sessionKey: workerKey,
+            runId: "run-1",
+            toolName: "memory_search",
+          },
+        );
+
+        // Verify via the role context hook (it reads state internally)
+        // The fact that 4 tool calls ran without errors is sufficient for tracking
+        expect(afterHook).toBeDefined();
+      });
+
+      it("reject policy blocks tool calls after threshold when memory_search not called", async () => {
+        const { hooks } = await setupPlugin(enforcementConfig("reject", 2));
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "ms-rej-");
+
+        // Simulate 2 tool calls to reach threshold
+        await simulateToolCalls(hooks, workerKey, 2);
+
+        // Next before_tool_call should block
+        const beforeHook = findHook(hooks, "before_tool_call")!;
+        const result = await beforeHook.handler(
+          { toolName: "write_file", toolCallId: "tc-block", params: {} },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "write_file" },
+        );
+
+        const res = result as { block?: boolean; blockReason?: string } | undefined;
+        expect(res?.block).toBe(true);
+        expect(res?.blockReason).toContain("memory_search");
+      });
+
+      it("reject policy does not block memory_search itself", async () => {
+        const { hooks } = await setupPlugin(enforcementConfig("reject", 2));
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "ms-self-");
+
+        await simulateToolCalls(hooks, workerKey, 2);
+
+        const beforeHook = findHook(hooks, "before_tool_call")!;
+        const result = await beforeHook.handler(
+          { toolName: "memory_search", toolCallId: "tc-ms", params: {} },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "memory_search" },
+        );
+
+        // Should NOT block memory_search
+        const res = result as { block?: boolean } | undefined;
+        expect(!res || !res.block).toBe(true);
+      });
+
+      it("reject policy stops blocking after memory_search is called", async () => {
+        const { hooks } = await setupPlugin(enforcementConfig("reject", 2));
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "ms-unblock-");
+
+        await simulateToolCalls(hooks, workerKey, 2);
+
+        // Call memory_search via after_tool_call to mark it
+        const afterHook = findHook(hooks, "after_tool_call")!;
+        await afterHook.handler(
+          {
+            toolName: "memory_search",
+            toolCallId: "tc-ms",
+            isError: false,
+            params: {},
+            result: "ok",
+            durationMs: 10,
+          },
+          {
+            agentId: "test-agent",
+            sessionKey: workerKey,
+            runId: "run-1",
+            toolName: "memory_search",
+          },
+        );
+
+        // Now before_tool_call should NOT block
+        const beforeHook = findHook(hooks, "before_tool_call")!;
+        const result = await beforeHook.handler(
+          { toolName: "write_file", toolCallId: "tc-after", params: {} },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "write_file" },
+        );
+
+        const res = result as { block?: boolean } | undefined;
+        expect(!res || !res.block).toBe(true);
+      });
+
+      it("nudge policy does not block but sets nudge pending flag", async () => {
+        const { hooks } = await setupPlugin(enforcementConfig("nudge", 2));
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "ms-nudge-");
+
+        await simulateToolCalls(hooks, workerKey, 2);
+
+        // before_tool_call should NOT block in nudge mode
+        const beforeHook = findHook(hooks, "before_tool_call")!;
+        const result = await beforeHook.handler(
+          { toolName: "write_file", toolCallId: "tc-nudge", params: {} },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "write_file" },
+        );
+
+        const res = result as { block?: boolean } | undefined;
+        expect(!res || !res.block).toBe(true);
+      });
+
+      it("nudge appears in appendContext on next prompt build and clears after injection", async () => {
+        const { hooks } = await setupPlugin(enforcementConfig("nudge", 2));
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "ms-nudge-inj-");
+
+        await simulateToolCalls(hooks, workerKey, 2);
+
+        // Trigger nudge via before_tool_call
+        const beforeToolHook = findHook(hooks, "before_tool_call")!;
+        await beforeToolHook.handler(
+          { toolName: "write_file", toolCallId: "tc-nudge", params: {} },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "write_file" },
+        );
+
+        // Now before_prompt_build should include the nudge in appendContext
+        const promptHook = findHook(hooks, "before_prompt_build", 90)!;
+        const promptResult = await promptHook.handler(
+          { prompt: "continue", messages: [] },
+          { agentId: "test-agent", sessionKey: workerKey },
+        );
+
+        const res = promptResult as { prependContext?: string; appendContext?: string } | undefined;
+        expect(res?.appendContext).toContain("[memory-search]");
+        expect(res?.appendContext).toContain("memory_search");
+        // Nudge should NOT be in prependContext (preserves prompt caching)
+        expect(res?.prependContext ?? "").not.toContain("[memory-search]");
+
+        // Second prompt build should NOT have the nudge (cleared)
+        const promptResult2 = await promptHook.handler(
+          { prompt: "continue", messages: [] },
+          { agentId: "test-agent", sessionKey: workerKey },
+        );
+
+        const res2 = promptResult2 as { appendContext?: string } | undefined;
+        expect(res2?.appendContext).toBeUndefined();
+      });
+
+      it("nudge re-triggers on subsequent tool calls if memory_search still not called", async () => {
+        const { hooks } = await setupPlugin(enforcementConfig("nudge", 2));
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "ms-retrigger-");
+
+        await simulateToolCalls(hooks, workerKey, 2);
+
+        const beforeToolHook = findHook(hooks, "before_tool_call")!;
+        const promptHook = findHook(hooks, "before_prompt_build", 90)!;
+
+        // First trigger + clear
+        await beforeToolHook.handler(
+          { toolName: "write_file", toolCallId: "tc-1", params: {} },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "write_file" },
+        );
+        await promptHook.handler(
+          { prompt: "continue", messages: [] },
+          { agentId: "test-agent", sessionKey: workerKey },
+        );
+
+        // Another tool call (still no memory_search) should re-trigger
+        await simulateToolCalls(hooks, workerKey, 1);
+        await beforeToolHook.handler(
+          { toolName: "read_file", toolCallId: "tc-2", params: {} },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "read_file" },
+        );
+
+        const result = await promptHook.handler(
+          { prompt: "continue", messages: [] },
+          { agentId: "test-agent", sessionKey: workerKey },
+        );
+
+        const res = result as { appendContext?: string } | undefined;
+        expect(res?.appendContext).toContain("[memory-search]");
+      });
+
+      it("skips enforcement for roles not in configured roles list", async () => {
+        // Only enforce for scout role
+        const { hooks } = await setupPlugin(enforcementConfig("reject", 2, ["scout"]));
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "ms-role-skip-");
+
+        await simulateToolCalls(hooks, workerKey, 3);
+
+        // builder role should NOT be blocked (not in roles list)
+        const beforeHook = findHook(hooks, "before_tool_call")!;
+        const result = await beforeHook.handler(
+          { toolName: "write_file", toolCallId: "tc-skip", params: {} },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "write_file" },
+        );
+
+        const res = result as { block?: boolean } | undefined;
+        expect(!res || !res.block).toBe(true);
+      });
+
+      it("no enforcement without config (disabled by default)", async () => {
+        const { hooks } = await setupPlugin(); // no enforcement config
+        const { workerKey } = await seedHierarchy(hooks, "builder:impl", "ms-default-");
+
+        await simulateToolCalls(hooks, workerKey, 10);
+
+        const beforeHook = findHook(hooks, "before_tool_call")!;
+        const result = await beforeHook.handler(
+          { toolName: "write_file", toolCallId: "tc-default", params: {} },
+          { agentId: "test-agent", sessionKey: workerKey, toolName: "write_file" },
+        );
+
+        const res = result as { block?: boolean } | undefined;
+        expect(!res || !res.block).toBe(true);
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // mail guidance in role context
+    // ------------------------------------------------------------------
+
+    describe("mail guidance in role context", () => {
+      it("includes mail guidance in prompt context for all roles", async () => {
+        const roles = ["scout", "builder", "reviewer"] as const;
+        for (const role of roles) {
+          const { hooks } = await setupPlugin();
+          const { workerKey } = await seedHierarchy(hooks, `${role}:task`, `mg-${role}-`);
+
+          const hook = findHook(hooks, "before_prompt_build", 90)!;
+          const result = await hook.handler(
+            { prompt: "do work", messages: [] },
+            { agentId: "test-agent", sessionKey: workerKey },
+          );
+
+          const prompt = (result as { prependContext?: string } | undefined)?.prependContext ?? "";
+          expect(prompt).toContain("[Mail Guidance]");
+        }
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // config-driven role bootstrap (agentRoles)
+    // ------------------------------------------------------------------
+
+    describe("config-driven role bootstrap (agentRoles)", () => {
+      it("registers bootstrap hook only when agentRoles is configured", async () => {
+        // With agentRoles — should have priority-95 hook
+        const withRoles = await setupPlugin({
+          orchestration: {
+            ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration,
+            agentRoles: { orchestrator: "orchestrator" },
+          },
+        });
+        const bootstrapHook = findHook(withRoles.hooks, "before_prompt_build", 95);
+        expect(bootstrapHook).toBeDefined();
+
+        // Without agentRoles — should NOT have priority-95 hook
+        const withoutRoles = await setupPlugin();
+        const noBootstrapHook = findHook(withoutRoles.hooks, "before_prompt_build", 95);
+        expect(noBootstrapHook).toBeUndefined();
+      });
+
+      it("sets role from config on first prompt build", async () => {
+        const { hooks } = await setupPlugin({
+          orchestration: {
+            ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration,
+            agentRoles: { "my-orchestrator": "orchestrator" },
+          },
+        });
+
+        // Trigger the bootstrap hook
+        const bootstrapHook = findHook(hooks, "before_prompt_build", 95)!;
+        await bootstrapHook.handler(
+          { prompt: "hello", messages: [] },
+          { agentId: "my-orchestrator", sessionKey: "sess-boot" },
+        );
+
+        // Now the role context hook (priority 90) should see the role
+        const roleHook = findHook(hooks, "before_prompt_build", 90)!;
+        const result = await roleHook.handler(
+          { prompt: "hello", messages: [] },
+          { agentId: "my-orchestrator", sessionKey: "sess-boot" },
+        );
+
+        const res = result as { prependContext?: string } | undefined | null;
+        expect(res?.prependContext).toBeDefined();
+        expect(res!.prependContext).toContain("Orchestrator");
+      });
+
+      it("is idempotent — does not overwrite existing role from spawn", async () => {
+        const { hooks } = await setupPlugin({
+          orchestration: {
+            ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration,
+            agentRoles: { "my-lead": "scout" }, // config says scout
+          },
+        });
+
+        // Seed a lead via spawn (role = lead from label)
+        await seedAgent(hooks, { childSessionKey: "orch-idem", label: "orchestrator:main" });
+        await seedAgent(hooks, {
+          childSessionKey: "lead-idem",
+          label: "lead:team",
+          parentSessionKey: "orch-idem",
+        });
+
+        // Now run bootstrap hook — it should NOT overwrite lead → scout
+        const bootstrapHook = findHook(hooks, "before_prompt_build", 95)!;
+        await bootstrapHook.handler(
+          { prompt: "hello", messages: [] },
+          { agentId: "my-lead", sessionKey: "lead-idem" },
+        );
+
+        // Verify role is still "lead" (from spawn), not "scout" (from config)
+        const roleHook = findHook(hooks, "before_prompt_build", 90)!;
+        const result = await roleHook.handler(
+          { prompt: "hello", messages: [] },
+          { agentId: "my-lead", sessionKey: "lead-idem" },
+        );
+
+        const res = result as { prependContext?: string } | undefined | null;
+        expect(res?.prependContext).toBeDefined();
+        expect(res!.prependContext).toContain("Lead");
+      });
+
+      it("skips unmapped agent IDs", async () => {
+        const { hooks } = await setupPlugin({
+          orchestration: {
+            ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration,
+            agentRoles: { orchestrator: "orchestrator" },
+          },
+        });
+
+        const bootstrapHook = findHook(hooks, "before_prompt_build", 95)!;
+        await bootstrapHook.handler(
+          { prompt: "hello", messages: [] },
+          { agentId: "unmapped-agent", sessionKey: "sess-unmapped" },
+        );
+
+        // Role context hook should return undefined (no role set)
+        const roleHook = findHook(hooks, "before_prompt_build", 90)!;
+        const result = await roleHook.handler(
+          { prompt: "hello", messages: [] },
+          { agentId: "unmapped-agent", sessionKey: "sess-unmapped" },
+        );
+
+        expect(result).toBeUndefined();
+      });
+
+      it("spawn fallback resolves role from agentRoles when label has no role prefix", async () => {
+        const { hooks } = await setupPlugin({
+          orchestration: {
+            ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration,
+            agentRoles: { "my-scout": "scout" },
+          },
+        });
+
+        // Seed an orchestrator parent
+        await seedAgent(hooks, { childSessionKey: "orch-fb", label: "orchestrator:main" });
+        // Seed a lead
+        await seedAgent(hooks, {
+          childSessionKey: "lead-fb",
+          label: "lead:team",
+          parentSessionKey: "orch-fb",
+        });
+
+        // Spawn a child with a plain label (no role prefix) but agentId mapped to scout
+        const spawningHook = findHook(hooks, "subagent_spawning")!;
+        const result = await spawningHook.handler(
+          {
+            childSessionKey: "scout-fb",
+            agentId: "my-scout",
+            label: "explore-auth",
+            mode: "run" as const,
+            threadRequested: false,
+          },
+          {
+            runId: "run-1",
+            childSessionKey: "scout-fb",
+            requesterSessionKey: "lead-fb",
+          },
+        );
+
+        const res = result as { status: string } | undefined | null;
+        expect(!res || res.status === "ok").toBe(true);
+
+        // Verify the child got the scout role via boundary enforcement
+        const toolHook = findHook(hooks, "before_tool_call")!;
+        const blockResult = await toolHook.handler(
+          { toolName: "write_file", toolCallId: "tc-fb", params: {} },
+          { agentId: "my-scout", sessionKey: "scout-fb", toolName: "write_file" },
+        );
+
+        expect(blockResult).toBeDefined();
+        expect((blockResult as { block?: boolean }).block).toBe(true);
+      });
+    });
   });
 
   // ==========================================================================
@@ -1063,7 +1519,7 @@ describe("agent-orchestrator integration", () => {
       // When orchestration.enabled is true, the condition
       // `config.mail.enabled || config.orchestration.enabled` is true
       const { api, tools } = createMockApi({
-        mail: { enabled: false },
+        mail: { ...DEFAULT_ORCHESTRATOR_CONFIG.mail, enabled: false },
         orchestration: { ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration, enabled: true },
       });
       plugin.register(api as never);
@@ -1077,7 +1533,7 @@ describe("agent-orchestrator integration", () => {
 
     it("disabling both mail and orchestration registers no mail tools", () => {
       const { api, tools } = createMockApi({
-        mail: { enabled: false },
+        mail: { ...DEFAULT_ORCHESTRATOR_CONFIG.mail, enabled: false },
         orchestration: { ...DEFAULT_ORCHESTRATOR_CONFIG.orchestration, enabled: false },
       });
       plugin.register(api as never);

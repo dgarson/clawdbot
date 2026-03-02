@@ -1,0 +1,88 @@
+{
+  "id": "urgency-filtering",
+  "description": "When inbox is called with filter_urgency, only messages at or above that urgency level are returned. Low-priority messages stay unread until the filter is relaxed.",
+
+  "steps": [
+    {
+      "id": "send-low",
+      "description": "Agent A sends a low-urgency message",
+      "actor": "agent-a",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-b",
+        "subject": "Newsletter",
+        "body": "Weekly digest.",
+        "urgency": "low"
+      },
+      "expect": {
+        "mailbox": { "agent": "agent-b", "unread_count": 1 }
+      }
+    },
+    {
+      "id": "send-urgent",
+      "description": "Agent A sends an urgent message",
+      "actor": "agent-a",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-b",
+        "subject": "URGENT: System alert",
+        "body": "Action required immediately.",
+        "urgency": "urgent"
+      },
+      "expect": {
+        "mailbox": { "agent": "agent-b", "unread_count": 2 }
+      }
+    },
+    {
+      "id": "inbox-high-only",
+      "description": "Agent B checks inbox with filter_urgency=high — only the urgent message should be claimed",
+      "actor": "agent-b",
+      "action": "mail.inbox",
+      "params": {
+        "filter_urgency": ["high", "urgent"]
+      },
+      "capture": {
+        "urgent_id": { "source": "mailbox", "agent": "agent-b", "path": "messages[1].id" }
+      },
+      "expect": {
+        "result_contains": "1 message",
+        "mailbox": {
+          "agent": "agent-b",
+          "unread_count": 1,
+          "processing_count": 1
+        }
+      }
+    },
+    {
+      "id": "ack-urgent",
+      "description": "Agent B acks the urgent message",
+      "actor": "agent-b",
+      "action": "mail.ack",
+      "params": {
+        "message_ids": ["${inbox-high-only.urgent_id}"]
+      },
+      "expect": {
+        "mailbox": {
+          "agent": "agent-b",
+          "unread_count": 1,
+          "read_count": 1
+        }
+      }
+    },
+    {
+      "id": "inbox-all",
+      "description": "Agent B now claims the remaining low-urgency message",
+      "actor": "agent-b",
+      "action": "mail.inbox",
+      "params": {},
+      "expect": {
+        "result_contains": "1 message",
+        "mailbox": {
+          "agent": "agent-b",
+          "unread_count": 0,
+          "processing_count": 1
+        }
+      }
+    }
+  ]
+}

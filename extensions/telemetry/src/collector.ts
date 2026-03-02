@@ -80,6 +80,18 @@ export function registerCollector(
         messageCount: event.messageCount,
         compactionCount: event.compactionCount,
         originChannel: event.originChannel,
+        ...(event.inputMessage ? { inputMessage: event.inputMessage } : {}),
+        ...(event.inputAttachments && event.inputAttachments.length > 0
+          ? {
+              inputAttachments: event.inputAttachments,
+              inputAttachmentCount: event.inputAttachments.length,
+            }
+          : {}),
+        ...(event.followupMessageId ? { followupMessageId: event.followupMessageId } : {}),
+        ...(event.followupSummary ? { followupSummary: event.followupSummary } : {}),
+        ...(typeof event.followupEnqueuedAt === "number"
+          ? { followupEnqueuedAt: event.followupEnqueuedAt }
+          : {}),
       },
       source: "hook",
       hookName: "run_start",
@@ -241,6 +253,7 @@ export function registerCollector(
         from: event.from,
         contentPreview: event.content?.slice(0, 200),
         channel: ctx.channelId,
+        channelName: event.metadata?.channelName as string | undefined,
         accountId: ctx.accountId,
         conversationId: ctx.conversationId,
         timestamp: event.timestamp,

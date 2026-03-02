@@ -55,6 +55,74 @@ export type RuntimeFallbackAttempt = {
   code?: string;
 };
 
+type RunStartInputAttachment = {
+  path?: string;
+  url?: string;
+  type?: string;
+};
+
+const MAX_RUN_START_ATTACHMENTS = 12;
+
+function toOptionalTrimmed(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function resolveRunStartInputMessage(params: {
+  sessionCtx: TemplateContext;
+  followupRun: FollowupRun;
+}): string | undefined {
+  const { sessionCtx, followupRun } = params;
+  return (
+    toOptionalTrimmed(sessionCtx.BodyForCommands) ??
+    toOptionalTrimmed(sessionCtx.CommandBody) ??
+    toOptionalTrimmed(sessionCtx.RawBody) ??
+    toOptionalTrimmed(sessionCtx.BodyStripped) ??
+    toOptionalTrimmed(sessionCtx.Body) ??
+    toOptionalTrimmed(followupRun.summaryLine)
+  );
+}
+
+function resolveRunStartInputAttachments(
+  sessionCtx: TemplateContext,
+): RunStartInputAttachment[] | undefined {
+  const paths = Array.isArray(sessionCtx.MediaPaths) ? sessionCtx.MediaPaths : [];
+  const urls = Array.isArray(sessionCtx.MediaUrls) ? sessionCtx.MediaUrls : [];
+  const types = Array.isArray(sessionCtx.MediaTypes) ? sessionCtx.MediaTypes : [];
+  const rows: RunStartInputAttachment[] = [];
+
+  const maxArrayEntries = Math.max(paths.length, urls.length, types.length);
+  if (maxArrayEntries > 0) {
+    for (let i = 0; i < maxArrayEntries; i += 1) {
+      const row: RunStartInputAttachment = {
+        path: toOptionalTrimmed(paths[i]),
+        url: toOptionalTrimmed(urls[i]),
+        type: toOptionalTrimmed(types[i]),
+      };
+      if (row.path || row.url || row.type) {
+        rows.push(row);
+      }
+      if (rows.length >= MAX_RUN_START_ATTACHMENTS) {
+        break;
+      }
+    }
+    return rows.length > 0 ? rows : undefined;
+  }
+
+  const single: RunStartInputAttachment = {
+    path: toOptionalTrimmed(sessionCtx.MediaPath),
+    url: toOptionalTrimmed(sessionCtx.MediaUrl),
+    type: toOptionalTrimmed(sessionCtx.MediaType),
+  };
+  if (single.path || single.url || single.type) {
+    return [single];
+  }
+  return undefined;
+}
+
 export type AgentRunLoopResult =
   | {
       kind: "success";
@@ -124,6 +192,14 @@ export async function runAgentTurnWithFallback(params: {
   // Emit run_start hook (fire-and-forget)
   const hookRunner = getGlobalHookRunner();
   if (hookRunner?.hasHooks("run_start")) {
+    const inputMessage = resolveRunStartInputMessage({
+      sessionCtx: params.sessionCtx,
+      followupRun: params.followupRun,
+    });
+    const inputAttachments = resolveRunStartInputAttachments(params.sessionCtx);
+    const followupMessageId = toOptionalTrimmed(params.followupRun.messageId);
+    const followupSummary = toOptionalTrimmed(params.followupRun.summaryLine);
+
     void hookRunner
       .runRunStart(
         {
@@ -134,10 +210,15 @@ export async function runAgentTurnWithFallback(params: {
           model: params.followupRun.run.model ?? "",
           provider: params.followupRun.run.provider ?? "",
           isHeartbeat: params.isHeartbeat ?? false,
-          isFollowup: false,
+          isFollowup: params.followupRun.isFollowup === true,
           messageCount: 0,
           compactionCount: 0,
           originChannel: params.followupRun.originatingChannel,
+          inputMessage,
+          inputAttachments,
+          followupMessageId,
+          followupSummary,
+          followupEnqueuedAt: params.followupRun.enqueuedAt,
         },
         {
           agentId: params.followupRun.run.agentId,

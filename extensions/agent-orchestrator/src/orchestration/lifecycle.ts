@@ -8,6 +8,17 @@ export function extractRoleFromLabel(label: string | undefined): AgentRole | und
   return VALID_ROLES.has(candidate) ? (candidate as AgentRole) : undefined;
 }
 
+/** Resolve role from config-driven agentId→role mapping. */
+export function resolveAgentRoleFromConfig(
+  agentId: string | undefined,
+  agentRoles: Record<string, string> | undefined,
+): AgentRole | undefined {
+  if (!agentId || !agentRoles) return undefined;
+  const candidate = agentRoles[agentId];
+  if (!candidate) return undefined;
+  return VALID_ROLES.has(candidate) ? (candidate as AgentRole) : undefined;
+}
+
 export type SpawnValidation = { allowed: true } | { allowed: false; reason: string };
 
 export function validateSpawn(

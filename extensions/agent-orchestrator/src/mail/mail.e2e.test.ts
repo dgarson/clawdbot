@@ -1,5 +1,5 @@
 /**
- * E2E scenario tests for the inter-agent mail plugin.
+ * E2E scenario tests for the agent-orchestrator mail layer.
  *
  * Each .scenario.json file in test/scenarios/ is loaded and run as an
  * independent Vitest test. The scenario runner executes steps in order,
@@ -20,13 +20,12 @@ const scenarioFiles = readdirSync(SCENARIOS_DIR)
   .filter((f) => f.endsWith(".scenario.json"))
   .sort();
 
-describe("inter-agent-mail e2e scenarios", () => {
+describe("agent-orchestrator mail e2e scenarios", () => {
   for (const file of scenarioFiles) {
-    const filePath = path.join(SCENARIOS_DIR, file);
     const scenarioId = file.replace(".scenario.json", "");
 
     it(scenarioId, async () => {
-      await runScenarioFile(filePath);
+      await runScenarioFile(path.join(SCENARIOS_DIR, file));
     });
   }
 });

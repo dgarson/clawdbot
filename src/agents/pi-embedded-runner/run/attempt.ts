@@ -1256,6 +1256,8 @@ export async function runEmbeddedAttempt(
         enforceFinalTag: agentSession.runtimeHints.enforceFinalTag,
         config: params.config,
         sessionKey: params.sessionKey ?? params.sessionId,
+        provider: params.provider,
+        model: params.modelId,
       });
 
       const {

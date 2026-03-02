@@ -114,6 +114,7 @@ type ModelCallRow = {
   call_index: number | null;
   input_tokens: number | null;
   cost_usd: number | null;
+  total_cost_usd: number | null;
 };
 type CountRow = { c: number };
 
@@ -353,18 +354,20 @@ describe("indexEvent", () => {
 
     const row = db
       .prepare<unknown[], ModelCallRow>(
-        "SELECT id, call_index, input_tokens, cost_usd FROM model_calls WHERE id = ?",
+        "SELECT id, call_index, input_tokens, cost_usd, total_cost_usd FROM model_calls WHERE id = ?",
       )
       .get(event.id);
     expect(row).toBeTruthy();
     expect(row!.call_index).toBe(2);
     expect(row!.input_tokens).toBe(500);
     expect(row!.cost_usd).toBeCloseTo(0.0012);
+    // total_cost_usd is only populated on usage.snapshot rows
+    expect(row!.total_cost_usd).toBeNull();
   });
 
-  it("llm.call reads tokens from nested delta/cumulative (model.call diagnostic format)", async () => {
-    // model.call diagnostic events nest token counts under delta/cumulative
-    // rather than exposing them at the top level. The indexer must unwrap these.
+  it("llm.call prefers delta over cumulative (model.call diagnostic format)", async () => {
+    // model.call diagnostic events nest token counts under delta (per-call) and cumulative
+    // (running total). The indexer must use delta to avoid summing overcounted cumulative values.
     const db = await openMemoryDb();
     createIndexerFromDb(db, ":none:");
 
@@ -375,7 +378,7 @@ describe("indexEvent", () => {
         callIndex: 1,
         provider: "anthropic",
         model: "claude-opus-4",
-        // Top-level token fields absent — nested under cumulative (as model.call emits)
+        // delta = per-call values; cumulative = running totals (must not be stored in model_calls)
         delta: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
         cumulative: { inputTokens: 200, outputTokens: 100, totalTokens: 300 },
         costUsd: 0.005,
@@ -386,13 +389,120 @@ describe("indexEvent", () => {
 
     const row = db
       .prepare<unknown[], ModelCallRow>(
-        "SELECT id, call_index, input_tokens, cost_usd FROM model_calls WHERE id = ?",
+        "SELECT id, call_index, input_tokens, cost_usd, total_cost_usd FROM model_calls WHERE id = ?",
       )
       .get(event.id);
     expect(row).toBeTruthy();
-    // Should prefer cumulative over delta
-    expect(row!.input_tokens).toBe(200);
+    // Should prefer delta over cumulative (per-call values, not running totals)
+    expect(row!.input_tokens).toBe(100);
     expect(row!.cost_usd).toBeCloseTo(0.005);
+    expect(row!.total_cost_usd).toBeNull();
+  });
+
+  it("usage.snapshot stores NULL cost_usd to avoid double-counting with llm.call", async () => {
+    const db = await openMemoryDb();
+    createIndexerFromDb(db, ":none:");
+
+    const event = makeEvent({
+      kind: "usage.snapshot",
+      runId: "run-007",
+      data: {
+        provider: "anthropic",
+        model: "claude-sonnet-4-6",
+        usage: { input: 1000, output: 500, total: 1500 },
+        costUsd: 0.012,
+        durationMs: 3000,
+      },
+    });
+    indexEvent(db, event);
+
+    const row = db
+      .prepare<unknown[], ModelCallRow>(
+        "SELECT id, call_index, input_tokens, cost_usd, total_cost_usd FROM model_calls WHERE id = ?",
+      )
+      .get(event.id);
+    expect(row).toBeTruthy();
+    expect(row!.call_index).toBeNull();
+    expect(row!.input_tokens).toBeNull();
+    // cost_usd must be NULL — only llm.call rows contribute cost to avoid double-counting
+    expect(row!.cost_usd).toBeNull();
+    // total_cost_usd preserves the run-level cost as cross-check/fallback
+    expect(row!.total_cost_usd).toBeCloseTo(0.012);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// JSONL catch-up
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Schema migrations
+// ---------------------------------------------------------------------------
+
+describe("runMigrations", () => {
+  it("fresh DB gets user_version set", async () => {
+    const db = await openMemoryDb();
+    createIndexerFromDb(db, ":none:");
+
+    const version = db.pragma("user_version", { simple: true }) as number;
+    expect(version).toBeGreaterThanOrEqual(1);
+    db.close();
+  });
+
+  it("is idempotent on repeated calls", async () => {
+    const db = await openMemoryDb();
+    createIndexerFromDb(db, ":none:");
+    // Call again — should not throw
+    createIndexerFromDb(db, ":none:");
+
+    const version = db.pragma("user_version", { simple: true }) as number;
+    expect(version).toBeGreaterThanOrEqual(1);
+    db.close();
+  });
+
+  it("upgrades pre-migration DB missing total_cost_usd column", async () => {
+    const db = await openMemoryDb();
+
+    // Simulate an old DB: create model_calls WITHOUT total_cost_usd, user_version = 0
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS model_calls (
+        id TEXT PRIMARY KEY,
+        run_id TEXT,
+        session_key TEXT,
+        call_index INTEGER,
+        provider TEXT,
+        model TEXT,
+        input_tokens INTEGER,
+        output_tokens INTEGER,
+        cache_read_tokens INTEGER,
+        cache_write_tokens INTEGER,
+        total_tokens INTEGER,
+        cost_usd REAL,
+        duration_ms INTEGER,
+        ts INTEGER
+      );
+    `);
+
+    // Verify column is missing
+    const colsBefore = (db.pragma("table_info(model_calls)") as Array<{ name: string }>).map(
+      (r) => r.name,
+    );
+    expect(colsBefore).not.toContain("total_cost_usd");
+
+    // Now run createIndexerFromDb — it should migrate
+    createIndexerFromDb(db, ":none:");
+
+    // Verify column was added
+    const colsAfter = (db.pragma("table_info(model_calls)") as Array<{ name: string }>).map(
+      (r) => r.name,
+    );
+    expect(colsAfter).toContain("total_cost_usd");
+
+    // Verify user_version was bumped
+    const version = db.pragma("user_version", { simple: true }) as number;
+    expect(version).toBe(1);
+
+    db.close();
   });
 });
 

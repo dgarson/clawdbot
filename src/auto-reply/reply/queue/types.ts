@@ -20,6 +20,8 @@ export type QueueDedupeMode = "message-id" | "prompt" | "none";
 
 export type FollowupRun = {
   prompt: string;
+  /** True when this run is executing from follow-up queue/drain flow. */
+  isFollowup?: boolean;
   /** Provider message ID, when available (for deduplication). */
   messageId?: string;
   summaryLine?: string;

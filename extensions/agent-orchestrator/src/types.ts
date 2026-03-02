@@ -43,6 +43,21 @@ export type OrchestratorSessionState = {
   fileScope?: string[]; // builder only: which files this agent owns
   modelOverride?: string; // explicit per-agent override (from decomposition plan)
   pendingSpawnIntents?: PendingSpawnIntent[]; // queued child metadata from decompose_task
+  toolCallCount?: number; // total tool calls in this session (for enforcement thresholds)
+  memorySearchCalled?: boolean; // whether memory_search has been called this session
+  memorySearchNudgePending?: boolean; // nudge injection pending for next prompt build
+};
+
+// Memory search enforcement config
+export type MemorySearchEnforcementConfig = {
+  enabled: boolean;
+  policy: "reject" | "nudge";
+  toolCallThreshold: number;
+  roles?: AgentRole[];
+};
+
+export type OrchestratorEnforcementConfig = {
+  memorySearch?: MemorySearchEnforcementConfig;
 };
 
 // Orchestration plugin config (parsed from openclaw.plugin.json)
@@ -72,7 +87,9 @@ export type OrchestratorConfig = {
     maxConcurrentAgents: number;
     watchdogIntervalMs: number;
     staleThresholdMs: number;
+    agentRoles?: Record<string, AgentRole>;
   };
+  enforcement?: OrchestratorEnforcementConfig;
 };
 
 // Default config values
@@ -126,12 +143,18 @@ export type ScoutResultPayload = {
 export const ROLE_INSTRUCTIONS: Record<AgentRole, string> = {
   orchestrator:
     "[Agent Orchestrator] You are the team orchestrator. " +
-    "Decompose objectives into work streams, spawn leads via decompose_task, " +
-    "monitor progress via agent_status and mail. Never write code directly.",
+    "Decompose objectives into work streams, then spawn leads. " +
+    "Workflow: (1) call decompose_task to validate your plan, " +
+    "(2) call sessions_spawn for each validated task using the spawnCommand from the result. " +
+    "Monitor progress via agent_status and mail. Never write code directly. " +
+    "NEVER use exec/Exec to run CLI commands for spawning — always use sessions_spawn.",
   lead:
     "[Agent Lead] You are a work stream lead. " +
     "Spawn scouts to explore, builders to implement, and reviewers to validate. " +
-    "Use decompose_task to create workers. Coordinate via mail. Never write code directly.",
+    "Workflow: (1) call decompose_task to validate your plan, " +
+    "(2) call sessions_spawn for each validated task using the spawnCommand from the result. " +
+    "Coordinate via mail. Never write code directly. " +
+    "NEVER use exec/Exec to run CLI commands for spawning — always use sessions_spawn.",
   scout:
     "[Agent Scout] You are a read-only exploration agent. " +
     "Gather information, analyze code, and report findings via mail. " +

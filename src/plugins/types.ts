@@ -352,6 +352,12 @@ export type PluginHookAgentContext = {
 };
 
 // run_start hook
+export type PluginHookRunStartInputAttachment = {
+  path?: string;
+  url?: string;
+  type?: string;
+};
+
 export type PluginHookRunStartEvent = {
   runId: string;
   sessionKey: string;
@@ -364,6 +370,16 @@ export type PluginHookRunStartEvent = {
   messageCount: number;
   compactionCount: number;
   originChannel?: string;
+  /** Original inbound message text that triggered this run (when available). */
+  inputMessage?: string;
+  /** Optional inbound attachments that triggered this run (when available). */
+  inputAttachments?: PluginHookRunStartInputAttachment[];
+  /** Follow-up source message id (if this run is a follow-up). */
+  followupMessageId?: string;
+  /** Short follow-up summary line (if this run is a follow-up). */
+  followupSummary?: string;
+  /** When the follow-up item was queued (epoch ms, if available). */
+  followupEnqueuedAt?: number;
 };
 
 // before_model_resolve hook

@@ -19,14 +19,20 @@ import { parsePluginConfig, type ResolvedInterAgentMailConfig } from "./src/mail
 import { createBeforePromptBuildHook } from "./src/mail/hook.js";
 import { createBounceMailTool, createMailTool } from "./src/mail/tools.js";
 import { checkToolAccess } from "./src/orchestration/boundaries.js";
-import { extractRoleFromLabel, validateSpawn } from "./src/orchestration/lifecycle.js";
-import { buildRoleContext } from "./src/orchestration/priming.js";
+import {
+  extractRoleFromLabel,
+  resolveAgentRoleFromConfig,
+  validateSpawn,
+} from "./src/orchestration/lifecycle.js";
+import { buildRoleContext, type SkillRoleInstructions } from "./src/orchestration/priming.js";
 import { ROLE_MODEL_OVERRIDES } from "./src/orchestration/roles.js";
+import { loadOrchestrateSkill } from "./src/orchestration/skill-loader.js";
 import { createOrchestratorStore, type OrchestratorStore } from "./src/store.js";
 import { createAgentStatusTool, createDecomposeTaskTool } from "./src/tools/index.js";
 import {
   DEFAULT_ORCHESTRATOR_CONFIG,
   type AgentRole,
+  type MemorySearchEnforcementConfig,
   type OrchestratorConfig,
   type PendingSpawnIntent,
 } from "./src/types.js";
@@ -134,9 +140,46 @@ function parseOrchestratorConfig(raw: unknown): OrchestratorConfig {
       defaults.orchestration.staleThresholdMs,
       1,
     ),
-  };
+  } as OrchestratorConfig["orchestration"];
 
-  return { mail, orchestration };
+  // Parse agentRoles mapping (optional)
+  if (isRecord(rawOrch.agentRoles)) {
+    const VALID_ROLES = new Set(["orchestrator", "lead", "scout", "builder", "reviewer"]);
+    const parsed: Record<string, AgentRole> = {};
+    for (const [agentId, role] of Object.entries(rawOrch.agentRoles)) {
+      if (typeof role === "string" && VALID_ROLES.has(role)) {
+        parsed[agentId] = role as AgentRole;
+      }
+    }
+    if (Object.keys(parsed).length > 0) {
+      orchestration.agentRoles = parsed;
+    }
+  }
+
+  // Parse enforcement section (optional)
+  const rawEnforce = isRecord(raw.enforcement) ? raw.enforcement : undefined;
+  let enforcement: OrchestratorConfig["enforcement"];
+  if (rawEnforce) {
+    const rawMs = isRecord(rawEnforce.memorySearch) ? rawEnforce.memorySearch : undefined;
+    if (rawMs) {
+      const VALID_ROLES = new Set(["orchestrator", "lead", "scout", "builder", "reviewer"]);
+      const policy = rawMs.policy === "reject" ? "reject" : "nudge";
+      const msConfig: MemorySearchEnforcementConfig = {
+        enabled: readBooleanOption(rawMs.enabled, false),
+        policy,
+        toolCallThreshold: readIntegerOption(rawMs.toolCallThreshold, 0, 0),
+      };
+      if (Array.isArray(rawMs.roles)) {
+        const parsed = rawMs.roles.filter(
+          (r): r is AgentRole => typeof r === "string" && VALID_ROLES.has(r),
+        );
+        if (parsed.length > 0) msConfig.roles = parsed;
+      }
+      enforcement = { memorySearch: msConfig };
+    }
+  }
+
+  return { mail, orchestration, enforcement };
 }
 
 function isPendingSpawnIntent(value: unknown): value is PendingSpawnIntent {
@@ -226,12 +269,22 @@ const plugin = {
 
     let stateDir: string | null = null;
     let store: OrchestratorStore | null = null;
+    let skillInstructions: SkillRoleInstructions | undefined;
 
     api.registerService({
       id: "agent-orchestrator",
       async start(ctx) {
         stateDir = ctx.stateDir;
         store = createOrchestratorStore(stateDir);
+        // Load orchestrate skill for rich role instructions (falls back to ROLE_INSTRUCTIONS)
+        if (ctx.workspaceDir) {
+          skillInstructions = loadOrchestrateSkill(ctx.workspaceDir);
+          if (skillInstructions) {
+            ctx.logger.info(
+              `[agent-orchestrator] loaded orchestrate skill (${Object.keys(skillInstructions).length} roles)`,
+            );
+          }
+        }
         ctx.logger.info(`[agent-orchestrator] started, stateDir: ${stateDir}`);
       },
       async stop(_ctx) {
@@ -344,7 +397,7 @@ const plugin = {
 
       // ── Orchestration hooks ───────────────────────────────────────────────
 
-      // Hook: role boundary + file scope enforcement (priority 50)
+      // Hook: role boundary + file scope + memory search enforcement (priority 50)
       api.on(
         "before_tool_call",
         (event, ctx) => {
@@ -360,6 +413,38 @@ const plugin = {
           if (result) {
             return { block: true, blockReason: result.reason };
           }
+
+          // Memory search enforcement
+          const msConfig = config.enforcement?.memorySearch;
+          if (
+            msConfig?.enabled &&
+            msConfig.toolCallThreshold > 0 &&
+            !state.memorySearchCalled &&
+            (state.toolCallCount ?? 0) >= msConfig.toolCallThreshold &&
+            event.toolName !== "memory_search" &&
+            (!msConfig.roles || msConfig.roles.includes(state.role))
+          ) {
+            if (msConfig.policy === "reject") {
+              api.logger.warn(
+                `[agent-orchestrator] memory_search enforcement: blocking ${event.toolName} for session ${ctx.sessionKey} (policy=reject, toolCalls=${state.toolCallCount})`,
+              );
+              return {
+                block: true,
+                blockReason:
+                  "[memory-search] You must call memory_search before proceeding. " +
+                  "Search your memory for context relevant to your current task before using other tools.",
+              };
+            }
+            // nudge: set flag for injection in next prompt build (don't block)
+            if (!state.memorySearchNudgePending) {
+              store.update(ctx.sessionKey, (s) => {
+                s.memorySearchNudgePending = true;
+              });
+              api.logger.warn(
+                `[agent-orchestrator] memory_search enforcement: nudging session ${ctx.sessionKey} (policy=nudge, toolCalls=${state.toolCallCount})`,
+              );
+            }
+          }
         },
         { priority: 50 },
       );
@@ -368,7 +453,9 @@ const plugin = {
       api.on("subagent_spawning", (event, ctx) => {
         if (!store) return;
 
-        const childRole = extractRoleFromLabel(event.label);
+        const childRole =
+          extractRoleFromLabel(event.label) ??
+          resolveAgentRoleFromConfig(event.agentId, config.orchestration.agentRoles);
         // Not an orchestrated role — let the gateway handle it normally without registering.
         // Returning undefined (no opinion) is correct here; an explicit { status: "ok" }
         // would imply this agent is tracked, but it won't be, making it invisible to fleet
@@ -467,13 +554,52 @@ const plugin = {
         });
       });
 
-      // Hook: role context injection (priority 90 — after mail at 100)
+      // Hook: config-driven role bootstrap (priority 95 — after mail at 100, before role context at 90)
+      if (config.orchestration.agentRoles) {
+        const agentRoles = config.orchestration.agentRoles;
+        api.on(
+          "before_prompt_build",
+          (_event, ctx) => {
+            if (!store || !ctx.sessionKey || !ctx.agentId) return;
+            // Skip if session already has a role (idempotent — don't overwrite spawn-assigned roles)
+            const existing = store.get(ctx.sessionKey);
+            if (existing?.role) return;
+
+            const role = resolveAgentRoleFromConfig(ctx.agentId, agentRoles);
+            if (!role) return;
+
+            store.update(ctx.sessionKey, (s) => {
+              s.role = role;
+              s.depth = 0;
+              s.status = "active";
+              s.lastActivity = Date.now();
+            });
+            api.logger.info(
+              `[agent-orchestrator] bootstrap: assigned role "${role}" to agent "${ctx.agentId}" (session: ${ctx.sessionKey})`,
+            );
+          },
+          { priority: 95 },
+        );
+      }
+
+      // Hook: role context injection + memory search nudge (priority 90 — after mail at 100)
       api.on(
         "before_prompt_build",
         (_event, ctx) => {
           if (!store || !ctx.sessionKey) return;
           const state = store.get(ctx.sessionKey);
           if (!state?.role) return;
+
+          // Check for pending memory search nudge
+          let nudgeSuffix: string | undefined;
+          if (state.memorySearchNudgePending) {
+            nudgeSuffix =
+              "[memory-search] You have not yet called memory_search. " +
+              "Search your memory for context relevant to your current task before proceeding.";
+            store.update(ctx.sessionKey, (s) => {
+              s.memorySearchNudgePending = false;
+            });
+          }
 
           // Build fleet members list from all active sessions
           const allKeys = store.keys();
@@ -489,9 +615,17 @@ const plugin = {
             }
           }
 
-          const context = buildRoleContext(state.role, state.taskDescription, fleetMembers);
-          if (context) {
-            return { prependContext: context };
+          const context = buildRoleContext(
+            state.role,
+            state.taskDescription,
+            fleetMembers,
+            skillInstructions,
+          );
+          if (context || nudgeSuffix) {
+            return {
+              ...(context ? { prependContext: context } : {}),
+              ...(nudgeSuffix ? { appendContext: nudgeSuffix } : {}),
+            };
           }
         },
         { priority: 90 },
@@ -509,11 +643,15 @@ const plugin = {
         }
       });
 
-      // Hook: activity tracking
-      api.on("after_tool_call", (_event, ctx) => {
+      // Hook: activity tracking + memory search enforcement tracking
+      api.on("after_tool_call", (event, ctx) => {
         if (!store || !ctx.sessionKey) return;
         store.update(ctx.sessionKey, (s) => {
           s.lastActivity = Date.now();
+          s.toolCallCount = (s.toolCallCount ?? 0) + 1;
+          if ((event as { toolName?: string }).toolName === "memory_search") {
+            s.memorySearchCalled = true;
+          }
         });
       });
     }

@@ -1,0 +1,84 @@
+{
+  "id": "multi-sender-inbox",
+  "description": "Multiple agents send messages to the same recipient. inbox claims all unread messages at once; ack resolves them all in a single call.",
+
+  "steps": [
+    {
+      "id": "send-from-a",
+      "actor": "agent-a",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-b",
+        "subject": "From A",
+        "body": "Task from A."
+      },
+      "expect": {
+        "mailbox": { "agent": "agent-b", "unread_count": 1 }
+      }
+    },
+    {
+      "id": "send-from-c",
+      "actor": "agent-c",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-b",
+        "subject": "From C",
+        "body": "Task from C."
+      },
+      "expect": {
+        "mailbox": { "agent": "agent-b", "unread_count": 2 }
+      }
+    },
+    {
+      "id": "send-from-d",
+      "actor": "agent-d",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-b",
+        "subject": "From D",
+        "body": "Task from D."
+      },
+      "expect": {
+        "mailbox": { "agent": "agent-b", "unread_count": 3 }
+      }
+    },
+    {
+      "id": "inbox-all",
+      "description": "Agent B claims all three in one inbox call",
+      "actor": "agent-b",
+      "action": "mail.inbox",
+      "params": {},
+      "capture": {
+        "id_0": { "source": "mailbox", "agent": "agent-b", "path": "messages[0].id" },
+        "id_1": { "source": "mailbox", "agent": "agent-b", "path": "messages[1].id" },
+        "id_2": { "source": "mailbox", "agent": "agent-b", "path": "messages[2].id" }
+      },
+      "expect": {
+        "result_contains": "3 messages",
+        "mailbox": {
+          "agent": "agent-b",
+          "unread_count": 0,
+          "processing_count": 3
+        }
+      }
+    },
+    {
+      "id": "ack-all",
+      "description": "Agent B acks all three messages in one call",
+      "actor": "agent-b",
+      "action": "mail.ack",
+      "params": {
+        "message_ids": ["${inbox-all.id_0}", "${inbox-all.id_1}", "${inbox-all.id_2}"]
+      },
+      "expect": {
+        "result_contains": "Acked 3",
+        "mailbox": {
+          "agent": "agent-b",
+          "read_count": 3,
+          "processing_count": 0,
+          "unread_count": 0
+        }
+      }
+    }
+  ]
+}

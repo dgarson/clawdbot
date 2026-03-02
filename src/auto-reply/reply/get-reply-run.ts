@@ -456,6 +456,7 @@ export async function runPreparedReply(
   const authProfileIdSource = sessionEntry?.authProfileOverrideSource;
   const followupRun = {
     prompt: queuedBody,
+    isFollowup: false,
     messageId: sessionCtx.MessageSidFull ?? sessionCtx.MessageSid,
     summaryLine: baseBodyTrimmedRaw,
     enqueuedAt: Date.now(),

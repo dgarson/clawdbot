@@ -149,6 +149,16 @@ describe("registerCollector — hook handlers", () => {
         isFollowup: false,
         messageCount: 3,
         compactionCount: 0,
+        inputMessage: "Can you check this log?",
+        inputAttachments: [
+          {
+            path: "/tmp/inbound/screenshot.png",
+            type: "image/png",
+          },
+        ],
+        followupMessageId: "msg-123",
+        followupSummary: "Queued follow-up summary",
+        followupEnqueuedAt: 1_762_000_000_000,
       },
       {},
     );
@@ -158,6 +168,9 @@ describe("registerCollector — hook handlers", () => {
     expect(ev.runId).toBe("run-1");
     expect(ev.data.model).toBe("claude-opus-4-6");
     expect(ev.data.isHeartbeat).toBe(false);
+    expect(ev.data.inputMessage).toBe("Can you check this log?");
+    expect(ev.data.inputAttachmentCount).toBe(1);
+    expect(ev.data.followupMessageId).toBe("msg-123");
     unsubscribe();
   });
 

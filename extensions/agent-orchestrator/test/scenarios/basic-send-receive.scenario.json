@@ -1,0 +1,80 @@
+{
+  "id": "basic-send-receive",
+  "description": "Agent A sends a message to Agent B who claims it (inbox) then acks it.",
+
+  "steps": [
+    {
+      "id": "send",
+      "description": "Agent A sends a normal-urgency message with a tag",
+      "actor": "agent-a",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-b",
+        "subject": "Hello from A",
+        "body": "Please review PR #42.",
+        "urgency": "normal",
+        "tags": ["task", "pr"]
+      },
+      "capture": {
+        "msg_id": { "source": "result", "regex": "\\(id: (msg_[^,)]+)" }
+      },
+      "expect": {
+        "result_contains": "sent to 'agent-b'",
+        "mailbox": {
+          "agent": "agent-b",
+          "count": 1,
+          "unread_count": 1,
+          "messages": [
+            {
+              "from": "agent-a",
+              "to": "agent-b",
+              "subject": "Hello from A",
+              "body_contains": "PR #42",
+              "status": "unread",
+              "urgency": "normal",
+              "has_tag": "task"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "inbox",
+      "description": "Agent B claims its unread messages",
+      "actor": "agent-b",
+      "action": "mail.inbox",
+      "params": {},
+      "capture": {
+        "claimed_id": { "source": "mailbox", "agent": "agent-b", "path": "messages[0].id" }
+      },
+      "expect": {
+        "result_contains": "1 message",
+        "mailbox": {
+          "agent": "agent-b",
+          "unread_count": 0,
+          "processing_count": 1,
+          "messages": [{ "status": "processing" }]
+        }
+      }
+    },
+    {
+      "id": "ack",
+      "description": "Agent B acknowledges after handling the message",
+      "actor": "agent-b",
+      "action": "mail.ack",
+      "params": {
+        "message_ids": ["${inbox.claimed_id}"]
+      },
+      "expect": {
+        "result_contains": "Acked 1",
+        "mailbox": {
+          "agent": "agent-b",
+          "unread_count": 0,
+          "processing_count": 0,
+          "read_count": 1,
+          "messages": [{ "status": "read" }]
+        }
+      }
+    }
+  ]
+}

@@ -2,7 +2,7 @@ import path from "node:path";
 import {
   createSessionRuntimeStore,
   type SessionRuntimeStore,
-} from "../../../src/plugin-sdk/index.js";
+} from "../../../src/plugin-sdk/session-runtime-store.js";
 import type { OrchestratorSessionState } from "./types.js";
 
 export type OrchestratorStore = SessionRuntimeStore<OrchestratorSessionState>;

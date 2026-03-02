@@ -79,6 +79,48 @@
           },
           "staleThresholdMs": {
             "type": "number"
+          },
+          "agentRoles": {
+            "type": "object",
+            "description": "Maps agent IDs to orchestrator roles for auto-bootstrap.",
+            "additionalProperties": {
+              "type": "string",
+              "enum": ["orchestrator", "lead", "scout", "builder", "reviewer"]
+            }
+          }
+        }
+      },
+      "enforcement": {
+        "type": "object",
+        "description": "Enforcement policies for agent behavior (e.g. memory search before proceeding).",
+        "additionalProperties": false,
+        "properties": {
+          "memorySearch": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Enable memory search enforcement. Default: false."
+              },
+              "policy": {
+                "type": "string",
+                "enum": ["reject", "nudge"],
+                "description": "reject = block tool calls until memory_search is called; nudge = inject a reminder. Default: nudge."
+              },
+              "toolCallThreshold": {
+                "type": "integer",
+                "description": "Number of tool calls before enforcement triggers. 0 = disabled. Default: 0."
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["orchestrator", "lead", "scout", "builder", "reviewer"]
+                },
+                "description": "Which roles to enforce. Omit for all roles."
+              }
+            }
           }
         }
       },

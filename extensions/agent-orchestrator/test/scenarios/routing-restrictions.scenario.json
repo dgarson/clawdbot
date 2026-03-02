@@ -1,0 +1,68 @@
+{
+  "id": "routing-restrictions",
+  "description": "Explicit deny rules block delivery between specific agents while allow-all remains the default for other pairs.",
+
+  "config": {
+    "rules": {
+      "allow": [{ "from": "*", "to": "*" }],
+      "deny": [{ "from": "agent-untrusted", "to": "agent-secure" }]
+    }
+  },
+
+  "steps": [
+    {
+      "id": "allowed-send",
+      "description": "agent-a can send to agent-secure (no deny rule)",
+      "actor": "agent-a",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-secure",
+        "subject": "Allowed delivery",
+        "body": "This should be delivered."
+      },
+      "expect": {
+        "result_contains": "sent to 'agent-secure'",
+        "mailbox": {
+          "agent": "agent-secure",
+          "unread_count": 1
+        }
+      }
+    },
+    {
+      "id": "denied-send",
+      "description": "agent-untrusted is denied from sending to agent-secure",
+      "actor": "agent-untrusted",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-secure",
+        "subject": "Should be blocked",
+        "body": "This must NOT arrive."
+      },
+      "expect": {
+        "throws": "Routing denied",
+        "mailbox": {
+          "agent": "agent-secure",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "untrusted-can-send-elsewhere",
+      "description": "agent-untrusted can still send to other agents",
+      "actor": "agent-untrusted",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-a",
+        "subject": "Permitted route",
+        "body": "No deny rule for this pair."
+      },
+      "expect": {
+        "result_contains": "sent to 'agent-a'",
+        "mailbox": {
+          "agent": "agent-a",
+          "unread_count": 1
+        }
+      }
+    }
+  ]
+}

@@ -100,6 +100,7 @@ export function scheduleFollowupDrain(
             prompt,
             run,
             enqueuedAt: Date.now(),
+            isFollowup: true,
             ...routing,
           });
           queue.items.splice(0, items.length);
@@ -121,6 +122,7 @@ export function scheduleFollowupDrain(
                 prompt: summaryPrompt,
                 run,
                 enqueuedAt: Date.now(),
+                isFollowup: true,
                 originatingChannel: item.originatingChannel,
                 originatingTo: item.originatingTo,
                 originatingAccountId: item.originatingAccountId,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { extractRoleFromLabel, validateSpawn } from "./lifecycle.js";
+import { extractRoleFromLabel, resolveAgentRoleFromConfig, validateSpawn } from "./lifecycle.js";
 
 describe("extractRoleFromLabel", () => {
   it("extracts role from colon-separated label", () => {
@@ -16,6 +16,32 @@ describe("extractRoleFromLabel", () => {
 
   it("returns undefined for empty label", () => {
     expect(extractRoleFromLabel(undefined)).toBeUndefined();
+  });
+});
+
+describe("resolveAgentRoleFromConfig", () => {
+  const roles = { orchestrator: "orchestrator", spec: "scout", design: "lead" };
+
+  it("resolves role for mapped agentId", () => {
+    expect(resolveAgentRoleFromConfig("orchestrator", roles)).toBe("orchestrator");
+    expect(resolveAgentRoleFromConfig("spec", roles)).toBe("scout");
+    expect(resolveAgentRoleFromConfig("design", roles)).toBe("lead");
+  });
+
+  it("returns undefined for unmapped agentId", () => {
+    expect(resolveAgentRoleFromConfig("main", roles)).toBeUndefined();
+  });
+
+  it("returns undefined when agentId is undefined", () => {
+    expect(resolveAgentRoleFromConfig(undefined, roles)).toBeUndefined();
+  });
+
+  it("returns undefined when agentRoles is undefined", () => {
+    expect(resolveAgentRoleFromConfig("orchestrator", undefined)).toBeUndefined();
+  });
+
+  it("returns undefined for invalid role values", () => {
+    expect(resolveAgentRoleFromConfig("bad", { bad: "invalid-role" })).toBeUndefined();
   });
 });
 

@@ -1,0 +1,110 @@
+{
+  "id": "forwarding-chain",
+  "description": "Agent A sends to Agent B who forwards to Agent C, preserving the lineage chain. Each hop auto-acks the forwarded message.",
+
+  "steps": [
+    {
+      "id": "send",
+      "description": "Agent A sends to Agent B",
+      "actor": "agent-a",
+      "action": "mail.send",
+      "params": {
+        "to_agent_id": "agent-b",
+        "subject": "Request: coordinate with C",
+        "body": "Please pass this along to agent-c.",
+        "urgency": "high",
+        "tags": ["coordination"]
+      },
+      "expect": {
+        "result_contains": "sent to 'agent-b'",
+        "mailbox": {
+          "agent": "agent-b",
+          "unread_count": 1
+        }
+      }
+    },
+    {
+      "id": "b-inbox",
+      "description": "Agent B claims the message",
+      "actor": "agent-b",
+      "action": "mail.inbox",
+      "params": {},
+      "capture": {
+        "b_msg_id": { "source": "mailbox", "agent": "agent-b", "path": "messages[0].id" }
+      },
+      "expect": {
+        "mailbox": {
+          "agent": "agent-b",
+          "processing_count": 1
+        }
+      }
+    },
+    {
+      "id": "b-forward",
+      "description": "Agent B forwards to Agent C with notes",
+      "actor": "agent-b",
+      "action": "mail.forward",
+      "params": {
+        "message_id": "${b-inbox.b_msg_id}",
+        "to_agent_id": "agent-c",
+        "notes": "Forwarding per agent-a's request."
+      },
+      "expect": {
+        "result_contains": "Forwarded",
+        "mailboxes": [
+          {
+            "agent": "agent-b",
+            "read_count": 1,
+            "unread_count": 0
+          },
+          {
+            "agent": "agent-c",
+            "unread_count": 1,
+            "messages": [
+              {
+                "from": "agent-b",
+                "to": "agent-c",
+                "is_forwarded": true,
+                "lineage_length": 1,
+                "has_tag": "coordination"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "c-inbox",
+      "description": "Agent C claims the forwarded message",
+      "actor": "agent-c",
+      "action": "mail.inbox",
+      "params": {},
+      "capture": {
+        "c_msg_id": { "source": "mailbox", "agent": "agent-c", "path": "messages[0].id" }
+      },
+      "expect": {
+        "mailbox": {
+          "agent": "agent-c",
+          "processing_count": 1
+        }
+      }
+    },
+    {
+      "id": "c-ack",
+      "description": "Agent C acks after handling",
+      "actor": "agent-c",
+      "action": "mail.ack",
+      "params": {
+        "message_ids": ["${c-inbox.c_msg_id}"]
+      },
+      "expect": {
+        "result_contains": "Acked 1",
+        "mailbox": {
+          "agent": "agent-c",
+          "read_count": 1,
+          "processing_count": 0
+        }
+      }
+    }
+  ]
+}

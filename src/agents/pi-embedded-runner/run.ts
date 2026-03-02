@@ -131,9 +131,9 @@ const mergeUsageIntoAccumulator = (
   target.output += usage.output ?? 0;
   target.cacheRead += usage.cacheRead ?? 0;
   target.cacheWrite += usage.cacheWrite ?? 0;
-  target.total +=
-    usage.total ??
-    (usage.input ?? 0) + (usage.output ?? 0) + (usage.cacheRead ?? 0) + (usage.cacheWrite ?? 0);
+  // Accumulate new tokens only; cacheRead/cacheWrite are context-window bookkeeping, not
+  // incremental token spend, so including them in total inflates multi-turn session counts.
+  target.total += (usage.input ?? 0) + (usage.output ?? 0);
   // Track the most recent API call's cache fields for accurate context-size reporting.
   // Accumulated cache totals inflate context size when there are multiple tool-call round-trips,
   // since each call reports cacheRead ≈ current_context_size.
@@ -152,21 +152,19 @@ const toNormalizedUsage = (usage: UsageAccumulator) => {
   if (!hasUsage) {
     return undefined;
   }
-  // Use the LAST API call's cache fields for context-size calculation.
-  // The accumulated cacheRead/cacheWrite inflate context size because each tool-call
-  // round-trip reports cacheRead ≈ current_context_size, and summing N calls gives
-  // N × context_size which gets clamped to contextWindow (e.g. 200k).
+  // Use the LAST API call's cache fields for context-size reporting.
+  // Accumulated cacheRead/cacheWrite inflate context size because each tool-call
+  // round-trip reports cacheRead ≈ current_context_size (N calls → N × context_size).
   // See: https://github.com/openclaw/openclaw/issues/13698
   //
-  // We use lastInput/lastCacheRead/lastCacheWrite (from the most recent API call) for
-  // cache-related fields, but keep accumulated output (total generated text this turn).
-  const lastPromptTokens = usage.lastInput + usage.lastCacheRead + usage.lastCacheWrite;
+  // total = input + output (new tokens only). cacheRead/cacheWrite are exposed for
+  // context-window tracking via derivePromptTokens but are NOT part of total.
   return {
     input: usage.lastInput || undefined,
     output: usage.output || undefined,
     cacheRead: usage.lastCacheRead || undefined,
     cacheWrite: usage.lastCacheWrite || undefined,
-    total: lastPromptTokens + usage.output || undefined,
+    total: usage.lastInput + usage.output || undefined,
   };
 };
 
@@ -506,10 +504,14 @@ export async function runEmbeddedPiAgent(
           const lastAssistantUsage = normalizeUsage(lastAssistant?.usage as UsageLike);
           const attemptUsage = attempt.attemptUsage ?? lastAssistantUsage;
           mergeUsageIntoAccumulator(usageAccumulator, attemptUsage);
-          // Keep prompt size from the latest model call so session totalTokens
-          // reflects current context usage, not accumulated tool-loop usage.
+          // Keep prompt size from the latest model call so context-window reporting
+          // reflects current usage, not accumulated tool-loop usage.
           lastRunPromptUsage = lastAssistantUsage ?? attemptUsage;
-          const lastTurnTotal = lastAssistantUsage?.total ?? attemptUsage?.total;
+          // Derive last-turn new-token total from input+output only (not cacheRead/cacheWrite).
+          // API-reported usage.total includes cache tokens; we must not propagate that into runs.total_tokens.
+          const lastTurnTotal = lastAssistantUsage
+            ? (lastAssistantUsage.input ?? 0) + (lastAssistantUsage.output ?? 0) || undefined
+            : undefined;
           const attemptCompactionCount = Math.max(0, attempt.compactionCount ?? 0);
           autoCompactionCount += attemptCompactionCount;
           const activeErrorContext = resolveActiveErrorContext({

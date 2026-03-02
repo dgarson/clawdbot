@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildRoleContext } from "./priming.js";
+import type { AgentRole } from "../types.js";
+import { ROLE_MAIL_GUIDANCE, buildRoleContext } from "./priming.js";
 
 describe("buildRoleContext", () => {
   it("returns role instructions for a known role", () => {
@@ -40,5 +41,48 @@ describe("buildRoleContext", () => {
   it("returns empty string for unknown role", () => {
     const ctx = buildRoleContext(undefined, undefined, []);
     expect(ctx).toBe("");
+  });
+});
+
+describe("ROLE_MAIL_GUIDANCE", () => {
+  const ALL_ROLES: AgentRole[] = ["orchestrator", "lead", "scout", "builder", "reviewer"];
+
+  it("has guidance for every role", () => {
+    for (const role of ALL_ROLES) {
+      expect(ROLE_MAIL_GUIDANCE[role]).toBeDefined();
+      expect(ROLE_MAIL_GUIDANCE[role].length).toBeGreaterThan(0);
+    }
+  });
+
+  it("includes [Mail Guidance] marker for every role", () => {
+    for (const role of ALL_ROLES) {
+      expect(ROLE_MAIL_GUIDANCE[role]).toContain("[Mail Guidance]");
+    }
+  });
+});
+
+describe("buildRoleContext — mail guidance", () => {
+  it("includes mail guidance for each role", () => {
+    const roles: AgentRole[] = ["orchestrator", "lead", "scout", "builder", "reviewer"];
+    for (const role of roles) {
+      const ctx = buildRoleContext(role, undefined, []);
+      expect(ctx).toContain("[Mail Guidance]");
+    }
+  });
+
+  it("places mail guidance after role instructions and before task description", () => {
+    const ctx = buildRoleContext("scout", "Analyze auth module", []);
+    const roleIdx = ctx.indexOf("[Agent Scout]");
+    const mailIdx = ctx.indexOf("[Mail Guidance]");
+    const taskIdx = ctx.indexOf("[Current Task]");
+    expect(roleIdx).toBeGreaterThanOrEqual(0);
+    expect(mailIdx).toBeGreaterThan(roleIdx);
+    expect(taskIdx).toBeGreaterThan(mailIdx);
+  });
+
+  it("includes mail guidance even without task description", () => {
+    const ctx = buildRoleContext("builder", undefined, []);
+    expect(ctx).toContain("[Mail Guidance]");
+    expect(ctx).toContain("mail your lead when done");
   });
 });
