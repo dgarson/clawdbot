@@ -366,10 +366,11 @@ export type GetModelCallsOptions = {
   model?: string;
   agentId?: string;
   limit?: number;
+  offset?: number;
 };
 
 export function getModelCalls(db: Db, opts: GetModelCallsOptions = {}): ModelCallSummary[] {
-  const { runId, sessionKey, model, agentId, limit = 100 } = opts;
+  const { runId, sessionKey, model, agentId, limit = 100, offset = 0 } = opts;
   const conditions: string[] = [];
   const params: unknown[] = [];
 
@@ -391,12 +392,8 @@ export function getModelCalls(db: Db, opts: GetModelCallsOptions = {}): ModelCal
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const sql = `
-    SELECT id, run_id, session_key, call_index, provider, model,
-           input_tokens, output_tokens, cache_read_tokens, cache_write_tokens,
-           total_tokens, cost_usd, duration_ms, ts
-    FROM model_calls ${where} ORDER BY call_index ASC LIMIT ?`;
-  params.push(limit);
+  const sql = `SELECT * FROM model_calls ${where} ORDER BY ts ASC, call_index ASC LIMIT ? OFFSET ?`;
+  params.push(limit, offset);
 
   const rows = db.prepare<unknown[], ModelCallRow>(sql).all(...params);
   return rows.map(rowToModelCallSummary);
@@ -1149,13 +1146,14 @@ export type ListSubagentsOptions = {
   runId?: string;
   agentId?: string;
   limit?: number;
+  offset?: number;
 };
 
 /**
  * List subagent spawns with optional filters.
  */
 export function listSubagents(db: Db, opts: ListSubagentsOptions = {}): SubagentSummary[] {
-  const { parentSessionKey, runId, agentId, limit = 50 } = opts;
+  const { parentSessionKey, runId, agentId, limit = 50, offset = 0 } = opts;
   const conditions: string[] = [];
   const params: unknown[] = [];
 
@@ -1173,8 +1171,8 @@ export function listSubagents(db: Db, opts: ListSubagentsOptions = {}): Subagent
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const sql = `SELECT * FROM subagents ${where} ORDER BY started_at DESC LIMIT ?`;
-  params.push(limit);
+  const sql = `SELECT * FROM subagents ${where} ORDER BY started_at DESC LIMIT ? OFFSET ?`;
+  params.push(limit, offset);
 
   const rows = db.prepare<unknown[], SubagentRow>(sql).all(...params);
   return rows.map(rowToSubagentSummary);
@@ -1215,13 +1213,14 @@ export type ListMessagesOptions = {
   channel?: string;
   agentId?: string;
   limit?: number;
+  offset?: number;
 };
 
 /**
  * List messages with optional filters.
  */
 export function listMessages(db: Db, opts: ListMessagesOptions = {}): MessageSummary[] {
-  const { sessionKey, direction, channel, agentId, limit = 50 } = opts;
+  const { sessionKey, direction, channel, agentId, limit = 50, offset = 0 } = opts;
   const conditions: string[] = [];
   const params: unknown[] = [];
 
@@ -1243,8 +1242,8 @@ export function listMessages(db: Db, opts: ListMessagesOptions = {}): MessageSum
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const sql = `SELECT * FROM messages ${where} ORDER BY ts DESC LIMIT ?`;
-  params.push(limit);
+  const sql = `SELECT * FROM messages ${where} ORDER BY ts DESC LIMIT ? OFFSET ?`;
+  params.push(limit, offset);
 
   const rows = db.prepare<unknown[], MessageRow>(sql).all(...params);
   return rows.map(rowToMessageSummary);
@@ -1256,13 +1255,14 @@ export type ListErrorsOptions = {
   runId?: string;
   agentId?: string;
   limit?: number;
+  offset?: number;
 };
 
 /**
  * List errors across runs and tool calls via UNION ALL.
  */
 export function listErrors(db: Db, opts: ListErrorsOptions = {}): ErrorEntry[] {
-  const { since, sessionKey, runId, agentId, limit = 50 } = opts;
+  const { since, sessionKey, runId, agentId, limit = 50, offset = 0 } = opts;
 
   // Build conditions for both halves of the union
   const runConds: string[] = ["error IS NOT NULL"];
@@ -1320,8 +1320,9 @@ export function listErrors(db: Db, opts: ListErrorsOptions = {}): ErrorEntry[] {
     )
     ORDER BY ts DESC
     LIMIT ?
+    OFFSET ?
   `;
-  const params = [...runParams, ...toolParams, limit];
+  const params = [...runParams, ...toolParams, limit, offset];
 
   const rows = db.prepare<unknown[], ErrorRow>(sql).all(...params);
   return rows.map((r) => ({

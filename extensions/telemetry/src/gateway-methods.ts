@@ -17,6 +17,7 @@
  *   telemetry.usage         — aggregated token/cost summary
  *   telemetry.events        — list raw telemetry events
  *   telemetry.timeline      — ordered event timeline for a session
+ *   telemetry.session_trace — comprehensive chronological session trace
  */
 
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
@@ -77,6 +78,179 @@ function parseNum(v: unknown, fallback: number): number {
 function tsToIso(ms: number | null | undefined): string | undefined {
   if (ms == null) return undefined;
   return new Date(ms).toISOString();
+}
+
+type SessionKeyRow = { session_key: string | null };
+type CountRow = { cnt: number };
+
+function findSessionKeyBySessionId(db: Indexer["db"], sessionId: string): string | undefined {
+  const row = db
+    .prepare<unknown[], SessionKeyRow>(
+      `SELECT session_key
+       FROM events
+       WHERE session_id = ?
+         AND session_key IS NOT NULL
+         AND session_key != 'unknown'
+       ORDER BY ts DESC
+       LIMIT 1`,
+    )
+    .get(sessionId);
+  return row?.session_key ?? undefined;
+}
+
+function sessionKeyExists(db: Indexer["db"], sessionKey: string): boolean {
+  const runRow = db
+    .prepare<unknown[], CountRow>("SELECT COUNT(*) as cnt FROM runs WHERE session_key = ?")
+    .get(sessionKey);
+  if ((runRow?.cnt ?? 0) > 0) {
+    return true;
+  }
+
+  const eventRow = db
+    .prepare<unknown[], CountRow>(
+      `SELECT COUNT(*) as cnt
+       FROM events
+       WHERE session_key = ? AND session_key != 'unknown'`,
+    )
+    .get(sessionKey);
+  return (eventRow?.cnt ?? 0) > 0;
+}
+
+function countTimelineEvents(db: Indexer["db"], sessionKey: string): number {
+  const row = db
+    .prepare<unknown[], CountRow>(
+      `SELECT COUNT(*) as cnt
+       FROM (
+         SELECT id FROM events WHERE session_key = ?
+         UNION
+         SELECT id
+         FROM events
+         WHERE session_key IS NULL
+           AND run_id IN (SELECT run_id FROM runs WHERE session_key = ?)
+       )`,
+    )
+    .get(sessionKey, sessionKey);
+  return row?.cnt ?? 0;
+}
+
+function listAllRunsForSession(db: Indexer["db"], sessionKey: string) {
+  const pageSize = 500;
+  let offset = 0;
+  const rows: ReturnType<typeof listRuns> = [];
+  while (true) {
+    const chunk = listRuns(db, { sessionKey, limit: pageSize, offset });
+    if (chunk.length === 0) {
+      break;
+    }
+    rows.push(...chunk);
+    if (chunk.length < pageSize) {
+      break;
+    }
+    offset += pageSize;
+  }
+  return rows;
+}
+
+function listAllToolCallsForRun(db: Indexer["db"], runId: string) {
+  const pageSize = 500;
+  let offset = 0;
+  const rows: ReturnType<typeof getToolCalls> = [];
+  while (true) {
+    const chunk = getToolCalls(db, { runId, limit: pageSize, offset });
+    if (chunk.length === 0) {
+      break;
+    }
+    rows.push(...chunk);
+    if (chunk.length < pageSize) {
+      break;
+    }
+    offset += pageSize;
+  }
+  return rows;
+}
+
+function listAllModelCallsForRun(db: Indexer["db"], runId: string) {
+  const pageSize = 500;
+  let offset = 0;
+  const rows: ReturnType<typeof getModelCalls> = [];
+  while (true) {
+    const chunk = getModelCalls(db, { runId, limit: pageSize, offset });
+    if (chunk.length === 0) {
+      break;
+    }
+    rows.push(...chunk);
+    if (chunk.length < pageSize) {
+      break;
+    }
+    offset += pageSize;
+  }
+  return rows;
+}
+
+function listAllSubagentsForSession(db: Indexer["db"], sessionKey: string) {
+  const pageSize = 500;
+  let offset = 0;
+  const rows: ReturnType<typeof listSubagents> = [];
+  while (true) {
+    const chunk = listSubagents(db, {
+      parentSessionKey: sessionKey,
+      limit: pageSize,
+      offset,
+    });
+    if (chunk.length === 0) {
+      break;
+    }
+    rows.push(...chunk);
+    if (chunk.length < pageSize) {
+      break;
+    }
+    offset += pageSize;
+  }
+  return rows;
+}
+
+function listAllMessagesForSession(db: Indexer["db"], sessionKey: string) {
+  const pageSize = 500;
+  let offset = 0;
+  const rows: ReturnType<typeof listMessages> = [];
+  while (true) {
+    const chunk = listMessages(db, {
+      sessionKey,
+      limit: pageSize,
+      offset,
+    });
+    if (chunk.length === 0) {
+      break;
+    }
+    rows.push(...chunk);
+    if (chunk.length < pageSize) {
+      break;
+    }
+    offset += pageSize;
+  }
+  return rows;
+}
+
+function listAllErrorsForSession(db: Indexer["db"], sessionKey: string) {
+  const pageSize = 500;
+  let offset = 0;
+  const rows: ReturnType<typeof listErrors> = [];
+  while (true) {
+    const chunk = listErrors(db, {
+      sessionKey,
+      limit: pageSize,
+      offset,
+    });
+    if (chunk.length === 0) {
+      break;
+    }
+    rows.push(...chunk);
+    if (chunk.length < pageSize) {
+      break;
+    }
+    offset += pageSize;
+  }
+  return rows;
 }
 
 // ---------------------------------------------------------------------------
@@ -552,5 +726,180 @@ export function registerTelemetryGatewayMethods(
       data: e.data as Record<string, unknown> | undefined,
     }));
     respond(true, { sessionKey, events });
+  });
+
+  // telemetry.session_trace — full chronological session trace.
+  //
+  // Disclaimer: this method is intentionally verbose and can return very large
+  // payloads for long-running sessions. Use targeted methods (`telemetry.timeline`,
+  // `telemetry.run`, `telemetry.model-calls`) when you only need a subset.
+  api.registerGatewayMethod("telemetry.session_trace", ({ params, respond }) => {
+    const indexer = getIndexer();
+    if (!indexer) {
+      respond(false, INDEXER_UNAVAILABLE);
+      return;
+    }
+
+    const p = params as Record<string, unknown>;
+    const inputSessionKey = parseStr(p.sessionKey) ?? parseStr(p.key) ?? parseStr(p.session);
+    const inputSessionId = parseStr(p.sessionId) ?? parseStr(p.id);
+    if (!inputSessionKey && !inputSessionId) {
+      respond(false, {
+        error:
+          "Missing required session identifier. Provide one of: sessionKey, key, session, sessionId, id",
+      });
+      return;
+    }
+
+    let resolvedSessionKey = inputSessionKey;
+    let resolvedFrom: "sessionKey" | "sessionId" | "sessionValue" = "sessionKey";
+    if (!resolvedSessionKey && inputSessionId) {
+      resolvedSessionKey = findSessionKeyBySessionId(indexer.db, inputSessionId);
+      resolvedFrom = "sessionId";
+    }
+    if (!resolvedSessionKey && inputSessionKey) {
+      // Allow callers to pass either key or id via `session`.
+      resolvedSessionKey = findSessionKeyBySessionId(indexer.db, inputSessionKey);
+      resolvedFrom = "sessionValue";
+    }
+
+    if (!resolvedSessionKey) {
+      respond(false, {
+        error: `Unable to resolve session key from identifier: ${inputSessionId ?? inputSessionKey}`,
+      });
+      return;
+    }
+    if (!sessionKeyExists(indexer.db, resolvedSessionKey)) {
+      respond(false, { error: `Session not found: ${resolvedSessionKey}` });
+      return;
+    }
+
+    const timelineCount = countTimelineEvents(indexer.db, resolvedSessionKey);
+    const timelineRows =
+      timelineCount > 0
+        ? getSessionTimeline(indexer.db, resolvedSessionKey, { limit: timelineCount })
+        : [];
+    const timeline = timelineRows.map((e) => ({
+      id: e.id,
+      ts: e.ts,
+      timestamp: tsToIso(e.ts) ?? new Date(0).toISOString(),
+      kind: e.kind,
+      runId: e.runId ?? undefined,
+      data: e.data as Record<string, unknown> | undefined,
+    }));
+
+    const runSummaries = listAllRunsForSession(indexer.db, resolvedSessionKey)
+      .sort((a, b) => (a.startedAt ?? 0) - (b.startedAt ?? 0))
+      .map((run) => ({
+        ...run,
+        startedAtIso: tsToIso(run.startedAt),
+        endedAtIso: tsToIso(run.endedAt),
+      }));
+    const runs = runSummaries
+      .map((run) => getRun(indexer.db, run.runId))
+      .filter((run): run is NonNullable<typeof run> => !!run)
+      .sort((a, b) => (a.startedAt ?? 0) - (b.startedAt ?? 0))
+      .map((run) => {
+        const toolCalls = listAllToolCallsForRun(indexer.db, run.runId);
+        const modelCalls = listAllModelCallsForRun(indexer.db, run.runId);
+        return {
+          ...run,
+          startedAtIso: tsToIso(run.startedAt),
+          endedAtIso: tsToIso(run.endedAt),
+          toolCalls: toolCalls
+            .slice()
+            .sort((a, b) => (a.startedAt ?? 0) - (b.startedAt ?? 0))
+            .map((tool) => ({
+              ...tool,
+              startedAtIso: tsToIso(tool.startedAt),
+              endedAtIso: tsToIso(tool.endedAt),
+            })),
+          modelCalls: modelCalls
+            .slice()
+            .sort((a, b) => (a.ts ?? 0) - (b.ts ?? 0))
+            .map((call) => ({
+              ...call,
+              timestamp: tsToIso(call.ts),
+            })),
+        };
+      });
+
+    const sessionDetail = getSessionDetail(indexer.db, resolvedSessionKey);
+    const subagents = listAllSubagentsForSession(indexer.db, resolvedSessionKey)
+      .sort((a, b) => (a.startedAt ?? 0) - (b.startedAt ?? 0))
+      .map((subagent) => ({
+        ...subagent,
+        startedAtIso: tsToIso(subagent.startedAt),
+        endedAtIso: tsToIso(subagent.endedAt),
+      }));
+    const messages = listAllMessagesForSession(indexer.db, resolvedSessionKey)
+      .sort((a, b) => a.ts - b.ts)
+      .map((message) => ({
+        ...message,
+        timestamp: tsToIso(message.ts),
+      }));
+    const errors = listAllErrorsForSession(indexer.db, resolvedSessionKey)
+      .sort((a, b) => a.ts - b.ts)
+      .map((error) => ({
+        ...error,
+        timestamp: tsToIso(error.ts),
+      }));
+
+    const trace = {
+      disclaimer:
+        "This response is intentionally verbose and may be large for long sessions. Prefer targeted telemetry methods when possible.",
+      session: {
+        requested: {
+          sessionKey: inputSessionKey,
+          sessionId: inputSessionId,
+        },
+        resolvedSessionKey,
+        resolvedFrom,
+      },
+      summary: sessionDetail
+        ? {
+            sessionKey: sessionDetail.sessionKey,
+            agentId: sessionDetail.agentId,
+            runCount: sessionDetail.runCount,
+            firstRunAt: sessionDetail.firstRunAt,
+            firstRunAtIso: tsToIso(sessionDetail.firstRunAt),
+            lastActivityAt: sessionDetail.lastActivityAt,
+            lastActivityAtIso: tsToIso(sessionDetail.lastActivityAt),
+            totalTokens: sessionDetail.totalTokens,
+            toolCallCount: sessionDetail.toolCallCount,
+            totalDurationMs: sessionDetail.totalDurationMs,
+            errorCount: sessionDetail.errorCount,
+            totalCostUsd: sessionDetail.totalCostUsd,
+          }
+        : undefined,
+      usage: getUsageSummary(indexer.db, { sessionKey: resolvedSessionKey }),
+      costs: {
+        byModel: getCostBreakdown(indexer.db, {
+          groupBy: "model",
+          sessionKey: resolvedSessionKey,
+          limit: Number.MAX_SAFE_INTEGER,
+        }),
+        byProvider: getCostBreakdown(indexer.db, {
+          groupBy: "provider",
+          sessionKey: resolvedSessionKey,
+          limit: Number.MAX_SAFE_INTEGER,
+        }),
+      },
+      counts: {
+        timeline: timeline.length,
+        runs: runs.length,
+        subagents: subagents.length,
+        messages: messages.length,
+        errors: errors.length,
+      },
+      timeline,
+      runSummaries,
+      runs,
+      subagents,
+      messages,
+      errors,
+    };
+
+    respond(true, { trace });
   });
 }
