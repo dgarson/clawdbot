@@ -46,6 +46,18 @@ import type {
 } from "./types.ts";
 import type { ChatAttachment, ChatQueueItem, CronFormState } from "./ui-types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
+import type {
+  TelemetryCostBreakdown,
+  TelemetryCostGroupBy,
+  TelemetryErrorEntry,
+  TelemetryLeaderboardEntry,
+  TelemetryReplayState,
+  TelemetrySessionSummary,
+  TelemetrySubagentNode,
+  TelemetryTimelineEvent,
+  TelemetryUsageSummary,
+  TelemetryView,
+} from "./views/telemetry-types.ts";
 import type { SessionLogEntry } from "./views/usage.ts";
 
 export type AppViewState = {
@@ -203,6 +215,28 @@ export type AppViewState = {
   usageLogFilterTools: string[];
   usageLogFilterHasTools: boolean;
   usageLogFilterQuery: string;
+  // Telemetry dashboard state
+  telemetryView: TelemetryView;
+  telemetryLoading: boolean;
+  telemetryError: string | null;
+  telemetryUsage: TelemetryUsageSummary | null;
+  telemetrySessions: TelemetrySessionSummary[];
+  telemetrySessionsLoading: boolean;
+  telemetryCosts: TelemetryCostBreakdown[];
+  telemetryCostsLoading: boolean;
+  telemetryCostGroupBy: TelemetryCostGroupBy;
+  telemetryTopModels: TelemetryLeaderboardEntry[];
+  telemetryTopTools: TelemetryLeaderboardEntry[];
+  telemetryErrors: TelemetryErrorEntry[];
+  telemetryErrorsExpanded: boolean;
+  telemetrySelectedSessionKey: string | null;
+  telemetryTimeline: TelemetryTimelineEvent[];
+  telemetryTimelineLoading: boolean;
+  telemetryReplay: TelemetryReplayState;
+  telemetryTree: TelemetrySubagentNode[];
+  telemetryTreeLoading: boolean;
+  telemetryActiveMonitor: boolean;
+  telemetryActiveInterval: number | null;
   cronLoading: boolean;
   cronJobsLoadingMore: boolean;
   cronJobs: CronJob[];

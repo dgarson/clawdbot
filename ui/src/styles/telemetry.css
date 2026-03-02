@@ -1,0 +1,864 @@
+/* ============================================
+   Telemetry Dashboard Styles
+   ============================================ */
+
+/* -- Dashboard layout -- */
+.telem-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: dashboard-enter 0.3s var(--ease-out) both;
+}
+
+.telem-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.telem-header-left {
+  flex: 1;
+  min-width: 200px;
+}
+
+.telem-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* -- KPI strip -- */
+.telem-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.telem-kpi-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.telem-kpi-card:hover {
+  border-color: var(--border-strong);
+}
+
+.telem-kpi-card--danger {
+  border-color: var(--danger-muted);
+}
+
+.telem-kpi-card--skeleton {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+}
+
+.telem-kpi-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.telem-kpi-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-strong);
+  line-height: 1.2;
+}
+
+.telem-kpi-value--cost {
+  color: var(--accent-2);
+}
+
+/* -- Skeleton loading -- */
+.telem-skeleton-bar {
+  height: 14px;
+  width: 60%;
+  background: linear-gradient(90deg, var(--bg-muted) 25%, var(--border) 50%, var(--bg-muted) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* -- Card headers -- */
+.telem-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.telem-card-header--clickable {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+
+.telem-card-header--clickable:hover {
+  opacity: 0.85;
+}
+
+/* -- Cost breakdown chart -- */
+.telem-cost-card {
+  padding: 16px;
+}
+
+.telem-cost-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.telem-cost-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.telem-cost-label {
+  width: 120px;
+  min-width: 80px;
+  font-size: 12px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.telem-cost-bar-wrap {
+  flex: 1;
+  height: 18px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.telem-cost-bar {
+  display: flex;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  min-width: 2px;
+  transition: width var(--duration-normal) var(--ease-out);
+}
+
+.telem-cost-seg {
+  height: 100%;
+  min-width: 1px;
+  transition: width var(--duration-normal) var(--ease-out);
+}
+
+.telem-cost-seg--input {
+  background: #3b82f6;
+}
+
+.telem-cost-seg--output {
+  background: #f59e0b;
+}
+
+.telem-cost-seg--cache {
+  background: #22c55e;
+}
+
+.telem-cost-amount {
+  width: 60px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.telem-cost-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.telem-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.telem-legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.telem-legend-dot--input {
+  background: #3b82f6;
+}
+
+.telem-legend-dot--output {
+  background: #f59e0b;
+}
+
+.telem-legend-dot--cache {
+  background: #22c55e;
+}
+
+.telem-chart-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+/* -- Toggle group -- */
+.telem-toggle-group {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.telem-toggle-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  text-transform: capitalize;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.telem-toggle-btn:last-child {
+  border-right: none;
+}
+
+.telem-toggle-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.telem-toggle-btn--active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* -- Sessions table -- */
+.telem-sessions-card {
+  padding: 16px;
+}
+
+.telem-table-wrap {
+  overflow-x: auto;
+}
+
+.telem-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.telem-table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.telem-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.telem-session-row {
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+
+.telem-session-row:hover {
+  background: var(--bg-hover);
+}
+
+.telem-session-key {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.telem-cell-danger {
+  color: var(--danger);
+  font-weight: 500;
+}
+
+/* -- Leaderboard -- */
+.telem-leaderboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.telem-leaderboard-card {
+  padding: 16px;
+}
+
+.telem-leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.telem-leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.telem-leaderboard-rank {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--bg-muted);
+  border-radius: var(--radius-full);
+}
+
+.telem-leaderboard-label {
+  width: 120px;
+  font-size: 12px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.telem-leaderboard-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-muted);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.telem-leaderboard-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width var(--duration-normal) var(--ease-out);
+}
+
+.telem-leaderboard-value {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* -- Errors panel -- */
+.telem-errors-card {
+  padding: 16px;
+  border-color: var(--danger-subtle);
+}
+
+.telem-errors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.telem-error-item {
+  padding: 10px 12px;
+  background: var(--danger-subtle);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--danger);
+}
+
+.telem-error-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.telem-error-time {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.telem-error-source {
+  font-size: 11px;
+  color: var(--accent);
+  font-family: var(--mono);
+}
+
+.telem-error-message {
+  font-size: 12px;
+  color: var(--text);
+  word-break: break-word;
+}
+
+/* -- Badges and chips -- */
+.telem-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  background: var(--bg-muted);
+  color: var(--muted);
+}
+
+.telem-badge--danger {
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+
+.telem-chevron {
+  font-size: 12px;
+  color: var(--muted);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.telem-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* -- Loading dot -- */
+.telem-loading-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse-subtle 1s infinite;
+}
+
+/* -- Empty state -- */
+.telem-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* -- Monitor toggle -- */
+.telem-monitor-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.telem-monitor-toggle input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+/* ============================================
+   Session Detail View
+   ============================================ */
+
+.telem-session-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: dashboard-enter 0.3s var(--ease-out) both;
+}
+
+.telem-detail-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.telem-back-btn {
+  align-self: flex-start;
+}
+
+.telem-detail-title h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.telem-detail-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.telem-detail-stat {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.telem-detail-stat strong {
+  color: var(--text);
+}
+
+.telem-detail-stat--danger {
+  color: var(--danger);
+}
+
+.telem-detail-stat--danger strong {
+  color: var(--danger);
+}
+
+/* -- Playback controls -- */
+.telem-playback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+}
+
+.telem-play-btn {
+  min-width: 80px;
+}
+
+.telem-speed-group {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.telem-speed-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+
+.telem-speed-btn:last-child {
+  border-right: none;
+}
+
+.telem-speed-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.telem-speed-btn--active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.telem-progress-wrap {
+  flex: 1;
+  min-width: 120px;
+  position: relative;
+  height: 20px;
+}
+
+.telem-progress-slider {
+  width: 100%;
+  height: 4px;
+  appearance: none;
+  background: var(--bg-muted);
+  border-radius: 2px;
+  outline: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  cursor: pointer;
+}
+
+.telem-progress-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+.telem-progress-bar {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  height: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.telem-progress-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* -- Timeline -- */
+.telem-timeline-card {
+  padding: 16px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.telem-timeline-loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  animation: pulse-subtle 1.5s infinite;
+}
+
+.telem-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-left: 4px;
+}
+
+.telem-event {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  animation: rise 0.2s var(--ease-out) both;
+}
+
+.telem-event-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.telem-event-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 11px;
+  background: var(--bg-muted);
+  color: var(--muted);
+  z-index: 1;
+}
+
+.telem-event-line {
+  flex: 1;
+  width: 2px;
+  background: var(--border);
+  min-height: 8px;
+}
+
+.telem-event-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.telem-event-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.telem-event-kind {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--mono);
+}
+
+.telem-event-time {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.telem-event-duration {
+  font-size: 10px;
+  padding: 1px 5px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+}
+
+.telem-event-data {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text);
+  font-family: var(--mono);
+  word-break: break-all;
+}
+
+.telem-event-datum strong {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* Event kind colors */
+.telem-event--run .telem-event-icon {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+.telem-event--run .telem-event-kind {
+  color: #3b82f6;
+}
+
+.telem-event--tool .telem-event-icon {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+.telem-event--tool .telem-event-kind {
+  color: #22c55e;
+}
+
+.telem-event--llm .telem-event-icon {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+.telem-event--llm .telem-event-kind {
+  color: #a855f7;
+}
+
+.telem-event--message .telem-event-icon {
+  background: rgba(113, 113, 122, 0.15);
+  color: #71717a;
+}
+.telem-event--message .telem-event-kind {
+  color: var(--muted);
+}
+
+.telem-event--error .telem-event-icon {
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+.telem-event--error .telem-event-kind {
+  color: var(--danger);
+}
+
+.telem-event--default .telem-event-icon {
+  background: var(--bg-muted);
+  color: var(--muted);
+}
+.telem-event--default .telem-event-kind {
+  color: var(--text);
+}
+
+/* -- Subagent tree -- */
+.telem-tree-card {
+  padding: 16px;
+}
+
+.telem-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.telem-tree-node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.telem-tree-icon {
+  color: var(--border-strong);
+  font-family: var(--mono);
+}
+
+.telem-tree-label {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.telem-tree-session {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+/* -- Responsive -- */
+@media (max-width: 640px) {
+  .telem-kpi-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .telem-kpi-value {
+    font-size: 20px;
+  }
+
+  .telem-cost-label {
+    width: 80px;
+    font-size: 11px;
+  }
+
+  .telem-leaderboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .telem-playback {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .telem-progress-wrap {
+    min-width: unset;
+  }
+
+  .telem-table {
+    font-size: 12px;
+  }
+
+  .telem-table th,
+  .telem-table td {
+    padding: 6px 8px;
+  }
+}
