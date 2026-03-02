@@ -1638,6 +1638,18 @@ export async function runEmbeddedAttempt(
                 stopReason: aborted ? "aborted" : timedOut ? "timeout" : undefined,
                 lastAssistantMessage:
                   assistantTexts.length > 0 ? assistantTexts[assistantTexts.length - 1] : undefined,
+                assistantTexts: assistantTexts.length > 0 ? [...assistantTexts] : undefined,
+                toolMetas:
+                  toolMetas.length > 0
+                    ? toolMetas
+                        .filter(
+                          (m): m is typeof m & { toolName: string } =>
+                            typeof m.toolName === "string",
+                        )
+                        .map((m) => ({ toolName: m.toolName, meta: m.meta }))
+                    : undefined,
+                sessionFile: params.sessionFile,
+                systemPromptText: systemPromptText || undefined,
               },
               {
                 agentId: hookAgentId,
