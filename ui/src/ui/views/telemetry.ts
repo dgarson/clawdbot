@@ -5,6 +5,7 @@ import type {
   TelemetryCostGroupBy,
   TelemetryErrorEntry,
   TelemetryLeaderboardEntry,
+  TelemetrySessionGroupBy,
   TelemetrySessionSummary,
   TelemetryUsageSummary,
   TelemetryView,
@@ -17,6 +18,7 @@ export type TelemetryDashboardProps = {
   usage: TelemetryUsageSummary | null;
   sessions: TelemetrySessionSummary[];
   sessionsLoading: boolean;
+  sessionGroupBy: TelemetrySessionGroupBy;
   costs: TelemetryCostBreakdown[];
   costsLoading: boolean;
   costGroupBy: TelemetryCostGroupBy;
@@ -27,6 +29,7 @@ export type TelemetryDashboardProps = {
   activeMonitor: boolean;
   onRefresh: () => void;
   onCostGroupByChange: (groupBy: TelemetryCostGroupBy) => void;
+  onSessionGroupByChange: (groupBy: TelemetrySessionGroupBy) => void;
   onSessionClick: (key: string) => void;
   onToggleErrors: () => void;
   onToggleActiveMonitor: () => void;
@@ -50,6 +53,34 @@ function formatRelativeTime(ts: string): string {
   } catch {
     return ts;
   }
+}
+
+/** Extract the last 12 chars of a session key as the unique suffix. */
+function sessionKeyBadge(key: string): string {
+  return key.length > 12 ? `...${key.slice(-12)}` : key;
+}
+
+/**
+ * Parse the channel/trigger type from a session key.
+ * Session key format: agent:{agentId}:{channelType}:{...}
+ */
+function parseTriggerType(key: string): string {
+  if (key.includes(":cron:")) {
+    return "cron";
+  }
+  if (key.includes(":heartbeat:")) {
+    return "heartbeat";
+  }
+  if (key.includes(":slack:")) {
+    return "slack";
+  }
+  if (key.includes(":discord:")) {
+    return "discord";
+  }
+  if (key.includes(":telegram:")) {
+    return "telegram";
+  }
+  return "direct";
 }
 
 // -- Summary KPI cards --
@@ -171,12 +202,156 @@ function renderCostChart(
   `;
 }
 
+/** Render a single session table row. */
+function renderSessionRow(
+  s: TelemetrySessionSummary,
+  onSessionClick: (key: string) => void,
+): TemplateResult {
+  const trigger = parseTriggerType(s.key);
+  return html`
+    <tr class="telem-session-row" @click=${() => onSessionClick(s.key)}>
+      <td class="telem-session-key" style="min-width: 140px;" title=${s.key}>
+        <span style="font-family: var(--mono); font-size: 0.75rem;">${sessionKeyBadge(s.key)}</span>
+      </td>
+      <td>
+        <span class="telem-pill telem-pill--agent" title=${s.agentId ?? "default"}>
+          ${s.agentId ?? "default"}
+        </span>
+      </td>
+      <td>
+        <span class="telem-pill telem-pill--count" title=${String(s.runCount)}>
+          ${s.runCount}
+        </span>
+      </td>
+      <td>${s.lastActivity ? formatRelativeTime(s.lastActivity) : "-"}</td>
+      <td style="font-size: 0.9rem; font-weight: 600; font-variant-numeric: tabular-nums;">
+        ${formatNumber(s.totalTokens)}
+      </td>
+      <td style="font-size: 0.9rem; font-weight: 600; font-variant-numeric: tabular-nums;">
+        ${formatCost(s.totalCost)}
+      </td>
+      <td>
+        ${
+          s.errorCount > 0
+            ? html`<span class="telem-pill telem-pill--danger" title="${s.errorCount} error(s)">${s.errorCount}</span>`
+            : html`
+                <span style="color: var(--muted)">0</span>
+              `
+        }
+      </td>
+      <td>
+        <span class="telem-pill telem-pill--${trigger}">${trigger}</span>
+      </td>
+    </tr>
+  `;
+}
+
+/** Render the session table rows (flat "all" view). */
+function renderSessionRowsAll(
+  sessions: TelemetrySessionSummary[],
+  onSessionClick: (key: string) => void,
+): TemplateResult {
+  return html`${sessions.map((s) => renderSessionRow(s, onSessionClick))}`;
+}
+
+/** Render sessions grouped by agentId. */
+function renderSessionRowsByAgent(
+  sessions: TelemetrySessionSummary[],
+  onSessionClick: (key: string) => void,
+): TemplateResult {
+  // Collect unique agent IDs preserving insertion order
+  const agentIds: string[] = [];
+  const groups = new Map<string, TelemetrySessionSummary[]>();
+  for (const s of sessions) {
+    const id = s.agentId ?? "default";
+    if (!groups.has(id)) {
+      groups.set(id, []);
+      agentIds.push(id);
+    }
+    groups.get(id)!.push(s);
+  }
+
+  return html`
+    ${agentIds.map((agentId) => {
+      const rows = groups.get(agentId)!;
+      return html`
+        <tr>
+          <td colspan="8" style="padding: 0;">
+            <div class="telem-group-header">
+              <span class="telem-pill telem-pill--agent">${agentId}</span>
+              <span class="telem-pill telem-pill--count">${rows.length}</span>
+            </div>
+          </td>
+        </tr>
+        ${rows.map((s) => renderSessionRow(s, onSessionClick))}
+      `;
+    })}
+  `;
+}
+
+/** Render sessions grouped by trigger type. */
+function renderSessionRowsByTrigger(
+  sessions: TelemetrySessionSummary[],
+  onSessionClick: (key: string) => void,
+): TemplateResult {
+  const triggerOrder = ["slack", "discord", "telegram", "cron", "heartbeat", "direct"];
+  const groups = new Map<string, TelemetrySessionSummary[]>();
+  for (const s of sessions) {
+    const t = parseTriggerType(s.key);
+    if (!groups.has(t)) {
+      groups.set(t, []);
+    }
+    groups.get(t)!.push(s);
+  }
+
+  // Sort trigger groups by canonical order, then any remaining alphabetically
+  const presentTriggers = [...groups.keys()].toSorted((a, b) => {
+    const ai = triggerOrder.indexOf(a);
+    const bi = triggerOrder.indexOf(b);
+    if (ai === -1 && bi === -1) {
+      return a.localeCompare(b);
+    }
+    if (ai === -1) {
+      return 1;
+    }
+    if (bi === -1) {
+      return -1;
+    }
+    return ai - bi;
+  });
+
+  return html`
+    ${presentTriggers.map((trigger) => {
+      const rows = groups.get(trigger)!;
+      return html`
+        <tr>
+          <td colspan="8" style="padding: 0;">
+            <div class="telem-group-header">
+              <span class="telem-pill telem-pill--${trigger}">${trigger}</span>
+              <span class="telem-pill telem-pill--count">${rows.length}</span>
+            </div>
+          </td>
+        </tr>
+        ${rows.map((s) => renderSessionRow(s, onSessionClick))}
+      `;
+    })}
+  `;
+}
+
 // -- Sessions table --
 function renderSessionsTable(
   sessions: TelemetrySessionSummary[],
   loading: boolean,
+  groupBy: TelemetrySessionGroupBy,
+  onGroupByChange: (g: TelemetrySessionGroupBy) => void,
   onSessionClick: (key: string) => void,
 ): TemplateResult {
+  const tabs: { value: TelemetrySessionGroupBy; label: string }[] = [
+    { value: "all", label: "All" },
+    { value: "agent", label: "By Agent" },
+    { value: "trigger", label: "By Trigger" },
+  ];
+
   return html`
     <div class="card telem-sessions-card">
       <div class="telem-card-header">
@@ -189,6 +364,16 @@ function renderSessionsTable(
             : nothing
         }
       </div>
+      <div class="telem-tab-strip">
+        ${tabs.map(
+          (t) => html`
+            <button
+              class="telem-tab-btn ${t.value === groupBy ? "telem-tab-btn--active" : ""}"
+              @click=${() => onGroupByChange(t.value)}
+            >${t.label}</button>
+          `,
+        )}
+      </div>
       ${
         sessions.length === 0 && !loading
           ? html`
@@ -196,32 +381,27 @@ function renderSessionsTable(
             `
           : html`
             <div class="telem-table-wrap">
-              <table class="telem-table">
+              <table class="telem-table" style="font-size: 0.8rem;">
                 <thead>
                   <tr>
-                    <th>Session</th>
+                    <th style="min-width: 140px;">Session</th>
                     <th>Agent</th>
                     <th>Runs</th>
                     <th>Last Activity</th>
                     <th>Tokens</th>
                     <th>Cost</th>
                     <th>Errors</th>
+                    <th>Trigger</th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${sessions.map(
-                    (s) => html`
-                      <tr class="telem-session-row" @click=${() => onSessionClick(s.key)}>
-                        <td class="telem-session-key" title=${s.key}>${s.key.length > 20 ? s.key.slice(0, 20) + "..." : s.key}</td>
-                        <td>${s.agentId ?? "-"}</td>
-                        <td>${s.runCount}</td>
-                        <td>${s.lastActivity ? formatRelativeTime(s.lastActivity) : "-"}</td>
-                        <td>${formatNumber(s.totalTokens)}</td>
-                        <td>${formatCost(s.totalCost)}</td>
-                        <td class="${s.errorCount > 0 ? "telem-cell-danger" : ""}">${s.errorCount}</td>
-                      </tr>
-                    `,
-                  )}
+                  ${
+                    groupBy === "agent"
+                      ? renderSessionRowsByAgent(sessions, onSessionClick)
+                      : groupBy === "trigger"
+                        ? renderSessionRowsByTrigger(sessions, onSessionClick)
+                        : renderSessionRowsAll(sessions, onSessionClick)
+                  }
                 </tbody>
               </table>
             </div>
@@ -344,7 +524,13 @@ export function renderTelemetryDashboard(props: TelemetryDashboardProps): Templa
 
       ${renderCostChart(props.costs, props.costsLoading, props.costGroupBy, props.onCostGroupByChange)}
 
-      ${renderSessionsTable(props.sessions, props.sessionsLoading, props.onSessionClick)}
+      ${renderSessionsTable(
+        props.sessions,
+        props.sessionsLoading,
+        props.sessionGroupBy,
+        props.onSessionGroupByChange,
+        props.onSessionClick,
+      )}
 
       ${renderLeaderboards(props.topModels, props.topTools)}
 

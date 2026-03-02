@@ -208,6 +208,9 @@ export function createLlmTaskTool(api: OpenClawPluginApi) {
         });
 
         // Emit llm_api_call with parent attribution for cross-session cost tracking
+        // oxlint-disable-next-line typescript/no-explicit-any
+        const agentMeta = (result as any).meta?.agentMeta;
+        const runUsage = agentMeta?.usage;
         api.emitLlmApiCall?.({
           source: "tool",
           purpose: "llm-task",
@@ -219,6 +222,11 @@ export function createLlmTaskTool(api: OpenClawPluginApi) {
           provider,
           model,
           durationMs: Date.now() - taskStartMs,
+          inputTokens: runUsage?.input,
+          outputTokens: runUsage?.output,
+          cacheReadTokens: runUsage?.cacheRead,
+          cacheWriteTokens: runUsage?.cacheWrite,
+          totalTokens: runUsage?.total,
         });
 
         // oxlint-disable-next-line typescript/no-explicit-any

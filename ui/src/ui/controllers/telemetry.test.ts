@@ -38,6 +38,8 @@ function createState(request: RequestFn, overrides: Partial<TelemetryState> = {}
     telemetryTreeLoading: false,
     telemetryActiveMonitor: false,
     telemetryActiveInterval: null,
+    telemetrySessionGroupBy: "all",
+    telemetrySelectedEvent: null,
     ...overrides,
   };
 }

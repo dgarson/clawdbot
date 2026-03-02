@@ -1617,6 +1617,15 @@ export async function runEmbeddedAttempt(
                 success: !aborted && !promptError,
                 error: promptError ? describeUnknownError(promptError) : undefined,
                 durationMs: Date.now() - promptStartedAt,
+                runId: params.runId,
+                model: params.modelId,
+                provider: params.provider,
+                usage: getUsageTotals(),
+                toolCallCount: toolMetas.length,
+                compactionCount: getCompactionCount(),
+                stopReason: aborted ? "aborted" : timedOut ? "timeout" : undefined,
+                lastAssistantMessage:
+                  assistantTexts.length > 0 ? assistantTexts[assistantTexts.length - 1] : undefined,
               },
               {
                 agentId: hookAgentId,

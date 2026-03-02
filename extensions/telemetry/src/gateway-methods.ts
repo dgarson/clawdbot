@@ -38,6 +38,8 @@ import {
   listErrors,
   getLeaderboard,
   getModelCalls,
+  countSessions,
+  countErrors,
 } from "./queries.js";
 
 // ---------------------------------------------------------------------------
@@ -285,16 +287,24 @@ export function registerTelemetryGatewayMethods(
       sessionKey: parseStr(p.session),
       limit: parseNum(p.limit, 50),
     });
-    const costs = raw.map((c) => ({
-      label: c.groupKey,
-      inputTokens: c.inputTokens,
-      outputTokens: c.outputTokens,
-      cacheTokens: 0,
-      inputCost: 0,
-      outputCost: 0,
-      cacheCost: 0,
-      totalCost: c.totalCostUsd,
-    }));
+    const costs = raw.map((c) => {
+      const totalTok =
+        c.inputTokens + c.outputTokens + (c.cacheReadTokens ?? 0) + (c.cacheWriteTokens ?? 0);
+      const inputCost = totalTok > 0 ? (c.inputTokens / totalTok) * c.totalCostUsd : 0;
+      const outputCost = totalTok > 0 ? (c.outputTokens / totalTok) * c.totalCostUsd : 0;
+      const cacheTokens = (c.cacheReadTokens ?? 0) + (c.cacheWriteTokens ?? 0);
+      const cacheCost = totalTok > 0 ? (cacheTokens / totalTok) * c.totalCostUsd : 0;
+      return {
+        label: c.groupKey,
+        inputTokens: c.inputTokens,
+        outputTokens: c.outputTokens,
+        cacheTokens,
+        inputCost,
+        outputCost,
+        cacheCost,
+        totalCost: c.totalCostUsd,
+      };
+    });
     respond(true, { costs });
   });
 
@@ -449,6 +459,7 @@ export function registerTelemetryGatewayMethods(
 
   // telemetry.usage — aggregated token/cost summary
   // Maps UsageSummary + session count + error count → TelemetryUsageSummary
+  // Defaults to last 7 days when no `since` is provided.
   api.registerGatewayMethod("telemetry.usage", ({ params, respond }) => {
     const indexer = getIndexer();
     if (!indexer) {
@@ -456,33 +467,32 @@ export function registerTelemetryGatewayMethods(
       return;
     }
     const p = params as Record<string, unknown>;
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
     const filterOpts = {
-      since: parseTs(p.since),
+      since: parseTs(p.since) ?? Date.now() - SEVEN_DAYS_MS,
       until: parseTs(p.until),
       sessionKey: parseStr(p.session),
       agentId: parseStr(p.agent),
     };
     const raw = getUsageSummary(indexer.db, filterOpts);
-    // totalSessions: count distinct sessions from listSessions with same filters
-    const sessions = listSessions(indexer.db, {
+    // Use COUNT queries — O(index scan), no row materialisation
+    const totalSessions = countSessions(indexer.db, {
+      sessionKey: filterOpts.sessionKey,
       agentId: filterOpts.agentId,
       since: filterOpts.since,
       until: filterOpts.until,
-      limit: 100_000, // count all
     });
-    // errorCount: count errors with same filters
-    const errors = listErrors(indexer.db, {
+    const errorCount = countErrors(indexer.db, {
       since: filterOpts.since,
       sessionKey: filterOpts.sessionKey,
       agentId: filterOpts.agentId,
-      limit: 100_000, // count all
     });
     const usage = {
-      totalSessions: sessions.length,
+      totalSessions,
       totalRuns: raw.totalRuns,
       totalTokens: raw.totalTokens,
       estimatedCost: raw.estimatedCostUsd,
-      errorCount: errors.length,
+      errorCount,
     };
     respond(true, { usage });
   });

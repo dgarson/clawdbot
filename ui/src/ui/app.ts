@@ -330,6 +330,11 @@ export class OpenClawApp extends LitElement {
   @state() telemetryTreeLoading = false;
   @state() telemetryActiveMonitor = false;
   telemetryActiveInterval: number | null = null;
+  @state() telemetrySessionGroupBy: import("./views/telemetry-types.js").TelemetrySessionGroupBy =
+    "all";
+  @state() telemetrySelectedEvent:
+    | import("./views/telemetry-types.js").TelemetryTimelineEvent
+    | null = null;
 
   @state() cronLoading = false;
   @state() cronJobsLoadingMore = false;

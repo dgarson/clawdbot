@@ -238,6 +238,67 @@ describe("getSessionTimeline", () => {
     expect(tools.length).toBe(1);
     expect(tools[0].kind).toBe("tool.start");
   });
+
+  it("includes events with null session_key but matching run_id (tool/llm hook context gap)", async () => {
+    // tool.start and llm.input events may be written with ctx.sessionKey = null
+    // but a valid run_id. The timeline must still surface them.
+    const db = await openMemoryDb();
+    createIndexerFromDb(db, ":none:");
+
+    // run.start has the session key — establishes the run -> session link
+    indexEvent(db, makeEvent({ kind: "run.start", ts: 100, sessionKey: "s-gap", runId: "r-gap" }));
+
+    // tool.start stored without session_key (simulates ctx.sessionKey = null in hook)
+    indexEvent(
+      db,
+      makeEvent({
+        kind: "tool.start",
+        ts: 200,
+        sessionKey: undefined,
+        runId: "r-gap",
+        data: { toolName: "Bash", toolCallId: "tc-gap" },
+      }),
+    );
+
+    // run.end also has session_key
+    indexEvent(db, makeEvent({ kind: "run.end", ts: 300, sessionKey: "s-gap", runId: "r-gap" }));
+
+    const timeline = getSessionTimeline(db, "s-gap");
+    const kinds = timeline.map((e) => e.kind);
+    // All three events must appear even though tool.start has no session_key
+    expect(kinds).toContain("run.start");
+    expect(kinds).toContain("tool.start");
+    expect(kinds).toContain("run.end");
+    expect(timeline.length).toBe(3);
+  });
+
+  it("does not duplicate events that have both session_key and a matching run_id", async () => {
+    // An event stored with the correct session_key must appear only once even
+    // though it also matches the run_id subquery branch.
+    const db = await openMemoryDb();
+    createIndexerFromDb(db, ":none:");
+
+    indexEvent(
+      db,
+      makeEvent({ kind: "run.start", ts: 100, sessionKey: "s-dedup", runId: "r-dedup" }),
+    );
+    indexEvent(
+      db,
+      makeEvent({
+        kind: "tool.start",
+        ts: 200,
+        sessionKey: "s-dedup",
+        runId: "r-dedup",
+        data: { toolName: "Read", toolCallId: "tc-dedup" },
+      }),
+    );
+
+    const timeline = getSessionTimeline(db, "s-dedup");
+    expect(timeline.length).toBe(2);
+    // No duplicate run.start or tool.start
+    const toolEvents = timeline.filter((e) => e.kind === "tool.start");
+    expect(toolEvents.length).toBe(1);
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -32,7 +32,7 @@ export class JsonlWriter {
    * JSON line.  The caller provides all domain-specific fields; this method
    * fills in the bookkeeping fields.
    */
-  append(partial: Partial<TelemetryEvent> & { kind: TelemetryEventKind }): void {
+  append(partial: Partial<TelemetryEvent> & { kind: TelemetryEventKind }): TelemetryEvent {
     this.maybeRotate();
     const event: TelemetryEvent = {
       id: generateEventId(),
@@ -52,6 +52,7 @@ export class JsonlWriter {
     };
     // Synchronous write so data survives crashes (WriteStream is append-mode).
     this.stream.write(`${JSON.stringify(event)}\n`);
+    return event;
   }
 
   /**
@@ -108,7 +109,7 @@ export function createJsonlWriter(
   baseDir: string,
   config: Pick<TelemetryConfig, "rotationPolicy">,
 ): {
-  write: (partial: Partial<TelemetryEvent> & { kind: TelemetryEventKind }) => void;
+  write: (partial: Partial<TelemetryEvent> & { kind: TelemetryEventKind }) => TelemetryEvent;
   close: () => Promise<void>;
 } {
   const writer = new JsonlWriter(baseDir, config);

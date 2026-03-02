@@ -10,7 +10,6 @@ import { BlobWriter } from "./blob-writer.js";
 import { registerTelemetryCli } from "./cli/index.js";
 import { registerCollector } from "./collector.js";
 import { registerTelemetryGatewayMethods } from "./gateway-methods.js";
-import { generateEventId } from "./helpers.js";
 import type { Indexer } from "./indexer.js";
 import { createIndexer } from "./indexer.js";
 import { enforceRetention } from "./retention.js";
@@ -101,33 +100,13 @@ export function createTelemetryService(api: OpenClawPluginApi): OpenClawPluginSe
 
       // Dual-write: JSONL + SQLite index in real time
       const write = (partial: Parameters<typeof writeJsonl>[0]) => {
-        writeJsonl(partial);
+        // writeJsonl assigns id/ts/seq and returns the fully-constructed event.
+        const event = writeJsonl(partial);
         // Index synchronously — better-sqlite3 is synchronous by design
         if (indexer) {
-          // We need the full event as written by the JSONL writer.
-          // Re-parse approach: the writer assigned id/ts/seq so we call write
-          // and also capture. Simplest approach: build the event here too.
-          // The JSONL writer does this internally; we duplicate the minimal
-          // fields needed for indexEvent.
           // NOTE: This is a best-effort in-process index; catch-up on restart
           // handles any gaps from crashes.
           try {
-            const event = {
-              id: generateEventId(),
-              ts: Date.now(),
-              seq: 0,
-              agentId: partial.agentId ?? "unknown",
-              sessionKey: partial.sessionKey ?? "unknown",
-              sessionId: partial.sessionId ?? "unknown",
-              runId: partial.runId,
-              kind: partial.kind,
-              stream: partial.stream,
-              data: partial.data ?? {},
-              error: partial.error,
-              source: partial.source ?? "hook",
-              hookName: partial.hookName,
-              blobRefs: partial.blobRefs,
-            };
             indexer.indexEvent(event);
           } catch {
             // In-memory indexing failure is non-fatal; catch-up handles it.

@@ -57,6 +57,8 @@ type ModelCallRow = {
   model: string | null;
   input_tokens: number | null;
   output_tokens: number | null;
+  cache_read_tokens: number | null;
+  cache_write_tokens: number | null;
   total_tokens: number | null;
   cost_usd: number | null;
   duration_ms: number | null;
@@ -152,6 +154,8 @@ export type ModelCallSummary = {
   model: string | null;
   inputTokens: number | null;
   outputTokens: number | null;
+  cacheReadTokens: number | null;
+  cacheWriteTokens: number | null;
   totalTokens: number | null;
   costUsd: number | null;
   durationMs: number | null;
@@ -233,6 +237,8 @@ function rowToModelCallSummary(row: ModelCallRow): ModelCallSummary {
     model: row.model ?? null,
     inputTokens: row.input_tokens ?? null,
     outputTokens: row.output_tokens ?? null,
+    cacheReadTokens: row.cache_read_tokens ?? null,
+    cacheWriteTokens: row.cache_write_tokens ?? null,
     totalTokens: row.total_tokens ?? null,
     costUsd: row.cost_usd ?? null,
     durationMs: row.duration_ms ?? null,
@@ -385,7 +391,11 @@ export function getModelCalls(db: Db, opts: GetModelCallsOptions = {}): ModelCal
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const sql = `SELECT * FROM model_calls ${where} ORDER BY call_index ASC LIMIT ?`;
+  const sql = `
+    SELECT id, run_id, session_key, call_index, provider, model,
+           input_tokens, output_tokens, cache_read_tokens, cache_write_tokens,
+           total_tokens, cost_usd, duration_ms, ts
+    FROM model_calls ${where} ORDER BY call_index ASC LIMIT ?`;
   params.push(limit);
 
   const rows = db.prepare<unknown[], ModelCallRow>(sql).all(...params);
@@ -400,6 +410,11 @@ export type GetSessionTimelineOptions = {
 /**
  * Get all events for a session, ordered by ts then seq (raw event rows).
  * Returns parsed TelemetryEvent-like objects (id, kind, ts, data).
+ *
+ * Includes events stored with null session_key but a run_id belonging to
+ * this session (e.g. tool.start / llm.input written from hook contexts where
+ * ctx.sessionKey was not available). Uses UNION to avoid duplicates for rows
+ * that match both conditions.
  */
 export function getSessionTimeline(
   db: Db,
@@ -407,18 +422,33 @@ export function getSessionTimeline(
   opts: GetSessionTimelineOptions = {},
 ): Array<{ id: string; kind: string; ts: number; runId: string | null; data: unknown }> {
   const { limit = 500, kinds } = opts;
-  const params: unknown[] = [sessionKey];
   let kindsClause = "";
+  const kindParams: unknown[] = [];
 
   if (kinds && kinds.length > 0) {
     kindsClause = ` AND kind IN (${kinds.map(() => "?").join(",")})`;
-    params.push(...kinds);
+    kindParams.push(...kinds);
   }
 
-  params.push(limit);
-  const sql = `SELECT id, kind, ts, run_id, data FROM events
-               WHERE session_key = ?${kindsClause}
-               ORDER BY ts ASC, rowid ASC LIMIT ?`;
+  // First branch: events with a direct session_key match.
+  // Second branch: events with null session_key but a run_id that belongs
+  // to this session (handles tool/llm events where ctx.sessionKey was null).
+  // UNION (not UNION ALL) deduplicates rows that match both branches.
+  // rowid cannot be used in ORDER BY inside a UNION, so we wrap in a subquery.
+  const params: unknown[] = [sessionKey, ...kindParams, sessionKey, ...kindParams, limit];
+
+  const sql = `
+    SELECT id, kind, ts, run_id, data FROM (
+      SELECT id, kind, ts, run_id, data, rowid FROM events
+      WHERE session_key = ?${kindsClause}
+      UNION
+      SELECT id, kind, ts, run_id, data, rowid FROM events
+      WHERE session_key IS NULL
+        AND run_id IN (SELECT run_id FROM runs WHERE session_key = ?)${kindsClause}
+    )
+    ORDER BY ts ASC, rowid ASC
+    LIMIT ?
+  `;
 
   const rows = db.prepare<unknown[], EventRow>(sql).all(...params);
   return rows.map((r) => ({
@@ -666,6 +696,8 @@ export type CostBreakdown = {
   callCount: number;
   inputTokens: number;
   outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
   totalTokens: number;
   totalCostUsd: number;
 };
@@ -774,6 +806,8 @@ type CostRow = {
   call_count: number;
   input_tokens: number | null;
   output_tokens: number | null;
+  cache_read_tokens: number | null;
+  cache_write_tokens: number | null;
   total_tokens: number | null;
   total_cost_usd: number | null;
 };
@@ -857,6 +891,24 @@ export function listSessions(db: Db, opts: ListSessionsOptions = {}): SessionSum
     params.push(until);
   }
 
+  // Build cost subquery filters matching the outer filters for consistency.
+  // model_calls has no agent_id column, so agentId is applied via run_id lookup.
+  const costConds: string[] = ["mc.session_key = r.session_key"];
+  const costParams: unknown[] = [];
+  if (agentId) {
+    costConds.push("mc.run_id IN (SELECT run_id FROM runs WHERE agent_id = ?)");
+    costParams.push(agentId);
+  }
+  if (since !== undefined) {
+    costConds.push("mc.ts >= ?");
+    costParams.push(since);
+  }
+  if (until !== undefined) {
+    costConds.push("mc.ts <= ?");
+    costParams.push(until);
+  }
+  const costWhere = costConds.join(" AND ");
+
   const where = `WHERE ${conditions.join(" AND ")}`;
   const sql = `
     SELECT
@@ -870,16 +922,20 @@ export function listSessions(db: Db, opts: ListSessionsOptions = {}): SessionSum
       COALESCE(SUM(r.duration_ms), 0) as total_duration_ms,
       SUM(CASE WHEN r.error IS NOT NULL THEN 1 ELSE 0 END) as error_count,
       (SELECT COALESCE(SUM(mc.cost_usd), 0) FROM model_calls mc
-       WHERE mc.session_key = r.session_key) as total_cost_usd
+       WHERE ${costWhere}) as total_cost_usd
     FROM runs r
     ${where}
     GROUP BY r.session_key
     ORDER BY last_activity_at DESC
     LIMIT ?
   `;
-  params.push(limit);
+  // Bind order matches lexical left-to-right ? placeholder order:
+  // 1. costParams (subquery in SELECT list, appears before outer WHERE)
+  // 2. params (outer WHERE conditions)
+  // 3. limit (trailing LIMIT ?)
+  const allParams = [...costParams, ...params, limit];
 
-  const rows = db.prepare<unknown[], SessionAggRow>(sql).all(...params);
+  const rows = db.prepare<unknown[], SessionAggRow>(sql).all(...allParams);
   return rows.map((r) => ({
     sessionKey: r.session_key,
     agentId: r.agent_id ?? null,
@@ -892,6 +948,89 @@ export function listSessions(db: Db, opts: ListSessionsOptions = {}): SessionSum
     errorCount: r.error_count,
     totalCostUsd: r.total_cost_usd ?? 0,
   }));
+}
+
+/**
+ * Count distinct sessions matching the given filters.
+ * Uses COUNT(DISTINCT session_key) — O(index scan), no row materialisation.
+ */
+export function countSessions(db: Db, opts: Omit<ListSessionsOptions, "limit"> = {}): number {
+  const { sessionKey, agentId, since, until } = opts;
+  const conditions: string[] = ["session_key IS NOT NULL"];
+  const params: unknown[] = [];
+
+  if (sessionKey) {
+    conditions.push("session_key = ?");
+    params.push(sessionKey);
+  }
+  if (agentId) {
+    conditions.push("agent_id = ?");
+    params.push(agentId);
+  }
+  if (since !== undefined) {
+    conditions.push("started_at >= ?");
+    params.push(since);
+  }
+  if (until !== undefined) {
+    conditions.push("COALESCE(ended_at, started_at) <= ?");
+    params.push(until);
+  }
+
+  const where = `WHERE ${conditions.join(" AND ")}`;
+  const sql = `SELECT COUNT(DISTINCT session_key) as cnt FROM runs ${where}`;
+  const row = db.prepare<unknown[], { cnt: number }>(sql).get(...params);
+  return row?.cnt ?? 0;
+}
+
+/**
+ * Count errors across runs and tool calls matching the given filters.
+ * Uses COUNT(*) on each half of the UNION — O(index scan), no row materialisation.
+ */
+export function countErrors(db: Db, opts: Omit<ListErrorsOptions, "limit"> = {}): number {
+  const { since, sessionKey, runId, agentId } = opts;
+
+  const runConds: string[] = ["error IS NOT NULL"];
+  const toolConds: string[] = ["is_error = 1"];
+  const runParams: unknown[] = [];
+  const toolParams: unknown[] = [];
+
+  if (since !== undefined) {
+    runConds.push("COALESCE(ended_at, started_at) >= ?");
+    runParams.push(since);
+    toolConds.push("COALESCE(ended_at, started_at) >= ?");
+    toolParams.push(since);
+  }
+  if (sessionKey) {
+    runConds.push("session_key = ?");
+    runParams.push(sessionKey);
+    toolConds.push("session_key = ?");
+    toolParams.push(sessionKey);
+  }
+  if (runId) {
+    runConds.push("run_id = ?");
+    runParams.push(runId);
+    toolConds.push("run_id = ?");
+    toolParams.push(runId);
+  }
+  if (agentId) {
+    runConds.push("agent_id = ?");
+    runParams.push(agentId);
+    toolConds.push("run_id IN (SELECT run_id FROM runs WHERE agent_id = ?)");
+    toolParams.push(agentId);
+  }
+
+  const runWhere = `WHERE ${runConds.join(" AND ")}`;
+  const toolWhere = `WHERE ${toolConds.join(" AND ")}`;
+
+  const sql = `
+    SELECT
+      (SELECT COUNT(*) FROM runs ${runWhere}) +
+      (SELECT COUNT(*) FROM tool_calls ${toolWhere})
+    AS cnt
+  `;
+  const allParams = [...runParams, ...toolParams];
+  const row = db.prepare<unknown[], { cnt: number }>(sql).get(...allParams);
+  return row?.cnt ?? 0;
 }
 
 /**
@@ -980,6 +1119,8 @@ export function getCostBreakdown(db: Db, opts: GetCostBreakdownOptions = {}): Co
       COUNT(*) as call_count,
       COALESCE(SUM(mc.input_tokens), 0) as input_tokens,
       COALESCE(SUM(mc.output_tokens), 0) as output_tokens,
+      SUM(mc.cache_read_tokens) as cache_read_tokens,
+      SUM(mc.cache_write_tokens) as cache_write_tokens,
       COALESCE(SUM(mc.total_tokens), 0) as total_tokens,
       COALESCE(SUM(mc.cost_usd), 0) as total_cost_usd
     FROM ${fromClause}
@@ -996,6 +1137,8 @@ export function getCostBreakdown(db: Db, opts: GetCostBreakdownOptions = {}): Co
     callCount: r.call_count,
     inputTokens: r.input_tokens ?? 0,
     outputTokens: r.output_tokens ?? 0,
+    cacheReadTokens: r.cache_read_tokens ?? 0,
+    cacheWriteTokens: r.cache_write_tokens ?? 0,
     totalTokens: r.total_tokens ?? 0,
     totalCostUsd: r.total_cost_usd ?? 0,
   }));

@@ -107,6 +107,8 @@ export function registerCostCollector(api: OpenClawPluginApi, store: CostTracker
             totalDurationMs: evt.llm.totalDurationMs,
             inputTokens: evt.llm.inputTokens,
             outputTokens: evt.llm.outputTokens,
+            cacheReadTokens: evt.llm.cacheReadTokens,
+            cacheWriteTokens: evt.llm.cacheWriteTokens,
             costUsd: evt.llm.costUsd,
           }
         : undefined,

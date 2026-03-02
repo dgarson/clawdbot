@@ -11,6 +11,8 @@ export type ExtensionUsageEntry = {
     totalDurationMs?: number;
     inputTokens?: number;
     outputTokens?: number;
+    cacheReadTokens?: number;
+    cacheWriteTokens?: number;
     costUsd?: number;
   };
   billing?: {

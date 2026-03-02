@@ -69,3 +69,5 @@ export type TelemetryReplayState = {
 };
 
 export type TelemetryCostGroupBy = "model" | "provider" | "day" | "session";
+
+export type TelemetrySessionGroupBy = "all" | "agent" | "trigger";

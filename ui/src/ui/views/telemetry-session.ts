@@ -19,6 +19,11 @@ export type TelemetrySessionDetailProps = {
   onPlayPause: () => void;
   onSpeedChange: (speed: number) => void;
   onSeek: (index: number) => void;
+  selectedEvent: TelemetryTimelineEvent | null;
+  onEventSelect: (event: TelemetryTimelineEvent | null) => void;
+  contextTokens: number;
+  contextMax: number;
+  compactionCount: number;
 };
 
 /** Session-detail timestamp format with subsecond precision. */
@@ -53,6 +58,26 @@ function kindClass(kind: string): string {
     return "telem-event--error";
   }
   return "telem-event--default";
+}
+
+/** Return the pill modifier class for an event kind badge. */
+function kindPillClass(kind: string): string {
+  if (kind.startsWith("run.")) {
+    return "telem-pill--run";
+  }
+  if (kind.startsWith("tool.")) {
+    return "telem-pill--tool";
+  }
+  if (kind.startsWith("llm.") || kind.startsWith("model.")) {
+    return "telem-pill--llm";
+  }
+  if (kind.startsWith("message.")) {
+    return "telem-pill--message";
+  }
+  if (kind === "error" || kind.includes("error")) {
+    return "telem-pill--danger";
+  }
+  return "";
 }
 
 function kindIcon(kind: string): string {
@@ -106,12 +131,91 @@ function renderDataPreview(
   `;
 }
 
+/** Render a single value inside the slide-out detail list. */
+function renderDetailValue(val: unknown): TemplateResult {
+  if (val === null || val === undefined) {
+    return html`
+      <span class="telem-detail-null">—</span>
+    `;
+  }
+  if (typeof val === "string") {
+    if (val.length > 120) {
+      return html`<pre class="telem-event-code">${val}</pre>`;
+    }
+    return html`<span>${val}</span>`;
+  }
+  if (typeof val === "number" || typeof val === "boolean") {
+    return html`<span>${String(val)}</span>`;
+  }
+  // Object / array: pretty-print as JSON in a code block
+  const json = JSON.stringify(val, null, 2);
+  return html`<pre class="telem-event-code">${json}</pre>`;
+}
+
+/** Slide-out panel showing full event data. */
+function renderEventSlideout(
+  event: TelemetryTimelineEvent | null,
+  onClose: () => void,
+): TemplateResult {
+  const isOpen = event != null;
+  const pillClass = event ? kindPillClass(event.kind) : "";
+  return html`
+    <div class="telem-slideout ${isOpen ? "telem-slideout--open" : ""}">
+      <div class="telem-slideout-backdrop" @click=${onClose}></div>
+      <div class="telem-slideout-panel">
+        ${
+          isOpen && event
+            ? html`
+            <div class="telem-slideout-header">
+              <span class="telem-pill ${pillClass}">${event.kind}</span>
+              <span class="telem-slideout-time">${formatTimestamp(event.timestamp)}</span>
+              <button class="telem-slideout-close" @click=${onClose} aria-label="Close">&#x2715;</button>
+            </div>
+            <div class="telem-slideout-body">
+              <dl class="telem-event-detail-list">
+                <dt>id</dt>
+                <dd>${event.id}</dd>
+                <dt>timestamp</dt>
+                <dd><span style="font-family: var(--mono); font-size: 0.72rem;">${event.timestamp}</span></dd>
+                <dt>kind</dt>
+                <dd>${event.kind}</dd>
+                ${
+                  event.duration != null
+                    ? html`<dt>duration</dt><dd>${event.duration}ms</dd>`
+                    : nothing
+                }
+                ${
+                  event.data
+                    ? Object.entries(event.data).map(
+                        ([key, val]) => html`
+                        <dt>${key}</dt>
+                        <dd>${renderDetailValue(val)}</dd>
+                      `,
+                      )
+                    : nothing
+                }
+              </dl>
+            </div>
+          `
+            : nothing
+        }
+      </div>
+    </div>
+  `;
+}
+
 function renderSessionHeader(
   sessionKey: string,
   sessions: TelemetrySessionSummary[],
+  contextTokens: number,
+  contextMax: number,
+  compactionCount: number,
   onBack: () => void,
 ): TemplateResult {
   const session = sessions.find((s) => s.key === sessionKey);
+  const contextPct = contextMax > 0 ? Math.min(100, (contextTokens / contextMax) * 100) : 0;
+  const contextPctRounded = Math.round(contextPct);
+
   return html`
     <div class="telem-detail-header">
       <button class="btn btn--sm telem-back-btn" @click=${onBack}>
@@ -124,11 +228,31 @@ function renderSessionHeader(
             ? html`
               <div class="telem-detail-stats">
                 <span class="telem-detail-stat">Agent: <strong>${session.agentId ?? "default"}</strong></span>
-                <span class="telem-detail-stat">Runs: <strong>${session.runCount}</strong></span>
-                <span class="telem-detail-stat">Tokens: <strong>${formatNumber(session.totalTokens)}</strong></span>
-                <span class="telem-detail-stat">Cost: <strong>${formatCost(session.totalCost)}</strong></span>
+                <span class="telem-detail-stat">Runs: <strong style="font-size:0.95rem;font-weight:600;font-variant-numeric:tabular-nums">${session.runCount}</strong></span>
+                <span class="telem-detail-stat">Tokens: <strong style="font-size:0.95rem;font-weight:600;font-variant-numeric:tabular-nums">${session.totalTokens > 0 ? formatNumber(session.totalTokens) : "—"}</strong></span>
+                <span class="telem-detail-stat">Cost: <strong style="font-size:0.95rem;font-weight:600;font-variant-numeric:tabular-nums">${session.totalCost > 0 ? formatCost(session.totalCost) : "—"}</strong></span>
                 ${session.errorCount > 0 ? html`<span class="telem-detail-stat telem-detail-stat--danger">Errors: <strong>${session.errorCount}</strong></span>` : nothing}
+                ${
+                  compactionCount > 0
+                    ? html`<span class="telem-pill telem-pill--compact" title="Context compacted ${compactionCount} time(s)">&circlearrowleft; ${compactionCount} compaction${compactionCount > 1 ? "s" : ""}</span>`
+                    : nothing
+                }
               </div>
+              ${
+                contextTokens > 0
+                  ? html`
+                  <div class="telem-context-bar-wrap" title="Context: ${contextTokens.toLocaleString()} / ${contextMax.toLocaleString()} tokens">
+                    <div class="telem-context-bar-label">
+                      <span>Context</span>
+                      <span>${contextPctRounded}%</span>
+                    </div>
+                    <div class="telem-context-bar-track">
+                      <div class="telem-context-bar-fill ${contextPct >= 80 ? "warn" : ""}" style="width: ${contextPct}%"></div>
+                    </div>
+                  </div>
+                `
+                  : nothing
+              }
             `
             : nothing
         }
@@ -149,7 +273,16 @@ function renderPlaybackControls(
   const progress = totalEvents > 0 ? (replay.currentIndex / totalEvents) * 100 : 0;
 
   return html`
-    <div class="telem-playback">
+    <div
+      class="telem-playback"
+      tabindex="0"
+      @keydown=${(e: KeyboardEvent) => {
+        if (e.code === "Space") {
+          e.preventDefault();
+          onPlayPause();
+        }
+      }}
+    >
       <button class="btn btn--sm telem-play-btn" @click=${onPlayPause}>
         ${replay.playing ? "\u23F8 Pause" : "\u25B6 Play"}
       </button>
@@ -187,6 +320,7 @@ function renderTimeline(
   events: TelemetryTimelineEvent[],
   loading: boolean,
   replay: TelemetryReplayState,
+  onEventSelect: (event: TelemetryTimelineEvent | null) => void,
 ): TemplateResult {
   if (loading) {
     return html`
@@ -215,15 +349,19 @@ function renderTimeline(
       <div class="telem-timeline">
         ${visibleEvents.map(
           (evt) => html`
-            <div class="telem-event ${kindClass(evt.kind)}">
+            <div
+              class="telem-event ${kindClass(evt.kind)}"
+              style="cursor: pointer"
+              @click=${() => onEventSelect(evt)}
+            >
               <div class="telem-event-connector">
                 <span class="telem-event-icon">${kindIcon(evt.kind)}</span>
                 <div class="telem-event-line"></div>
               </div>
               <div class="telem-event-body">
                 <div class="telem-event-header">
-                  <span class="telem-event-kind">${evt.kind}</span>
-                  <span class="telem-event-time">${formatTimestamp(evt.timestamp)}</span>
+                  <span class="telem-pill ${kindPillClass(evt.kind)} telem-event-kind-pill">${evt.kind}</span>
+                  <span class="telem-event-time" style="font-family: var(--mono); font-size: 0.72rem;">${formatTimestamp(evt.timestamp)}</span>
                   ${evt.duration != null ? html`<span class="telem-event-duration">${evt.duration}ms</span>` : nothing}
                 </div>
                 ${renderDataPreview(evt.data)}
@@ -231,6 +369,9 @@ function renderTimeline(
             </div>
           `,
         )}
+      </div>
+      <div class="telem-timeline-footer">
+        Showing ${visibleEvents.length} of ${events.length} events
       </div>
     </div>
   `;
@@ -272,11 +413,31 @@ function renderSubagentTree(
   `;
 }
 
+// -- Attachments placeholder --
+function renderAttachments(): TemplateResult {
+  return html`
+    <div class="card telem-attachments-card">
+      <div class="telem-card-header">
+        <div class="card-title">Attachments &amp; Deliverables</div>
+        <span class="telem-badge telem-badge--muted">Coming soon</span>
+      </div>
+      <div class="telem-empty">Files produced or consumed by this session will appear here.</div>
+    </div>
+  `;
+}
+
 // -- Main session detail render --
 export function renderTelemetrySessionDetail(props: TelemetrySessionDetailProps): TemplateResult {
   return html`
     <div class="telem-session-detail">
-      ${renderSessionHeader(props.sessionKey, props.sessions, props.onBack)}
+      ${renderSessionHeader(
+        props.sessionKey,
+        props.sessions,
+        props.contextTokens,
+        props.contextMax,
+        props.compactionCount,
+        props.onBack,
+      )}
 
       ${renderPlaybackControls(
         props.replay,
@@ -286,9 +447,13 @@ export function renderTelemetrySessionDetail(props: TelemetrySessionDetailProps)
         props.onSeek,
       )}
 
-      ${renderTimeline(props.timeline, props.timelineLoading, props.replay)}
+      ${renderTimeline(props.timeline, props.timelineLoading, props.replay, props.onEventSelect)}
 
       ${renderSubagentTree(props.tree, props.treeLoading)}
+
+      ${renderAttachments()}
+
+      ${renderEventSlideout(props.selectedEvent, () => props.onEventSelect(null))}
     </div>
   `;
 }

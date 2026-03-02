@@ -5,6 +5,7 @@ import type {
   TelemetryErrorEntry,
   TelemetryLeaderboardEntry,
   TelemetryReplayState,
+  TelemetrySessionGroupBy,
   TelemetrySessionSummary,
   TelemetrySubagentNode,
   TelemetryTimelineEvent,
@@ -38,6 +39,9 @@ export type TelemetryState = {
   // Active sessions monitoring
   telemetryActiveMonitor: boolean;
   telemetryActiveInterval: number | null;
+  telemetrySessionGroupBy: TelemetrySessionGroupBy;
+  // Selected event for slide-out panel
+  telemetrySelectedEvent: TelemetryTimelineEvent | null;
 };
 
 function toErrorMessage(err: unknown): string {

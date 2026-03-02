@@ -37,6 +37,20 @@ export function renderTelemetryTab(state: AppViewState) {
 
   if (telState.telemetryView === "session-detail" && telState.telemetrySelectedSessionKey) {
     const ctrl = getReplayController(telState);
+
+    // Derive context token count from the latest llm.call event in the timeline
+    const latestLlmCall = [...telState.telemetryTimeline]
+      .toReversed()
+      .find((e) => e.kind === "llm.call");
+    const contextTokens =
+      (latestLlmCall?.data?.context as { totalTokens?: number } | undefined)?.totalTokens ?? 0;
+    const contextMax = 200000;
+
+    // Count compaction.start events
+    const compactionCount = telState.telemetryTimeline.filter(
+      (e) => e.kind === "compaction.start",
+    ).length;
+
     return renderTelemetrySessionDetail({
       sessionKey: telState.telemetrySelectedSessionKey,
       sessions: telState.telemetrySessions,
@@ -45,10 +59,18 @@ export function renderTelemetryTab(state: AppViewState) {
       replay: telState.telemetryReplay,
       tree: telState.telemetryTree,
       treeLoading: telState.telemetryTreeLoading,
+      selectedEvent: telState.telemetrySelectedEvent,
+      onEventSelect: (e) => {
+        telState.telemetrySelectedEvent = e;
+      },
+      contextTokens,
+      contextMax,
+      compactionCount,
       onBack: () => {
         ctrl.stop();
         telState.telemetryView = "dashboard";
         telState.telemetrySelectedSessionKey = null;
+        telState.telemetrySelectedEvent = null;
         telState.telemetryTimeline = [];
         telState.telemetryTree = [];
         telState.telemetryReplay = { playing: false, speed: 1, currentIndex: 0 };
@@ -79,6 +101,7 @@ export function renderTelemetryTab(state: AppViewState) {
     usage: telState.telemetryUsage,
     sessions: telState.telemetrySessions,
     sessionsLoading: telState.telemetrySessionsLoading,
+    sessionGroupBy: telState.telemetrySessionGroupBy,
     costs: telState.telemetryCosts,
     costsLoading: telState.telemetryCostsLoading,
     costGroupBy: telState.telemetryCostGroupBy,
@@ -91,6 +114,9 @@ export function renderTelemetryTab(state: AppViewState) {
     onCostGroupByChange: (groupBy) => {
       telState.telemetryCostGroupBy = groupBy;
       void loadTelemetryCosts(telState);
+    },
+    onSessionGroupByChange: (groupBy) => {
+      telState.telemetrySessionGroupBy = groupBy;
     },
     onSessionClick: (key) => {
       void loadTelemetrySessionDetail(telState, key);

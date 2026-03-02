@@ -52,6 +52,7 @@ import type {
   TelemetryErrorEntry,
   TelemetryLeaderboardEntry,
   TelemetryReplayState,
+  TelemetrySessionGroupBy,
   TelemetrySessionSummary,
   TelemetrySubagentNode,
   TelemetryTimelineEvent,
@@ -237,6 +238,8 @@ export type AppViewState = {
   telemetryTreeLoading: boolean;
   telemetryActiveMonitor: boolean;
   telemetryActiveInterval: number | null;
+  telemetrySessionGroupBy: TelemetrySessionGroupBy;
+  telemetrySelectedEvent: TelemetryTimelineEvent | null;
   cronLoading: boolean;
   cronJobsLoadingMore: boolean;
   cronJobs: CronJob[];

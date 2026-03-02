@@ -340,7 +340,59 @@ export function indexEvent(db: Db, event: TelemetryEvent): void {
     }
 
     case "llm.call":
-    case "usage.snapshot":
+    case "usage.snapshot": {
+      // Token counts may be at top level (d.inputTokens) or nested under d.delta
+      // or d.cumulative (from model.call diagnostic events), or under d.usage
+      // (from usage.snapshot). Check all three locations in priority order.
+      const delta =
+        d.delta && typeof d.delta === "object" ? (d.delta as Record<string, unknown>) : {};
+      const cumulative =
+        d.cumulative && typeof d.cumulative === "object"
+          ? (d.cumulative as Record<string, unknown>)
+          : {};
+      const usageNested =
+        d.usage && typeof d.usage === "object" ? (d.usage as Record<string, unknown>) : {};
+      // Prefer cumulative > delta > top-level > usage-nested for token fields.
+      const inputTokens = safeNum(
+        cumulative.inputTokens ??
+          cumulative.input ??
+          delta.inputTokens ??
+          delta.input ??
+          d.inputTokens ??
+          usageNested.input,
+      );
+      const outputTokens = safeNum(
+        cumulative.outputTokens ??
+          cumulative.output ??
+          delta.outputTokens ??
+          delta.output ??
+          d.outputTokens ??
+          usageNested.output,
+      );
+      const cacheReadTokens = safeNum(
+        cumulative.cacheReadTokens ??
+          cumulative.cacheRead ??
+          delta.cacheReadTokens ??
+          delta.cacheRead ??
+          d.cacheReadTokens ??
+          usageNested.cacheRead,
+      );
+      const cacheWriteTokens = safeNum(
+        cumulative.cacheWriteTokens ??
+          cumulative.cacheWrite ??
+          delta.cacheWriteTokens ??
+          delta.cacheWrite ??
+          d.cacheWriteTokens ??
+          usageNested.cacheWrite,
+      );
+      const totalTokens = safeNum(
+        cumulative.totalTokens ??
+          cumulative.total ??
+          delta.totalTokens ??
+          delta.total ??
+          d.totalTokens ??
+          usageNested.total,
+      );
       db.prepare(
         `INSERT OR IGNORE INTO model_calls
            (id, run_id, session_key, call_index, provider, model,
@@ -354,16 +406,17 @@ export function indexEvent(db: Db, event: TelemetryEvent): void {
         safeNum(d.callIndex),
         safeStr(d.provider),
         safeStr(d.model),
-        safeNum(d.inputTokens ?? (d.usage as Record<string, unknown> | undefined)?.input),
-        safeNum(d.outputTokens ?? (d.usage as Record<string, unknown> | undefined)?.output),
-        safeNum(d.cacheReadTokens ?? (d.usage as Record<string, unknown> | undefined)?.cacheRead),
-        safeNum(d.cacheWriteTokens ?? (d.usage as Record<string, unknown> | undefined)?.cacheWrite),
-        safeNum(d.totalTokens ?? (d.usage as Record<string, unknown> | undefined)?.total),
+        inputTokens,
+        outputTokens,
+        cacheReadTokens,
+        cacheWriteTokens,
+        totalTokens,
         typeof d.costUsd === "number" ? d.costUsd : null,
         safeNum(d.durationMs),
         event.ts,
       );
       break;
+    }
 
     default:
       // session.start, session.end, compaction.start, compaction.end, error, etc.
