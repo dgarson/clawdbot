@@ -24,6 +24,7 @@ import {
   resolveAgentRoleFromConfig,
   validateSpawn,
 } from "./src/orchestration/lifecycle.js";
+import { runMemoryReflector } from "./src/orchestration/memory-reflector.js";
 import { buildRoleContext, type SkillRoleInstructions } from "./src/orchestration/priming.js";
 import { ROLE_MODEL_OVERRIDES } from "./src/orchestration/roles.js";
 import { loadOrchestrateSkill } from "./src/orchestration/skill-loader.js";
@@ -568,6 +569,37 @@ const plugin = {
           s.status = "completed";
         });
       });
+
+      // Hook: end-of-session memory reflection (fire-and-forget)
+      if (config.memoryFeedback?.enabled) {
+        api.on("agent_end", (event, ctx) => {
+          if (!ctx.agentId || !ctx.sessionKey || !stateDir) return;
+
+          // Skip aborted runs with no content
+          const assistantTexts = event.assistantTexts ?? [];
+          const toolMetas = event.toolMetas ?? [];
+          if (!event.success && assistantTexts.length === 0 && toolMetas.length === 0) return;
+
+          runMemoryReflector(
+            config.memoryFeedback!,
+            {
+              agentId: ctx.agentId,
+              sessionKey: ctx.sessionKey,
+              runId: event.runId ?? `${ctx.agentId}-${Date.now()}`,
+              stateDir,
+            },
+            {
+              assistantTexts,
+              toolMetas,
+              messages: event.messages,
+              sessionFile: event.sessionFile,
+              systemPromptText: event.systemPromptText,
+            },
+          ).catch((err) => {
+            api.logger.warn(`[agent-orchestrator] memory-reflector failed: ${err}`);
+          });
+        });
+      }
 
       // Hook: config-driven role bootstrap + role context injection + memory search nudge (priority 90)
       // Role bootstrap (was priority 95) is inlined as the first step so that config-driven role
