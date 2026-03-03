@@ -10,11 +10,12 @@ const SHORTCUT_GROUPS = [
   {
     group: "Navigation",
     shortcuts: [
-      { keys: ["⌘K"], description: "Open command palette" },
-      { keys: ["Alt", "1–9"], description: "Jump to first 9 views" },
+      { keys: ["⌘K / Ctrl+K"], description: "Open command palette" },
+      { keys: ["Alt", "1–9"], description: "Jump to quick views" },
       { keys: ["Alt", "←"], description: "Go back" },
       { keys: ["Alt", "→"], description: "Go forward" },
-      { keys: ["[", "]"], description: "Collapse / expand sidebar" },
+      { keys: ["["], description: "Collapse sidebar" },
+      { keys: ["]"], description: "Expand sidebar" },
     ],
   },
   {

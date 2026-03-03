@@ -25,6 +25,7 @@ const mocks = vi.hoisted(() => ({
   fsAccess: vi.fn(async () => {}),
   fsMkdir: vi.fn(async () => undefined),
   fsAppendFile: vi.fn(async () => {}),
+  fsWriteFile: vi.fn(async () => {}),
   fsReadFile: vi.fn(async () => ""),
   fsStat: vi.fn(async () => null),
 }));
@@ -83,6 +84,7 @@ vi.mock("node:fs/promises", async () => {
     access: mocks.fsAccess,
     mkdir: mocks.fsMkdir,
     appendFile: mocks.fsAppendFile,
+    writeFile: mocks.fsWriteFile,
     readFile: mocks.fsReadFile,
     stat: mocks.fsStat,
   };
@@ -296,6 +298,27 @@ describe("agents.create", () => {
     expect(mocks.fsAppendFile).toHaveBeenCalledWith(
       expect.stringContaining("IDENTITY.md"),
       expect.stringMatching(/- Name: Fancy Agent[\s\S]*- Emoji: 🤖[\s\S]*- Avatar:/),
+      "utf-8",
+    );
+  });
+
+  it("writes generated avatar image to the workspace when avatarDataUrl is provided", async () => {
+    const { promise } = makeCall("agents.create", {
+      name: "Avatar Agent",
+      workspace: "/tmp/avatar-agent",
+      emoji: "🤖",
+      avatarDataUrl: "data:image/png;base64,AA==",
+      avatarFilename: "avatars/custom-avatar.png",
+    });
+    await promise;
+
+    expect(mocks.fsWriteFile).toHaveBeenCalledWith(
+      "/resolved/tmp/avatar-agent/avatars/custom-avatar.png",
+      expect.any(Buffer),
+    );
+    expect(mocks.fsAppendFile).toHaveBeenCalledWith(
+      "/resolved/tmp/avatar-agent/IDENTITY.md",
+      expect.stringContaining("- Avatar: avatars/custom-avatar.png"),
       "utf-8",
     );
   });

@@ -36,6 +36,7 @@ channels, and skills. Docs:
 Use the OpenClaw app when you want a fully guided setup on macOS. Docs:
 
 - [Onboarding (macOS App)](/start/onboarding)
+- [Onboarding Tour — UX Spec & Requirements](/start/onboarding-tour-spec)
 - [Onboarding Tour Copy Deck](/start/onboarding-tour-copy)
 
 ## Custom Provider
