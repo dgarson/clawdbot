@@ -1,0 +1,198 @@
+{
+  "id": "ocx-observability",
+  "name": "Observability",
+  "description": "OTEL bridge, agent health monitoring, anomaly detection, and reaper policies.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "otlpEndpoint": {
+        "type": "string",
+        "default": "http://localhost:4318",
+        "description": "OTLP HTTP endpoint for trace, metric, and log export"
+      },
+      "otlpProtocol": {
+        "type": "string",
+        "enum": ["http", "grpc"],
+        "default": "http",
+        "description": "OTLP transport protocol"
+      },
+      "serviceName": {
+        "type": "string",
+        "default": "openclaw-agents",
+        "description": "OTEL service name attribute"
+      },
+      "healthCheckIntervalSeconds": {
+        "type": "number",
+        "minimum": 5,
+        "default": 30,
+        "description": "Interval between health evaluations (seconds)"
+      },
+      "stuckTimeoutMinutes": {
+        "type": "number",
+        "minimum": 1,
+        "default": 15,
+        "description": "No events for this duration marks an agent as stuck"
+      },
+      "tokenSpikeMultiplier": {
+        "type": "number",
+        "minimum": 1.0,
+        "default": 3.0,
+        "description": "Token usage multiplier over moving average to trigger rogue signal"
+      },
+      "tokenMovingAvgWindowMinutes": {
+        "type": "number",
+        "minimum": 5,
+        "default": 60,
+        "description": "Moving average window for token usage baseline"
+      },
+      "errorRateThreshold": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0.2,
+        "description": "Error rate threshold for degraded signal"
+      },
+      "errorRateWindowMinutes": {
+        "type": "number",
+        "minimum": 1,
+        "default": 30,
+        "description": "Error rate measurement window (minutes)"
+      },
+      "budgetDegradedThreshold": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0.8,
+        "description": "Budget utilization threshold for degraded signal"
+      },
+      "maxConsecutiveToolFailures": {
+        "type": "number",
+        "minimum": 1,
+        "default": 5,
+        "description": "Consecutive tool failures triggering degraded signal"
+      },
+      "toolLoopCallThreshold": {
+        "type": "number",
+        "minimum": 2,
+        "default": 10,
+        "description": "Same tool called N times to trigger tool loop anomaly"
+      },
+      "toolLoopWindowMinutes": {
+        "type": "number",
+        "minimum": 1,
+        "default": 5,
+        "description": "Window for tool loop detection (minutes)"
+      },
+      "heartbeatTimeoutMinutes": {
+        "type": "number",
+        "minimum": 1,
+        "default": 10,
+        "description": "Heartbeat timeout for zombie detection (minutes)"
+      },
+      "reaperEnabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable the reaper auto-remediation engine"
+      },
+      "reaperPoliciesFile": {
+        "type": "string",
+        "default": "reaper-policies.json",
+        "description": "Path to custom reaper policies JSON file"
+      },
+      "suppressionCooldownMinutes": {
+        "type": "number",
+        "minimum": 1,
+        "default": 15,
+        "description": "Default alert suppression cooldown (minutes)"
+      },
+      "maxAlertsPerHour": {
+        "type": "number",
+        "minimum": 1,
+        "default": 10,
+        "description": "Default maximum alerts per hour before suppression"
+      }
+    }
+  },
+  "uiHints": {
+    "otlpEndpoint": {
+      "label": "OTLP Endpoint",
+      "help": "HTTP endpoint for OpenTelemetry trace, metric, and log export",
+      "placeholder": "http://localhost:4318"
+    },
+    "otlpProtocol": {
+      "label": "OTLP Protocol",
+      "help": "Transport protocol for OTLP export"
+    },
+    "serviceName": {
+      "label": "Service Name",
+      "help": "OTEL service.name resource attribute"
+    },
+    "healthCheckIntervalSeconds": {
+      "label": "Health Check Interval (sec)",
+      "help": "How often the health monitor evaluates agent state"
+    },
+    "stuckTimeoutMinutes": {
+      "label": "Stuck Timeout (min)",
+      "help": "Agent with no events for this long is marked stuck"
+    },
+    "tokenSpikeMultiplier": {
+      "label": "Token Spike Multiplier",
+      "help": "Token usage must exceed moving average by this factor to trigger rogue signal"
+    },
+    "tokenMovingAvgWindowMinutes": {
+      "label": "Token Avg Window (min)",
+      "help": "Window size for computing the token usage moving average",
+      "advanced": true
+    },
+    "errorRateThreshold": {
+      "label": "Error Rate Threshold",
+      "help": "Error rate (0-1) above which an agent is marked degraded"
+    },
+    "errorRateWindowMinutes": {
+      "label": "Error Rate Window (min)",
+      "help": "Time window for computing error rate",
+      "advanced": true
+    },
+    "budgetDegradedThreshold": {
+      "label": "Budget Degraded Threshold",
+      "help": "Budget utilization ratio (0-1) that triggers a degraded signal"
+    },
+    "maxConsecutiveToolFailures": {
+      "label": "Max Tool Failures",
+      "help": "Consecutive tool failures that trigger a degraded signal"
+    },
+    "toolLoopCallThreshold": {
+      "label": "Tool Loop Threshold",
+      "help": "Same tool called this many times within the window triggers an anomaly"
+    },
+    "toolLoopWindowMinutes": {
+      "label": "Tool Loop Window (min)",
+      "help": "Time window for tool loop detection",
+      "advanced": true
+    },
+    "heartbeatTimeoutMinutes": {
+      "label": "Heartbeat Timeout (min)",
+      "help": "No heartbeat for this long marks an agent as zombie"
+    },
+    "reaperEnabled": {
+      "label": "Enable Reaper",
+      "help": "Enable the auto-remediation policy engine (throttle, pause, terminate)"
+    },
+    "reaperPoliciesFile": {
+      "label": "Reaper Policies File",
+      "help": "Path to custom reaper policies JSON (relative to state dir)",
+      "advanced": true
+    },
+    "suppressionCooldownMinutes": {
+      "label": "Suppression Cooldown (min)",
+      "help": "Default cooldown between repeated alerts for the same signal",
+      "advanced": true
+    },
+    "maxAlertsPerHour": {
+      "label": "Max Alerts/Hour",
+      "help": "Maximum alerts per hour before suppression kicks in",
+      "advanced": true
+    }
+  }
+}

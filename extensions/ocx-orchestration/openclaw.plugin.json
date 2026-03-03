@@ -1,0 +1,71 @@
+{
+  "id": "ocx-orchestration",
+  "name": "Orchestration",
+  "description": "Hierarchical agent teams, task delegation, escalation, sprint lifecycle, and review workflows.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "hierarchyFile": {
+        "type": "string",
+        "description": "Path to default team structure file"
+      },
+      "escalationTimeoutMinutes": {
+        "type": "number",
+        "minimum": 1,
+        "default": 60,
+        "description": "Maximum session duration before escalation timeout triggers"
+      },
+      "maxConsecutiveFailures": {
+        "type": "number",
+        "minimum": 1,
+        "default": 3,
+        "description": "Number of consecutive tool failures before escalation"
+      },
+      "budgetRiskThreshold": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 0.8,
+        "description": "Budget utilization ratio (0-1) that triggers a budget risk escalation"
+      },
+      "defaultSprintDurationDays": {
+        "type": "number",
+        "minimum": 1,
+        "default": 14,
+        "description": "Default sprint duration in days"
+      },
+      "gitWebhookSecret": {
+        "type": "string",
+        "description": "HMAC secret for verifying incoming Git webhook payloads"
+      }
+    }
+  },
+  "uiHints": {
+    "hierarchyFile": {
+      "label": "Hierarchy File",
+      "help": "Path to the JSON file defining the default team/org structure"
+    },
+    "escalationTimeoutMinutes": {
+      "label": "Escalation Timeout (min)",
+      "help": "Maximum session duration in minutes before a timeout escalation fires"
+    },
+    "maxConsecutiveFailures": {
+      "label": "Max Consecutive Failures",
+      "help": "Number of consecutive tool failures before triggering an escalation"
+    },
+    "budgetRiskThreshold": {
+      "label": "Budget Risk Threshold",
+      "help": "Budget utilization ratio (0-1) that triggers a budget risk escalation"
+    },
+    "defaultSprintDurationDays": {
+      "label": "Sprint Duration (days)",
+      "help": "Default duration for new sprints"
+    },
+    "gitWebhookSecret": {
+      "label": "Git Webhook Secret",
+      "help": "HMAC secret used to verify incoming GitHub/Git webhook payloads",
+      "sensitive": true
+    }
+  }
+}
