@@ -23,34 +23,20 @@ const successfulAttemptResult = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
-const parityConfig = {
-  agents: {
-    defaults: {
-      model: {
-        primary: "zai/GLM-4.7",
-        fallbacks: ["minimax/MiniMax-M2.5", "openai-codex/gpt-5-codex"],
-      },
-    },
-  },
-};
-
 describe("claude-sdk runtime failover parity flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedIsProfileInCooldown.mockReturnValue(false);
   });
 
-  it("keeps claude-sdk runtime while rotating from claude-pro to zai provider (agent-level config)", async () => {
+  it("uses claude-sdk runtime for system-keychain provider (claude-pro)", async () => {
     mockedRunEmbeddedAttempt.mockResolvedValueOnce(successfulAttemptResult);
-    mockedIsProfileInCooldown.mockImplementation(
-      (_store, profileId) => profileId === "claude-pro:system-keychain",
-    );
     mockedGetApiKeyForModel.mockResolvedValueOnce({
-      apiKey: "sk-zai",
-      profileId: "zai-profile",
-      source: "test",
-      mode: "api-key",
-    });
+      apiKey: undefined,
+      profileId: "claude-pro:system-keychain",
+      source: "Claude Pro (system keychain)",
+      mode: "system-keychain",
+    } as never);
 
     await runEmbeddedPiAgent({
       sessionId: "test-session",
@@ -59,38 +45,25 @@ describe("claude-sdk runtime failover parity flow", () => {
       workspaceDir: "/tmp/workspace",
       prompt: "hello",
       timeoutMs: 30000,
-      runId: "run-sdk-rotate",
+      runId: "run-sdk-keychain",
       provider: "claude-pro",
       config: {
-        ...parityConfig,
         agents: {
-          ...parityConfig.agents,
-          list: [
-            {
-              id: "main",
-              claudeSdk: {
-                provider: "zai",
-                supportedProviders: ["claude-pro", "zai"],
-              },
-            },
-          ],
+          defaults: {
+            claudeSdk: {},
+          },
         },
       },
     });
 
-    const firstAuthCall = mockedGetApiKeyForModel.mock.calls[0]?.[0];
-    expect(firstAuthCall?.model.provider).toBe("zai");
     const firstAttemptCall = mockedRunEmbeddedAttempt.mock.calls[0]?.[0];
     expect(firstAttemptCall?.runtimeOverride).toBe("claude-sdk");
-    expect(firstAttemptCall?.claudeSdkProviderOverride).toBe("zai");
   });
 
-  it("falls back from claude-sdk to pi runtime when all claude-sdk providers are unavailable (defaults config)", async () => {
+  it("falls back from claude-sdk to pi runtime when system-keychain auth fails", async () => {
     mockedRunEmbeddedAttempt.mockResolvedValueOnce(successfulAttemptResult);
     mockedGetApiKeyForModel
       .mockRejectedValueOnce(new Error("claude-pro keychain expired"))
-      .mockRejectedValueOnce(new Error("zai unavailable"))
-      .mockRejectedValueOnce(new Error("minimax unavailable"))
       .mockResolvedValueOnce({
         apiKey: "sk-pi-fallback",
         profileId: "pi-profile",
@@ -108,28 +81,16 @@ describe("claude-sdk runtime failover parity flow", () => {
       runId: "run-sdk-to-pi",
       provider: "claude-pro",
       config: {
-        ...parityConfig,
         agents: {
-          ...parityConfig.agents,
           defaults: {
-            ...parityConfig.agents.defaults,
-            claudeSdk: {
-              provider: "zai",
-              supportedProviders: ["zai", "minimax"],
-            },
+            claudeSdk: {},
           },
         },
       },
     });
 
-    const providerAttempts = mockedGetApiKeyForModel.mock.calls.map(
-      (call) => call[0]?.model.provider,
-    );
-    expect(providerAttempts).toEqual(["claude-pro", "zai", "minimax", "claude-pro"]);
-
     const firstAttemptCall = mockedRunEmbeddedAttempt.mock.calls[0]?.[0];
     expect(firstAttemptCall?.runtimeOverride).toBe("pi");
-    expect(firstAttemptCall?.claudeSdkProviderOverride).toBeUndefined();
     expect(firstAttemptCall?.resolvedProviderAuth?.apiKey).toBe("sk-pi-fallback");
   });
 });

@@ -11,7 +11,11 @@ import {
 } from "../../claude-sdk-runner/auth-resolution.js";
 import { FailoverError, resolveFailoverStatus } from "../../failover-error.js";
 import { getApiKeyForModel, type ResolvedProviderAuth } from "../../model-auth.js";
-import { classifyFailoverReason, type FailoverReason } from "../../pi-embedded-helpers.js";
+import {
+  classifyFailoverReason,
+  isFailoverErrorMessage,
+  type FailoverReason,
+} from "../../pi-embedded-helpers.js";
 import { log } from "../logger.js";
 import { describeUnknownError } from "../utils.js";
 
@@ -37,7 +41,21 @@ export type RunAuthProfileFailoverController = {
   readonly lastProfileId: string | undefined;
   resolveAuthLookupModel: () => Model<Api>;
   advanceAuthProfile: () => Promise<boolean>;
+  syncCopilotRefreshForCurrentProfile: (reason: string) => Promise<boolean>;
+  maybeRefreshCopilotForAuthError: (errorText: string, retried: boolean) => Promise<boolean>;
+  stopCopilotRefreshTimer: () => void;
 };
+
+type CopilotTokenState = {
+  githubToken: string;
+  expiresAt: number;
+  refreshTimer?: ReturnType<typeof setTimeout>;
+  refreshInFlight?: Promise<void>;
+};
+
+const COPILOT_REFRESH_MARGIN_MS = 5 * 60 * 1000;
+const COPILOT_REFRESH_RETRY_MS = 60 * 1000;
+const COPILOT_REFRESH_MIN_DELAY_MS = 5 * 1000;
 
 export async function createRunAuthProfileFailoverController(
   params: CreateRunAuthProfileFailoverControllerParams,
@@ -56,11 +74,144 @@ export async function createRunAuthProfileFailoverController(
   let lastProfileId: string | undefined;
   let sawNonCooldownCandidateFailure = false;
   let lastCandidateResolutionError: unknown;
+  const copilotTokenState: CopilotTokenState | null =
+    authResolution.authProvider === "github-copilot" ? { githubToken: "", expiresAt: 0 } : null;
+  let copilotRefreshCancelled = false;
 
   const resolveAuthLookupModel = () =>
     authResolution.authProvider === params.model.provider
       ? params.model
       : { ...params.model, provider: authResolution.authProvider };
+
+  const clearCopilotRefreshTimer = () => {
+    if (!copilotTokenState?.refreshTimer) {
+      return;
+    }
+    clearTimeout(copilotTokenState.refreshTimer);
+    copilotTokenState.refreshTimer = undefined;
+  };
+
+  const stopCopilotRefreshTimer = () => {
+    if (!copilotTokenState) {
+      return;
+    }
+    copilotRefreshCancelled = true;
+    clearCopilotRefreshTimer();
+  };
+
+  const refreshCopilotToken = async (reason: string): Promise<void> => {
+    if (!copilotTokenState) {
+      return;
+    }
+    if (copilotTokenState.refreshInFlight) {
+      await copilotTokenState.refreshInFlight;
+      return;
+    }
+    copilotTokenState.refreshInFlight = (async () => {
+      const githubToken = apiKeyInfo?.apiKey?.trim() || copilotTokenState.githubToken.trim();
+      if (!githubToken) {
+        throw new Error("Copilot refresh requires a GitHub token.");
+      }
+      copilotTokenState.githubToken = githubToken;
+      log.debug(`Refreshing GitHub Copilot token (${reason})...`);
+      const { resolveCopilotApiToken } = await import("../../../providers/github-copilot-token.js");
+      const copilotToken = await resolveCopilotApiToken({
+        githubToken,
+      });
+      params.authStorage.setRuntimeApiKey(authResolution.authProvider, copilotToken.token);
+      copilotTokenState.expiresAt = copilotToken.expiresAt;
+      const remaining = copilotToken.expiresAt - Date.now();
+      log.debug(
+        `Copilot token refreshed; expires in ${Math.max(0, Math.floor(remaining / 1000))}s.`,
+      );
+    })()
+      .catch((err) => {
+        log.warn(`Copilot token refresh failed: ${describeUnknownError(err)}`);
+        throw err;
+      })
+      .finally(() => {
+        copilotTokenState.refreshInFlight = undefined;
+      });
+    await copilotTokenState.refreshInFlight;
+  };
+
+  const scheduleCopilotRefresh = (): void => {
+    if (!copilotTokenState || copilotRefreshCancelled) {
+      return;
+    }
+    if (!copilotTokenState.githubToken.trim()) {
+      log.warn("Skipping Copilot refresh scheduling; GitHub token missing.");
+      return;
+    }
+    clearCopilotRefreshTimer();
+    const now = Date.now();
+    const refreshAt = copilotTokenState.expiresAt - COPILOT_REFRESH_MARGIN_MS;
+    const delayMs = Math.max(COPILOT_REFRESH_MIN_DELAY_MS, refreshAt - now);
+    const timer = setTimeout(() => {
+      if (copilotRefreshCancelled) {
+        return;
+      }
+      refreshCopilotToken("scheduled")
+        .then(() => scheduleCopilotRefresh())
+        .catch(() => {
+          if (copilotRefreshCancelled) {
+            return;
+          }
+          const retryTimer = setTimeout(() => {
+            if (copilotRefreshCancelled) {
+              return;
+            }
+            refreshCopilotToken("scheduled-retry")
+              .then(() => scheduleCopilotRefresh())
+              .catch(() => undefined);
+          }, COPILOT_REFRESH_RETRY_MS);
+          copilotTokenState.refreshTimer = retryTimer;
+          if (copilotRefreshCancelled) {
+            clearTimeout(retryTimer);
+            copilotTokenState.refreshTimer = undefined;
+          }
+        });
+    }, delayMs);
+    copilotTokenState.refreshTimer = timer;
+    if (copilotRefreshCancelled) {
+      clearTimeout(timer);
+      copilotTokenState.refreshTimer = undefined;
+    }
+  };
+
+  const syncCopilotRefreshForCurrentProfile = async (reason: string): Promise<boolean> => {
+    if (!copilotTokenState) {
+      return false;
+    }
+    const githubToken = apiKeyInfo?.apiKey?.trim() ?? "";
+    if (!githubToken) {
+      return false;
+    }
+    copilotTokenState.githubToken = githubToken;
+    try {
+      await refreshCopilotToken(reason);
+      scheduleCopilotRefresh();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const maybeRefreshCopilotForAuthError = async (
+    errorText: string,
+    retried: boolean,
+  ): Promise<boolean> => {
+    if (!copilotTokenState || retried) {
+      return false;
+    }
+    if (!isFailoverErrorMessage(errorText)) {
+      return false;
+    }
+    if (classifyFailoverReason(errorText) !== "auth") {
+      return false;
+    }
+    return syncCopilotRefreshForCurrentProfile("auth-error");
+  };
 
   const resolveAuthProfileFailoverReason = (args: {
     allInCooldown: boolean;
@@ -185,12 +336,14 @@ export async function createRunAuthProfileFailoverController(
     }
     authResolution.advanceProfileIndex();
     if (await initializeCurrentAuthCandidate()) {
+      await syncCopilotRefreshForCurrentProfile("profile-rotate");
       params.onAuthRotationSuccess?.();
       return true;
     }
     while (authResolution.runtimeOverride === "claude-sdk") {
       if (await authResolution.moveToNextClaudeSdkProvider()) {
         if (await initializeCurrentAuthCandidate()) {
+          await syncCopilotRefreshForCurrentProfile("profile-rotate");
           params.onAuthRotationSuccess?.();
           return true;
         }
@@ -199,6 +352,7 @@ export async function createRunAuthProfileFailoverController(
       if (await authResolution.fallBackToPiRuntime()) {
         params.onClaudeSdkToPiFallback?.();
         if (await initializeCurrentAuthCandidate()) {
+          await syncCopilotRefreshForCurrentProfile("profile-rotate");
           params.onAuthRotationSuccess?.();
           return true;
         }
@@ -263,5 +417,8 @@ export async function createRunAuthProfileFailoverController(
     },
     resolveAuthLookupModel,
     advanceAuthProfile,
+    syncCopilotRefreshForCurrentProfile,
+    maybeRefreshCopilotForAuthError,
+    stopCopilotRefreshTimer,
   };
 }
