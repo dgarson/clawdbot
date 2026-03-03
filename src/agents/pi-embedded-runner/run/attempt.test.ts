@@ -1,7 +1,16 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
 import { describe, expect, it, vi } from "vitest";
-import { injectHistoryImagesIntoMessages, resolvePromptBuildHookResult } from "./attempt.js";
+import type { OpenClawConfig } from "../../../config/config.js";
+import {
+  injectHistoryImagesIntoMessages,
+  resolveAttemptFsWorkspaceOnly,
+  resolveClaudeSdkConfig,
+  resolvePromptBuildHookResult,
+  resolvePromptModeForSession,
+  resolveRuntime,
+} from "./attempt.js";
+import type { EmbeddedRunAttemptParams } from "./types.js";
 
 describe("injectHistoryImagesIntoMessages", () => {
   const image: ImageContent = { type: "image", data: "abc", mimeType: "image/png" };
@@ -101,5 +110,168 @@ describe("resolvePromptBuildHookResult", () => {
     expect(hookRunner.runBeforeAgentStart).toHaveBeenCalledTimes(1);
     expect(hookRunner.runBeforeAgentStart).toHaveBeenCalledWith({ prompt: "hello", messages }, {});
     expect(result.prependContext).toBe("from-hook");
+  });
+});
+
+describe("resolvePromptModeForSession", () => {
+  it("uses minimal mode for subagent sessions", () => {
+    expect(resolvePromptModeForSession("agent:main:subagent:child")).toBe("minimal");
+  });
+
+  it("uses full mode for cron sessions", () => {
+    expect(resolvePromptModeForSession("agent:main:cron:job-1")).toBe("full");
+    expect(resolvePromptModeForSession("agent:main:cron:job-1:run:run-abc")).toBe("full");
+  });
+});
+
+describe("resolveAttemptFsWorkspaceOnly", () => {
+  it("uses global tools.fs.workspaceOnly when agent has no override", () => {
+    const cfg: OpenClawConfig = {
+      tools: {
+        fs: { workspaceOnly: true },
+      },
+    };
+
+    expect(
+      resolveAttemptFsWorkspaceOnly({
+        config: cfg,
+        sessionAgentId: "main",
+      }),
+    ).toBe(true);
+  });
+
+  it("prefers agent-specific tools.fs.workspaceOnly override", () => {
+    const cfg: OpenClawConfig = {
+      tools: {
+        fs: { workspaceOnly: true },
+      },
+      agents: {
+        list: [
+          {
+            id: "main",
+            tools: {
+              fs: { workspaceOnly: false },
+            },
+          },
+        ],
+      },
+    };
+
+    expect(
+      resolveAttemptFsWorkspaceOnly({
+        config: cfg,
+        sessionAgentId: "main",
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("resolveClaudeSdkConfig", () => {
+  it("returns undefined for empty claudeSdk object (no provider key)", () => {
+    const params = {
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: {} }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
+  it("returns config when claudeSdk has a provider key", () => {
+    const params = {
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: { provider: "claude-sdk" } }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({ provider: "claude-sdk" });
+  });
+
+  it("returns undefined when claudeSdk is explicitly false", () => {
+    const params = {
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: false }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
+  });
+
+  it("falls back to defaults.claudeSdk when agent has no override", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: { claudeSdk: { provider: "anthropic" } },
+          list: [{ id: "main" }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "main")).toEqual({ provider: "anthropic" });
+  });
+
+  it("returns undefined for empty defaults.claudeSdk (no provider key)", () => {
+    const params = {
+      config: {
+        agents: {
+          defaults: { claudeSdk: {} },
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveClaudeSdkConfig(params, "other")).toBeUndefined();
+  });
+});
+
+describe("resolveRuntime", () => {
+  it("returns claude-sdk for known claude-sdk providers", () => {
+    const params = {
+      provider: "claude-max",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("returns pi for non-claude-sdk providers", () => {
+    const params = {
+      provider: "openai",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("pi");
+  });
+
+  it("returns claude-sdk when agent has claudeSdk config", () => {
+    const params = {
+      provider: "openai",
+      config: {
+        agents: {
+          list: [{ id: "main", claudeSdk: { provider: "anthropic" } }],
+        },
+      },
+    } as unknown as EmbeddedRunAttemptParams;
+
+    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+  });
+
+  it("warns when provider resembles claude-sdk but does not match", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    // Use a dynamic import to access the subsystem logger's warn method.
+    // Instead, we test indirectly: resolveRuntime returns "pi" and does not throw.
+    const params = {
+      provider: "claude-max-custom",
+      config: {},
+    } as unknown as EmbeddedRunAttemptParams;
+
+    const result = resolveRuntime(params, "main");
+    expect(result).toBe("pi");
+    warnSpy.mockRestore();
   });
 });

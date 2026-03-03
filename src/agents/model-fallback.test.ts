@@ -7,21 +7,11 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { AuthProfileStore } from "./auth-profiles.js";
 import { saveAuthProfileStore } from "./auth-profiles.js";
 import { AUTH_STORE_VERSION } from "./auth-profiles/constants.js";
+import { isAnthropicBillingError } from "./live-auth-keys.js";
 import { runWithModelFallback } from "./model-fallback.js";
+import { makeModelFallbackCfg } from "./test-helpers/model-fallback-config-fixture.js";
 
-function makeCfg(overrides: Partial<OpenClawConfig> = {}): OpenClawConfig {
-  return {
-    agents: {
-      defaults: {
-        model: {
-          primary: "openai/gpt-4.1-mini",
-          fallbacks: ["anthropic/claude-haiku-3-5"],
-        },
-      },
-    },
-    ...overrides,
-  } as OpenClawConfig;
-}
+const makeCfg = makeModelFallbackCfg;
 
 function makeFallbacksOnlyCfg(): OpenClawConfig {
   return {
@@ -99,6 +89,78 @@ async function expectFallsBackToHaiku(params: {
   expect(run.mock.calls[1]?.[1]).toBe("claude-haiku-3-5");
 }
 
+function createOverrideFailureRun(params: {
+  overrideProvider: string;
+  overrideModel: string;
+  fallbackProvider: string;
+  fallbackModel: string;
+  firstError: Error;
+}) {
+  return vi.fn().mockImplementation(async (provider, model) => {
+    if (provider === params.overrideProvider && model === params.overrideModel) {
+      throw params.firstError;
+    }
+    if (provider === params.fallbackProvider && model === params.fallbackModel) {
+      return "ok";
+    }
+    throw new Error(`unexpected fallback candidate: ${provider}/${model}`);
+  });
+}
+
+function makeSingleProviderStore(params: {
+  provider: string;
+  usageStat: NonNullable<AuthProfileStore["usageStats"]>[string];
+}): AuthProfileStore {
+  const profileId = `${params.provider}:default`;
+  return {
+    version: AUTH_STORE_VERSION,
+    profiles: {
+      [profileId]: {
+        type: "api_key",
+        provider: params.provider,
+        key: "test-key",
+      },
+    },
+    usageStats: {
+      [profileId]: params.usageStat,
+    },
+  };
+}
+
+function createFallbackOnlyRun() {
+  return vi.fn().mockImplementation(async (providerId, modelId) => {
+    if (providerId === "fallback") {
+      return "ok";
+    }
+    throw new Error(`unexpected provider: ${providerId}/${modelId}`);
+  });
+}
+
+async function expectSkippedUnavailableProvider(params: {
+  providerPrefix: string;
+  usageStat: NonNullable<AuthProfileStore["usageStats"]>[string];
+  expectedReason: string;
+}) {
+  const provider = `${params.providerPrefix}-${crypto.randomUUID()}`;
+  const cfg = makeProviderFallbackCfg(provider);
+  const store = makeSingleProviderStore({
+    provider,
+    usageStat: params.usageStat,
+  });
+  const run = createFallbackOnlyRun();
+
+  const result = await runWithStoredAuth({
+    cfg,
+    store,
+    provider,
+    run,
+  });
+
+  expect(result.result).toBe("ok");
+  expect(run.mock.calls).toEqual([["fallback", "ok-model"]]);
+  expect(result.attempts[0]?.reason).toBe(params.expectedReason);
+}
+
 describe("runWithModelFallback", () => {
   it("normalizes openai gpt-5.3 codex to openai-codex before running", async () => {
     const cfg = makeCfg();
@@ -151,14 +213,12 @@ describe("runWithModelFallback", () => {
       },
     });
 
-    const run = vi.fn().mockImplementation(async (provider, model) => {
-      if (provider === "anthropic" && model === "claude-opus-4-5") {
-        throw Object.assign(new Error("unauthorized"), { status: 401 });
-      }
-      if (provider === "openai" && model === "gpt-4.1-mini") {
-        return "ok";
-      }
-      throw new Error(`unexpected fallback candidate: ${provider}/${model}`);
+    const run = createOverrideFailureRun({
+      overrideProvider: "anthropic",
+      overrideModel: "claude-opus-4-5",
+      fallbackProvider: "openai",
+      fallbackModel: "gpt-4.1-mini",
+      firstError: Object.assign(new Error("unauthorized"), { status: 401 }),
     });
 
     const result = await runWithModelFallback({
@@ -174,6 +234,44 @@ describe("runWithModelFallback", () => {
     expect(run.mock.calls).toEqual([
       ["anthropic", "claude-opus-4-5"],
       ["openai", "gpt-4.1-mini"],
+    ]);
+  });
+
+  it("keeps configured fallback chain when current model is a configured fallback", async () => {
+    const cfg = makeCfg({
+      agents: {
+        defaults: {
+          model: {
+            primary: "openai/gpt-4.1-mini",
+            fallbacks: ["anthropic/claude-haiku-3-5", "openrouter/deepseek-chat"],
+          },
+        },
+      },
+    });
+
+    const run = vi.fn().mockImplementation(async (provider: string, model: string) => {
+      if (provider === "anthropic" && model === "claude-haiku-3-5") {
+        throw Object.assign(new Error("rate-limited"), { status: 429 });
+      }
+      if (provider === "openrouter" && model === "openrouter/deepseek-chat") {
+        return "ok";
+      }
+      throw new Error(`unexpected fallback candidate: ${provider}/${model}`);
+    });
+
+    const result = await runWithModelFallback({
+      cfg,
+      provider: "anthropic",
+      model: "claude-haiku-3-5",
+      run,
+    });
+
+    expect(result.result).toBe("ok");
+    expect(result.provider).toBe("openrouter");
+    expect(result.model).toBe("openrouter/deepseek-chat");
+    expect(run.mock.calls).toEqual([
+      ["anthropic", "claude-haiku-3-5"],
+      ["openrouter", "openrouter/deepseek-chat"],
     ]);
   });
 
@@ -238,14 +336,12 @@ describe("runWithModelFallback", () => {
 
   it("falls back to configured primary for override credential validation errors", async () => {
     const cfg = makeCfg();
-    const run = vi.fn().mockImplementation(async (provider, model) => {
-      if (provider === "anthropic" && model === "claude-opus-4") {
-        throw new Error('No credentials found for profile "anthropic:default".');
-      }
-      if (provider === "openai" && model === "gpt-4.1-mini") {
-        return "ok";
-      }
-      throw new Error(`unexpected fallback candidate: ${provider}/${model}`);
+    const run = createOverrideFailureRun({
+      overrideProvider: "anthropic",
+      overrideModel: "claude-opus-4",
+      fallbackProvider: "openai",
+      fallbackModel: "gpt-4.1-mini",
+      firstError: new Error('No credentials found for profile "anthropic:default".'),
     });
 
     const result = await runWithModelFallback({
@@ -306,31 +402,31 @@ describe("runWithModelFallback", () => {
   });
 
   it("skips providers when all profiles are in cooldown", async () => {
-    const provider = `cooldown-test-${crypto.randomUUID()}`;
-    const profileId = `${provider}:default`;
-
-    const store: AuthProfileStore = {
-      version: AUTH_STORE_VERSION,
-      profiles: {
-        [profileId]: {
-          type: "api_key",
-          provider,
-          key: "test-key",
-        },
+    await expectSkippedUnavailableProvider({
+      providerPrefix: "cooldown-test",
+      usageStat: {
+        cooldownUntil: Date.now() + 5 * 60_000,
       },
-      usageStats: {
-        [profileId]: {
-          cooldownUntil: Date.now() + 5 * 60_000,
-        },
-      },
-    };
+      expectedReason: "rate_limit",
+    });
+  });
 
+  it("does not skip OpenRouter when legacy cooldown markers exist", async () => {
+    const provider = "openrouter";
     const cfg = makeProviderFallbackCfg(provider);
-    const run = vi.fn().mockImplementation(async (providerId, modelId) => {
-      if (providerId === "fallback") {
+    const store = makeSingleProviderStore({
+      provider,
+      usageStat: {
+        cooldownUntil: Date.now() + 5 * 60_000,
+        disabledUntil: Date.now() + 10 * 60_000,
+        disabledReason: "billing",
+      },
+    });
+    const run = vi.fn().mockImplementation(async (providerId) => {
+      if (providerId === "openrouter") {
         return "ok";
       }
-      throw new Error(`unexpected provider: ${providerId}/${modelId}`);
+      throw new Error(`unexpected provider: ${providerId}`);
     });
 
     const result = await runWithStoredAuth({
@@ -341,8 +437,22 @@ describe("runWithModelFallback", () => {
     });
 
     expect(result.result).toBe("ok");
-    expect(run.mock.calls).toEqual([["fallback", "ok-model"]]);
-    expect(result.attempts[0]?.reason).toBe("rate_limit");
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(run.mock.calls[0]?.[0]).toBe("openrouter");
+    expect(result.attempts).toEqual([]);
+  });
+
+  it("propagates disabled reason when all profiles are unavailable", async () => {
+    const now = Date.now();
+    await expectSkippedUnavailableProvider({
+      providerPrefix: "disabled-test",
+      usageStat: {
+        disabledUntil: now + 5 * 60_000,
+        disabledReason: "billing",
+        failureCounts: { rate_limit: 4 },
+      },
+      expectedReason: "billing",
+    });
   });
 
   it("does not skip when any profile is available", async () => {
@@ -608,5 +718,38 @@ describe("runWithModelFallback", () => {
     expect(run).toHaveBeenCalledTimes(2);
     expect(result.provider).toBe("openai");
     expect(result.model).toBe("gpt-4.1-mini");
+  });
+});
+
+describe("isAnthropicBillingError", () => {
+  it("does not false-positive on plain 'a 402' prose", () => {
+    const samples = [
+      "Use a 402 stainless bolt",
+      "Book a 402 room",
+      "There is a 402 near me",
+      "The building at 402 Main Street",
+    ];
+
+    for (const sample of samples) {
+      expect(isAnthropicBillingError(sample)).toBe(false);
+    }
+  });
+
+  it("matches real 402 billing payload contexts including JSON keys", () => {
+    const samples = [
+      "HTTP 402 Payment Required",
+      "status: 402",
+      "error code 402",
+      '{"status":402,"type":"error"}',
+      '{"code":402,"message":"payment required"}',
+      '{"error":{"code":402,"message":"billing hard limit reached"}}',
+      "got a 402 from the API",
+      "returned 402",
+      "received a 402 response",
+    ];
+
+    for (const sample of samples) {
+      expect(isAnthropicBillingError(sample)).toBe(true);
+    }
   });
 });

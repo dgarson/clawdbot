@@ -92,6 +92,10 @@
       "destination": "/providers/moonshot"
     },
     {
+      "source": "/mistral",
+      "destination": "/providers/mistral"
+    },
+    {
       "source": "/openrouter",
       "destination": "/providers/openrouter"
     },
@@ -528,12 +532,12 @@
       "destination": "/channels/pairing"
     },
     {
-      "source": "/plans/cron-add-hardening",
-      "destination": "/experiments/plans/cron-add-hardening"
+      "source": "/experiments/plans/cron-add-hardening",
+      "destination": "/automation/cron-jobs"
     },
     {
-      "source": "/plans/group-policy-hardening",
-      "destination": "/experiments/plans/group-policy-hardening"
+      "source": "/experiments/plans/group-policy-hardening",
+      "destination": "/channels/groups"
     },
     {
       "source": "/poll",
@@ -898,6 +902,7 @@
                   "channels/imessage",
                   "channels/bluebubbles",
                   "channels/msteams",
+                  "channels/synology-chat",
                   "channels/line",
                   "channels/matrix",
                   "channels/nextcloud-talk",
@@ -1067,6 +1072,7 @@
                   "providers/bedrock",
                   "providers/vercel-ai-gateway",
                   "providers/moonshot",
+                  "providers/mistral",
                   "providers/minimax",
                   "providers/opencode",
                   "providers/glm",
@@ -1258,7 +1264,12 @@
               },
               {
                 "group": "Technical reference",
-                "pages": ["reference/wizard", "reference/token-use", "channels/grammy"]
+                "pages": [
+                  "reference/wizard",
+                  "reference/token-use",
+                  "reference/prompt-caching",
+                  "channels/grammy"
+                ]
               },
               {
                 "group": "Concept internals",
@@ -1282,8 +1293,6 @@
                 "group": "Experiments",
                 "pages": [
                   "experiments/onboarding-config-protocol",
-                  "experiments/plans/cron-add-hardening",
-                  "experiments/plans/group-policy-hardening",
                   "experiments/research/memory",
                   "experiments/proposals/model-config"
                 ]

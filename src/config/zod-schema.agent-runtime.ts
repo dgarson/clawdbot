@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getBlockedNetworkModeReason } from "../agents/sandbox/network-mode.js";
 import { parseDurationMs } from "../cli/parse-duration.js";
 import { AgentModelSchema } from "./zod-schema.agent-model.js";
 import {
@@ -167,6 +168,9 @@ export const SandboxDockerSchema = z
     dns: z.array(z.string()).optional(),
     extraHosts: z.array(z.string()).optional(),
     binds: z.array(z.string()).optional(),
+    dangerouslyAllowReservedContainerTargets: z.boolean().optional(),
+    dangerouslyAllowExternalBindSources: z.boolean().optional(),
+    dangerouslyAllowContainerNamespaceJoin: z.boolean().optional(),
   })
   .strict()
   .superRefine((data, ctx) => {
@@ -194,12 +198,25 @@ export const SandboxDockerSchema = z
         }
       }
     }
-    if (data.network?.trim().toLowerCase() === "host") {
+    const blockedNetworkReason = getBlockedNetworkModeReason({
+      network: data.network,
+      allowContainerNamespaceJoin: data.dangerouslyAllowContainerNamespaceJoin === true,
+    });
+    if (blockedNetworkReason === "host") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["network"],
         message:
           'Sandbox security: network mode "host" is blocked. Use "bridge" or "none" instead.',
+      });
+    }
+    if (blockedNetworkReason === "container_namespace_join") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["network"],
+        message:
+          'Sandbox security: network mode "container:*" is blocked by default. ' +
+          "Use a custom bridge network, or set dangerouslyAllowContainerNamespaceJoin=true only when you fully trust this runtime.",
       });
     }
     if (data.seccompProfile?.trim().toLowerCase() === "unconfined") {
@@ -282,7 +299,15 @@ export const ToolPolicySchema = ToolPolicyBaseSchema.superRefine((value, ctx) =>
 export const ToolsWebSearchSchema = z
   .object({
     enabled: z.boolean().optional(),
-    provider: z.union([z.literal("brave"), z.literal("perplexity"), z.literal("grok")]).optional(),
+    provider: z
+      .union([
+        z.literal("brave"),
+        z.literal("perplexity"),
+        z.literal("grok"),
+        z.literal("gemini"),
+        z.literal("kimi"),
+      ])
+      .optional(),
     apiKey: z.string().optional().register(sensitive),
     maxResults: z.number().int().positive().optional(),
     timeoutSeconds: z.number().int().positive().optional(),
@@ -300,6 +325,21 @@ export const ToolsWebSearchSchema = z
         apiKey: z.string().optional().register(sensitive),
         model: z.string().optional(),
         inlineCitations: z.boolean().optional(),
+      })
+      .strict()
+      .optional(),
+    gemini: z
+      .object({
+        apiKey: z.string().optional().register(sensitive),
+        model: z.string().optional(),
+      })
+      .strict()
+      .optional(),
+    kimi: z
+      .object({
+        apiKey: z.string().optional().register(sensitive),
+        baseUrl: z.string().optional(),
+        model: z.string().optional(),
       })
       .strict()
       .optional(),
@@ -396,6 +436,7 @@ const ToolExecBaseShape = {
   node: z.string().optional(),
   pathPrepend: z.array(z.string()).optional(),
   safeBins: z.array(z.string()).optional(),
+  safeBinTrustedDirs: z.array(z.string()).optional(),
   safeBinProfiles: z.record(z.string(), ToolExecSafeBinProfileSchema).optional(),
   backgroundMs: z.number().int().positive().optional(),
   timeoutSec: z.number().int().positive().optional(),
@@ -481,6 +522,21 @@ export const AgentSandboxSchema = z
     prune: SandboxPruneSchema,
   })
   .strict()
+  .superRefine((data, ctx) => {
+    const blockedBrowserNetworkReason = getBlockedNetworkModeReason({
+      network: data.browser?.network,
+      allowContainerNamespaceJoin: data.docker?.dangerouslyAllowContainerNamespaceJoin === true,
+    });
+    if (blockedBrowserNetworkReason === "container_namespace_join") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["browser", "network"],
+        message:
+          'Sandbox security: browser network mode "container:*" is blocked by default. ' +
+          "Set sandbox.docker.dangerouslyAllowContainerNamespaceJoin=true only when you fully trust this runtime.",
+      });
+    }
+  })
   .optional();
 
 const CommonToolPolicyFields = {

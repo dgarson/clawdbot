@@ -30,6 +30,7 @@ export const mockedGlobalHookRunner = {
 
 vi.mock("../../plugins/hook-runner-global.js", () => ({
   getGlobalHookRunner: vi.fn(() => mockedGlobalHookRunner),
+  getGlobalPluginRegistry: vi.fn(() => null),
 }));
 
 vi.mock("../auth-profiles.js", () => ({
@@ -43,17 +44,13 @@ vi.mock("../usage.js", () => ({
   normalizeUsage: vi.fn((usage?: unknown) =>
     usage && typeof usage === "object" ? usage : undefined,
   ),
-  derivePromptTokens: vi.fn(
-    (usage?: { input?: number; cacheRead?: number; cacheWrite?: number }) => {
-      if (!usage) {
-        return undefined;
-      }
-      const input = usage.input ?? 0;
-      const cacheRead = usage.cacheRead ?? 0;
-      const cacheWrite = usage.cacheWrite ?? 0;
-      const sum = input + cacheRead + cacheWrite;
-      return sum > 0 ? sum : undefined;
-    },
+  derivePromptTokens: vi.fn((usage?: { input?: number; cacheRead?: number; cacheWrite?: number }) =>
+    usage
+      ? (() => {
+          const sum = (usage.input ?? 0) + (usage.cacheRead ?? 0) + (usage.cacheWrite ?? 0);
+          return sum > 0 ? sum : undefined;
+        })()
+      : undefined,
   ),
   hasNonzeroUsage: vi.fn(() => false),
 }));
