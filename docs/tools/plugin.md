@@ -357,6 +357,16 @@ Notes:
 - Plugin-managed hooks show up in `openclaw hooks list` with `plugin:<id>`.
 - You cannot enable/disable plugin-managed hooks via `openclaw hooks`; enable/disable the plugin instead.
 
+### Prompt-shaping hook return fields
+
+`before_prompt_build` (and legacy `before_agent_start`) can return:
+
+- `prependContext`: text inserted **before** the user prompt
+- `appendContext`: text inserted **after** the user prompt
+- `systemPrompt`: override for the effective system prompt used for the run
+
+When multiple hooks return these fields, OpenClaw concatenates context fields with blank-line separators and applies the resulting value.
+
 ## Provider plugins (model auth)
 
 Plugins can register **model provider auth** flows so users can run OAuth or
