@@ -6,6 +6,10 @@ import {
 } from "../../agents/agent-scope.js";
 import { upsertAuthProfile } from "../../agents/auth-profiles.js";
 import type { AuthProfileCredential } from "../../agents/auth-profiles/types.js";
+import {
+  CLAUDE_SDK_POLICY_ACKNOWLEDGEMENT_MESSAGE,
+  emitClaudeSdkPolicyWarningLines,
+} from "../../agents/claude-sdk-runner/policy-warning.js";
 import { SYSTEM_KEYCHAIN_PROVIDERS } from "../../agents/model-auth.js";
 import { normalizeProviderId } from "../../agents/model-selection.js";
 import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
@@ -49,7 +53,7 @@ const select = <T>(params: Parameters<typeof clackSelect<T>>[0]) =>
     ),
   });
 
-type TokenProvider = "anthropic" | "claude-pro" | "claude-max";
+type TokenProvider = "anthropic" | "claude-personal";
 
 function resolveTokenProvider(raw?: string): TokenProvider | "custom" | null {
   const trimmed = raw?.trim();
@@ -60,11 +64,8 @@ function resolveTokenProvider(raw?: string): TokenProvider | "custom" | null {
   if (normalized === "anthropic") {
     return "anthropic";
   }
-  if (normalized === "claude-pro") {
-    return "claude-pro";
-  }
-  if (normalized === "claude-max") {
-    return "claude-max";
+  if (normalized === "claude-personal") {
+    return "claude-personal";
   }
   return "custom";
 }
@@ -73,7 +74,7 @@ function resolveDefaultTokenProfileId(provider: string): string {
   return `${normalizeProviderId(provider)}:manual`;
 }
 
-function resolveDefaultKeychainProfileId(provider: "claude-pro" | "claude-max"): string {
+function resolveDefaultKeychainProfileId(provider: "claude-personal"): string {
   return `${provider}:system-keychain`;
 }
 
@@ -174,14 +175,24 @@ export async function modelsAuthSetupClaudeProCommand(
   opts: { provider?: string; profileId?: string; yes?: boolean },
   runtime: RuntimeEnv,
 ) {
-  const provider = resolveTokenProvider(opts.provider ?? "claude-pro");
-  if (provider !== "claude-pro" && provider !== "claude-max") {
-    throw new Error("Only --provider claude-pro or claude-max is supported for setup-claude-pro.");
+  const provider = resolveTokenProvider(opts.provider ?? "claude-personal");
+  if (provider !== "claude-personal") {
+    throw new Error("Only --provider claude-personal is supported for setup-claude-personal.");
   }
 
   const profileId = opts.profileId?.trim() || resolveDefaultKeychainProfileId(provider);
+  emitClaudeSdkPolicyWarningLines({ log: runtime.log.bind(runtime), padding: true });
+
   const requiresPrompt = process.stdin.isTTY && !opts.yes;
   if (requiresPrompt) {
+    const acknowledgedPolicy = await confirm({
+      message: CLAUDE_SDK_POLICY_ACKNOWLEDGEMENT_MESSAGE,
+      initialValue: false,
+    });
+    if (!acknowledgedPolicy) {
+      runtime.log("Cancelled Claude Code keychain setup.");
+      return;
+    }
     const proceed = await confirm({
       message: `Configure Claude Code keychain auth for ${provider}?`,
       initialValue: true,
@@ -210,13 +221,16 @@ export async function modelsAuthAddCommand(_opts: Record<string, never>, runtime
   const provider = (await select({
     message: "Auth provider",
     options: [
-      { value: "anthropic", label: "anthropic" },
       {
-        value: "claude-pro",
-        label: "claude-pro",
-        hint: "Claude Code keychain runtime (recommended)",
+        value: "anthropic",
+        label: "anthropic",
+        hint: "Anthropic API key — pay-per-token, no usage restrictions",
       },
-      { value: "claude-max", label: "claude-max", hint: "Claude Code keychain runtime" },
+      {
+        value: "claude-personal",
+        label: "claude-personal",
+        hint: "Claude Pro/Max subscription — personal subscriber use ONLY; prohibited for business, bots, or shared services",
+      },
       { value: "custom", label: "custom (type provider id)" },
     ],
   })) as TokenProvider | "custom";
