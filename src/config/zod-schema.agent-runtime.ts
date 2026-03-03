@@ -23,7 +23,7 @@ const thinkingDefaultsField = {
 
 export const ClaudeSdkConfigSchema = z
   .discriminatedUnion("provider", [
-    z.object({ provider: z.literal("claude-sdk"), ...thinkingDefaultsField }).strict(),
+    z.object({ provider: z.literal("claude-code"), ...thinkingDefaultsField }).strict(),
     z.object({ provider: z.literal("anthropic"), ...thinkingDefaultsField }).strict(),
     z.object({ provider: z.literal("minimax"), ...thinkingDefaultsField }).strict(),
     z.object({ provider: z.literal("minimax-portal"), ...thinkingDefaultsField }).strict(),
@@ -744,9 +744,21 @@ export const AgentEntrySchema = z
       })
       .strict()
       .optional(),
+    thinkingDefault: z
+      .union([
+        z.literal("off"),
+        z.literal("minimal"),
+        z.literal("low"),
+        z.literal("medium"),
+        z.literal("high"),
+        z.literal("xhigh"),
+      ])
+      .optional(),
+    reasoningDefault: z.union([z.literal("off"), z.literal("on"), z.literal("stream")]).optional(),
     sandbox: AgentSandboxSchema,
     tools: AgentToolsSchema,
-    claudeSdk: z.union([ClaudeSdkConfigSchema, z.literal(false)]).optional(),
+    runtime: z.enum(["pi", "claude-sdk"]).optional(),
+    claudeSdk: ClaudeSdkConfigSchema,
   })
   .strict();
 
@@ -759,6 +771,7 @@ export const ToolsSchema = z
     sessions: z
       .object({
         visibility: z.enum(["self", "tree", "agent", "all"]).optional(),
+        sendTimeoutSeconds: z.number().int().min(0).optional(),
       })
       .strict()
       .optional(),
