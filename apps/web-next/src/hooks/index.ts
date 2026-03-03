@@ -1,2 +1,3 @@
-export { useGateway } from './useGateway';
-export { useWizard, getStepTypeLabel, stepRequiresInput } from './useWizard';
+export { useFocusTrap } from './useFocusTrap';
+export { useArrowNavigation } from './useArrowNavigation';
+export { useRovingTabIndex } from './useRovingTabIndex';
