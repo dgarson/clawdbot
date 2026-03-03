@@ -1,24 +1,16 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { Api, AssistantMessage, Model } from "@mariozechner/pi-ai";
+import type { AuthStorage, ModelRegistry } from "@mariozechner/pi-coding-agent";
 import type { ThinkLevel } from "../../../auto-reply/thinking.js";
 import type { SessionSystemPromptReport } from "../../../config/sessions/types.js";
 import type { PluginHookBeforeAgentStartResult } from "../../../plugins/types.js";
-import type { ResolvedProviderAuth } from "../../model-auth.js";
 import type { MessagingToolSend } from "../../pi-embedded-messaging.js";
-import type { AuthStorage, ModelRegistry } from "../../pi-model-discovery.js";
 import type { NormalizedUsage } from "../../usage.js";
 import type { RunEmbeddedPiAgentParams } from "./params.js";
 
 type EmbeddedRunAttemptBase = Omit<
   RunEmbeddedPiAgentParams,
-  | "provider"
-  | "model"
-  | "authProfileId"
-  | "authProfileIdSource"
-  | "thinkLevel"
-  | "thinkLevelExplicit"
-  | "lane"
-  | "enqueue"
+  "provider" | "model" | "authProfileId" | "authProfileIdSource" | "thinkLevel" | "lane" | "enqueue"
 >;
 
 export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
@@ -28,10 +20,12 @@ export type EmbeddedRunAttemptParams = EmbeddedRunAttemptBase & {
   authStorage: AuthStorage;
   modelRegistry: ModelRegistry;
   thinkLevel: ThinkLevel;
-  thinkLevelExplicit?: boolean;
   legacyBeforeAgentStartResult?: PluginHookBeforeAgentStartResult;
-  /** Resolved auth for the claude-sdk runtime (non-claude-max SDK providers). */
-  resolvedProviderAuth?: ResolvedProviderAuth;
+  /** Routing metadata from before_model_resolve hook result, passed to llm_input/llm_output. */
+  routingMetadata?: Record<string, unknown>;
+  /** Pre-collected plugin prompt sections (P8). Appended after core prompt content. */
+  pluginSections?: import("../../system-prompt.plugin-sections.js").PluginPromptSection[];
+  lineageId?: string;
 };
 
 export type EmbeddedRunAttemptResult = {
@@ -63,4 +57,6 @@ export type EmbeddedRunAttemptResult = {
   compactionCount?: number;
   /** Client tool call detected (OpenResponses hosted tools). */
   clientToolCall?: { name: string; params: Record<string, unknown> };
+  /** Number of before_session_end continuation retries performed. */
+  continuationCount?: number;
 };

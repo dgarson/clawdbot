@@ -10,10 +10,7 @@ export type ToolResultFormat = "markdown" | "plain";
 export type SubscribeEmbeddedPiSessionParams = {
   session: AgentRuntime;
   runId: string;
-  provider?: string;
-  model?: string;
-  /** Runtime label when available (only logged for claude-sdk). */
-  runtime?: string;
+  lineageId?: string;
   hookRunner?: HookRunner;
   verboseLevel?: VerboseLevel;
   reasoningMode?: ReasoningLevel;

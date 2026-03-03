@@ -4,6 +4,7 @@ import { normalizeChatType } from "../channels/chat-type.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { shouldLogVerbose } from "../globals.js";
 import { logDebug } from "../logger.js";
+import type { HookRunner } from "../plugins/hooks.js";
 import { listBindings } from "./bindings.js";
 import {
   buildAgentMainSessionKey,
@@ -440,4 +441,86 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
   }
 
   return choose(resolveDefaultAgentId(input.cfg), "default");
+}
+
+/**
+ * Async wrapper around `resolveAgentRoute` that fires the `before_message_route`
+ * plugin hook before binding resolution.
+ *
+ * If a plugin overrides `agentId` or `sessionKey`, those override the normal
+ * resolution result. If a plugin sets `skip: true`, this returns `null` so the
+ * caller can drop the message (router-agent / content-filter pattern).
+ *
+ * Fall through to the synchronous resolver when no hooks are registered.
+ */
+export async function resolveAgentRouteWithHook(
+  input: ResolveAgentRouteInput & {
+    /** Additional context exposed to before_message_route plugins. */
+    from?: string;
+    content?: string;
+    conversationId?: string;
+  },
+  hookRunner?: HookRunner | null,
+): Promise<ResolvedAgentRoute | null> {
+  if (hookRunner?.hasHooks("before_message_route")) {
+    const hookResult = await hookRunner.runBeforeMessageRoute({
+      channelId: input.channel,
+      accountId: input.accountId ?? undefined,
+      from: input.from,
+      content: input.content,
+      conversationId: input.conversationId,
+      guildId: input.guildId ?? undefined,
+      teamId: input.teamId ?? undefined,
+    });
+
+    if (hookResult?.skip) {
+      logDebug(`[routing] before_message_route: skip=true (message dropped by plugin)`);
+      return null;
+    }
+
+    if (hookResult?.sessionKey) {
+      // Plugin supplied a full session key — bypass standard resolution entirely.
+      logDebug(`[routing] before_message_route: sessionKey override=${hookResult.sessionKey}`);
+      const baseRoute = resolveAgentRoute(input);
+      return { ...baseRoute, sessionKey: hookResult.sessionKey };
+    }
+
+    if (hookResult?.agentId) {
+      // Plugin selected an agent — build session key with the plugin-selected agent.
+      logDebug(`[routing] before_message_route: agentId override=${hookResult.agentId}`);
+      const resolvedAgentId = sanitizeAgentId(hookResult.agentId);
+      const channel = normalizeToken(input.channel);
+      const accountId = normalizeAccountId(input.accountId);
+      const peer = input.peer
+        ? {
+            kind: normalizeChatType(input.peer.kind) ?? input.peer.kind,
+            id: normalizeId(input.peer.id),
+          }
+        : null;
+      const dmScope = input.cfg.session?.dmScope ?? "main";
+      const identityLinks = input.cfg.session?.identityLinks;
+      const sessionKey = buildAgentSessionKey({
+        agentId: resolvedAgentId,
+        channel,
+        accountId,
+        peer,
+        dmScope,
+        identityLinks,
+      }).toLowerCase();
+      const mainSessionKey = buildAgentMainSessionKey({
+        agentId: resolvedAgentId,
+        mainKey: DEFAULT_MAIN_KEY,
+      }).toLowerCase();
+      return {
+        agentId: resolvedAgentId,
+        channel,
+        accountId,
+        sessionKey,
+        mainSessionKey,
+        matchedBy: "default",
+      };
+    }
+  }
+
+  return resolveAgentRoute(input);
 }

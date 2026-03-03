@@ -37,6 +37,8 @@ type ResolvedAgentConfig = {
   subagents?: AgentEntry["subagents"];
   sandbox?: AgentEntry["sandbox"];
   tools?: AgentEntry["tools"];
+  /** Plugin-defined metadata from the agent entry (see AgentConfig.metadata). */
+  metadata?: AgentEntry["metadata"];
 };
 
 let defaultAgentWarned = false;
@@ -139,6 +141,7 @@ export function resolveAgentConfig(
     subagents: typeof entry.subagents === "object" && entry.subagents ? entry.subagents : undefined,
     sandbox: entry.sandbox,
     tools: entry.tools,
+    metadata: entry.metadata,
   };
 }
 

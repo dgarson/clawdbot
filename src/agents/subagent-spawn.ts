@@ -7,6 +7,7 @@ import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import { normalizeAgentId, parseAgentSessionKey } from "../routing/session-key.js";
 import { normalizeDeliveryContext } from "../utils/delivery-context.js";
 import { resolveAgentConfig } from "./agent-scope.js";
+import { isInCleanupHookScope } from "./cleanup-hook-gate.js";
 import { AGENT_LANE_SUBAGENT } from "./lanes.js";
 import { resolveSubagentSpawnModelSelection } from "./model-selection.js";
 import { buildSubagentSystemPrompt } from "./subagent-announce.js";
@@ -32,6 +33,7 @@ export type SpawnSubagentParams = {
   thread?: boolean;
   mode?: SpawnSubagentMode;
   cleanup?: "delete" | "keep";
+  isolated?: boolean;
   expectsCompletionMessage?: boolean;
 };
 
@@ -163,6 +165,13 @@ export async function spawnSubagentDirect(
   params: SpawnSubagentParams,
   ctx: SpawnSubagentContext,
 ): Promise<SpawnSubagentResult> {
+  if (isInCleanupHookScope()) {
+    throw new Error(
+      "Subagent spawn is not permitted within an agent error cleanup hook. " +
+        "Cleanup hooks must only perform state updates (e.g. mark mail, update task state), " +
+        "not spawn new agents.",
+    );
+  }
   const task = params.task;
   const label = params.label?.trim() || "";
   const requestedAgentId = params.agentId;
@@ -185,7 +194,9 @@ export async function spawnSubagentDirect(
       : params.cleanup === "keep" || params.cleanup === "delete"
         ? params.cleanup
         : "keep";
-  const expectsCompletionMessage = params.expectsCompletionMessage !== false;
+  const expectsCompletionMessage = params.isolated
+    ? false
+    : params.expectsCompletionMessage !== false;
   const requesterOrigin = normalizeDeliveryContext({
     channel: ctx.agentChannel,
     accountId: ctx.agentAccountId,
@@ -264,13 +275,55 @@ export async function spawnSubagentDirect(
       };
     }
   }
-  const childSessionKey = `agent:${targetAgentId}:subagent:${crypto.randomUUID()}`;
+  // before_subagent_spawn hook — fires for every spawn, allows rejection or override.
+  let effectiveAgentId = targetAgentId;
+  let effectiveTask = task;
+  if (hookRunner?.hasHooks("before_subagent_spawn")) {
+    try {
+      const spawnHookResult = await hookRunner.runBeforeSubagentSpawn(
+        {
+          agentId: effectiveAgentId,
+          task: effectiveTask,
+          label: label || undefined,
+          mode: spawnMode,
+          spawnDepth: callerDepth,
+          requesterSessionKey: requesterInternalKey,
+          isolated: params.isolated === true,
+        },
+        {
+          childSessionKey: `agent:${effectiveAgentId}:pending`,
+          requesterSessionKey: requesterInternalKey,
+        },
+      );
+      if (spawnHookResult?.reject) {
+        return {
+          status: "error",
+          error: spawnHookResult.rejectReason ?? "Spawn rejected by plugin policy.",
+        };
+      }
+      if (spawnHookResult?.agentIdOverride) {
+        effectiveAgentId = normalizeAgentId(spawnHookResult.agentIdOverride);
+      }
+      if (spawnHookResult?.taskOverride) {
+        effectiveTask = spawnHookResult.taskOverride;
+      }
+    } catch (hookErr) {
+      // Non-critical — log and allow spawn to proceed.
+      console.warn(`[before_subagent_spawn] hook error: ${String(hookErr)}`);
+    }
+  }
+
+  // Isolated subagents get a distinct session key format so they can be
+  // identified in logs and store queries without inspecting spawn params.
+  const childSessionKey = params.isolated
+    ? `agent:${effectiveAgentId}:isolated:${crypto.randomUUID()}`
+    : `agent:${effectiveAgentId}:subagent:${crypto.randomUUID()}`;
   const childDepth = callerDepth + 1;
-  const spawnedByKey = requesterInternalKey;
-  const targetAgentConfig = resolveAgentConfig(cfg, targetAgentId);
+  const spawnedByKey = params.isolated ? undefined : requesterInternalKey;
+  const targetAgentConfig = resolveAgentConfig(cfg, effectiveAgentId);
   const resolvedModel = resolveSubagentSpawnModelSelection({
     cfg,
-    agentId: targetAgentId,
+    agentId: effectiveAgentId,
     modelOverride,
   });
 
@@ -350,7 +403,7 @@ export async function spawnSubagentDirect(
     const bindResult = await ensureThreadBindingForSubagentSpawn({
       hookRunner,
       childSessionKey,
-      agentId: targetAgentId,
+      agentId: effectiveAgentId,
       label: label || undefined,
       mode: spawnMode,
       requesterSessionKey: requesterInternalKey,
@@ -384,7 +437,7 @@ export async function spawnSubagentDirect(
     requesterOrigin,
     childSessionKey,
     label: label || undefined,
-    task,
+    task: effectiveTask,
     childDepth,
     maxSpawnDepth,
   });
@@ -393,7 +446,7 @@ export async function spawnSubagentDirect(
     spawnMode === "session"
       ? "[Subagent Context] This subagent session is persistent and remains available for thread follow-up messages."
       : undefined,
-    `[Subagent Task]: ${task}`,
+    `[Subagent Task]: ${effectiveTask}`,
   ]
     .filter((line): line is string => Boolean(line))
     .join("\n\n");
@@ -486,7 +539,7 @@ export async function spawnSubagentDirect(
     requesterSessionKey: requesterInternalKey,
     requesterOrigin,
     requesterDisplayKey,
-    task,
+    task: effectiveTask,
     cleanup,
     label: label || undefined,
     model: resolvedModel,
@@ -501,7 +554,7 @@ export async function spawnSubagentDirect(
         {
           runId: childRunId,
           childSessionKey,
-          agentId: targetAgentId,
+          agentId: effectiveAgentId,
           label: label || undefined,
           requester: {
             channel: requesterOrigin?.channel,
@@ -511,6 +564,7 @@ export async function spawnSubagentDirect(
           },
           threadRequested: requestThreadBinding,
           mode: spawnMode,
+          isolated: params.isolated === true,
         },
         {
           runId: childRunId,
