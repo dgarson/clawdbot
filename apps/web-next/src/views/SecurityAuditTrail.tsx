@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1525,9 +1526,92 @@ function ExportTab({ state, onChange }: ExportTabProps) {
   );
 }
 
+// ─── Skeleton Component ───────────────────────────────────────────────────────
+
+function SecurityAuditTrailSkeleton() {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Header */}
+      <div className="bg-zinc-900 border-b border-zinc-800 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton variant="rect" className="w-8 h-8 rounded-lg" />
+            <div className="space-y-1">
+              <Skeleton variant="text" className="h-5 w-40" />
+              <Skeleton variant="text" className="h-3 w-56" />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Skeleton variant="rect" className="h-8 w-24 rounded-lg" />
+            <Skeleton variant="rect" className="h-8 w-28 rounded-lg" />
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-zinc-900/50 border-b border-zinc-800 px-6">
+        <div className="max-w-7xl mx-auto flex gap-1">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2 px-4 py-3">
+              <Skeleton variant="text" className="h-4 w-16" />
+              <Skeleton variant="rect" className="h-4 w-5 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+        {/* Stats row */}
+        <div className="grid grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-2">
+              <Skeleton variant="text" className="h-3 w-24" />
+              <Skeleton variant="text" className="h-7 w-16" />
+            </div>
+          ))}
+        </div>
+
+        {/* Filters */}
+        <div className="flex items-center gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} variant="rect" className="h-9 w-28 rounded-lg" />
+          ))}
+          <div className="flex-1" />
+          <Skeleton variant="rect" className="h-9 w-40 rounded-lg" />
+        </div>
+
+        {/* Event list */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+          <div className="flex gap-4 px-4 py-3 border-b border-zinc-800 bg-zinc-800/50">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} variant="text" className="h-3 flex-1" />
+            ))}
+          </div>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="flex gap-4 px-4 py-4 border-b border-zinc-800/50 hover:bg-zinc-800/30">
+              <div className="flex items-center gap-2">
+                <Skeleton variant="circle" className="w-2 h-2" />
+                <Skeleton variant="text" className="h-4 w-20" />
+              </div>
+              <Skeleton variant="text" className="h-4 flex-1" />
+              <Skeleton variant="text" className="h-4 w-24" />
+              <div className="flex gap-1">
+                <Skeleton variant="rect" className="h-5 w-14 rounded-full" />
+                <Skeleton variant="rect" className="h-5 w-12 rounded-full" />
+              </div>
+              <Skeleton variant="text" className="h-4 w-16" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function SecurityAuditTrail() {
+export default function SecurityAuditTrail({ isLoading = false }: { isLoading?: boolean }) {
   const [activeTab, setActiveTab] = useState<TabId>("events");
   const [selectedEvent, setSelectedEvent] = useState<AuditEvent | null>(null);
   const [filters, setFilters] = useState<FilterState>({
@@ -1544,6 +1628,11 @@ export default function SecurityAuditTrail() {
     preset: "",
     isExporting: false,
   });
+
+  // Show skeleton during loading
+  if (isLoading) {
+    return <SecurityAuditTrailSkeleton />;
+  }
 
   const handleAnomalyStatusChange = (
     id: string,

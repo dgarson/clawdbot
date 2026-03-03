@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '../lib/utils';
+import { Skeleton } from '../components/ui/Skeleton';
 import {
   Smartphone, Monitor, Server, Wifi, WifiOff, Camera,
   MapPin, Bell, Play, ChevronRight, Plus, RefreshCw,
@@ -268,14 +269,126 @@ function NodeDetailPanel({ node, onClose }: { node: Node; onClose: () => void })
 }
 
 // ============================================================================
+// Skeleton Component
+// ============================================================================
+
+function NodeManagerSkeleton() {
+  return (
+    <div className="min-h-screen bg-gray-950 p-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <Skeleton variant="rect" className="w-6 h-6 rounded" />
+              <Skeleton variant="text" className="h-7 w-24" />
+            </div>
+            <Skeleton variant="text" className="h-4 w-48" />
+          </div>
+          <div className="flex items-center gap-3">
+            <Skeleton variant="rect" className="h-9 w-24 rounded-xl" />
+            <Skeleton variant="rect" className="h-9 w-28 rounded-xl" />
+          </div>
+        </div>
+
+        <div className="flex gap-6">
+          {/* Left: node list */}
+          <div className="flex-1">
+            {/* Filter tabs */}
+            <div className="flex items-center gap-1 mb-4 bg-gray-900 rounded-xl p-1 border border-gray-800 w-fit">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} variant="rect" className="h-8 w-16 rounded-lg" />
+              ))}
+            </div>
+
+            {/* Node cards */}
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="w-full p-5 rounded-2xl border bg-gray-900 border-gray-800">
+                  <div className="flex items-start gap-4">
+                    <Skeleton variant="rect" className="w-12 h-12 rounded-xl" />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Skeleton variant="text" className="h-4 w-32" />
+                        <div className="flex items-center gap-1.5">
+                          <Skeleton variant="circle" className="w-2 h-2" />
+                          <Skeleton variant="text" className="h-3 w-14" />
+                        </div>
+                      </div>
+                      <Skeleton variant="text" className="h-3 w-40" />
+                      <div className="flex gap-1.5 mt-3">
+                        {Array.from({ length: 4 }).map((_, j) => (
+                          <Skeleton key={j} variant="rect" className="h-5 w-16 rounded-full" />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Stats bar */}
+            <div className="mt-6 bg-gray-900 rounded-xl border border-gray-800 p-4">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i}>
+                    <Skeleton variant="text" className="h-6 w-8 mx-auto" />
+                    <Skeleton variant="text" className="h-3 w-20 mx-auto mt-1" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right: detail panel placeholder */}
+          <div className="w-72 flex-shrink-0">
+            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <Skeleton variant="text" className="h-5 w-24" />
+                <Skeleton variant="rect" className="h-6 w-6 rounded" />
+              </div>
+              <div className="flex items-center gap-4">
+                <Skeleton variant="rect" className="w-14 h-14 rounded-xl" />
+                <div className="space-y-2">
+                  <Skeleton variant="text" className="h-4 w-28" />
+                  <Skeleton variant="text" className="h-3 w-20" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <Skeleton variant="text" className="h-3 w-16" />
+                    <Skeleton variant="text" className="h-3 w-20" />
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-2 pt-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} variant="rect" className="h-9 w-full rounded-lg" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
-export default function NodeManager() {
+export default function NodeManager({ isLoading = false }: { isLoading?: boolean }) {
   const [nodes, setNodes] = useState(MOCK_NODES);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [showPending, setShowPending] = useState(true);
   const [filter, setFilter] = useState<'all' | 'online' | 'offline'>('all');
+
+  // Show skeleton during loading
+  if (isLoading) {
+    return <NodeManagerSkeleton />;
+  }
 
   const selected = nodes.find(n => n.id === selectedNode) ?? null;
 

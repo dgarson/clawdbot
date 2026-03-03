@@ -30,3 +30,5 @@
     "src/**/*.spec.ts"
   ]
 }
+module.exports = { compilerOptions: { "incremental": true } }
+{"compilerOptions": {"incremental": true}}

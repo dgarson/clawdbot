@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Search, Eye, RotateCcw, Trash2, X, Clock, MessageSquare, Coins, Cpu } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { Skeleton } from '../components/ui/Skeleton';
 import { MOCK_SESSIONS, formatRelativeTime, MOCK_AGENTS } from '../mock-data';
 import type { Session, SessionStatus } from '../types';
 
@@ -17,11 +18,71 @@ function truncateKey(key: string): string {
   return `${key.slice(0, 12)}...${key.slice(-9)}`;
 }
 
-export default function SessionExplorer() {
+// Skeleton Component
+function SessionExplorerSkeleton() {
+  return (
+    <div className="bg-gray-950 min-h-screen text-white">
+      <div className="p-6">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <Skeleton variant="text" className="h-7 w-28" />
+          <Skeleton variant="text" className="h-4 w-20" />
+          <Skeleton variant="rect" className="h-5 w-16 rounded-full" />
+        </div>
+
+        {/* Filters Bar */}
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <div className="flex bg-gray-900 rounded-lg p-1">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} variant="rect" className="h-7 w-16 rounded-md mx-0.5" />
+            ))}
+          </div>
+          <Skeleton variant="rect" className="h-9 w-36 rounded-lg" />
+          <div className="relative flex-1 max-w-xs">
+            <Skeleton variant="rect" className="h-9 w-full rounded-lg" />
+          </div>
+        </div>
+
+        {/* Session List */}
+        <div className="space-y-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div className="flex items-start gap-4">
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton variant="text" className="h-5 w-48" />
+                    <Skeleton variant="rect" className="h-4 w-14 rounded-full" />
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Skeleton variant="text" className="h-3 w-32" />
+                    <Skeleton variant="text" className="h-3 w-20" />
+                    <Skeleton variant="text" className="h-3 w-16" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Skeleton variant="rect" className="h-8 w-8 rounded-lg" />
+                  <Skeleton variant="rect" className="h-8 w-8 rounded-lg" />
+                  <Skeleton variant="rect" className="h-8 w-8 rounded-lg" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SessionExplorer({ isLoading = false }: { isLoading?: boolean }) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [agentFilter, setAgentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+
+  // Show skeleton during loading
+  if (isLoading) {
+    return <SessionExplorerSkeleton />;
+  }
 
   const totalCount = MOCK_SESSIONS.length;
   const activeCount = MOCK_SESSIONS.filter(s => s.status === 'active').length;

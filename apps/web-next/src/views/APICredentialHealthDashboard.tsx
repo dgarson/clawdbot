@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Badge } from "../components/ui/badge"
 import { Alert, AlertTitle, AlertDescription } from "../components/ui/alert"
 import { Progress } from "../components/ui/progress"
+import { Skeleton } from "../components/ui/Skeleton"
 import { cn } from "../lib/utils"
 
 // ============================================================================
@@ -514,6 +515,120 @@ function AlertItem({ alert, credentialName, onAcknowledge }: AlertItemProps) {
 }
 
 // ============================================================================
+// Skeleton Component
+// ============================================================================
+
+function APICredentialHealthDashboardSkeleton() {
+  return (
+    <div className="space-y-6 p-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <Skeleton variant="text" className="h-8 w-64" />
+          <Skeleton variant="text" className="h-4 w-80" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton variant="text" className="h-4 w-32" />
+          <Skeleton variant="rect" className="h-9 w-28 rounded-md" />
+        </div>
+      </div>
+
+      {/* Summary Stats */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="flex flex-col">
+            <CardContent className="flex items-center gap-4 p-4">
+              <Skeleton variant="rect" className="h-12 w-12 rounded-lg" />
+              <div className="flex-1 space-y-2">
+                <Skeleton variant="text" className="h-3 w-20" />
+                <Skeleton variant="text" className="h-6 w-16" />
+                <Skeleton variant="text" className="h-3 w-28" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Alerts Section */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Skeleton variant="text" className="h-5 w-20" />
+          <div className="flex items-center gap-2">
+            <Skeleton variant="rect" className="h-4 w-4 rounded" />
+            <Skeleton variant="text" className="h-4 w-32" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="rounded-lg border border-zinc-800 p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <Skeleton variant="text" className="h-4 w-32" />
+                <Skeleton variant="text" className="h-4 w-20" />
+              </div>
+              <Skeleton variant="text" className="h-3 w-full" />
+              <Skeleton variant="text" className="h-3 w-24" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">
+        <Skeleton variant="text" className="h-4 w-12" />
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} variant="rect" className="h-7 w-20 rounded-md" />
+        ))}
+      </div>
+
+      {/* Credentials Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Card key={i} className="flex flex-col">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <Skeleton variant="rect" className="h-10 w-10 rounded-lg" />
+                  <div className="space-y-1">
+                    <Skeleton variant="text" className="h-4 w-24" />
+                    <Skeleton variant="text" className="h-3 w-16" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Skeleton variant="circle" className="h-5 w-5" />
+                  <Skeleton variant="rect" className="h-5 w-16 rounded-full" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Skeleton variant="text" className="h-4 w-20" />
+                  <Skeleton variant="text" className="h-4 w-24" />
+                </div>
+                <Skeleton variant="rect" className="h-1.5 w-full rounded-full" />
+                <Skeleton variant="text" className="h-3 w-28" />
+              </div>
+              <div className="flex items-center justify-between">
+                <Skeleton variant="text" className="h-4 w-16" />
+                <Skeleton variant="text" className="h-4 w-20" />
+              </div>
+              <div className="flex items-center justify-between">
+                <Skeleton variant="text" className="h-4 w-20" />
+                <Skeleton variant="text" className="h-4 w-16" />
+              </div>
+            </CardContent>
+            <CardFooter className="gap-2 border-t border-zinc-800 pt-4">
+              <Skeleton variant="rect" className="h-8 w-20 rounded-md" />
+              <Skeleton variant="rect" className="h-8 w-24 rounded-md" />
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ============================================================================
 // Main Component
 // ============================================================================
 
@@ -529,6 +644,11 @@ export function APICredentialHealthDashboard({
 }: APICredentialHealthDashboardProps) {
   const [filter, setFilter] = useState<"all" | HealthStatus>("all")
   const [showAcknowledged, setShowAcknowledged] = useState(false)
+
+  // Show skeleton during loading
+  if (isLoading) {
+    return <APICredentialHealthDashboardSkeleton />
+  }
 
   // Calculate summary statistics
   const stats = useMemo(() => {

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { Skeleton } from "../components/ui/Skeleton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1882,11 +1883,97 @@ function ConsumersTab({ consumers }: { consumers: Consumer[] }) {
   );
 }
 
+// ─── Skeleton Component ──────────────────────────────────────────────────────
+
+function APIRateLimitManagerSkeleton() {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Top Bar */}
+      <div className="bg-zinc-900 border-b border-zinc-800 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton variant="rect" className="w-8 h-8 rounded-lg" />
+            <div className="space-y-1">
+              <Skeleton variant="text" className="h-5 w-36" />
+              <Skeleton variant="text" className="h-3 w-48" />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Skeleton variant="rect" className="h-8 w-24 rounded-lg" />
+            <Skeleton variant="rect" className="h-8 w-28 rounded-lg" />
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-zinc-900/50 border-b border-zinc-800 px-6">
+        <div className="max-w-7xl mx-auto flex gap-1">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2 px-4 py-3">
+              <Skeleton variant="text" className="h-4 w-16" />
+              <Skeleton variant="rect" className="h-4 w-5 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+        {/* Stats row */}
+        <div className="grid grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-2">
+              <Skeleton variant="text" className="h-3 w-20" />
+              <Skeleton variant="text" className="h-7 w-16" />
+            </div>
+          ))}
+        </div>
+
+        {/* Main content */}
+        <div className="grid grid-cols-3 gap-6">
+          {/* Chart area */}
+          <div className="col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <Skeleton variant="text" className="h-5 w-32" />
+              <div className="flex gap-2">
+                <Skeleton variant="rect" className="h-6 w-16 rounded" />
+                <Skeleton variant="rect" className="h-6 w-16 rounded" />
+              </div>
+            </div>
+            <Skeleton variant="rect" className="h-48 w-full rounded-lg" />
+          </div>
+
+          {/* Side panel */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+            <Skeleton variant="text" className="h-4 w-28" />
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Skeleton variant="circle" className="w-8 h-8" />
+                    <Skeleton variant="text" className="h-4 w-24" />
+                  </div>
+                  <Skeleton variant="text" className="h-4 w-12" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function APIRateLimitManager() {
+export default function APIRateLimitManager({ isLoading = false }: { isLoading?: boolean }) {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [ruleStatuses, setRuleStatuses] = useState<Record<string, RuleStatus>>({});
+
+  // Show skeleton during loading
+  if (isLoading) {
+    return <APIRateLimitManagerSkeleton />;
+  }
 
   const handleToggleRule = (id: string) => {
     setRuleStatuses((prev) => {
