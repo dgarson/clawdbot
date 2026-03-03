@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Database, Search, FileSearch2, GitBranch, History } from "lucide-react";
 
 // ============================================================================
 // Types
@@ -923,15 +925,19 @@ const SearchTab: React.FC = () => {
       {/* Results */}
       <div className="flex-1 overflow-y-auto">
         {!hasSearched ? (
-          <div className="text-center py-12">
-            <div className="text-zinc-500 text-4xl mb-4">🔍</div>
-            <p className="text-zinc-400">Enter a search term to find tables and columns</p>
-          </div>
+          <ContextualEmptyState
+            icon={Search}
+            title="Search your database schema"
+            description="Enter a search term to find tables, columns, or data types across your database."
+            size="lg"
+          />
         ) : results.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-zinc-500 text-4xl mb-4">📭</div>
-            <p className="text-zinc-400">No results found for "{query}"</p>
-          </div>
+          <ContextualEmptyState
+            icon={FileSearch2}
+            title="No results found"
+            description={`No tables or columns match "${query}". Try a different search term.`}
+            size="md"
+          />
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-zinc-400">

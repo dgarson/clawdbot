@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Variable } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -491,11 +493,23 @@ export default function EnvironmentManager() {
       {/* Variable list */}
       <div className="flex-1 overflow-y-auto" role="list" aria-label="Environment variables">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-            <span className="text-4xl">🔑</span>
-            <p className="text-sm font-medium text-zinc-300">No variables found</p>
-            <p className="text-xs text-zinc-600">Try adjusting your filters</p>
-          </div>
+          <ContextualEmptyState
+            icon={Variable}
+            title="No variables found"
+            description="No environment variables match your current filters. Try adjusting your search or scope selection."
+            size="md"
+            primaryAction={{
+              label: "Add Variable",
+              onClick: () => {/* TODO: open create modal */},
+            }}
+            secondaryAction={{
+              label: "Clear Filters",
+              onClick: () => {
+                setSearch("");
+                setScopeFilter("global");
+              },
+            }}
+          />
         ) : (
           filtered.map((v) => (
             <EnvRow

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { FileCode2 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -455,9 +457,12 @@ function EndpointsTab() {
       {/* Right: detail */}
       <div className="flex-1 overflow-y-auto">
         {!selected ? (
-          <div className="flex items-center justify-center h-40 text-zinc-500 text-sm">
-            Select an endpoint to view documentation
-          </div>
+          <ContextualEmptyState
+            icon={FileCode2}
+            title="Select an endpoint"
+            description="Choose an endpoint from the list to view its documentation, parameters, and responses."
+            size="md"
+          />
         ) : (
           <div className="space-y-4">
             <div className="flex items-center gap-3">

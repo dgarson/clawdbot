@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { FlaskConical } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -274,9 +276,16 @@ export default function ExperimentDashboard() {
         {/* Left column — experiment cards */}
         <div className="w-[45%] space-y-3 overflow-y-auto max-h-[calc(100vh-260px)] pr-1">
           {filtered.length === 0 && (
-            <p className="text-zinc-500 text-sm py-8 text-center">
-              No experiments match this filter.
-            </p>
+            <ContextualEmptyState
+              icon={FlaskConical}
+              title="No experiments found"
+              description="Try selecting a different status filter or create a new experiment to start testing."
+              size="md"
+              primaryAction={{
+                label: "New Experiment",
+                onClick: () => {/* TODO: open create modal */},
+              }}
+            />
           )}
           {filtered.map((exp) => {
             const best = bestPValue(exp);

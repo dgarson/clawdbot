@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Bug, AlertTriangle } from "lucide-react";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -713,10 +715,16 @@ function ExperimentsTab({
 function ActiveRunsTab({ runs }: { runs: ActiveRun[] }) {
   if (runs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-zinc-500">
-        <p className="text-lg font-medium text-zinc-400">No active runs</p>
-        <p className="text-sm mt-1">All systems nominal. No experiments currently injecting failures.</p>
-      </div>
+      <ContextualEmptyState
+        icon={AlertTriangle}
+        title="No active runs"
+        description="All systems nominal. No experiments are currently injecting failures. Schedule or start an experiment to begin."
+        size="lg"
+        primaryAction={{
+          label: "New Experiment",
+          onClick: () => {/* TODO: navigate to experiments tab */},
+        }}
+      />
     );
   }
 
@@ -965,9 +973,16 @@ function FindingsTab({ findings }: { findings: Finding[] }) {
         ))}
 
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-zinc-500 text-sm">
-            No findings matching this filter.
-          </div>
+          <ContextualEmptyState
+            icon={Bug}
+            title="No findings match this filter"
+            description="Try selecting a different severity filter or run more experiments to discover system weaknesses."
+            size="md"
+            secondaryAction={{
+              label: "Clear Filter",
+              onClick: () => setFilter("all"),
+            }}
+          />
         )}
       </div>
     </div>
