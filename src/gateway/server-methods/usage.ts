@@ -5,6 +5,8 @@ import {
   resolveSessionFilePathOptions,
 } from "../../config/sessions/paths.js";
 import type { SessionEntry, SessionSystemPromptReport } from "../../config/sessions/types.js";
+import { loadBillableUsageSummary, type BillableLimit } from "../../infra/billable-usage-store.js";
+import type { BillableUsageRecord } from "../../infra/billable-usage.js";
 import { loadProviderUsageSummary } from "../../infra/provider-usage.js";
 import type {
   CostUsageSummary,
@@ -53,6 +55,58 @@ type CostUsageCacheEntry = {
 };
 
 const costUsageCache = new Map<string, CostUsageCacheEntry>();
+
+const parseBillableLimits = (raw: unknown): BillableLimit[] => {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const limits: BillableLimit[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    const rec = item as Record<string, unknown>;
+    if (
+      typeof rec.id !== "string" ||
+      typeof rec.window !== "string" ||
+      typeof rec.unit !== "string"
+    ) {
+      continue;
+    }
+    if (typeof rec.max !== "number" || !Number.isFinite(rec.max)) {
+      continue;
+    }
+    const window = rec.window === "week" || rec.window === "month" ? rec.window : null;
+    const unitValues = ["usd", "tokens", "characters", "requests", "seconds", "images"] as const;
+    const unit = unitValues.includes(rec.unit as (typeof unitValues)[number])
+      ? (rec.unit as (typeof unitValues)[number])
+      : null;
+    if (!window || !unit) {
+      continue;
+    }
+    let scope: BillableLimit["scope"] | undefined;
+    if (rec.scope && typeof rec.scope === "object") {
+      const scopeRec = rec.scope as Record<string, unknown>;
+      scope = {
+        provider: typeof scopeRec.provider === "string" ? scopeRec.provider : undefined,
+        category:
+          typeof scopeRec.category === "string"
+            ? (scopeRec.category as BillableUsageRecord["category"])
+            : undefined,
+        source: typeof scopeRec.source === "string" ? scopeRec.source : undefined,
+        operation: typeof scopeRec.operation === "string" ? scopeRec.operation : undefined,
+      };
+    }
+    limits.push({
+      id: rec.id,
+      window,
+      unit,
+      max: rec.max,
+      scope,
+    });
+  }
+  return limits;
+};
 
 function resolveSessionUsageFileOrRespond(
   key: string,
@@ -335,6 +389,7 @@ export const __test = {
   getTodayStartMs,
   parseDays,
   parseDateRange,
+  parseBillableLimits,
   discoverAllSessionsForUsage,
   loadCostUsageSummaryCached,
   costUsageCache,
@@ -411,6 +466,27 @@ export const usageHandlers: GatewayRequestHandlers = {
     });
     const summary = await loadCostUsageSummaryCached({ startMs, endMs, config });
     respond(true, summary, undefined);
+  },
+  "usage.billable": async ({ respond, params }) => {
+    const { startMs, endMs } = parseDateRange({
+      startDate: params?.startDate,
+      endDate: params?.endDate,
+      days: params?.days,
+      mode: params?.mode,
+      utcOffset: params?.utcOffset,
+    });
+    const limits = parseBillableLimits(params?.limits);
+    const summary = await loadBillableUsageSummary({ startMs, endMs, limits });
+    respond(
+      true,
+      {
+        updatedAt: Date.now(),
+        startMs,
+        endMs,
+        ...summary,
+      },
+      undefined,
+    );
   },
   "sessions.usage": async ({ respond, params }) => {
     if (!validateSessionsUsageParams(params)) {

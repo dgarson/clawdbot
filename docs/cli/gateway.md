@@ -149,6 +149,23 @@ openclaw gateway call status
 openclaw gateway call logs.tail --params '{"sinceMs": 60000}'
 ```
 
+### `gateway usage-cost`
+
+Fetch session-log cost usage rollups.
+
+```bash
+openclaw gateway usage-cost --days 30
+```
+
+### `gateway usage-billable`
+
+Fetch normalized billable API usage captured from diagnostic events (`model.usage`, `api.usage`, `tts.usage`).
+
+```bash
+openclaw gateway usage-billable --days 7
+openclaw gateway usage-billable --days 7 --limits-json '[{"id":"weekly-usd","window":"week","unit":"usd","max":50}]'
+```
+
 ## Manage the Gateway service
 
 ```bash
