@@ -183,16 +183,17 @@ export default function AccessControlMatrix() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">Access Control Matrix</h1>
+      <div className="mb-4 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold mb-1">Access Control Matrix</h1>
         <p className="text-zinc-400 text-sm">Manage role-based permissions across resources and actions</p>
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 mb-5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
           <label className="text-xs text-zinc-400 uppercase tracking-wide">Resource</label>
           <select
             value={resourceFilter}
@@ -218,7 +219,8 @@ export default function AccessControlMatrix() {
             <option value="conditional">Conditional</option>
           </select>
         </div>
-        <div className="flex-1" />
+        </div>
+        <div className="sm:flex-1" />
         {hasChanges && (
           <div className="flex items-center gap-2">
             <span className="text-xs text-amber-400 font-medium">
@@ -391,7 +393,7 @@ export default function AccessControlMatrix() {
                       <tr className="border-b border-zinc-800/50">
                         <td colSpan={filteredColIndices.length + 1} className="p-0">
                           <div className="bg-zinc-800/40 border-t border-zinc-800 px-4 py-3">
-                            <div className="grid grid-cols-3 gap-6 max-w-2xl">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-2xl">
                               <div>
                                 <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Description</div>
                                 <div className="text-xs text-zinc-300 leading-relaxed">{role.description}</div>

@@ -257,7 +257,7 @@ export default function GatewayMetricsDashboard() {
       </a>
 
       <div className="min-h-screen bg-zinc-950 text-white">
-        <main id="gateway-metrics-main" className="p-6 space-y-6 max-w-7xl mx-auto">
+        <main id="gateway-metrics-main" className="p-4 md:p-6 space-y-4 md:space-y-6 max-w-7xl mx-auto">
 
           {/* Live status announcements — WCAG 4.1.3 */}
           <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
@@ -310,7 +310,7 @@ export default function GatewayMetricsDashboard() {
 
           {/* Fleet overview */}
           <section aria-label="Fleet health overview">
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
               {[
                 { label: 'Total Nodes', value: GATEWAY_NODES.length, icon: Server, color: 'text-zinc-300' },
                 { label: 'Healthy', value: totalHealthy, icon: CheckCircle2, color: 'text-green-400' },
@@ -336,7 +336,7 @@ export default function GatewayMetricsDashboard() {
               <BarChart2 className="w-5 h-5 text-violet-400" aria-hidden="true" />
               Live Metrics
             </h2>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
               <MetricCard
                 label="Total RPS"
                 value={formatRps(latest.totalRps)}
@@ -533,7 +533,7 @@ export default function GatewayMetricsDashboard() {
               <TrendingUp className="w-5 h-5 text-violet-400" aria-hidden="true" />
               Trend Summary (last 5 min)
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               {[
                 {
                   label: 'Requests per Second',

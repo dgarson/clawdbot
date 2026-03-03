@@ -169,11 +169,11 @@ export default function PermissionsMatrix() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 md:mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Permissions Matrix</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-white">Permissions Matrix</h1>
           <p className="text-zinc-400 text-sm mt-0.5">Role-based access control — {ROLES.length} roles · {PERMISSIONS.length} permissions · {USERS.length} users</p>
         </div>
         <button className="text-sm px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors">
@@ -274,8 +274,8 @@ export default function PermissionsMatrix() {
 
       {/* Roles Tab */}
       {activeTab === "roles" && (
-        <div className="grid grid-cols-5 gap-4">
-          <div className="col-span-2 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="col-span-1 md:col-span-2 space-y-3">
             {ROLES.map(role => (
               <button
                 key={role.id}
@@ -299,7 +299,7 @@ export default function PermissionsMatrix() {
             ))}
           </div>
 
-          <div className="col-span-3">
+          <div className="col-span-1 md:col-span-3">
             {selectedRole && !editingRole ? (
               <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-4">
                 <div className="flex items-center justify-between">
@@ -518,7 +518,7 @@ export default function PermissionsMatrix() {
           {roleA && roleB && (
             <>
               {/* Summary */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className={cn("w-2.5 h-2.5 rounded-full", roleA.color)} />

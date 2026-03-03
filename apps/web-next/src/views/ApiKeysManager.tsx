@@ -968,11 +968,11 @@ export default function ApiKeysManager() {
   ];
 
   return (
-    <div className="h-full flex flex-col gap-5">
+    <div className="h-full flex flex-col gap-4 md:gap-5 p-4 md:p-0">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-xl font-bold">API & Integrations</h1>
+          <h1 className="text-lg md:text-xl font-bold">API & Integrations</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Manage API keys, signing secrets, and webhook endpoints.
           </p>

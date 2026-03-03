@@ -1164,12 +1164,12 @@ function QueueTab({ tickets }: QueueTabProps) {
   const selected = tickets.find((t) => t.id === selectedId) ?? null
 
   return (
-    <div className="flex gap-4">
+    <div className="flex flex-col lg:flex-row gap-4">
       {/* Left: Ticket list */}
       <div
         className={cn(
           "flex flex-col gap-2 transition-all",
-          selected ? "w-[44%]" : "w-full"
+          selected ? "lg:w-[44%]" : "w-full"
         )}
       >
         {/* Filters */}
@@ -1259,7 +1259,7 @@ function QueueTab({ tickets }: QueueTabProps) {
 
       {/* Right: Detail panel */}
       {selected && (
-        <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col overflow-hidden max-h-[76vh]">
+        <div className="w-full lg:flex-1 bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col overflow-hidden max-h-[76vh]">
           {/* Panel header */}
           <div className="px-5 py-4 border-b border-zinc-800 shrink-0">
             <div className="flex items-center justify-between mb-2">
@@ -1282,7 +1282,7 @@ function QueueTab({ tickets }: QueueTabProps) {
             <h2 className="text-white font-semibold text-base leading-snug">
               {selected.title}
             </h2>
-            <div className="grid grid-cols-3 gap-x-4 gap-y-2 mt-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 mt-3">
               {[
                 { label: "Customer", value: selected.customer },
                 { label: "Assignee", value: selected.assignee },
@@ -1394,7 +1394,7 @@ function AnalyticsTab() {
   return (
     <div className="flex flex-col gap-5">
       {/* KPI cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {[
           {
             label: "Total Tickets (14d)",
@@ -1435,7 +1435,7 @@ function AnalyticsTab() {
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Bar chart: ticket volume */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-0.5">
@@ -1561,7 +1561,7 @@ function AnalyticsTab() {
       </div>
 
       {/* Category breakdown + Team workload */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Category breakdown */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-4">
@@ -1648,7 +1648,7 @@ function SLADashboardTab() {
   return (
     <div className="flex flex-col gap-5">
       {/* Compliance by tier */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {SLA_COMPLIANCE.map((tier) => (
           <div
             key={tier.tier}
@@ -1709,7 +1709,7 @@ function SLADashboardTab() {
       </div>
 
       {/* SLA Policy cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {SLA_POLICIES.map((policy) => (
           <div
             key={policy.tier}
@@ -1754,7 +1754,7 @@ function SLADashboardTab() {
       </div>
 
       {/* At-risk tickets + Breach history */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* At-risk */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-4">
@@ -1865,7 +1865,7 @@ function KnowledgeBaseTab() {
   return (
     <div className="flex flex-col gap-5">
       {/* Top articles + Suggested articles */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Top by deflection rate */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-1">
@@ -2079,19 +2079,19 @@ export default function SupportTicketDashboard() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
-      <div className="max-w-[1440px] mx-auto px-6 py-6">
+      <div className="max-w-[1440px] mx-auto p-4 md:px-6 md:py-6">
         {/* Header */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4 md:mb-6">
           <div>
-            <h1 className="text-xl font-bold text-white tracking-tight">
+            <h1 className="text-lg md:text-xl font-bold text-white tracking-tight">
               Support Ticket Dashboard
             </h1>
             <p className="text-sm text-zinc-500 mt-0.5">
               Horizon UI · Manage, analyze, and resolve customer support
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 text-sm">
+          <div className="flex flex-wrap items-center gap-3 md:gap-4">
+            <div className="flex flex-wrap items-center gap-2 md:gap-3 text-sm">
               {breachedCount > 0 && (
                 <span className="flex items-center gap-1.5 text-red-400">
                   <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />

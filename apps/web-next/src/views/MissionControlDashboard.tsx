@@ -338,7 +338,7 @@ function StatCard({
   pulseColor?: string;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 sm:p-4 flex items-start gap-3">
       <div className="mt-0.5 p-2 bg-zinc-800 rounded-lg">
         <Icon className="w-4 h-4 text-zinc-400" />
       </div>
@@ -456,7 +456,7 @@ function LiveStatusBar({
   gatewayOnline: boolean;
 }) {
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <StatCard
         label="Gateway"
         value={gatewayOnline ? 'ONLINE' : 'OFFLINE'}
@@ -783,9 +783,9 @@ function AlertFeed({ alerts }: { alerts: AlertEntry[] }) {
 
 function StatusBarSkeleton() {
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
+        <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 sm:p-4 flex items-start gap-3">
           <Skeleton variant="rect" className="w-8 h-8 rounded-lg" />
           <div className="flex-1 space-y-2">
             <Skeleton variant="text" className="h-2.5 w-20" />
@@ -825,8 +825,8 @@ function SessionListSkeleton() {
 
 function MissionControlSkeleton() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="space-y-1">
           <Skeleton variant="rect" className="h-7 w-48" />
           <Skeleton variant="text" className="h-3 w-64" />
@@ -834,8 +834,8 @@ function MissionControlSkeleton() {
         <Skeleton variant="rect" className="h-5 w-24 rounded-full" />
       </div>
       <StatusBarSkeleton />
-      <div className="grid grid-cols-4 gap-4" style={{ minHeight: '420px' }}>
-        <div className="col-span-2"><SessionListSkeleton /></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" style={{ minHeight: '420px' }}>
+        <div className="col-span-1 md:col-span-2 lg:col-span-2"><SessionListSkeleton /></div>
         <div className="col-span-1"><SessionListSkeleton /></div>
         <div className="col-span-1"><SessionListSkeleton /></div>
       </div>
@@ -900,9 +900,9 @@ export default function MissionControlDashboard({ isLoading = false }: { isLoadi
   if (isLoading) return <MissionControlSkeleton />;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Radio className="w-6 h-6 text-violet-400" />
@@ -927,19 +927,19 @@ export default function MissionControlDashboard({ isLoading = false }: { isLoadi
       />
 
       {/* Sections 2-4: Three-panel layout */}
-      <div className="grid grid-cols-4 gap-4" style={{ minHeight: '420px' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" style={{ minHeight: '420px' }}>
         {/* Active Sessions — 2/4 width */}
-        <div className="col-span-2">
+        <div className="col-span-1 md:col-span-2 lg:col-span-2">
           <ActiveSessionsPanel sessions={sessions} />
         </div>
 
         {/* Tool Calls In-Flight — 1/4 width */}
-        <div className="col-span-1">
+        <div className="col-span-1 md:col-span-1 lg:col-span-1">
           <ToolCallsPanel toolCalls={INITIAL_TOOL_CALLS} />
         </div>
 
         {/* Pending Approvals — 1/4 width */}
-        <div className="col-span-1">
+        <div className="col-span-1 md:col-span-1 lg:col-span-1">
           <PendingApprovalsPanel
             approvals={approvals}
             onApprove={handleApprove}

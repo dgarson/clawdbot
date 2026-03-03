@@ -491,7 +491,7 @@ function JobDetailDrawer({ job, onClose }: { job: Job | null; onClose: () => voi
   if (!job) return null;
   return (
     <div className="fixed inset-0 bg-black/80 flex justify-end z-50">
-      <div className="w-96 bg-zinc-900 border-l border-zinc-800 p-6 overflow-y-auto">
+      <div className="w-full sm:w-96 bg-zinc-900 border-l border-zinc-800 p-4 sm:p-6 overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-bold text-white">Job Details</h3>
           <button onClick={onClose} className="text-zinc-400 hover:text-white">
@@ -588,11 +588,11 @@ export default function WorkqueueDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 space-y-6">
+    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">Work Queue</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold">Work Queue</h1>
           <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-300 text-sm font-medium">
             {stats.running} active
           </span>
@@ -600,11 +600,11 @@ export default function WorkqueueDashboard() {
             {stats.pending} queued
           </span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <button
             onClick={() => setIsPaused(!isPaused)}
             className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
+              'flex items-center gap-2 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors',
               isPaused ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30' : 'bg-green-500/20 text-green-300 hover:bg-green-500/30'
             )}
           >
@@ -613,7 +613,7 @@ export default function WorkqueueDashboard() {
           </button>
           <button
             onClick={handleFlushCompleted}
-            className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-colors"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 transition-colors"
           >
             <Archive className="w-4 h-4" />
             Flush Completed
@@ -622,7 +622,7 @@ export default function WorkqueueDashboard() {
       </div>
 
       {/* Queue Stats Row */}
-      <div className="grid grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <StatCard label="Pending" value={stats.pending} icon={Clock} color="text-amber-400" />
         <StatCard label="Running" value={stats.running} icon={Activity} color="text-green-400" />
         <StatCard label="Completed" value={stats.completed} icon={CheckCircle} color="text-blue-400" />
@@ -632,9 +632,9 @@ export default function WorkqueueDashboard() {
       </div>
 
       {/* Main Layout: Active Workers | Job List | Failed Jobs */}
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {/* Active Workers Panel */}
-        <div className="col-span-1 bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+        <div className="col-span-1 md:col-span-2 lg:col-span-1 bg-zinc-900 border border-zinc-800 rounded-xl p-3 sm:p-4 space-y-4">
           <h2 className="text-sm font-semibold flex items-center gap-2">
             <Users className="w-4 h-4 text-violet-400" />
             Active Workers
@@ -665,7 +665,7 @@ export default function WorkqueueDashboard() {
         </div>
 
         {/* Job List with Priority Lanes */}
-        <div className="col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+        <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl p-3 sm:p-4 space-y-4">
           <h2 className="text-sm font-semibold flex items-center gap-2">
             <Layers className="w-4 h-4 text-green-400" />
             Job List
@@ -677,7 +677,7 @@ export default function WorkqueueDashboard() {
                   <PriorityBadge priority={priority} />
                   <span className="text-sm text-zinc-400">({groupedJobs[priority].length})</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {groupedJobs[priority].map(job => (
                     <JobCard key={job.id} job={job} onViewDetails={setSelectedJob} />
                   ))}
@@ -688,9 +688,9 @@ export default function WorkqueueDashboard() {
         </div>
 
         {/* Failed Jobs Panel + Throughput Sparkline */}
-        <div className="col-span-1 space-y-6">
+        <div className="col-span-1 md:col-span-2 lg:col-span-1 space-y-4 md:space-y-6">
           {/* Failed Jobs */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 sm:p-4 space-y-4">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-red-400" />
               Failed Jobs
@@ -718,7 +718,7 @@ export default function WorkqueueDashboard() {
           </div>
 
           {/* Throughput Sparkline */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 sm:p-4 space-y-4">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-orange-400" />
               Throughput (last 30 min)
