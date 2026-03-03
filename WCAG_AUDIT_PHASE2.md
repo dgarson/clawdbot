@@ -4,6 +4,7 @@
 **Branch:** feat/horizon-ui-complete  
 **Auditor:** Reed (Accessibility Agent)  
 **Date:** 2026-03-02  
+**Pull Request:** https://github.com/dgarson/clawdbot/pull/195  
 
 ## Executive Summary
 
@@ -255,16 +256,16 @@ Add motion-safe prefix:
 
 ## Files Modified
 
-1. `src/views/EnvironmentDriftDetector.tsx` - ✅ Fixed
-2. `src/views/DataCatalog.tsx` - ✅ Fixed
-3. `src/views/APIRateLimitManager.tsx` - ✅ Fixed
-4. `src/views/SupportTicketDashboard.tsx` - ✅ Fixed
-5. `src/views/CloudCostOptimizer.tsx` - ✅ Fixed
-6. `src/views/DatabaseSchemaViewer.tsx` - ✅ Fixed
-7. `src/views/QueueInspector.tsx` - ✅ Fixed
-8. `src/views/TokenUsageOptimizer.tsx` - ✅ Fixed
-9. `src/views/SecurityAuditTrail.tsx` - ✅ Fixed
-10. `src/views/DecisionProvenance.tsx` - ✅ Fixed
+1. `src/views/SupportTicketDashboard.tsx` - ✅ Fixed (skip link, main landmark, table scope, select labels, status indicators)
+2. `src/views/DataCatalog.tsx` - ✅ Fixed (skip link, main landmark)
+3. `src/views/APIRateLimitManager.tsx` - ✅ Fixed (skip link, main landmark, status indicators, motion-safe)
+4. `src/views/CloudCostOptimizer.tsx` - ✅ Fixed (skip link, main landmark, status indicator)
+5. `src/views/EnvironmentDriftDetector.tsx` - ✅ Fixed (skip link, main landmark, motion-safe, close button label)
+6. `src/views/DatabaseSchemaViewer.tsx` - ✅ Fixed (skip link, main landmark)
+7. `src/views/QueueInspector.tsx` - ✅ Fixed (skip link, main landmark, motion-safe)
+8. `src/views/TokenUsageOptimizer.tsx` - ✅ Fixed (skip link, main landmark)
+9. `src/views/SecurityAuditTrail.tsx` - ✅ Fixed (skip link, main landmark, motion-safe)
+10. `src/views/DecisionProvenance.tsx` - ✅ Fixed (skip link, main landmark)
 
 ---
 
