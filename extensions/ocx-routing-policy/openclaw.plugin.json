@@ -1,0 +1,50 @@
+{
+  "id": "ocx-routing-policy",
+  "name": "Routing Policy",
+  "description": "Policy-driven model routing, task classification, and composable prompt pipeline.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "classifierModel": {
+        "type": "string"
+      },
+      "heuristicConfidenceThreshold": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "policyFile": {
+        "type": "string"
+      },
+      "contributorsFile": {
+        "type": "string"
+      },
+      "defaultModel": {
+        "type": "string"
+      }
+    }
+  },
+  "uiHints": {
+    "classifierModel": {
+      "label": "Classifier Model",
+      "help": "Model used for LLM-based classification when heuristic confidence is low (default: gpt-4.1-mini)"
+    },
+    "heuristicConfidenceThreshold": {
+      "label": "Heuristic Confidence Threshold",
+      "help": "Minimum heuristic confidence before falling back to LLM classifier (default: 0.7)"
+    },
+    "policyFile": {
+      "label": "Policy File",
+      "help": "Filename for routing policies in stateDir (default: routing-policies.json)"
+    },
+    "contributorsFile": {
+      "label": "Contributors File",
+      "help": "Filename for prompt contributors in stateDir (default: prompt-contributors.json)"
+    },
+    "defaultModel": {
+      "label": "Default Model",
+      "help": "Model to use when no routing policy matches (empty = use agent's configured model)"
+    }
+  }
+}

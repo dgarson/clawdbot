@@ -269,6 +269,38 @@ function createMockRuntime(): PluginRuntime {
         () => "/tmp/openclaw",
       ) as unknown as PluginRuntime["state"]["resolveStateDir"],
     },
+    gateway: {
+      call: vi.fn() as unknown as PluginRuntime["gateway"]["call"],
+    },
+    sessions: {
+      list: vi.fn() as unknown as PluginRuntime["sessions"]["list"],
+      readTranscript: vi.fn() as unknown as PluginRuntime["sessions"]["readTranscript"],
+      getUsageSummary: vi.fn() as unknown as PluginRuntime["sessions"]["getUsageSummary"],
+    },
+    diagnostics: {
+      emit: vi.fn() as unknown as PluginRuntime["diagnostics"]["emit"],
+      subscribe: vi.fn() as unknown as PluginRuntime["diagnostics"]["subscribe"],
+    },
+    kv: {
+      get: vi.fn() as unknown as PluginRuntime["kv"]["get"],
+      set: vi.fn() as unknown as PluginRuntime["kv"]["set"],
+      delete: vi.fn() as unknown as PluginRuntime["kv"]["delete"],
+      list: vi.fn() as unknown as PluginRuntime["kv"]["list"],
+      clear: vi.fn() as unknown as PluginRuntime["kv"]["clear"],
+    },
+    quota: {
+      getUsage: vi.fn() as unknown as PluginRuntime["quota"]["getUsage"],
+      checkBudget: vi.fn() as unknown as PluginRuntime["quota"]["checkBudget"],
+    },
+    agents: {
+      list: vi.fn() as unknown as PluginRuntime["agents"]["list"],
+      resolve: vi.fn() as unknown as PluginRuntime["agents"]["resolve"],
+    },
+    cron: {
+      schedule: vi.fn() as unknown as PluginRuntime["cron"]["schedule"],
+      cancel: vi.fn() as unknown as PluginRuntime["cron"]["cancel"],
+      list: vi.fn() as unknown as PluginRuntime["cron"]["list"],
+    },
   };
 }
 
