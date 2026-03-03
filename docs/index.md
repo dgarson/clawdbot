@@ -114,7 +114,8 @@ The Gateway is the single source of truth for sessions, routing, and channel con
   </Step>
 </Steps>
 
-Need the full install and dev setup? See [Quick start](/start/quickstart).
+Need a minimal evaluation flow? See [Developer Quickstart](/quickstart).
+Need the full install + wizard flow? See [Getting Started](/start/getting-started).
 
 ## Dashboard
 

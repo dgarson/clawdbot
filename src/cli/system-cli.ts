@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { systemWatchdogCommand } from "../commands/system-watchdog.js";
 import { danger } from "../globals.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
@@ -129,4 +130,23 @@ export function registerSystemCli(program: Command) {
       });
     });
   });
+
+  system
+    .command("watchdog")
+    .description("Gateway watchdog (health checks, auto-repair, status notifications)")
+    .command("run")
+    .description("Run the watchdog loop")
+    .option("--config <path>", "Watchdog config path (JSON/JSON5)")
+    .option("--once", "Run a single cycle and exit", false)
+    .option("--interval <ms>", "Polling interval override in milliseconds")
+    .option("--branch-interval <ms>", "Branch check interval override in milliseconds")
+    .option("--json", "Output JSON per cycle", false)
+    .action(async (opts) => {
+      try {
+        await systemWatchdogCommand(opts, defaultRuntime);
+      } catch (err) {
+        defaultRuntime.error(danger(String(err)));
+        defaultRuntime.exit(1);
+      }
+    });
 }

@@ -1,3 +1,4 @@
+import { logToolActivity } from "../logging/diagnostic.js";
 import {
   handleAgentEnd,
   handleAgentStart,
@@ -32,26 +33,34 @@ export function createEmbeddedPiSessionEventHandler(ctx: EmbeddedPiSubscribeCont
         handleMessageEnd(ctx, evt as never);
         return;
       case "tool_execution_start":
+        // Keep diagnostic lastActivity fresh so stuck-session detection
+        // doesn't false-positive during long multi-tool agent turns.
+        logToolActivity({ sessionKey: ctx.params.sessionKey });
         // Async handler - best-effort typing indicator, avoids blocking tool summaries.
         // Catch rejections to avoid unhandled promise rejection crashes.
         handleToolExecutionStart(ctx, evt as never).catch((err) => {
-          ctx.log.debug(`tool_execution_start handler failed: ${String(err)}`);
+          ctx.log.debug(
+            `[${ctx.params.sessionKey ?? "?"}] tool_execution_start handler failed: ${String(err)}`,
+          );
         });
         return;
       case "tool_execution_update":
         handleToolExecutionUpdate(ctx, evt as never);
         return;
       case "tool_execution_end":
+        logToolActivity({ sessionKey: ctx.params.sessionKey });
         // Async handler - best-effort, non-blocking
         handleToolExecutionEnd(ctx, evt as never).catch((err) => {
-          ctx.log.debug(`tool_execution_end handler failed: ${String(err)}`);
+          ctx.log.debug(
+            `[${ctx.params.sessionKey ?? "?"}] tool_execution_end handler failed: ${String(err)}`,
+          );
         });
         return;
       case "agent_start":
         handleAgentStart(ctx);
         return;
       case "auto_compaction_start":
-        handleAutoCompactionStart(ctx);
+        handleAutoCompactionStart(ctx, evt as never);
         return;
       case "auto_compaction_end":
         handleAutoCompactionEnd(ctx, evt as never);

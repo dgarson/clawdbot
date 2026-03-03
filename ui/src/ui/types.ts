@@ -409,6 +409,8 @@ export type GatewaySessionRow = {
   thinkingLevel?: string;
   verboseLevel?: string;
   reasoningLevel?: string;
+  resolvedThinkingLevel?: string;
+  resolvedVerboseLevel?: string;
   elevatedLevel?: string;
   inputTokens?: number;
   outputTokens?: number;

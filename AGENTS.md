@@ -109,6 +109,9 @@
 
 - Create commits with `scripts/committer "<msg>" <file...>`; avoid manual `git add`/`git commit` so staging stays scoped.
 - Follow concise, action-oriented commit messages (e.g., `CLI: add verbose flag to send`).
+- For work-queue tracked tasks, include a footer for deterministic reconciliation:
+  - `closes workq:<owner/repo#ref>` when the commit completes the item.
+  - `refs workq:<owner/repo#ref>` when the commit is related but not complete.
 - Group related changes; avoid bundling unrelated refactors.
 - PR submission template (canonical): `.github/pull_request_template.md`
 - Issue submission templates (canonical): `.github/ISSUE_TEMPLATE/`
@@ -254,3 +257,7 @@
   - `node --import tsx scripts/release-check.ts`
   - `pnpm release:check`
   - `pnpm test:install:smoke` or `OPENCLAW_INSTALL_SMOKE_SKIP_NONROOT=1 pnpm test:install:smoke` for non-root smoke path.
+
+## Voice (OpenAI TTS)
+
+**nova** — Warm, Design-focused

@@ -4,6 +4,7 @@ import { createCliRuntimeCapture } from "./test-runtime-capture.js";
 
 const callGatewayFromCli = vi.fn();
 const addGatewayClientOptions = vi.fn((command: Command) => command);
+const systemWatchdogCommand = vi.fn();
 
 const { runtimeLogs, runtimeErrors, defaultRuntime, resetRuntimeCapture } =
   createCliRuntimeCapture();
@@ -13,6 +14,9 @@ vi.mock("./gateway-rpc.js", () => ({
   callGatewayFromCli,
 }));
 
+vi.mock("../commands/system-watchdog.js", () => ({
+  systemWatchdogCommand,
+}));
 vi.mock("../runtime.js", () => ({
   defaultRuntime,
 }));
@@ -36,6 +40,7 @@ describe("system-cli", () => {
     vi.clearAllMocks();
     resetRuntimeCapture();
     callGatewayFromCli.mockResolvedValue({ ok: true });
+    systemWatchdogCommand.mockResolvedValue(undefined);
   });
 
   it("runs system event with default wake mode and text output", async () => {
@@ -87,5 +92,13 @@ describe("system-cli", () => {
       expectFinal: false,
     });
     expect(runtimeLogs).toEqual([JSON.stringify({ method }, null, 2)]);
+  });
+  it("runs watchdog command", async () => {
+    await runCli(["system", "watchdog", "run", "--once", "--interval", "5000"]);
+
+    expect(systemWatchdogCommand).toHaveBeenCalledWith(
+      expect.objectContaining({ once: true, interval: "5000" }),
+      defaultRuntime,
+    );
   });
 });

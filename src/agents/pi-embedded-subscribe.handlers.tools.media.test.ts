@@ -28,6 +28,9 @@ function createMockContext(overrides?: {
       messagingToolSentTextsNormalized: [],
       messagingToolSentMediaUrls: [],
       messagingToolSentTargets: [],
+      successfulCronAdds: 0,
+      toolDiagnosticExtraInfos: [],
+      toolDiagnosticDebugInfos: [],
     },
     log: { debug: vi.fn(), warn: vi.fn() },
     shouldEmitToolResult: vi.fn(() => false),
@@ -35,6 +38,7 @@ function createMockContext(overrides?: {
     emitToolSummary: vi.fn(),
     emitToolOutput: vi.fn(),
     trimMessagingToolSent: vi.fn(),
+    trimToolDiagnosticInfos: vi.fn(),
     hookRunner: undefined,
     // Fill in remaining required fields with no-ops.
     blockChunker: null,

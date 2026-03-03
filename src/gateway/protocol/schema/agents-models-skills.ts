@@ -50,6 +50,8 @@ export const AgentsCreateParamsSchema = Type.Object(
     workspace: NonEmptyString,
     emoji: Type.Optional(Type.String()),
     avatar: Type.Optional(Type.String()),
+    avatarDataUrl: Type.Optional(Type.String()),
+    avatarFilename: Type.Optional(Type.String()),
   },
   { additionalProperties: false },
 );
@@ -160,6 +162,39 @@ export const AgentsFilesSetResultSchema = Type.Object(
     agentId: NonEmptyString,
     workspace: NonEmptyString,
     file: AgentsFileEntrySchema,
+  },
+  { additionalProperties: false },
+);
+
+export const AgentsAvatarCapabilitiesParamsSchema = Type.Object(
+  {},
+  { additionalProperties: false },
+);
+
+export const AgentsAvatarCapabilitiesResultSchema = Type.Object(
+  {
+    supported: Type.Boolean(),
+    provider: Type.Literal("gemini"),
+    model: Type.Optional(NonEmptyString),
+    reason: Type.Optional(Type.String()),
+  },
+  { additionalProperties: false },
+);
+
+export const AgentsAvatarGenerateParamsSchema = Type.Object(
+  {
+    name: NonEmptyString,
+    description: NonEmptyString,
+  },
+  { additionalProperties: false },
+);
+
+export const AgentsAvatarGenerateResultSchema = Type.Object(
+  {
+    provider: Type.Literal("gemini"),
+    model: NonEmptyString,
+    emoji: NonEmptyString,
+    imageDataUrl: NonEmptyString,
   },
   { additionalProperties: false },
 );

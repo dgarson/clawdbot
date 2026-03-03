@@ -10,6 +10,14 @@ import {
   AgentParamsSchema,
   type AgentSummary,
   AgentSummarySchema,
+  type AgentsAvatarCapabilitiesParams,
+  AgentsAvatarCapabilitiesParamsSchema,
+  type AgentsAvatarCapabilitiesResult,
+  AgentsAvatarCapabilitiesResultSchema,
+  type AgentsAvatarGenerateParams,
+  AgentsAvatarGenerateParamsSchema,
+  type AgentsAvatarGenerateResult,
+  AgentsAvatarGenerateResultSchema,
   type AgentsFileEntry,
   AgentsFileEntrySchema,
   type AgentsCreateParams,
@@ -250,6 +258,12 @@ export const validateAgentIdentityParams =
 export const validateAgentWaitParams = ajv.compile<AgentWaitParams>(AgentWaitParamsSchema);
 export const validateWakeParams = ajv.compile<WakeParams>(WakeParamsSchema);
 export const validateAgentsListParams = ajv.compile<AgentsListParams>(AgentsListParamsSchema);
+export const validateAgentsAvatarCapabilitiesParams = ajv.compile<AgentsAvatarCapabilitiesParams>(
+  AgentsAvatarCapabilitiesParamsSchema,
+);
+export const validateAgentsAvatarGenerateParams = ajv.compile<AgentsAvatarGenerateParams>(
+  AgentsAvatarGenerateParamsSchema,
+);
 export const validateAgentsCreateParams = ajv.compile<AgentsCreateParams>(AgentsCreateParamsSchema);
 export const validateAgentsUpdateParams = ajv.compile<AgentsUpdateParams>(AgentsUpdateParamsSchema);
 export const validateAgentsDeleteParams = ajv.compile<AgentsDeleteParams>(AgentsDeleteParamsSchema);
@@ -474,6 +488,10 @@ export {
   WebLoginStartParamsSchema,
   WebLoginWaitParamsSchema,
   AgentSummarySchema,
+  AgentsAvatarCapabilitiesParamsSchema,
+  AgentsAvatarCapabilitiesResultSchema,
+  AgentsAvatarGenerateParamsSchema,
+  AgentsAvatarGenerateResultSchema,
   AgentsFileEntrySchema,
   AgentsCreateParamsSchema,
   AgentsCreateResultSchema,
@@ -564,6 +582,10 @@ export type {
   WebLoginStartParams,
   WebLoginWaitParams,
   AgentSummary,
+  AgentsAvatarCapabilitiesParams,
+  AgentsAvatarCapabilitiesResult,
+  AgentsAvatarGenerateParams,
+  AgentsAvatarGenerateResult,
   AgentsFileEntry,
   AgentsCreateParams,
   AgentsCreateResult,

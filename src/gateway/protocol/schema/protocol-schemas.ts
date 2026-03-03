@@ -11,6 +11,10 @@ import {
 } from "./agent.js";
 import {
   AgentSummarySchema,
+  AgentsAvatarCapabilitiesParamsSchema,
+  AgentsAvatarCapabilitiesResultSchema,
+  AgentsAvatarGenerateParamsSchema,
+  AgentsAvatarGenerateResultSchema,
   AgentsCreateParamsSchema,
   AgentsCreateResultSchema,
   AgentsDeleteParamsSchema,
@@ -210,6 +214,10 @@ export const ProtocolSchemas = {
   WebLoginStartParams: WebLoginStartParamsSchema,
   WebLoginWaitParams: WebLoginWaitParamsSchema,
   AgentSummary: AgentSummarySchema,
+  AgentsAvatarCapabilitiesParams: AgentsAvatarCapabilitiesParamsSchema,
+  AgentsAvatarCapabilitiesResult: AgentsAvatarCapabilitiesResultSchema,
+  AgentsAvatarGenerateParams: AgentsAvatarGenerateParamsSchema,
+  AgentsAvatarGenerateResult: AgentsAvatarGenerateResultSchema,
   AgentsCreateParams: AgentsCreateParamsSchema,
   AgentsCreateResult: AgentsCreateResultSchema,
   AgentsUpdateParams: AgentsUpdateParamsSchema,
