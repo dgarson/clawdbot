@@ -188,7 +188,7 @@ function SessionVolumeChart({ data }: { data: typeof DAILY_SESSIONS }) {
                   x={x + barW / 2}
                   y={chartHeight + 16}
                   textAnchor="middle"
-                  className="fill-zinc-500"
+                  className="fill-fg-muted"
                   fontSize={10}
                 >
                   {d.date.split(" ")[1]}

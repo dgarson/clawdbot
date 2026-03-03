@@ -361,7 +361,7 @@ export default function ChangelogViewer({ isLoading = false }: { isLoading?: boo
               placeholder="Search releases..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-tok-border bg-surface-2 px-3 py-2 text-sm text-fg-primary placeholder-zinc-500 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-tok-border bg-surface-2 px-3 py-2 text-sm text-fg-primary placeholder:text-fg-muted outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
             />
           </div>
           <div className="flex flex-wrap gap-1.5">

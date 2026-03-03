@@ -763,7 +763,7 @@ function DetailPanel({ notif, onRead, onDismiss, onPin }: DetailPanelProps) {
             <button
               type="button"
               onClick={() => onRead(notif.id)}
-              className="flex-1 py-2 rounded-lg bg-surface-2 hover:bg-surface-3 text-fg-secondary text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+              className="flex-1 py-2 rounded-lg bg-surface-2 hover:bg-surface-3 text-fg-secondary text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tok-border"
             >
               Mark read
             </button>
@@ -775,7 +775,7 @@ function DetailPanel({ notif, onRead, onDismiss, onPin }: DetailPanelProps) {
               "flex-1 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2",
               notif.pinned
                 ? "bg-amber-400/20 text-amber-400 hover:bg-amber-400/30 focus-visible:ring-amber-400"
-                : "bg-surface-2 hover:bg-surface-3 text-fg-secondary focus-visible:ring-zinc-500"
+                : "bg-surface-2 hover:bg-surface-3 text-fg-secondary focus-visible:ring-tok-border"
             )}
           >
             {notif.pinned ? "Unpin" : "Pin"}
@@ -1134,7 +1134,7 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
             <button
               type="button"
               onClick={markAllRead}
-              className="text-xs text-fg-secondary hover:text-fg-primary px-3 py-1.5 rounded-lg hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+              className="text-xs text-fg-secondary hover:text-fg-primary px-3 py-1.5 rounded-lg hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tok-border"
             >
               Mark all read
             </button>
@@ -1142,7 +1142,7 @@ export default function NotificationCenter({ isLoading = false }: { isLoading?: 
           <button
             type="button"
             onClick={() => setNotifs((prev) => prev.filter((n) => n.pinned || !n.read))}
-            className="text-xs text-fg-secondary hover:text-red-400 px-3 py-1.5 rounded-lg hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+            className="text-xs text-fg-secondary hover:text-red-400 px-3 py-1.5 rounded-lg hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tok-border"
           >
             Clear read
           </button>

@@ -179,9 +179,9 @@ export default function AgentDashboard() {
     switch (status) {
       case 'active': return 'text-green-400';
       case 'idle': return 'text-amber-400';
-      case 'offline': return 'text-zinc-400';
+      case 'offline': return 'text-fg-secondary';
       case 'error': return 'text-red-400';
-      default: return 'text-zinc-400';
+      default: return 'text-fg-secondary';
     }
   };
 
@@ -190,7 +190,7 @@ export default function AgentDashboard() {
       case 'healthy': return 'text-green-400';
       case 'degraded': return 'text-amber-400';
       case 'unhealthy': return 'text-red-400';
-      default: return 'text-zinc-400';
+      default: return 'text-fg-secondary';
     }
   };
 

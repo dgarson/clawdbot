@@ -213,7 +213,7 @@ const STATUS_CONFIG: Record<ServiceStatus, {
   healthy:  { label: "Healthy",  dot: "bg-emerald-500", badge: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/25", text: "text-emerald-400", ring: "ring-emerald-500/30" },
   degraded: { label: "Degraded", dot: "bg-amber-500",   badge: "bg-amber-500/15 text-amber-300 ring-amber-500/25",     text: "text-amber-400",  ring: "ring-amber-500/30" },
   down:     { label: "Down",     dot: "bg-rose-500",    badge: "bg-rose-500/15 text-rose-300 ring-rose-500/25",         text: "text-rose-400",   ring: "ring-rose-500/30" },
-  unknown:  { label: "Unknown",  dot: "bg-fg-muted",    badge: "bg-fg-muted/15 text-fg-secondary ring-zinc-500/25",         text: "text-fg-secondary",   ring: "ring-zinc-500/30" },
+  unknown:  { label: "Unknown",  dot: "bg-fg-muted",    badge: "bg-fg-muted/15 text-fg-secondary ring-tok-border/25",         text: "text-fg-secondary",   ring: "ring-tok-border/30" },
 };
 
 const INCIDENT_SEVERITY_CONFIG: Record<IncidentSeverity, { label: string; badge: string }> = {
@@ -622,7 +622,7 @@ export default function SystemHealth({ isLoading = false }: { isLoading?: boolea
       {/* Skip link */}
       <a
         href="#system-health-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
