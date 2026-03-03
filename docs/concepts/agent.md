@@ -79,6 +79,17 @@ Session transcripts are stored as JSONL at:
 The session ID is stable and chosen by OpenClaw.
 Legacy Pi/Tau session folders are **not** read.
 
+## Claude SDK compaction semantics
+
+For the Claude Agent SDK runtime, compaction is managed server-side and exposed as a
+single `system/compact_boundary` signal. OpenClaw emits `auto_compaction_start` and
+`auto_compaction_end` back-to-back from that boundary for hook/event parity with Pi.
+There is no separate pre-compaction callback from the SDK, so this behavior is
+intentional and currently unavoidable.
+
+Runtime map: [Claude SDK Runtime](/concepts/claude-sdk-runtime)  
+Maintainer checklist: [Claude SDK Runtime](/concepts/claude-sdk-runtime#maintainer-checklist)
+
 ## Steering while streaming
 
 When queue mode is `steer`, inbound messages are injected into the current run.
@@ -108,7 +119,7 @@ More details: [Streaming + chunking](/concepts/streaming).
 Model refs in config (for example `agents.defaults.model` and `agents.defaults.models`) are parsed by splitting on the **first** `/`.
 
 - Use `provider/model` when configuring models.
-- If the model ID itself contains `/` (OpenRouter-style), include the provider prefix (example: `openrouter/moonshotai/kimi-k2`).
+- If the model ID itself contains `/`, include the provider prefix (example: `custom/vendor-model`).
 - If you omit the provider, OpenClaw treats the input as an alias or a model for the **default provider** (only works when there is no `/` in the model ID).
 
 ## Configuration (minimal)

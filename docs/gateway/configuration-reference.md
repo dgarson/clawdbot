@@ -887,6 +887,30 @@ Z.AI GLM-4.x models automatically enable thinking mode unless you set `--thinkin
 Z.AI models enable `tool_stream` by default for tool call streaming. Set `agents.defaults.models["zai/<model>"].params.tool_stream` to `false` to disable it.
 Anthropic Claude 4.6 models default to `adaptive` thinking when no explicit thinking level is set.
 
+### `agents.defaults.claudeSdk`
+
+Claude SDK runtime options for agents. Only applies to Claude Pro / Claude Max subscription users (system keychain authentication). API-key-based providers always use Pi runtime; configure them via `models.providers` instead.
+
+The only valid `provider` value is `claude-sdk`.
+
+Fields:
+
+- `thinkingDefault`: `none | low | medium | high` — default thinking level for the agent
+- `configDir`: optional path passed to the Claude subprocess as `CLAUDE_CONFIG_DIR`
+
+```json5
+{
+  agents: {
+    defaults: {
+      claudeSdk: {
+        provider: "claude-sdk",
+        thinkingDefault: "low",
+      },
+    },
+  },
+}
+```
+
 ### `agents.defaults.cliBackends`
 
 Optional CLI backends for text-only fallback runs (no tool calls). Useful as a backup when API providers fail.

@@ -1098,7 +1098,7 @@
                   "providers/anthropic",
                   "providers/bedrock",
                   "providers/cloudflare-ai-gateway",
-                  "providers/claude-max-api-proxy",
+                  "providers/claude-personal",
                   "providers/deepgram",
                   "providers/github-copilot",
                   "providers/huggingface",

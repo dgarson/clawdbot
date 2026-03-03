@@ -1,15 +1,15 @@
 ---
-summary: "Community proxy to expose Claude subscription credentials as an OpenAI-compatible endpoint"
+summary: "Community proxy to expose Claude personal subscription credentials as an OpenAI-compatible endpoint"
 read_when:
-  - You want to use Claude Max subscription with OpenAI-compatible tools
+  - You want to use a Claude personal subscription (Pro or Max) with OpenAI-compatible tools
   - You want a local API server that wraps Claude Code CLI
   - You want to evaluate subscription-based vs API-key-based Anthropic access
-title: "Claude Max API Proxy"
+title: "Claude Personal (Subscription Proxy)"
 ---
 
-# Claude Max API Proxy
+# Claude Personal Subscription Proxy
 
-**claude-max-api-proxy** is a community tool that exposes your Claude Max/Pro subscription as an OpenAI-compatible API endpoint. This allows you to use your subscription with any tool that supports the OpenAI API format.
+**claude-personal** refers to the `claude-personal` provider ID, which covers personal Claude subscriptions (Pro or Max). A community tool called **claude-max-api-proxy** exposes your Claude personal subscription as an OpenAI-compatible API endpoint. This allows you to use your subscription with any tool that supports the OpenAI API format.
 
 <Warning>
 This path is technical compatibility only. Anthropic has blocked some subscription
@@ -19,17 +19,17 @@ it and verify Anthropic's current terms before relying on it.
 
 ## Why Use This?
 
-| Approach                | Cost                                                | Best For                                   |
-| ----------------------- | --------------------------------------------------- | ------------------------------------------ |
-| Anthropic API           | Pay per token (~$15/M input, $75/M output for Opus) | Production apps, high volume               |
-| Claude Max subscription | $200/month flat                                     | Personal use, development, unlimited usage |
+| Approach                     | Cost                                                | Best For                                   |
+| ---------------------------- | --------------------------------------------------- | ------------------------------------------ |
+| Anthropic API                | Pay per token (~$15/M input, $75/M output for Opus) | Production apps, high volume               |
+| Claude personal subscription | $200/month flat                                     | Personal use, development, unlimited usage |
 
-If you have a Claude Max subscription and want to use it with OpenAI-compatible tools, this proxy may reduce cost for some workflows. API keys remain the clearer policy path for production use.
+If you have a Claude personal subscription (Pro or Max) and want to use it with OpenAI-compatible tools, this proxy may reduce cost for some workflows. API keys remain the clearer policy path for production use.
 
 ## How It Works
 
 ```
-Your App → claude-max-api-proxy → Claude Code CLI → Anthropic (via subscription)
+Your App → claude-personal proxy → Claude Code CLI → Anthropic (via subscription)
      (OpenAI format)              (converts format)      (uses your login)
 ```
 
@@ -107,13 +107,13 @@ You can point OpenClaw at the proxy as a custom OpenAI-compatible endpoint:
 Create a LaunchAgent to run the proxy automatically:
 
 ```bash
-cat > ~/Library/LaunchAgents/com.claude-max-api.plist << 'EOF'
+cat > ~/Library/LaunchAgents/com.claude-personal-api.plist << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.claude-max-api</string>
+  <string>com.claude-personal-api</string>
   <key>RunAtLoad</key>
   <true/>
   <key>KeepAlive</key>
@@ -132,7 +132,7 @@ cat > ~/Library/LaunchAgents/com.claude-max-api.plist << 'EOF'
 </plist>
 EOF
 
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.claude-max-api.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.claude-personal-api.plist
 ```
 
 ## Links
@@ -144,7 +144,7 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.claude-max-api.plist
 ## Notes
 
 - This is a **community tool**, not officially supported by Anthropic or OpenClaw
-- Requires an active Claude Max/Pro subscription with Claude Code CLI authenticated
+- Requires an active Claude personal subscription (Pro or Max) with Claude Code CLI authenticated
 - The proxy runs locally and does not send data to any third-party servers
 - Streaming responses are fully supported
 
