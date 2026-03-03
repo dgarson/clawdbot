@@ -884,6 +884,13 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
 
   return (
     <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      >
+        Skip to main content
+      </a>
       {/* Header */}
       <div className="shrink-0 border-b border-zinc-800 px-6 py-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -924,7 +931,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden">
+      <main id="main-content" role="main" className="flex-1 overflow-hidden">
         {/* ─── Timeline Tab ──────────────────────────────────────────── */}
         {activeTab === "timeline" && (
           <div className="h-full flex flex-col">
@@ -1182,7 +1189,7 @@ export default function DecisionProvenance({ onNavigate }: DecisionProvenancePro
             </div>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

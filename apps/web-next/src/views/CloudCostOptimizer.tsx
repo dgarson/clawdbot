@@ -1270,6 +1270,13 @@ export default function CloudCostOptimizer() {
 
   return (
     <div className="min-h-screen bg-surface-0 text-fg-primary">
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      >
+        Skip to main content
+      </a>
       {/* Page header */}
       <div className="border-b border-tok-border bg-surface-0 px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5">
         <div className="max-w-7xl mx-auto">
@@ -1279,8 +1286,8 @@ export default function CloudCostOptimizer() {
               <p className="text-sm text-fg-secondary mt-1">Identify, track, and implement cloud infrastructure savings across all AWS accounts</p>
             </div>
             <div className="flex items-center gap-2 text-xs text-fg-muted bg-surface-1 border border-tok-border rounded-lg px-3 py-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-              Live — last refreshed 3 min ago
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" aria-hidden="true" />
+              <span>Live — last refreshed 3 min ago</span>
             </div>
           </div>
 
@@ -1329,7 +1336,7 @@ export default function CloudCostOptimizer() {
       </div>
 
       {/* Tab content */}
-      <div className="max-w-7xl mx-auto">
+      <main id="main-content" role="main" className="max-w-7xl mx-auto">
         {activeTab === "recommendations" && (
           <RecommendationsTab recommendations={RECOMMENDATIONS} />
         )}
@@ -1342,7 +1349,7 @@ export default function CloudCostOptimizer() {
         {activeTab === "policies" && (
           <PoliciesTab policies={POLICIES} />
         )}
-      </div>
+      </main>
     </div>
   )
 }

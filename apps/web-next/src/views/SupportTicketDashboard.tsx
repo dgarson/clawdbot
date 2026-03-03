@@ -1179,6 +1179,7 @@ function QueueTab({ tickets }: QueueTabProps) {
             onChange={(e) =>
               setFilterStatus(e.target.value as TicketStatus | "all")
             }
+            aria-label="Filter tickets by status"
             className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Statuses</option>
@@ -1192,6 +1193,7 @@ function QueueTab({ tickets }: QueueTabProps) {
             onChange={(e) =>
               setFilterPriority(e.target.value as Priority | "all")
             }
+            aria-label="Filter tickets by priority"
             className="bg-zinc-800 border border-zinc-700 text-white text-sm rounded px-2 py-1.5 focus:outline-none focus:border-indigo-500"
           >
             <option value="all">All Priorities</option>
@@ -1598,11 +1600,11 @@ function AnalyticsTab() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-zinc-500 border-b border-zinc-800">
-                <th className="text-left pb-2.5 font-medium">Agent</th>
-                <th className="text-right pb-2.5 font-medium">Open</th>
-                <th className="text-right pb-2.5 font-medium">Resolved</th>
-                <th className="text-right pb-2.5 font-medium">Avg Time</th>
-                <th className="text-right pb-2.5 font-medium">CSAT</th>
+                <th scope="col" className="text-left pb-2.5 font-medium">Agent</th>
+                <th scope="col" className="text-right pb-2.5 font-medium">Open</th>
+                <th scope="col" className="text-right pb-2.5 font-medium">Resolved</th>
+                <th scope="col" className="text-right pb-2.5 font-medium">Avg Time</th>
+                <th scope="col" className="text-right pb-2.5 font-medium">CSAT</th>
               </tr>
             </thead>
             <tbody>
@@ -1806,11 +1808,11 @@ function SLADashboardTab() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-zinc-500 border-b border-zinc-800">
-                  <th className="text-left pb-2.5 font-medium">Ticket</th>
-                  <th className="text-left pb-2.5 font-medium">Tier</th>
-                  <th className="text-left pb-2.5 font-medium">Type</th>
-                  <th className="text-left pb-2.5 font-medium">Assignee</th>
-                  <th className="text-right pb-2.5 font-medium">Overdue</th>
+                  <th scope="col" className="text-left pb-2.5 font-medium">Ticket</th>
+                  <th scope="col" className="text-left pb-2.5 font-medium">Tier</th>
+                  <th scope="col" className="text-left pb-2.5 font-medium">Type</th>
+                  <th scope="col" className="text-left pb-2.5 font-medium">Assignee</th>
+                  <th scope="col" className="text-right pb-2.5 font-medium">Overdue</th>
                 </tr>
               </thead>
               <tbody>
@@ -1967,13 +1969,13 @@ function KnowledgeBaseTab() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-zinc-500 border-b border-zinc-800">
-                <th className="text-left pb-3 font-medium">Article</th>
-                <th className="text-left pb-3 font-medium">Category</th>
-                <th className="text-right pb-3 font-medium">Views</th>
-                <th className="text-right pb-3 font-medium">Helpfulness</th>
-                <th className="text-right pb-3 font-medium">Deflection</th>
-                <th className="text-right pb-3 font-medium">Linked</th>
-                <th className="text-right pb-3 font-medium">Updated</th>
+                <th scope="col" className="text-left pb-3 font-medium">Article</th>
+                <th scope="col" className="text-left pb-3 font-medium">Category</th>
+                <th scope="col" className="text-right pb-3 font-medium">Views</th>
+                <th scope="col" className="text-right pb-3 font-medium">Helpfulness</th>
+                <th scope="col" className="text-right pb-3 font-medium">Deflection</th>
+                <th scope="col" className="text-right pb-3 font-medium">Linked</th>
+                <th scope="col" className="text-right pb-3 font-medium">Updated</th>
               </tr>
             </thead>
             <tbody>
@@ -2079,6 +2081,13 @@ export default function SupportTicketDashboard() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      >
+        Skip to main content
+      </a>
       <div className="max-w-[1440px] mx-auto px-6 py-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
@@ -2094,17 +2103,17 @@ export default function SupportTicketDashboard() {
             <div className="flex items-center gap-3 text-sm">
               {breachedCount > 0 && (
                 <span className="flex items-center gap-1.5 text-red-400">
-                  <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
-                  {breachedCount} breached
+                  <span className="w-2 h-2 rounded-full bg-red-400 inline-block" aria-hidden="true" />
+                  <span>{breachedCount} breached</span>
                 </span>
               )}
               <span className="flex items-center gap-1.5 text-amber-400">
-                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
-                {AT_RISK_TICKETS.length} at-risk
+                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" aria-hidden="true" />
+                <span>{AT_RISK_TICKETS.length} at-risk</span>
               </span>
               <span className="flex items-center gap-1.5 text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
-                {TICKETS.filter((t) => t.status === "resolved").length} resolved
+                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" aria-hidden="true" />
+                <span>{TICKETS.filter((t) => t.status === "resolved").length} resolved</span>
               </span>
             </div>
             <button className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
@@ -2147,12 +2156,12 @@ export default function SupportTicketDashboard() {
         </div>
 
         {/* Tab content */}
-        <div>
+        <main id="main-content" role="main">
           {activeTab === "queue" && <QueueTab tickets={TICKETS} />}
           {activeTab === "analytics" && <AnalyticsTab />}
           {activeTab === "sla" && <SLADashboardTab />}
           {activeTab === "knowledge" && <KnowledgeBaseTab />}
-        </div>
+        </main>
       </div>
     </div>
   )

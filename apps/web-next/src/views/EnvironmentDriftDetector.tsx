@@ -2219,11 +2219,18 @@ export default function EnvironmentDriftDetector() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      >
+        Skip to main content
+      </a>
       {/* Critical banner */}
       {criticalCount > 0 && showScanBanner && (
         <div className="bg-rose-500/10 border-b border-rose-500/30 px-6 py-2.5">
           <div className="max-w-7xl mx-auto flex items-center gap-3">
-            <span className="text-rose-400 text-xs font-bold uppercase tracking-wider animate-pulse">
+            <span className="text-rose-400 text-xs font-bold uppercase tracking-wider motion-safe:animate-pulse">
               ● {criticalCount} Critical Drift{criticalCount !== 1 ? "s" : ""} Detected
             </span>
             <span className="text-rose-400/60 text-xs">—</span>
@@ -2242,6 +2249,7 @@ export default function EnvironmentDriftDetector() {
             <button
               onClick={() => setShowScanBanner(false)}
               className="text-rose-500 hover:text-rose-300 text-xs transition-colors ml-2"
+              aria-label="Dismiss banner"
             >
               ✕
             </button>
@@ -2320,7 +2328,7 @@ export default function EnvironmentDriftDetector() {
       </div>
 
       {/* Page Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <main id="main-content" role="main" className="max-w-7xl mx-auto px-6 py-6">
         {activeTab === "overview" && <OverviewTab entries={driftEntries} />}
         {activeTab === "details" && (
           <DriftDetailsTab
@@ -2338,7 +2346,7 @@ export default function EnvironmentDriftDetector() {
             onToggleIgnoreRule={handleToggleIgnoreRule}
           />
         )}
-      </div>
+      </main>
     </div>
   );
 }
