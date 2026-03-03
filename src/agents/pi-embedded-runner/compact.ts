@@ -567,7 +567,11 @@ export async function compactEmbeddedPiSessionDirect(
       const { builtInTools, customTools } = splitSdkTools({
         tools,
         sandboxEnabled: !!sandbox?.enabled,
-        sessionKey: params.sessionKey,
+        hookContext: {
+          agentId: sessionAgentId,
+          sessionKey: params.sessionKey,
+          runId: params.runId,
+        },
       });
 
       const { session } = await createAgentSession({
