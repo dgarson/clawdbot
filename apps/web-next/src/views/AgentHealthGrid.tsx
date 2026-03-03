@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { cn } from "../lib/utils";
+import { Skeleton } from "../components/ui/Skeleton";
 
 type AgentStatus = "ACTIVE" | "IDLE" | "ERROR" | "COMPLETE";
 
@@ -53,10 +54,82 @@ const Sparkline = ({ data }: { data: number[] }) => {
   );
 };
 
-export default function AgentHealthGrid() {
+// Skeleton Component
+function AgentHealthGridSkeleton() {
+  return (
+    <div className="p-6 bg-gray-900/950 min-h-full text-gray-100 font-sans">
+      <header className="flex justify-between items-center mb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <Skeleton variant="text" className="h-7 w-44" />
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10">
+              <Skeleton variant="circle" className="w-2 h-2" />
+              <Skeleton variant="text" className="h-3 w-8" />
+            </div>
+          </div>
+          <Skeleton variant="text" className="h-4 w-40" />
+        </div>
+        <Skeleton variant="rect" className="h-9 w-20 rounded-lg" />
+      </header>
+
+      <div className="flex flex-col gap-6">
+        {/* Summary Bar */}
+        <div className="grid grid-cols-4 gap-4 p-4 bg-gray-900/50 border border-gray-800 rounded-xl">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="text-center space-y-1">
+              <Skeleton variant="text" className="h-7 w-12 mx-auto" />
+              <Skeleton variant="text" className="h-3 w-20 mx-auto" />
+            </div>
+          ))}
+        </div>
+
+        {/* Filters */}
+        <div className="flex gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} variant="rect" className="h-8 w-20 rounded-md" />
+          ))}
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div
+              key={i}
+              className="p-4 bg-gray-950 border border-gray-800 rounded-xl flex flex-col gap-3"
+            >
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <Skeleton variant="text" className="h-4 w-24" />
+                  <Skeleton variant="rect" className="h-4 w-10 rounded" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <Skeleton variant="circle" className="w-2 h-2" />
+                  <Skeleton variant="text" className="h-3 w-12" />
+                </div>
+              </div>
+              <Skeleton variant="rect" className="h-4 w-full rounded" />
+              <div className="flex justify-between">
+                <Skeleton variant="text" className="h-3 w-16" />
+                <Skeleton variant="text" className="h-3 w-16" />
+              </div>
+              <Skeleton variant="rect" className="h-1.5 w-full rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AgentHealthGrid({ isLoading = false }: { isLoading?: boolean }) {
   const [agents, setAgents] = useState<Agent[]>(generateInitialAgents());
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [filter, setFilter] = useState<AgentStatus | "ALL">("ALL");
+
+  // Show skeleton during loading
+  if (isLoading) {
+    return <AgentHealthGridSkeleton />;
+  }
 
   const refreshData = () => {
     setAgents((prev) =>
