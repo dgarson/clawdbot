@@ -226,10 +226,10 @@ export default function ModelHealthDashboard() {
   return (
     <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-zinc-800">
-        <div className="flex items-center justify-between mb-4">
+      <div className="flex-shrink-0 p-4 md:px-6 md:py-4 border-b border-zinc-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
-            <h1 className="text-xl font-bold text-white">Model Health Dashboard</h1>
+            <h1 className="text-lg md:text-xl font-bold text-white">Model Health Dashboard</h1>
             <p className="text-sm text-zinc-400">Real-time status of LLM endpoints and providers</p>
           </div>
           <div className="flex items-center gap-2">
@@ -239,7 +239,7 @@ export default function ModelHealthDashboard() {
         </div>
 
         {/* Summary bar */}
-        <div className="grid grid-cols-5 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-3 mb-4">
           {[
             { label: "Healthy", value: healthyCount, color: "text-emerald-400" },
             { label: "Degraded", value: degradedCount, color: "text-amber-400" },
@@ -325,7 +325,7 @@ export default function ModelHealthDashboard() {
 
         {/* Detail panel */}
         {ep && (
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6">
             <div className="flex items-start justify-between mb-5">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{PROVIDER_EMOJI[ep.provider]}</span>
@@ -341,7 +341,7 @@ export default function ModelHealthDashboard() {
             </div>
 
             {/* Latency metrics */}
-            <div className="grid grid-cols-4 gap-3 mb-5">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-5">
               {[
                 { label: "P50 Latency", value: ep.p50Ms > 0 ? `${ep.p50Ms}ms` : "—", color: "text-emerald-400" },
                 { label: "P95 Latency", value: ep.p95Ms > 0 ? `${ep.p95Ms}ms` : "—", color: "text-amber-400" },

@@ -77,10 +77,10 @@ export default function CostAllocationDashboard() {
   const totalTokens = COST_BY_TEAM.reduce((sum, t) => sum + t.tokens, 0);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-zinc-950 text-zinc-100 p-6">
+    <div className="flex-1 overflow-y-auto bg-zinc-950 text-zinc-100 p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 md:mb-6">
           <div>
             <h1 className="text-lg font-semibold flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-emerald-400" />
@@ -112,7 +112,7 @@ export default function CostAllocationDashboard() {
         </div>
 
         {/* Summary stats */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
           {[
             { label: 'Total Spend', value: `$${totalSpend.toFixed(2)}`, sub: `of $${totalBudget} budget`, icon: DollarSign, color: 'text-emerald-400' },
             { label: 'Budget Used', value: `${Math.round((totalSpend / totalBudget) * 100)}%`, sub: `$${(totalBudget - totalSpend).toFixed(2)} remaining`, icon: PieChart, color: 'text-blue-400' },
@@ -130,7 +130,7 @@ export default function CostAllocationDashboard() {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
           {/* By model */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
             <h2 className="text-sm font-medium text-zinc-200 mb-4">Spend by Model</h2>

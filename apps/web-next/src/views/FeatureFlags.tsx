@@ -439,10 +439,10 @@ export default function FeatureFlags() {
   return (
     <div className="flex flex-col h-full bg-zinc-950">
       {/* Header */}
-      <div className="flex-none px-6 py-4 border-b border-zinc-800">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex-none p-4 md:px-6 md:py-4 border-b border-zinc-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 flex-wrap">
           <div>
-            <h1 className="text-lg font-semibold text-white">Feature Flags</h1>
+            <h1 className="text-base md:text-lg font-semibold text-white">Feature Flags</h1>
             <p className="text-sm text-zinc-500 mt-0.5">Toggle features, manage rollouts, and configure per-environment or per-agent overrides</p>
           </div>
           <button aria-label="Create new feature flag" className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition-colors">
@@ -459,7 +459,7 @@ export default function FeatureFlags() {
       </div>
 
       {/* Filters */}
-      <div className="flex-none px-6 py-3 border-b border-zinc-800 flex items-center gap-3 flex-wrap">
+      <div className="flex-none p-4 md:px-6 md:py-3 border-b border-zinc-800 flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-48 max-w-xs">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500 pointer-events-none" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <circle cx="7" cy="7" r="4.5" /><path strokeLinecap="round" d="M10.5 10.5l3 3" />
@@ -484,7 +484,7 @@ export default function FeatureFlags() {
       </div>
 
       {/* Flag list */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
+      <div className="flex-1 overflow-y-auto p-4 md:px-6 md:py-4 space-y-2">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
             <span className="text-4xl">🚩</span>
