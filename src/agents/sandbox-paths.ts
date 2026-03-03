@@ -1,19 +1,25 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, URL } from "node:url";
 import { isNotFoundPathError, isPathInside } from "../infra/path-guards.js";
+import { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
 
 const UNICODE_SPACES = /[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g;
 const HTTP_URL_RE = /^https?:\/\//i;
 const DATA_URL_RE = /^data:/i;
+const SANDBOX_CONTAINER_WORKDIR = "/workspace";
 
 function normalizeUnicodeSpaces(str: string): string {
   return str.replace(UNICODE_SPACES, " ");
 }
 
+function normalizeAtPrefix(filePath: string): string {
+  return filePath.startsWith("@") ? filePath.slice(1) : filePath;
+}
+
 function expandPath(filePath: string): string {
-  const normalized = normalizeUnicodeSpaces(filePath);
+  const normalized = normalizeUnicodeSpaces(normalizeAtPrefix(filePath));
   if (normalized === "~") {
     return os.homedir();
   }
@@ -84,11 +90,26 @@ export async function resolveSandboxedMediaSource(params: {
   }
   let candidate = raw;
   if (/^file:\/\//i.test(candidate)) {
-    try {
-      candidate = fileURLToPath(candidate);
-    } catch {
-      throw new Error(`Invalid file:// URL for sandboxed media: ${raw}`);
+    const workspaceMappedFromUrl = mapContainerWorkspaceFileUrl({
+      fileUrl: candidate,
+      sandboxRoot: params.sandboxRoot,
+    });
+    if (workspaceMappedFromUrl) {
+      candidate = workspaceMappedFromUrl;
+    } else {
+      try {
+        candidate = fileURLToPath(candidate);
+      } catch {
+        throw new Error(`Invalid file:// URL for sandboxed media: ${raw}`);
+      }
     }
+  }
+  const containerWorkspaceMapped = mapContainerWorkspacePath({
+    candidate,
+    sandboxRoot: params.sandboxRoot,
+  });
+  if (containerWorkspaceMapped) {
+    candidate = containerWorkspaceMapped;
   }
   const tmpMediaPath = await resolveAllowedTmpMediaPath({
     candidate,
@@ -105,6 +126,53 @@ export async function resolveSandboxedMediaSource(params: {
   return sandboxResult.resolved;
 }
 
+function mapContainerWorkspaceFileUrl(params: {
+  fileUrl: string;
+  sandboxRoot: string;
+}): string | undefined {
+  let parsed: URL;
+  try {
+    parsed = new URL(params.fileUrl);
+  } catch {
+    return undefined;
+  }
+  if (parsed.protocol !== "file:") {
+    return undefined;
+  }
+  // Sandbox paths are Linux-style (/workspace/*). Parse the URL path directly so
+  // Windows hosts can still accept file:///workspace/... media references.
+  const normalizedPathname = decodeURIComponent(parsed.pathname).replace(/\\/g, "/");
+  if (
+    normalizedPathname !== SANDBOX_CONTAINER_WORKDIR &&
+    !normalizedPathname.startsWith(`${SANDBOX_CONTAINER_WORKDIR}/`)
+  ) {
+    return undefined;
+  }
+  return mapContainerWorkspacePath({
+    candidate: normalizedPathname,
+    sandboxRoot: params.sandboxRoot,
+  });
+}
+
+function mapContainerWorkspacePath(params: {
+  candidate: string;
+  sandboxRoot: string;
+}): string | undefined {
+  const normalized = params.candidate.replace(/\\/g, "/");
+  if (normalized === SANDBOX_CONTAINER_WORKDIR) {
+    return path.resolve(params.sandboxRoot);
+  }
+  const prefix = `${SANDBOX_CONTAINER_WORKDIR}/`;
+  if (!normalized.startsWith(prefix)) {
+    return undefined;
+  }
+  const rel = normalized.slice(prefix.length);
+  if (!rel) {
+    return path.resolve(params.sandboxRoot);
+  }
+  return path.resolve(params.sandboxRoot, ...rel.split("/").filter(Boolean));
+}
+
 async function resolveAllowedTmpMediaPath(params: {
   candidate: string;
   sandboxRoot: string;
@@ -114,12 +182,33 @@ async function resolveAllowedTmpMediaPath(params: {
     return undefined;
   }
   const resolved = path.resolve(resolveSandboxInputPath(params.candidate, params.sandboxRoot));
-  const tmpDir = path.resolve(os.tmpdir());
-  if (!isPathInside(tmpDir, resolved)) {
+  const openClawTmpDir = path.resolve(resolvePreferredOpenClawTmpDir());
+  if (!isPathInside(openClawTmpDir, resolved)) {
     return undefined;
   }
-  await assertNoSymlinkEscape(path.relative(tmpDir, resolved), tmpDir);
+  await assertNoSymlinkEscape(path.relative(openClawTmpDir, resolved), openClawTmpDir);
+  await assertNoHardlinkedFinalPath(resolved, openClawTmpDir);
   return resolved;
+}
+
+async function assertNoHardlinkedFinalPath(filePath: string, root: string): Promise<void> {
+  let stat: Awaited<ReturnType<typeof fs.stat>>;
+  try {
+    stat = await fs.stat(filePath);
+  } catch (err) {
+    if (isNotFoundPathError(err)) {
+      return;
+    }
+    throw err;
+  }
+  if (!stat.isFile()) {
+    return;
+  }
+  if (stat.nlink > 1) {
+    throw new Error(
+      `Hardlinked tmp media path is not allowed under sandbox root (${shortPath(root)}): ${shortPath(filePath)}`,
+    );
+  }
 }
 
 async function assertNoSymlinkEscape(

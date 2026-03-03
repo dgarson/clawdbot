@@ -129,6 +129,12 @@ export const QueueDropSchema = z.union([
   z.literal("summarize"),
 ]);
 export const ReplyToModeSchema = z.union([z.literal("off"), z.literal("first"), z.literal("all")]);
+export const TypingModeSchema = z.union([
+  z.literal("never"),
+  z.literal("instant"),
+  z.literal("thinking"),
+  z.literal("message"),
+]);
 
 // GroupPolicySchema: controls how group messages are handled
 // Used with .default("allowlist").optional() pattern:
@@ -145,6 +151,18 @@ export const BlockStreamingCoalesceSchema = z
     idleMs: z.number().int().nonnegative().optional(),
   })
   .strict();
+
+export const ReplyRuntimeConfigSchemaShape = {
+  historyLimit: z.number().int().min(0).optional(),
+  dmHistoryLimit: z.number().int().min(0).optional(),
+  dms: z.record(z.string(), DmConfigSchema.optional()).optional(),
+  textChunkLimit: z.number().int().positive().optional(),
+  chunkMode: z.enum(["length", "newline"]).optional(),
+  blockStreaming: z.boolean().optional(),
+  blockStreamingCoalesce: BlockStreamingCoalesceSchema.optional(),
+  responsePrefix: z.string().optional(),
+  mediaMaxMb: z.number().positive().optional(),
+};
 
 export const BlockStreamingChunkSchema = z
   .object({

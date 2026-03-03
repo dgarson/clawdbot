@@ -2,6 +2,7 @@ import type { Api, Model } from "@mariozechner/pi-ai";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { ModelDefinitionConfig } from "../../config/types.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
+import { createClaudeMaxStubModel } from "../claude-max-model.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../defaults.js";
 import { buildModelAliasLines } from "../model-alias-lines.js";
 import { normalizeModelCompat } from "../model-compat.js";
@@ -57,6 +58,12 @@ export function resolveModel(
   const resolvedAgentDir = agentDir ?? resolveOpenClawAgentDir();
   const authStorage = discoverAuthStorage(resolvedAgentDir);
   const modelRegistry = discoverModels(authStorage, resolvedAgentDir);
+
+  // claude-max: Claude SDK subprocess handles model resolution; return stub.
+  if (provider === "claude-max") {
+    return { model: createClaudeMaxStubModel(modelId), authStorage, modelRegistry };
+  }
+
   const model = modelRegistry.find(provider, modelId) as Model<Api> | null;
 
   if (!model) {

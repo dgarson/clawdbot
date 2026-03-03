@@ -64,7 +64,7 @@ const KNOWN_PROVIDER_CONFIGS: Partial<Record<string, KnownProviderConfig>> = {
 /**
  * Build the env record to pass to query() options.env.
  *
- * Returns undefined for "claude-code" — no env override;
+ * Returns an env record for "claude-sdk" — strips leaked keys, no URL override;
  * the subprocess inherits process.env unchanged (system-inherited auth).
  *
  * For "anthropic", returns an env record only when a resolvedApiKey is provided.
@@ -78,7 +78,7 @@ export function buildProviderEnv(
 ): Record<string, string> | undefined {
   const { provider } = config;
 
-  if (provider === "claude-code") {
+  if (provider === "claude-sdk") {
     // The subprocess uses the Claude CLI's own OAuth credentials from ~/.claude/.
     // Strip ANTHROPIC_API_KEY so that a key injected by the PI auth resolver
     // (e.g. a fallback provider's key) does not leak into the subprocess and

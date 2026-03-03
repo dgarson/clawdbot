@@ -1,34 +1,23 @@
 import { z } from "zod";
 import {
+  ClaudeSdkConfigSchema,
   HeartbeatSchema,
   AgentSandboxSchema,
   AgentModelSchema,
   MemorySearchSchema,
-  ClaudeSdkConfigSchema,
 } from "./zod-schema.agent-runtime.js";
 import {
   BlockStreamingChunkSchema,
   BlockStreamingCoalesceSchema,
   CliBackendSchema,
   HumanDelaySchema,
+  TypingModeSchema,
 } from "./zod-schema.core.js";
 
 export const AgentDefaultsSchema = z
   .object({
-    model: z
-      .object({
-        primary: z.string().optional(),
-        fallbacks: z.array(z.string()).optional(),
-      })
-      .strict()
-      .optional(),
-    imageModel: z
-      .object({
-        primary: z.string().optional(),
-        fallbacks: z.array(z.string()).optional(),
-      })
-      .strict()
-      .optional(),
+    model: AgentModelSchema.optional(),
+    imageModel: AgentModelSchema.optional(),
     models: z
       .record(
         z.string(),
@@ -118,7 +107,6 @@ export const AgentDefaultsSchema = z
         z.literal("xhigh"),
       ])
       .optional(),
-    reasoningDefault: z.union([z.literal("off"), z.literal("on"), z.literal("stream")]).optional(),
     verboseDefault: z.union([z.literal("off"), z.literal("on"), z.literal("full")]).optional(),
     elevatedDefault: z
       .union([z.literal("off"), z.literal("on"), z.literal("ask"), z.literal("full")])
@@ -132,14 +120,7 @@ export const AgentDefaultsSchema = z
     mediaMaxMb: z.number().positive().optional(),
     imageMaxDimensionPx: z.number().int().positive().optional(),
     typingIntervalSeconds: z.number().int().positive().optional(),
-    typingMode: z
-      .union([
-        z.literal("never"),
-        z.literal("instant"),
-        z.literal("thinking"),
-        z.literal("message"),
-      ])
-      .optional(),
+    typingMode: TypingModeSchema.optional(),
     heartbeat: HeartbeatSchema,
     maxConcurrent: z.number().int().positive().optional(),
     subagents: z
@@ -164,29 +145,15 @@ export const AgentDefaultsSchema = z
             "Maximum number of active children a single agent session can spawn (default: 5).",
           ),
         archiveAfterMinutes: z.number().int().positive().optional(),
-        timeoutSeconds: z
-          .number()
-          .int()
-          .positive()
-          .optional()
-          .describe("Default timeout in seconds for spawned sub-agents. 0 or omitted = unlimited."),
         model: AgentModelSchema.optional(),
         thinking: z.string().optional(),
+        runTimeoutSeconds: z.number().int().min(0).optional(),
+        announceTimeoutMs: z.number().int().positive().optional(),
       })
       .strict()
       .optional(),
     sandbox: AgentSandboxSchema,
-    runtime: z.enum(["pi", "claude-sdk"]).optional(),
     claudeSdk: ClaudeSdkConfigSchema,
-    sessionLabels: z
-      .object({
-        enabled: z.boolean().optional(),
-        model: z.string().optional(),
-        maxLength: z.number().int().min(1).max(79).optional(),
-        prompt: z.string().optional(),
-      })
-      .strict()
-      .optional(),
   })
   .strict()
   .optional();

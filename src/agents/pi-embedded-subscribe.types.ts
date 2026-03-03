@@ -1,14 +1,14 @@
-import type { AgentSession } from "@mariozechner/pi-coding-agent";
 import type { ReasoningLevel, VerboseLevel } from "../auto-reply/thinking.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { HookRunner } from "../plugins/hooks.js";
+import type { AgentRuntime } from "./agent-runtime.js";
 import type { BlockReplyChunking } from "./pi-embedded-block-chunker.js";
 import type { BlockReplyPayload } from "./pi-embedded-payloads.js";
 
 export type ToolResultFormat = "markdown" | "plain";
 
 export type SubscribeEmbeddedPiSessionParams = {
-  session: AgentSession;
+  session: AgentRuntime;
   runId: string;
   provider?: string;
   model?: string;
@@ -32,7 +32,7 @@ export type SubscribeEmbeddedPiSessionParams = {
   onPartialReply?: (payload: { text?: string; mediaUrls?: string[] }) => void | Promise<void>;
   onAssistantMessageStart?: () => void | Promise<void>;
   onAgentEvent?: (evt: { stream: string; data: Record<string, unknown> }) => void | Promise<void>;
-  enforceFinalTag?: boolean;
+  enforceFinalTag: boolean;
   config?: OpenClawConfig;
   sessionKey?: string;
 };

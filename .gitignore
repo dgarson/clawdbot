@@ -1,8 +1,3 @@
-worktrees/
-.worktrees/
-**/.env
-**/.env.local
-apps/web/.next
 node_modules
 **/node_modules/
 .env
@@ -24,9 +19,6 @@ ui/playwright-report/
 ui/test-results/
 packages/dashboard-next/.next/
 packages/dashboard-next/out/
-
-# Generated model data files (run pnpm generate:models to recreate)
-generated/
 
 # Mise configuration files
 mise.toml
@@ -106,12 +98,25 @@ package-lock.json
 .agents/
 .agents
 .agent/
+skills-lock.json
 
 # Local iOS signing overrides
 apps/ios/LocalSigning.xcconfig
+
+# Xcode build directories (xcodebuild output)
+apps/ios/build/
+apps/shared/OpenClawKit/build/
+Swabble/build/
+
 # Generated protocol schema (produced via pnpm protocol:gen)
 dist/protocol.schema.json
 .ant-colony/
-apps/web/.next/cache/
 
-apps/web-next/screenshots/
+# Eclipse
+**/.project
+**/.classpath
+**/.settings/
+**/.gradle/
+
+# Synthing
+**/.stfolder/

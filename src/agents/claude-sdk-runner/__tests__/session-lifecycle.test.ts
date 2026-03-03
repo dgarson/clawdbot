@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import type { ClaudeSdkSession, ClaudeSdkSessionParams } from "../types.js";
+import type { ClaudeSdkSessionParams } from "../types.js";
 
 // ---------------------------------------------------------------------------
 // Mock the Agent SDK query() function
@@ -173,7 +173,7 @@ describe("session lifecycle — session creation and resume", () => {
     const session = await createSession(makeParams());
 
     // Simulate some messages history
-    session.agent.replaceMessages([
+    session.replaceMessages([
       { role: "user", content: [{ type: "text", text: "Earlier message" }] },
       { role: "assistant", content: [{ type: "text", text: "Earlier response" }] },
     ] as never[]);
@@ -257,11 +257,17 @@ describe("session lifecycle — interface compatibility", () => {
     expect(typeof session.isCompacting).toBe("boolean");
     expect(Array.isArray(session.messages)).toBe(true);
     expect(typeof session.sessionId).toBe("string");
-    expect(session.agent).toBeDefined();
-    expect(typeof session.agent.replaceMessages).toBe("function");
+    expect(typeof session.replaceMessages).toBe("function");
+    expect(session.runtimeHints).toBeDefined();
+    expect(typeof session.runtimeHints.allowSyntheticToolResults).toBe("boolean");
+    expect(typeof session.runtimeHints.enforceFinalTag).toBe("boolean");
+    expect(typeof session.runtimeHints.managesOwnHistory).toBe("boolean");
+    expect(typeof session.runtimeHints.supportsStreamFnWrapping).toBe("boolean");
+    expect(session.runtimeHints.managesOwnHistory).toBe(true);
+    expect(session.runtimeHints.supportsStreamFnWrapping).toBe(false);
   });
 
-  it("agent.replaceMessages updates local messages array without API call", async () => {
+  it("replaceMessages updates local messages array without API call", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen([])());
 
@@ -269,24 +275,11 @@ describe("session lifecycle — interface compatibility", () => {
     const session = await createSession(makeParams());
 
     const msg = { role: "assistant", content: [{ type: "text", text: "hi" }] };
-    session.agent.replaceMessages([msg] as never[]);
+    session.replaceMessages([msg] as never[]);
     expect(session.messages).toHaveLength(1);
     expect(session.messages[0]).toEqual(msg);
     // No additional API calls triggered by replaceMessages
     expect(queryMock).not.toHaveBeenCalled();
-  });
-
-  it("agent.streamFn is writable without error (Pi compat shim)", async () => {
-    const queryMock = await importQuery();
-    queryMock.mockImplementation(() => makeMockQueryGen([])());
-
-    const createSession = await importCreateSession();
-    const session = (await createSession(makeParams())) as ClaudeSdkSession & {
-      agent: { streamFn: unknown };
-    };
-    expect(() => {
-      session.agent.streamFn = () => {};
-    }).not.toThrow();
   });
 
   it("subscribe returns an unsubscribe function that stops event delivery", async () => {
@@ -466,7 +459,7 @@ describe("session lifecycle — abort and control", () => {
     const promptPromise = session.prompt("Hello");
     // Abort after a microtask to ensure prompt() has started
     await new Promise((resolve) => setTimeout(resolve, 10));
-    session.abort();
+    void session.abort();
     await promptPromise;
 
     expect(interruptCalled).toBe(true);
@@ -588,7 +581,7 @@ describe("session lifecycle — provider env wiring", () => {
     expect(env["ANTHROPIC_HAIKU_MODEL"]).toBe("GLM-4.7");
   });
 
-  it("sets a sanitized env for claude-code provider", async () => {
+  it("sets a sanitized env for claude-sdk provider", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
 
@@ -600,7 +593,7 @@ describe("session lifecycle — provider env wiring", () => {
     const createSession = await importCreateSession();
     const session = await createSession(
       makeParams({
-        claudeSdkConfig: { provider: "claude-code" },
+        claudeSdkConfig: { provider: "claude-sdk" },
       }),
     );
 
@@ -619,7 +612,7 @@ describe("session lifecycle — provider env wiring", () => {
     }
   });
 
-  it("omits non-claude model ids for claude-code provider so SDK uses its own default model", async () => {
+  it("omits non-claude model ids for claude-sdk provider so SDK uses its own default model", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
 
@@ -627,7 +620,7 @@ describe("session lifecycle — provider env wiring", () => {
     const session = await createSession(
       makeParams({
         modelId: "MiniMax-M2.5",
-        claudeSdkConfig: { provider: "claude-code" },
+        claudeSdkConfig: { provider: "claude-sdk" },
       }),
     );
 
@@ -638,7 +631,7 @@ describe("session lifecycle — provider env wiring", () => {
     expect(options["model"]).toBeUndefined();
   });
 
-  it("keeps claude model ids for claude-code provider", async () => {
+  it("keeps claude model ids for claude-sdk provider", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() => makeMockQueryGen(INIT_MESSAGES)());
 
@@ -646,7 +639,7 @@ describe("session lifecycle — provider env wiring", () => {
     const session = await createSession(
       makeParams({
         modelId: "claude-sonnet-4-6",
-        claudeSdkConfig: { provider: "claude-code" },
+        claudeSdkConfig: { provider: "claude-sdk" },
       }),
     );
 
@@ -952,5 +945,136 @@ describe("session lifecycle — streaming integration", () => {
     expect(assistantCall).toBeDefined();
     const persistedMsg = (assistantCall as unknown[])[0] as { role: string; api: string };
     expect(persistedMsg.api).toBe("anthropic-messages");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Concern #6: Steer-resume messages persisted to JSONL
+// ---------------------------------------------------------------------------
+
+describe("session lifecycle — steer-resume persistence", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("persists steer-resume prompt via appendMessage after interrupt", async () => {
+    const queryMock = await importQuery();
+
+    // First query: yields init + assistant, then gets interrupted
+    const firstQueryMessages = [
+      { type: "system", subtype: "init", session_id: "sess_steer_persist" },
+      {
+        type: "assistant",
+        message: { role: "assistant", content: [{ type: "text", text: "Working..." }] },
+      },
+    ];
+
+    let messageIndex = 0;
+    const firstGen = {
+      [Symbol.asyncIterator]() {
+        return this;
+      },
+      async next() {
+        if (messageIndex >= firstQueryMessages.length) {
+          return { value: undefined, done: true as const };
+        }
+        const msg = firstQueryMessages[messageIndex++];
+        return { value: msg, done: false as const };
+      },
+      async return() {
+        return { value: undefined, done: true as const };
+      },
+      interrupt: vi.fn(async () => {}),
+    };
+
+    // Second query (steer resume): completes immediately
+    const secondGen = {
+      [Symbol.asyncIterator]() {
+        return this;
+      },
+      async next() {
+        return { value: undefined, done: true as const };
+      },
+      async return() {
+        return { value: undefined, done: true as const };
+      },
+      interrupt: vi.fn(async () => {}),
+    };
+
+    queryMock.mockReturnValueOnce(firstGen).mockReturnValueOnce(secondGen);
+
+    const appendMessage = vi.fn(() => "msg-id");
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ sessionManager: { appendMessage } }));
+
+    // Subscribe and inject steer after first assistant message
+    session.subscribe((evt: unknown) => {
+      const e = evt as { type: string };
+      if (e.type === "message_end") {
+        void session.steer("new direction");
+      }
+    });
+
+    await session.prompt("Initial task");
+
+    // NOTE: This test depends on the steer callback firing synchronously during
+    // generator iteration (before the first query completes). The mock generators
+    // above are structured to ensure this ordering, but changes to the prompt()
+    // loop or generator timing could make the assertion fragile.
+    const userCalls = appendMessage.mock.calls.filter(
+      (c: unknown[]) => (c[0] as { role: string }).role === "user",
+    );
+    // Verify steer triggered a second query (prerequisite for persistence)
+    expect(queryMock).toHaveBeenCalledTimes(2);
+    expect(userCalls.length).toBeGreaterThanOrEqual(2);
+    const steerCall = userCalls[1] as unknown[];
+    expect((steerCall[0] as { content: string }).content).toBe("new direction");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Concern #15: dispose() warns when session_id never captured
+// ---------------------------------------------------------------------------
+
+describe("session lifecycle — dispose warning", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("dispose() does not call appendCustomEntry when no session_id was captured", async () => {
+    const queryMock = await importQuery();
+    // Return messages without init event (no session_id captured)
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([
+        {
+          type: "assistant",
+          message: { role: "assistant", content: [{ type: "text", text: "Hello" }] },
+        },
+        { type: "result", subtype: "success" },
+      ])(),
+    );
+
+    const appendCustomEntry = vi.fn();
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ sessionManager: { appendCustomEntry } }));
+
+    await session.prompt("Hello");
+    session.dispose();
+
+    // Should NOT have persisted a session_id (none was captured)
+    expect(appendCustomEntry).not.toHaveBeenCalled();
+  });
+
+  it("dispose() returns silently when no messages and no session_id", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() => makeMockQueryGen([])());
+
+    const appendCustomEntry = vi.fn();
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ sessionManager: { appendCustomEntry } }));
+
+    // No prompt() called — no messages, no session_id
+    session.dispose();
+    expect(appendCustomEntry).not.toHaveBeenCalled();
   });
 });

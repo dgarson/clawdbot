@@ -21,6 +21,7 @@ describe("subscribeEmbeddedPiSession", () => {
     const onAgentEvent = vi.fn();
 
     subscribeEmbeddedPiSession({
+      enforceFinalTag: false,
       session,
       runId: options?.runId ?? "run",
       onAgentEvent,
@@ -33,12 +34,31 @@ describe("subscribeEmbeddedPiSession", () => {
   function createToolErrorHarness(runId: string) {
     const { session, emit } = createStubSessionHarness();
     const subscription = subscribeEmbeddedPiSession({
+      enforceFinalTag: false,
       session,
       runId,
       sessionKey: "test-session",
     });
 
     return { emit, subscription };
+  }
+
+  function createWriteFailureHarness(params: {
+    runId: string;
+    path: string;
+    content: string;
+  }): ReturnType<typeof createToolErrorHarness> {
+    const harness = createToolErrorHarness(params.runId);
+    emitToolRun({
+      emit: harness.emit,
+      toolName: "write",
+      toolCallId: "w1",
+      args: { path: params.path, content: params.content },
+      isError: true,
+      result: { error: "disk full" },
+    });
+    expect(harness.subscription.getLastToolError()?.toolName).toBe("write");
+    return harness;
   }
 
   function emitToolRun(params: {
@@ -79,6 +99,7 @@ describe("subscribeEmbeddedPiSession", () => {
       const onBlockReply = vi.fn();
 
       subscribeEmbeddedPiSession({
+        enforceFinalTag: false,
         session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
         runId: "run",
         onReasoningStream,
@@ -145,6 +166,7 @@ describe("subscribeEmbeddedPiSession", () => {
       const onBlockReply = vi.fn();
 
       subscribeEmbeddedPiSession({
+        enforceFinalTag: false,
         session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
         runId: "run",
         onBlockReply,
@@ -210,6 +232,7 @@ describe("subscribeEmbeddedPiSession", () => {
     const onReasoningEnd = vi.fn();
 
     subscribeEmbeddedPiSession({
+      enforceFinalTag: false,
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
       reasoningMode: "stream",
@@ -259,6 +282,7 @@ describe("subscribeEmbeddedPiSession", () => {
     const onReasoningEnd = vi.fn();
 
     subscribeEmbeddedPiSession({
+      enforceFinalTag: false,
       session: session as unknown as Parameters<typeof subscribeEmbeddedPiSession>[0]["session"],
       runId: "run",
       reasoningMode: "stream",
@@ -328,6 +352,7 @@ describe("subscribeEmbeddedPiSession", () => {
     const onAgentEvent = vi.fn();
 
     subscribeEmbeddedPiSession({
+      enforceFinalTag: false,
       session,
       runId: "run",
       onAgentEvent,
@@ -389,17 +414,11 @@ describe("subscribeEmbeddedPiSession", () => {
   });
 
   it("keeps unresolved mutating failure when an unrelated tool succeeds", () => {
-    const { emit, subscription } = createToolErrorHarness("run-tools-1");
-
-    emitToolRun({
-      emit,
-      toolName: "write",
-      toolCallId: "w1",
-      args: { path: "/tmp/demo.txt", content: "next" },
-      isError: true,
-      result: { error: "disk full" },
+    const { emit, subscription } = createWriteFailureHarness({
+      runId: "run-tools-1",
+      path: "/tmp/demo.txt",
+      content: "next",
     });
-    expect(subscription.getLastToolError()?.toolName).toBe("write");
 
     emitToolRun({
       emit,
@@ -414,17 +433,11 @@ describe("subscribeEmbeddedPiSession", () => {
   });
 
   it("clears unresolved mutating failure when the same action succeeds", () => {
-    const { emit, subscription } = createToolErrorHarness("run-tools-2");
-
-    emitToolRun({
-      emit,
-      toolName: "write",
-      toolCallId: "w1",
-      args: { path: "/tmp/demo.txt", content: "next" },
-      isError: true,
-      result: { error: "disk full" },
+    const { emit, subscription } = createWriteFailureHarness({
+      runId: "run-tools-2",
+      path: "/tmp/demo.txt",
+      content: "next",
     });
-    expect(subscription.getLastToolError()?.toolName).toBe("write");
 
     emitToolRun({
       emit,

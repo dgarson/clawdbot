@@ -172,26 +172,19 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
     return next;
   };
 
-  const str = (v: unknown): string | undefined =>
-    typeof v === "string" ? v : typeof v === "number" ? String(v) : undefined;
-
-  const buildHookContextHint = (ctx: unknown, event?: unknown): string => {
-    const c = ctx && typeof ctx === "object" ? (ctx as Record<string, unknown>) : null;
-    const e = event && typeof event === "object" ? (event as Record<string, unknown>) : null;
-    if (!c) {
-      return "";
+  const handleHookError = (params: {
+    hookName: PluginHookName;
+    pluginId: string;
+    error: unknown;
+  }): never | void => {
+    const msg = `[hooks] ${params.hookName} handler from ${params.pluginId} failed: ${String(
+      params.error,
+    )}`;
+    if (catchErrors) {
+      logger?.error(msg);
+      return;
     }
-    const parts = [
-      str(c["agentId"]) ? `agent=${str(c["agentId"])}` : null,
-      str(c["sessionKey"]) ? `session=${str(c["sessionKey"])}` : null,
-      str(c["messageProvider"]) ? `provider=${str(c["messageProvider"])}` : null,
-      str(c["model"]) ? `model=${str(c["model"])}` : null,
-      typeof e?.["durationMs"] === "number" ? `durationMs=${e["durationMs"]}` : null,
-      typeof e?.["tokens"] === "number" ? `tokens=${e["tokens"]}` : null,
-      typeof e?.["turns"] === "number" ? `turns=${e["turns"]}` : null,
-      typeof e?.["toolCalls"] === "number" ? `toolCalls=${e["toolCalls"]}` : null,
-    ].filter(Boolean);
-    return parts.length ? parts.join(" ") : "";
+    throw new Error(msg, { cause: params.error });
   };
 
   /**
@@ -208,21 +201,13 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       return;
     }
 
-    const agentHint = buildHookContextHint(ctx, event);
-    logger?.debug?.(
-      `[hooks] running ${hookName} (${hooks.length} handlers)${agentHint ? ` ${agentHint}` : ""}`,
-    );
+    logger?.debug?.(`[hooks] running ${hookName} (${hooks.length} handlers)`);
 
     const promises = hooks.map(async (hook) => {
       try {
         await (hook.handler as (event: unknown, ctx: unknown) => Promise<void>)(event, ctx);
       } catch (err) {
-        const msg = `[hooks] ${hookName} handler from ${hook.pluginId} failed: ${String(err)}`;
-        if (catchErrors) {
-          logger?.error(msg);
-        } else {
-          throw new Error(msg, { cause: err });
-        }
+        handleHookError({ hookName, pluginId: hook.pluginId, error: err });
       }
     });
 
@@ -244,10 +229,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
       return undefined;
     }
 
-    const agentHint = buildHookContextHint(ctx);
-    logger?.debug?.(
-      `[hooks] running ${hookName} (${hooks.length} handlers, sequential)${agentHint ? ` ${agentHint}` : ""}`,
-    );
+    logger?.debug?.(`[hooks] running ${hookName} (${hooks.length} handlers, sequential)`);
 
     let result: TResult | undefined;
 
@@ -265,12 +247,7 @@ export function createHookRunner(registry: PluginRegistry, options: HookRunnerOp
           }
         }
       } catch (err) {
-        const msg = `[hooks] ${hookName} handler from ${hook.pluginId} failed: ${String(err)}`;
-        if (catchErrors) {
-          logger?.error(msg);
-        } else {
-          throw new Error(msg, { cause: err });
-        }
+        handleHookError({ hookName, pluginId: hook.pluginId, error: err });
       }
     }
 

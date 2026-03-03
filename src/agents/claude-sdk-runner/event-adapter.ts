@@ -80,7 +80,12 @@ type SdkResultErrorMessage = {
 type SdkStreamEvent =
   | {
       type: "message_start";
-      message: { role: "assistant"; content: unknown[]; usage?: unknown; model?: string };
+      message: {
+        role: "assistant";
+        content: unknown[];
+        usage?: unknown;
+        model?: string;
+      };
     }
   | {
       type: "content_block_start";
@@ -90,7 +95,12 @@ type SdkStreamEvent =
   | {
       type: "content_block_delta";
       index: number;
-      delta: { type: string; text?: string; thinking?: string; partial_json?: string };
+      delta: {
+        type: string;
+        text?: string;
+        thinking?: string;
+        partial_json?: string;
+      };
     }
   | { type: "content_block_stop"; index: number }
   | { type: "message_delta"; delta: { stop_reason?: string }; usage?: unknown }
@@ -155,7 +165,11 @@ export function translateSdkMessageToEvents(
       const pre_tokens = compactMsg.compact_metadata?.pre_tokens;
       const trigger = compactMsg.compact_metadata?.trigger;
       state.compacting = true;
-      emit({ type: "auto_compaction_start", pre_tokens, trigger } as EmbeddedPiSubscribeEvent);
+      emit({
+        type: "auto_compaction_start",
+        pre_tokens,
+        trigger,
+      } as EmbeddedPiSubscribeEvent);
       state.compacting = false;
       emit({
         type: "auto_compaction_end",
@@ -194,7 +208,7 @@ export function translateSdkMessageToEvents(
       state.streamingPartialMessage = null;
     } else {
       // Non-streaming fallback — keep existing event emission logic.
-      translateAssistantContent(content, assistantMsg, emit);
+      translateAssistantContent(content, assistantMsg, emit, state);
     }
 
     // Persist to JSONL in both cases.
@@ -202,7 +216,7 @@ export function translateSdkMessageToEvents(
 
     // Append assistant message to state.messages so that attempt.ts snapshots
     // (activeSession.messages.slice()) contain the current turn's output.
-    const agentMsg = buildAgentMessage(assistantMsg, content);
+    const agentMsg = buildAgentMessage(assistantMsg, content, state);
     state.messages.push(agentMsg as never);
     return;
   }
@@ -218,6 +232,18 @@ export function translateSdkMessageToEvents(
       // Store error message so prompt() throws after the for-await loop.
       // This prevents SDK failures from resolving successfully.
       state.sdkResultError = firstErrorMsg;
+      state.messages.push(
+        buildAgentMessage(
+          {
+            role: "assistant",
+            content: [{ type: "text", text: "" }],
+            errorMessage: firstErrorMsg,
+            stop_reason: "error",
+          },
+          [{ type: "text", text: "" }],
+          state,
+        ) as never,
+      );
       // Also include error details on the agent_end event so subscribers
       // (e.g. hooks, monitoring) can inspect the failure without awaiting prompt().
       emit({
@@ -270,19 +296,26 @@ function extractSdkResultErrorMessage(resultMsg: SdkResultErrorMessage): string 
 
 function translateAssistantContent(
   content: SdkContentBlock[],
-  fullMessage: { role: string; content: SdkContentBlock[]; usage?: unknown },
+  fullMessage: {
+    role: string;
+    content: SdkContentBlock[];
+    usage?: unknown;
+    model?: string;
+    stop_reason?: string;
+  },
   emit: (evt: EmbeddedPiSubscribeEvent) => void,
+  state: ClaudeSdkEventAdapterState,
 ): void {
   // ALWAYS emit message_start for every assistant message.
   // handleMessageStart calls resetAssistantMessageState() which MUST fire
   // before any handleMessageUpdate (thinking or text) events.
-  emitMessageStart(fullMessage, emit);
+  emitMessageStart(fullMessage, emit, state);
 
   for (const block of content) {
     if (block.type === "thinking") {
-      translateThinkingBlock(block, fullMessage, emit);
+      translateThinkingBlock(block, fullMessage, emit, state);
     } else if (block.type === "text") {
-      translateTextBlock(block, fullMessage, emit);
+      translateTextBlock(block, fullMessage, emit, state);
     }
     // tool_use blocks: events are emitted by MCP tool server handler, not here.
     // The handler's handleToolExecutionStart calls flushBlockReplyBuffer() +
@@ -293,7 +326,7 @@ function translateAssistantContent(
   // ALWAYS emit message_end to close the message lifecycle.
   // This ensures text is finalized BEFORE any tool_execution_start from the
   // MCP handler (which runs after the async generator yields the next message).
-  emitMessageEnd(fullMessage, emit);
+  emitMessageEnd(fullMessage, emit, state);
 }
 
 // ---------------------------------------------------------------------------
@@ -302,15 +335,24 @@ function translateAssistantContent(
 
 function translateThinkingBlock(
   block: { type: "thinking"; thinking: string },
-  fullMessage: { role: string; content: SdkContentBlock[]; usage?: unknown },
+  fullMessage: {
+    role: string;
+    content: SdkContentBlock[];
+    usage?: unknown;
+    model?: string;
+    stop_reason?: string;
+  },
   emit: (evt: EmbeddedPiSubscribeEvent) => void,
+  state: ClaudeSdkEventAdapterState,
 ): void {
   const thinkingText = block.thinking ?? "";
 
   // Build AgentMessage-compatible object with structured thinking content
-  const thinkingMessage = buildAgentMessage(fullMessage, [
-    { type: "thinking", thinking: thinkingText },
-  ]);
+  const thinkingMessage = buildAgentMessage(
+    fullMessage,
+    [{ type: "thinking", thinking: thinkingText }],
+    state,
+  );
 
   // thinking_start
   emit({
@@ -344,11 +386,18 @@ function translateThinkingBlock(
 
 function translateTextBlock(
   block: { type: "text"; text: string },
-  fullMessage: { role: string; content: SdkContentBlock[]; usage?: unknown },
+  fullMessage: {
+    role: string;
+    content: SdkContentBlock[];
+    usage?: unknown;
+    model?: string;
+    stop_reason?: string;
+  },
   emit: (evt: EmbeddedPiSubscribeEvent) => void,
+  state: ClaudeSdkEventAdapterState,
 ): void {
   const text = block.text ?? "";
-  const textMessage = buildAgentMessage(fullMessage, [{ type: "text", text }]);
+  const textMessage = buildAgentMessage(fullMessage, [{ type: "text", text }], state);
 
   // text_delta — full text as single delta (SDK gives complete block at once)
   emit({
@@ -384,10 +433,17 @@ function translateTextBlock(
 // ---------------------------------------------------------------------------
 
 function emitMessageStart(
-  fullMessage: { role: string; content: SdkContentBlock[]; usage?: unknown },
+  fullMessage: {
+    role: string;
+    content: SdkContentBlock[];
+    usage?: unknown;
+    model?: string;
+    stop_reason?: string;
+  },
   emit: (evt: EmbeddedPiSubscribeEvent) => void,
+  state: ClaudeSdkEventAdapterState,
 ): void {
-  const message = buildAgentMessage(fullMessage, fullMessage.content);
+  const message = buildAgentMessage(fullMessage, fullMessage.content, state);
   emit({
     type: "message_start",
     message,
@@ -395,10 +451,17 @@ function emitMessageStart(
 }
 
 function emitMessageEnd(
-  fullMessage: { role: string; content: SdkContentBlock[]; usage?: unknown },
+  fullMessage: {
+    role: string;
+    content: SdkContentBlock[];
+    usage?: unknown;
+    model?: string;
+    stop_reason?: string;
+  },
   emit: (evt: EmbeddedPiSubscribeEvent) => void,
+  state: ClaudeSdkEventAdapterState,
 ): void {
-  const message = buildAgentMessage(fullMessage, fullMessage.content);
+  const message = buildAgentMessage(fullMessage, fullMessage.content, state);
   emit({
     type: "message_end",
     message,
@@ -412,13 +475,28 @@ function emitMessageEnd(
 // ---------------------------------------------------------------------------
 
 function buildAgentMessage(
-  sdkMessage: { role: string; content?: unknown; usage?: unknown },
+  sdkMessage: {
+    role: string;
+    content?: unknown;
+    usage?: unknown;
+    model?: string;
+    stop_reason?: string;
+    errorMessage?: string;
+  },
   content: unknown[],
+  state: ClaudeSdkEventAdapterState,
 ): unknown {
   return {
     role: sdkMessage.role,
     content,
     usage: sdkMessage.usage,
+    model: sdkMessage.model ?? "",
+    stopReason: sdkMessage.stop_reason ?? "end_turn",
+    ...(typeof sdkMessage.errorMessage === "string" && sdkMessage.errorMessage.trim().length > 0
+      ? { errorMessage: sdkMessage.errorMessage.trim() }
+      : {}),
+    provider: state.providerId || "anthropic",
+    api: state.apiId || "anthropic-messages",
     id: `sdk-${Date.now()}`,
   };
 }
@@ -443,7 +521,7 @@ function handleStreamEvent(
       };
       state.streamingBlockTypes.clear();
       state.streamingInProgress = true;
-      const message = buildAgentMessage(state.streamingPartialMessage, []);
+      const message = buildAgentMessage(state.streamingPartialMessage, [], state);
       emit({ type: "message_start", message } as EmbeddedPiSubscribeEvent);
       break;
     }
@@ -455,6 +533,7 @@ function handleStreamEvent(
         const message = buildAgentMessage(
           state.streamingPartialMessage ?? { role: "assistant" },
           state.streamingPartialMessage?.content ?? [],
+          state,
         );
         emit({
           type: "message_update",
@@ -481,6 +560,7 @@ function handleStreamEvent(
         const message = buildAgentMessage(
           state.streamingPartialMessage,
           state.streamingPartialMessage.content,
+          state,
         );
         emit({
           type: "message_update",
@@ -497,6 +577,7 @@ function handleStreamEvent(
         const message = buildAgentMessage(
           state.streamingPartialMessage,
           state.streamingPartialMessage.content,
+          state,
         );
         emit({
           type: "message_update",
@@ -523,6 +604,7 @@ function handleStreamEvent(
         const message = buildAgentMessage(
           state.streamingPartialMessage,
           state.streamingPartialMessage.content,
+          state,
         );
         emit({
           type: "message_update",
@@ -537,6 +619,7 @@ function handleStreamEvent(
         const message = buildAgentMessage(
           state.streamingPartialMessage,
           state.streamingPartialMessage.content,
+          state,
         );
         emit({
           type: "message_update",
@@ -559,6 +642,7 @@ function handleStreamEvent(
       const message = buildAgentMessage(
         state.streamingPartialMessage ?? { role: "assistant" },
         state.streamingPartialMessage?.content ?? [],
+        state,
       );
       emit({ type: "message_end", message } as EmbeddedPiSubscribeEvent);
       break;
@@ -640,8 +724,8 @@ function persistAssistantMessage(
     const piMessage = {
       role: "assistant" as const,
       content: piContent,
-      api: "anthropic-messages",
-      provider: "anthropic",
+      api: state.apiId || "anthropic-messages",
+      provider: state.providerId || "anthropic",
       model: sdkMessage.message.model ?? "",
       stopReason: sdkMessage.message.stop_reason ?? "end_turn",
       usage: {

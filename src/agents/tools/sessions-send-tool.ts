@@ -15,7 +15,7 @@ import {
   createSessionVisibilityGuard,
   createAgentToAgentPolicy,
   extractAssistantText,
-  isRequesterSpawnedSessionVisible,
+  isResolvedSessionVisibleToRequester,
   resolveEffectiveSessionToolsVisibility,
   resolveSessionReference,
   resolveSandboxedSessionToolContext,
@@ -203,19 +203,19 @@ export function createSessionsSendTool(opts?: {
       const displayKey = resolvedSession.displayKey;
       const resolvedViaSessionId = resolvedSession.resolvedViaSessionId;
 
-      if (restrictToSpawned && !resolvedViaSessionId && resolvedKey !== effectiveRequesterKey) {
-        const ok = await isRequesterSpawnedSessionVisible({
-          requesterSessionKey: effectiveRequesterKey,
-          targetSessionKey: resolvedKey,
+      const visible = await isResolvedSessionVisibleToRequester({
+        requesterSessionKey: effectiveRequesterKey,
+        targetSessionKey: resolvedKey,
+        restrictToSpawned,
+        resolvedViaSessionId,
+      });
+      if (!visible) {
+        return jsonResult({
+          runId: crypto.randomUUID(),
+          status: "forbidden",
+          error: `Session not visible from this sandboxed agent session: ${sessionKey}`,
+          sessionKey: displayKey,
         });
-        if (!ok) {
-          return jsonResult({
-            runId: crypto.randomUUID(),
-            status: "forbidden",
-            error: `Session not visible from this sandboxed agent session: ${sessionKey}`,
-            sessionKey: displayKey,
-          });
-        }
       }
       const configDefaultTimeout =
         typeof cfg.tools?.sessions?.sendTimeoutSeconds === "number" &&
