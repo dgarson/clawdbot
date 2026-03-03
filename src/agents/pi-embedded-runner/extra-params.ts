@@ -853,6 +853,36 @@ function createZaiToolStreamWrapper(
 }
 
 /**
+ * Create a streamFn wrapper that forwards tool_choice from options to the payload.
+ *
+ * The openai-codex-responses provider in pi-ai hardcodes tool_choice to "auto",
+ * ignoring any tool_choice passed in options. This wrapper works around that by
+ * injecting tool_choice from options into the payload after the provider builds it.
+ *
+ * @see https://github.com/openclaw/openclaw/issues/33421
+ */
+function createCodexToolChoiceWrapper(baseStreamFn: StreamFn | undefined): StreamFn {
+  const underlying = baseStreamFn ?? streamSimple;
+  return (model, context, options) => {
+    const originalOnPayload = options?.onPayload;
+    return underlying(model, context, {
+      ...options,
+      onPayload: (payload) => {
+        if (payload && typeof payload === "object") {
+          const payloadObj = payload as Record<string, unknown>;
+          const opts = options as { toolChoice?: unknown } | undefined;
+          // Only override if toolChoice is explicitly provided in options
+          if (opts?.toolChoice !== undefined) {
+            payloadObj.tool_choice = opts.toolChoice;
+          }
+        }
+        originalOnPayload?.(payload);
+      },
+    });
+  };
+}
+
+/**
  * Apply extra params (like temperature) to an agent's streamFn.
  * Also adds OpenRouter app attribution headers when using the OpenRouter provider.
  *
@@ -876,6 +906,10 @@ export function applyExtraParamsToAgent(
   if (provider === "openai-codex") {
     // Default Codex to WebSocket-first when nothing else specifies transport.
     agent.streamFn = createCodexDefaultTransportWrapper(agent.streamFn);
+    // Work around upstream pi-ai hardcoding tool_choice to "auto" for openai-codex-responses.
+    // Forward tool_choice from options to the payload so callers can control tool behavior.
+    // See: https://github.com/openclaw/openclaw/issues/33421
+    agent.streamFn = createCodexToolChoiceWrapper(agent.streamFn);
   } else if (provider === "openai") {
     // Default OpenAI Responses to WebSocket-first with transparent SSE fallback.
     agent.streamFn = createOpenAIDefaultTransportWrapper(agent.streamFn);
