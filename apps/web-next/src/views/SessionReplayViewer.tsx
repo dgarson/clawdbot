@@ -547,19 +547,22 @@ function SessionsTab(): React.ReactElement {
           <div className="flex items-center gap-2">
             <button
               onClick={stepBack}
-              className="text-zinc-400 hover:text-white text-xs px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+              aria-label="Step back 10 seconds"
+              className="text-zinc-400 hover:text-white text-xs px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               ‹‹ 10s
             </button>
             <button
               onClick={() => setIsPlaying((p) => !p)}
-              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-1.5 rounded-lg transition-colors font-medium"
+              aria-label={isPlaying ? "Pause playback" : "Play playback"}
+              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-1.5 rounded-lg transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               {isPlaying ? "⏸ Pause" : "▶ Play"}
             </button>
             <button
               onClick={stepForward}
-              className="text-zinc-400 hover:text-white text-xs px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+              aria-label="Step forward 10 seconds"
+              className="text-zinc-400 hover:text-white text-xs px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               10s ››
             </button>

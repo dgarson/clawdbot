@@ -506,8 +506,10 @@ function LiveStreamTab() {
             </label>
             <button
               onClick={() => setJsonMode((v) => !v)}
+              aria-label="Toggle JSON mode"
+              aria-pressed={jsonMode}
               className={cn(
-                "w-10 h-6 rounded-full transition-colors relative",
+                "w-10 h-6 rounded-full transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
                 jsonMode ? "bg-indigo-600" : "bg-zinc-700"
               )}
             >
@@ -1079,8 +1081,10 @@ function SettingsTab() {
             </div>
             <button
               onClick={() => setDebugLogging((v) => !v)}
+              aria-label="Toggle debug logging"
+              aria-pressed={debugLogging}
               className={cn(
-                "w-10 h-6 rounded-full transition-colors relative",
+                "w-10 h-6 rounded-full transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
                 debugLogging ? "bg-indigo-600" : "bg-zinc-700"
               )}
             >

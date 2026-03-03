@@ -565,34 +565,37 @@ function EditorTab() {
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={() => setIsPreview(false)}
+            aria-label="Edit mode"
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
               !isPreview ? "bg-indigo-600 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800"
             )}
           >
-            <IconEdit className="w-3.5 h-3.5" />
+            <IconEdit className="w-3.5 h-3.5" aria-hidden="true" />
             Edit
           </button>
           <button
             onClick={() => setIsPreview(true)}
+            aria-label="Preview mode"
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
               isPreview ? "bg-indigo-600 text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800"
             )}
           >
-            <IconEye className="w-3.5 h-3.5" />
+            <IconEye className="w-3.5 h-3.5" aria-hidden="true" />
             Preview
           </button>
           <button
             onClick={handleSave}
+            aria-label={saved ? "Draft saved" : "Save draft"}
             className={cn(
-              "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all",
+              "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
               saved
                 ? "bg-emerald-600 text-white"
                 : "bg-indigo-600 hover:bg-indigo-500 text-white"
             )}
           >
-            {saved ? <><IconCheck className="w-3.5 h-3.5" /> Saved</> : "Save Draft"}
+            {saved ? <><IconCheck className="w-3.5 h-3.5" aria-hidden="true" /> Saved</> : "Save Draft"}
           </button>
         </div>
       </div>

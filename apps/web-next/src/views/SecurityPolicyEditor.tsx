@@ -583,7 +583,7 @@ function PoliciesTab({
               className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-zinc-800/50 transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <span className="text-lg flex-shrink-0">
+                <span className="text-lg flex-shrink-0" aria-hidden="true">
                   {statusEmoji[policy.status]}
                 </span>
                 <div className="min-w-0">
@@ -704,14 +704,14 @@ function PoliciesTab({
                           setEditingId(null);
                           setEditDraft({});
                         }}
-                        className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 transition-colors"
+                        className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
                         onClick={() => saveEdit(policy)}
-                        className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-500 transition-colors"
+                        className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                       >
                         Save Changes
                       </button>
@@ -747,7 +747,8 @@ function PoliciesTab({
                       <button
                         type="button"
                         onClick={() => startEdit(policy)}
-                        className="rounded-md bg-zinc-800 border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
+                        aria-label={`Edit ${policy.name} policy`}
+                        className="rounded-md bg-zinc-800 border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                       >
                         ✏️ Edit Policy
                       </button>

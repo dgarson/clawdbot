@@ -904,12 +904,18 @@ function AgentOutputDiffViewer() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-md text-sm text-gray-300 transition-colors">
-              <RefreshCw className="w-4 h-4" />
+            <button 
+              aria-label="Refresh data"
+              className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-md text-sm text-gray-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            >
+              <RefreshCw className="w-4 h-4" aria-hidden="true" />
               Refresh
             </button>
-            <button className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-md text-sm text-gray-300 transition-colors">
-              <Download className="w-4 h-4" />
+            <button 
+              aria-label="Export diff results"
+              className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-md text-sm text-gray-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            >
+              <Download className="w-4 h-4" aria-hidden="true" />
               Export
             </button>
           </div>
@@ -1108,17 +1114,19 @@ function AgentOutputDiffViewer() {
                   {diff.status === "severity-mismatch" && (
                     <button
                       onClick={() => handleMerge(diff)}
-                      className="flex items-center gap-1.5 px-2.5 py-1 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 rounded text-xs text-yellow-300 transition-colors"
+                      aria-label="Merge severity mismatch"
+                      className="flex items-center gap-1.5 px-2.5 py-1 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/40 rounded text-xs text-yellow-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                     >
-                      <Merge className="w-3 h-3" />
+                      <Merge className="w-3 h-3" aria-hidden="true" />
                       Merge
                     </button>
                   )}
                   <button
                     onClick={() => setShowRawOutput(showRawOutput === diff.findingId ? null : diff.findingId)}
-                    className="flex items-center gap-1.5 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-xs text-gray-400 transition-colors"
+                    aria-label={showRawOutput === diff.findingId ? "Hide raw output" : "View raw output"}
+                    className="flex items-center gap-1.5 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded text-xs text-gray-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   >
-                    <Eye className="w-3 h-3" />
+                    <Eye className="w-3 h-3" aria-hidden="true" />
                     {showRawOutput === diff.findingId ? "Hide" : "Raw"}
                   </button>
                 </div>
