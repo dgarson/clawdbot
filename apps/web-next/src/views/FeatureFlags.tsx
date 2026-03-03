@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Flag } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -486,10 +488,16 @@ export default function FeatureFlags() {
       {/* Flag list */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-            <span className="text-4xl">🚩</span>
-            <p className="text-sm font-medium text-zinc-300">No flags found</p>
-          </div>
+          <ContextualEmptyState
+            icon={Flag}
+            title="No flags found"
+            description="Try adjusting your search or filters, or create a new feature flag to get started."
+            size="md"
+            primaryAction={{
+              label: "Create Flag",
+              onClick: () => {/* TODO: open create modal */},
+            }}
+          />
         ) : (
           filtered.map((flag) => (
             <FlagCard key={flag.id} flag={flag} onToggle={handleToggle} onRolloutChange={handleRolloutChange} />

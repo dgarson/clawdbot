@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { ShieldCheck } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -833,13 +835,28 @@ export default function ContentModerationQueue() {
                     <QueueRow key={item.id} item={item} />
                   ))}
                   {pendingItems.length === 0 && (
-                    <div className="px-4 py-12 text-center">
-                      <p className="text-zinc-600 text-sm">
-                        {resolvedIds.size > 0
-                          ? "All items in current filter have been resolved"
-                          : "No items match current filters"}
-                      </p>
-                    </div>
+                    <ContextualEmptyState
+                      icon={ShieldCheck}
+                      title={resolvedIds.size > 0 ? "All items resolved" : "Queue is empty"}
+                      description={
+                        resolvedIds.size > 0
+                          ? "All items in the current filter have been resolved. Great work!"
+                          : "No items match the current filters. Try adjusting your filters or wait for new items."
+                      }
+                      size="md"
+                      secondaryAction={
+                        resolvedIds.size === 0
+                          ? {
+                              label: "Clear Filters",
+                              onClick: () => {
+                                setFilterType("all");
+                                setFilterReason("all");
+                                setFilterPriority("all");
+                              },
+                            }
+                          : undefined
+                      }
+                    />
                   )}
                 </div>
               </div>

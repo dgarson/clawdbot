@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { BookOpen, FileText } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -633,7 +635,23 @@ export default function KnowledgeBase() {
           {/* Doc list */}
           <div role="listbox" aria-label="Documents" className="flex-1 overflow-y-auto">
             {filtered.length === 0 ? (
-              <p className="px-4 py-8 text-xs text-zinc-600 text-center">No docs match</p>
+              <ContextualEmptyState
+                icon={BookOpen}
+                title="No docs match"
+                description="No documents match your current search or filters. Try a different term or create a new document."
+                size="sm"
+                primaryAction={{
+                  label: "New Doc",
+                  onClick: () => {/* TODO: open create modal */},
+                }}
+                secondaryAction={{
+                  label: "Clear Filters",
+                  onClick: () => {
+                    setSearch("");
+                    setTypeFilter("all");
+                  },
+                }}
+              />
             ) : (
               filtered.map((doc) => (
                 <DocCard key={doc.id} doc={doc} selected={selectedId === doc.id} onSelect={() => setSelectedId(doc.id)} />

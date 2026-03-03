@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { MessageSquareText } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -753,11 +755,23 @@ export default function PromptLibrary() {
         className="flex-1 overflow-y-auto px-6 py-5"
       >
         {sorted.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-            <span className="text-4xl">📭</span>
-            <p className="text-sm font-medium text-zinc-300">No prompts found</p>
-            <p className="text-xs text-zinc-600">Try a different search or category</p>
-          </div>
+          <ContextualEmptyState
+            icon={MessageSquareText}
+            title="No prompts found"
+            description="No prompts match your current search or category. Try a different filter or create a new prompt."
+            size="md"
+            primaryAction={{
+              label: "New Prompt",
+              onClick: () => {/* TODO: open create modal */},
+            }}
+            secondaryAction={{
+              label: "Clear Filters",
+              onClick: () => {
+                setSearch("");
+                setCategoryFilter("all");
+              },
+            }}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {sorted.map((p) => (

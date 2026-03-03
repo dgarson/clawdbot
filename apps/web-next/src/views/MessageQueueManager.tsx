@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
+import { Inbox, MailX } from "lucide-react";
 
 /**
  * MessageQueueManager Dashboard
@@ -411,9 +413,13 @@ export default function MessageQueueManager() {
                     ))}
                     {filteredMessages.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="py-20 text-center text-zinc-500">
-                          <div className="text-2xl mb-2">🔎</div>
-                          <div className="text-sm">No messages found matching criteria</div>
+                        <td colSpan={4} className="py-4">
+                          <ContextualEmptyState
+                            icon={Inbox}
+                            title="No messages found"
+                            description="No messages match your current filters. Try adjusting the search or queue selection."
+                            size="sm"
+                          />
                         </td>
                       </tr>
                     )}

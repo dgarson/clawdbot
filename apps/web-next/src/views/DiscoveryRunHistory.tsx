@@ -16,7 +16,9 @@ import {
   AlertCircle,
   Expand,
   X,
+  Compass,
 } from "lucide-react";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -512,13 +514,21 @@ const DiscoveryRunHistory: React.FC = () => {
 
         {/* Table Body */}
         {paginatedRuns.length === 0 ? (
-          <div className="py-16 text-center">
-            <div className="text-4xl mb-4">🔍</div>
-            <div className="text-gray-400 mb-2">No runs found</div>
-            <div className="text-sm text-gray-600">
-              Try adjusting your filters or search query
-            </div>
-          </div>
+          <ContextualEmptyState
+            icon={Compass}
+            title="No runs found"
+            description="Try adjusting your filters or search query to find discovery runs."
+            size="lg"
+            secondaryAction={{
+              label: "Clear Filters",
+              onClick: () => {
+                setStatusFilter("all");
+                setSearchQuery("");
+                setCostMin("");
+                setCostMax("");
+              },
+            }}
+          />
         ) : (
           <div className="divide-y divide-gray-700/30">
             {paginatedRuns.map((run) => {
