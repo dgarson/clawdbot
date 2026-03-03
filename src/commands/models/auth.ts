@@ -171,7 +171,7 @@ export async function modelsAuthPasteTokenCommand(
   runtime.log(`Auth profile: ${profileId} (${provider}/token)`);
 }
 
-export async function modelsAuthSetupClaudeProCommand(
+export async function modelsAuthSetupClaudePersonalCommand(
   opts: { provider?: string; profileId?: string; yes?: boolean },
   runtime: RuntimeEnv,
 ) {
@@ -273,7 +273,7 @@ export async function modelsAuthAddCommand(_opts: Record<string, never>, runtime
   })) as "setup-claude-pro" | "setup-token" | "paste";
 
   if (method === "setup-claude-pro") {
-    await modelsAuthSetupClaudeProCommand({ provider: providerId }, runtime);
+    await modelsAuthSetupClaudePersonalCommand({ provider: providerId }, runtime);
     return;
   }
 
