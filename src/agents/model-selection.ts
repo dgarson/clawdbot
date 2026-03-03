@@ -1,6 +1,7 @@
 import type { OpenClawConfig } from "../config/config.js";
+import { resolveAgentModelPrimaryValue, toAgentModelListLike } from "../config/model-input.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
-import { resolveAgentConfig, resolveAgentModelPrimary } from "./agent-scope.js";
+import { resolveAgentConfig, resolveAgentEffectiveModelPrimary } from "./agent-scope.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "./defaults.js";
 import type { ModelCatalogEntry } from "./model-catalog.js";
 import { normalizeGoogleModelId } from "./models-config.providers.js";
@@ -48,6 +49,9 @@ export function normalizeProviderId(provider: string): string {
   }
   if (normalized === "kimi-code") {
     return "kimi-coding";
+  }
+  if (normalized === "bedrock" || normalized === "aws-bedrock") {
+    return "amazon-bedrock";
   }
   // Backward compatibility for older provider naming.
   if (normalized === "bytedance" || normalized === "doubao") {
@@ -107,6 +111,13 @@ function normalizeAnthropicModelId(model: string): string {
 function normalizeProviderModelId(provider: string, model: string): string {
   if (provider === "anthropic") {
     return normalizeAnthropicModelId(model);
+  }
+  if (provider === "vercel-ai-gateway" && !model.includes("/")) {
+    // Allow Vercel-specific Claude refs without an upstream prefix.
+    const normalizedAnthropicModel = normalizeAnthropicModelId(model);
+    if (normalizedAnthropicModel.startsWith("claude-")) {
+      return `anthropic/${normalizedAnthropicModel}`;
+    }
   }
   if (provider === "google") {
     return normalizeGoogleModelId(model);
@@ -259,13 +270,7 @@ export function resolveConfiguredModelRef(params: {
   defaultProvider: string;
   defaultModel: string;
 }): ModelRef {
-  const rawModel = (() => {
-    const raw = params.cfg.agents?.defaults?.model as { primary?: string } | string | undefined;
-    if (typeof raw === "string") {
-      return raw.trim();
-    }
-    return raw?.primary?.trim() ?? "";
-  })();
+  const rawModel = resolveAgentModelPrimaryValue(params.cfg.agents?.defaults?.model) ?? "";
   if (rawModel) {
     const trimmed = rawModel.trim();
     const aliasIndex = buildModelAliasIndex({
@@ -303,7 +308,7 @@ export function resolveDefaultModelForAgent(params: {
   agentId?: string;
 }): ModelRef {
   const agentModelOverride = params.agentId
-    ? resolveAgentModelPrimary(params.cfg, params.agentId)
+    ? resolveAgentEffectiveModelPrimary(params.cfg, params.agentId)
     : undefined;
   const cfg =
     agentModelOverride && agentModelOverride.length > 0
@@ -314,9 +319,7 @@ export function resolveDefaultModelForAgent(params: {
             defaults: {
               ...params.cfg.agents?.defaults,
               model: {
-                ...(typeof params.cfg.agents?.defaults?.model === "object"
-                  ? params.cfg.agents.defaults.model
-                  : undefined),
+                ...toAgentModelListLike(params.cfg.agents?.defaults?.model),
                 primary: agentModelOverride,
               },
             },
@@ -357,7 +360,7 @@ export function resolveSubagentSpawnModelSelection(params: {
       cfg: params.cfg,
       agentId: params.agentId,
     }) ??
-    normalizeModelSelection(params.cfg.agents?.defaults?.model?.primary) ??
+    normalizeModelSelection(resolveAgentModelPrimaryValue(params.cfg.agents?.defaults?.model)) ??
     `${runtimeDefault.provider}/${runtimeDefault.model}`
   );
 }
@@ -397,22 +400,23 @@ export function buildAllowedModelSet(params: {
   }
 
   const allowedKeys = new Set<string>();
-  const configuredProviders = (params.cfg.models?.providers ?? {}) as Record<string, unknown>;
+  const syntheticCatalogEntries = new Map<string, ModelCatalogEntry>();
   for (const raw of rawAllowlist) {
     const parsed = parseModelRef(String(raw), params.defaultProvider);
     if (!parsed) {
       continue;
     }
     const key = modelKey(parsed.provider, parsed.model);
-    const providerKey = normalizeProviderId(parsed.provider);
-    if (isCliProvider(parsed.provider, params.cfg)) {
-      allowedKeys.add(key);
-    } else if (catalogKeys.has(key)) {
-      allowedKeys.add(key);
-    } else if (configuredProviders[providerKey] != null) {
-      // Explicitly configured providers should be allowlist-able even when
-      // they don't exist in the curated model catalog.
-      allowedKeys.add(key);
+    // Explicit allowlist entries are always trusted, even when bundled catalog
+    // data is stale and does not include the configured model yet.
+    allowedKeys.add(key);
+
+    if (!catalogKeys.has(key) && !syntheticCatalogEntries.has(key)) {
+      syntheticCatalogEntries.set(key, {
+        id: parsed.model,
+        name: parsed.model,
+        provider: parsed.provider,
+      });
     }
   }
 
@@ -420,9 +424,10 @@ export function buildAllowedModelSet(params: {
     allowedKeys.add(defaultKey);
   }
 
-  const allowedCatalog = params.catalog.filter((entry) =>
-    allowedKeys.has(modelKey(entry.provider, entry.id)),
-  );
+  const allowedCatalog = [
+    ...params.catalog.filter((entry) => allowedKeys.has(modelKey(entry.provider, entry.id))),
+    ...syntheticCatalogEntries.values(),
+  ];
 
   if (allowedCatalog.length === 0 && allowedKeys.size === 0) {
     if (defaultKey) {

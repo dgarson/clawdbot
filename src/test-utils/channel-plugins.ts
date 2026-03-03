@@ -25,6 +25,7 @@ export const createTestRegistry = (channels: TestChannelRegistration[] = []): Pl
   cliRegistrars: [],
   services: [],
   commands: [],
+  promptSections: [],
   diagnostics: [],
 });
 
@@ -69,6 +70,21 @@ export const createMSTeamsTestPluginBase = (): Pick<
       blurb: "Bot Framework; enterprise support.",
       aliases: ["teams"],
     },
+  };
+};
+
+export const createMSTeamsTestPlugin = (params?: {
+  aliases?: string[];
+  outbound?: ChannelOutboundAdapter;
+}): ChannelPlugin => {
+  const base = createMSTeamsTestPluginBase();
+  return {
+    ...base,
+    meta: {
+      ...base.meta,
+      ...(params?.aliases ? { aliases: params.aliases } : {}),
+    },
+    ...(params?.outbound ? { outbound: params.outbound } : {}),
   };
 };
 

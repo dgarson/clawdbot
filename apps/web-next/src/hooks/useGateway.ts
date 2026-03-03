@@ -7,7 +7,8 @@ import type {
   GatewayHello,
 } from '../types';
 
-const GATEWAY_URL = 'ws://localhost:18789';
+const DEFAULT_GATEWAY_URL = 'ws://localhost:18789';
+const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL ?? DEFAULT_GATEWAY_URL;
 const RECONNECT_DELAY_BASE = 1000;
 const RECONNECT_DELAY_MAX = 30000;
 const HELLO_TIMEOUT = 5000;
@@ -42,6 +43,25 @@ export function useGateway(): UseGatewayReturn {
   const reconnectAttemptsRef = useRef(0);
   const helloReceivedRef = useRef(false);
   const manualCloseRef = useRef(false);
+  const connectionPromiseRef = useRef<Promise<void> | null>(null);
+  const connectionResolveRef = useRef<(() => void) | null>(null);
+  const connectionRejectRef = useRef<((error: Error) => void) | null>(null);
+
+  const clearConnectionPromise = useCallback(() => {
+    connectionPromiseRef.current = null;
+    connectionResolveRef.current = null;
+    connectionRejectRef.current = null;
+  }, []);
+
+  const ensureConnectionPromise = useCallback(() => {
+    if (!connectionPromiseRef.current) {
+      connectionPromiseRef.current = new Promise<void>((resolve, reject) => {
+        connectionResolveRef.current = resolve;
+        connectionRejectRef.current = reject;
+      });
+    }
+    return connectionPromiseRef.current;
+  }, []);
 
   /**
    * Generate next request ID
@@ -76,6 +96,8 @@ export function useGateway(): UseGatewayReturn {
         setConnectionState('connected');
         setLastError(null);
         reconnectAttemptsRef.current = 0;
+        connectionResolveRef.current?.();
+        clearConnectionPromise();
         return;
       }
 
@@ -97,7 +119,7 @@ export function useGateway(): UseGatewayReturn {
     } catch (err) {
       console.error('[Gateway] Failed to parse message:', err);
     }
-  }, [clearPendingCall]);
+  }, [clearConnectionPromise, clearPendingCall]);
 
   /**
    * Connect to Gateway WebSocket
@@ -120,8 +142,13 @@ export function useGateway(): UseGatewayReturn {
         // Wait for hello handshake
         setTimeout(() => {
           if (!helloReceivedRef.current) {
-            console.warn('[Gateway] Hello timeout, proceeding anyway');
-            setConnectionState('connected');
+            const error = new Error('Gateway hello handshake timeout');
+            console.warn('[Gateway] Hello timeout, closing socket');
+            setLastError(error.message);
+            setConnectionState('error');
+            connectionRejectRef.current?.(error);
+            clearConnectionPromise();
+            ws.close();
           }
         }, HELLO_TIMEOUT);
       });
@@ -132,6 +159,8 @@ export function useGateway(): UseGatewayReturn {
         console.error('[Gateway] WebSocket error');
         setLastError('Connection error');
         setConnectionState('error');
+        connectionRejectRef.current?.(new Error('Connection error'));
+        clearConnectionPromise();
       });
 
       ws.addEventListener('close', () => {
@@ -150,14 +179,19 @@ export function useGateway(): UseGatewayReturn {
           
           console.log(`[Gateway] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`);
           reconnectTimeoutRef.current = setTimeout(connect, delay);
+        } else {
+          connectionRejectRef.current?.(new Error('Connection closed'));
+          clearConnectionPromise();
         }
       });
     } catch (err) {
       console.error('[Gateway] Failed to create WebSocket:', err);
       setLastError(err instanceof Error ? err.message : 'Connection failed');
       setConnectionState('error');
+      connectionRejectRef.current?.(new Error('Connection failed'));
+      clearConnectionPromise();
     }
-  }, [handleMessage]);
+  }, [clearConnectionPromise, handleMessage]);
 
   /**
    * Manual reconnect
@@ -187,40 +221,54 @@ export function useGateway(): UseGatewayReturn {
     params?: Record<string, unknown>
   ): Promise<T> => {
     return new Promise((resolve, reject) => {
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        // If not connected, try to connect first
+      const waitForConnection = async () => {
+        if (wsRef.current?.readyState === WebSocket.OPEN && helloReceivedRef.current) {
+          return;
+        }
+
         if (connectionState !== 'connecting') {
           connect();
         }
-        reject(new Error('Not connected to Gateway'));
-        return;
-      }
 
-      const id = getNextId();
-      const request: GatewayRequest = { id, method, params };
+        await ensureConnectionPromise();
+      };
 
-      // Set up timeout
-      const timeout = setTimeout(() => {
-        clearPendingCall(id);
-        reject(new Error(`Call timeout: ${method}`));
-      }, 30000);
+      void waitForConnection()
+        .then(() => {
+          if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || !helloReceivedRef.current) {
+            reject(new Error('Not connected to Gateway'));
+            return;
+          }
 
-      // Track pending call
-      pendingCallsRef.current.set(id, {
-        resolve: (result) => resolve(result as T),
-        reject,
-        timeout,
-      });
+          const id = getNextId();
+          const request: GatewayRequest = { id, method, params };
 
-      // Send request
-      try {
-        wsRef.current.send(JSON.stringify(request));
-      } catch (err) {
-        clearPendingCall(id);
-        reject(err);
-      }
+          // Set up timeout
+          const timeout = setTimeout(() => {
+            clearPendingCall(id);
+            reject(new Error(`Call timeout: ${method}`));
+          }, 30000);
+
+          // Track pending call
+          pendingCallsRef.current.set(id, {
+            resolve: (result) => resolve(result as T),
+            reject,
+            timeout,
+          });
+
+          // Send request
+          try {
+            wsRef.current.send(JSON.stringify(request));
+          } catch (err) {
+            clearPendingCall(id);
+            reject(err);
+          }
+        })
+        .catch((err) => {
+          reject(err instanceof Error ? err : new Error('Not connected to Gateway'));
+        });
     });
-  }, [connectionState, connect, getNextId, clearPendingCall]);
+  }, [clearPendingCall, connect, connectionState, ensureConnectionPromise, getNextId]);
 
   /**
    * Cleanup on unmount

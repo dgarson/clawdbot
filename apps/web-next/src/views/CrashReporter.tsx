@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { Bug } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -962,14 +964,12 @@ export default function CrashReporter() {
           </div>
 
           {filteredAndSorted.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 py-12 px-4">
-              <span className="text-2xl" aria-hidden="true">
-                🔍
-              </span>
-              <p className="text-sm text-zinc-500 text-center">
-                No crash reports match your filters.
-              </p>
-            </div>
+            <ContextualEmptyState
+              icon={Bug}
+              title="No crashes reported"
+              description="No crash reports match your filters. Stable systems are happy systems."
+              size="sm"
+            />
           ) : (
             <div role="listbox" aria-label="Crash reports">
               {filteredAndSorted.map((crash) => (

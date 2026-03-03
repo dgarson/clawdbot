@@ -1,5 +1,6 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ClaudeSdkConfig } from "../../config/zod-schema.agent-runtime.js";
+import type { AgentRuntime, AgentRuntimeHints } from "../agent-runtime.js";
 import type { ResolvedProviderAuth } from "../model-auth.js";
 import type { EmbeddedPiSubscribeEvent } from "../pi-embedded-subscribe.handlers.types.js";
 
@@ -32,6 +33,7 @@ export type ClaudeSdkSessionParams = {
   tools: ClaudeSdkCompatibleTool[];
   customTools: ClaudeSdkCompatibleTool[];
   systemPrompt: string;
+  sessionFile?: string;
   thinkLevel?: string;
   extraParams?: Record<string, unknown>;
   /** Additional MCP servers to expose to the Claude Agent SDK alongside the
@@ -40,7 +42,7 @@ export type ClaudeSdkSessionParams = {
   mcpServers?: Record<string, unknown>;
   /** Claude Agent SDK session ID to resume. Loaded from SessionManager custom entry. */
   claudeSdkResumeSessionId?: string;
-  /** Resolved claudeSdk provider config from agents config. Defaults to claude-code. */
+  /** Resolved claudeSdk provider config from agents config. Defaults to claude-sdk. */
   claudeSdkConfig?: ClaudeSdkConfig;
   /** Full auth object resolved via OpenClaw auth profiles (authStorage.getApiKey()). */
   resolvedProviderAuth?: ResolvedProviderAuth;
@@ -48,7 +50,11 @@ export type ClaudeSdkSessionParams = {
   sessionManager?: {
     appendCustomEntry?: (key: string, value: unknown) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getEntries?: () => Array<{ type: string; customType?: string; data?: unknown }>;
+    getEntries?: () => Array<{
+      type: string;
+      customType?: string;
+      data?: unknown;
+    }>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     appendMessage?: (message: any) => string;
   };
@@ -58,28 +64,13 @@ export type ClaudeSdkSessionParams = {
 // Session interface — duck-typed to match Pi's AgentSession surface
 // ---------------------------------------------------------------------------
 
-export type ClaudeSdkSession = {
-  subscribe(handler: (evt: EmbeddedPiSubscribeEvent) => void): () => void;
-  prompt(
-    text: string,
-    options?: { images?: Array<{ type: string; media_type: string; data: string }> },
-  ): Promise<void>;
-  steer(text: string): Promise<void>;
-  abort(): void;
-  abortCompaction(): void;
-  dispose(): void;
-  readonly isStreaming: boolean;
-  readonly isCompacting: boolean;
-  readonly messages: AgentMessage[];
-  readonly sessionId: string;
+export type ClaudeSdkSession = AgentRuntime & {
   /** Claude Agent SDK server-side session ID, set after first prompt. */
   readonly claudeSdkSessionId: string | undefined;
-  readonly agent: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    streamFn: any;
-    replaceMessages(messages: AgentMessage[]): void;
-  };
 };
+
+// Re-export for use in create-session.ts without an additional import
+export type { AgentRuntimeHints };
 
 // ---------------------------------------------------------------------------
 // Internal event adapter state
@@ -115,12 +106,18 @@ export type ClaudeSdkEventAdapterState = {
   sessionManager?: {
     appendCustomEntry?: (key: string, value: unknown) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getEntries?: () => Array<{ type: string; customType?: string; data?: unknown }>;
+    getEntries?: () => Array<{
+      type: string;
+      customType?: string;
+      data?: unknown;
+    }>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     appendMessage?: (message: any) => string;
   };
   /** Whether to enable Claude Code built-in web search tool. */
   enableClaudeWebSearch?: boolean;
+  providerId: string;
+  apiId: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -129,7 +126,7 @@ export type ClaudeSdkEventAdapterState = {
 
 export type ClaudeSdkMcpToolServerParams = {
   tools: ClaudeSdkCompatibleTool[];
-  emitEvent: (evt: EmbeddedPiSubscribeEvent) => void;
+  emitEvent: (evt: EmbeddedPiSubscribeEvent) => void | Promise<void>;
   getAbortSignal: () => AbortSignal | undefined;
   sessionManager?: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

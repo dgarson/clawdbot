@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GitBranch, CheckCircle, Clock, XCircle, AlertTriangle, Plus, Filter, ChevronDown, User, Calendar, Tag } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { ContextualEmptyState } from '../components/ui/ContextualEmptyState';
 
 type ChangeStatus = 'pending' | 'approved' | 'in-progress' | 'completed' | 'rejected';
 type ChangePriority = 'low' | 'medium' | 'high' | 'critical';
@@ -325,10 +326,12 @@ export default function ChangeManagementBoard() {
             />
           ))}
           {filtered.length === 0 && (
-            <div className="text-center py-12 text-zinc-500">
-              <Filter className="w-8 h-8 mx-auto mb-2 opacity-40" />
-              <p className="text-sm">No changes match filters</p>
-            </div>
+            <ContextualEmptyState
+              icon={GitBranch}
+              title="Nothing pending your review"
+              description="No change requests match the selected filters."
+              size="sm"
+            />
           )}
         </div>
       </div>

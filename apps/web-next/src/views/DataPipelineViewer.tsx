@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { GitBranch } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 type StageStatus = "idle" | "running" | "success" | "failed" | "skipped";
 type PipelineStatus = "idle" | "running" | "success" | "failed" | "scheduled";
@@ -158,7 +160,7 @@ const STAGE_STATUS_STYLES: Record<StageStatus, string> = {
 };
 
 const PIPELINE_STATUS_BADGE: Record<PipelineStatus, string> = {
-  idle: "bg-zinc-700 text-zinc-300",
+  idle: "bg-surface-3 text-fg-primary",
   running: "bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/30",
   success: "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20",
   failed: "bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20",
@@ -166,7 +168,7 @@ const PIPELINE_STATUS_BADGE: Record<PipelineStatus, string> = {
 };
 
 const RUN_STATUS_COLORS: Record<PipelineRun["status"], string> = {
-  idle: "text-zinc-400",
+  idle: "text-fg-secondary",
   running: "text-indigo-400",
   success: "text-emerald-400",
   failed: "text-rose-400",
@@ -187,7 +189,7 @@ function PipelineDAG({ stages }: { stages: PipelineStage[] }) {
           <div className="shrink-0 flex flex-col items-center gap-1.5 min-w-[80px]">
             <div
               className={cn(
-                "w-10 h-10 rounded-full flex items-center justify-center text-white text-lg shadow",
+                "w-10 h-10 rounded-full flex items-center justify-center text-fg-primary text-lg shadow",
                 STAGE_COLORS[stage.kind],
                 STAGE_STATUS_STYLES[stage.status],
                 stage.status === "failed" && "ring-2 ring-rose-500"
@@ -199,12 +201,12 @@ function PipelineDAG({ stages }: { stages: PipelineStage[] }) {
               {stage.kind === "validate" && "✓"}
               {stage.kind === "notify" && "📣"}
             </div>
-            <span className="text-xs text-zinc-400 text-center leading-tight max-w-[72px]">{stage.name}</span>
+            <span className="text-xs text-fg-secondary text-center leading-tight max-w-[72px]">{stage.name}</span>
             {stage.durationMs && (
-              <span className="text-xs text-zinc-600">{formatDuration(stage.durationMs)}</span>
+              <span className="text-xs text-fg-muted">{formatDuration(stage.durationMs)}</span>
             )}
             {stage.records !== undefined && (
-              <span className="text-xs text-zinc-600">{stage.records.toLocaleString()} rec</span>
+              <span className="text-xs text-fg-muted">{stage.records.toLocaleString()} rec</span>
             )}
           </div>
           {/* Arrow connector */}
@@ -212,8 +214,8 @@ function PipelineDAG({ stages }: { stages: PipelineStage[] }) {
             <div className={cn(
               "h-0.5 w-8 shrink-0",
               stages[i + 1].status === "idle" || stages[i + 1].status === "skipped"
-                ? "bg-zinc-700"
-                : "bg-zinc-500"
+                ? "bg-surface-3"
+                : "bg-surface-3"
             )} />
           )}
         </React.Fragment>
@@ -235,12 +237,12 @@ export default function DataPipelineViewer() {
   const failedStage = selected.stages.find((s) => s.status === "failed");
 
   return (
-    <div className="h-full flex flex-col bg-zinc-950 overflow-hidden">
+    <div className="h-full flex flex-col bg-surface-0 overflow-hidden">
       {/* Header */}
-      <div className="shrink-0 border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+      <div className="shrink-0 border-b border-tok-border px-3 sm:px-4 md:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
         <div>
-          <h1 className="text-lg font-semibold text-white">Data Pipeline Viewer</h1>
-          <p className="text-xs text-zinc-500 mt-0.5">{PIPELINES.length} pipelines — ETL, sync, digest</p>
+          <h1 className="text-lg font-semibold text-fg-primary">Data Pipeline Viewer</h1>
+          <p className="text-xs text-fg-muted mt-0.5">{PIPELINES.length} pipelines — ETL, sync, digest</p>
         </div>
         {/* Status filter chips */}
         <div className="flex gap-1.5">
@@ -251,8 +253,8 @@ export default function DataPipelineViewer() {
               className={cn(
                 "px-2.5 py-1 rounded text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                 statusFilter === s
-                  ? "bg-indigo-600 text-white"
-                  : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                  ? "bg-indigo-600 text-fg-primary"
+                  : "bg-surface-2 text-fg-secondary hover:text-fg-primary"
               )}
             >
               {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -263,26 +265,30 @@ export default function DataPipelineViewer() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Pipeline list */}
-        <ul className="w-72 shrink-0 border-r border-zinc-800 overflow-y-auto divide-y divide-zinc-800/50" role="listbox" aria-label="Pipelines">
-          {filteredPipelines.map((pipeline) => (
+        <ul className="w-72 shrink-0 border-r border-tok-border overflow-y-auto divide-y divide-tok-border" role="listbox" aria-label="Pipelines">
+          {filteredPipelines.length === 0 ? (
+            <li className="p-4">
+              <ContextualEmptyState icon={GitBranch} title="No pipelines match" description="Try adjusting the status filter." />
+            </li>
+          ) : filteredPipelines.map((pipeline) => (
             <li key={pipeline.id}>
               <button
                 role="option"
                 aria-selected={pipeline.id === selectedId}
                 onClick={() => setSelectedId(pipeline.id)}
                 className={cn(
-                  "w-full text-left px-4 py-3 hover:bg-zinc-800/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
-                  pipeline.id === selectedId && "bg-zinc-800 border-l-2 border-indigo-500"
+                  "w-full text-left px-4 py-3 hover:bg-surface-2/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500",
+                  pipeline.id === selectedId && "bg-surface-2 border-l-2 border-indigo-500"
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-xs font-medium text-zinc-200 leading-tight">{pipeline.name}</span>
+                  <span className="text-xs font-medium text-fg-primary leading-tight">{pipeline.name}</span>
                   <span className={cn("shrink-0 text-xs px-1.5 py-0.5 rounded font-medium", PIPELINE_STATUS_BADGE[pipeline.status])}>
                     {pipeline.status}
                   </span>
                 </div>
-                <div className="mt-1 text-xs text-zinc-500 truncate">{pipeline.description}</div>
-                <div className="mt-1 flex items-center gap-2 text-xs text-zinc-600">
+                <div className="mt-1 text-xs text-fg-muted truncate">{pipeline.description}</div>
+                <div className="mt-1 flex items-center gap-2 text-xs text-fg-muted">
                   <span className="font-mono">{pipeline.schedule}</span>
                   <span>·</span>
                   <span>{pipeline.stages.length} stages</span>
@@ -295,14 +301,14 @@ export default function DataPipelineViewer() {
         {/* Pipeline detail */}
         <div className="flex-1 overflow-y-auto">
           {/* Pipeline header */}
-          <div className="p-5 border-b border-zinc-800">
+          <div className="p-5 border-b border-tok-border">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-base font-semibold text-white">{selected.name}</h2>
-                <p className="text-sm text-zinc-400 mt-0.5">{selected.description}</p>
+                <h2 className="text-base font-semibold text-fg-primary">{selected.name}</h2>
+                <p className="text-sm text-fg-secondary mt-0.5">{selected.description}</p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+                <button className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-fg-primary text-xs font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
                   Run Now
                 </button>
                 <span className={cn("text-xs px-2 py-1 rounded font-medium", PIPELINE_STATUS_BADGE[selected.status])}>
@@ -312,24 +318,24 @@ export default function DataPipelineViewer() {
             </div>
 
             {/* Schedule info */}
-            <div className="mt-4 flex gap-6 text-xs text-zinc-500">
+            <div className="mt-4 flex gap-6 text-xs text-fg-muted">
               <div>
-                <span className="text-zinc-600">Schedule</span>
-                <span className="ml-2 font-mono text-zinc-300">{selected.schedule}</span>
+                <span className="text-fg-muted">Schedule</span>
+                <span className="ml-2 font-mono text-fg-primary">{selected.schedule}</span>
               </div>
               <div>
-                <span className="text-zinc-600">Last run</span>
-                <span className="ml-2 text-zinc-300">{selected.lastRunAt}</span>
+                <span className="text-fg-muted">Last run</span>
+                <span className="ml-2 text-fg-primary">{selected.lastRunAt}</span>
               </div>
               <div>
-                <span className="text-zinc-600">Next run</span>
-                <span className="ml-2 text-zinc-300">{selected.nextRunAt}</span>
+                <span className="text-fg-muted">Next run</span>
+                <span className="ml-2 text-fg-primary">{selected.nextRunAt}</span>
               </div>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="border-b border-zinc-800 px-5">
+          <div className="border-b border-tok-border px-5">
             <div className="flex gap-0" role="tablist">
               {(["overview", "runs"] as const).map((t) => (
                 <button
@@ -341,7 +347,7 @@ export default function DataPipelineViewer() {
                     "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500",
                     tab === t
                       ? "border-indigo-500 text-indigo-400"
-                      : "border-transparent text-zinc-500 hover:text-zinc-300"
+                      : "border-transparent text-fg-muted hover:text-fg-primary"
                   )}
                 >
                   {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -354,8 +360,8 @@ export default function DataPipelineViewer() {
             {tab === "overview" && (
               <>
                 {/* DAG */}
-                <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
-                  <div className="text-xs font-medium text-zinc-400 mb-3 uppercase tracking-wide">Pipeline DAG</div>
+                <div className="bg-surface-1 rounded-lg border border-tok-border p-4">
+                  <div className="text-xs font-medium text-fg-secondary mb-3 uppercase tracking-wide">Pipeline DAG</div>
                   <PipelineDAG stages={selected.stages} />
                 </div>
 
@@ -368,33 +374,33 @@ export default function DataPipelineViewer() {
                 )}
 
                 {/* Stage detail table */}
-                <div className="bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-zinc-800 text-xs font-medium text-zinc-400 uppercase tracking-wide">
+                <div className="bg-surface-1 rounded-lg border border-tok-border overflow-hidden">
+                  <div className="px-4 py-3 border-b border-tok-border text-xs font-medium text-fg-secondary uppercase tracking-wide">
                     Stage Details
                   </div>
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-zinc-800">
-                        <th className="text-left px-4 py-2 text-zinc-500 font-medium">Stage</th>
-                        <th className="text-left px-4 py-2 text-zinc-500 font-medium">Kind</th>
-                        <th className="text-right px-4 py-2 text-zinc-500 font-medium">Records</th>
-                        <th className="text-right px-4 py-2 text-zinc-500 font-medium">Duration</th>
-                        <th className="text-right px-4 py-2 text-zinc-500 font-medium">Status</th>
+                      <tr className="border-b border-tok-border">
+                        <th className="text-left px-4 py-2 text-fg-muted font-medium">Stage</th>
+                        <th className="text-left px-4 py-2 text-fg-muted font-medium">Kind</th>
+                        <th className="text-right px-4 py-2 text-fg-muted font-medium">Records</th>
+                        <th className="text-right px-4 py-2 text-fg-muted font-medium">Duration</th>
+                        <th className="text-right px-4 py-2 text-fg-muted font-medium">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-800/50">
+                    <tbody className="divide-y divide-tok-border">
                       {selected.stages.map((stage) => (
-                        <tr key={stage.id} className="hover:bg-zinc-800/30">
-                          <td className="px-4 py-2 text-zinc-200">{stage.name}</td>
+                        <tr key={stage.id} className="hover:bg-surface-2/30">
+                          <td className="px-4 py-2 text-fg-primary">{stage.name}</td>
                           <td className="px-4 py-2">
-                            <span className={cn("px-1.5 py-0.5 rounded text-white text-xs", STAGE_COLORS[stage.kind])}>
+                            <span className={cn("px-1.5 py-0.5 rounded text-fg-primary text-xs", STAGE_COLORS[stage.kind])}>
                               {stage.kind}
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-right text-zinc-400">
+                          <td className="px-4 py-2 text-right text-fg-secondary">
                             {stage.records !== undefined ? stage.records.toLocaleString() : "—"}
                           </td>
-                          <td className="px-4 py-2 text-right text-zinc-400">
+                          <td className="px-4 py-2 text-right text-fg-secondary">
                             {stage.durationMs !== undefined ? formatDuration(stage.durationMs) : "—"}
                           </td>
                           <td className="px-4 py-2 text-right">
@@ -403,8 +409,8 @@ export default function DataPipelineViewer() {
                               stage.status === "success" ? "text-emerald-400" :
                               stage.status === "failed" ? "text-rose-400" :
                               stage.status === "running" ? "text-indigo-400" :
-                              stage.status === "skipped" ? "text-zinc-600" :
-                              "text-zinc-500"
+                              stage.status === "skipped" ? "text-fg-muted" :
+                              "text-fg-muted"
                             )}>
                               {stage.status}
                             </span>
@@ -418,11 +424,11 @@ export default function DataPipelineViewer() {
             )}
 
             {tab === "runs" && (
-              <div className="bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden">
-                <div className="px-4 py-3 border-b border-zinc-800 text-xs font-medium text-zinc-400 uppercase tracking-wide">
+              <div className="bg-surface-1 rounded-lg border border-tok-border overflow-hidden">
+                <div className="px-4 py-3 border-b border-tok-border text-xs font-medium text-fg-secondary uppercase tracking-wide">
                   Run History
                 </div>
-                <div className="divide-y divide-zinc-800/50">
+                <div className="divide-y divide-tok-border">
                   {selected.runs.map((run) => (
                     <div key={run.id} className="px-4 py-3 flex items-center gap-4">
                       <div className="flex-1 min-w-0">
@@ -430,18 +436,18 @@ export default function DataPipelineViewer() {
                           <span className={cn("text-xs font-semibold", RUN_STATUS_COLORS[run.status])}>
                             {run.status.toUpperCase()}
                           </span>
-                          <span className="text-xs text-zinc-500">by {run.triggeredBy}</span>
+                          <span className="text-xs text-fg-muted">by {run.triggeredBy}</span>
                         </div>
-                        <div className="text-xs text-zinc-400 mt-0.5">{run.startedAt}</div>
+                        <div className="text-xs text-fg-secondary mt-0.5">{run.startedAt}</div>
                         {run.finishedAt && (
-                          <div className="text-xs text-zinc-600">{run.finishedAt}</div>
+                          <div className="text-xs text-fg-muted">{run.finishedAt}</div>
                         )}
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-xs text-zinc-300">
+                        <div className="text-xs text-fg-primary">
                           {run.recordsIn.toLocaleString()} → {run.recordsOut.toLocaleString()}
                         </div>
-                        <div className="text-xs text-zinc-500 mt-0.5">
+                        <div className="text-xs text-fg-muted mt-0.5">
                           {run.durationMs ? formatDuration(run.durationMs) : "running…"}
                         </div>
                       </div>

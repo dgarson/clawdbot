@@ -34,11 +34,34 @@ function formatRateLimitOrOverloadedErrorCopy(raw: string): string | undefined {
   return undefined;
 }
 
+function isReasoningConstraintErrorMessage(raw: string): boolean {
+  if (!raw) {
+    return false;
+  }
+  const lower = raw.toLowerCase();
+  return (
+    lower.includes("reasoning is mandatory") ||
+    lower.includes("reasoning is required") ||
+    lower.includes("requires reasoning") ||
+    (lower.includes("reasoning") && lower.includes("cannot be disabled"))
+  );
+}
+
 export function isContextOverflowError(errorMessage?: string): boolean {
   if (!errorMessage) {
     return false;
   }
   const lower = errorMessage.toLowerCase();
+
+  // Groq uses 413 for TPM (tokens per minute) limits, which is a rate limit, not context overflow.
+  if (lower.includes("tpm") || lower.includes("tokens per minute")) {
+    return false;
+  }
+
+  if (isReasoningConstraintErrorMessage(errorMessage)) {
+    return false;
+  }
+
   const hasRequestSizeExceeds = lower.includes("request size exceeds");
   const hasContextWindow =
     lower.includes("context window") ||
@@ -51,9 +74,20 @@ export function isContextOverflowError(errorMessage?: string): boolean {
     lower.includes("maximum context length") ||
     lower.includes("prompt is too long") ||
     lower.includes("exceeds model context window") ||
+    lower.includes("model token limit") ||
     (hasRequestSizeExceeds && hasContextWindow) ||
     lower.includes("context overflow:") ||
-    (lower.includes("413") && lower.includes("too large"))
+    lower.includes("exceed context limit") ||
+    lower.includes("exceeds the model's maximum context") ||
+    (lower.includes("max_tokens") && lower.includes("exceed") && lower.includes("context")) ||
+    (lower.includes("input length") && lower.includes("exceed") && lower.includes("context")) ||
+    (lower.includes("413") && lower.includes("too large")) ||
+    // Chinese proxy error messages for context overflow
+    errorMessage.includes("上下文过长") ||
+    errorMessage.includes("上下文超出") ||
+    errorMessage.includes("上下文长度超") ||
+    errorMessage.includes("超出最大上下文") ||
+    errorMessage.includes("请压缩上下文")
   );
 }
 
@@ -67,6 +101,17 @@ export function isLikelyContextOverflowError(errorMessage?: string): boolean {
   if (!errorMessage) {
     return false;
   }
+
+  // Groq uses 413 for TPM (tokens per minute) limits, which is a rate limit, not context overflow.
+  const lower = errorMessage.toLowerCase();
+  if (lower.includes("tpm") || lower.includes("tokens per minute")) {
+    return false;
+  }
+
+  if (isReasoningConstraintErrorMessage(errorMessage)) {
+    return false;
+  }
+
   if (CONTEXT_WINDOW_TOO_SMALL_RE.test(errorMessage)) {
     return false;
   }
@@ -116,11 +161,17 @@ const CONTEXT_OVERFLOW_ERROR_HEAD_RE =
   /^(?:context overflow:|request_too_large\b|request size exceeds\b|request exceeds the maximum size\b|context length exceeded\b|maximum context length\b|prompt is too long\b|exceeds model context window\b)/i;
 const BILLING_ERROR_HEAD_RE =
   /^(?:error[:\s-]+)?billing(?:\s+error)?(?:[:\s-]+|$)|^(?:error[:\s-]+)?(?:credit balance|insufficient credits?|payment required|http\s*402\b)/i;
+const BILLING_ERROR_HARD_402_RE =
+  /["']?(?:status|code)["']?\s*[:=]\s*402\b|\bhttp\s*402\b|\berror(?:\s+code)?\s*[:=]?\s*402\b|^\s*402\s+payment/i;
 const HTTP_STATUS_PREFIX_RE = /^(?:http\s*)?(\d{3})\s+(.+)$/i;
 const HTTP_STATUS_CODE_PREFIX_RE = /^(?:http\s*)?(\d{3})(?:\s+([\s\S]+))?$/i;
+const EMAIL_PII_RE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
+const SSN_PII_RE = /\b\d{3}-\d{2}-\d{4}\b/g;
+const PHONE_PII_RE = /\b(?:\+?\d{1,3}[\s.-]?)?(?:\(?\d{3}\)?[\s.-]?)\d{3}[\s.-]?\d{4}\b/g;
+const INPUT_ECHO_RE = /\b(?:prompt|input|user(?:\s+message)?)\s*[:=]/i;
 const HTML_ERROR_PREFIX_RE = /^\s*(?:<!doctype\s+html\b|<html\b)/i;
 const CLOUDFLARE_HTML_ERROR_CODES = new Set([521, 522, 523, 524, 525, 526, 530]);
-const TRANSIENT_HTTP_ERROR_CODES = new Set([500, 502, 503, 521, 522, 523, 524, 529]);
+const TRANSIENT_HTTP_ERROR_CODES = new Set([500, 502, 503, 504, 521, 522, 523, 524, 529]);
 const HTTP_ERROR_HINTS = [
   "error",
   "bad request",
@@ -382,6 +433,44 @@ export function parseApiErrorInfo(raw?: string): ApiErrorInfo | null {
   };
 }
 
+function isLikelyCardNumber(value: string): boolean {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length < 13 || digits.length > 19) {
+    return false;
+  }
+  let sum = 0;
+  let shouldDouble = false;
+  for (let i = digits.length - 1; i >= 0; i -= 1) {
+    let digit = Number(digits[i]);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) {
+        digit -= 9;
+      }
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+}
+
+function sanitizeErrorDetailForUi(detail: string): string {
+  let sanitized = detail
+    .replace(EMAIL_PII_RE, "[redacted-email]")
+    .replace(SSN_PII_RE, "[redacted-ssn]")
+    .replace(PHONE_PII_RE, "[redacted-phone]");
+
+  sanitized = sanitized.replace(/\b(?:\d[ -]*?){13,19}\b/g, (candidate) =>
+    isLikelyCardNumber(candidate) ? "[redacted-card]" : candidate,
+  );
+
+  if (INPUT_ECHO_RE.test(sanitized) && sanitized.length > 220) {
+    return "Upstream API rejected the request (details redacted for privacy).";
+  }
+
+  return sanitized;
+}
+
 export function formatRawAssistantErrorForUi(raw?: string): string {
   const trimmed = (raw ?? "").trim();
   if (!trimmed) {
@@ -397,7 +486,7 @@ export function formatRawAssistantErrorForUi(raw?: string): string {
   if (httpMatch) {
     const rest = httpMatch[2].trim();
     if (!rest.startsWith("{")) {
-      return `HTTP ${httpMatch[1]}: ${rest}`;
+      return `HTTP ${httpMatch[1]}: ${sanitizeErrorDetailForUi(rest)}`;
     }
   }
 
@@ -406,10 +495,11 @@ export function formatRawAssistantErrorForUi(raw?: string): string {
     const prefix = info.httpCode ? `HTTP ${info.httpCode}` : "LLM error";
     const type = info.type ? ` ${info.type}` : "";
     const requestId = info.requestId ? ` (request_id: ${info.requestId})` : "";
-    return `${prefix}${type}: ${info.message}${requestId}`;
+    return `${prefix}${type}: ${sanitizeErrorDetailForUi(info.message)}${requestId}`;
   }
 
-  return trimmed.length > 600 ? `${trimmed.slice(0, 600)}…` : trimmed;
+  const safe = sanitizeErrorDetailForUi(trimmed);
+  return safe.length > 600 ? `${safe.slice(0, 600)}…` : safe;
 }
 
 export function formatAssistantErrorText(
@@ -443,6 +533,13 @@ export function formatAssistantErrorText(
     return (
       "Context overflow: prompt too large for the model. " +
       "Try /reset (or /new) to start a fresh session, or use a larger-context model."
+    );
+  }
+
+  if (isReasoningConstraintErrorMessage(raw)) {
+    return (
+      "Reasoning is required for this model endpoint. " +
+      "Use /think minimal (or any non-off level) and try again."
     );
   }
 
@@ -566,6 +663,8 @@ const ERROR_PATTERNS = {
     "quota exceeded",
     "resource_exhausted",
     "usage limit",
+    "tpm",
+    "tokens per minute",
   ],
   overloaded: [
     /overloaded_error|"type"\s*:\s*"overloaded_error"/i,
@@ -601,6 +700,9 @@ const ERROR_PATTERNS = {
     "unauthorized",
     "forbidden",
     "access denied",
+    "insufficient permissions",
+    "insufficient permission",
+    /missing scopes?:/i,
     "expired",
     "token has expired",
     /\b401\b/,
@@ -646,10 +748,25 @@ export function isTimeoutErrorMessage(raw: string): boolean {
   return matchesErrorPatterns(raw, ERROR_PATTERNS.timeout);
 }
 
+/**
+ * Maximum character length for a string to be considered a billing error message.
+ * Real API billing errors are short, structured messages (typically under 300 chars).
+ * Longer text is almost certainly assistant content that happens to mention billing keywords.
+ */
+const BILLING_ERROR_MAX_LENGTH = 512;
+
 export function isBillingErrorMessage(raw: string): boolean {
   const value = raw.toLowerCase();
   if (!value) {
     return false;
+  }
+  // Real billing error messages from APIs are short structured payloads.
+  // Long text (e.g. multi-paragraph assistant responses) that happens to mention
+  // "billing", "payment", etc. should not be treated as a billing error.
+  if (raw.length > BILLING_ERROR_MAX_LENGTH) {
+    // Keep explicit status/code 402 detection for providers that wrap errors in
+    // larger payloads (for example nested JSON bodies or prefixed metadata).
+    return BILLING_ERROR_HARD_402_RE.test(value);
   }
   if (matchesErrorPatterns(value, ERROR_PATTERNS.billing)) {
     return true;

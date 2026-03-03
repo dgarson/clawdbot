@@ -37,7 +37,7 @@ export default function AgentSoulEditor({ agentName = 'Horizon', agentEmoji = 'ð
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [modifiedFiles, setModifiedFiles] = useState<Set<string>>(new Set());
   
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;

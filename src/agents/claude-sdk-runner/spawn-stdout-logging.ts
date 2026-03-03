@@ -47,7 +47,7 @@ export function createClaudeSdkSpawnWithStdoutTailLogging(
       stdoutTail = appendStdoutTail(stdoutTail, text, maxTailChars);
     });
 
-    process.once("exit", (code) => {
+    process.once("exit", (code: number | null) => {
       if (code === 1) {
         options?.onExitCodeOne?.(stdoutTail);
       }

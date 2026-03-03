@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import type { AuthRateLimiter } from "../../auth-rate-limit.js";
 import { resolveConnectAuthDecision, type ConnectAuthState } from "./auth-context.js";
 
+type VerifyDeviceTokenFn = Parameters<typeof resolveConnectAuthDecision>[0]["verifyDeviceToken"];
+
 function createRateLimiter(params?: { allowed?: boolean; retryAfterMs?: number }): {
   limiter: AuthRateLimiter;
   reset: ReturnType<typeof vi.fn>;
@@ -34,9 +36,27 @@ function createBaseState(overrides?: Partial<ConnectAuthState>): ConnectAuthStat
   };
 }
 
+async function resolveDeviceTokenDecision(params: {
+  verifyDeviceToken: VerifyDeviceTokenFn;
+  stateOverrides?: Partial<ConnectAuthState>;
+  rateLimiter?: AuthRateLimiter;
+  clientIp?: string;
+}) {
+  return await resolveConnectAuthDecision({
+    state: createBaseState(params.stateOverrides),
+    hasDeviceIdentity: true,
+    deviceId: "dev-1",
+    role: "operator",
+    scopes: ["operator.read"],
+    verifyDeviceToken: params.verifyDeviceToken,
+    ...(params.rateLimiter ? { rateLimiter: params.rateLimiter } : {}),
+    ...(params.clientIp ? { clientIp: params.clientIp } : {}),
+  });
+}
+
 describe("resolveConnectAuthDecision", () => {
   it("keeps shared-secret mismatch when fallback device-token check fails", async () => {
-    const verifyDeviceToken = vi.fn(async () => ({ ok: false }));
+    const verifyDeviceToken = vi.fn<VerifyDeviceTokenFn>(async () => ({ ok: false }));
     const decision = await resolveConnectAuthDecision({
       state: createBaseState(),
       hasDeviceIdentity: true,
@@ -51,7 +71,7 @@ describe("resolveConnectAuthDecision", () => {
   });
 
   it("reports explicit device-token mismatches as device_token_mismatch", async () => {
-    const verifyDeviceToken = vi.fn(async () => ({ ok: false }));
+    const verifyDeviceToken = vi.fn<VerifyDeviceTokenFn>(async () => ({ ok: false }));
     const decision = await resolveConnectAuthDecision({
       state: createBaseState({
         deviceTokenCandidateSource: "explicit-device-token",
@@ -68,16 +88,11 @@ describe("resolveConnectAuthDecision", () => {
 
   it("accepts valid device tokens and marks auth method as device-token", async () => {
     const rateLimiter = createRateLimiter();
-    const verifyDeviceToken = vi.fn(async () => ({ ok: true }));
-    const decision = await resolveConnectAuthDecision({
-      state: createBaseState(),
-      hasDeviceIdentity: true,
-      deviceId: "dev-1",
-      role: "operator",
-      scopes: ["operator.read"],
+    const verifyDeviceToken = vi.fn<VerifyDeviceTokenFn>(async () => ({ ok: true }));
+    const decision = await resolveDeviceTokenDecision({
+      verifyDeviceToken,
       rateLimiter: rateLimiter.limiter,
       clientIp: "203.0.113.20",
-      verifyDeviceToken,
     });
     expect(decision.authOk).toBe(true);
     expect(decision.authMethod).toBe("device-token");
@@ -87,16 +102,11 @@ describe("resolveConnectAuthDecision", () => {
 
   it("returns rate-limited auth result without verifying device token", async () => {
     const rateLimiter = createRateLimiter({ allowed: false, retryAfterMs: 60_000 });
-    const verifyDeviceToken = vi.fn(async () => ({ ok: true }));
-    const decision = await resolveConnectAuthDecision({
-      state: createBaseState(),
-      hasDeviceIdentity: true,
-      deviceId: "dev-1",
-      role: "operator",
-      scopes: ["operator.read"],
+    const verifyDeviceToken = vi.fn<VerifyDeviceTokenFn>(async () => ({ ok: true }));
+    const decision = await resolveDeviceTokenDecision({
+      verifyDeviceToken,
       rateLimiter: rateLimiter.limiter,
       clientIp: "203.0.113.20",
-      verifyDeviceToken,
     });
     expect(decision.authOk).toBe(false);
     expect(decision.authResult.reason).toBe("rate_limited");
@@ -105,7 +115,7 @@ describe("resolveConnectAuthDecision", () => {
   });
 
   it("returns the original decision when device fallback does not apply", async () => {
-    const verifyDeviceToken = vi.fn(async () => ({ ok: true }));
+    const verifyDeviceToken = vi.fn<VerifyDeviceTokenFn>(async () => ({ ok: true }));
     const decision = await resolveConnectAuthDecision({
       state: createBaseState({
         authResult: { ok: true, method: "token" },

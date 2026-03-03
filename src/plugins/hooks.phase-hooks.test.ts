@@ -72,4 +72,20 @@ describe("phase hooks merger", () => {
     expect(result?.prependContext).toBe("context A\n\ncontext B");
     expect(result?.systemPrompt).toBe("system A");
   });
+
+  it("before_prompt_build preserves prior appendContext when later hook returns empty string", async () => {
+    addTypedHook(
+      registry,
+      "before_prompt_build",
+      "high",
+      () => ({ appendContext: "context A" }),
+      10,
+    );
+    addTypedHook(registry, "before_prompt_build", "low", () => ({ appendContext: "" }), 1);
+
+    const runner = createHookRunner(registry);
+    const result = await runner.runBeforePromptBuild({ prompt: "test", messages: [] }, {});
+
+    expect(result?.appendContext).toBe("context A");
+  });
 });

@@ -8,10 +8,8 @@ import { loadModelCatalog } from "../agents/model-catalog.js";
 import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
 import type { OpenClawConfig } from "../config/config.js";
 import * as configModule from "../config/config.js";
-import type { SessionEntry } from "../config/sessions.js";
 import * as sessionsModule from "../config/sessions.js";
 import { emitAgentEvent, onAgentEvent } from "../infra/agent-events.js";
-import { onDiagnosticEvent, resetDiagnosticEventsForTest } from "../infra/diagnostic-events.js";
 import { setActivePluginRegistry } from "../plugins/runtime.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { createOutboundTestPlugin, createTestRegistry } from "../test-utils/channel-plugins.js";
@@ -62,7 +60,6 @@ function mockConfig(
   agentOverrides?: Partial<NonNullable<NonNullable<OpenClawConfig["agents"]>["defaults"]>>,
   telegramOverrides?: Partial<NonNullable<NonNullable<OpenClawConfig["channels"]>["telegram"]>>,
   agentsList?: Array<{ id: string; default?: boolean }>,
-  diagnosticsEnabled = false,
 ) {
   configSpy.mockReturnValue({
     agents: {
@@ -78,7 +75,6 @@ function mockConfig(
     channels: {
       telegram: telegramOverrides ? { ...telegramOverrides } : undefined,
     },
-    diagnostics: diagnosticsEnabled ? { enabled: true } : undefined,
   });
 }
 
@@ -135,7 +131,6 @@ function createTelegramOutboundPlugin() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  resetDiagnosticEventsForTest();
   runCliAgentSpy.mockResolvedValue({
     payloads: [{ text: "ok" }],
     meta: {
@@ -207,6 +202,31 @@ describe("agentCommand", () => {
 
       const callArgs = vi.mocked(runEmbeddedPiAgent).mock.calls.at(-1)?.[0];
       expect(callArgs?.sessionId).toBe("session-123");
+    });
+  });
+
+  it("uses the resumed session agent scope when sessionId resolves to another agent store", async () => {
+    await withTempHome(async (home) => {
+      const storePattern = path.join(home, "sessions", "{agentId}", "sessions.json");
+      const execStore = path.join(home, "sessions", "exec", "sessions.json");
+      writeSessionStoreSeed(execStore, {
+        "agent:exec:hook:gmail:thread-1": {
+          sessionId: "session-exec-hook",
+          updatedAt: Date.now(),
+          systemSent: true,
+        },
+      });
+      mockConfig(home, storePattern, undefined, undefined, [
+        { id: "dev" },
+        { id: "exec", default: true },
+      ]);
+
+      await agentCommand({ message: "resume me", sessionId: "session-exec-hook" }, runtime);
+
+      const callArgs = vi.mocked(runEmbeddedPiAgent).mock.calls.at(-1)?.[0];
+      expect(callArgs?.sessionKey).toBe("agent:exec:hook:gmail:thread-1");
+      expect(callArgs?.agentId).toBe("exec");
+      expect(callArgs?.agentDir).toContain(`${path.sep}agents${path.sep}exec${path.sep}agent`);
     });
   });
 
@@ -347,107 +367,45 @@ describe("agentCommand", () => {
     });
   });
 
-  it("persists model selection trace on session entries", async () => {
-    await withTempHome(async (home) => {
-      const store = path.join(home, "sessions.json");
-      mockConfig(home, store);
-
-      await agentCommand({ message: "trace me", to: "+1666" }, runtime);
-
-      const saved = JSON.parse(fs.readFileSync(store, "utf-8")) as Record<
-        string,
-        { modelSelectionTrace?: SessionEntry["modelSelectionTrace"] }
-      >;
-      const entry = Object.values(saved)[0];
-      const trace = entry?.modelSelectionTrace;
-      expect(trace).toBeDefined();
-      expect(trace?.selected).toEqual({ provider: "anthropic", model: "claude-opus-4-5" });
-      expect(trace?.active).toEqual({ provider: "anthropic", model: "claude-opus-4-5" });
-      expect(trace?.steps.some((step) => step.source === "final")).toBe(true);
-      expect(trace?.fallback?.attempts?.at(-1)?.outcome).toBe("selected");
-    });
-  });
-
-  it("emits structured model failover attempt diagnostics", async () => {
+  it("keeps stored session model override when models allowlist is empty", async () => {
     await withTempHome(async (home) => {
       const store = path.join(home, "sessions.json");
       writeSessionStoreSeed(store, {
-        "agent:main:subagent:test": {
-          sessionId: "session-subagent",
+        "agent:main:subagent:allow-any": {
+          sessionId: "session-allow-any",
           updatedAt: Date.now(),
-          providerOverride: "anthropic",
-          modelOverride: "claude-opus-4-5",
+          providerOverride: "openai",
+          modelOverride: "gpt-custom-foo",
         },
       });
 
-      mockConfig(
-        home,
-        store,
-        {
-          model: {
-            primary: "openai/gpt-4.1-mini",
-            fallbacks: ["openai/gpt-5.2"],
-          },
-          models: {
-            "anthropic/claude-opus-4-5": {},
-            "openai/gpt-4.1-mini": {},
-            "openai/gpt-5.2": {},
-          },
-        },
-        undefined,
-        undefined,
-        true,
-      );
+      mockConfig(home, store, {
+        model: { primary: "anthropic/claude-opus-4-5" },
+        models: {},
+      });
 
       vi.mocked(loadModelCatalog).mockResolvedValueOnce([
         { id: "claude-opus-4-5", name: "Opus", provider: "anthropic" },
-        { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", provider: "openai" },
-        { id: "gpt-5.2", name: "GPT-5.2", provider: "openai" },
       ]);
-      vi.mocked(runEmbeddedPiAgent)
-        .mockRejectedValueOnce(Object.assign(new Error("rate limited"), { status: 429 }))
-        .mockResolvedValueOnce({
-          payloads: [{ text: "ok" }],
-          meta: {
-            durationMs: 5,
-            agentMeta: { sessionId: "session-subagent", provider: "openai", model: "gpt-5.2" },
-          },
-        });
 
-      const events: Array<{
-        type: string;
-        outcome?: string;
-        target?: { provider: string; model: string };
-      }> = [];
-      const stop = onDiagnosticEvent((event) => {
-        if (event.type !== "model.failover.attempt") {
-          return;
-        }
-        events.push(event);
-      });
+      await agentCommand(
+        {
+          message: "hi",
+          sessionKey: "agent:main:subagent:allow-any",
+        },
+        runtime,
+      );
 
-      try {
-        await agentCommand(
-          {
-            message: "hi",
-            sessionKey: "agent:main:subagent:test",
-          },
-          runtime,
-        );
-      } finally {
-        stop();
-      }
+      const callArgs = vi.mocked(runEmbeddedPiAgent).mock.calls.at(-1)?.[0];
+      expect(callArgs?.provider).toBe("openai");
+      expect(callArgs?.model).toBe("gpt-custom-foo");
 
-      expect(events.some((event) => event.outcome === "failed")).toBe(true);
-      expect(events.some((event) => event.outcome === "selected")).toBe(true);
-      expect(
-        events.some(
-          (event) =>
-            event.target?.provider === "anthropic" &&
-            event.target?.model === "claude-opus-4-5" &&
-            event.outcome === "failed",
-        ),
-      ).toBe(true);
+      const saved = JSON.parse(fs.readFileSync(store, "utf-8")) as Record<
+        string,
+        { providerOverride?: string; modelOverride?: string }
+      >;
+      expect(saved["agent:main:subagent:allow-any"]?.providerOverride).toBe("openai");
+      expect(saved["agent:main:subagent:allow-any"]?.modelOverride).toBe("gpt-custom-foo");
     });
   });
 
@@ -728,7 +686,7 @@ describe("agentCommand", () => {
         agentsList: [{ id: "ops" }],
       });
 
-      expect(runtime.log).toHaveBeenCalledWith(expect.stringContaining("ok"));
+      expect(runtime.log).toHaveBeenCalledWith("ok");
     });
   });
 });

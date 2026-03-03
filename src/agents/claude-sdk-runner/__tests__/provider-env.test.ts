@@ -9,10 +9,10 @@ describe("buildProviderEnv", () => {
     vi.unstubAllEnvs();
   });
 
-  it("claude-code: returns inherited env with anthropic credentials stripped", () => {
+  it("claude-sdk: returns inherited env with anthropic credentials stripped", () => {
     vi.stubEnv("ANTHROPIC_AUTH_TOKEN", "tok-ant-inherited");
     vi.stubEnv("FOO_KEEP", "keep-me");
-    const env = buildProviderEnv({ provider: "claude-code" });
+    const env = buildProviderEnv({ provider: "claude-sdk" });
     expect(env).toBeDefined();
     expect(env!["ANTHROPIC_API_KEY"]).toBeUndefined();
     expect(env!["ANTHROPIC_AUTH_TOKEN"]).toBeUndefined();

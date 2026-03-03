@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { Workflow } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 type Category = "routing" | "escalation" | "rate-limit" | "access" | "notification";
 type Operator = "==" | "!=" | ">" | "<" | ">=" | "<=" | "contains" | "not_contains" | "in" | "not_in";
@@ -232,7 +234,12 @@ export default function RuleEngine() {
             </button>
           ))}
           {filtered.length === 0 && (
-            <div className="text-zinc-500 text-sm text-center py-12">No rules match this filter.</div>
+            <ContextualEmptyState
+              icon={Workflow}
+              title="No rules match this filter"
+              description="Adjust your filter criteria or create a new rule to automate workflows."
+              size="sm"
+            />
           )}
         </div>
 

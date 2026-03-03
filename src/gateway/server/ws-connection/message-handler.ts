@@ -78,25 +78,11 @@ import {
   resolveControlUiAuthPolicy,
   shouldSkipControlUiPairing,
 } from "./connect-policy.js";
+import { isUnauthorizedRoleError, UnauthorizedFloodGuard } from "./unauthorized-flood-guard.js";
 
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
 const DEVICE_SIGNATURE_SKEW_MS = 2 * 60 * 1000;
-
-function formatSessionIdForLog(sessionId: unknown): string | undefined {
-  if (typeof sessionId === "string") {
-    const trimmed = sessionId.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  }
-  if (
-    typeof sessionId === "number" ||
-    typeof sessionId === "bigint" ||
-    typeof sessionId === "boolean"
-  ) {
-    return String(sessionId);
-  }
-  return undefined;
-}
 
 export function attachGatewayWsMessageHandler(params: {
   socket: WebSocket;
@@ -205,6 +191,7 @@ export function attachGatewayWsMessageHandler(params: {
   }
 
   const isWebchatConnect = (p: ConnectParams | null | undefined) => isWebchatClient(p?.client);
+  const unauthorizedFloodGuard = new UnauthorizedFloodGuard();
 
   socket.on("message", async (data) => {
     if (isClosed()) {
@@ -347,6 +334,8 @@ export function attachGatewayWsMessageHandler(params: {
             requestHost,
             origin: requestOrigin,
             allowedOrigins: configSnapshot.gateway?.controlUi?.allowedOrigins,
+            allowHostHeaderOriginFallback:
+              configSnapshot.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true,
           });
           if (!originCheck.ok) {
             const errorMessage =
@@ -438,11 +427,17 @@ export function attachGatewayWsMessageHandler(params: {
           if (!device) {
             clearUnboundScopes();
           }
+          const trustedProxyAuthOk =
+            isControlUi &&
+            resolvedAuth.mode === "trusted-proxy" &&
+            authOk &&
+            authMethod === "trusted-proxy";
           const decision = evaluateMissingDeviceIdentity({
             hasDeviceIdentity: Boolean(device),
             role,
             isControlUi,
             controlUiAuthPolicy,
+            trustedProxyAuthOk,
             sharedAuthOk,
             authOk,
             hasSharedAuth,
@@ -574,8 +569,13 @@ export function attachGatewayWsMessageHandler(params: {
         // In that case, don't force device pairing on first connect.
         const skipPairingForOperatorSharedAuth =
           role === "operator" && sharedAuthOk && !isControlUi && !isWebchat;
+        const trustedProxyAuthOk =
+          isControlUi &&
+          resolvedAuth.mode === "trusted-proxy" &&
+          authOk &&
+          authMethod === "trusted-proxy";
         const skipPairing =
-          shouldSkipControlUiPairing(controlUiAuthPolicy, sharedAuthOk) ||
+          shouldSkipControlUiPairing(controlUiAuthPolicy, sharedAuthOk, trustedProxyAuthOk) ||
           skipPairingForOperatorSharedAuth;
         if (device && devicePublicKey && !skipPairing) {
           const formatAuditList = (items: string[] | undefined): string => {
@@ -619,7 +619,7 @@ export function attachGatewayWsMessageHandler(params: {
               deviceId: device.id,
               publicKey: devicePublicKey,
               ...clientAccessMetadata,
-              silent: isLocalClient && reason === "not-paired",
+              silent: isLocalClient && (reason === "not-paired" || reason === "scope-upgrade"),
             });
             const context = buildRequestContext();
             if (pairing.request.silent === true) {
@@ -923,21 +923,41 @@ export function attachGatewayWsMessageHandler(params: {
         meta?: Record<string, unknown>,
       ) => {
         send({ type: "res", id: req.id, ok, payload, error });
-        // Destructure session/cached from meta so they don't appear as raw fields.
-        const { cached: _cached, sessionId, ...restMeta } = meta ?? {};
-        const sessionLabel = formatSessionIdForLog(sessionId);
-        const errorFields = error
-          ? sessionLabel
-            ? { errorCode: error.code, session: `${sessionLabel}: ${error.message}` }
-            : { errorCode: error.code, errorMessage: error.message }
-          : { errorCode: undefined as string | undefined };
+        const unauthorizedRoleError = isUnauthorizedRoleError(error);
+        let logMeta = meta;
+        if (unauthorizedRoleError) {
+          const unauthorizedDecision = unauthorizedFloodGuard.registerUnauthorized();
+          if (unauthorizedDecision.suppressedSinceLastLog > 0) {
+            logMeta = {
+              ...logMeta,
+              suppressedUnauthorizedResponses: unauthorizedDecision.suppressedSinceLastLog,
+            };
+          }
+          if (!unauthorizedDecision.shouldLog) {
+            return;
+          }
+          if (unauthorizedDecision.shouldClose) {
+            setCloseCause("repeated-unauthorized-requests", {
+              unauthorizedCount: unauthorizedDecision.count,
+              method: req.method,
+            });
+            queueMicrotask(() => close(1008, "repeated unauthorized calls"));
+          }
+          logMeta = {
+            ...logMeta,
+            unauthorizedCount: unauthorizedDecision.count,
+          };
+        } else {
+          unauthorizedFloodGuard.reset();
+        }
         logWs("out", "res", {
           connId,
           id: req.id,
           ok,
           method: req.method,
-          ...errorFields,
-          ...restMeta,
+          errorCode: error?.code,
+          errorMessage: error?.message,
+          ...logMeta,
         });
       };
 

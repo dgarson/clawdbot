@@ -288,6 +288,17 @@ export default function register(api: OpenClawPluginApi) {
 
   const runScheduledSweep = () => {
     try {
+      // Health check: sentinel agent_id rows should never appear after startup repair,
+      // but if any somehow exist (e.g., DB written by an older process), warn loudly
+      // so they can be investigated. The startup repair will clear them on next open.
+      const sentinelRows = db.findSentinelAgentRows();
+      if (sentinelRows.length > 0) {
+        api.logger.warn(
+          `[workq] health-check: found ${sentinelRows.length} active item(s) with sentinel agent_id — ` +
+            `these will be repaired on next DB open: ${sentinelRows.map((r) => r.issueRef).join(", ")}`,
+        );
+      }
+
       const result = runWorkqSweep(db, {
         staleAfterMinutes: sweepStaleAfterMinutes,
         autoDone: sweepAutoDone,

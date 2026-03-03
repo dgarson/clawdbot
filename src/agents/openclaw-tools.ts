@@ -3,6 +3,7 @@ import { resolvePluginTools } from "../plugins/tools.js";
 import type { GatewayMessageChannel } from "../utils/message-channel.js";
 import { resolveSessionAgentId } from "./agent-scope.js";
 import type { SandboxFsBridge } from "./sandbox/fs-bridge.js";
+import type { ToolFsPolicy } from "./tool-fs-policy.js";
 import { createAgentsListTool } from "./tools/agents-list-tool.js";
 import { createBrowserTool } from "./tools/browser-tool.js";
 import { createCanvasTool } from "./tools/canvas-tool.js";
@@ -12,6 +13,7 @@ import { createGatewayTool } from "./tools/gateway-tool.js";
 import { createImageTool } from "./tools/image-tool.js";
 import { createMessageTool } from "./tools/message-tool.js";
 import { createNodesTool } from "./tools/nodes-tool.js";
+import { createSessionScoreTool } from "./tools/session-score-tool.js";
 import { createSessionStatusTool } from "./tools/session-status-tool.js";
 import { createSessionsHistoryTool } from "./tools/sessions-history-tool.js";
 import { createSessionsListTool } from "./tools/sessions-list-tool.js";
@@ -41,6 +43,7 @@ export function createOpenClawTools(options?: {
   agentDir?: string;
   sandboxRoot?: string;
   sandboxFsBridge?: SandboxFsBridge;
+  fsPolicy?: ToolFsPolicy;
   workspaceDir?: string;
   sandboxed?: boolean;
   config?: OpenClawConfig;
@@ -49,6 +52,8 @@ export function createOpenClawTools(options?: {
   currentChannelId?: string;
   /** Current thread timestamp for auto-threading (Slack). */
   currentThreadTs?: string;
+  /** Current inbound message id for action fallbacks (e.g. Telegram react). */
+  currentMessageId?: string | number;
   /** Reply-to mode for Slack auto-threading. */
   replyToMode?: "off" | "first" | "all";
   /** Mutable ref to track if a reply was sent (for "first" mode). */
@@ -78,6 +83,7 @@ export function createOpenClawTools(options?: {
           options?.sandboxRoot && options?.sandboxFsBridge
             ? { root: options.sandboxRoot, bridge: options.sandboxFsBridge }
             : undefined,
+        fsPolicy: options?.fsPolicy,
         modelHasVision: options?.modelHasVision,
       })
     : null;
@@ -98,6 +104,7 @@ export function createOpenClawTools(options?: {
         currentChannelId: options?.currentChannelId,
         currentChannelProvider: options?.agentChannel,
         currentThreadTs: options?.currentThreadTs,
+        currentMessageId: options?.currentMessageId,
         replyToMode: options?.replyToMode,
         hasRepliedRef: options?.hasRepliedRef,
         sandboxRoot: options?.sandboxRoot,
@@ -163,6 +170,10 @@ export function createOpenClawTools(options?: {
     createSessionStatusTool({
       agentSessionKey: options?.agentSessionKey,
       config: options?.config,
+    }),
+    createSessionScoreTool({
+      agentId: options?.agentSessionKey ? options.agentSessionKey.split(":")[1] : undefined,
+      sessionKey: options?.agentSessionKey,
     }),
     ...(webSearchTool ? [webSearchTool] : []),
     ...(webFetchTool ? [webFetchTool] : []),

@@ -1,4 +1,5 @@
 import type { OpenClawConfig } from "../config/config.js";
+import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
 import type { DispatchFromConfigResult } from "./reply/dispatch-from-config.js";
 import { dispatchReplyFromConfig } from "./reply/dispatch-from-config.js";
 import { finalizeInboundContext } from "./reply/inbound-context.js";
@@ -40,6 +41,34 @@ export async function dispatchInboundMessage(params: {
   replyResolver?: typeof import("./reply.js").getReplyFromConfig;
 }): Promise<DispatchInboundResult> {
   const finalized = finalizeInboundContext(params.ctx);
+
+  // Fire before_message_route hook so plugins can drop or redirect inbound messages
+  // without modifying individual channel handlers.
+  const hookRunner = getGlobalHookRunner();
+  if (hookRunner?.hasHooks("before_message_route")) {
+    try {
+      const hookResult = await hookRunner.runBeforeMessageRoute({
+        channelId: finalized.OriginatingChannel ?? finalized.Provider ?? "unknown",
+        accountId: finalized.AccountId,
+        from: finalized.From,
+        content: finalized.Body,
+        conversationId: finalized.SessionKey,
+      });
+
+      if (hookResult?.skip) {
+        // Plugin requested this message be dropped (content-filter / router-agent pattern).
+        params.dispatcher.markComplete();
+        return { queuedFinal: false, counts: { tool: 0, block: 0, final: 0 } };
+      }
+
+      if (hookResult?.sessionKey) {
+        finalized.SessionKey = hookResult.sessionKey;
+      }
+    } catch {
+      // Hook failure must not block message delivery.
+    }
+  }
+
   return await withReplyDispatcher({
     dispatcher: params.dispatcher,
     run: () =>

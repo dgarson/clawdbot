@@ -12,17 +12,20 @@ import { configHandlers } from "./server-methods/config.js";
 import { connectHandlers } from "./server-methods/connect.js";
 import { cronHandlers } from "./server-methods/cron.js";
 import { deviceHandlers } from "./server-methods/devices.js";
+import { doctorHandlers } from "./server-methods/doctor.js";
 import { execApprovalsHandlers } from "./server-methods/exec-approvals.js";
 import { healthHandlers } from "./server-methods/health.js";
 import { logsHandlers } from "./server-methods/logs.js";
 import { modelsHandlers } from "./server-methods/models.js";
 import { nodeHandlers } from "./server-methods/nodes.js";
 import { pushHandlers } from "./server-methods/push.js";
+import { routerFeedbackHandlers } from "./server-methods/router-feedback.js";
 import { sendHandlers } from "./server-methods/send.js";
 import { sessionsHandlers } from "./server-methods/sessions.js";
 import { skillsHandlers } from "./server-methods/skills.js";
 import { systemHandlers } from "./server-methods/system.js";
 import { talkHandlers } from "./server-methods/talk.js";
+import { toolsCatalogHandlers } from "./server-methods/tools-catalog.js";
 import { ttsHandlers } from "./server-methods/tts.js";
 import type { GatewayRequestHandlers, GatewayRequestOptions } from "./server-methods/types.js";
 import { updateHandlers } from "./server-methods/update.js";
@@ -70,12 +73,14 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...chatHandlers,
   ...cronHandlers,
   ...deviceHandlers,
+  ...doctorHandlers,
   ...execApprovalsHandlers,
   ...webHandlers,
   ...modelsHandlers,
   ...configHandlers,
   ...wizardHandlers,
   ...talkHandlers,
+  ...toolsCatalogHandlers,
   ...ttsHandlers,
   ...skillsHandlers,
   ...sessionsHandlers,
@@ -83,6 +88,7 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...updateHandlers,
   ...nodeHandlers,
   ...pushHandlers,
+  ...routerFeedbackHandlers,
   ...sendHandlers,
   ...usageHandlers,
   ...agentHandlers,

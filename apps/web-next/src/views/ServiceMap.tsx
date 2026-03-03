@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { Network } from "lucide-react";
 import { cn } from "../lib/utils";
+import { ContextualEmptyState } from "../components/ui/ContextualEmptyState";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -711,9 +713,12 @@ export default function ServiceMap() {
         {/* Left: service list */}
         <div className="rounded-xl bg-zinc-900 ring-1 ring-zinc-800 p-2 overflow-y-auto">
           {filtered.length === 0 ? (
-            <div className="flex h-32 items-center justify-center text-sm text-zinc-500">
-              No services match the current filters.
-            </div>
+            <ContextualEmptyState
+              icon={Network}
+              title="No services in view"
+              description="Adjust your filters to explore the map — your services are out there."
+              size="sm"
+            />
           ) : (
             <div className="flex flex-col gap-0.5">
               {filtered.map((service) => (

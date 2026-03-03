@@ -37,11 +37,37 @@ describe("config schema regressions", () => {
     expect(res.ok).toBe(true);
   });
 
+  it('accepts memorySearch provider "mistral"', () => {
+    const res = validateConfigObject({
+      agents: {
+        defaults: {
+          memorySearch: {
+            provider: "mistral",
+          },
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
+
   it("accepts safe iMessage remoteHost", () => {
     const res = validateConfigObject({
       channels: {
         imessage: {
           remoteHost: "bot@gateway-host",
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
+
+  it("accepts channels.whatsapp.enabled", () => {
+    const res = validateConfigObject({
+      channels: {
+        whatsapp: {
+          enabled: true,
         },
       },
     });
@@ -70,6 +96,19 @@ describe("config schema regressions", () => {
         imessage: {
           attachmentRoots: ["/Users/*/Library/Messages/Attachments"],
           remoteAttachmentRoots: ["/Volumes/relay/attachments"],
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
+
+  it("accepts string values for agents defaults model inputs", () => {
+    const res = validateConfigObject({
+      agents: {
+        defaults: {
+          model: "anthropic/claude-opus-4-6",
+          imageModel: "openai/gpt-4.1-mini",
         },
       },
     });
@@ -124,6 +163,57 @@ describe("config schema regressions", () => {
     expect(res.ok).toBe(false);
     if (!res.ok) {
       expect(res.issues[0]?.path).toBe("agents.defaults.sessionLabels.maxLength");
+    }
+  });
+
+  it("accepts approvals.hitl policy escalation and boundary settings", () => {
+    const res = validateConfigObject({
+      approvals: {
+        hitl: {
+          defaultPolicyId: "default",
+          approverRoleOrder: ["viewer", "operator", "admin", "owner"],
+          policies: [
+            {
+              id: "default",
+              pattern: "nodes.*",
+              minApproverRole: "admin",
+              requireDifferentActor: true,
+              maxApprovalChainDepth: 2,
+              escalation: {
+                onDeny: "owner",
+                onTimeout: "owner",
+                maxEscalations: 3,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
+
+  it("rejects approvals.hitl negative escalation limits", () => {
+    const res = validateConfigObject({
+      approvals: {
+        hitl: {
+          policies: [
+            {
+              id: "default",
+              tool: "nodes.run",
+              escalation: {
+                onDeny: "owner",
+                maxEscalations: -1,
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.issues[0]?.path).toBe("approvals.hitl.policies.0.escalation.maxEscalations");
     }
   });
 });

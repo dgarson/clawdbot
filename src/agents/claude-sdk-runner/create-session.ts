@@ -29,6 +29,7 @@ import {
   type ClaudeSdkSpawnProcess,
 } from "./spawn-stdout-logging.js";
 import type {
+  AgentRuntimeHints,
   ClaudeSdkEventAdapterState,
   ClaudeSdkSession,
   ClaudeSdkSessionParams,
@@ -87,20 +88,20 @@ function buildQueryOptions(
     "openclaw-tools": toolServer,
   };
 
-  // For claude-code and anthropic providers (or when no provider is set), the
+  // For claude-sdk and anthropic providers (or when no provider is set), the
   // subprocess is the Anthropic Claude CLI. Only Anthropic model IDs are valid
   // there, and OpenClaw's configured model may be from a different provider
   // (e.g. MiniMax, Grok). Omit the model entirely so the subprocess uses its
   // own default. For third-party providers (minimax, minimax-portal, zai,
   // openrouter, custom) the model is meaningful and is forwarded.
-  // For claude-code/anthropic providers, only pass the model if it's an
+  // For claude-sdk/anthropic providers, only pass the model if it's an
   // Anthropic model ID (starts with "claude-"). When the gateway's default
   // model belongs to another provider (e.g. "MiniMax-M2.5"), omit it so the
   // subprocess falls back to its own default rather than sending a 404.
   // Third-party providers (minimax, minimax-portal, zai, openrouter, custom)
   // always forward the model unchanged.
-  const sdkProvider = params.claudeSdkConfig?.provider ?? "claude-code";
-  const isAnthropicProvider = sdkProvider === "claude-code" || sdkProvider === "anthropic";
+  const sdkProvider = params.claudeSdkConfig?.provider ?? "claude-sdk";
+  const isAnthropicProvider = sdkProvider === "claude-sdk" || sdkProvider === "anthropic";
   const resolvedModel =
     isAnthropicProvider && !params.modelId.startsWith("claude-") ? undefined : params.modelId;
   if (isAnthropicProvider && resolvedModel === undefined) {
@@ -168,7 +169,7 @@ function buildQueryOptions(
   // Provider env: sets ANTHROPIC_BASE_URL, API key, timeout, and model vars for
   // non-Anthropic providers. Returns undefined for claude-code/anthropic (no override).
   const providerEnv = buildProviderEnv(
-    params.claudeSdkConfig ?? { provider: "claude-code" },
+    params.claudeSdkConfig ?? { provider: "claude-sdk" as const },
     params.resolvedProviderAuth?.apiKey,
   );
   if (providerEnv !== undefined) {
@@ -222,34 +223,20 @@ export async function createClaudeSdkSession(
     streamingPartialMessage: null,
     streamingInProgress: false,
     sessionManager: params.sessionManager,
+    enableClaudeWebSearch: false,
+    providerId: params.claudeSdkConfig?.provider ?? "claude-sdk",
+    apiId: "claude-sdk",
   };
 
   // Build in-process MCP tool server from OpenClaw tools (already wrapped with
   // before_tool_call hooks, abort signal propagation, and loop detection upstream)
   const allTools = [...params.tools, ...params.customTools];
-  // Tool IDs to exclude from MCP and replace with Claude Code's built-in WebSearch.
-  // Includes both "web_search" (search) and "web_fetch" (URL fetch) native OpenClaw tools,
-  // with their "builtin:" prefixed variants.
-  const NATIVE_WEB_TOOL_IDS = new Set([
-    "web_search",
-    "builtin:web_search",
-    "web_fetch",
-    "builtin:web_fetch",
-  ]);
-  let enableClaudeWebSearch = false;
-
-  const mcpTools = allTools.filter((t) => {
-    if (NATIVE_WEB_TOOL_IDS.has(t.name)) {
-      enableClaudeWebSearch = true;
-      return false; // Remove from MCP tools — replaced by Claude Code's built-in WebSearch
-    }
-    return true;
-  });
-
-  state.enableClaudeWebSearch = enableClaudeWebSearch;
+  // Keep all tools behind OpenClaw's MCP bridge for uniform hook/telemetry behavior
+  // with Pi runtime (before_tool_call hooks, policy enforcement, and tool events).
+  state.enableClaudeWebSearch = false;
 
   const toolServer = createClaudeSdkMcpToolServer({
-    tools: mcpTools,
+    tools: allTools,
     emitEvent: (evt) => {
       for (const subscriber of state.subscribers) {
         subscriber(evt);
@@ -297,16 +284,13 @@ export async function createClaudeSdkSession(
       // for the current use cases (screenshots, diagrams).
       if (options?.images && options.images.length > 0) {
         const imageMarkdown = options.images
-          .map((img) => `![image](data:${img.media_type};base64,${img.data})`)
+          .map((img) => `![image](data:${img.mimeType};base64,${img.data})`)
           .join("\n");
         effectivePrompt = `${imageMarkdown}\n\n${effectivePrompt}`;
       }
 
       try {
-        // Persist the user message to JSONL before starting the query loop.
-        // Only persist on first iteration — steer-resumed loops should not double-persist.
-        let userMessagePersisted = false;
-        if (!userMessagePersisted && state.sessionManager?.appendMessage) {
+        if (state.sessionManager?.appendMessage) {
           try {
             state.sessionManager.appendMessage({
               role: "user",
@@ -316,64 +300,33 @@ export async function createClaudeSdkSession(
           } catch {
             // Non-fatal — user message persistence failed
           }
-          userMessagePersisted = true;
         }
 
-        // Outer loop: supports interrupt-and-resume for mid-loop steer injection.
-        // When steer() is called while query() is running, we interrupt the current
-        // query at the next message yield and resume with the steer text as a new
-        // user turn. This gives near-parity with Pi's mid-loop steer behavior.
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-          const queryOptions = buildQueryOptions(params, state, toolServer);
-          const queryInstance = query({ prompt: effectivePrompt, options: queryOptions as never });
+        const queryOptions = buildQueryOptions(params, state, toolServer);
+        const queryInstance = query({
+          prompt: effectivePrompt,
+          options: queryOptions as never,
+        });
 
-          // Wire abort signal to queryInstance.interrupt() so cancellation works
-          // even when blocked on generator.next().
-          const onAbort = () => {
-            const qi = queryInstance as { interrupt?: () => Promise<void> };
-            if (typeof qi.interrupt === "function") {
-              qi.interrupt().catch(() => {});
-            }
-          };
-          signal.addEventListener("abort", onAbort, { once: true });
-
-          let interruptedForSteer = false;
-          try {
-            for await (const message of queryInstance) {
-              if (signal.aborted) {
-                break;
-              }
-              translateSdkMessageToEvents(message as never, state);
-
-              // Check for pending steer between SDK message yields.
-              // If steer text was queued (e.g., by queueEmbeddedPiMessage),
-              // interrupt the current query so we can resume with the steer
-              // text as the next user message. This gives mid-loop injection.
-              if (state.pendingSteer.length > 0 && !signal.aborted) {
-                const qi = queryInstance as { interrupt?: () => Promise<void> };
-                if (typeof qi.interrupt === "function") {
-                  await qi.interrupt();
-                }
-                interruptedForSteer = true;
-                break;
-              }
-            }
-          } finally {
-            signal.removeEventListener("abort", onAbort);
+        // Wire abort signal to queryInstance.interrupt() so cancellation works
+        // even when blocked on generator.next().
+        const onAbort = () => {
+          const qi = queryInstance as { interrupt?: () => Promise<void> };
+          if (typeof qi.interrupt === "function") {
+            qi.interrupt().catch(() => {});
           }
+        };
+        signal.addEventListener("abort", onAbort, { once: true });
 
-          if (!interruptedForSteer || signal.aborted) {
-            // Normal completion or abort — exit the outer loop
-            break;
+        try {
+          for await (const message of queryInstance) {
+            if (signal.aborted) {
+              break;
+            }
+            translateSdkMessageToEvents(message as never, state);
           }
-
-          // Interrupted for steer: drain steer queue and resume with steer text
-          // as the new prompt. The server-side session already has the conversation
-          // context (including the interrupted response), so resume continues
-          // naturally with the injected user message.
-          const pendingSteer = state.pendingSteer.splice(0).join("\n");
-          effectivePrompt = pendingSteer;
+        } finally {
+          signal.removeEventListener("abort", onAbort);
         }
 
         // After the query loop: throw if the SDK returned an error result message.
@@ -411,20 +364,18 @@ export async function createClaudeSdkSession(
     // steer — queues text to be prepended to the next prompt
     // -------------------------------------------------------------------------
     async steer(text) {
-      // KNOWN LIMITATION: In Pi, steer() injects text into the current agentic
-      // loop (between tool-call rounds). In Claude SDK, the agentic loop is opaque
-      // inside query() — we can't inject mid-loop. Steer text is queued and
-      // prepended to the next prompt() call. This means steer messages are
-      // delivered on the next turn, not mid-generation. This is acceptable for POC
-      // since the message is not lost, just delayed to the next turn.
+      // Steer text is queued and prepended to the next prompt() call.
+      // We intentionally do not interrupt an active SDK query to avoid partial
+      // turn/session fragmentation.
       state.pendingSteer.push(text);
     },
 
     // -------------------------------------------------------------------------
     // abort — cancels the current in-flight query
     // -------------------------------------------------------------------------
-    abort() {
+    abort(): Promise<void> {
       state.abortController?.abort();
+      return Promise.resolve();
     },
 
     // -------------------------------------------------------------------------
@@ -440,7 +391,15 @@ export async function createClaudeSdkSession(
     // dispose — persists the Claude SDK session_id via SessionManager
     // -------------------------------------------------------------------------
     dispose() {
-      if (state.claudeSdkSessionId && params.sessionManager?.appendCustomEntry) {
+      if (!state.claudeSdkSessionId) {
+        if (state.messages.length > 0) {
+          log.warn(
+            "claude-sdk dispose(): no session_id captured — server-side session may be orphaned",
+          );
+        }
+        return;
+      }
+      if (params.sessionManager?.appendCustomEntry) {
         try {
           params.sessionManager.appendCustomEntry(
             "openclaw:claude-sdk-session-id",
@@ -472,19 +431,23 @@ export async function createClaudeSdkSession(
     },
 
     // -------------------------------------------------------------------------
-    // agent shim — matches Pi's agent object surface
-    // attempt.ts assigns to agent.streamFn for Pi (no-op for us) and calls
-    // agent.replaceMessages() to set the history (local-only for us).
+    // replaceMessages — local mirror update (does NOT push to Claude API)
+    // The server-side session already has the full conversation history.
     // -------------------------------------------------------------------------
-    agent: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      streamFn: undefined as any, // writable no-op — Pi compat
-      replaceMessages(messages: AgentMessage[]) {
-        // Local mirror update only — does NOT send history to Claude API.
-        // The server-side session already has the full conversation history.
-        state.messages = [...messages];
-      },
+    replaceMessages(messages: AgentMessage[]) {
+      state.messages = [...messages];
     },
+
+    // -------------------------------------------------------------------------
+    // runtimeHints — Claude SDK never needs synthetic tool results or <final> tag
+    // -------------------------------------------------------------------------
+    runtimeHints: {
+      allowSyntheticToolResults: false,
+      enforceFinalTag: false,
+      managesOwnHistory: true,
+      supportsStreamFnWrapping: false,
+      sessionFile: params.sessionFile,
+    } satisfies AgentRuntimeHints,
   };
 
   return session;
