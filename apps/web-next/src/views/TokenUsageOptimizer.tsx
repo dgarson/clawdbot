@@ -1434,6 +1434,13 @@ export default function TokenUsageOptimizer() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-6">
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      >
+        Skip to main content
+      </a>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
@@ -1476,10 +1483,12 @@ export default function TokenUsageOptimizer() {
         </div>
 
         {/* Tab content */}
-        {activeTab === "overview" && <OverviewTab />}
-        {activeTab === "analysis" && <AnalysisTab />}
-        {activeTab === "optimization" && <OptimizationTab />}
-        {activeTab === "budget" && <BudgetTab />}
+        <main id="main-content" role="main">
+          {activeTab === "overview" && <OverviewTab />}
+          {activeTab === "analysis" && <AnalysisTab />}
+          {activeTab === "optimization" && <OptimizationTab />}
+          {activeTab === "budget" && <BudgetTab />}
+        </main>
       </div>
     </div>
   );
