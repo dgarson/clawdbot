@@ -948,7 +948,8 @@
                   "concepts/session-pruning",
                   "concepts/session-tool",
                   "concepts/memory",
-                  "concepts/compaction"
+                  "concepts/compaction",
+                  "concepts/replay"
                 ]
               },
               {

@@ -374,6 +374,8 @@ Future evals should stay deterministic first:
 - A small suite of skill-focused scenarios (use vs avoid, gating, prompt injection).
 - Optional live evals (opt-in, env-gated) only after the CI-safe suite is in place.
 
+For the replay primitives used to build those deterministic checks, see [Deterministic Replay](/concepts/replay).
+
 ## Adding regressions (guidance)
 
 When you fix a provider/model issue discovered in live:
