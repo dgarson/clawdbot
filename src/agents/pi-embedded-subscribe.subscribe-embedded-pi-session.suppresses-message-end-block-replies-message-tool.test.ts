@@ -11,6 +11,7 @@ function createBlockReplyHarness(blockReplyBreak: "message_end" | "text_end") {
   const { session, emit } = createStubSessionHarness();
   const onBlockReply = vi.fn();
   subscribeEmbeddedPiSession({
+    enforceFinalTag: false,
     session,
     runId: "run",
     onBlockReply,

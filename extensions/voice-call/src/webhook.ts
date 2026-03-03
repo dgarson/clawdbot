@@ -6,7 +6,6 @@ import {
   readRequestBodyWithLimit,
   requestBodyErrorToText,
 } from "openclaw/plugin-sdk";
-import { AsyncSubagentBroker } from "./async-subagent-broker.js";
 import type { VoiceCallConfig } from "./config.js";
 import type { CoreConfig } from "./core-bridge.js";
 import type { CallManager } from "./manager.js";
@@ -30,7 +29,6 @@ export class VoiceCallWebhookServer {
   private provider: VoiceCallProvider;
   private coreConfig: CoreConfig | null;
   private staleCallReaperInterval: ReturnType<typeof setInterval> | null = null;
-  private subagentBroker: AsyncSubagentBroker | null = null;
 
   /** Media stream handler for bidirectional audio (when streaming enabled) */
   private mediaStreamHandler: MediaStreamHandler | null = null;
@@ -45,32 +43,6 @@ export class VoiceCallWebhookServer {
     this.manager = manager;
     this.provider = provider;
     this.coreConfig = coreConfig ?? null;
-
-    if (this.coreConfig && this.config.subagents?.enabled) {
-      this.subagentBroker = new AsyncSubagentBroker({
-        voiceConfig: this.config,
-        coreConfig: this.coreConfig,
-        isCallActive: (callId) => Boolean(this.manager.getCall(callId)),
-        onSummaryReady: async ({ callId, summary, result }) => {
-          const call = this.manager.getCall(callId);
-          if (!call) {
-            return;
-          }
-          // Append the follow-up question when the specialist signals one is needed.
-          const spokenText =
-            result.needs_followup && result.followup_question
-              ? `${summary} ${result.followup_question}`
-              : summary;
-          // Swallow speak errors so they do not propagate back into the broker's
-          // catch block and trigger a redundant fallback delivery.
-          try {
-            await this.manager.speak(callId, spokenText);
-          } catch (err) {
-            console.warn(`[voice-call] Failed to speak sub-agent summary for ${callId}:`, err);
-          }
-        },
-      });
-    }
 
     // Initialize media stream handler if streaming is enabled
     if (config.streaming?.enabled) {
@@ -105,6 +77,10 @@ export class VoiceCallWebhookServer {
 
     const streamConfig: MediaStreamConfig = {
       sttProvider,
+      preStartTimeoutMs: this.config.streaming?.preStartTimeoutMs,
+      maxPendingConnections: this.config.streaming?.maxPendingConnections,
+      maxPendingConnectionsPerIp: this.config.streaming?.maxPendingConnectionsPerIp,
+      maxConnections: this.config.streaming?.maxConnections,
       shouldAcceptStream: ({ callId, token }) => {
         const call = this.manager.getCallByProviderCallId(callId);
         if (!call) {
@@ -220,9 +196,8 @@ export class VoiceCallWebhookServer {
       // Handle WebSocket upgrades for media streams
       if (this.mediaStreamHandler) {
         this.server.on("upgrade", (request, socket, head) => {
-          const url = new URL(request.url || "/", `http://${request.headers.host}`);
-
-          if (url.pathname === streamPath) {
+          const path = this.getUpgradePathname(request);
+          if (path === streamPath) {
             console.log("[voice-call] WebSocket upgrade for media stream");
             this.mediaStreamHandler?.handleUpgrade(request, socket, head);
           } else {
@@ -243,13 +218,6 @@ export class VoiceCallWebhookServer {
 
         // Start the stale call reaper if configured
         this.startStaleCallReaper();
-
-        // Sweep orphaned voice-subagent session entries left by crashed jobs.
-        if (this.subagentBroker) {
-          void this.subagentBroker.reapOrphanedSessions().catch((err) => {
-            console.warn("[voice-call] Startup session reap failed:", err);
-          });
-        }
       });
     });
   }
@@ -292,7 +260,6 @@ export class VoiceCallWebhookServer {
       clearInterval(this.staleCallReaperInterval);
       this.staleCallReaperInterval = null;
     }
-    this.subagentBroker?.shutdown();
     return new Promise((resolve) => {
       if (this.server) {
         this.server.close(() => {
@@ -303,6 +270,15 @@ export class VoiceCallWebhookServer {
         resolve();
       }
     });
+  }
+
+  private getUpgradePathname(request: http.IncomingMessage): string | null {
+    try {
+      const host = request.headers.host || "localhost";
+      return new URL(request.url || "/", `http://${host}`).pathname;
+    } catch {
+      return null;
+    }
   }
 
   /**
@@ -370,27 +346,15 @@ export class VoiceCallWebhookServer {
     const result = this.provider.parseWebhookEvent(ctx);
 
     // Process each event
-    for (const event of result.events) {
-      const callForEvent =
-        this.manager.getCall(event.callId) ||
-        (event.providerCallId
-          ? this.manager.getCallByProviderCallId(event.providerCallId)
-          : undefined);
-      try {
-        this.manager.processEvent(event);
-        // Cancel pending sub-agent jobs when a call terminates.  callForEvent is
-        // captured before processEvent so the call is still in the manager's map;
-        // we guard on it being non-null to avoid canceling jobs for an event whose
-        // callId was never registered with the manager.
-        if (
-          this.subagentBroker &&
-          callForEvent &&
-          (event.type === "call.ended" || (event.type === "call.error" && !event.retryable))
-        ) {
-          this.subagentBroker.cancelCallJobs(callForEvent.callId);
+    if (verification.isReplay) {
+      console.warn("[voice-call] Replay detected; skipping event side effects");
+    } else {
+      for (const event of result.events) {
+        try {
+          this.manager.processEvent(event);
+        } catch (err) {
+          console.error(`[voice-call] Error processing event ${event.type}:`, err);
         }
-      } catch (err) {
-        console.error(`[voice-call] Error processing event ${event.type}:`, err);
       }
     }
 
@@ -456,30 +420,6 @@ export class VoiceCallWebhookServer {
       if (result.text) {
         console.log(`[voice-call] AI response: "${result.text}"`);
         await this.manager.speak(callId, result.text);
-      }
-
-      if (this.subagentBroker && result.delegations?.length) {
-        // Deduplicate by specialist+goal so a confused LLM that emits the same
-        // delegation twice doesn't cause redundant sub-agent jobs.
-        const seen = new Set<string>();
-        for (const delegation of result.delegations) {
-          const key = `${delegation.specialist}:${delegation.goal}`;
-          if (seen.has(key)) {
-            console.warn(`[voice-call] Dropping duplicate delegation (${key}) for ${callId}`);
-            continue;
-          }
-          seen.add(key);
-          this.subagentBroker.enqueue({
-            callId,
-            from: call.from,
-            userMessage,
-            transcript: call.transcript.map((entry) => ({
-              speaker: entry.speaker,
-              text: entry.text,
-            })),
-            delegation,
-          });
-        }
       }
     } catch (err) {
       console.error(`[voice-call] Auto-response error:`, err);

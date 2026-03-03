@@ -40,12 +40,14 @@ export function resolveSlackStreamingThreadHint(params: {
   replyToMode: "off" | "first" | "all";
   incomingThreadTs: string | undefined;
   messageTs: string | undefined;
+  isThreadReply?: boolean;
 }): string | undefined {
   return resolveSlackThreadTs({
     replyToMode: params.replyToMode,
     incomingThreadTs: params.incomingThreadTs,
     messageTs: params.messageTs,
     hasReplied: false,
+    isThreadReply: params.isThreadReply,
   });
 }
 
@@ -103,7 +105,6 @@ export async function dispatchPreparedSlackMessage(prepared: PreparedSlackMessag
     incomingThreadTs,
     messageTs,
     hasRepliedRef,
-    chatType: prepared.isDirectMessage ? "direct" : "channel",
     isThreadReply,
   });
 
@@ -169,6 +170,7 @@ export async function dispatchPreparedSlackMessage(prepared: PreparedSlackMessag
     replyToMode: ctx.replyToMode,
     incomingThreadTs,
     messageTs,
+    isThreadReply,
   });
   const useStreaming = shouldUseStreaming({
     streamingEnabled,
@@ -187,6 +189,7 @@ export async function dispatchPreparedSlackMessage(prepared: PreparedSlackMessag
       runtime,
       textLimit: ctx.textLimit,
       replyThreadTs,
+      replyToMode: ctx.replyToMode,
     });
     replyPlan.markSent();
   };

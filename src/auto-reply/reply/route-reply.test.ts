@@ -145,6 +145,18 @@ describe("routeReply", () => {
     expect(mocks.sendMessageSlack).not.toHaveBeenCalled();
   });
 
+  it("suppresses reasoning payloads", async () => {
+    mocks.sendMessageSlack.mockClear();
+    const res = await routeReply({
+      payload: { text: "Reasoning:\n_step_", isReasoning: true },
+      channel: "slack",
+      to: "channel:C123",
+      cfg: {} as never,
+    });
+    expect(res.ok).toBe(true);
+    expect(mocks.sendMessageSlack).not.toHaveBeenCalled();
+  });
+
   it("drops silent token payloads", async () => {
     mocks.sendMessageSlack.mockClear();
     const res = await routeReply({

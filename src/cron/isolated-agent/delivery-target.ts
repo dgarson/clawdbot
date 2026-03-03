@@ -17,6 +17,25 @@ import { normalizeAgentId } from "../../routing/session-key.js";
 import { resolveWhatsAppAccount } from "../../web/accounts.js";
 import { normalizeWhatsAppTarget } from "../../whatsapp/normalize.js";
 
+export type DeliveryTargetResolution =
+  | {
+      ok: true;
+      channel: Exclude<OutboundChannel, "none">;
+      to: string;
+      accountId?: string;
+      threadId?: string | number;
+      mode: "explicit" | "implicit";
+    }
+  | {
+      ok: false;
+      channel?: Exclude<OutboundChannel, "none">;
+      to?: string;
+      accountId?: string;
+      threadId?: string | number;
+      mode: "explicit" | "implicit";
+      error: Error;
+    };
+
 export async function resolveDeliveryTarget(
   cfg: OpenClawConfig,
   agentId: string,
@@ -24,22 +43,8 @@ export async function resolveDeliveryTarget(
     channel?: "last" | ChannelId;
     to?: string;
     sessionKey?: string;
-    /**
-     * When true, session-derived threadIds are stripped from the result.
-     * Only explicitly-set threadIds (from :topic: parsing or config) are preserved.
-     * Use this for cron announce deliveries that should always post as standalone
-     * channel messages rather than threading into an active conversation.
-     */
-    stripSessionThreadId?: boolean;
   },
-): Promise<{
-  channel?: Exclude<OutboundChannel, "none">;
-  to?: string;
-  accountId?: string;
-  threadId?: string | number;
-  mode: "explicit" | "implicit";
-  error?: Error;
-}> {
+): Promise<DeliveryTargetResolution> {
   const requestedChannel = typeof jobPayload.channel === "string" ? jobPayload.channel : "last";
   const explicitTo = typeof jobPayload.to === "string" ? jobPayload.to : undefined;
   const allowMismatchedLastTo = requestedChannel === "last";
@@ -113,46 +118,37 @@ export async function resolveDeliveryTarget(
   // or when delivering to the same recipient as the session's last conversation.
   // Session-derived threadIds are dropped when the target differs to prevent
   // stale thread IDs from leaking to a different chat.
-  //
-  // When stripSessionThreadId is set, only explicitly-set threadIds are preserved.
-  // This prevents cron announce deliveries from threading into whatever Slack/Discord
-  // thread was last active in the main agent session — cron output should always
-  // post as a standalone channel message unless the job explicitly targets a thread.
-  const threadId = (() => {
-    if (!resolved.threadId) {
-      return undefined;
-    }
-    if (resolved.threadIdExplicit) {
-      return resolved.threadId;
-    }
-    if (jobPayload.stripSessionThreadId) {
-      return undefined;
-    }
-    if (resolved.to && resolved.to === resolved.lastTo) {
-      return resolved.threadId;
-    }
-    return undefined;
-  })();
+  const threadId =
+    resolved.threadId &&
+    (resolved.threadIdExplicit || (resolved.to && resolved.to === resolved.lastTo))
+      ? resolved.threadId
+      : undefined;
 
   if (!channel) {
     return {
+      ok: false,
       channel: undefined,
       to: undefined,
       accountId,
       threadId,
       mode,
-      error: channelResolutionError,
+      error:
+        channelResolutionError ??
+        new Error("Channel is required when delivery.channel=last has no previous channel."),
     };
   }
 
   if (!toCandidate) {
     return {
+      ok: false,
       channel,
       to: undefined,
       accountId,
       threadId,
       mode,
-      error: channelResolutionError,
+      error:
+        channelResolutionError ??
+        new Error(`No delivery target resolved for channel "${channel}". Set delivery.to.`),
     };
   }
 
@@ -185,19 +181,23 @@ export async function resolveDeliveryTarget(
     mode,
     allowFrom: allowFromOverride,
   });
-  const actorSessionKey = threadSessionKey || mainSessionKey;
-  const resolvedError =
-    docked.ok || !docked.error
-      ? undefined
-      : new Error(
-          `${docked.error.message} (requestedBy=agent:${agentId} session=${actorSessionKey})`,
-        );
+  if (!docked.ok) {
+    return {
+      ok: false,
+      channel,
+      to: undefined,
+      accountId,
+      threadId,
+      mode,
+      error: docked.error,
+    };
+  }
   return {
+    ok: true,
     channel,
-    to: docked.ok ? docked.to : undefined,
+    to: docked.to,
     accountId,
     threadId,
     mode,
-    error: resolvedError,
   };
 }

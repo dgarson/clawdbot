@@ -24,6 +24,7 @@ describe("subscribeEmbeddedPiSession", () => {
     const { session, emit } = createStubSessionHarness();
 
     const subscription = subscribeEmbeddedPiSession({
+      enforceFinalTag: false,
       session,
       runId: "run",
     });
@@ -42,6 +43,7 @@ describe("subscribeEmbeddedPiSession", () => {
     const { session, emit } = createStubSessionHarness();
 
     const subscription = subscribeEmbeddedPiSession({
+      enforceFinalTag: false,
       session,
       runId: "run",
     });
@@ -65,6 +67,7 @@ describe("subscribeEmbeddedPiSession", () => {
     const { session, emit } = createStubSessionHarness();
 
     const subscription = subscribeEmbeddedPiSession({
+      enforceFinalTag: false,
       session,
       runId: "run",
       reasoningMode: "on",
@@ -89,6 +92,7 @@ describe("subscribeEmbeddedPiSession", () => {
     const { session, emit } = createStubSessionHarness();
 
     const subscription = subscribeEmbeddedPiSession({
+      enforceFinalTag: false,
       session,
       runId: "run",
       blockReplyChunking: { minChars: 50, maxChars: 200 }, // Chunking enabled

@@ -194,7 +194,6 @@ export type DeliverFn = (
 ) => Promise<unknown>;
 
 export interface RecoveryLogger {
-  debug?(msg: string): void;
   info(msg: string): void;
   warn(msg: string): void;
   error(msg: string): void;
@@ -222,10 +221,7 @@ export async function recoverPendingDeliveries(opts: {
   // Process oldest first.
   pending.sort((a, b) => a.enqueuedAt - b.enqueuedAt);
 
-  const oldestAgeMs = Date.now() - pending[0].enqueuedAt;
-  opts.log.info(
-    `Found ${pending.length} pending delivery entries — starting recovery (oldestAgeMs=${oldestAgeMs})`,
-  );
+  opts.log.info(`Found ${pending.length} pending delivery entries — starting recovery`);
 
   const delayFn = opts.delay ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const deadline = Date.now() + (opts.maxRecoveryMs ?? 60_000);
@@ -234,24 +230,11 @@ export async function recoverPendingDeliveries(opts: {
   let failed = 0;
   let skipped = 0;
 
-  const logDeferredEntries = (fromIndex: number) => {
-    if (!opts.log.debug) {
-      return;
-    }
-    for (const e of pending.slice(fromIndex)) {
-      opts.log.debug(
-        `Deferred delivery entry: id=${e.id} channel=${e.channel} to=${e.to} retryCount=${e.retryCount} enqueuedAt=${e.enqueuedAt}${e.lastError ? ` lastError=${e.lastError}` : ""}`,
-      );
-    }
-  };
-
   for (const entry of pending) {
     const now = Date.now();
     if (now >= deadline) {
-      const processedCount = recovered + failed + skipped;
-      const deferred = pending.length - processedCount;
+      const deferred = pending.length - recovered - failed - skipped;
       opts.log.warn(`Recovery time budget exceeded — ${deferred} entries deferred to next restart`);
-      logDeferredEntries(processedCount);
       break;
     }
     if (entry.retryCount >= MAX_RETRIES) {
@@ -270,12 +253,10 @@ export async function recoverPendingDeliveries(opts: {
     const backoff = computeBackoffMs(entry.retryCount + 1);
     if (backoff > 0) {
       if (now + backoff >= deadline) {
-        const processedCount = recovered + failed + skipped;
-        const deferred = pending.length - processedCount;
+        const deferred = pending.length - recovered - failed - skipped;
         opts.log.warn(
           `Recovery time budget exceeded — ${deferred} entries deferred to next restart`,
         );
-        logDeferredEntries(processedCount);
         break;
       }
       opts.log.info(`Waiting ${backoff}ms before retrying delivery ${entry.id}`);
@@ -301,19 +282,24 @@ export async function recoverPendingDeliveries(opts: {
       recovered += 1;
       opts.log.info(`Recovered delivery ${entry.id} to ${entry.channel}:${entry.to}`);
     } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (isPermanentDeliveryError(errMsg)) {
+        opts.log.warn(`Delivery ${entry.id} hit permanent error — moving to failed/: ${errMsg}`);
+        try {
+          await moveToFailed(entry.id, opts.stateDir);
+        } catch (moveErr) {
+          opts.log.error(`Failed to move entry ${entry.id} to failed/: ${String(moveErr)}`);
+        }
+        failed += 1;
+        continue;
+      }
       try {
-        await failDelivery(
-          entry.id,
-          err instanceof Error ? err.message : String(err),
-          opts.stateDir,
-        );
+        await failDelivery(entry.id, errMsg, opts.stateDir);
       } catch {
         // Best-effort update.
       }
       failed += 1;
-      opts.log.warn(
-        `Retry failed for delivery ${entry.id} (channel=${entry.channel} to=${entry.to}): ${err instanceof Error ? err.message : String(err)}`,
-      );
+      opts.log.warn(`Retry failed for delivery ${entry.id}: ${errMsg}`);
     }
   }
 
@@ -324,3 +310,18 @@ export async function recoverPendingDeliveries(opts: {
 }
 
 export { MAX_RETRIES };
+
+const PERMANENT_ERROR_PATTERNS: readonly RegExp[] = [
+  /no conversation reference found/i,
+  /chat not found/i,
+  /user not found/i,
+  /bot was blocked by the user/i,
+  /forbidden: bot was kicked/i,
+  /chat_id is empty/i,
+  /recipient is not a valid/i,
+  /outbound not configured for channel/i,
+];
+
+export function isPermanentDeliveryError(error: string): boolean {
+  return PERMANENT_ERROR_PATTERNS.some((re) => re.test(error));
+}
