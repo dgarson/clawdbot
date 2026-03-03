@@ -340,15 +340,7 @@ export async function createRunAuthProfileFailoverController(
       params.onAuthRotationSuccess?.();
       return true;
     }
-    while (authResolution.runtimeOverride === "claude-sdk") {
-      if (await authResolution.moveToNextClaudeSdkProvider()) {
-        if (await initializeCurrentAuthCandidate()) {
-          await syncCopilotRefreshForCurrentProfile("profile-rotate");
-          params.onAuthRotationSuccess?.();
-          return true;
-        }
-        continue;
-      }
+    if (authResolution.runtimeOverride === "claude-sdk") {
       if (await authResolution.fallBackToPiRuntime()) {
         params.onClaudeSdkToPiFallback?.();
         if (await initializeCurrentAuthCandidate()) {
@@ -360,18 +352,13 @@ export async function createRunAuthProfileFailoverController(
           `Auth profile failover switched from Claude SDK to Pi runtime, but no usable auth profile was available for provider "${authResolution.authProvider}".`,
         );
       }
-      break;
     }
     return false;
   };
 
   try {
     let initialized = await initializeCurrentAuthCandidate();
-    while (!initialized && authResolution.runtimeOverride === "claude-sdk") {
-      if (await authResolution.moveToNextClaudeSdkProvider()) {
-        initialized = await initializeCurrentAuthCandidate();
-        continue;
-      }
+    if (!initialized && authResolution.runtimeOverride === "claude-sdk") {
       if (await authResolution.fallBackToPiRuntime()) {
         params.onClaudeSdkToPiFallback?.();
         initialized = await initializeCurrentAuthCandidate();
@@ -380,9 +367,7 @@ export async function createRunAuthProfileFailoverController(
             `Auth profile initialization switched from Claude SDK to Pi runtime, but no usable auth profile was available for provider "${authResolution.authProvider}".`,
           );
         }
-        break;
       }
-      break;
     }
     if (!initialized) {
       throwAuthProfileFailover({
