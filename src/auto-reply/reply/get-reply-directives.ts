@@ -252,7 +252,9 @@ export async function resolveReplyDirectives(params: {
       }
     }
   }
-  let directives = commandAuthorized
+  // Use command.isAuthorizedSender (resolved authorization) instead of raw commandAuthorized
+  // to ensure inline directives work when commands.allowFrom grants access (e.g., LINE).
+  let directives = command.isAuthorizedSender
     ? parsedDirectives
     : {
         ...parsedDirectives,
@@ -337,20 +339,15 @@ export async function resolveReplyDirectives(params: {
   });
   const defaultActivation = defaultGroupActivation(requireMention);
   const resolvedThinkLevel =
-    directives.thinkLevel ??
-    (sessionEntry?.thinkingLevel as ThinkLevel | undefined) ??
-    (agentCfg?.thinkingDefault as ThinkLevel | undefined);
+    directives.thinkLevel ?? (sessionEntry?.thinkingLevel as ThinkLevel | undefined);
 
   const resolvedVerboseLevel =
     directives.verboseLevel ??
     (sessionEntry?.verboseLevel as VerboseLevel | undefined) ??
     (agentCfg?.verboseDefault as VerboseLevel | undefined);
-  const configuredReasoningDefault =
-    (agentCfg?.reasoningDefault as ReasoningLevel | undefined) ?? undefined;
   let resolvedReasoningLevel: ReasoningLevel =
     directives.reasoningLevel ??
     (sessionEntry?.reasoningLevel as ReasoningLevel | undefined) ??
-    configuredReasoningDefault ??
     "off";
   const resolvedElevatedLevel = elevatedAllowed
     ? (directives.elevatedLevel ??
@@ -391,18 +388,20 @@ export async function resolveReplyDirectives(params: {
   });
   provider = modelState.provider;
   model = modelState.model;
+  const resolvedThinkLevelWithDefault =
+    resolvedThinkLevel ??
+    (await modelState.resolveDefaultThinkingLevel()) ??
+    (agentCfg?.thinkingDefault as ThinkLevel | undefined);
 
-  // When directives/session/config do not set reasoning, fall back to model capability
-  // (e.g. OpenRouter with reasoning: true).
+  // When neither directive nor session set reasoning, default to model capability
+  // (e.g. OpenRouter with reasoning: true). Skip auto-enabling when thinking is
+  // active, including model-inferred defaults, or internal thinking blocks can
+  // be emitted as visible "Reasoning:" messages.
   const reasoningExplicitlySet =
     directives.reasoningLevel !== undefined ||
     (sessionEntry?.reasoningLevel !== undefined && sessionEntry?.reasoningLevel !== null);
-  const hasConfiguredReasoningDefault = Object.hasOwn(agentCfg ?? {}, "reasoningDefault");
-  if (
-    !reasoningExplicitlySet &&
-    !hasConfiguredReasoningDefault &&
-    resolvedReasoningLevel === "off"
-  ) {
+  const thinkingActive = resolvedThinkLevelWithDefault !== "off";
+  if (!reasoningExplicitlySet && resolvedReasoningLevel === "off" && !thinkingActive) {
     resolvedReasoningLevel = await modelState.resolveDefaultReasoningLevel();
   }
 
@@ -478,7 +477,7 @@ export async function resolveReplyDirectives(params: {
       elevatedAllowed,
       elevatedFailures,
       defaultActivation,
-      resolvedThinkLevel,
+      resolvedThinkLevel: resolvedThinkLevelWithDefault,
       resolvedVerboseLevel,
       resolvedReasoningLevel,
       resolvedElevatedLevel,

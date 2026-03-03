@@ -1,7 +1,6 @@
 import type { AgentTool } from "@mariozechner/pi-agent-core";
-import { Type, type TSchema } from "@sinclair/typebox";
-import { describe, expect, it, vi } from "vitest";
-import * as logger from "../logger.js";
+import { Type } from "@sinclair/typebox";
+import { describe, expect, it } from "vitest";
 import { toToolDefinitions } from "./pi-tool-definition-adapter.js";
 
 type ToolExecute = ReturnType<typeof toToolDefinitions>[number]["execute"];
@@ -18,6 +17,15 @@ async function executeThrowingTool(name: string, callId: string) {
     },
   } satisfies AgentTool;
 
+  const defs = toToolDefinitions([tool]);
+  const def = defs[0];
+  if (!def) {
+    throw new Error("missing tool definition");
+  }
+  return await def.execute(callId, {}, undefined, undefined, extensionContext);
+}
+
+async function executeTool(tool: AgentTool, callId: string) {
   const defs = toToolDefinitions([tool]);
   const def = defs[0];
   if (!def) {
@@ -48,169 +56,45 @@ describe("pi tool definition adapter", () => {
     });
   });
 
-  it("repairs malformed JSON arguments for non-anthropic providers", async () => {
-    let capturedArgs: unknown;
+  it("coerces details-only tool results to include content", async () => {
     const tool = {
-      name: "read",
-      label: "Read",
-      description: "reads",
-      parameters: {
-        type: "object",
-        properties: {
-          path: { type: "string" },
-          limit: { type: "number" },
+      name: "memory_query",
+      label: "Memory Query",
+      description: "returns details only",
+      parameters: Type.Object({}),
+      execute: (async () => ({
+        details: {
+          hits: [{ id: "a1", score: 0.9 }],
         },
-        required: ["path"],
-      } as unknown as TSchema,
-      execute: async (_id: string, args: unknown) => {
-        capturedArgs = args;
-        return {
-          content: [{ type: "text", text: "ok" }] as const,
-          details: args,
-        };
-      },
+      })) as unknown as AgentTool["execute"],
     } satisfies AgentTool;
 
-    const defs = toToolDefinitions([tool], {
-      provider: "openai",
-      model: "gpt-4.1",
+    const result = await executeTool(tool, "call3");
+    expect(result.details).toEqual({
+      hits: [{ id: "a1", score: 0.9 }],
     });
-
-    const result = await defs[0].execute(
-      "call-1",
-      '{"paht":"/tmp/file.txt", "limit":"3"}',
-      undefined,
-      undefined,
-      extensionContext,
-    );
-
-    expect(capturedArgs).toMatchObject({
-      path: "/tmp/file.txt",
-      limit: 3,
-    });
-    expect(result).toMatchObject({
-      content: [{ type: "text", text: "ok" }],
-    });
+    expect(result.content[0]).toMatchObject({ type: "text" });
+    expect((result.content[0] as { text?: string }).text).toContain('"hits"');
   });
 
-  it("skips validation/repair for Anthropic provider", async () => {
-    let capturedArgs: unknown;
+  it("coerces non-standard object results to include content", async () => {
     const tool = {
-      name: "read",
-      label: "Read",
-      description: "reads",
-      parameters: {
-        type: "object",
-        properties: {
-          path: { type: "string" },
-        },
-        required: ["path"],
-      } as unknown as TSchema,
-      execute: async (_id: string, args: unknown) => {
-        capturedArgs = args;
-        return {
-          content: [{ type: "text", text: "ok" }] as const,
-          details: { received: args },
-        };
-      },
+      name: "memory_query_raw",
+      label: "Memory Query Raw",
+      description: "returns plain object",
+      parameters: Type.Object({}),
+      execute: (async () => ({
+        count: 2,
+        ids: ["m1", "m2"],
+      })) as unknown as AgentTool["execute"],
     } satisfies AgentTool;
 
-    const defs = toToolDefinitions([tool], {
-      provider: "anthropic",
-      model: "claude-4-opus",
+    const result = await executeTool(tool, "call4");
+    expect(result.details).toEqual({
+      count: 2,
+      ids: ["m1", "m2"],
     });
-
-    const malformed = '{"paht":"/tmp/file.txt"';
-    const result = await defs[0].execute(
-      "call-2",
-      malformed,
-      undefined,
-      undefined,
-      extensionContext,
-    );
-
-    expect(capturedArgs).toBe(malformed);
-    expect(result.content).toEqual([{ type: "text", text: "ok" }]);
-  });
-
-  it("deduplicates duplicate tool call ids", async () => {
-    const ids: string[] = [];
-    const tool = {
-      name: "noop",
-      label: "Noop",
-      description: "noop",
-      parameters: {} as unknown as TSchema,
-      execute: async (id: string) => {
-        ids.push(id);
-        return {
-          content: [{ type: "text", text: "ok" }] as const,
-          details: { id },
-        };
-      },
-    } satisfies AgentTool;
-
-    const defs = toToolDefinitions([tool], { provider: "openai" });
-
-    await defs[0].execute("same-id", {}, undefined, undefined, extensionContext);
-    await defs[0].execute("same-id", {}, undefined, undefined, extensionContext);
-
-    expect(ids).toEqual(["sameid", "sameid_2"]);
-  });
-
-  it("does not warn when toolCallId is merely sanitized (hyphens stripped)", async () => {
-    const warnSpy = vi.spyOn(logger, "logWarn");
-    const tool = {
-      name: "noop",
-      label: "Noop",
-      description: "noop",
-      parameters: {} as unknown as TSchema,
-      execute: async () => ({
-        content: [{ type: "text", text: "ok" }] as const,
-        details: {},
-      }),
-    } satisfies AgentTool;
-
-    const defs = toToolDefinitions([tool], { provider: "openai" });
-
-    // UUID with hyphens — sanitization strips them but should not warn
-    await defs[0].execute(
-      "40b2a00f-8ebf-4896-827e-44e97dfb54db",
-      {},
-      undefined,
-      undefined,
-      extensionContext,
-    );
-
-    expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining("duplicate toolCallId"));
-    warnSpy.mockRestore();
-  });
-
-  it("warns only when the same toolCallId appears more than once", async () => {
-    const warnSpy = vi.spyOn(logger, "logWarn");
-    const tool = {
-      name: "exec",
-      label: "Exec",
-      description: "exec",
-      parameters: {} as unknown as TSchema,
-      execute: async () => ({
-        content: [{ type: "text", text: "ok" }] as const,
-        details: {},
-      }),
-    } satisfies AgentTool;
-
-    const defs = toToolDefinitions([tool], {
-      provider: "openai",
-      sessionKey: "test-session",
-    });
-
-    // First call — no warning
-    await defs[0].execute("dup-id", {}, undefined, undefined, extensionContext);
-    expect(warnSpy).not.toHaveBeenCalled();
-
-    // Second call with same id — should warn
-    await defs[0].execute("dup-id", {}, undefined, undefined, extensionContext);
-    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("duplicate toolCallId tool=exec"));
-    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("session=test-session"));
-    warnSpy.mockRestore();
+    expect(result.content[0]).toMatchObject({ type: "text" });
+    expect((result.content[0] as { text?: string }).text).toContain('"count"');
   });
 });

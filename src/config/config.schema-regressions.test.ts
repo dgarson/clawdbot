@@ -37,11 +37,37 @@ describe("config schema regressions", () => {
     expect(res.ok).toBe(true);
   });
 
+  it('accepts memorySearch provider "mistral"', () => {
+    const res = validateConfigObject({
+      agents: {
+        defaults: {
+          memorySearch: {
+            provider: "mistral",
+          },
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
+
   it("accepts safe iMessage remoteHost", () => {
     const res = validateConfigObject({
       channels: {
         imessage: {
           remoteHost: "bot@gateway-host",
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
+
+  it("accepts channels.whatsapp.enabled", () => {
+    const res = validateConfigObject({
+      channels: {
+        whatsapp: {
+          enabled: true,
         },
       },
     });
@@ -77,6 +103,53 @@ describe("config schema regressions", () => {
     expect(res.ok).toBe(true);
   });
 
+  it("accepts string values for agents defaults model inputs", () => {
+    const res = validateConfigObject({
+      agents: {
+        defaults: {
+          model: "anthropic/claude-opus-4-6",
+          imageModel: "openai/gpt-4.1-mini",
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
+
+  it("accepts pdf default model and limits", () => {
+    const res = validateConfigObject({
+      agents: {
+        defaults: {
+          pdfModel: {
+            primary: "anthropic/claude-opus-4-6",
+            fallbacks: ["openai/gpt-5-mini"],
+          },
+          pdfMaxBytesMb: 12,
+          pdfMaxPages: 25,
+        },
+      },
+    });
+
+    expect(res.ok).toBe(true);
+  });
+
+  it("rejects non-positive pdf limits", () => {
+    const res = validateConfigObject({
+      agents: {
+        defaults: {
+          pdfModel: { primary: "openai/gpt-5-mini" },
+          pdfMaxBytesMb: 0,
+          pdfMaxPages: 0,
+        },
+      },
+    });
+
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.issues.some((issue) => issue.path.includes("agents.defaults.pdfMax"))).toBe(true);
+    }
+  });
+
   it("rejects relative iMessage attachment roots", () => {
     const res = validateConfigObject({
       channels: {
@@ -92,89 +165,23 @@ describe("config schema regressions", () => {
     }
   });
 
-  it("accepts sessionLabels config in agent defaults", () => {
+  it("accepts browser.extraArgs for proxy and custom flags", () => {
     const res = validateConfigObject({
-      agents: {
-        defaults: {
-          sessionLabels: {
-            enabled: true,
-            model: "anthropic/claude-haiku-4-5",
-            maxLength: 79,
-            prompt: "Generate a short session title",
-          },
-        },
+      browser: {
+        extraArgs: ["--proxy-server=http://127.0.0.1:7890"],
       },
     });
 
     expect(res.ok).toBe(true);
   });
 
-  it("rejects sessionLabels.maxLength above schema limit", () => {
+  it("rejects browser.extraArgs with non-array value", () => {
     const res = validateConfigObject({
-      agents: {
-        defaults: {
-          sessionLabels: {
-            enabled: true,
-            maxLength: 80,
-          },
-        },
+      browser: {
+        extraArgs: "--proxy-server=http://127.0.0.1:7890" as unknown,
       },
     });
 
     expect(res.ok).toBe(false);
-    if (!res.ok) {
-      expect(res.issues[0]?.path).toBe("agents.defaults.sessionLabels.maxLength");
-    }
-  });
-
-  it("accepts approvals.hitl policy escalation and boundary settings", () => {
-    const res = validateConfigObject({
-      approvals: {
-        hitl: {
-          defaultPolicyId: "default",
-          approverRoleOrder: ["viewer", "operator", "admin", "owner"],
-          policies: [
-            {
-              id: "default",
-              pattern: "nodes.*",
-              minApproverRole: "admin",
-              requireDifferentActor: true,
-              maxApprovalChainDepth: 2,
-              escalation: {
-                onDeny: "owner",
-                onTimeout: "owner",
-                maxEscalations: 3,
-              },
-            },
-          ],
-        },
-      },
-    });
-
-    expect(res.ok).toBe(true);
-  });
-
-  it("rejects approvals.hitl negative escalation limits", () => {
-    const res = validateConfigObject({
-      approvals: {
-        hitl: {
-          policies: [
-            {
-              id: "default",
-              tool: "nodes.run",
-              escalation: {
-                onDeny: "owner",
-                maxEscalations: -1,
-              },
-            },
-          ],
-        },
-      },
-    });
-
-    expect(res.ok).toBe(false);
-    if (!res.ok) {
-      expect(res.issues[0]?.path).toBe("approvals.hitl.policies.0.escalation.maxEscalations");
-    }
   });
 });

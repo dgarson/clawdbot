@@ -4,6 +4,7 @@ import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent
 import { lookupContextTokens } from "../agents/context.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import {
+  inferUniqueProviderFromConfiguredModels,
   parseModelRef,
   resolveConfiguredModelRef,
   resolveDefaultModelForAgent,
@@ -22,6 +23,7 @@ import {
   type SessionEntry,
   type SessionScope,
 } from "../config/sessions.js";
+import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import {
   normalizeAgentId,
   normalizeMainKey,
@@ -76,10 +78,6 @@ function tryResolveExistingPath(value: string): string | null {
   }
 }
 
-function areSameFileIdentity(preOpen: fs.Stats, opened: fs.Stats): boolean {
-  return preOpen.dev === opened.dev && preOpen.ino === opened.ino;
-}
-
 function resolveIdentityAvatarUrl(
   cfg: OpenClawConfig,
   agentId: string,
@@ -104,37 +102,27 @@ function resolveIdentityAvatarUrl(
   if (!isPathWithinRoot(workspaceRoot, resolvedCandidate)) {
     return undefined;
   }
-  let fd: number | null = null;
   try {
-    const resolvedReal = fs.realpathSync(resolvedCandidate);
-    if (!isPathWithinRoot(workspaceRoot, resolvedReal)) {
+    const opened = openBoundaryFileSync({
+      absolutePath: resolvedCandidate,
+      rootPath: workspaceRoot,
+      rootRealPath: workspaceRoot,
+      boundaryLabel: "workspace root",
+      maxBytes: AVATAR_MAX_BYTES,
+      skipLexicalRootCheck: true,
+    });
+    if (!opened.ok) {
       return undefined;
     }
-    const preOpenStat = fs.lstatSync(resolvedReal);
-    if (!preOpenStat.isFile() || preOpenStat.size > AVATAR_MAX_BYTES) {
-      return undefined;
+    try {
+      const buffer = fs.readFileSync(opened.fd);
+      const mime = resolveAvatarMime(resolvedCandidate);
+      return `data:${mime};base64,${buffer.toString("base64")}`;
+    } finally {
+      fs.closeSync(opened.fd);
     }
-    const openFlags =
-      fs.constants.O_RDONLY |
-      (typeof fs.constants.O_NOFOLLOW === "number" ? fs.constants.O_NOFOLLOW : 0);
-    fd = fs.openSync(resolvedReal, openFlags);
-    const openedStat = fs.fstatSync(fd);
-    if (
-      !openedStat.isFile() ||
-      openedStat.size > AVATAR_MAX_BYTES ||
-      !areSameFileIdentity(preOpenStat, openedStat)
-    ) {
-      return undefined;
-    }
-    const buffer = fs.readFileSync(fd);
-    const mime = resolveAvatarMime(resolvedCandidate);
-    return `data:${mime};base64,${buffer.toString("base64")}`;
   } catch {
     return undefined;
-  } finally {
-    if (fd !== null) {
-      fs.closeSync(fd);
-    }
   }
 }
 
@@ -705,6 +693,39 @@ export function resolveSessionModelRef(
   return { provider, model };
 }
 
+export function resolveSessionModelIdentityRef(
+  cfg: OpenClawConfig,
+  entry?:
+    | SessionEntry
+    | Pick<SessionEntry, "model" | "modelProvider" | "modelOverride" | "providerOverride">,
+  agentId?: string,
+): { provider?: string; model: string } {
+  const runtimeModel = entry?.model?.trim();
+  const runtimeProvider = entry?.modelProvider?.trim();
+  if (runtimeModel) {
+    if (runtimeProvider) {
+      return { provider: runtimeProvider, model: runtimeModel };
+    }
+    const inferredProvider = inferUniqueProviderFromConfiguredModels({
+      cfg,
+      model: runtimeModel,
+    });
+    if (inferredProvider) {
+      return { provider: inferredProvider, model: runtimeModel };
+    }
+    if (runtimeModel.includes("/")) {
+      const parsedRuntime = parseModelRef(runtimeModel, DEFAULT_PROVIDER);
+      if (parsedRuntime) {
+        return { provider: parsedRuntime.provider, model: parsedRuntime.model };
+      }
+      return { model: runtimeModel };
+    }
+    return { model: runtimeModel };
+  }
+  const resolved = resolveSessionModelRef(cfg, entry, agentId);
+  return { provider: resolved.provider, model: resolved.model };
+}
+
 export function listSessionsFromStore(params: {
   cfg: OpenClawConfig;
   storePath: string;
@@ -795,8 +816,8 @@ export function listSessionsFromStore(params: {
       const deliveryFields = normalizeSessionDeliveryFields(entry);
       const parsedAgent = parseAgentSessionKey(key);
       const sessionAgentId = normalizeAgentId(parsedAgent?.agentId ?? resolveDefaultAgentId(cfg));
-      const resolvedModel = resolveSessionModelRef(cfg, entry, sessionAgentId);
-      const modelProvider = resolvedModel.provider ?? DEFAULT_PROVIDER;
+      const resolvedModel = resolveSessionModelIdentityRef(cfg, entry, sessionAgentId);
+      const modelProvider = resolvedModel.provider;
       const model = resolvedModel.model ?? DEFAULT_MODEL;
       const resolvedThinkingLevel = resolveThinkingDefault({ cfg, provider: modelProvider, model });
       const resolvedVerboseLevel = cfg.agents?.defaults?.verboseDefault;

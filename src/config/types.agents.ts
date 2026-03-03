@@ -35,6 +35,8 @@ export type AgentConfig = {
   reasoningDefault?: AgentDefaultsConfig["reasoningDefault"];
   /** Optional per-agent sandbox overrides. */
   sandbox?: AgentSandboxConfig;
+  /** Optional per-agent stream params (e.g. cacheRetention, temperature). */
+  params?: Record<string, unknown>;
   tools?: AgentToolsConfig;
   /** Agent runtime: "pi" (default) or "claude-sdk". */
   runtime?: "pi" | "claude-sdk";

@@ -4,47 +4,49 @@ import { createSlackSendTestClient, installSlackBlockTestMocks } from "./blocks.
 installSlackBlockTestMocks();
 const { sendMessageSlack } = await import("./send.js");
 
-describe("sendMessageSlack channel resolution", () => {
-  it("uppercases lowercase channel IDs", async () => {
+describe("sendMessageSlack NO_REPLY guard", () => {
+  it("suppresses NO_REPLY text before any Slack API call", async () => {
     const client = createSlackSendTestClient();
-    await sendMessageSlack("c1a2b3", "hello", { token: "xoxb-test", client });
-    expect(client.chat.postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ channel: "C1A2B3" }),
-    );
+    const result = await sendMessageSlack("channel:C123", "NO_REPLY", {
+      token: "xoxb-test",
+      client,
+    });
+
+    expect(client.chat.postMessage).not.toHaveBeenCalled();
+    expect(result.messageId).toBe("suppressed");
   });
 
-  it("uppercases lowercase #-prefixed channel IDs", async () => {
+  it("suppresses NO_REPLY with surrounding whitespace", async () => {
     const client = createSlackSendTestClient();
-    await sendMessageSlack("#c1", "hello", { token: "xoxb-test", client });
-    expect(client.conversations.list).not.toHaveBeenCalled();
-    expect(client.chat.postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ channel: "C1" }),
-    );
+    const result = await sendMessageSlack("channel:C123", "  NO_REPLY  ", {
+      token: "xoxb-test",
+      client,
+    });
+
+    expect(client.chat.postMessage).not.toHaveBeenCalled();
+    expect(result.messageId).toBe("suppressed");
   });
 
-  it("looks up #channel-name via conversations.list and sends to resolved ID", async () => {
-    const client = createSlackSendTestClient([{ id: "C456", name: "general" }]);
-    await sendMessageSlack("#general", "hello", { token: "xoxb-test", client });
-    expect(client.conversations.list).toHaveBeenCalled();
-    expect(client.chat.postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ channel: "C456" }),
-    );
+  it("does not suppress substantive text containing NO_REPLY", async () => {
+    const client = createSlackSendTestClient();
+    await sendMessageSlack("channel:C123", "This is not a NO_REPLY situation", {
+      token: "xoxb-test",
+      client,
+    });
+
+    expect(client.chat.postMessage).toHaveBeenCalled();
   });
 
-  it("looks up channel names without # prefix via conversations.list", async () => {
-    const client = createSlackSendTestClient([{ id: "C789", name: "eng-frontend" }]);
-    await sendMessageSlack("eng-frontend", "hello", { token: "xoxb-test", client });
-    expect(client.conversations.list).toHaveBeenCalled();
-    expect(client.chat.postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ channel: "C789" }),
-    );
-  });
+  it("does not suppress NO_REPLY when blocks are attached", async () => {
+    const client = createSlackSendTestClient();
+    const result = await sendMessageSlack("channel:C123", "NO_REPLY", {
+      token: "xoxb-test",
+      client,
+      blocks: [{ type: "section", text: { type: "mrkdwn", text: "content" } }],
+    });
 
-  it("throws a clear error when the channel name is not found", async () => {
-    const client = createSlackSendTestClient([]);
-    await expect(
-      sendMessageSlack("#does-not-exist", "hello", { token: "xoxb-test", client }),
-    ).rejects.toThrow(/channel not found for name: "does-not-exist"/i);
+    expect(client.chat.postMessage).toHaveBeenCalled();
+    expect(result.messageId).toBe("171234.567");
   });
 });
 

@@ -1,16 +1,24 @@
+import { getAcpSessionManager } from "../acp/control-plane/manager.js";
+import { resolveAcpAgentPolicyError, resolveAcpDispatchPolicyError } from "../acp/policy.js";
+import { toAcpRuntimeError } from "../acp/runtime/errors.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
+
+const log = createSubsystemLogger("commands/agent");
 import {
   listAgentIds,
   resolveAgentDir,
   resolveEffectiveModelFallbacks,
-  resolveAgentModelPrimary,
+  resolveSessionAgentId,
   resolveAgentSkillsFilter,
   resolveAgentWorkspaceDir,
 } from "../agents/agent-scope.js";
 import { ensureAuthProfileStore } from "../agents/auth-profiles.js";
 import { clearSessionAuthProfileOverride } from "../agents/auth-profiles/session-override.js";
 import { runCliAgent } from "../agents/cli-runner.js";
-import { getCliSessionId } from "../agents/cli-session.js";
+import { getCliSessionId, setCliSessionId } from "../agents/cli-session.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
+import { FailoverError } from "../agents/failover-error.js";
+import { formatAgentInternalEventsForPrompt } from "../agents/internal-events.js";
 import { AGENT_LANE_SUBAGENT } from "../agents/lanes.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
 import { runWithModelFallback } from "../agents/model-fallback.js";
@@ -19,7 +27,9 @@ import {
   isCliProvider,
   modelKey,
   normalizeModelRef,
+  normalizeProviderId,
   resolveConfiguredModelRef,
+  resolveDefaultModelForAgent,
   resolveThinkingDefault,
 } from "../agents/model-selection.js";
 import { runEmbeddedPiAgent } from "../agents/pi-embedded.js";
@@ -40,6 +50,7 @@ import { formatCliCommand } from "../cli/command-format.js";
 import { type CliDeps, createDefaultDeps } from "../cli/deps.js";
 import { loadConfig } from "../config/config.js";
 import {
+  mergeSessionEntry,
   parseSessionThreadInfo,
   resolveAndPersistSessionFile,
   resolveAgentIdFromSessionKey,
@@ -47,9 +58,6 @@ import {
   resolveSessionFilePathOptions,
   resolveSessionTranscriptPath,
   type SessionEntry,
-  type SessionModelSelectionTrace,
-  type SessionModelSelectionTraceAttempt,
-  type SessionModelSelectionTraceStep,
   updateSessionStore,
 } from "../config/sessions.js";
 import {
@@ -57,7 +65,7 @@ import {
   emitAgentEvent,
   registerAgentRunContext,
 } from "../infra/agent-events.js";
-import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
+import { buildOutboundSessionContext } from "../infra/outbound/session-context.js";
 import { getRemoteSkillEligibility } from "../infra/skills-remote.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { defaultRuntime, type RuntimeEnv } from "../runtime.js";
@@ -69,7 +77,7 @@ import { deliverAgentCommandResult } from "./agent/delivery.js";
 import { resolveAgentRunContext } from "./agent/run-context.js";
 import { updateSessionStoreAfterAgentRun } from "./agent/session-store.js";
 import { resolveSession } from "./agent/session.js";
-import type { AgentCommandOpts } from "./agent/types.js";
+import type { AgentCommandIngressOpts, AgentCommandOpts } from "./agent/types.js";
 
 type PersistSessionEntryParams = {
   sessionStore: Record<string, SessionEntry>;
@@ -78,11 +86,42 @@ type PersistSessionEntryParams = {
   entry: SessionEntry;
 };
 
+type OverrideFieldClearedByDelete =
+  | "providerOverride"
+  | "modelOverride"
+  | "authProfileOverride"
+  | "authProfileOverrideSource"
+  | "authProfileOverrideCompactionCount"
+  | "fallbackNoticeSelectedModel"
+  | "fallbackNoticeActiveModel"
+  | "fallbackNoticeReason"
+  | "claudeCliSessionId";
+
+const OVERRIDE_FIELDS_CLEARED_BY_DELETE: OverrideFieldClearedByDelete[] = [
+  "providerOverride",
+  "modelOverride",
+  "authProfileOverride",
+  "authProfileOverrideSource",
+  "authProfileOverrideCompactionCount",
+  "fallbackNoticeSelectedModel",
+  "fallbackNoticeActiveModel",
+  "fallbackNoticeReason",
+  "claudeCliSessionId",
+];
+
 async function persistSessionEntry(params: PersistSessionEntryParams): Promise<void> {
-  params.sessionStore[params.sessionKey] = params.entry;
-  await updateSessionStore(params.storePath, (store) => {
-    store[params.sessionKey] = params.entry;
+  const persisted = await updateSessionStore(params.storePath, (store) => {
+    const merged = mergeSessionEntry(store[params.sessionKey], params.entry);
+    // Preserve explicit `delete` clears done by session override helpers.
+    for (const field of OVERRIDE_FIELDS_CLEARED_BY_DELETE) {
+      if (!Object.hasOwn(params.entry, field)) {
+        Reflect.deleteProperty(merged, field);
+      }
+    }
+    store[params.sessionKey] = merged;
+    return merged;
   });
+  params.sessionStore[params.sessionKey] = persisted;
 }
 
 function resolveFallbackRetryPrompt(params: { body: string; isFallbackRetry: boolean }): string {
@@ -92,93 +131,18 @@ function resolveFallbackRetryPrompt(params: { body: string; isFallbackRetry: boo
   return "Continue where you left off. The previous model attempt failed or timed out.";
 }
 
-function extractFailoverErrorDetails(error: unknown): {
-  message: string;
-  reason?: string;
-  status?: number;
-  code?: string;
-} {
-  const base =
-    error instanceof Error
-      ? { message: error.message, name: error.name }
-      : typeof error === "string"
-        ? { message: error, name: "" }
-        : { message: String(error), name: "" };
-  if (!error || typeof error !== "object") {
-    return { message: base.message };
+function prependInternalEventContext(
+  body: string,
+  events: AgentCommandOpts["internalEvents"],
+): string {
+  if (body.includes("OpenClaw runtime context (internal):")) {
+    return body;
   }
-  const err = error as Record<string, unknown>;
-  const reason = typeof err.reason === "string" ? err.reason : undefined;
-  const status = typeof err.status === "number" ? err.status : undefined;
-  const code = typeof err.code === "string" ? err.code : undefined;
-  const message =
-    typeof err.message === "string" && err.message.trim().length > 0 ? err.message : base.message;
-  return { message, reason, status, code };
-}
-
-function isCooldownSkipAttempt(attempt: { error: string; reason?: string }): boolean {
-  return (
-    attempt.reason === "rate_limit" &&
-    attempt.error.toLowerCase().includes("in cooldown (all profiles unavailable)")
-  );
-}
-
-function buildSelectionTrace(params: {
-  runId: string;
-  generatedAt: number;
-  agentId: string;
-  sessionKey?: string;
-  selected: { provider: string; model: string };
-  steps: SessionModelSelectionTraceStep[];
-  fallbackConfigured?: string[];
-}): SessionModelSelectionTrace {
-  return {
-    version: 1,
-    runId: params.runId,
-    generatedAt: params.generatedAt,
-    agentId: params.agentId,
-    sessionKey: params.sessionKey,
-    selected: params.selected,
-    steps: params.steps,
-    fallback: {
-      enabled: (params.fallbackConfigured?.length ?? 0) > 0,
-      configured: params.fallbackConfigured,
-    },
-  };
-}
-
-function buildFallbackAttemptsForTrace(params: {
-  attempts: Array<{
-    provider: string;
-    model: string;
-    error: string;
-    reason?: string;
-    status?: number;
-    code?: string;
-  }>;
-  fallbackProvider: string;
-  fallbackModel: string;
-}): SessionModelSelectionTraceAttempt[] {
-  const now = Date.now();
-  const mapped: SessionModelSelectionTraceAttempt[] = params.attempts.map((attempt, index) => ({
-    attempt: index + 1,
-    provider: attempt.provider,
-    model: attempt.model,
-    outcome: isCooldownSkipAttempt(attempt) ? "skipped" : "failed",
-    reason: attempt.reason,
-    status: attempt.status,
-    code: attempt.code,
-    error: attempt.error,
-    at: now,
-  }));
-  mapped.push({
-    attempt: mapped.length + 1,
-    provider: params.fallbackProvider,
-    model: params.fallbackModel,
-    outcome: "selected",
-    at: now,
-  });
-  return mapped;
+  const renderedEvents = formatAgentInternalEventsForPrompt(events);
+  if (!renderedEvents) {
+    return body;
+  }
+  return [renderedEvents, body].filter(Boolean).join("\n\n");
 }
 
 function runAgentAttempt(params: {
@@ -196,7 +160,7 @@ function runAgentAttempt(params: {
   resolvedThinkLevel: ThinkLevel;
   timeoutMs: number;
   runId: string;
-  opts: AgentCommandOpts;
+  opts: AgentCommandOpts & { senderIsOwner: boolean };
   runContext: ReturnType<typeof resolveAgentRunContext>;
   spawnedBy: string | undefined;
   messageChannel: ReturnType<typeof resolveMessageChannel>;
@@ -205,6 +169,8 @@ function runAgentAttempt(params: {
   agentDir: string;
   onAgentEvent: (evt: { stream: string; data?: Record<string, unknown> }) => void;
   primaryProvider: string;
+  sessionStore?: Record<string, SessionEntry>;
+  storePath?: string;
 }) {
   const effectivePrompt = resolveFallbackRetryPrompt({
     body: params.body,
@@ -212,23 +178,96 @@ function runAgentAttempt(params: {
   });
   if (isCliProvider(params.providerOverride, params.cfg)) {
     const cliSessionId = getCliSessionId(params.sessionEntry, params.providerOverride);
-    return runCliAgent({
-      sessionId: params.sessionId,
-      sessionKey: params.sessionKey,
-      agentId: params.sessionAgentId,
-      sessionFile: params.sessionFile,
-      workspaceDir: params.workspaceDir,
-      config: params.cfg,
-      prompt: effectivePrompt,
-      provider: params.providerOverride,
-      model: params.modelOverride,
-      thinkLevel: params.resolvedThinkLevel,
-      timeoutMs: params.timeoutMs,
-      runId: params.runId,
-      extraSystemPrompt: params.opts.extraSystemPrompt,
-      cliSessionId,
-      images: params.isFallbackRetry ? undefined : params.opts.images,
-      streamParams: params.opts.streamParams,
+    const runCliWithSession = (nextCliSessionId: string | undefined) =>
+      runCliAgent({
+        sessionId: params.sessionId,
+        sessionKey: params.sessionKey,
+        agentId: params.sessionAgentId,
+        sessionFile: params.sessionFile,
+        workspaceDir: params.workspaceDir,
+        config: params.cfg,
+        prompt: effectivePrompt,
+        provider: params.providerOverride,
+        model: params.modelOverride,
+        thinkLevel: params.resolvedThinkLevel,
+        timeoutMs: params.timeoutMs,
+        runId: params.runId,
+        extraSystemPrompt: params.opts.extraSystemPrompt,
+        cliSessionId: nextCliSessionId,
+        images: params.isFallbackRetry ? undefined : params.opts.images,
+        streamParams: params.opts.streamParams,
+      });
+    return runCliWithSession(cliSessionId).catch(async (err) => {
+      // Handle CLI session expired error
+      if (
+        err instanceof FailoverError &&
+        err.reason === "session_expired" &&
+        cliSessionId &&
+        params.sessionKey &&
+        params.sessionStore &&
+        params.storePath
+      ) {
+        log.warn(
+          `CLI session expired, clearing from session store: provider=${params.providerOverride} sessionKey=${params.sessionKey}`,
+        );
+
+        // Clear the expired session ID from the session store
+        const entry = params.sessionStore[params.sessionKey];
+        if (entry) {
+          const updatedEntry = { ...entry };
+          if (params.providerOverride === "claude-cli") {
+            delete updatedEntry.claudeCliSessionId;
+          }
+          if (updatedEntry.cliSessionIds) {
+            const normalizedProvider = normalizeProviderId(params.providerOverride);
+            const newCliSessionIds = { ...updatedEntry.cliSessionIds };
+            delete newCliSessionIds[normalizedProvider];
+            updatedEntry.cliSessionIds = newCliSessionIds;
+          }
+          updatedEntry.updatedAt = Date.now();
+
+          await persistSessionEntry({
+            sessionStore: params.sessionStore,
+            sessionKey: params.sessionKey,
+            storePath: params.storePath,
+            entry: updatedEntry,
+          });
+
+          // Update the session entry reference
+          params.sessionEntry = updatedEntry;
+        }
+
+        // Retry with no session ID (will create a new session)
+        return runCliWithSession(undefined).then(async (result) => {
+          // Update session store with new CLI session ID if available
+          if (
+            result.meta.agentMeta?.sessionId &&
+            params.sessionKey &&
+            params.sessionStore &&
+            params.storePath
+          ) {
+            const entry = params.sessionStore[params.sessionKey];
+            if (entry) {
+              const updatedEntry = { ...entry };
+              setCliSessionId(
+                updatedEntry,
+                params.providerOverride,
+                result.meta.agentMeta.sessionId,
+              );
+              updatedEntry.updatedAt = Date.now();
+
+              await persistSessionEntry({
+                sessionStore: params.sessionStore,
+                sessionKey: params.sessionKey,
+                storePath: params.storePath,
+                entry: updatedEntry,
+              });
+            }
+          }
+          return result;
+        });
+      }
+      throw err;
     });
   }
 
@@ -252,7 +291,7 @@ function runAgentAttempt(params: {
     currentThreadTs: params.runContext.currentThreadTs,
     replyToMode: params.runContext.replyToMode,
     hasRepliedRef: params.runContext.hasRepliedRef,
-    senderIsOwner: true,
+    senderIsOwner: params.opts.senderIsOwner,
     sessionFile: params.sessionFile,
     workspaceDir: params.workspaceDir,
     config: params.cfg,
@@ -278,15 +317,16 @@ function runAgentAttempt(params: {
   });
 }
 
-export async function agentCommand(
-  opts: AgentCommandOpts,
+async function agentCommandInternal(
+  opts: AgentCommandOpts & { senderIsOwner: boolean },
   runtime: RuntimeEnv = defaultRuntime,
   deps: CliDeps = createDefaultDeps(),
 ) {
-  const body = (opts.message ?? "").trim();
-  if (!body) {
+  const message = (opts.message ?? "").trim();
+  if (!message) {
     throw new Error("Message (--message) is required");
   }
+  const body = prependInternalEventContext(message, opts.internalEvents);
   if (!opts.to && !opts.sessionId && !opts.sessionKey && !opts.agentId) {
     throw new Error("Pass --to <E.164>, --session-id, or --agent to choose a session");
   }
@@ -311,14 +351,6 @@ export async function agentCommand(
     }
   }
   const agentCfg = cfg.agents?.defaults;
-  const sessionAgentId = agentIdOverride ?? resolveAgentIdFromSessionKey(opts.sessionKey?.trim());
-  const workspaceDirRaw = resolveAgentWorkspaceDir(cfg, sessionAgentId);
-  const agentDir = resolveAgentDir(cfg, sessionAgentId);
-  const workspace = await ensureAgentWorkspace({
-    dir: workspaceDirRaw,
-    ensureBootstrapFiles: !agentCfg?.skipBootstrap,
-  });
-  const workspaceDir = workspace.dir;
   const configuredModel = resolveConfiguredModelRef({
     cfg,
     defaultProvider: DEFAULT_PROVIDER,
@@ -377,8 +409,33 @@ export async function agentCommand(
     persistedThinking,
     persistedVerbose,
   } = sessionResolution;
+  const sessionAgentId =
+    agentIdOverride ??
+    resolveSessionAgentId({
+      sessionKey: sessionKey ?? opts.sessionKey?.trim(),
+      config: cfg,
+    });
+  const outboundSession = buildOutboundSessionContext({
+    cfg,
+    agentId: sessionAgentId,
+    sessionKey,
+  });
+  const workspaceDirRaw = resolveAgentWorkspaceDir(cfg, sessionAgentId);
+  const agentDir = resolveAgentDir(cfg, sessionAgentId);
+  const workspace = await ensureAgentWorkspace({
+    dir: workspaceDirRaw,
+    ensureBootstrapFiles: !agentCfg?.skipBootstrap,
+  });
+  const workspaceDir = workspace.dir;
   let sessionEntry = resolvedSessionEntry;
   const runId = opts.runId?.trim() || sessionId;
+  const acpManager = getAcpSessionManager();
+  const acpResolution = sessionKey
+    ? acpManager.resolveSession({
+        cfg,
+        sessionKey,
+      })
+    : null;
 
   try {
     if (opts.deliver === true) {
@@ -394,11 +451,128 @@ export async function agentCommand(
       }
     }
 
-    let resolvedThinkLevel =
-      thinkOnce ??
-      thinkOverride ??
-      persistedThinking ??
-      (agentCfg?.thinkingDefault as ThinkLevel | undefined);
+    if (acpResolution?.kind === "stale") {
+      throw acpResolution.error;
+    }
+
+    if (acpResolution?.kind === "ready" && sessionKey) {
+      const startedAt = Date.now();
+      registerAgentRunContext(runId, {
+        sessionKey,
+      });
+      emitAgentEvent({
+        runId,
+        stream: "lifecycle",
+        data: {
+          phase: "start",
+          startedAt,
+        },
+      });
+
+      let streamedText = "";
+      let stopReason: string | undefined;
+      try {
+        const dispatchPolicyError = resolveAcpDispatchPolicyError(cfg);
+        if (dispatchPolicyError) {
+          throw dispatchPolicyError;
+        }
+        const acpAgent = normalizeAgentId(
+          acpResolution.meta.agent || resolveAgentIdFromSessionKey(sessionKey),
+        );
+        const agentPolicyError = resolveAcpAgentPolicyError(cfg, acpAgent);
+        if (agentPolicyError) {
+          throw agentPolicyError;
+        }
+
+        await acpManager.runTurn({
+          cfg,
+          sessionKey,
+          text: body,
+          mode: "prompt",
+          requestId: runId,
+          signal: opts.abortSignal,
+          onEvent: (event) => {
+            if (event.type === "done") {
+              stopReason = event.stopReason;
+              return;
+            }
+            if (event.type !== "text_delta") {
+              return;
+            }
+            if (event.stream && event.stream !== "output") {
+              return;
+            }
+            if (!event.text) {
+              return;
+            }
+            streamedText += event.text;
+            emitAgentEvent({
+              runId,
+              stream: "assistant",
+              data: {
+                text: streamedText,
+                delta: event.text,
+              },
+            });
+          },
+        });
+      } catch (error) {
+        const acpError = toAcpRuntimeError({
+          error,
+          fallbackCode: "ACP_TURN_FAILED",
+          fallbackMessage: "ACP turn failed before completion.",
+        });
+        emitAgentEvent({
+          runId,
+          stream: "lifecycle",
+          data: {
+            phase: "error",
+            error: acpError.message,
+            endedAt: Date.now(),
+          },
+        });
+        throw acpError;
+      }
+
+      emitAgentEvent({
+        runId,
+        stream: "lifecycle",
+        data: {
+          phase: "end",
+          endedAt: Date.now(),
+        },
+      });
+
+      const finalText = streamedText.trim();
+      const payloads = finalText
+        ? [
+            {
+              text: finalText,
+            },
+          ]
+        : [];
+      const result = {
+        payloads,
+        meta: {
+          durationMs: Date.now() - startedAt,
+          aborted: opts.abortSignal?.aborted === true,
+          stopReason,
+        },
+      };
+
+      return await deliverAgentCommandResult({
+        cfg,
+        deps,
+        runtime,
+        opts,
+        outboundSession,
+        sessionEntry,
+        result,
+        payloads,
+      });
+    }
+
+    let resolvedThinkLevel = thinkOnce ?? thinkOverride ?? persistedThinking;
     const resolvedVerboseLevel =
       verboseOverride ?? persistedVerbose ?? (agentCfg?.verboseDefault as VerboseLevel | undefined);
 
@@ -459,29 +633,9 @@ export async function agentCommand(
       sessionEntry = next;
     }
 
-    const agentModelPrimary = resolveAgentModelPrimary(cfg, sessionAgentId);
-    const cfgForModelSelection = agentModelPrimary
-      ? {
-          ...cfg,
-          agents: {
-            ...cfg.agents,
-            defaults: {
-              ...cfg.agents?.defaults,
-              model: {
-                ...(typeof cfg.agents?.defaults?.model === "object"
-                  ? cfg.agents.defaults.model
-                  : undefined),
-                primary: agentModelPrimary,
-              },
-            },
-          },
-        }
-      : cfg;
-
-    const configuredDefaultRef = resolveConfiguredModelRef({
-      cfg: cfgForModelSelection,
-      defaultProvider: DEFAULT_PROVIDER,
-      defaultModel: DEFAULT_MODEL,
+    const configuredDefaultRef = resolveDefaultModelForAgent({
+      cfg,
+      agentId: sessionAgentId,
     });
     const { provider: defaultProvider, model: defaultModel } = normalizeModelRef(
       configuredDefaultRef.provider,
@@ -489,14 +643,6 @@ export async function agentCommand(
     );
     let provider = defaultProvider;
     let model = defaultModel;
-    let storedOverrideResolution:
-      | {
-          provider: string;
-          model: string;
-          allowed: boolean;
-          key: string;
-        }
-      | undefined;
     const hasAllowlist = agentCfg?.models && Object.keys(agentCfg.models).length > 0;
     const hasStoredOverride = Boolean(
       sessionEntry?.modelOverride || sessionEntry?.providerOverride,
@@ -505,6 +651,7 @@ export async function agentCommand(
     let allowedModelKeys = new Set<string>();
     let allowedModelCatalog: Awaited<ReturnType<typeof loadModelCatalog>> = [];
     let modelCatalog: Awaited<ReturnType<typeof loadModelCatalog>> | null = null;
+    let allowAnyModel = false;
 
     if (needsModelCatalog) {
       modelCatalog = await loadModelCatalog({ config: cfg });
@@ -516,6 +663,7 @@ export async function agentCommand(
       });
       allowedModelKeys = allowed.allowedKeys;
       allowedModelCatalog = allowed.allowedCatalog;
+      allowAnyModel = allowed.allowAny ?? false;
     }
 
     if (sessionEntry && sessionStore && sessionKey && hasStoredOverride) {
@@ -527,7 +675,7 @@ export async function agentCommand(
         const key = modelKey(normalizedOverride.provider, normalizedOverride.model);
         if (
           !isCliProvider(normalizedOverride.provider, cfg) &&
-          allowedModelKeys.size > 0 &&
+          !allowAnyModel &&
           !allowedModelKeys.has(key)
         ) {
           const { updated } = applyModelOverrideToSessionEntry({
@@ -552,78 +700,15 @@ export async function agentCommand(
       const candidateProvider = storedProviderOverride || defaultProvider;
       const normalizedStored = normalizeModelRef(candidateProvider, storedModelOverride);
       const key = modelKey(normalizedStored.provider, normalizedStored.model);
-      const allowed =
+      if (
         isCliProvider(normalizedStored.provider, cfg) ||
-        allowedModelKeys.size === 0 ||
-        allowedModelKeys.has(key);
-      storedOverrideResolution = {
-        provider: normalizedStored.provider,
-        model: normalizedStored.model,
-        allowed,
-        key,
-      };
-      if (allowed) {
+        allowAnyModel ||
+        allowedModelKeys.has(key)
+      ) {
         provider = normalizedStored.provider;
         model = normalizedStored.model;
       }
     }
-    const selectionSteps: SessionModelSelectionTraceStep[] = [
-      {
-        source: "config.default",
-        applied: true,
-        provider: defaultProvider,
-        model: defaultModel,
-        detail: "Configured default model.",
-      },
-      {
-        source: "agent.primary",
-        applied: Boolean(agentModelPrimary),
-        detail: agentModelPrimary
-          ? `Agent primary override: ${agentModelPrimary}.`
-          : "No per-agent primary override.",
-      },
-      {
-        source: "session.override",
-        applied: Boolean(storedOverrideResolution?.allowed),
-        provider: storedOverrideResolution?.provider,
-        model: storedOverrideResolution?.model,
-        detail: storedOverrideResolution
-          ? storedOverrideResolution.allowed
-            ? `Applied session override ${storedOverrideResolution.key}.`
-            : `Ignored disallowed session override ${storedOverrideResolution.key}.`
-          : storedModelOverride
-            ? "Session override was present but could not be normalized."
-            : "No session model override.",
-      },
-      {
-        source: "allowlist.guard",
-        applied: Boolean(hasAllowlist),
-        detail: hasAllowlist
-          ? `Allowlist active (${allowedModelKeys.size} entries).`
-          : "No model allowlist configured.",
-      },
-      {
-        source: "final",
-        applied: true,
-        provider,
-        model,
-        detail: `Selected ${provider}/${model}.`,
-      },
-    ];
-    const effectiveFallbacksOverride = resolveEffectiveModelFallbacks({
-      cfg,
-      agentId: sessionAgentId,
-      hasSessionModelOverride: Boolean(storedModelOverride),
-    });
-    let modelSelectionTrace = buildSelectionTrace({
-      runId,
-      generatedAt: Date.now(),
-      agentId: sessionAgentId,
-      sessionKey,
-      selected: { provider, model },
-      steps: selectionSteps,
-      fallbackConfigured: effectiveFallbacksOverride,
-    });
     if (sessionEntry) {
       const authProfileId = sessionEntry.authProfileOverride;
       if (authProfileId) {
@@ -674,23 +759,6 @@ export async function agentCommand(
         });
       }
     }
-    if (sessionStore && sessionKey) {
-      const entry = sessionStore[sessionKey] ??
-        sessionEntry ?? { sessionId, updatedAt: Date.now() };
-      const next: SessionEntry = {
-        ...entry,
-        sessionId,
-        updatedAt: Date.now(),
-        modelSelectionTrace,
-      };
-      await persistSessionEntry({
-        sessionStore,
-        sessionKey,
-        storePath,
-        entry: next,
-      });
-      sessionEntry = next;
-    }
     const sessionPathOpts = resolveSessionFilePathOptions({
       agentId: sessionAgentId,
       storePath,
@@ -721,7 +789,6 @@ export async function agentCommand(
 
     const startedAt = Date.now();
     let lifecycleEnded = false;
-    const diagnosticsEnabled = isDiagnosticsEnabled(cfg);
 
     let result: Awaited<ReturnType<typeof runEmbeddedPiAgent>>;
     let fallbackProvider = provider;
@@ -733,6 +800,13 @@ export async function agentCommand(
         opts.replyChannel ?? opts.channel,
       );
       const spawnedBy = opts.spawnedBy ?? sessionEntry?.spawnedBy;
+      // Keep fallback candidate resolution centralized so session model overrides,
+      // per-agent overrides, and default fallbacks stay consistent across callers.
+      const effectiveFallbacksOverride = resolveEffectiveModelFallbacks({
+        cfg,
+        agentId: sessionAgentId,
+        hasSessionModelOverride: Boolean(storedModelOverride),
+      });
 
       // Track model fallback attempts so retries on an existing session don't
       // re-inject the original prompt as a duplicate user message.
@@ -769,6 +843,8 @@ export async function agentCommand(
             resolvedVerboseLevel,
             agentDir,
             primaryProvider: provider,
+            sessionStore,
+            storePath,
             onAgentEvent: (evt) => {
               // Track lifecycle end for fallback emission below.
               if (
@@ -781,86 +857,10 @@ export async function agentCommand(
             },
           });
         },
-        onError: ({ provider: failedProvider, model: failedModel, error, attempt, total }) => {
-          const details = extractFailoverErrorDetails(error);
-          if (!diagnosticsEnabled) {
-            return;
-          }
-          emitDiagnosticEvent({
-            type: "model.failover.attempt",
-            sessionKey,
-            sessionId,
-            runId,
-            attempt,
-            total,
-            target: { provider: failedProvider, model: failedModel },
-            outcome: "failed",
-            reason: details.reason,
-            status: details.status,
-            code: details.code,
-            error: details.message,
-          });
-        },
       });
       result = fallbackResult.result;
       fallbackProvider = fallbackResult.provider;
       fallbackModel = fallbackResult.model;
-      if (diagnosticsEnabled) {
-        for (let i = 0; i < fallbackResult.attempts.length; i += 1) {
-          const attempt = fallbackResult.attempts[i];
-          if (!isCooldownSkipAttempt(attempt)) {
-            continue;
-          }
-          emitDiagnosticEvent({
-            type: "model.failover.attempt",
-            sessionKey,
-            sessionId,
-            runId,
-            attempt: i + 1,
-            total: fallbackResult.attempts.length + 1,
-            target: { provider: attempt.provider, model: attempt.model },
-            outcome: "skipped",
-            reason: attempt.reason,
-            status: attempt.status,
-            code: attempt.code,
-            error: attempt.error,
-          });
-        }
-        emitDiagnosticEvent({
-          type: "model.failover.attempt",
-          sessionKey,
-          sessionId,
-          runId,
-          attempt: fallbackResult.attempts.length + 1,
-          total: fallbackResult.attempts.length + 1,
-          target: { provider: fallbackProvider, model: fallbackModel },
-          outcome: "selected",
-        });
-      }
-      modelSelectionTrace = {
-        ...modelSelectionTrace,
-        active: { provider: fallbackProvider, model: fallbackModel },
-        fallback: {
-          enabled: modelSelectionTrace.fallback?.enabled ?? false,
-          configured: modelSelectionTrace.fallback?.configured,
-          attempts: buildFallbackAttemptsForTrace({
-            attempts: fallbackResult.attempts,
-            fallbackProvider,
-            fallbackModel,
-          }),
-        },
-      };
-      if (sessionStore && sessionKey) {
-        const entry = sessionStore[sessionKey] ??
-          sessionEntry ?? { sessionId, updatedAt: Date.now() };
-        sessionStore[sessionKey] = {
-          ...entry,
-          sessionId,
-          updatedAt: Date.now(),
-          modelSelectionTrace,
-        };
-        sessionEntry = sessionStore[sessionKey];
-      }
       if (!lifecycleEnded) {
         emitAgentEvent({
           runId,
@@ -912,6 +912,7 @@ export async function agentCommand(
       deps,
       runtime,
       opts,
+      outboundSession,
       sessionEntry,
       result,
       payloads,
@@ -919,4 +920,37 @@ export async function agentCommand(
   } finally {
     clearAgentRunContext(runId);
   }
+}
+
+export async function agentCommand(
+  opts: AgentCommandOpts,
+  runtime: RuntimeEnv = defaultRuntime,
+  deps: CliDeps = createDefaultDeps(),
+) {
+  return await agentCommandInternal(
+    {
+      ...opts,
+      senderIsOwner: opts.senderIsOwner ?? true,
+    },
+    runtime,
+    deps,
+  );
+}
+
+export async function agentCommandFromIngress(
+  opts: AgentCommandIngressOpts,
+  runtime: RuntimeEnv = defaultRuntime,
+  deps: CliDeps = createDefaultDeps(),
+) {
+  if (typeof opts.senderIsOwner !== "boolean") {
+    throw new Error("senderIsOwner must be explicitly set for ingress agent runs.");
+  }
+  return await agentCommandInternal(
+    {
+      ...opts,
+      senderIsOwner: opts.senderIsOwner,
+    },
+    runtime,
+    deps,
+  );
 }

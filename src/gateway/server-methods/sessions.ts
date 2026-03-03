@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
+import { getAcpSessionManager } from "../../acp/control-plane/manager.js";
 import { resolveDefaultAgentId } from "../../agents/agent-scope.js";
+import { clearBootstrapSnapshot } from "../../agents/bootstrap-cache.js";
 import { abortEmbeddedPiRun, waitForEmbeddedPiRunEnd } from "../../agents/pi-embedded.js";
 import { stopSubagentsForRequester } from "../../auto-reply/reply/abort.js";
 import { clearSessionQueues } from "../../auto-reply/reply/queue.js";
@@ -12,17 +14,16 @@ import {
   type SessionEntry,
   updateSessionStore,
 } from "../../config/sessions.js";
-import { resolveSessionFilePath } from "../../config/sessions/paths.js";
 import { unbindThreadBindingsBySessionKey } from "../../discord/monitor/thread-bindings.js";
+import { logVerbose } from "../../globals.js";
 import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
-import { appendChangeAuditRecord } from "../../infra/change-audit.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import {
   isSubagentSessionKey,
   normalizeAgentId,
   parseAgentSessionKey,
 } from "../../routing/session-key.js";
-import { formatControlPlaneActor, resolveControlPlaneActor } from "../control-plane-audit.js";
+import { GATEWAY_CLIENT_IDS } from "../protocol/client-info.js";
 import {
   ErrorCodes,
   errorShape,
@@ -84,6 +85,9 @@ function rejectWebchatSessionMutation(params: {
   respond: RespondFn;
 }): boolean {
   if (!params.client?.connect || !params.isWebchatConnect(params.client.connect)) {
+    return false;
+  }
+  if (params.client.connect.client.id === GATEWAY_CLIENT_IDS.CONTROL_UI) {
     return false;
   }
   params.respond(
@@ -188,6 +192,7 @@ async function ensureSessionRuntimeCleanup(params: {
     queueKeys.add(params.sessionId);
   }
   clearSessionQueues([...queueKeys]);
+  clearBootstrapSnapshot(params.target.canonicalKey);
   stopSubagentsForRequester({ cfg: params.cfg, requesterSessionKey: params.target.canonicalKey });
   if (!params.sessionId) {
     return undefined;
@@ -201,6 +206,108 @@ async function ensureSessionRuntimeCleanup(params: {
     ErrorCodes.UNAVAILABLE,
     `Session ${params.key} is still active; try again in a moment.`,
   );
+}
+
+const ACP_RUNTIME_CLEANUP_TIMEOUT_MS = 15_000;
+
+async function runAcpCleanupStep(params: {
+  op: () => Promise<void>;
+}): Promise<{ status: "ok" } | { status: "timeout" } | { status: "error"; error: unknown }> {
+  let timer: NodeJS.Timeout | undefined;
+  const timeoutPromise = new Promise<{ status: "timeout" }>((resolve) => {
+    timer = setTimeout(() => resolve({ status: "timeout" }), ACP_RUNTIME_CLEANUP_TIMEOUT_MS);
+  });
+  const opPromise = params
+    .op()
+    .then(() => ({ status: "ok" as const }))
+    .catch((error: unknown) => ({ status: "error" as const, error }));
+  const outcome = await Promise.race([opPromise, timeoutPromise]);
+  if (timer) {
+    clearTimeout(timer);
+  }
+  return outcome;
+}
+
+async function closeAcpRuntimeForSession(params: {
+  cfg: ReturnType<typeof loadConfig>;
+  sessionKey: string;
+  entry?: SessionEntry;
+  reason: "session-reset" | "session-delete";
+}) {
+  if (!params.entry?.acp) {
+    return undefined;
+  }
+  const acpManager = getAcpSessionManager();
+  const cancelOutcome = await runAcpCleanupStep({
+    op: async () => {
+      await acpManager.cancelSession({
+        cfg: params.cfg,
+        sessionKey: params.sessionKey,
+        reason: params.reason,
+      });
+    },
+  });
+  if (cancelOutcome.status === "timeout") {
+    return errorShape(
+      ErrorCodes.UNAVAILABLE,
+      `Session ${params.sessionKey} is still active; try again in a moment.`,
+    );
+  }
+  if (cancelOutcome.status === "error") {
+    logVerbose(
+      `sessions.${params.reason}: ACP cancel failed for ${params.sessionKey}: ${String(cancelOutcome.error)}`,
+    );
+  }
+
+  const closeOutcome = await runAcpCleanupStep({
+    op: async () => {
+      await acpManager.closeSession({
+        cfg: params.cfg,
+        sessionKey: params.sessionKey,
+        reason: params.reason,
+        requireAcpSession: false,
+        allowBackendUnavailable: true,
+      });
+    },
+  });
+  if (closeOutcome.status === "timeout") {
+    return errorShape(
+      ErrorCodes.UNAVAILABLE,
+      `Session ${params.sessionKey} is still active; try again in a moment.`,
+    );
+  }
+  if (closeOutcome.status === "error") {
+    logVerbose(
+      `sessions.${params.reason}: ACP runtime close failed for ${params.sessionKey}: ${String(closeOutcome.error)}`,
+    );
+  }
+  return undefined;
+}
+
+async function cleanupSessionBeforeMutation(params: {
+  cfg: ReturnType<typeof loadConfig>;
+  key: string;
+  target: ReturnType<typeof resolveGatewaySessionStoreTarget>;
+  entry: SessionEntry | undefined;
+  legacyKey?: string;
+  canonicalKey?: string;
+  reason: "session-reset" | "session-delete";
+}) {
+  const cleanupError = await ensureSessionRuntimeCleanup({
+    cfg: params.cfg,
+    key: params.key,
+    target: params.target,
+    sessionId: params.entry?.sessionId,
+  });
+  if (cleanupError) {
+    return cleanupError;
+  }
+  return await closeAcpRuntimeForSession({
+    cfg: params.cfg,
+    sessionKey: params.legacyKey ?? params.canonicalKey ?? params.target.canonicalKey ?? params.key,
+    entry: params.entry,
+    reason: params.reason,
+  });
 }
 
 export const sessionsHandlers: GatewayRequestHandlers = {
@@ -336,31 +443,9 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         model: resolved.model,
       },
     };
-    const actor = resolveControlPlaneActor(client);
-    await appendChangeAuditRecord({
-      source: "gateway.sessions",
-      eventType: "sessions.patch",
-      op: "patch",
-      targetPath: storePath,
-      agentId,
-      sessionId: applied.entry.sessionId,
-      sessionKey: target.canonicalKey ?? key,
-      sessionLogPath: applied.entry.sessionId
-        ? resolveSessionFilePath(
-            applied.entry.sessionId,
-            { sessionFile: applied.entry.sessionFile },
-            { agentId },
-          )
-        : undefined,
-      actor,
-      result: "ok",
-      details: {
-        actorSummary: formatControlPlaneActor(actor),
-      },
-    });
     respond(true, result, undefined);
   },
-  "sessions.reset": async ({ params, respond, client }) => {
+  "sessions.reset": async ({ params, respond }) => {
     if (!assertValidParams(params, validateSessionsResetParams, "sessions.reset", respond)) {
       return;
     }
@@ -371,7 +456,7 @@ export const sessionsHandlers: GatewayRequestHandlers = {
     }
 
     const { cfg, target, storePath } = resolveGatewaySessionTargetFromKey(key);
-    const { entry } = loadSessionEntry(key);
+    const { entry, legacyKey, canonicalKey } = loadSessionEntry(key);
     const hadExistingEntry = Boolean(entry);
     const commandReason = p.reason === "new" ? "new" : "reset";
     const hookEvent = createInternalHookEvent(
@@ -386,10 +471,17 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       },
     );
     await triggerInternalHook(hookEvent);
-    const sessionId = entry?.sessionId;
-    const cleanupError = await ensureSessionRuntimeCleanup({ cfg, key, target, sessionId });
-    if (cleanupError) {
-      respond(false, undefined, cleanupError);
+    const mutationCleanupError = await cleanupSessionBeforeMutation({
+      cfg,
+      key,
+      target,
+      entry,
+      legacyKey,
+      canonicalKey,
+      reason: "session-reset",
+    });
+    if (mutationCleanupError) {
+      respond(false, undefined, mutationCleanupError);
       return;
     }
     let oldSessionId: string | undefined;
@@ -397,6 +489,9 @@ export const sessionsHandlers: GatewayRequestHandlers = {
     const next = await updateSessionStore(storePath, (store) => {
       const { primaryKey } = migrateAndPruneSessionStoreKey({ cfg, key, store });
       const entry = store[primaryKey];
+      const parsed = parseAgentSessionKey(primaryKey);
+      const sessionAgentId = normalizeAgentId(parsed?.agentId ?? resolveDefaultAgentId(cfg));
+      const resolvedModel = resolveSessionModelRef(cfg, entry, sessionAgentId);
       oldSessionId = entry?.sessionId;
       oldSessionFile = entry?.sessionFile;
       const now = Date.now();
@@ -409,7 +504,8 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         verboseLevel: entry?.verboseLevel,
         reasoningLevel: entry?.reasoningLevel,
         responseUsage: entry?.responseUsage,
-        model: entry?.model,
+        model: resolvedModel.model,
+        modelProvider: resolvedModel.provider,
         contextTokens: entry?.contextTokens,
         sendPolicy: entry?.sendPolicy,
         label: entry?.label,
@@ -433,28 +529,6 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       sessionFile: oldSessionFile,
       agentId: target.agentId,
       reason: "reset",
-    });
-    const resetActor = resolveControlPlaneActor(client);
-    await appendChangeAuditRecord({
-      source: "gateway.sessions",
-      eventType: "sessions.reset",
-      op: "replace",
-      targetPath: storePath,
-      agentId: target.agentId,
-      sessionId: next.sessionId,
-      sessionKey: target.canonicalKey ?? key,
-      sessionLogPath: resolveSessionFilePath(
-        next.sessionId,
-        { sessionFile: next.sessionFile },
-        { agentId: target.agentId },
-      ),
-      actor: resetActor,
-      result: "ok",
-      details: {
-        oldSessionId,
-        reason: commandReason,
-        actorSummary: formatControlPlaneActor(resetActor),
-      },
     });
     if (hadExistingEntry) {
       await emitSessionUnboundLifecycleEvent({
@@ -490,13 +564,21 @@ export const sessionsHandlers: GatewayRequestHandlers = {
 
     const deleteTranscript = typeof p.deleteTranscript === "boolean" ? p.deleteTranscript : true;
 
-    const { entry } = loadSessionEntry(key);
-    const sessionId = entry?.sessionId;
-    const cleanupError = await ensureSessionRuntimeCleanup({ cfg, key, target, sessionId });
-    if (cleanupError) {
-      respond(false, undefined, cleanupError);
+    const { entry, legacyKey, canonicalKey } = loadSessionEntry(key);
+    const mutationCleanupError = await cleanupSessionBeforeMutation({
+      cfg,
+      key,
+      target,
+      entry,
+      legacyKey,
+      canonicalKey,
+      reason: "session-delete",
+    });
+    if (mutationCleanupError) {
+      respond(false, undefined, mutationCleanupError);
       return;
     }
+    const sessionId = entry?.sessionId;
     const deleted = await updateSessionStore(storePath, (store) => {
       const { primaryKey } = migrateAndPruneSessionStoreKey({ cfg, key, store });
       const hadEntry = Boolean(store[primaryKey]);
@@ -524,33 +606,6 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         emitHooks: emitLifecycleHooks,
       });
     }
-
-    const deleteActor = resolveControlPlaneActor(client);
-    await appendChangeAuditRecord({
-      source: "gateway.sessions",
-      eventType: "sessions.delete",
-      op: "delete",
-      targetPath: storePath,
-      agentId: target.agentId,
-      sessionId,
-      sessionKey: target.canonicalKey ?? key,
-      sessionLogPath:
-        sessionId != null
-          ? resolveSessionFilePath(
-              sessionId,
-              { sessionFile: entry?.sessionFile },
-              { agentId: target.agentId },
-            )
-          : undefined,
-      actor: deleteActor,
-      result: "ok",
-      details: {
-        deleted,
-        deleteTranscript,
-        archivedCount: archived.length,
-        actorSummary: formatControlPlaneActor(deleteActor),
-      },
-    });
 
     respond(true, { ok: true, key: target.canonicalKey, deleted, archived }, undefined);
   },

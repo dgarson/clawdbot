@@ -15,46 +15,21 @@ import {
   createSessionVisibilityGuard,
   createAgentToAgentPolicy,
   extractAssistantText,
-  isRequesterSpawnedSessionVisible,
   resolveEffectiveSessionToolsVisibility,
   resolveSessionReference,
   resolveSandboxedSessionToolContext,
+  resolveVisibleSessionReference,
   stripToolMessages,
 } from "./sessions-helpers.js";
 import { buildAgentToAgentMessageContext, resolvePingPongTurns } from "./sessions-send-helpers.js";
 import { runSessionsSendA2AFlow } from "./sessions-send-tool.a2a.js";
 
 const SessionsSendToolSchema = Type.Object({
-  sessionKey: Type.Optional(
-    Type.String({
-      description:
-        "Target session key (internal identifier; alternative: use 'label' + 'agentId').",
-    }),
-  ),
-  label: Type.Optional(
-    Type.String({
-      minLength: 1,
-      maxLength: SESSION_LABEL_MAX_LENGTH,
-      description:
-        "User-friendly session label for lookup (combine with 'agentId' for cross-agent resolution).",
-    }),
-  ),
-  agentId: Type.Optional(
-    Type.String({
-      minLength: 1,
-      maxLength: 64,
-      description: "Agent ID for label-based session lookup (used with 'label').",
-    }),
-  ),
-  message: Type.String({
-    description: "Message text to inject into the target session as user input.",
-  }),
-  timeoutSeconds: Type.Optional(
-    Type.Number({
-      minimum: 0,
-      description: "Response timeout in seconds (0=fire-and-forget; default: 60).",
-    }),
-  ),
+  sessionKey: Type.Optional(Type.String()),
+  label: Type.Optional(Type.String({ minLength: 1, maxLength: SESSION_LABEL_MAX_LENGTH })),
+  agentId: Type.Optional(Type.String({ minLength: 1, maxLength: 64 })),
+  message: Type.String(),
+  timeoutSeconds: Type.Optional(Type.Number({ minimum: 0 })),
 });
 
 export function createSessionsSendTool(opts?: {
@@ -155,7 +130,6 @@ export function createSessionsSendTool(opts?: {
             runId: crypto.randomUUID(),
             status: "error",
             error: msg || `No session found with label: ${labelParam}`,
-            requester: effectiveRequesterKey,
           });
         }
 
@@ -171,7 +145,6 @@ export function createSessionsSendTool(opts?: {
             runId: crypto.randomUUID(),
             status: "error",
             error: `No session found with label: ${labelParam}`,
-            requester: effectiveRequesterKey,
           });
         }
         sessionKey = resolvedKey;
@@ -198,34 +171,27 @@ export function createSessionsSendTool(opts?: {
           error: resolvedSession.error,
         });
       }
-      // Normalize sessionKey/sessionId input into a canonical session key.
-      const resolvedKey = resolvedSession.key;
-      const displayKey = resolvedSession.displayKey;
-      const resolvedViaSessionId = resolvedSession.resolvedViaSessionId;
-
-      if (restrictToSpawned && !resolvedViaSessionId && resolvedKey !== effectiveRequesterKey) {
-        const ok = await isRequesterSpawnedSessionVisible({
-          requesterSessionKey: effectiveRequesterKey,
-          targetSessionKey: resolvedKey,
+      const visibleSession = await resolveVisibleSessionReference({
+        resolvedSession,
+        requesterSessionKey: effectiveRequesterKey,
+        restrictToSpawned,
+        visibilitySessionKey: sessionKey,
+      });
+      if (!visibleSession.ok) {
+        return jsonResult({
+          runId: crypto.randomUUID(),
+          status: visibleSession.status,
+          error: visibleSession.error,
+          sessionKey: visibleSession.displayKey,
         });
-        if (!ok) {
-          return jsonResult({
-            runId: crypto.randomUUID(),
-            status: "forbidden",
-            error: `Session not visible from this sandboxed agent session: ${sessionKey}`,
-            sessionKey: displayKey,
-          });
-        }
       }
-      const configDefaultTimeout =
-        typeof cfg.tools?.sessions?.sendTimeoutSeconds === "number" &&
-        Number.isFinite(cfg.tools.sessions.sendTimeoutSeconds)
-          ? Math.max(0, Math.floor(cfg.tools.sessions.sendTimeoutSeconds))
-          : 900;
+      // Normalize sessionKey/sessionId input into a canonical session key.
+      const resolvedKey = visibleSession.key;
+      const displayKey = visibleSession.displayKey;
       const timeoutSeconds =
         typeof params.timeoutSeconds === "number" && Number.isFinite(params.timeoutSeconds)
           ? Math.max(0, Math.floor(params.timeoutSeconds))
-          : configDefaultTimeout;
+          : 30;
       const timeoutMs = timeoutSeconds * 1000;
       const announceTimeoutMs = timeoutSeconds === 0 ? 30_000 : timeoutMs;
       const idempotencyKey = crypto.randomUUID();
