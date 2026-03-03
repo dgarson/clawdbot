@@ -116,7 +116,6 @@ export type ClaudeSdkAuthResolutionState = {
   readonly profileCandidates: AuthProfileCandidate[];
   readonly profileIndex: number;
   advanceProfileIndex: () => void;
-  moveToNextClaudeSdkProvider: () => Promise<boolean>;
   fallBackToPiRuntime: () => Promise<boolean>;
 };
 
@@ -182,14 +181,13 @@ export async function createClaudeSdkAuthResolutionState(params: {
       }
       profileIndex += 1;
     },
-    async moveToNextClaudeSdkProvider() {
-      // System-keychain providers have a single candidate; no multi-provider rotation.
-      return false;
-    },
     async fallBackToPiRuntime() {
       if (runtimeOverride !== "claude-sdk") {
         return false;
       }
+      // Only runtimeOverride changes to "pi"; authProvider intentionally stays as
+      // params.provider (e.g. "claude-personal"). This ensures Pi runtime fails auth
+      // cleanly rather than silently crossing into anthropic API-key credentials.
       await setActiveAuthProvider(params.provider, "pi");
       return true;
     },

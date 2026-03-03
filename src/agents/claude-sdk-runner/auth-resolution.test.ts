@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../model-auth.js", () => ({
-  SYSTEM_KEYCHAIN_PROVIDERS: new Set(["claude-pro"]),
+  SYSTEM_KEYCHAIN_PROVIDERS: new Set(["claude-pro", "claude-personal"]),
   resolveAuthProfileOrder: mocks.resolveAuthProfileOrder,
 }));
 
@@ -119,6 +119,27 @@ describe("createClaudeSdkAuthResolutionState", () => {
 
     expect(state.runtimeOverride).toBeUndefined();
     expect(await state.fallBackToPiRuntime()).toBe(false);
+  });
+
+  it("fallBackToPiRuntime preserves claude-personal as authProvider", async () => {
+    const authStore = { profiles: {} } as never;
+    const state = await createClaudeSdkAuthResolutionState({
+      provider: "claude-personal",
+      cfg: {},
+      claudeSdkConfig: undefined,
+      authStore,
+      agentDir: "/tmp/agent",
+      preferredProfileId: undefined,
+      authProfileIdSource: undefined,
+    });
+
+    expect(state.runtimeOverride).toBe("claude-sdk");
+    const fell = await state.fallBackToPiRuntime();
+    expect(fell).toBe(true);
+    expect(state.runtimeOverride).toBe("pi");
+    // authProvider must remain "claude-personal" — must NOT cross into anthropic API-key credentials
+    expect(state.authProvider).toBe("claude-personal");
+    expect(state.authProvider).not.toBe("anthropic");
   });
 
   it("advanceProfileIndex increments for unlocked profiles", async () => {
