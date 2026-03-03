@@ -178,7 +178,7 @@ openclaw [--dev] [--profile <name>] <command>
     fallbacks list|add|remove|clear
     image-fallbacks list|add|remove|clear
     scan
-    auth add|setup-claude-pro|setup-token|paste-token
+    auth add|setup-claude-personal|setup-token|paste-token
     auth order get|set|clear
   sandbox
     list
@@ -840,10 +840,10 @@ Policy note: this is technical compatibility. Anthropic has blocked some
 subscription usage outside Claude Code in the past; verify current Anthropic
 terms before relying on setup-token in production.
 
-Claude Code keychain auth (`claude-pro` by default):
+Claude Code keychain auth (personal Claude subscription):
 
 ```bash
-openclaw models auth setup-claude-pro
+openclaw models auth setup-claude-personal
 openclaw models status
 ```
 
@@ -934,12 +934,12 @@ Options:
 - `--set-image`
 - `--json`
 
-### `models auth add|setup-claude-pro|setup-token|paste-token`
+### `models auth add|setup-claude-personal|setup-token|paste-token`
 
 Options:
 
 - `add`: interactive auth helper
-- `setup-claude-pro`: `--provider <claude-pro|claude-max>` (default `claude-pro`), `--profile-id <id>`, `--yes`
+- `setup-claude-personal`: `--profile-id <id>`, `--yes`
 - `setup-token`: `--provider <name>` (default `anthropic`), `--yes`
 - `paste-token`: `--provider <name>`, `--profile-id <id>`, `--expires-in <duration>`
 

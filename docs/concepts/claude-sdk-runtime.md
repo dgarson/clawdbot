@@ -31,10 +31,10 @@ This page is the high level map for the Claude Agent SDK runtime in OpenClaw.
 OpenClaw can run a turn in either Claude SDK runtime or Pi runtime.
 
 - Runtime is selected from the provider, not a runtime toggle:
-  - `claude-pro` / `claude-max` use Claude SDK runtime.
+  - `claude-personal` uses Claude SDK runtime.
   - All other providers use Pi runtime.
-- For `claude-pro` / `claude-max`, OpenClaw registers a synthetic auth profile
-  (`<provider>:system-keychain`) so cooldown tracking can survive session boundaries.
+- For `claude-personal`, OpenClaw registers a synthetic auth profile
+  (`claude-personal:system-keychain`) so cooldown tracking can survive session boundaries.
 - If system-keychain auth resolution fails before the attempt starts, OpenClaw
   immediately retries the same turn on Pi runtime.
 - If auth/profile failover is exhausted after retries, OpenClaw follows the
@@ -59,7 +59,7 @@ Optional Claude SDK tuning:
 Optional pre-seed for keychain onboarding:
 
 ```bash
-openclaw models auth setup-claude-pro
+openclaw models auth setup-claude-personal
 ```
 
 ## Parity map

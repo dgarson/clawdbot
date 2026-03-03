@@ -33,14 +33,14 @@ Credential types:
 
 ## Claude Code keychain providers
 
-For `claude-pro` and `claude-max`, OpenClaw uses Claude Code system-keychain
-auth and routes turns to Claude SDK runtime first.
+For `claude-personal` (personal Claude subscription, Pro or Max), OpenClaw uses
+Claude Code system-keychain auth and routes turns to Claude SDK runtime first.
 
-- Synthetic profile IDs use `<provider>:system-keychain`.
+- Synthetic profile IDs use `claude-personal:system-keychain`.
 - You can pre-create these profiles during onboarding:
 
 ```bash
-openclaw models auth setup-claude-pro
+openclaw models auth setup-claude-personal
 ```
 
 - If keychain auth cannot be resolved for a turn, OpenClaw retries that turn on

@@ -69,15 +69,15 @@ OpenClaw ships with the pi‑ai catalog. These providers require **no**
 }
 ```
 
-### Claude Code keychain (Claude Pro/Max)
+### Claude Code keychain (personal Claude subscription, Pro or Max)
 
-- Providers: `claude-pro`, `claude-max`
+- Provider: `claude-personal`
 - Auth: Claude Code system keychain credentials (`~/.claude/*`)
-- Runtime: automatically uses Claude SDK runtime for these providers
-- CLI onboarding: `openclaw models auth setup-claude-pro` (defaults to `claude-pro`; pass `--provider claude-max` for Max)
+- Runtime: automatically uses Claude SDK runtime for this provider
+- CLI onboarding: `openclaw models auth setup-claude-personal`
 - Interactive onboarding: `openclaw models auth add` then `Configure Claude Code w/Keychain`
 
-This flow pre-creates a synthetic profile (`<provider>:system-keychain`) so
+This flow pre-creates a synthetic profile (`claude-personal:system-keychain`) so
 cooldown and failover behavior works consistently across sessions.
 
 ### OpenAI Code (Codex)
