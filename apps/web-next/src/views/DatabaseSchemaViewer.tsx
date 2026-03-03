@@ -994,6 +994,13 @@ const DatabaseSchemaViewer: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-6">
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      >
+        Skip to main content
+      </a>
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">Database Schema Viewer</h1>
@@ -1021,12 +1028,12 @@ const DatabaseSchemaViewer: React.FC = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="h-[calc(100vh-220px)]">
+      <main id="main-content" role="main" className="h-[calc(100vh-220px)]">
         {activeTab === "tables" && <TablesTab />}
         {activeTab === "relationships" && <RelationshipsTab />}
         {activeTab === "migrations" && <MigrationsTab />}
         {activeTab === "search" && <SearchTab />}
-      </div>
+      </main>
     </div>
   );
 };

@@ -1919,6 +1919,13 @@ export default function APIRateLimitManager() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      >
+        Skip to main content
+      </a>
       {/* Top Bar */}
       <div className="bg-zinc-900 border-b border-zinc-800 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -1938,7 +1945,7 @@ export default function APIRateLimitManager() {
           <div className="flex items-center gap-4">
             {throttledCount > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-900/50 border border-rose-800 rounded-lg">
-                <span className="w-2 h-2 bg-rose-400 rounded-full animate-pulse" />
+                <span className="w-2 h-2 bg-rose-400 rounded-full motion-safe:animate-pulse" aria-hidden="true" />
                 <span className="text-xs text-rose-300 font-semibold">
                   {throttledCount} throttled
                 </span>
@@ -1946,7 +1953,7 @@ export default function APIRateLimitManager() {
             )}
             {criticalViolations > 0 && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-900/50 border border-orange-800 rounded-lg">
-                <span className="w-2 h-2 bg-orange-400 rounded-full" />
+                <span className="w-2 h-2 bg-orange-400 rounded-full" aria-hidden="true" />
                 <span className="text-xs text-orange-300 font-semibold">
                   {criticalViolations} critical
                 </span>
@@ -1995,7 +2002,7 @@ export default function APIRateLimitManager() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <main id="main-content" role="main" className="max-w-7xl mx-auto px-6 py-6">
         {activeTab === "overview" && (
           <OverviewTab rules={RULES} violations={VIOLATIONS} consumers={CONSUMERS} />
         )}
@@ -2008,7 +2015,7 @@ export default function APIRateLimitManager() {
         )}
         {activeTab === "violations" && <ViolationsTab violations={VIOLATIONS} />}
         {activeTab === "consumers" && <ConsumersTab consumers={CONSUMERS} />}
-      </div>
+      </main>
 
       {/* Footer */}
       <div className="border-t border-zinc-800 mt-8 px-6 py-4">

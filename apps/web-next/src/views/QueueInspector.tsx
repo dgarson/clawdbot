@@ -1189,6 +1189,13 @@ export default function QueueInspector() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-950 min-h-0">
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      >
+        Skip to main content
+      </a>
       {/* Page Header */}
       <div className="shrink-0 px-6 pt-6 pb-4">
         <div className="flex items-center justify-between">
@@ -1203,7 +1210,7 @@ export default function QueueInspector() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-emerald-400 motion-safe:animate-pulse" aria-hidden="true" />
             <span className="text-xs text-zinc-400">Live</span>
           </div>
         </div>
@@ -1238,7 +1245,7 @@ export default function QueueInspector() {
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 min-h-0 overflow-hidden px-6 py-4">
+      <main id="main-content" role="main" className="flex-1 min-h-0 overflow-hidden px-6 py-4">
         {activeTab === "queues" && (
           <QueuesTab
             selectedQueueId={selectedQueueId}
@@ -1248,7 +1255,7 @@ export default function QueueInspector() {
         {activeTab === "messages"   && <MessagesTab />}
         {activeTab === "deadletter" && <DeadLetterTab />}
         {activeTab === "metrics"    && <MetricsTab />}
-      </div>
+      </main>
     </div>
   );
 }

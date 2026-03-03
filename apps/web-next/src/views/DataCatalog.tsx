@@ -1742,6 +1742,13 @@ export default function DataCatalog() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      >
+        Skip to main content
+      </a>
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Page header */}
         <div className="mb-8">
@@ -1802,17 +1809,19 @@ export default function DataCatalog() {
         </div>
 
         {/* Tab content */}
-        {activeTab === "browse" && (
-          <BrowseTab
-            domainFilter={browseDomainFilter}
-            onClearDomainFilter={() => setBrowseDomainFilter(null)}
-          />
-        )}
-        {activeTab === "domains" && (
-          <DomainsTab onSelectDomain={handleSelectDomain} />
-        )}
-        {activeTab === "glossary" && <GlossaryTab />}
-        {activeTab === "quality" && <QualityTab />}
+        <main id="main-content" role="main">
+          {activeTab === "browse" && (
+            <BrowseTab
+              domainFilter={browseDomainFilter}
+              onClearDomainFilter={() => setBrowseDomainFilter(null)}
+            />
+          )}
+          {activeTab === "domains" && (
+            <DomainsTab onSelectDomain={handleSelectDomain} />
+          )}
+          {activeTab === "glossary" && <GlossaryTab />}
+          {activeTab === "quality" && <QualityTab />}
+        </main>
       </div>
     </div>
   )

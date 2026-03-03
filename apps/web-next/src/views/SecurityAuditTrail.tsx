@@ -1584,6 +1584,13 @@ export default function SecurityAuditTrail() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      >
+        Skip to main content
+      </a>
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
@@ -1596,7 +1603,7 @@ export default function SecurityAuditTrail() {
             </p>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-400/10 border border-emerald-400/20 rounded-lg">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-emerald-400 motion-safe:animate-pulse" aria-hidden="true" />
             <span className="text-emerald-400 text-sm font-medium">Live</span>
           </div>
         </div>
@@ -1666,27 +1673,29 @@ export default function SecurityAuditTrail() {
         </div>
 
         {/* Tab content */}
-        {activeTab === "events" && (
-          <EventsTab
-            events={MOCK_EVENTS}
-            filters={filters}
-            onFilterChange={setFilters}
-            selectedEvent={selectedEvent}
-            onSelectEvent={setSelectedEvent}
-          />
-        )}
-        {activeTab === "anomalies" && (
-          <AnomaliesTab
-            anomalies={anomalies}
-            onStatusChange={handleAnomalyStatusChange}
-          />
-        )}
-        {activeTab === "compliance" && (
-          <ComplianceTab frameworks={COMPLIANCE_FRAMEWORKS} />
-        )}
-        {activeTab === "export" && (
-          <ExportTab state={exportState} onChange={setExportState} />
-        )}
+        <main id="main-content" role="main">
+          {activeTab === "events" && (
+            <EventsTab
+              events={MOCK_EVENTS}
+              filters={filters}
+              onFilterChange={setFilters}
+              selectedEvent={selectedEvent}
+              onSelectEvent={setSelectedEvent}
+            />
+          )}
+          {activeTab === "anomalies" && (
+            <AnomaliesTab
+              anomalies={anomalies}
+              onStatusChange={handleAnomalyStatusChange}
+            />
+          )}
+          {activeTab === "compliance" && (
+            <ComplianceTab frameworks={COMPLIANCE_FRAMEWORKS} />
+          )}
+          {activeTab === "export" && (
+            <ExportTab state={exportState} onChange={setExportState} />
+          )}
+        </main>
       </div>
     </div>
   );
