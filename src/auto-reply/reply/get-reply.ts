@@ -1,8 +1,8 @@
 import {
   resolveAgentDir,
+  resolveAgentReasoningDefault,
   resolveAgentWorkspaceDir,
   resolveSessionAgentId,
-  resolveAgentReasoningDefault,
   resolveAgentSkillsFilter,
   resolveAgentThinkingDefault,
 } from "../../agents/agent-scope.js";

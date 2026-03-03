@@ -129,6 +129,73 @@ type PromptBuildHookRunner = {
   ) => Promise<PluginHookBeforeAgentStartResult | undefined>;
 };
 
+type ClaudeSdkConfigLike = Record<string, unknown> & { provider?: string };
+
+function extractAgentClaudeSdkConfig(
+  cfg: OpenClawConfig | undefined,
+  sessionAgentId: string,
+): ClaudeSdkConfigLike | false | undefined {
+  const normalized = sessionAgentId.trim().toLowerCase();
+  const list = cfg?.agents?.list;
+  const agent = Array.isArray(list)
+    ? list.find(
+        (entry) =>
+          String(entry?.id ?? "")
+            .trim()
+            .toLowerCase() === normalized,
+      )
+    : undefined;
+  const agentValue = (agent as { claudeSdk?: unknown } | undefined)?.claudeSdk;
+  if (agentValue === false) {
+    return false;
+  }
+  if (agentValue && typeof agentValue === "object") {
+    return agentValue as ClaudeSdkConfigLike;
+  }
+  const defaultsValue = (cfg?.agents?.defaults as { claudeSdk?: unknown } | undefined)?.claudeSdk;
+  if (defaultsValue === false) {
+    return false;
+  }
+  if (defaultsValue && typeof defaultsValue === "object") {
+    return defaultsValue as ClaudeSdkConfigLike;
+  }
+  return undefined;
+}
+
+export function resolveClaudeSdkConfig(
+  params: Pick<EmbeddedRunAttemptParams, "config">,
+  sessionAgentId: string,
+): ClaudeSdkConfigLike | undefined {
+  const raw = extractAgentClaudeSdkConfig(params.config, sessionAgentId);
+  if (!raw || raw === false) {
+    return undefined;
+  }
+  const provider = typeof raw.provider === "string" ? raw.provider.trim() : "";
+  if (!provider) {
+    return undefined;
+  }
+  return { ...raw, provider };
+}
+
+export function resolveRuntime(
+  params: Pick<EmbeddedRunAttemptParams, "provider" | "config">,
+  sessionAgentId: string,
+): "claude-sdk" | "pi" {
+  if (resolveClaudeSdkConfig(params, sessionAgentId)) {
+    return "claude-sdk";
+  }
+  const provider = String(params.provider ?? "")
+    .trim()
+    .toLowerCase();
+  if (provider === "claude-max" || provider === "claude-code" || provider === "claude-sdk") {
+    return "claude-sdk";
+  }
+  if (provider.includes("claude") && provider !== "") {
+    log.warn(`Provider resembles claude-sdk but is not mapped to runtime: ${provider}`);
+  }
+  return "pi";
+}
+
 export function injectHistoryImagesIntoMessages(
   messages: AgentMessage[],
   historyImagesByIndex: Map<number, ImageContent[]>,

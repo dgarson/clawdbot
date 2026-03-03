@@ -9,6 +9,7 @@ export async function resolveCurrentDirectiveLevels(params: {
   };
   agentCfg?: {
     thinkingDefault?: unknown;
+    reasoningDefault?: unknown;
     verboseDefault?: unknown;
     reasoningDefault?: unknown;
     elevatedDefault?: unknown;

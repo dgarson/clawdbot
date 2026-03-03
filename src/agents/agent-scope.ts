@@ -35,6 +35,8 @@ type ResolvedAgentConfig = {
   identity?: AgentEntry["identity"];
   groupChat?: AgentEntry["groupChat"];
   subagents?: AgentEntry["subagents"];
+  thinkingDefault?: AgentEntry["thinkingDefault"];
+  reasoningDefault?: AgentEntry["reasoningDefault"];
   sandbox?: AgentEntry["sandbox"];
   tools?: AgentEntry["tools"];
   /** Plugin-defined metadata from the agent entry (see AgentConfig.metadata). */
@@ -139,6 +141,9 @@ export function resolveAgentConfig(
     identity: entry.identity,
     groupChat: entry.groupChat,
     subagents: typeof entry.subagents === "object" && entry.subagents ? entry.subagents : undefined,
+    thinkingDefault: typeof entry.thinkingDefault === "string" ? entry.thinkingDefault : undefined,
+    reasoningDefault:
+      typeof entry.reasoningDefault === "string" ? entry.reasoningDefault : undefined,
     sandbox: entry.sandbox,
     tools: entry.tools,
     metadata: entry.metadata,
@@ -150,6 +155,20 @@ export function resolveAgentSkillsFilter(
   agentId: string,
 ): string[] | undefined {
   return normalizeSkillFilter(resolveAgentConfig(cfg, agentId)?.skills);
+}
+
+export function resolveAgentThinkingDefault(
+  cfg: OpenClawConfig,
+  agentId: string,
+): AgentEntry["thinkingDefault"] {
+  return resolveAgentConfig(cfg, agentId)?.thinkingDefault;
+}
+
+export function resolveAgentReasoningDefault(
+  cfg: OpenClawConfig,
+  agentId: string,
+): AgentEntry["reasoningDefault"] {
+  return resolveAgentConfig(cfg, agentId)?.reasoningDefault;
 }
 
 function resolveModelPrimary(raw: unknown): string | undefined {
