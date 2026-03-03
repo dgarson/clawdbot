@@ -22,7 +22,7 @@ export const TELEGRAM_RETRY_DEFAULTS = {
 const TELEGRAM_RETRY_RE = /429|timeout|connect|reset|closed|unavailable|temporarily/i;
 const log = createSubsystemLogger("retry-policy");
 
-function getTelegramRetryAfterMs(err: unknown): number | undefined {
+export function getTelegramRetryAfterMs(err: unknown): number | undefined {
   if (!err || typeof err !== "object") {
     return undefined;
   }

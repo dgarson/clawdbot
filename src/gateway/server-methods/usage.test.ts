@@ -1,6 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../../config/config.js";
 
+vi.mock("../../infra/billable-usage-store.js", () => ({
+  loadBillableUsageSummary: vi.fn(async () => ({
+    summary: {
+      count: 1,
+      requestCount: 1,
+      usd: 1.2,
+      tokens: 10,
+      characters: 0,
+      seconds: 0,
+      images: 0,
+    },
+    limitStatuses: [],
+    recordCount: 1,
+  })),
+}));
+
 vi.mock("../../infra/session-cost-usage.js", async () => {
   const actual = await vi.importActual<typeof import("../../infra/session-cost-usage.js")>(
     "../../infra/session-cost-usage.js",
@@ -17,8 +33,9 @@ vi.mock("../../infra/session-cost-usage.js", async () => {
   };
 });
 
+import { loadBillableUsageSummary } from "../../infra/billable-usage-store.js";
 import { loadCostUsageSummary } from "../../infra/session-cost-usage.js";
-import { __test } from "./usage.js";
+import { __test, usageHandlers } from "./usage.js";
 
 describe("gateway usage helpers", () => {
   const dayMs = 24 * 60 * 60 * 1000;
@@ -136,6 +153,32 @@ describe("gateway usage helpers", () => {
     const def = __test.parseDateRange({});
     expect(def.endMs).toBe(Date.UTC(2026, 1, 5) + dayMs - 1);
     expect(def.startMs).toBe(Date.UTC(2026, 1, 5) - 29 * dayMs);
+  });
+
+  it("parseBillableLimits filters invalid entries", () => {
+    const parsed = __test.parseBillableLimits([
+      { id: "ok", window: "week", unit: "usd", max: 10, scope: { provider: "openai" } },
+      { id: "bad-unit", window: "week", unit: "wat", max: 10 },
+      { id: "bad-max", window: "month", unit: "tokens", max: "oops" },
+    ]);
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0]?.id).toBe("ok");
+  });
+
+  it("usage.billable returns summarized response", async () => {
+    const respond = vi.fn();
+    await usageHandlers["usage.billable"]({
+      respond,
+      params: { days: 7, limits: [{ id: "w", window: "week", unit: "usd", max: 10 }] },
+    } as never);
+    expect(vi.mocked(loadBillableUsageSummary)).toHaveBeenCalledTimes(1);
+    const args = vi.mocked(loadBillableUsageSummary).mock.calls[0]?.[0];
+    expect(args?.limits).toHaveLength(1);
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({ summary: expect.objectContaining({ usd: 1.2 }), recordCount: 1 }),
+      undefined,
+    );
   });
 
   it("loadCostUsageSummaryCached caches within TTL", async () => {

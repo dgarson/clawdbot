@@ -581,6 +581,15 @@ class NodeRuntime(context: Context) {
     externalAudioCaptureActive.value = value
   }
 
+  fun logGatewayDebugSnapshot(source: String = "manual") {
+    val flowToken = gatewayToken.value.trim()
+    val loadedToken = prefs.loadGatewayToken().orEmpty()
+    Log.i(
+      "OpenClawGatewayDebug",
+      "source=$source manualEnabled=${manualEnabled.value} host=${manualHost.value} port=${manualPort.value} tls=${manualTls.value} flowTokenLen=${flowToken.length} loadTokenLen=${loadedToken.length} connected=${isConnected.value} status=${statusText.value}",
+    )
+  }
+
   fun refreshGatewayConnection() {
     val endpoint =
       connectedEndpoint ?: run {

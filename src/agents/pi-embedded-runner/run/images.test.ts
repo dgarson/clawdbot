@@ -309,4 +309,76 @@ describe("detectAndLoadPromptImages", () => {
       await fs.rm(stateDir, { recursive: true, force: true });
     }
   });
+
+  it("blocks prompt image refs outside workspace when sandbox workspaceOnly is enabled", async () => {
+    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-native-image-sandbox-"));
+    const sandboxRoot = path.join(stateDir, "sandbox");
+    const agentRoot = path.join(stateDir, "agent");
+    await fs.mkdir(sandboxRoot, { recursive: true });
+    await fs.mkdir(agentRoot, { recursive: true });
+    const pngB64 =
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/woAAn8B9FD5fHAAAAAASUVORK5CYII=";
+    await fs.writeFile(path.join(agentRoot, "secret.png"), Buffer.from(pngB64, "base64"));
+    const sandbox = createUnsafeMountedSandbox({ sandboxRoot, agentRoot });
+    const bridge = sandbox.fsBridge;
+    if (!bridge) {
+      throw new Error("sandbox fs bridge missing");
+    }
+
+    try {
+      const result = await detectAndLoadPromptImages({
+        prompt: "Inspect /agent/secret.png",
+        workspaceDir: sandboxRoot,
+        model: { input: ["text", "image"] },
+        workspaceOnly: true,
+        sandbox: { root: sandbox.workspaceDir, bridge },
+      });
+
+      expect(result.detectedRefs).toHaveLength(1);
+      expect(result.loadedCount).toBe(0);
+      expect(result.skippedCount).toBe(1);
+      expect(result.images).toHaveLength(0);
+    } finally {
+      await fs.rm(stateDir, { recursive: true, force: true });
+    }
+  });
+
+  it("blocks history image refs outside workspace when sandbox workspaceOnly is enabled", async () => {
+    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-native-image-sandbox-"));
+    const sandboxRoot = path.join(stateDir, "sandbox");
+    const agentRoot = path.join(stateDir, "agent");
+    await fs.mkdir(sandboxRoot, { recursive: true });
+    await fs.mkdir(agentRoot, { recursive: true });
+    const pngB64 =
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/woAAn8B9FD5fHAAAAAASUVORK5CYII=";
+    await fs.writeFile(path.join(agentRoot, "secret.png"), Buffer.from(pngB64, "base64"));
+    const sandbox = createUnsafeMountedSandbox({ sandboxRoot, agentRoot });
+    const bridge = sandbox.fsBridge;
+    if (!bridge) {
+      throw new Error("sandbox fs bridge missing");
+    }
+
+    try {
+      const result = await detectAndLoadPromptImages({
+        prompt: "No inline image in this turn.",
+        workspaceDir: sandboxRoot,
+        model: { input: ["text", "image"] },
+        workspaceOnly: true,
+        historyMessages: [
+          {
+            role: "user",
+            content: [{ type: "text", text: "Previous image /agent/secret.png" }],
+          },
+        ],
+        sandbox: { root: sandbox.workspaceDir, bridge },
+      });
+
+      expect(result.detectedRefs).toHaveLength(1);
+      expect(result.loadedCount).toBe(0);
+      expect(result.skippedCount).toBe(1);
+      expect(result.historyImagesByIndex.size).toBe(0);
+    } finally {
+      await fs.rm(stateDir, { recursive: true, force: true });
+    }
+  });
 });

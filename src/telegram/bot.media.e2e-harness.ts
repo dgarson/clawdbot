@@ -6,6 +6,12 @@ export const middlewareUseSpy: Mock = vi.fn();
 export const onSpy: Mock = vi.fn();
 export const stopSpy: Mock = vi.fn();
 export const sendChatActionSpy: Mock = vi.fn();
+export const saveMediaBufferSpy: Mock = vi.fn(async (buffer: Buffer, contentType?: string) => ({
+  id: "media",
+  path: "/tmp/telegram-media",
+  size: buffer.byteLength,
+  contentType: contentType ?? "application/octet-stream",
+}));
 
 async function defaultSaveMediaBuffer(buffer: Buffer, contentType?: string) {
   return {

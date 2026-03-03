@@ -1,0 +1,65 @@
+{
+  "id": "ocx-budget-manager",
+  "name": "Budget Manager",
+  "description": "Hierarchical budget and quota enforcement for token usage, model spend, and run frequency.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enforcement": {
+        "type": "string",
+        "enum": ["read-only", "soft", "hard"],
+        "default": "read-only"
+      },
+      "defaultWindow": {
+        "type": "string",
+        "enum": ["hourly", "daily", "weekly", "monthly"],
+        "default": "daily"
+      },
+      "priceTableFile": {
+        "type": "string",
+        "default": "price-table.json"
+      },
+      "alertDelivery": {
+        "type": "string",
+        "enum": ["broadcast", "webhook"],
+        "default": "broadcast"
+      },
+      "alertWebhookUrl": {
+        "type": "string",
+        "default": ""
+      },
+      "hierarchyFile": {
+        "type": "string",
+        "default": "budget-hierarchy.json"
+      }
+    }
+  },
+  "uiHints": {
+    "enforcement": {
+      "label": "Enforcement Mode",
+      "help": "read-only: track only, soft: warn/degrade but never block, hard: allow blocking"
+    },
+    "defaultWindow": {
+      "label": "Default Budget Window",
+      "help": "Default time window for new budget scopes"
+    },
+    "priceTableFile": {
+      "label": "Price Table File",
+      "help": "Filename (relative to state dir) containing model pricing data"
+    },
+    "alertDelivery": {
+      "label": "Alert Delivery",
+      "help": "How to deliver budget threshold alerts"
+    },
+    "alertWebhookUrl": {
+      "label": "Alert Webhook URL",
+      "help": "Webhook URL for alert delivery (when alertDelivery is 'webhook')",
+      "advanced": true
+    },
+    "hierarchyFile": {
+      "label": "Hierarchy File",
+      "help": "Filename (relative to state dir) containing the budget scope hierarchy"
+    }
+  }
+}

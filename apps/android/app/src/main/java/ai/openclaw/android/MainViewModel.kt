@@ -133,6 +133,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     runtime.setMicEnabled(enabled)
   }
 
+  fun logGatewayDebugSnapshot(source: String = "manual") {
+    runtime.logGatewayDebugSnapshot(source)
+  }
+
   fun refreshGatewayConnection() {
     runtime.refreshGatewayConnection()
   }

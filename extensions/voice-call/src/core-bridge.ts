@@ -27,6 +27,7 @@ type CoreAgentDeps = {
   }) => string;
   runEmbeddedPiAgent: (params: {
     sessionId: string;
+    agentId?: string;
     sessionKey?: string;
     messageProvider?: string;
     sessionFile: string;

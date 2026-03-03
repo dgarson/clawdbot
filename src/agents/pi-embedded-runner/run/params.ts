@@ -74,6 +74,7 @@ export type RunEmbeddedPiAgentParams = {
   authProfileId?: string;
   authProfileIdSource?: "auto" | "user";
   thinkLevel?: ThinkLevel;
+  thinkLevelExplicit?: boolean;
   verboseLevel?: VerboseLevel;
   reasoningLevel?: ReasoningLevel;
   toolResultFormat?: ToolResultFormat;
@@ -103,4 +104,8 @@ export type RunEmbeddedPiAgentParams = {
   streamParams?: AgentStreamParams;
   ownerNumbers?: string[];
   enforceFinalTag?: boolean;
+  /** Agent runtime to use. Defaults to 'pi'. Use 'claude-sdk' to run via @anthropic-ai/claude-agent-sdk. */
+  runtime?: "pi" | "claude-sdk";
+  /** Optional trigger label for diagnostic logging (e.g. "heartbeat"). */
+  trigger?: string;
 };

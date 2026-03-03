@@ -5,6 +5,7 @@ export type EmbeddedPiAgentMeta = {
   sessionId: string;
   provider: string;
   model: string;
+  toolCallCount?: number;
   compactionCount?: number;
   promptTokens?: number;
   usage?: {
@@ -75,6 +76,10 @@ export type EmbeddedPiRunResult = {
   messagingToolSentTargets?: MessagingToolSend[];
   // Count of successful cron.add tool calls in this run.
   successfulCronAdds?: number;
+  // Additional lane diagnostic information for this run (always included when present).
+  extraInfo?: string;
+  // Additional lane diagnostic information that is only emitted when diagnostics.enabled is true.
+  debugInfo?: string;
 };
 
 export type EmbeddedPiCompactResult = {

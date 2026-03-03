@@ -21,6 +21,8 @@ describe("message-channel", () => {
   it("normalizes gateway message channels and rejects unknown values", () => {
     expect(resolveGatewayMessageChannel("discord")).toBe("discord");
     expect(resolveGatewayMessageChannel(" imsg ")).toBe("imessage");
+    expect(resolveGatewayMessageChannel("Slack")).toBe("slack");
+    expect(resolveGatewayMessageChannel("discord (bot api)")).toBe("discord");
     expect(resolveGatewayMessageChannel("web")).toBeUndefined();
     expect(resolveGatewayMessageChannel("nope")).toBeUndefined();
   });
@@ -30,5 +32,7 @@ describe("message-channel", () => {
       createTestRegistry([{ pluginId: "msteams", plugin: msteamsPlugin, source: "test" }]),
     );
     expect(resolveGatewayMessageChannel("teams")).toBe("msteams");
+    expect(resolveGatewayMessageChannel("Microsoft Teams")).toBe("msteams");
+    expect(resolveGatewayMessageChannel("Microsoft Teams (Bot Framework)")).toBe("msteams");
   });
 });

@@ -2,7 +2,9 @@ import {
   resolveAgentDir,
   resolveAgentWorkspaceDir,
   resolveSessionAgentId,
+  resolveAgentReasoningDefault,
   resolveAgentSkillsFilter,
+  resolveAgentThinkingDefault,
 } from "../../agents/agent-scope.js";
 import { resolveModelRefFromString } from "../../agents/model-selection.js";
 import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
@@ -72,7 +74,21 @@ export async function getReplyFromConfig(
   );
   const resolvedOpts =
     mergedSkillFilter !== undefined ? { ...opts, skillFilter: mergedSkillFilter } : opts;
-  const agentCfg = cfg.agents?.defaults;
+  const agentCfgBase = cfg.agents?.defaults;
+  const perAgentThinkingDefault = resolveAgentThinkingDefault(cfg, agentId);
+  const perAgentReasoningDefault = resolveAgentReasoningDefault(cfg, agentId);
+  const agentCfg =
+    perAgentThinkingDefault !== undefined || perAgentReasoningDefault !== undefined
+      ? {
+          ...agentCfgBase,
+          ...(perAgentThinkingDefault !== undefined
+            ? { thinkingDefault: perAgentThinkingDefault }
+            : {}),
+          ...(perAgentReasoningDefault !== undefined
+            ? { reasoningDefault: perAgentReasoningDefault }
+            : {}),
+        }
+      : agentCfgBase;
   const sessionCfg = cfg.session;
   const { defaultProvider, defaultModel, aliasIndex } = resolveDefaultModel({
     cfg,

@@ -55,6 +55,7 @@ describe("buildBootstrapContextFiles", () => {
     expect(result?.content.endsWith(long.slice(-expectedTailChars))).toBe(true);
     expect(warnings).toHaveLength(1);
     expect(warnings[0]).toContain("TOOLS.md");
+    expect(warnings[0]).toContain("/tmp/AGENTS.md");
     expect(warnings[0]).toContain("limit 200");
   });
   it("keeps content under the default limit", () => {

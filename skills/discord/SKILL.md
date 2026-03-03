@@ -49,7 +49,7 @@ Send with media:
   "channel": "discord",
   "to": "channel:123",
   "message": "see attachment",
-  "media": "file:///tmp/example.png"
+  "media": "file:///tmp/openclaw/example.png"
 }
 ```
 
