@@ -49,10 +49,8 @@ import { resolveImageSanitizationLimits } from "../../image-sanitization.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
 import { normalizeProviderId, resolveDefaultModelForAgent } from "../../model-selection.js";
 import { createOllamaStreamFn, OLLAMA_NATIVE_BASE_URL } from "../../ollama-stream.js";
-import { createOpenAIWebSocketStreamFn, releaseWsSession } from "../../openai-ws-stream.js";
 import { resolveOwnerDisplaySetting } from "../../owner-display.js";
 import {
-  downgradeOpenAIFunctionCallReasoningPairs,
   isCloudCodeAssistFormatError,
   resolveBootstrapMaxChars,
   resolveBootstrapTotalMaxChars,
@@ -142,8 +140,8 @@ export function resolveRuntime(
   if (params.runtimeOverride) {
     return params.runtimeOverride;
   }
-  // Only the two system-keychain providers use the claude-sdk subprocess.
-  if (params.provider === "claude-pro" || params.provider === "claude-max") {
+  // System-keychain auth providers use the claude-sdk subprocess.
+  if (resolveModelAuthMode(params.provider, params.config) === "system-keychain") {
     return "claude-sdk";
   }
   return "pi";

@@ -5,6 +5,7 @@ import type { ModelDefinitionConfig } from "../../config/types.js";
 import { resolveOpenClawAgentDir } from "../agent-paths.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../defaults.js";
 import { buildModelAliasLines } from "../model-alias-lines.js";
+import { SYSTEM_KEYCHAIN_PROVIDERS } from "../model-auth.js";
 import { normalizeModelCompat } from "../model-compat.js";
 import { resolveForwardCompatModel } from "../model-forward-compat.js";
 import { normalizeProviderId } from "../model-selection.js";
@@ -70,11 +71,11 @@ export function resolveModel(
   const authStorage = discoverAuthStorage(resolvedAgentDir);
   const modelRegistry = discoverModels(authStorage, resolvedAgentDir);
 
-  // claude-pro and claude-max run via the claude-sdk subprocess; resolve model
+  // claude-personal runs via the claude-sdk subprocess; resolve model
   // metadata from the anthropic catalog for cost tracking and context budgeting,
   // then preserve the provider so downstream routing still works.
   // Falls back to the forward-compat path for model IDs not yet in the catalog.
-  if (provider === "claude-pro" || provider === "claude-max") {
+  if (SYSTEM_KEYCHAIN_PROVIDERS.has(provider)) {
     const catalogModel = modelRegistry.find("anthropic", modelId) as Model<Api> | null;
     if (catalogModel) {
       const costOverride = ANTHROPIC_CATALOG_COST_CORRECTIONS[modelId];
