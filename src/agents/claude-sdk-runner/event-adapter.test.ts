@@ -2201,7 +2201,7 @@ describe("event translation -- JSONL persistence", () => {
     const appendMessage = vi.fn();
     const state = makeState({
       sessionManager: { appendMessage },
-      transcriptProvider: "openrouter",
+      transcriptProvider: "custom-bridge",
       transcriptApi: "claude-sdk",
     });
     captureEvents(state);
@@ -2218,7 +2218,7 @@ describe("event translation -- JSONL persistence", () => {
     );
 
     const persisted = appendMessage.mock.calls[0][0];
-    expect(persisted.provider).toBe("openrouter");
+    expect(persisted.provider).toBe("custom-bridge");
     expect(persisted.api).toBe("claude-sdk");
   });
 

@@ -14,11 +14,11 @@ import {
   markAuthProfileGood,
   markAuthProfileUsed,
 } from "../auth-profiles.js";
-import { resolveClaudeSdkConfig } from "../claude-sdk-runner/prepare-session.js";
 import {
   isStaleClaudeResumeSessionError,
   isStaleClaudeResumeSessionErrorMessage,
 } from "../claude-sdk-runner/error-mapping.js";
+import { resolveClaudeSdkConfig } from "../claude-sdk-runner/prepare-session.js";
 import {
   CONTEXT_WINDOW_HARD_MIN_TOKENS,
   CONTEXT_WINDOW_WARN_BELOW_TOKENS,
