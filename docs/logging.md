@@ -105,6 +105,7 @@ All logging configuration lives under `logging` in `~/.openclaw/openclaw.json`.
   "logging": {
     "level": "info",
     "file": "/tmp/openclaw/openclaw-YYYY-MM-DD.log",
+    "timezone": "utc",
     "consoleLevel": "info",
     "consoleStyle": "pretty",
     "redactSensitive": "tools",
@@ -121,6 +122,16 @@ All logging configuration lives under `logging` in `~/.openclaw/openclaw.json`.
 You can override both via the **`OPENCLAW_LOG_LEVEL`** environment variable (e.g. `OPENCLAW_LOG_LEVEL=debug`). The env var takes precedence over the config file, so you can raise verbosity for a single run without editing `openclaw.json`. You can also pass the global CLI option **`--log-level <level>`** (for example, `openclaw --log-level debug gateway run`), which overrides the environment variable for that command.
 
 `--verbose` only affects console output; it does not change file log levels.
+
+### Timestamp timezone
+
+`logging.timezone` controls how the `time` field is written in file logs:
+
+- `"utc"` (default): ISO 8601 in UTC with `Z` suffix (for example, `2026-03-03T20:38:28.656Z`)
+- `"local"`: gateway host local timezone (ISO-like timestamp without `Z`)
+- IANA timezone string (for example, `"America/New_York"`, `"Asia/Shanghai"`)
+
+If an invalid timezone is set, OpenClaw falls back to UTC timestamps.
 
 ### Console styles
 
