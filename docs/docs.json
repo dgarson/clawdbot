@@ -828,6 +828,7 @@
                 "group": "First steps",
                 "pages": [
                   "start/getting-started",
+                  "start/sdk-dev-sandbox",
                   "start/onboarding-overview",
                   "start/wizard",
                   "start/onboarding"
