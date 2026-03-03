@@ -254,7 +254,7 @@ function severityBadge(severity: Finding["severity"]): string {
     case "medium":
       return "text-amber-400 bg-amber-950";
     case "low":
-      return "text-zinc-400 bg-zinc-800";
+      return "text-fg-secondary bg-surface-2";
   }
 }
 
@@ -377,7 +377,7 @@ const DiscoveryRunHistory: React.FC = () => {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-1">
           <span className="text-2xl">📋</span>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Discovery Run History</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-fg-primary">Discovery Run History</h1>
         </div>
         <p className="text-sm text-gray-400 ml-12">
           Past discovery runs · {totalRuns} total runs
@@ -388,7 +388,7 @@ const DiscoveryRunHistory: React.FC = () => {
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
           <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Total Runs</div>
-          <div className="text-3xl font-bold tabular-nums text-white">{totalRuns}</div>
+          <div className="text-3xl font-bold tabular-nums text-fg-primary">{totalRuns}</div>
           <div className="text-xs text-gray-500 mt-1">past 6 weeks</div>
         </div>
         <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4">
@@ -537,7 +537,7 @@ const DiscoveryRunHistory: React.FC = () => {
                   >
                     {/* Run ID + Time */}
                     <div className="col-span-3">
-                      <div className="font-semibold text-sm text-white">{run.id}</div>
+                      <div className="font-semibold text-sm text-fg-primary">{run.id}</div>
                       <div className="text-xs text-gray-500 mt-0.5">{formatTime(run.startTime)}</div>
                     </div>
 
@@ -746,7 +746,7 @@ const DiscoveryRunHistory: React.FC = () => {
                   className={cn(
                     "w-8 h-8 rounded-lg text-xs font-medium transition-colors",
                     currentPage === pageNum
-                      ? "bg-sky-600 text-white"
+                      ? "bg-sky-600 text-fg-primary"
                       : "text-gray-400 hover:bg-gray-800"
                   )}
                 >

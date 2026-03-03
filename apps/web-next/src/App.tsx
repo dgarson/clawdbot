@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "./lib/utils";
+import KeyboardShortcutsModal from "./components/KeyboardShortcutsModal";
+import { TourOverlay, useTour, DEFAULT_DASHBOARD_TOUR_STEPS } from "./components/Tour";
 import {
   DashboardSkeleton,
   TableSkeleton,
@@ -7,13 +9,22 @@ import {
   ChatSkeleton,
   ContentSkeleton,
 } from "./components/Skeleton";
-import { PageSkeleton } from "./components/ui/PageSkeleton";
 import { ToastProvider, useToast } from "./components/Toast";
 import { ProficiencyProvider, useProficiency } from "./stores/proficiencyStore";
 import ProficiencyBadge from "./components/ProficiencyBadge";
+import ThemeToggle from "./components/ui/ThemeToggle";
+import { useGateway, GatewayProvider } from "./hooks/useGateway";
+import { GatewayAuthModal } from "./components/GatewayAuthModal";
 
-// Demand-only components — lazy loaded to keep main bundle lean
-const KeyboardShortcutsModal = React.lazy(() => import("./components/KeyboardShortcutsModal"));
+// Operator-mode types
+interface OperatorDashboardProps {
+  onNavigate?: (viewId: string) => void;
+}
+interface OperatorAICopilotProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onNavigate?: (viewId: string) => void;
+}
 
 // Component prop types
 interface ChatInterfaceProps {
@@ -38,6 +49,12 @@ const ModelComparisonMatrix        = React.lazy(() => import("./views/ModelCompa
 const AgentWaveScheduler           = React.lazy(() => import("./views/AgentWaveScheduler"));
 const DiscoveryPreflightChecklist  = React.lazy(() => import("./views/DiscoveryPreflightChecklist"));
 const DiscoveryFindingsSearch      = React.lazy(() => import("./views/DiscoveryFindingsSearch"));
+const TodayCommandCenter            = React.lazy(() => import("./views/TodayCommandCenter"));
+const ActionInboxView               = React.lazy(() => import("./views/ActionInboxView"));
+const AgentCapacityPlanner          = React.lazy(() => import("./views/AgentCapacityPlanner"));
+const AgentHandoffPlanner           = React.lazy(() => import("./views/AgentHandoffPlanner"));
+const CompareModesDiffView          = React.lazy(() => import("./views/CompareModesDiffView"));
+const ContextBudgetInspector        = React.lazy(() => import("./views/ContextBudgetInspector"));
 const AgentDashboard = React.lazy(() => import("./views/AgentDashboard"));
 const AgentBuilderWizard = React.lazy(() => import("./views/AgentBuilderWizard"));
 const AgentSoulEditor = React.lazy<React.ComponentType<AgentSoulEditorProps>>(() => import("./views/AgentSoulEditor"));
@@ -46,6 +63,7 @@ const ModelSelector = React.lazy(() => import("./views/ModelSelector"));
 const ChatInterface = React.lazy<React.ComponentType<ChatInterfaceProps>>(() => import("./views/ChatInterface"));
 const CronScheduleBuilder = React.lazy(() => import("./views/CronScheduleBuilder"));
 const SkillsMarketplace = React.lazy(() => import("./views/SkillsMarketplace"));
+const SkillBuilderEditor = React.lazy(() => import("./views/SkillBuilderEditor"));
 const SessionExplorer = React.lazy(() => import("./views/SessionExplorer"));
 const OnboardingFlow = React.lazy(() => import("./views/OnboardingFlow"));
 const AgentConfigReview = React.lazy(() => import("./views/AgentConfigReview"));
@@ -56,6 +74,7 @@ const WorkspaceFileBrowser = React.lazy(() => import("./views/WorkspaceFileBrows
 const ProviderAuthManager = React.lazy(() => import("./views/ProviderAuthManager"));
 const AgentPulseMonitor = React.lazy(() => import("./views/AgentPulseMonitor"));
 const NotificationCenter = React.lazy(() => import("./views/NotificationCenter"));
+import { useNotificationUnreadCount } from "./views/NotificationCenter";
 const ApiKeysManager = React.lazy(() => import("./views/ApiKeysManager"));
 const AuditLog = React.lazy(() => import("./views/AuditLog"));
 const BillingSubscription = React.lazy(() => import("./views/BillingSubscription"));
@@ -80,6 +99,7 @@ const RateLimitDashboard = React.lazy(() => import("./views/RateLimitDashboard")
 const TaskQueue       = React.lazy(() => import("./views/TaskQueue"));
 const StorageExplorer = React.lazy(() => import("./views/StorageExplorer"));
 const AlertCenter          = React.lazy(() => import("./views/AlertCenter"));
+const MissionControlDashboard = React.lazy(() => import("./views/MissionControlDashboard"));
 const WebhookManager       = React.lazy(() => import("./views/WebhookManager"));
 const ConversationHistory  = React.lazy(() => import("./views/ConversationHistory"));
 const AgentScheduler       = React.lazy(() => import("./views/AgentScheduler"));
@@ -88,6 +108,7 @@ const ThemeEditor          = React.lazy(() => import("./views/ThemeEditor"));
 const PermissionsManager   = React.lazy(() => import("./views/PermissionsManager"));
 const ActivityFeed         = React.lazy(() => import("./views/ActivityFeed"));
 const CommandPalette       = React.lazy(() => import("./views/CommandPalette"));
+const CommandPaletteV2     = React.lazy(() => import("./views/CommandPaletteV2"));
 const SupportCenter        = React.lazy(() => import("./views/SupportCenter"));
 const ReleasePipeline      = React.lazy(() => import("./views/ReleasePipeline"));
 const AgentMemoryViewer    = React.lazy(() => import("./views/AgentMemoryViewer"));
@@ -304,19 +325,125 @@ const ChangeApprovalBoard            = React.lazy(() => import("./views/ChangeAp
 const QueueInspector                 = React.lazy(() => import("./views/QueueInspector"));
 const DatabaseQueryAnalyzer          = React.lazy(() => import("./views/DatabaseQueryAnalyzer"));
 const FeatureFlagManager             = React.lazy(() => import("./views/FeatureFlagManager"));
-// ── Horizon M1-M10 + new views (previously missing) ─────────────────────────
-const AgentTopologyView              = React.lazy(() => import("./views/AgentTopologyView"));
-const ChannelBroadcastCenter         = React.lazy(() => import("./views/ChannelBroadcastCenter"));
-const ProviderRoutingPanel           = React.lazy(() => import("./views/ProviderRoutingPanel"));
+
+// Operator Dashboard views
+const OperatorDashboard    = React.lazy<React.ComponentType<OperatorDashboardProps>>(() => import("./views/OperatorDashboard"));
+const OperatorAICopilot    = React.lazy<React.ComponentType<OperatorAICopilotProps>>(() => import("./views/OperatorAICopilot"));
+const LiveLogTail          = React.lazy(() => import("./views/LiveLogTail"));
+const DecisionProvenance   = React.lazy(() => import("./views/DecisionProvenance"));
+
+// ============================================================================
+// Navigation Groups — Operator vs Standard mode
+// ============================================================================
+
+interface NavItem {
+  id: string;
+  label: string;
+  emoji: string;
+  shortcut: string | null;
+}
+
+interface NavGroup {
+  id: string;
+  label: string;
+  items: NavItem[];
+}
+
+const operatorNavGroups: NavGroup[] = [
+  {
+    id: "ops-command",
+    label: "Command Center",
+    items: [
+      { id: "operator-dashboard", label: "Operator Dashboard", emoji: "🖥️", shortcut: "1" },
+      { id: "live-logs",          label: "Live Log Tail",      emoji: "📜", shortcut: "2" },
+      { id: "decision-provenance", label: "Decision Provenance", emoji: "🧠", shortcut: "3" },
+    ],
+  },
+  {
+    id: "ops-monitoring",
+    label: "Monitoring",
+    items: [
+      { id: "pulse",              label: "Agent Pulse",        emoji: "📡", shortcut: null },
+      { id: "system-health",      label: "System Health",      emoji: "🩺", shortcut: null },
+      { id: "alerts",             label: "Alert Center",       emoji: "🚨", shortcut: null },
+      { id: "telemetry",          label: "Telemetry",          emoji: "📡", shortcut: null },
+      { id: "model-health",       label: "Model Health",       emoji: "💚", shortcut: null },
+      { id: "logs",               label: "Log Viewer",         emoji: "📜", shortcut: null },
+    ],
+  },
+  {
+    id: "ops-sessions",
+    label: "Sessions & Agents",
+    items: [
+      { id: "sessions",           label: "Sessions",           emoji: "🌳", shortcut: null },
+      { id: "tracer",             label: "Agent Tracer",       emoji: "🔭", shortcut: null },
+      { id: "workload",           label: "Agent Workload",     emoji: "👥", shortcut: null },
+      { id: "agent-insights",     label: "Agent Insights",     emoji: "📊", shortcut: null },
+      { id: "history",            label: "Session History",    emoji: "🕐", shortcut: null },
+      { id: "session-replay",     label: "Session Replay",     emoji: "▶️", shortcut: null },
+      { id: "mcp",                label: "MCP Inspector",      emoji: "🔧", shortcut: null },
+    ],
+  },
+  {
+    id: "ops-cost",
+    label: "Budget & Cost",
+    items: [
+      { id: "usage",              label: "Usage & Costs",      emoji: "📈", shortcut: null },
+      { id: "token-ledger",       label: "Token Ledger",       emoji: "🪙", shortcut: null },
+      { id: "budget-tracker",     label: "Budget Tracker",     emoji: "💵", shortcut: null },
+      { id: "cost",               label: "Cost Optimizer",     emoji: "💰", shortcut: null },
+      { id: "rate-limits",        label: "Rate Limits",        emoji: "⚡", shortcut: null },
+      { id: "quotas",             label: "Quotas",             emoji: "📏", shortcut: null },
+    ],
+  },
+  {
+    id: "ops-models",
+    label: "Models & Routing",
+    items: [
+      { id: "models",             label: "Models",             emoji: "🤖", shortcut: null },
+      { id: "model-router",       label: "Model Router",       emoji: "🔀", shortcut: null },
+      { id: "benchmark",          label: "Model Benchmark",    emoji: "📈", shortcut: null },
+      { id: "model-compare",      label: "Model Comparator",   emoji: "⚖️", shortcut: null },
+      { id: "providers",          label: "Providers",          emoji: "🔐", shortcut: null },
+      { id: "llm-playground",     label: "LLM Playground",     emoji: "🎮", shortcut: null },
+    ],
+  },
+  {
+    id: "ops-config",
+    label: "Configuration",
+    items: [
+      { id: "settings",           label: "Settings",           emoji: "⚙️", shortcut: null },
+      { id: "config-review",      label: "Config Review",      emoji: "🔍", shortcut: null },
+      { id: "cron",               label: "Schedules",          emoji: "⏰", shortcut: null },
+      { id: "feature-flags",      label: "Feature Flags",      emoji: "🚩", shortcut: null },
+      { id: "permissions",        label: "Permissions",        emoji: "🔐", shortcut: null },
+      { id: "env-vars",           label: "Environment",        emoji: "🔑", shortcut: null },
+      { id: "rules",              label: "Rule Engine",        emoji: "📋", shortcut: null },
+    ],
+  },
+];
 
 export const navItems = [
-  { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: "1" },
+  { id: "operator-dashboard",    label: "Operator Dashboard",   emoji: "🖥️", shortcut: null },
+  { id: "live-logs",             label: "Live Log Tail",        emoji: "📜", shortcut: null },
+  { id: "decision-provenance",   label: "Decision Provenance",  emoji: "🧠", shortcut: null },
+  { id: "morning-packet",        label: "Morning Packet",       emoji: "☀️", shortcut: null },
+  { id: "today-command",         label: "Today Command Center", emoji: "🧭", shortcut: null },
+  { id: "action-inbox",          label: "Action Inbox",         emoji: "📥", shortcut: null },
+  { id: "capacity-planner",      label: "Capacity Planner",     emoji: "📐", shortcut: null },
+  { id: "handoff-planner",       label: "Handoff Planner",      emoji: "🤝", shortcut: null },
+  { id: "compare-modes",         label: "Compare Modes",        emoji: "🪞", shortcut: null },
+  { id: "context-budget",        label: "Context Budget",       emoji: "🧠", shortcut: null },
   { id: "discovery-run-monitor",   label: "Discovery Monitor",    emoji: "🔭", shortcut: null },
   { id: "brave-api-wizard",        label: "Brave API Setup",      emoji: "🔑", shortcut: null },
   { id: "discovery-wave-results",  label: "Wave Results",         emoji: "🌊", shortcut: null },
   { id: "agent-cost-tracker",      label: "Agent Cost Tracker",   emoji: "💰", shortcut: null },
   { id: "tool-reliability",        label: "Tool Reliability",     emoji: "🛡️", shortcut: null },
-  { id: "dashboard",             label: "Dashboard",             emoji: "📊", shortcut: "2" },
+  { id: "model-comparison",       label: "Model Comparison",      emoji: "⚖️", shortcut: null },
+  { id: "wave-scheduler",         label: "Wave Scheduler",        emoji: "🗓️", shortcut: null },
+  { id: "preflight-checklist",    label: "Preflight Checklist",   emoji: "✅", shortcut: null },
+  { id: "findings-search",        label: "Findings Search",       emoji: "🔎", shortcut: null },
+  { id: "dashboard",             label: "Dashboard",             emoji: "📊", shortcut: "1" },
   { id: "chat",          label: "Chat",           emoji: "💬", shortcut: "2" },
   { id: "builder",       label: "Agent Builder",  emoji: "🔧", shortcut: "3" },
   { id: "soul-editor",   label: "Soul Editor",    emoji: "✨", shortcut: "4" },
@@ -325,6 +452,7 @@ export const navItems = [
   { id: "providers",     label: "Providers",      emoji: "🔐", shortcut: "7" },
   { id: "cron",          label: "Schedules",      emoji: "⏰", shortcut: "8" },
   { id: "skills",        label: "Skills",         emoji: "🧩", shortcut: "9" },
+  { id: "skill-builder", label: "Skill Builder",  emoji: "🔨", shortcut: null },
   { id: "sessions",      label: "Sessions",       emoji: "🌳", shortcut: null },
   { id: "config-review", label: "Config Review",  emoji: "🔍", shortcut: null },
   { id: "settings",      label: "Settings",       emoji: "⚙️", shortcut: null },
@@ -358,6 +486,7 @@ export const navItems = [
   { id: "task-queue",      label: "Task Queue",     emoji: "📬", shortcut: null },
   { id: "storage",         label: "Storage",        emoji: "💾", shortcut: null },
   { id: "alerts",          label: "Alert Center",   emoji: "🚨", shortcut: null },
+  { id: "mission-control", label: "Mission Control", emoji: "🎯", shortcut: null },
   { id: "webhooks",        label: "Webhooks",       emoji: "🔗", shortcut: null },
   { id: "history",         label: "Session History", emoji: "🕐", shortcut: null },
   { id: "scheduler",       label: "Scheduler",      emoji: "⏰", shortcut: null },
@@ -366,6 +495,7 @@ export const navItems = [
   { id: "permissions",     label: "Permissions",    emoji: "🔐", shortcut: null },
   { id: "activity",        label: "Activity Feed",  emoji: "📋", shortcut: null },
   { id: "commands",        label: "Commands",       emoji: "⌨️", shortcut: null },
+  { id: "commands-v2",     label: "Commands V2",    emoji: "🔮", shortcut: null },
   { id: "support",         label: "Support",        emoji: "🎫", shortcut: null },
   { id: "releases",        label: "Releases",       emoji: "🚢", shortcut: null },
   { id: "memory",          label: "Agent Memory",   emoji: "🧠", shortcut: null },
@@ -548,6 +678,7 @@ export const navItems = [
   { id: "data-retention",       label: "Data Retention",        emoji: "🗑️", shortcut: null },
   { id: "code-review",          label: "Code Review",           emoji: "🔍", shortcut: null },
   { id: "endpoint-monitor",     label: "Endpoint Monitor",      emoji: "📡", shortcut: null },
+  { id: "integration-tests",    label: "Integration Tests",     emoji: "🧪", shortcut: null },
   { id: "session-replay-viewer", label: "Session Replay Viewer", emoji: "🎬", shortcut: null },
   { id: "chaos-engineering",    label: "Chaos Engineering",     emoji: "💥", shortcut: null },
   { id: "dependency-audit",     label: "Dependency Audit",      emoji: "🔐", shortcut: null },
@@ -581,14 +712,23 @@ export const navItems = [
   { id: "multi-region-failover",    label: "Multi-Region Failover",  emoji: "🔄", shortcut: null },
   { id: "cost-allocation",          label: "Cost Allocation",         emoji: "💰", shortcut: null },
   { id: "session-debug-timeline",  label: "Session Debug Timeline", emoji: "🎬", shortcut: null },
-  // Horizon new views
-  { id: "agent-topology",           label: "Agent Topology",          emoji: "🕸️", shortcut: null },
-  { id: "channel-broadcast",        label: "Broadcast Center",        emoji: "📡", shortcut: null },
-  { id: "provider-routing",         label: "Provider Routing",        emoji: "🔀", shortcut: null },
 ];
 
 const SKELETON_MAP: Record<string, React.ReactNode> = {
+  "operator-dashboard": <DashboardSkeleton />,
+  "live-logs":          <ContentSkeleton />,
+  "decision-provenance": <ContentSkeleton />,
   dashboard:     <DashboardSkeleton />,
+  "today-command": <DashboardSkeleton />,
+  "action-inbox": <TableSkeleton rows={8} />,
+  "capacity-planner": <DashboardSkeleton />,
+  "handoff-planner": <ContentSkeleton />,
+  "compare-modes": <ContentSkeleton />,
+  "context-budget": <ContentSkeleton />,
+  "model-comparison": <ContentSkeleton />,
+  "wave-scheduler": <ContentSkeleton />,
+  "preflight-checklist": <ContentSkeleton />,
+  "findings-search": <ContentSkeleton />,
   chat:          <ChatSkeleton />,
   sessions:      <TableSkeleton rows={8} />,
   nodes:         <TableSkeleton rows={6} />,
@@ -630,6 +770,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "task-queue":     <TableSkeleton rows={10} />,
   "storage":        <ContentSkeleton />,
   "alerts":         <DashboardSkeleton />,
+  "mission-control": <DashboardSkeleton />,
   "webhooks":       <TableSkeleton rows={6} />,
   "history":        <ContentSkeleton />,
   "scheduler":      <DashboardSkeleton />,
@@ -638,6 +779,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "permissions":    <TableSkeleton rows={8} />,
   "activity":       <ContentSkeleton />,
   "commands":       <ContentSkeleton />,
+  "commands-v2":    <ContentSkeleton />,
   "support":        <ContentSkeleton />,
   "releases":       <DashboardSkeleton />,
   "memory":         <ContentSkeleton />,
@@ -820,6 +962,7 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "data-retention":         <ContentSkeleton />,
   "code-review":            <ContentSkeleton />,
   "endpoint-monitor":       <ContentSkeleton />,
+  "integration-tests":      <ContentSkeleton />,
   "session-replay-viewer":  <ContentSkeleton />,
   "chaos-engineering":      <ContentSkeleton />,
   "dependency-audit":       <ContentSkeleton />,
@@ -853,19 +996,72 @@ const SKELETON_MAP: Record<string, React.ReactNode> = {
   "multi-region-failover":     <ContentSkeleton />,
   "cost-allocation":           <ContentSkeleton />,
   "session-debug-timeline":    <ContentSkeleton />,
-  // Horizon new views
-  "agent-topology":            <ContentSkeleton />,
-  "channel-broadcast":         <TableSkeleton rows={6} />,
-  "provider-routing":          <ContentSkeleton />,
 };
+
+type NavFilter = "all" | "core" | "builders" | "operations" | "analytics";
+
+type NavPreset = {
+  id: string;
+  name: string;
+  viewId: string;
+  navFilter: NavFilter;
+  navQuery: string;
+};
+
+const NAV_FILTER_OPTIONS: Array<{ value: NavFilter; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "core", label: "Core" },
+  { value: "builders", label: "Build" },
+  { value: "operations", label: "Ops" },
+  { value: "analytics", label: "Insights" },
+];
+
+const NAV_SHORTCUT_MAP = new Map(
+  navItems
+    .filter((item): item is typeof item & { shortcut: string } => item.shortcut !== null)
+    .map((item) => [item.shortcut, item.id] as const)
+);
+
+const CORE_VIEW_IDS = new Set([
+  "dashboard",
+  "chat",
+  "builder",
+  "sessions",
+  "settings",
+  "notifications",
+  "search",
+  "system-health",
+]);
+
+function getNavCategory(item: { id: string; label: string }): Exclude<NavFilter, "all"> {
+  if (CORE_VIEW_IDS.has(item.id)) {return "core";}
+  const text = `${item.id} ${item.label}`.toLowerCase();
+  if (["builder", "wizard", "editor", "config", "setup", "flow", "onboarding"].some((k) => text.includes(k))) {
+    return "builders";
+  }
+  if (["dashboard", "analytics", "report", "metrics", "insight", "ledger", "forecast", "monitor"].some((k) => text.includes(k))) {
+    return "analytics";
+  }
+  return "operations";
+}
+
+function getAudienceLabel(category: Exclude<NavFilter, "all">): string {
+  if (category === "core") {return "All operators";}
+  if (category === "builders") {return "Builders and implementers";}
+  if (category === "analytics") {return "Leads tracking outcomes";}
+  return "Platform operators";
+}
 
 function LoadingFallback({ viewId }: { viewId: string }) {
   const skeleton = SKELETON_MAP[viewId];
   if (skeleton) {
-    return <div className="p-6 max-w-7xl mx-auto">{skeleton}</div>;
+    return <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">{skeleton}</div>; {/* M9: responsive pass */}
   }
-  // Fallback to full-page skeleton for any view not in the map
-  return <PageSkeleton />;
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-pulse-soft text-muted-foreground text-sm">Loading...</div>
+    </div>
+  );
 }
 
 // Error boundary for views
@@ -905,7 +1101,9 @@ export default function App() {
   return (
     <ProficiencyProvider>
       <ToastProvider>
-        <AppContent />
+        <GatewayProvider>
+          <AppContent />
+        </GatewayProvider>
       </ToastProvider>
     </ProficiencyProvider>
   );
@@ -920,14 +1118,85 @@ function AppContent() {
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [navQuery, setNavQuery] = useState("");
+  const [navFilter, setNavFilter] = useState<NavFilter>("core");
+  const [savedPresets, setSavedPresets] = useState<NavPreset[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("oc_nav_presets") ?? "[]");
+    } catch {
+      return [];
+    }
+  });
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+
+  // Initialize tour with default steps
+  const tour = useTour({
+    tourId: 'dashboard-onboarding',
+    steps: DEFAULT_DASHBOARD_TOUR_STEPS,
+  });
+
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const navHistoryRef = useRef(navHistory);
+  const historyIndexRef = useRef(historyIndex);
   const { toast } = useToast();
+
+  // Gateway connection — monitor auth failures and surface the credentials modal.
+  const gateway = useGateway();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  useEffect(() => {
+    if (gateway.authFailed) {
+      setAuthModalOpen(true);
+    }
+  }, [gateway.authFailed]);
   const { visitView, recordInteraction } = useProficiency();
+  const notificationUnreadCount = useNotificationUnreadCount();
+
+  // Operator mode state
+  const [operatorMode, setOperatorMode] = useState(() => {
+    try { return localStorage.getItem("oc_operator_mode") === "true"; } catch { return false; }
+  });
+  const [copilotOpen, setCopilotOpen] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+
+  const toggleOperatorMode = useCallback(() => {
+    setOperatorMode(prev => {
+      const next = !prev;
+      try { localStorage.setItem("oc_operator_mode", String(next)); } catch {}
+      if (next) {
+        setActiveView("operator-dashboard");
+      } else {
+        setActiveView("dashboard");
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleGroup = useCallback((groupId: string) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId); else next.add(groupId);
+      return next;
+    });
+  }, []);
 
   const currentNav = navItems.find((n) => n.id === activeView) ?? navItems[0];
+  const currentCategory = getNavCategory(currentNav);
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < navHistory.length - 1;
+
+  useEffect(() => {
+    navHistoryRef.current = navHistory;
+  }, [navHistory]);
+
+  useEffect(() => {
+    historyIndexRef.current = historyIndex;
+  }, [historyIndex]);
+
+  const openCommandPalette = useCallback(() => {
+    setCmdPaletteOpen(true);
+    setSearchQuery("");
+    setHighlightedIndex(0);
+  }, []);
 
   // Navigate and update history + recents
   const navigate = useCallback((viewId: string, pushHistory = true) => {
@@ -939,17 +1208,13 @@ function AppContent() {
     recordInteraction();
 
     if (pushHistory) {
-      setNavHistory((prev) => {
-        const trimmed = prev.slice(0, historyIndex + 1);
-        // Don't push if same as current
-        if (trimmed[trimmed.length - 1] === viewId) {return prev;}
-        return [...trimmed, viewId];
-      });
-      setHistoryIndex((i) => {
-        const trimmed = navHistory.slice(0, i + 1);
-        if (trimmed[trimmed.length - 1] === viewId) {return i;}
-        return i + 1;
-      });
+      const trimmed = navHistoryRef.current.slice(0, historyIndexRef.current + 1);
+      // Don't push if same as current
+      if (trimmed[trimmed.length - 1] !== viewId) {
+        const nextHistory = [...trimmed, viewId];
+        setNavHistory(nextHistory);
+        setHistoryIndex(nextHistory.length - 1);
+      }
     }
 
     // Track recents
@@ -960,21 +1225,47 @@ function AppContent() {
     } catch {
       // ignore
     }
-  }, [historyIndex, navHistory, visitView, recordInteraction]);
+  }, [visitView, recordInteraction]);
+
+  const saveCurrentPreset = () => {
+    const name = window.prompt("Preset name", currentNav.label);
+    if (!name) {return;}
+    const preset: NavPreset = {
+      id: `preset-${Date.now()}`,
+      name,
+      viewId: activeView,
+      navFilter,
+      navQuery,
+    };
+    setSavedPresets((prev) => [preset, ...prev].slice(0, 8));
+    toast({ message: `Saved preset: ${name}`, type: 'success' });
+  };
+
+  const applyPreset = (presetId: string) => {
+    const preset = savedPresets.find((p) => p.id === presetId);
+    if (!preset) {return;}
+    setNavFilter(preset.navFilter);
+    setNavQuery(preset.navQuery);
+    navigate(preset.viewId);
+  };
 
   const goBack = useCallback(() => {
     if (!canGoBack) {return;}
-    const newIndex = historyIndex - 1;
+    const newIndex = historyIndexRef.current - 1;
+    const targetView = navHistoryRef.current[newIndex];
+    if (!targetView) {return;}
     setHistoryIndex(newIndex);
-    setActiveView(navHistory[newIndex]);
-  }, [canGoBack, historyIndex, navHistory]);
+    navigate(targetView, false);
+  }, [canGoBack, navigate]);
 
   const goForward = useCallback(() => {
     if (!canGoForward) {return;}
-    const newIndex = historyIndex + 1;
+    const newIndex = historyIndexRef.current + 1;
+    const targetView = navHistoryRef.current[newIndex];
+    if (!targetView) {return;}
     setHistoryIndex(newIndex);
-    setActiveView(navHistory[newIndex]);
-  }, [canGoForward, historyIndex, navHistory]);
+    navigate(targetView, false);
+  }, [canGoForward, navigate]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -986,15 +1277,32 @@ function AppContent() {
       // Cmd+K / Ctrl+K — command palette
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setCmdPaletteOpen((prev) => !prev);
-        setSearchQuery("");
-        setHighlightedIndex(0);
+        if (cmdPaletteOpen) {
+          setCmdPaletteOpen(false);
+        } else {
+          openCommandPalette();
+        }
+        return;
+      }
+
+      // Cmd+J / Ctrl+J — AI Copilot (operator mode)
+      if ((e.metaKey || e.ctrlKey) && e.key === "j" && operatorMode) {
+        e.preventDefault();
+        setCopilotOpen((prev) => !prev);
+        return;
+      }
+
+      // Cmd+Shift+O — toggle operator mode
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "O") {
+        e.preventDefault();
+        toggleOperatorMode();
         return;
       }
 
       // Escape — close in priority order
       if (e.key === "Escape") {
         if (cmdPaletteOpen) { setCmdPaletteOpen(false); return; }
+        if (copilotOpen) { setCopilotOpen(false); return; }
         if (shortcutsOpen) { setShortcutsOpen(false); return; }
         if (mobileSidebarOpen) { setMobileSidebarOpen(false); return; }
       }
@@ -1016,20 +1324,25 @@ function AppContent() {
         // Alt+1–9 for quick nav
         const num = parseInt(e.key);
         if (num >= 1 && num <= 9) {
-          const item = navItems.find((n) => n.shortcut === String(num));
-          if (item) { e.preventDefault(); navigate(item.id); }
+          const shortcutView = NAV_SHORTCUT_MAP.get(String(num));
+          if (shortcutView) { e.preventDefault(); navigate(shortcutView); }
         }
       }
 
-      // [ / ] — collapse/expand sidebar
-      if (e.key === "[" || e.key === "]") {
-        setSidebarCollapsed((prev) => !prev);
+      // [ / ] — collapse or expand sidebar
+      if (e.key === "[") {
+        e.preventDefault();
+        setSidebarCollapsed(true);
+      }
+      if (e.key === "]") {
+        e.preventDefault();
+        setSidebarCollapsed(false);
       }
     };
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [cmdPaletteOpen, shortcutsOpen, mobileSidebarOpen, navigate, goBack, goForward]);
+  }, [cmdPaletteOpen, shortcutsOpen, mobileSidebarOpen, copilotOpen, operatorMode, navigate, goBack, goForward, openCommandPalette, toggleOperatorMode]);
 
   // Focus search when palette opens
   useEffect(() => {
@@ -1038,6 +1351,10 @@ function AppContent() {
     }
   }, [cmdPaletteOpen]);
 
+  useEffect(() => {
+    localStorage.setItem("oc_nav_presets", JSON.stringify(savedPresets));
+  }, [savedPresets]);
+
   // Filtered commands for palette
   const filteredNav = navItems.filter(
     (n) =>
@@ -1045,6 +1362,18 @@ function AppContent() {
       n.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
       n.id.includes(searchQuery.toLowerCase())
   );
+
+  const visibleNavItems = navItems.filter((item) => {
+    const query = navQuery.trim().toLowerCase();
+    const matchesQuery = query.length === 0
+      ? true
+      : item.label.toLowerCase().includes(query) || item.id.toLowerCase().includes(query);
+    const category = getNavCategory(item);
+    const matchesFilter = navFilter === "all" ? true : category === navFilter;
+    return matchesQuery && matchesFilter;
+  });
+
+  const activeViewVisible = visibleNavItems.some((item) => item.id === activeView);
 
   const recentIds: string[] = (() => {
     try {
@@ -1062,6 +1391,13 @@ function AppContent() {
     ? filteredNav
     : [...(recentItems.length ? recentItems : []), ...navItems.filter((n) => !recentIds.includes(n.id))];
 
+  useEffect(() => {
+    setHighlightedIndex((prev) => {
+      if (allPaletteItems.length === 0) {return 0;}
+      return Math.min(prev, allPaletteItems.length - 1);
+    });
+  }, [allPaletteItems.length]);
+
   // Palette keyboard nav
   const handlePaletteKey = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -1078,7 +1414,16 @@ function AppContent() {
 
   const renderView = () => {
     switch (activeView) {
+      case "operator-dashboard": return <OperatorDashboard onNavigate={navigate} />;
+      case "live-logs":          return <LiveLogTail />;
+      case "decision-provenance": return <DecisionProvenance onNavigate={navigate} />;
       case "morning-packet": return <MorningPacket />;
+      case "today-command": return <TodayCommandCenter />;
+      case "action-inbox": return <ActionInboxView />;
+      case "capacity-planner": return <AgentCapacityPlanner />;
+      case "handoff-planner": return <AgentHandoffPlanner />;
+      case "compare-modes": return <CompareModesDiffView />;
+      case "context-budget": return <ContextBudgetInspector />;
       case "discovery-run-monitor":   return <DiscoveryRunMonitor />;
       case "brave-api-wizard":        return <BraveAPIKeySetupWizard />;
       case "discovery-wave-results":  return <DiscoveryWaveResults />;
@@ -1097,6 +1442,7 @@ function AppContent() {
       case "providers":     return <ProviderAuthManager />;
       case "cron":          return <CronScheduleBuilder />;
       case "skills":        return <SkillsMarketplace />;
+      case "skill-builder": return <SkillBuilderEditor />;
       case "sessions":      return <SessionExplorer />;
       case "config-review": return <AgentConfigReview />;
       case "settings":      return <SettingsDashboard />;
@@ -1130,6 +1476,7 @@ function AppContent() {
       case "task-queue":      return <TaskQueue />;
       case "storage":         return <StorageExplorer />;
       case "alerts":          return <AlertCenter />;
+      case "mission-control": return <MissionControlDashboard />;
       case "webhooks":        return <WebhookManager />;
       case "history":         return <ConversationHistory />;
       case "scheduler":       return <AgentScheduler />;
@@ -1138,6 +1485,7 @@ function AppContent() {
       case "permissions":     return <PermissionsManager />;
       case "activity":        return <ActivityFeed />;
       case "commands":        return <CommandPalette />;
+      case "commands-v2":     return <CommandPaletteV2 />;
       case "support":         return <SupportCenter />;
       case "releases":        return <ReleasePipeline />;
       case "memory":          return <AgentMemoryViewer />;
@@ -1321,7 +1669,6 @@ function AppContent() {
       case "code-review":          return <CodeReviewDashboard />;
       case "endpoint-monitor":     return <EndpointMonitor />;
       case "session-replay-viewer": return <SessionReplayViewer />;
-      case "token-usage-opt":      return <TokenUsageOptimizer />;
       case "streaming-debugger":   return <StreamingDebugger />;
       case "agent-collab-graph":   return <AgentCollaborationGraph />;
       case "integration-tests":    return <IntegrationTestRunner />;
@@ -1355,10 +1702,6 @@ function AppContent() {
       case "db-query-analyzer":       return <DatabaseQueryAnalyzer />;
       case "feature-flag-manager":    return <FeatureFlagManager />;
       case "token-usage":             return <TokenUsageOptimizer />;
-      // Horizon new views
-      case "agent-topology":          return <AgentTopologyView />;
-      case "channel-broadcast":       return <ChannelBroadcastCenter />;
-      case "provider-routing":        return <ProviderRoutingPanel />;
       default:              return <AgentDashboard />;
     }
   };
@@ -1387,7 +1730,7 @@ function AppContent() {
           mobileSidebarOpen && "flex fixed inset-y-0 left-0 w-64 shadow-2xl"
         )}
       >
-        {/* Logo */}
+        {/* Logo + Operator Mode Toggle */}
         <div className="flex items-center gap-3 p-4 border-b border-border">
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -1398,44 +1741,159 @@ function AppContent() {
             🐾
           </button>
           {!sidebarCollapsed && (
-            <span className="font-bold text-lg text-foreground">OpenClaw</span>
+            <span className="font-bold text-lg text-foreground" data-tour="brand">OpenClaw</span>
+          )}
+          {!sidebarCollapsed && (
+            <button
+              onClick={toggleOperatorMode}
+              className={cn(
+                "ml-auto text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border transition-colors",
+                operatorMode
+                  ? "bg-violet-600/20 text-violet-400 border-violet-500/30 hover:bg-violet-600/30"
+                  : "bg-secondary/50 text-muted-foreground border-border hover:text-foreground hover:bg-secondary"
+              )}
+              title={operatorMode ? "Switch to Standard mode" : "Switch to Operator mode"}
+            >
+              {operatorMode ? "OPS" : "STD"}
+            </button>
           )}
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-2">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => navigate(item.id)}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
-                activeView === item.id
-                  ? "bg-primary/10 text-primary border-r-2 border-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+        {!sidebarCollapsed && (
+          <div className="p-2 border-b border-border space-y-2">
+            <input
+              type="text"
+              value={navQuery}
+              onChange={(e) => setNavQuery(e.target.value)}
+              placeholder="Filter views"
+              className="w-full bg-secondary/40 border border-border rounded-md px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
+              aria-label="Filter navigation views"
+            />
+            <div className="flex flex-wrap gap-1" role="tablist" aria-label="Audience filter">
+              {NAV_FILTER_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  role="tab"
+                  aria-selected={navFilter === value}
+                  onClick={() => setNavFilter(value)}
+                  className={cn(
+                    "px-2 py-1 text-[10px] rounded border transition-colors",
+                    navFilter === value
+                      ? "bg-primary/15 border-primary/40 text-primary"
+                      : "bg-secondary/30 border-border text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {/* Nav — Operator Mode: Grouped | Standard Mode: Flat */}
+        <nav className="flex-1 overflow-y-auto py-2" data-tour="sidebar">
+          {operatorMode ? (
+            <>
+              {operatorNavGroups.map((group) => {
+                const isCollapsed = collapsedGroups.has(group.id);
+                return (
+                  <div key={group.id}>
+                    {!sidebarCollapsed && (
+                      <button
+                        onClick={() => toggleGroup(group.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                      >
+                        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" className={cn("transition-transform", isCollapsed ? "" : "rotate-90")}>
+                          <path d="M2 1l4 3-4 3z" />
+                        </svg>
+                        {group.label}
+                      </button>
+                    )}
+                    {!isCollapsed && group.items.map((item) => (
+                      <button
+                        key={item.id}
+                        data-tour={`nav-${item.id}`}
+                        onClick={() => navigate(item.id)}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+                          activeView === item.id ? "bg-primary/10 text-primary border-r-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                        )}
+                        aria-current={activeView === item.id ? "page" : undefined}
+                        title={item.shortcut ? `${item.label} (Alt+${item.shortcut})` : item.label}
+                      >
+                        <span className="text-base" aria-hidden="true">{item.emoji}</span>
+                        {!sidebarCollapsed && <span>{item.label}</span>}
+                        {!sidebarCollapsed && item.shortcut && <span className="ml-auto text-xs text-muted-foreground/50 font-mono">⌥{item.shortcut}</span>}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
+              {!sidebarCollapsed && (
+                <div className="px-3 pt-3 pb-1 border-t border-border mt-2">
+                  <button
+                    onClick={() => setCopilotOpen(true)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg bg-violet-600/10 text-violet-400 border border-violet-500/20 hover:bg-violet-600/20 transition-colors"
+                  >
+                    <span className="text-base">✨</span>
+                    <span>AI Copilot</span>
+                    <span className="ml-auto text-[9px] bg-violet-600/30 px-1.5 py-0.5 rounded font-mono">⌘J</span>
+                  </button>
+                </div>
               )}
-              aria-current={activeView === item.id ? "page" : undefined}
-              title={
-                item.shortcut
-                  ? `${item.label} (Alt+${item.shortcut})`
-                  : item.label
-              }
-            >
-              <span className="text-base" aria-hidden="true">{item.emoji}</span>
-              {!sidebarCollapsed && <span>{item.label}</span>}
-              {!sidebarCollapsed && item.shortcut && (
-                <span className="ml-auto text-xs text-muted-foreground/50 font-mono">
-                  ⌥{item.shortcut}
+            </>
+          ) : (
+            visibleNavItems.map((item) => (
+              <button
+                key={item.id}
+                data-tour={`nav-${item.id}`}
+                onClick={() => navigate(item.id)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+                  activeView === item.id ? "bg-primary/10 text-primary border-r-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                )}
+                aria-current={activeView === item.id ? "page" : undefined}
+                title={item.shortcut ? `${item.label} (Alt+${item.shortcut})` : item.label}
+              >
+                <span className="text-base relative" aria-hidden="true">
+                  {item.emoji}
+                  {item.id === "notifications" && notificationUnreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                      {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                    </span>
+                  )}
                 </span>
-              )}
-            </button>
-          ))}
+                {!sidebarCollapsed && <span>{item.label}</span>}
+                {!sidebarCollapsed && item.id === "notifications" && notificationUnreadCount > 0 && (
+                  <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
+                    {notificationUnreadCount}
+                  </span>
+                )}
+                {!sidebarCollapsed && item.shortcut && item.id !== "notifications" && (
+                  <span className="ml-auto text-xs text-muted-foreground/50 font-mono">⌥{item.shortcut}</span>
+                )}
+              </button>
+            ))
+          )}
+          {!operatorMode && visibleNavItems.length === 0 && (
+            <p className="px-4 py-6 text-xs text-muted-foreground text-center">No views match this filter.</p>
+          )}
         </nav>
 
         {/* Footer */}
         <div className="p-4 border-t border-border flex flex-col gap-2">
           {/* Proficiency Level Badge */}
           {!sidebarCollapsed && <ProficiencyBadge />}
+          {/* Start Tour Button */}
+          {!sidebarCollapsed && !tour.hasCompleted && (
+            <button
+              onClick={() => tour.startTour()}
+              className="flex items-center justify-center gap-2 px-3 py-2 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/30 transition-colors"
+              aria-label="Start guided tour"
+            >
+              <span>🎯</span>
+              <span>Start Tour</span>
+            </button>
+          )}
           {!sidebarCollapsed ? (
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs text-muted-foreground">v0.1.0</span>
@@ -1449,7 +1907,7 @@ function AppContent() {
                   ?
                 </button>
                 <button
-                  onClick={() => setCmdPaletteOpen(true)}
+                  onClick={openCommandPalette}
                   className="text-xs text-muted-foreground/50 font-mono bg-secondary/50 px-1.5 py-0.5 rounded border border-border hover:text-muted-foreground hover:bg-secondary transition-colors"
                   aria-label="Open command palette"
                   title="Open command palette (⌘K)"
@@ -1469,7 +1927,7 @@ function AppContent() {
           ) : (
             <div className="flex flex-col items-center gap-2">
               <button
-                onClick={() => setCmdPaletteOpen(true)}
+                onClick={openCommandPalette}
                 className="text-xs text-muted-foreground/50 font-mono"
                 aria-label="Open command palette"
                 title="Open command palette (⌘K)"
@@ -1486,10 +1944,16 @@ function AppContent() {
               </button>
             </div>
           )}
+          {!sidebarCollapsed && (
+            <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
+              Audience: <span className="text-foreground/90">{getAudienceLabel(currentCategory)}</span>
+            </p>
+          )}
         </div>
       </aside>
 
       {/* Mobile sidebar (separate element for overlay) */}
+      {/* M9: responsive pass — mobile drawer with ≥44px touch targets */}
       {mobileSidebarOpen && (
         <aside
           role="navigation"
@@ -1500,30 +1964,110 @@ function AppContent() {
             <span className="text-xl">🐾</span>
             <span className="font-bold text-lg text-foreground">OpenClaw</span>
             <button
+              onClick={toggleOperatorMode}
+              className={cn(
+                "text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border transition-colors",
+                operatorMode
+                  ? "bg-violet-600/20 text-violet-400 border-violet-500/30"
+                  : "bg-secondary/50 text-muted-foreground border-border"
+              )}
+            >
+              {operatorMode ? "OPS" : "STD"}
+            </button>
+            <button
               onClick={() => setMobileSidebarOpen(false)}
-              className="ml-auto text-muted-foreground hover:text-foreground"
+              className="ml-auto min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground"
               aria-label="Close menu"
             >
               ✕
             </button>
           </div>
+          <div className="p-2 border-b border-border">
+            <input
+              type="text"
+              value={navQuery}
+              onChange={(e) => setNavQuery(e.target.value)}
+              placeholder="Filter views"
+              className="w-full bg-secondary/40 border border-border rounded-md px-2 py-2 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
+              aria-label="Filter navigation views"
+            />
+            <div className="mt-2 flex flex-wrap gap-1" role="tablist" aria-label="Audience filter">
+              {NAV_FILTER_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  role="tab"
+                  aria-selected={navFilter === value}
+                  onClick={() => setNavFilter(value)}
+                  className={cn(
+                    "px-2 py-1 text-[10px] rounded border transition-colors",
+                    navFilter === value
+                      ? "bg-primary/15 border-primary/40 text-primary"
+                      : "bg-secondary/30 border-border text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <nav className="flex-1 overflow-y-auto py-2">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => navigate(item.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
-                  activeView === item.id
-                    ? "bg-primary/10 text-primary border-r-2 border-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                )}
-                aria-current={activeView === item.id ? "page" : undefined}
-              >
-                <span className="text-base" aria-hidden="true">{item.emoji}</span>
-                <span>{item.label}</span>
-              </button>
-            ))}
+            {operatorMode ? (
+              operatorNavGroups.map((group) => (
+                <div key={group.id}>
+                  <div className="px-4 py-2 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/60">
+                    {group.label}
+                  </div>
+                  {group.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => navigate(item.id)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
+                        activeView === item.id
+                          ? "bg-primary/10 text-primary border-r-2 border-primary"
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                      )}
+                      aria-current={activeView === item.id ? "page" : undefined}
+                    >
+                      <span className="text-base" aria-hidden="true">{item.emoji}</span>
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              ))
+            ) : (
+              navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => navigate(item.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-3 min-h-[44px] text-sm transition-colors",
+                    activeView === item.id
+                      ? "bg-primary/10 text-primary border-r-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  )}
+                  aria-current={activeView === item.id ? "page" : undefined}
+                >
+                  <span className="text-base relative" aria-hidden="true">
+                    {item.emoji}
+                    {item.id === "notifications" && notificationUnreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-violet-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                        {notificationUnreadCount > 99 ? "99+" : notificationUnreadCount}
+                      </span>
+                    )}
+                  </span>
+                  <span>{item.label}</span>
+                  {item.id === "notifications" && notificationUnreadCount > 0 && (
+                    <span className="ml-auto text-[9px] bg-violet-600 text-white rounded-full px-1.5 py-0.5 font-bold">
+                      {notificationUnreadCount}
+                    </span>
+                  )}
+                </button>
+              ))
+            )}
+            {!operatorMode && visibleNavItems.length === 0 && (
+              <p className="px-4 py-6 text-xs text-muted-foreground text-center">No views match this filter.</p>
+            )}
           </nav>
         </aside>
       )}
@@ -1535,13 +2079,24 @@ function AppContent() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileSidebarOpen(true)}
-            className="md:hidden text-muted-foreground hover:text-foreground transition-colors p-1"
+            className="md:hidden text-muted-foreground hover:text-foreground transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Open menu"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
               <rect y="2" width="18" height="2" rx="1" />
               <rect y="8" width="18" height="2" rx="1" />
               <rect y="14" width="18" height="2" rx="1" />
+            </svg>
+          </button>
+          <button
+            onClick={openCommandPalette}
+            className="sm:hidden text-muted-foreground hover:text-foreground transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="Open command palette"
+            title="Open command palette (Ctrl/Cmd+K)"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.75">
+              <circle cx="8" cy="8" r="5" />
+              <path d="m12 12 4 4" strokeLinecap="round" />
             </svg>
           </button>
 
@@ -1585,6 +2140,8 @@ function AppContent() {
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground/50">OpenClaw</span>
             <span className="text-muted-foreground/30">/</span>
+            <span className="hidden md:inline text-muted-foreground/50 capitalize">{currentCategory}</span>
+            <span className="hidden md:inline text-muted-foreground/30">/</span>
             <span className="text-foreground font-medium flex items-center gap-1.5">
               <span aria-hidden="true">{currentNav.emoji}</span>
               {currentNav.label}
@@ -1594,18 +2151,70 @@ function AppContent() {
           {/* Spacer */}
           <div className="flex-1" />
 
+          {/* Presets */}
+          <div className="hidden lg:flex items-center gap-2">
+            <select
+              className="bg-secondary/30 border border-border rounded-md px-2 py-1 text-xs text-foreground"
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  applyPreset(e.target.value);
+                  e.target.value = "";
+                }
+              }}
+              aria-label="Apply saved preset"
+            >
+              <option value="">Presets</option>
+              {savedPresets.map((preset) => (
+                <option key={preset.id} value={preset.id}>{preset.name}</option>
+              ))}
+            </select>
+            <button
+              onClick={saveCurrentPreset}
+              className="px-2 py-1 text-xs rounded-md border border-border bg-secondary/30 text-muted-foreground hover:text-foreground"
+            >
+              Save preset
+            </button>
+          </div>
+          {/* Operator Mode indicator */}
+          {operatorMode && (
+            <div className="hidden md:flex items-center gap-3 text-xs">
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-500/10 text-green-400 border border-green-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                5 active
+              </span>
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                2 errors
+              </span>
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                $42.18 today
+              </span>
+              <button
+                onClick={() => setCopilotOpen(true)}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-violet-500/10 text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 transition-colors"
+                title="Open AI Copilot (⌘J)"
+              >
+                ✨ Copilot
+              </button>
+            </div>
+          )}
+
+          {/* Theme toggle */}
+          <ThemeToggle />
+
           {/* Search trigger */}
           <button
-            onClick={() => setCmdPaletteOpen(true)}
+            onClick={openCommandPalette}
             className="hidden sm:flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground bg-secondary/50 border border-border rounded-lg hover:bg-secondary hover:text-foreground transition-colors"
             aria-label="Open command palette"
+            title="Open command palette (Ctrl/Cmd+K)"
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5">
               <circle cx="5.5" cy="5.5" r="4" />
               <path d="m9 9 2.5 2.5" strokeLinecap="round" />
             </svg>
             <span>Search...</span>
-            <span className="font-mono bg-background/60 px-1 py-0.5 rounded text-[10px]">⌘K</span>
+            <span className="font-mono bg-background/60 px-1 py-0.5 rounded text-[10px]">⌘/Ctrl K</span>
           </button>
         </header>
 
@@ -1618,10 +2227,16 @@ function AppContent() {
         </a>
 
         {/* View content */}
-        <main id="main-content" className="flex-1 overflow-y-auto" role="main">
+        <main id="main-content" className="flex-1 overflow-y-auto" role="main" data-tour="main-content">
+          {!activeViewVisible && (
+            <div className="mx-3 mt-3 sm:mx-4 md:mx-6 max-w-7xl rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+              Current view is outside the active navigation filter.
+            </div>
+          )}
           <ViewErrorBoundary viewId={activeView}>
             <React.Suspense fallback={<LoadingFallback viewId={activeView} />}>
-              <div key={activeView} className="p-6 max-w-7xl mx-auto animate-slide-in">
+              {/* M9: responsive pass — reduce padding on mobile */}
+              <div key={activeView} className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto animate-slide-in">
                 {renderView()}
               </div>
             </React.Suspense>
@@ -1629,12 +2244,31 @@ function AppContent() {
         </main>
       </div>
 
-      {/* Keyboard Shortcuts Modal — lazy, only loaded on first ? keypress */}
-      {shortcutsOpen && (
+      {/* AI Copilot Panel — Operator Mode */}
+      {operatorMode && (
         <React.Suspense fallback={null}>
-          <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+          <OperatorAICopilot
+            isOpen={copilotOpen}
+            onClose={() => setCopilotOpen(false)}
+            onNavigate={navigate}
+          />
         </React.Suspense>
       )}
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+
+      {/* Guided Tour Overlay */}
+      <TourOverlay
+        isActive={tour.isActive}
+        steps={DEFAULT_DASHBOARD_TOUR_STEPS}
+        tourId="dashboard-onboarding"
+        onComplete={tour.stopTour}
+        onSkip={tour.skipTour}
+        onStepChange={tour.nextStep}
+        showProgress={true}
+        allowSkip={true}
+      />
 
       {/* Command Palette */}
       {cmdPaletteOpen && (
@@ -1646,14 +2280,15 @@ function AppContent() {
             aria-hidden="true"
           />
 
-          {/* Palette modal */}
+          {/* Palette modal — M9: responsive pass — full-screen on mobile, centered modal on desktop */}
           <div
             role="dialog"
             aria-label="Command palette"
             aria-modal="true"
-            className="fixed top-[20%] left-1/2 -translate-x-1/2 z-50 w-full max-w-lg animate-slide-in"
+            className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:inset-auto sm:top-[20%] sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-lg animate-slide-in"
           >
-            <div className="bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
+            {/* M9: responsive pass — full-height on mobile */}
+            <div className="bg-card border border-border rounded-none sm:rounded-xl shadow-2xl overflow-hidden h-full sm:h-auto w-full sm:w-auto">
               {/* Search input */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
                 <svg
@@ -1773,6 +2408,18 @@ function AppContent() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Gateway auth modal — shown when the gateway rejects our token */}
+      {authModalOpen && (
+        <GatewayAuthModal
+          authError={gateway.authError}
+          onConnect={() => {
+            setAuthModalOpen(false);
+            gateway.reconnect();
+          }}
+          onDismiss={() => setAuthModalOpen(false)}
+        />
       )}
     </div>
   );

@@ -220,8 +220,14 @@ export async function handleInlineActions(params: {
           // oxlint-disable-next-line typescript/no-explicit-any
         } as any);
         const text = extractTextFromToolResult(result) ?? "✅ Done.";
+        const credentialDisclosure = command.senderIsOwner
+          ? null
+          : "⚠️ Disclosure: this skill action may use owner-configured credentials (including OAuth/API tokens) and proxy requests to external services.";
         typing.cleanup();
-        return { kind: "reply", reply: { text } };
+        return {
+          kind: "reply",
+          reply: { text: credentialDisclosure ? `${credentialDisclosure}\n\n${text}` : text },
+        };
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         typing.cleanup();
@@ -231,6 +237,9 @@ export async function handleInlineActions(params: {
 
     const promptParts = [
       `Use the "${skillInvocation.command.skillName}" skill for this request.`,
+      command.senderIsOwner
+        ? null
+        : "Before taking action, disclose if this skill uses owner-configured credentials (OAuth/API tokens) or proxies requests to external services.",
       skillInvocation.args ? `User input:\n${skillInvocation.args}` : null,
     ].filter((entry): entry is string => Boolean(entry));
     const rewrittenBody = promptParts.join("\n\n");

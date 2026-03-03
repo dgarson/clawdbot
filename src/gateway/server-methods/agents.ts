@@ -26,8 +26,10 @@ import {
   pruneAgentConfig,
 } from "../../commands/agents.config.js";
 import { loadConfig, writeConfigFile } from "../../config/config.js";
+import { collectConfigRuntimeEnvVars } from "../../config/env-vars.js";
 import { resolveSessionTranscriptsDirForAgent } from "../../config/sessions/paths.js";
 import { appendChangeAuditRecord, readFileAuditSnapshot } from "../../infra/change-audit.js";
+import { parseGeminiAuth } from "../../infra/gemini-auth.js";
 import { DEFAULT_AGENT_ID, normalizeAgentId } from "../../routing/session-key.js";
 import { resolveUserPath } from "../../utils.js";
 import { formatControlPlaneActor, resolveControlPlaneActor } from "../control-plane-audit.js";
@@ -37,6 +39,8 @@ import {
   formatValidationErrors,
   validateAgentsCreateParams,
   validateAgentsDeleteParams,
+  validateAgentsAvatarCapabilitiesParams,
+  validateAgentsAvatarGenerateParams,
   validateAgentsFilesGetParams,
   validateAgentsFilesListParams,
   validateAgentsFilesSetParams,
@@ -62,6 +66,16 @@ const BOOTSTRAP_FILE_NAMES_POST_ONBOARDING = BOOTSTRAP_FILE_NAMES.filter(
 const MEMORY_FILE_NAMES = [DEFAULT_MEMORY_FILENAME, DEFAULT_MEMORY_ALT_FILENAME] as const;
 
 const ALLOWED_FILE_NAMES = new Set<string>([...BOOTSTRAP_FILE_NAMES, ...MEMORY_FILE_NAMES]);
+const GEMINI_AVATAR_MODEL = "gemini-2.5-flash-image-preview";
+const GEMINI_AVATAR_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
+const GEMINI_AVATAR_TIMEOUT_MS = 60_000;
+const GENERATED_AVATAR_FILENAME_DEFAULT = "avatars/generated-avatar.png";
+const IMAGE_DATA_URL_PATTERN = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+={0,2})$/i;
+const IMAGE_MIME_EXTENSION: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
 
 function resolveAgentWorkspaceFileOrRespondError(
   params: Record<string, unknown>,
@@ -188,6 +202,225 @@ function resolveOptionalStringParam(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
+function resolveGeminiAvatarCapability(cfg: ReturnType<typeof loadConfig>): {
+  supported: boolean;
+  provider: "gemini";
+  model: string;
+  reason?: string;
+  apiKey?: string;
+} {
+  const envApiKey = process.env.GEMINI_API_KEY?.trim();
+  if (envApiKey) {
+    return {
+      supported: true,
+      provider: "gemini",
+      model: GEMINI_AVATAR_MODEL,
+      apiKey: envApiKey,
+    };
+  }
+
+  const configApiKey = collectConfigRuntimeEnvVars(cfg).GEMINI_API_KEY?.trim();
+  if (configApiKey) {
+    return {
+      supported: true,
+      provider: "gemini",
+      model: GEMINI_AVATAR_MODEL,
+      apiKey: configApiKey,
+    };
+  }
+
+  return {
+    supported: false,
+    provider: "gemini",
+    model: GEMINI_AVATAR_MODEL,
+    reason:
+      "Gemini must be configured to use avatar generation (set GEMINI_API_KEY in env or config.env).",
+  };
+}
+
+function pickFallbackEmoji(name: string, description: string): string {
+  const combined = `${name} ${description}`.toLowerCase();
+  if (combined.includes("code") || combined.includes("dev")) {
+    return "💻";
+  }
+  if (combined.includes("design") || combined.includes("creative")) {
+    return "🎨";
+  }
+  if (combined.includes("data") || combined.includes("analytics")) {
+    return "📊";
+  }
+  if (combined.includes("support") || combined.includes("help")) {
+    return "🤝";
+  }
+  if (combined.includes("security") || combined.includes("safe")) {
+    return "🛡️";
+  }
+  if (combined.includes("research") || combined.includes("analysis")) {
+    return "🔍";
+  }
+  return "🤖";
+}
+
+function extractEmojiCandidate(text: string): string | undefined {
+  for (const character of Array.from(text)) {
+    if (/\p{Extended_Pictographic}/u.test(character)) {
+      return character;
+    }
+  }
+  return undefined;
+}
+
+function buildGeminiAvatarPrompt(name: string, description: string): string {
+  return [
+    "Create a polished profile avatar for an AI agent.",
+    "Style: clean, modern illustration, centered subject, strong contrast, no text or letters.",
+    "Return one short text line in the format: EMOJI: <single emoji>",
+    "",
+    `Agent name: ${name}`,
+    `Agent role: ${description}`,
+  ].join("\n");
+}
+
+function truncateErrorBody(raw: string): string {
+  const text = raw.replace(/\s+/g, " ").trim();
+  if (!text) {
+    return "";
+  }
+  return text.length > 300 ? `${text.slice(0, 300)}…` : text;
+}
+
+async function generateGeminiAvatar(params: {
+  apiKey: string;
+  name: string;
+  description: string;
+}): Promise<{ provider: "gemini"; model: string; emoji: string; imageDataUrl: string }> {
+  const headers = new Headers(parseGeminiAuth(params.apiKey).headers);
+  const payload = {
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: buildGeminiAvatarPrompt(params.name, params.description) }],
+      },
+    ],
+    generationConfig: {
+      responseModalities: ["TEXT", "IMAGE"],
+    },
+  };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), GEMINI_AVATAR_TIMEOUT_MS);
+  let response: Response;
+
+  try {
+    response = await fetch(
+      `${GEMINI_AVATAR_BASE_URL}/models/${GEMINI_AVATAR_MODEL}:generateContent`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      },
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!response.ok) {
+    const errorText = truncateErrorBody(await response.text());
+    const suffix = errorText ? `: ${errorText}` : "";
+    throw new Error(`Gemini avatar generation failed (HTTP ${response.status})${suffix}`);
+  }
+
+  const body = (await response.json()) as {
+    candidates?: Array<{
+      content?: {
+        parts?: Array<{
+          text?: string;
+          inlineData?: { mimeType?: string; data?: string };
+          inline_data?: { mime_type?: string; data?: string };
+        }>;
+      };
+    }>;
+  };
+
+  const parts = body.candidates?.[0]?.content?.parts ?? [];
+  const combinedText = parts
+    .map((part) => (typeof part.text === "string" ? part.text : ""))
+    .join("\n");
+
+  let mimeType: string | undefined;
+  let imageData: string | undefined;
+  for (const part of parts) {
+    const inlineData = part.inlineData;
+    const inlineDataSnake = part.inline_data;
+    const mime = inlineData?.mimeType ?? inlineDataSnake?.mime_type;
+    const data = inlineData?.data ?? inlineDataSnake?.data;
+    if (typeof mime === "string" && typeof data === "string" && mime.startsWith("image/")) {
+      mimeType = mime;
+      imageData = data;
+      break;
+    }
+  }
+
+  if (!mimeType || !imageData) {
+    throw new Error("Gemini avatar generation response did not include an image.");
+  }
+
+  const emoji =
+    extractEmojiCandidate(combinedText) ?? pickFallbackEmoji(params.name, params.description);
+
+  return {
+    provider: "gemini",
+    model: GEMINI_AVATAR_MODEL,
+    emoji,
+    imageDataUrl: `data:${mimeType};base64,${imageData}`,
+  };
+}
+
+function decodeAvatarImageDataUrl(dataUrl: string): { buffer: Buffer; extension: string } {
+  const match = dataUrl.match(IMAGE_DATA_URL_PATTERN);
+  if (!match) {
+    throw new Error("avatarDataUrl must be a base64 image data URL (png/jpeg/webp).");
+  }
+  const mime = match[1].toLowerCase();
+  const base64Data = match[2];
+  const extension = IMAGE_MIME_EXTENSION[mime];
+  if (!extension) {
+    throw new Error("avatarDataUrl mime type is not supported.");
+  }
+  const buffer = Buffer.from(base64Data, "base64");
+  if (buffer.length === 0) {
+    throw new Error("avatarDataUrl decoded to an empty image.");
+  }
+  return { buffer, extension };
+}
+
+function resolveGeneratedAvatarRelativePath(
+  rawPath: string | undefined,
+  extension: string,
+): string {
+  const fallback = GENERATED_AVATAR_FILENAME_DEFAULT.replace(/\.png$/i, `.${extension}`);
+  if (!rawPath) {
+    return fallback;
+  }
+  const normalized = rawPath
+    .replace(/\\/g, "/")
+    .trim()
+    .replace(/^\.?\//, "");
+  if (
+    !normalized ||
+    normalized.startsWith("/") ||
+    normalized.includes("..") ||
+    normalized.includes(":")
+  ) {
+    return fallback;
+  }
+  if (!/\.[a-z0-9]+$/i.test(normalized)) {
+    return `${normalized}.${extension}`;
+  }
+  return normalized;
+}
+
 async function moveToTrashBestEffort(pathname: string): Promise<void> {
   if (!pathname) {
     return;
@@ -221,6 +454,81 @@ export const agentsHandlers: GatewayRequestHandlers = {
     const cfg = loadConfig();
     const result = listAgentsForGateway(cfg);
     respond(true, result, undefined);
+  },
+  "agents.avatar.capabilities": ({ params, respond }) => {
+    if (!validateAgentsAvatarCapabilitiesParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid agents.avatar.capabilities params: ${formatValidationErrors(
+            validateAgentsAvatarCapabilitiesParams.errors,
+          )}`,
+        ),
+      );
+      return;
+    }
+    const cfg = loadConfig();
+    const capability = resolveGeminiAvatarCapability(cfg);
+    respond(
+      true,
+      {
+        supported: capability.supported,
+        provider: capability.provider,
+        model: capability.model,
+        ...(capability.reason ? { reason: capability.reason } : {}),
+      },
+      undefined,
+    );
+  },
+  "agents.avatar.generate": async ({ params, respond }) => {
+    if (!validateAgentsAvatarGenerateParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid agents.avatar.generate params: ${formatValidationErrors(
+            validateAgentsAvatarGenerateParams.errors,
+          )}`,
+        ),
+      );
+      return;
+    }
+
+    const cfg = loadConfig();
+    const capability = resolveGeminiAvatarCapability(cfg);
+    if (!capability.supported || !capability.apiKey) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.UNAVAILABLE,
+          capability.reason ??
+            "Gemini must be configured to use avatar generation (set GEMINI_API_KEY in env or config.env).",
+        ),
+      );
+      return;
+    }
+
+    try {
+      const generated = await generateGeminiAvatar({
+        apiKey: capability.apiKey,
+        name: String(params.name),
+        description: String(params.description),
+      });
+      respond(true, generated, undefined);
+    } catch (error) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.UNAVAILABLE,
+          error instanceof Error ? error.message : "Gemini avatar generation failed.",
+        ),
+      );
+    }
   },
   "agents.create": async ({ params, respond }) => {
     if (!validateAgentsCreateParams(params)) {
@@ -281,7 +589,36 @@ export const agentsHandlers: GatewayRequestHandlers = {
     // Always write Name to IDENTITY.md; optionally include emoji/avatar.
     const safeName = sanitizeIdentityLine(rawName);
     const emoji = resolveOptionalStringParam(params.emoji);
-    const avatar = resolveOptionalStringParam(params.avatar);
+    const avatarDataUrl = resolveOptionalStringParam(params.avatarDataUrl);
+    const avatarFilename = resolveOptionalStringParam(params.avatarFilename);
+    let avatar = resolveOptionalStringParam(params.avatar);
+    if (avatarDataUrl) {
+      try {
+        const decoded = decodeAvatarImageDataUrl(avatarDataUrl);
+        const relativePath = resolveGeneratedAvatarRelativePath(avatarFilename, decoded.extension);
+        const absolutePath = path.resolve(workspaceDir, relativePath);
+        const workspaceRoot = path.resolve(workspaceDir);
+        if (
+          !absolutePath.startsWith(`${workspaceRoot}${path.sep}`) &&
+          absolutePath !== workspaceRoot
+        ) {
+          throw new Error("generated avatar path must stay within workspace.");
+        }
+        await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+        await fs.writeFile(absolutePath, decoded.buffer);
+        avatar = relativePath;
+      } catch (error) {
+        respond(
+          false,
+          undefined,
+          errorShape(
+            ErrorCodes.INVALID_REQUEST,
+            error instanceof Error ? error.message : "invalid avatarDataUrl",
+          ),
+        );
+        return;
+      }
+    }
     const identityPath = path.join(workspaceDir, DEFAULT_IDENTITY_FILENAME);
     const lines = [
       "",

@@ -364,7 +364,7 @@ function InviteModal({ isOpen, onClose, onInvite }: InviteModalProps) {
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1 transition-colors"
             >
               Send Invite
             </button>
@@ -464,7 +464,7 @@ function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             className={cn(
-              'flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary rounded-lg focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors',
+              'flex-1 px-4 py-2.5 text-sm font-medium text-fg-primary rounded-lg focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1 transition-colors',
               confirmVariant === 'danger' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-amber-600 hover:bg-amber-500'
             )}
           >
@@ -613,7 +613,7 @@ function MembersTab({ members, onInvite, onRoleChange, onSuspend, onRemove }: Me
         <button
           type="button"
           onClick={() => setIsInviteModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-fg-primary bg-indigo-600 rounded-lg hover:bg-indigo-500 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1 transition-colors"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
           Invite Member
@@ -1092,7 +1092,7 @@ export default function TeamManagement({ isLoading = false }: { isLoading?: bool
       {/* Skip link */}
       <a
         href="#team-management-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-white focus:rounded-lg focus:font-medium focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-violet-600 focus:text-fg-primary focus:rounded-lg focus:font-medium focus:outline-none"
       >
         Skip to main content
       </a>
