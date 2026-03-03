@@ -435,6 +435,23 @@ describe("subagent announce formatting", () => {
     expect(sessionsDeleteSpy).toHaveBeenCalledTimes(1);
   });
 
+  it("suppresses completion delivery when subagent reply is NO_REPLY", async () => {
+    const didAnnounce = await runSubagentAnnounceFlow({
+      childSessionKey: "agent:main:subagent:test",
+      childRunId: "run-direct-completion-no-reply",
+      requesterSessionKey: "agent:main:main",
+      requesterDisplayKey: "main",
+      requesterOrigin: { channel: "slack", to: "channel:C123", accountId: "acct-1" },
+      ...defaultOutcomeAnnounce,
+      expectsCompletionMessage: true,
+      roundOneReply: " NO_REPLY ",
+    });
+
+    expect(didAnnounce).toBe(true);
+    expect(sendSpy).not.toHaveBeenCalled();
+    expect(agentSpy).not.toHaveBeenCalled();
+  });
+
   it("retries completion direct send on transient channel-unavailable errors", async () => {
     sendSpy
       .mockRejectedValueOnce(new Error("Error: No active WhatsApp Web listener (account: default)"))
@@ -825,6 +842,47 @@ describe("subagent announce formatting", () => {
     }
   });
 
+  it("routes manual completion direct-send for telegram forum topics", async () => {
+    sendSpy.mockClear();
+    agentSpy.mockClear();
+    sessionStore = {
+      "agent:main:subagent:test": {
+        sessionId: "child-session-telegram-topic",
+      },
+      "agent:main:main": {
+        sessionId: "requester-session-telegram-topic",
+        lastChannel: "telegram",
+        lastTo: "123:topic:999",
+        lastThreadId: 999,
+      },
+    };
+    chatHistoryMock.mockResolvedValueOnce({
+      messages: [{ role: "assistant", content: [{ type: "text", text: "done" }] }],
+    });
+
+    const didAnnounce = await runSubagentAnnounceFlow({
+      childSessionKey: "agent:main:subagent:test",
+      childRunId: "run-direct-telegram-topic",
+      requesterSessionKey: "agent:main:main",
+      requesterDisplayKey: "main",
+      requesterOrigin: {
+        channel: "telegram",
+        to: "123",
+        threadId: 42,
+      },
+      ...defaultOutcomeAnnounce,
+      expectsCompletionMessage: true,
+    });
+
+    expect(didAnnounce).toBe(true);
+    expect(sendSpy).toHaveBeenCalledTimes(1);
+    expect(agentSpy).not.toHaveBeenCalled();
+    const call = sendSpy.mock.calls[0]?.[0] as { params?: Record<string, unknown> };
+    expect(call?.params?.channel).toBe("telegram");
+    expect(call?.params?.to).toBe("123");
+    expect(call?.params?.threadId).toBe("42");
+  });
+
   it("uses hook-provided thread target across requester thread variants", async () => {
     const cases = [
       {
@@ -1004,62 +1062,6 @@ describe("subagent announce formatting", () => {
     expect(params.channel).toBe("whatsapp");
     expect(params.to).toBe("+1555");
     expect(params.accountId).toBe("kev");
-  });
-
-  it("keeps queued announces internal when a deliverable channel has no target", async () => {
-    embeddedRunMock.isEmbeddedPiRunActive.mockReturnValue(true);
-    embeddedRunMock.isEmbeddedPiRunStreaming.mockReturnValue(false);
-    sessionStore = {
-      "agent:main:main": {
-        sessionId: "session-slack-no-target",
-        lastChannel: "slack",
-        queueMode: "collect",
-        queueDebounceMs: 0,
-      },
-    };
-
-    const didAnnounce = await runSubagentAnnounceFlow({
-      childSessionKey: "agent:main:subagent:test",
-      childRunId: "run-slack-no-target",
-      requesterSessionKey: "main",
-      requesterDisplayKey: "main",
-      requesterOrigin: { channel: "slack", accountId: "default" },
-      ...defaultOutcomeAnnounce,
-    });
-
-    expect(didAnnounce).toBe(true);
-    const params = await getSingleAgentCallParams();
-    expect(params.deliver).toBe(false);
-    expect(params.channel).toBeUndefined();
-    expect(params.to).toBeUndefined();
-    expect(params.accountId).toBeUndefined();
-  });
-
-  it("does not treat heartbeat sentinel as a direct Slack target for completion announces", async () => {
-    sessionStore = {
-      "agent:main:main": {
-        sessionId: "session-slack-heartbeat-sentinel",
-        lastChannel: "slack",
-        lastTo: "heartbeat",
-      },
-    };
-
-    const didAnnounce = await runSubagentAnnounceFlow({
-      childSessionKey: "agent:main:subagent:test",
-      childRunId: "run-slack-heartbeat-sentinel",
-      requesterSessionKey: "main",
-      requesterDisplayKey: "main",
-      requesterOrigin: { channel: "slack", to: "heartbeat", accountId: "default" },
-      expectsCompletionMessage: true,
-      ...defaultOutcomeAnnounce,
-    });
-
-    expect(didAnnounce).toBe(true);
-    expect(sendSpy).toHaveBeenCalledTimes(0);
-    for (const call of agentSpy.mock.calls) {
-      const params = (call[0] as { params?: Record<string, unknown> })?.params ?? {};
-      expect(params.to).not.toBe("heartbeat");
-    }
   });
 
   it("keeps queued idempotency unique for same-ms distinct child runs", async () => {

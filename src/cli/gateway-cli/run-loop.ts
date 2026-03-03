@@ -1,6 +1,4 @@
-import { loadConfig } from "../../config/config.js";
 import type { startGatewayServer } from "../../gateway/server.js";
-import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
 import { acquireGatewayLock } from "../../infra/gateway-lock.js";
 import { restartGatewayProcessWithFreshPid } from "../../infra/process-respawn.js";
 import {
@@ -11,7 +9,7 @@ import {
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import {
   getActiveTaskCount,
-  getActiveLanes,
+  markGatewayDraining,
   resetAllLanes,
   waitForActiveTasks,
 } from "../../process/command-queue.js";
@@ -114,27 +112,19 @@ export async function runGatewayLoop(params: {
         // On restart, wait for in-flight agent turns to finish before
         // tearing down the server so buffered messages are delivered.
         if (isRestart) {
+          // Reject new enqueues immediately during the drain window so
+          // sessions get an explicit restart error instead of silent task loss.
+          markGatewayDraining();
           const activeTasks = getActiveTaskCount();
           if (activeTasks > 0) {
-            const cfg = loadConfig();
-            const laneDetail = isDiagnosticsEnabled(cfg)
-              ? ` lanes=[${[...getActiveLanes().entries()].map(([l, n]) => `${l}:${n}`).join(",")}]`
-              : "";
             gatewayLog.info(
-              `draining ${activeTasks} active task(s) before restart (timeout ${DRAIN_TIMEOUT_MS}ms)${laneDetail}`,
+              `draining ${activeTasks} active task(s) before restart (timeout ${DRAIN_TIMEOUT_MS}ms)`,
             );
             const { drained } = await waitForActiveTasks(DRAIN_TIMEOUT_MS);
             if (drained) {
               gatewayLog.info("all active tasks drained");
             } else {
-              const abandoned = getActiveTaskCount();
-              const cfg = loadConfig();
-              const laneDetail = isDiagnosticsEnabled(cfg)
-                ? ` lanes=[${[...getActiveLanes().entries()].map(([l, n]) => `${l}:${n}`).join(",")}]`
-                : "";
-              gatewayLog.warn(
-                `drain timeout reached; proceeding with restart (abandonedTasks=${abandoned})${laneDetail}`,
-              );
+              gatewayLog.warn("drain timeout reached; proceeding with restart");
             }
           }
         }

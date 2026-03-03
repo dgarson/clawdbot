@@ -1,3 +1,5 @@
+import { getAcpSessionManager } from "../acp/control-plane/manager.js";
+import { ACP_SESSION_IDENTITY_RENDERER_VERSION } from "../acp/runtime/session-identifiers.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
 import {
@@ -20,7 +22,6 @@ import { loadInternalHooks } from "../hooks/loader.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import type { loadOpenClawPlugins } from "../plugins/loader.js";
 import { type PluginServicesHandle, startPluginServices } from "../plugins/services.js";
-import { registerSessionAutoLabel } from "../sessions/session-auto-label.js";
 import { startBrowserControlServerIfEnabled } from "./server-browser.js";
 import {
   scheduleRestartSentinelWake,
@@ -160,8 +161,21 @@ export async function startGatewaySidecars(params: {
     params.log.warn(`plugin services failed to start: ${String(err)}`);
   }
 
-  // Register session auto-labeling service (no-op if not configured).
-  registerSessionAutoLabel();
+  if (params.cfg.acp?.enabled) {
+    void getAcpSessionManager()
+      .reconcilePendingSessionIdentities({ cfg: params.cfg })
+      .then((result) => {
+        if (result.checked === 0) {
+          return;
+        }
+        params.log.warn(
+          `acp startup identity reconcile (renderer=${ACP_SESSION_IDENTITY_RENDERER_VERSION}): checked=${result.checked} resolved=${result.resolved} failed=${result.failed}`,
+        );
+      })
+      .catch((err) => {
+        params.log.warn(`acp startup identity reconcile failed: ${String(err)}`);
+      });
+  }
 
   void startGatewayMemoryBackend({ cfg: params.cfg, log: params.log }).catch((err) => {
     params.log.warn(`qmd memory startup initialization failed: ${String(err)}`);

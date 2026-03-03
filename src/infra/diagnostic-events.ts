@@ -37,63 +37,6 @@ export type DiagnosticUsageEvent = DiagnosticBaseEvent & {
   durationMs?: number;
 };
 
-export type DiagnosticRuntimeWarningEvent = DiagnosticBaseEvent & {
-  type: "runtime.warning";
-  runtime: string;
-  source: string;
-  level: "warning" | "error";
-  sessionKey?: string;
-  sessionId?: string;
-  provider?: string;
-  model?: string;
-  code?: string;
-  message: string;
-  details?: string;
-};
-
-export type DiagnosticTtsUsageEvent = DiagnosticBaseEvent & {
-  type: "tts.usage";
-  source: string;
-  mode: "media" | "telephony";
-  sessionKey?: string;
-  sessionId?: string;
-  channel?: string;
-  provider?: string;
-  model?: string;
-  textLength: number;
-  success: boolean;
-  summarized?: boolean;
-  latencyMs?: number;
-  outputFormat?: string;
-  sampleRate?: number;
-  voiceCompatible?: boolean;
-  attempts?: number;
-  fallbackUsed?: boolean;
-  error?: string;
-};
-
-export type DiagnosticApiUsageEvent = DiagnosticBaseEvent & {
-  type: "api.usage";
-  source: string;
-  apiKind: "tts" | "tts.summary";
-  sessionKey?: string;
-  sessionId?: string;
-  channel?: string;
-  provider: string;
-  model?: string;
-  requestCount: number;
-  inputChars?: number;
-  success: boolean;
-  latencyMs?: number;
-  usage?: {
-    input?: number;
-    output?: number;
-    cacheRead?: number;
-    cacheWrite?: number;
-    total?: number;
-  };
-  error?: string;
-};
 export type DiagnosticWebhookReceivedEvent = DiagnosticBaseEvent & {
   type: "webhook.received";
   channel: string;
@@ -179,24 +122,6 @@ export type DiagnosticRunAttemptEvent = DiagnosticBaseEvent & {
   attempt: number;
 };
 
-export type DiagnosticModelFailoverAttemptEvent = DiagnosticBaseEvent & {
-  type: "model.failover.attempt";
-  sessionKey?: string;
-  sessionId?: string;
-  runId?: string;
-  attempt: number;
-  total?: number;
-  target: {
-    provider: string;
-    model: string;
-  };
-  outcome: "failed" | "skipped" | "selected";
-  reason?: string;
-  status?: number;
-  code?: string;
-  error?: string;
-};
-
 export type DiagnosticHeartbeatEvent = DiagnosticBaseEvent & {
   type: "diagnostic.heartbeat";
   webhooks: {
@@ -222,21 +147,42 @@ export type DiagnosticToolLoopEvent = DiagnosticBaseEvent & {
   pairedToolName?: string;
 };
 
-export type DiagnosticRouterFeedbackCapturedEvent = DiagnosticBaseEvent & {
-  type: "router.feedback.feedback_captured";
-  source: "implicit" | "reaction" | "api";
-  channelId: string;
-  feedbackId: string;
-  linkedDecisionId?: string;
-  needsReview: boolean;
-  reaction?: string;
+/** Plugin-emitted custom diagnostic event. */
+export type DiagnosticPluginEvent = DiagnosticBaseEvent & {
+  type: "plugin.event";
+  /** Plugin identifier that emitted the event. */
+  pluginId?: string;
+  /** Semantic event name within the plugin (e.g. "budget.warning", "score.computed"). */
+  eventType: string;
+  /** Arbitrary payload data. */
+  data: Record<string, unknown>;
+};
+
+/**
+ * Quality score emitted for a session — by an agent during a run (self-assessment),
+ * by an evaluator subagent, or by an async scoring plugin. Feeds the eval pipeline,
+ * OTel, and cost-optimization dashboards.
+ */
+export type DiagnosticSessionScoreEvent = DiagnosticBaseEvent & {
+  type: "session.score";
+  sessionId?: string;
+  agentId?: string;
+  /** Optional task or work-item identifier (e.g. GitHub issue, sprint task ID). */
+  taskId?: string;
+  /** Normalized quality score in the range 0.0–1.0. */
+  score: number;
+  /** Rubric dimension being scored (e.g. "tool_selection", "task_completion", "response_quality"). */
+  rubric: string;
+  /** Optional classification tags (e.g. ["correct", "efficient", "no_hallucination"]). */
+  tags?: string[];
+  /** Agent ID or plugin ID that produced this score. */
+  evaluatorId?: string;
+  /** Arbitrary additional context for the evaluator. */
+  data?: Record<string, unknown>;
 };
 
 export type DiagnosticEventPayload =
   | DiagnosticUsageEvent
-  | DiagnosticRuntimeWarningEvent
-  | DiagnosticTtsUsageEvent
-  | DiagnosticApiUsageEvent
   | DiagnosticWebhookReceivedEvent
   | DiagnosticWebhookProcessedEvent
   | DiagnosticWebhookErrorEvent
@@ -247,10 +193,10 @@ export type DiagnosticEventPayload =
   | DiagnosticLaneEnqueueEvent
   | DiagnosticLaneDequeueEvent
   | DiagnosticRunAttemptEvent
-  | DiagnosticModelFailoverAttemptEvent
   | DiagnosticHeartbeatEvent
   | DiagnosticToolLoopEvent
-  | DiagnosticRouterFeedbackCapturedEvent;
+  | DiagnosticPluginEvent
+  | DiagnosticSessionScoreEvent;
 
 export type DiagnosticEventInput = DiagnosticEventPayload extends infer Event
   ? Event extends DiagnosticEventPayload

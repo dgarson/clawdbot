@@ -4,7 +4,6 @@ import type { AgentModelConfig, AgentSandboxConfig } from "./types.agents-shared
 import type { HumanDelayConfig, IdentityConfig } from "./types.base.js";
 import type { GroupChatConfig } from "./types.messages.js";
 import type { AgentToolsConfig, MemorySearchConfig } from "./types.tools.js";
-import type { ClaudeSdkConfig } from "./zod-schema.agent-runtime.js";
 
 export type AgentConfig = {
   id: string;
@@ -33,8 +32,12 @@ export type AgentConfig = {
   /** Optional per-agent stream params (e.g. cacheRetention, temperature). */
   params?: Record<string, unknown>;
   tools?: AgentToolsConfig;
-  /** Claude SDK runtime config (false = disable even if set in defaults). */
-  claudeSdk?: ClaudeSdkConfig | false;
+  /**
+   * Free-form plugin-defined metadata for this agent.
+   * Core ignores this field; plugins use it for team membership, role,
+   * budget groups, escalation paths, capability tags, etc.
+   */
+  metadata?: Record<string, unknown>;
 };
 
 export type AgentsConfig = {

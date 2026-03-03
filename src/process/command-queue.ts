@@ -1,4 +1,3 @@
-import { isFailoverError } from "../agents/failover-error.js";
 import { diagnosticLogger as diag, logLaneDequeue, logLaneEnqueue } from "../logging/diagnostic.js";
 import { CommandLane } from "./lanes.js";
 /**
@@ -13,6 +12,20 @@ export class CommandLaneClearedError extends Error {
   }
 }
 
+/**
+ * Dedicated error type thrown when a new command is rejected because the
+ * gateway is currently draining for restart.
+ */
+export class GatewayDrainingError extends Error {
+  constructor() {
+    super("Gateway is draining for restart; new tasks are not accepted");
+    this.name = "GatewayDrainingError";
+  }
+}
+
+// Set while gateway is draining for restart; new enqueues are rejected.
+let gatewayDraining = false;
+
 // Minimal in-process queue to serialize command executions.
 // Default lane ("main") preserves the existing behavior. Additional lanes allow
 // low-risk parallelism (e.g. cron jobs) without interleaving stdin / logs for
@@ -25,10 +38,6 @@ type QueueEntry = {
   enqueuedAt: number;
   warnAfterMs: number;
   onWait?: (waitMs: number, queuedAhead: number) => void;
-  getDiagnosticSuffix?: (result: unknown) => string | undefined;
-  getDiagnosticFields?: (
-    result: unknown,
-  ) => { extraInfo?: string | null; debugInfo?: string | null } | undefined;
 };
 
 type LaneState = {
@@ -42,14 +51,6 @@ type LaneState = {
 
 const lanes = new Map<string, LaneState>();
 let nextTaskId = 1;
-
-function normalizeDiagnosticField(value: string | null | undefined): string | undefined {
-  if (typeof value !== "string") {
-    return undefined;
-  }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : undefined;
-}
 
 function getLaneState(lane: string): LaneState {
   const existing = lanes.get(lane);
@@ -79,78 +80,75 @@ function completeTask(state: LaneState, taskId: number, taskGeneration: number):
 function drainLane(lane: string) {
   const state = getLaneState(lane);
   if (state.draining) {
+    if (state.activeTaskIds.size === 0 && state.queue.length > 0) {
+      diag.warn(
+        `drainLane blocked: lane=${lane} draining=true active=0 queue=${state.queue.length}`,
+      );
+    }
     return;
   }
   state.draining = true;
 
   const pump = () => {
-    while (state.activeTaskIds.size < state.maxConcurrent && state.queue.length > 0) {
-      const entry = state.queue.shift() as QueueEntry;
-      const waitedMs = Date.now() - entry.enqueuedAt;
-      if (waitedMs >= entry.warnAfterMs) {
-        entry.onWait?.(waitedMs, state.queue.length);
-        diag.warn(
-          `lane wait exceeded: lane=${lane} waitedMs=${waitedMs} queueAhead=${state.queue.length}`,
-        );
-      }
-      logLaneDequeue(lane, waitedMs, state.queue.length);
-      const taskId = nextTaskId++;
-      const taskGeneration = state.generation;
-      state.activeTaskIds.add(taskId);
-      void (async () => {
-        const startTime = Date.now();
-        try {
-          const result = await entry.task();
-          const completedCurrentGeneration = completeTask(state, taskId, taskGeneration);
-          if (completedCurrentGeneration) {
-            const diagSuffix = entry.getDiagnosticSuffix?.(result);
-            const diagFields = entry.getDiagnosticFields?.(result);
-            const extraInfo = normalizeDiagnosticField(diagFields?.extraInfo);
-            const debugInfo = normalizeDiagnosticField(diagFields?.debugInfo);
-            const diagParts = [
-              diagSuffix,
-              extraInfo ? `extraInfo=${extraInfo}` : undefined,
-              debugInfo ? `debugInfo=${debugInfo}` : undefined,
-            ].filter(Boolean);
-            diag.debug(
-              `lane task done: lane=${lane} durationMs=${Date.now() - startTime} active=${state.activeTaskIds.size} queued=${state.queue.length}${diagParts.length > 0 ? ` ${diagParts.join(" ")}` : ""}`,
-            );
-            pump();
+    try {
+      while (state.activeTaskIds.size < state.maxConcurrent && state.queue.length > 0) {
+        const entry = state.queue.shift() as QueueEntry;
+        const waitedMs = Date.now() - entry.enqueuedAt;
+        if (waitedMs >= entry.warnAfterMs) {
+          try {
+            entry.onWait?.(waitedMs, state.queue.length);
+          } catch (err) {
+            diag.error(`lane onWait callback failed: lane=${lane} error="${String(err)}"`);
           }
-          entry.resolve(result);
-        } catch (err) {
-          const completedCurrentGeneration = completeTask(state, taskId, taskGeneration);
-          const isProbeLane = lane.startsWith("auth-probe:") || lane.startsWith("session:probe-");
-          if (!isProbeLane) {
-            let errSuffix = "";
-            if (isFailoverError(err)) {
-              const rt = err.runtime ?? "pi";
-              errSuffix = ` runtime=${rt}`;
-              if (rt === "claude-sdk") {
-                errSuffix += ` claudeSdk.provider=${err.provider ?? "unknown"}`;
-              } else {
-                errSuffix += ` provider=${err.provider ?? "unknown"}`;
-              }
-              errSuffix += ` model=${err.model ?? "unknown"}`;
-              if (err.profileId) {
-                errSuffix += ` profileId=${err.profileId}`;
-              }
-            }
-            diag.error(
-              `lane task error: lane=${lane} durationMs=${Date.now() - startTime} error="${String(err)}"${errSuffix}`,
-            );
-          }
-          if (completedCurrentGeneration) {
-            pump();
-          }
-          entry.reject(err);
+          diag.warn(
+            `lane wait exceeded: lane=${lane} waitedMs=${waitedMs} queueAhead=${state.queue.length}`,
+          );
         }
-      })();
+        logLaneDequeue(lane, waitedMs, state.queue.length);
+        const taskId = nextTaskId++;
+        const taskGeneration = state.generation;
+        state.activeTaskIds.add(taskId);
+        void (async () => {
+          const startTime = Date.now();
+          try {
+            const result = await entry.task();
+            const completedCurrentGeneration = completeTask(state, taskId, taskGeneration);
+            if (completedCurrentGeneration) {
+              diag.debug(
+                `lane task done: lane=${lane} durationMs=${Date.now() - startTime} active=${state.activeTaskIds.size} queued=${state.queue.length}`,
+              );
+              pump();
+            }
+            entry.resolve(result);
+          } catch (err) {
+            const completedCurrentGeneration = completeTask(state, taskId, taskGeneration);
+            const isProbeLane = lane.startsWith("auth-probe:") || lane.startsWith("session:probe-");
+            if (!isProbeLane) {
+              diag.error(
+                `lane task error: lane=${lane} durationMs=${Date.now() - startTime} error="${String(err)}"`,
+              );
+            }
+            if (completedCurrentGeneration) {
+              pump();
+            }
+            entry.reject(err);
+          }
+        })();
+      }
+    } finally {
+      state.draining = false;
     }
-    state.draining = false;
   };
 
   pump();
+}
+
+/**
+ * Mark gateway as draining for restart so new enqueues fail fast with
+ * `GatewayDrainingError` instead of being silently killed on shutdown.
+ */
+export function markGatewayDraining(): void {
+  gatewayDraining = true;
 }
 
 export function setCommandLaneConcurrency(lane: string, maxConcurrent: number) {
@@ -166,12 +164,11 @@ export function enqueueCommandInLane<T>(
   opts?: {
     warnAfterMs?: number;
     onWait?: (waitMs: number, queuedAhead: number) => void;
-    getDiagnosticSuffix?: (result: T) => string | undefined;
-    getDiagnosticFields?: (
-      result: T,
-    ) => { extraInfo?: string | null; debugInfo?: string | null } | undefined;
   },
 ): Promise<T> {
+  if (gatewayDraining) {
+    return Promise.reject(new GatewayDrainingError());
+  }
   const cleaned = lane.trim() || CommandLane.Main;
   const warnAfterMs = opts?.warnAfterMs ?? 2_000;
   const state = getLaneState(cleaned);
@@ -183,12 +180,6 @@ export function enqueueCommandInLane<T>(
       enqueuedAt: Date.now(),
       warnAfterMs,
       onWait: opts?.onWait,
-      getDiagnosticSuffix: opts?.getDiagnosticSuffix
-        ? (result) => opts.getDiagnosticSuffix!(result as T)
-        : undefined,
-      getDiagnosticFields: opts?.getDiagnosticFields
-        ? (result) => opts.getDiagnosticFields!(result as T)
-        : undefined,
     });
     logLaneEnqueue(cleaned, state.queue.length + state.activeTaskIds.size);
     drainLane(cleaned);
@@ -200,10 +191,6 @@ export function enqueueCommand<T>(
   opts?: {
     warnAfterMs?: number;
     onWait?: (waitMs: number, queuedAhead: number) => void;
-    getDiagnosticSuffix?: (result: T) => string | undefined;
-    getDiagnosticFields?: (
-      result: T,
-    ) => { extraInfo?: string | null; debugInfo?: string | null } | undefined;
   },
 ): Promise<T> {
   return enqueueCommandInLane(CommandLane.Main, task, opts);
@@ -255,6 +242,7 @@ export function clearCommandLane(lane: string = CommandLane.Main) {
  * `enqueueCommandInLane()` call (which may never come).
  */
 export function resetAllLanes(): void {
+  gatewayDraining = false;
   const lanesToDrain: string[] = [];
   for (const state of lanes.values()) {
     state.generation += 1;
@@ -280,20 +268,6 @@ export function getActiveTaskCount(): number {
     total += s.activeTaskIds.size;
   }
   return total;
-}
-
-/**
- * Returns a map of lane name → active task count for lanes with at least one
- * actively executing task. Useful for diagnostics on drain/restart.
- */
-export function getActiveLanes(): Map<string, number> {
-  const result = new Map<string, number>();
-  for (const [name, s] of lanes.entries()) {
-    if (s.activeTaskIds.size > 0) {
-      result.set(name, s.activeTaskIds.size);
-    }
-  }
-  return result;
 }
 
 /**

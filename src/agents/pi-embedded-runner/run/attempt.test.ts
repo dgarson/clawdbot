@@ -1,72 +1,11 @@
-import type { AgentMessage } from "@mariozechner/pi-agent-core";
-import type { ImageContent } from "@mariozechner/pi-ai";
 import { describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../../../config/config.js";
 import {
-  injectHistoryImagesIntoMessages,
   resolveAttemptFsWorkspaceOnly,
-  resolveClaudeSdkConfig,
   resolvePromptBuildHookResult,
   resolvePromptModeForSession,
-  resolveRuntime,
+  wrapStreamFnTrimToolCallNames,
 } from "./attempt.js";
-import type { EmbeddedRunAttemptParams } from "./types.js";
-
-describe("injectHistoryImagesIntoMessages", () => {
-  const image: ImageContent = { type: "image", data: "abc", mimeType: "image/png" };
-
-  it("injects history images and converts string content", () => {
-    const messages: AgentMessage[] = [
-      {
-        role: "user",
-        content: "See /tmp/photo.png",
-      } as AgentMessage,
-    ];
-
-    const didMutate = injectHistoryImagesIntoMessages(messages, new Map([[0, [image]]]));
-
-    expect(didMutate).toBe(true);
-    const firstUser = messages[0] as Extract<AgentMessage, { role: "user" }> | undefined;
-    expect(Array.isArray(firstUser?.content)).toBe(true);
-    const content = firstUser?.content as Array<{ type: string; text?: string; data?: string }>;
-    expect(content).toHaveLength(2);
-    expect(content[0]?.type).toBe("text");
-    expect(content[1]).toMatchObject({ type: "image", data: "abc" });
-  });
-
-  it("avoids duplicating existing image content", () => {
-    const messages: AgentMessage[] = [
-      {
-        role: "user",
-        content: [{ type: "text", text: "See /tmp/photo.png" }, { ...image }],
-      } as AgentMessage,
-    ];
-
-    const didMutate = injectHistoryImagesIntoMessages(messages, new Map([[0, [image]]]));
-
-    expect(didMutate).toBe(false);
-    const first = messages[0] as Extract<AgentMessage, { role: "user" }> | undefined;
-    if (!first || !Array.isArray(first.content)) {
-      throw new Error("expected array content");
-    }
-    expect(first.content).toHaveLength(2);
-  });
-
-  it("ignores non-user messages and out-of-range indices", () => {
-    const messages: AgentMessage[] = [
-      {
-        role: "assistant",
-        content: "noop",
-      } as unknown as AgentMessage,
-    ];
-
-    const didMutate = injectHistoryImagesIntoMessages(messages, new Map([[1, [image]]]));
-
-    expect(didMutate).toBe(false);
-    const firstAssistant = messages[0] as Extract<AgentMessage, { role: "assistant" }> | undefined;
-    expect(firstAssistant?.content).toBe("noop");
-  });
-});
 
 describe("resolvePromptBuildHookResult", () => {
   function createLegacyOnlyHookRunner() {
@@ -166,112 +105,72 @@ describe("resolveAttemptFsWorkspaceOnly", () => {
   });
 });
 
-describe("resolveClaudeSdkConfig", () => {
-  it("returns undefined for empty claudeSdk object (no provider key)", () => {
-    const params = {
-      config: {
-        agents: {
-          list: [{ id: "main", claudeSdk: {} }],
-        },
+describe("wrapStreamFnTrimToolCallNames", () => {
+  function createFakeStream(params: { events: unknown[]; resultMessage: unknown }): {
+    result: () => Promise<unknown>;
+    [Symbol.asyncIterator]: () => AsyncIterator<unknown>;
+  } {
+    return {
+      async result() {
+        return params.resultMessage;
       },
-    } as unknown as EmbeddedRunAttemptParams;
-
-    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
-  });
-
-  it("returns config when claudeSdk has a provider key", () => {
-    const params = {
-      config: {
-        agents: {
-          list: [{ id: "main", claudeSdk: { provider: "claude-sdk" } }],
-        },
+      [Symbol.asyncIterator]() {
+        return (async function* () {
+          for (const event of params.events) {
+            yield event;
+          }
+        })();
       },
-    } as unknown as EmbeddedRunAttemptParams;
+    };
+  }
 
-    expect(resolveClaudeSdkConfig(params, "main")).toEqual({ provider: "claude-sdk" });
+  it("trims whitespace from live streamed tool call names and final result message", async () => {
+    const partialToolCall = { type: "toolCall", name: " read " };
+    const messageToolCall = { type: "toolCall", name: " exec " };
+    const finalToolCall = { type: "toolCall", name: " write " };
+    const event = {
+      type: "toolcall_delta",
+      partial: { role: "assistant", content: [partialToolCall] },
+      message: { role: "assistant", content: [messageToolCall] },
+    };
+    const finalMessage = { role: "assistant", content: [finalToolCall] };
+    const baseFn = vi.fn(() => createFakeStream({ events: [event], resultMessage: finalMessage }));
+
+    const wrappedFn = wrapStreamFnTrimToolCallNames(baseFn as never);
+    const stream = wrappedFn({} as never, {} as never, {} as never) as Awaited<
+      ReturnType<typeof wrappedFn>
+    >;
+
+    const seenEvents: unknown[] = [];
+    for await (const item of stream) {
+      seenEvents.push(item);
+    }
+    const result = await stream.result();
+
+    expect(seenEvents).toHaveLength(1);
+    expect(partialToolCall.name).toBe("read");
+    expect(messageToolCall.name).toBe("exec");
+    expect(finalToolCall.name).toBe("write");
+    expect(result).toBe(finalMessage);
+    expect(baseFn).toHaveBeenCalledTimes(1);
   });
 
-  it("returns undefined when claudeSdk is explicitly false", () => {
-    const params = {
-      config: {
-        agents: {
-          list: [{ id: "main", claudeSdk: false }],
-        },
-      },
-    } as unknown as EmbeddedRunAttemptParams;
+  it("supports async stream functions that return a promise", async () => {
+    const finalToolCall = { type: "toolCall", name: " browser " };
+    const finalMessage = { role: "assistant", content: [finalToolCall] };
+    const baseFn = vi.fn(async () =>
+      createFakeStream({
+        events: [],
+        resultMessage: finalMessage,
+      }),
+    );
 
-    expect(resolveClaudeSdkConfig(params, "main")).toBeUndefined();
-  });
+    const wrappedFn = wrapStreamFnTrimToolCallNames(baseFn as never);
+    const stream = await wrappedFn({} as never, {} as never, {} as never);
+    const result = await stream.result();
 
-  it("falls back to defaults.claudeSdk when agent has no override", () => {
-    const params = {
-      config: {
-        agents: {
-          defaults: { claudeSdk: { provider: "anthropic" } },
-          list: [{ id: "main" }],
-        },
-      },
-    } as unknown as EmbeddedRunAttemptParams;
-
-    expect(resolveClaudeSdkConfig(params, "main")).toEqual({ provider: "anthropic" });
-  });
-
-  it("returns undefined for empty defaults.claudeSdk (no provider key)", () => {
-    const params = {
-      config: {
-        agents: {
-          defaults: { claudeSdk: {} },
-        },
-      },
-    } as unknown as EmbeddedRunAttemptParams;
-
-    expect(resolveClaudeSdkConfig(params, "other")).toBeUndefined();
-  });
-});
-
-describe("resolveRuntime", () => {
-  it("returns claude-sdk for known claude-sdk providers", () => {
-    const params = {
-      provider: "claude-max",
-      config: {},
-    } as unknown as EmbeddedRunAttemptParams;
-
-    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
-  });
-
-  it("returns pi for non-claude-sdk providers", () => {
-    const params = {
-      provider: "openai",
-      config: {},
-    } as unknown as EmbeddedRunAttemptParams;
-
-    expect(resolveRuntime(params, "main")).toBe("pi");
-  });
-
-  it("returns claude-sdk when agent has claudeSdk config", () => {
-    const params = {
-      provider: "openai",
-      config: {
-        agents: {
-          list: [{ id: "main", claudeSdk: { provider: "anthropic" } }],
-        },
-      },
-    } as unknown as EmbeddedRunAttemptParams;
-
-    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
-  });
-
-  it("warns when provider resembles claude-sdk but does not match", () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    // Use a dynamic import to access the subsystem logger's warn method.
-    // Instead, we test indirectly: resolveRuntime returns "pi" and does not throw.
-    const params = {
-      provider: "claude-max-custom",
-      config: {},
-    } as unknown as EmbeddedRunAttemptParams;
-
-    const result = resolveRuntime(params, "main");
-    expect(result).toBe("pi");
-    warnSpy.mockRestore();
+    expect(finalToolCall.name).toBe("browser");
+    expect(result).toBe(finalMessage);
+    expect(baseFn).toHaveBeenCalledTimes(1);
   });
 });

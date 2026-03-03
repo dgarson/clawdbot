@@ -141,6 +141,41 @@ describe("session_score tool", () => {
     });
   });
 
+  it("uses sessionKey fallback when both session IDs are omitted", async () => {
+    const tool = createSessionScoreTool({
+      agentId: "a1",
+      sessionKey: "agent:main:discord:channel:c123",
+    });
+
+    await tool.execute("call-7b", {
+      score: 0.61,
+      rubric: "response_quality",
+    });
+
+    expect(mockedEmit).toHaveBeenCalledOnce();
+    expect(mockedEmit.mock.calls[0][0]).toMatchObject({
+      sessionId: "agent:main:discord:channel:c123",
+    });
+  });
+
+  it("prefers default sessionId over sessionKey fallback", async () => {
+    const tool = createSessionScoreTool({
+      agentId: "a1",
+      sessionId: "default-session-id",
+      sessionKey: "agent:main:discord:channel:c123",
+    });
+
+    await tool.execute("call-7c", {
+      score: 0.62,
+      rubric: "response_quality",
+    });
+
+    expect(mockedEmit).toHaveBeenCalledOnce();
+    expect(mockedEmit.mock.calls[0][0]).toMatchObject({
+      sessionId: "default-session-id",
+    });
+  });
+
   it("passes tags to diagnostic event", async () => {
     const tool = createSessionScoreTool({ agentId: "a1", sessionId: "s1" });
     const tags = ["correct", "efficient", "no_hallucination"];

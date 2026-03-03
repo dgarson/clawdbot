@@ -1,31 +1,17 @@
 import { randomUUID } from "node:crypto";
-import type { ExecApprovalDecision } from "../infra/exec-approvals.js";
+import type {
+  ExecApprovalDecision,
+  ExecApprovalRequestPayload as InfraExecApprovalRequestPayload,
+} from "../infra/exec-approvals.js";
 
 // Grace period to keep resolved entries for late awaitDecision calls
 const RESOLVED_ENTRY_GRACE_MS = 15_000;
 
-export type HitlRequestPayload = {
-  tool?: string | null;
-  category?: string | null;
-  command?: string | null;
-  cwd?: string | null;
-  nodeId?: string | null;
-  host?: string | null;
-  security?: string | null;
-  ask?: string | null;
-  agentId?: string | null;
-  resolvedPath?: string | null;
-  sessionKey?: string | null;
-} & Record<string, unknown>;
+export type ExecApprovalRequestPayload = InfraExecApprovalRequestPayload;
 
-// Backwards-compatible alias for existing exec approval callers.
-export type ExecApprovalRequestPayload = HitlRequestPayload & {
-  command: string;
-};
-
-export type ExecApprovalRecord<TRequest extends HitlRequestPayload = HitlRequestPayload> = {
+export type ExecApprovalRecord = {
   id: string;
-  request: TRequest;
+  request: ExecApprovalRequestPayload;
   createdAtMs: number;
   expiresAtMs: number;
   // Caller metadata (best-effort). Used to prevent other clients from replaying an approval id.
@@ -48,14 +34,14 @@ type PendingEntry = {
 export class ExecApprovalManager {
   private pending = new Map<string, PendingEntry>();
 
-  create<TRequest extends HitlRequestPayload>(
-    request: TRequest,
+  create(
+    request: ExecApprovalRequestPayload,
     timeoutMs: number,
     id?: string | null,
-  ): ExecApprovalRecord<TRequest> {
+  ): ExecApprovalRecord {
     const now = Date.now();
     const resolvedId = id && id.trim().length > 0 ? id.trim() : randomUUID();
-    const record: ExecApprovalRecord<TRequest> = {
+    const record: ExecApprovalRecord = {
       id: resolvedId,
       request,
       createdAtMs: now,
@@ -69,10 +55,7 @@ export class ExecApprovalManager {
    * This separates registration (synchronous) from waiting (async), allowing callers to
    * confirm registration before the decision is made.
    */
-  register<TRequest extends HitlRequestPayload>(
-    record: ExecApprovalRecord<TRequest>,
-    timeoutMs: number,
-  ): Promise<ExecApprovalDecision | null> {
+  register(record: ExecApprovalRecord, timeoutMs: number): Promise<ExecApprovalDecision | null> {
     const existing = this.pending.get(record.id);
     if (existing) {
       // Idempotent: return existing promise if still pending
@@ -106,8 +89,8 @@ export class ExecApprovalManager {
   /**
    * @deprecated Use register() instead for explicit separation of registration and waiting.
    */
-  async waitForDecision<TRequest extends HitlRequestPayload>(
-    record: ExecApprovalRecord<TRequest>,
+  async waitForDecision(
+    record: ExecApprovalRecord,
     timeoutMs: number,
   ): Promise<ExecApprovalDecision | null> {
     return this.register(record, timeoutMs);
