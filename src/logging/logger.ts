@@ -17,8 +17,48 @@ const LOG_PREFIX = "openclaw";
 const LOG_SUFFIX = ".log";
 const MAX_LOG_AGE_MS = 24 * 60 * 60 * 1000; // 24h
 const DEFAULT_MAX_LOG_FILE_BYTES = 500 * 1024 * 1024; // 500 MB
+const DEFAULT_TIMEZONE = "utc";
 
 const requireConfig = resolveNodeRequireFromMeta(import.meta.url);
+
+/**
+ * Format a date according to the timezone setting.
+ * - "utc": Returns ISO 8601 format with Z suffix (e.g., "2026-03-03T17:38:28.656Z")
+ * - "local": Returns ISO 8601 format without Z suffix in system local timezone
+ * - IANA timezone: Returns ISO 8601 format without Z suffix in specified timezone
+ */
+function formatTimestamp(date: Date, timezone: string): string {
+  if (timezone === "utc") {
+    return date.toISOString();
+  }
+
+  // For "local" or IANA timezone, use Intl.DateTimeFormat
+  const timeZone = timezone === "local" ? undefined : timezone;
+
+  try {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      fractionalSecondDigits: 3,
+      hour12: false,
+    });
+
+    // Format: "2026-03-03, 17:38:28.656" -> "2026-03-03T17:38:28.656"
+    const formatted = formatter.format(date);
+    return formatted.replace(", ", "T");
+  } catch {
+    // If timezone is invalid, fall back to UTC
+    if (timezone !== "local") {
+      console.warn(`Invalid timezone "${timezone}", falling back to UTC`);
+    }
+    return date.toISOString();
+  }
+}
 
 export type LoggerSettings = {
   level?: LogLevel;
@@ -26,6 +66,8 @@ export type LoggerSettings = {
   maxFileBytes?: number;
   consoleLevel?: LogLevel;
   consoleStyle?: ConsoleStyle;
+  /** Timezone for timestamps: "utc", "local", or IANA timezone string */
+  timezone?: string;
 };
 
 type LogObj = { date?: Date } & Record<string, unknown>;
@@ -34,6 +76,8 @@ type ResolvedSettings = {
   level: LogLevel;
   file: string;
   maxFileBytes: number;
+  /** Timezone for timestamps: "utc", "local", or IANA timezone string */
+  timezone: string;
 };
 export type LoggerResolvedSettings = ResolvedSettings;
 export type LogTransportRecord = Record<string, unknown>;
@@ -76,14 +120,20 @@ function resolveSettings(): ResolvedSettings {
   const level = envLevel ?? fromConfig;
   const file = cfg?.file ?? defaultRollingPathForToday();
   const maxFileBytes = resolveMaxLogFileBytes(cfg?.maxFileBytes);
-  return { level, file, maxFileBytes };
+  const timezone = cfg?.timezone ?? DEFAULT_TIMEZONE;
+  return { level, file, maxFileBytes, timezone };
 }
 
 function settingsChanged(a: ResolvedSettings | null, b: ResolvedSettings) {
   if (!a) {
     return true;
   }
-  return a.level !== b.level || a.file !== b.file || a.maxFileBytes !== b.maxFileBytes;
+  return (
+    a.level !== b.level ||
+    a.file !== b.file ||
+    a.maxFileBytes !== b.maxFileBytes ||
+    a.timezone !== b.timezone
+  );
 }
 
 export function isFileLogLevelEnabled(level: LogLevel): boolean {
@@ -113,7 +163,8 @@ function buildLogger(settings: ResolvedSettings): TsLogger<LogObj> {
 
   logger.attachTransport((logObj: LogObj) => {
     try {
-      const time = logObj.date?.toISOString?.() ?? new Date().toISOString();
+      const date = logObj.date ?? new Date();
+      const time = formatTimestamp(date instanceof Date ? date : new Date(), settings.timezone);
       const line = JSON.stringify({ ...logObj, time });
       const payload = `${line}\n`;
       const payloadBytes = Buffer.byteLength(payload, "utf8");
@@ -122,7 +173,7 @@ function buildLogger(settings: ResolvedSettings): TsLogger<LogObj> {
         if (!warnedAboutSizeCap) {
           warnedAboutSizeCap = true;
           const warningLine = JSON.stringify({
-            time: new Date().toISOString(),
+            time: formatTimestamp(new Date(), settings.timezone),
             level: "warn",
             subsystem: "logging",
             message: `log file size cap reached; suppressing writes file=${settings.file} maxFileBytes=${settings.maxFileBytes}`,
