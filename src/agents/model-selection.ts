@@ -537,6 +537,7 @@ export function resolveThinkingDefault(params: {
   provider: string;
   model: string;
   catalog?: ModelCatalogEntry[];
+  agentThinkingDefault?: ThinkLevel;
 }): ThinkLevel {
   const normalizedProvider = normalizeProviderId(params.provider);
   const modelLower = params.model.toLowerCase();
@@ -553,6 +554,9 @@ export function resolveThinkingDefault(params: {
     perModelThinking === "adaptive"
   ) {
     return perModelThinking;
+  }
+  if (params.agentThinkingDefault) {
+    return params.agentThinkingDefault;
   }
   const configured = params.cfg.agents?.defaults?.thinkingDefault;
   if (configured) {

@@ -198,6 +198,10 @@ export const FIELD_HELP: Record<string, string> = {
     "Optional allowlist of skills for this agent (omit = all skills; empty = no skills).",
   "agents.list[].skills":
     "Optional allowlist of skills for this agent (omit = all skills; empty = no skills).",
+  "agents.list.*.thinkingDefault":
+    'Per-agent thinking default override ("off", "minimal", "low", "medium", "high", "xhigh", or "adaptive").',
+  "agents.list[].thinkingDefault":
+    'Per-agent thinking default override ("off", "minimal", "low", "medium", "high", "xhigh", or "adaptive").',
   agents:
     "Agent runtime configuration root covering defaults and explicit agent entries used for routing and execution context. Keep this section explicit so model/tool behavior stays predictable across multi-agent workflows.",
   "agents.defaults":

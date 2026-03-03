@@ -20,7 +20,6 @@ import { sensitive } from "./zod-schema.sensitive.js";
 // API-key-based providers use Pi runtime via models.providers config instead.
 export const ClaudeSdkConfigSchema = z
   .object({
-    thinkingDefault: z.enum(["none", "low", "medium", "high"]).optional(),
     /**
      * Optional Claude SDK base directory override. When set, this value is
      * propagated to the Claude subprocess as CLAUDE_CONFIG_DIR.
@@ -711,6 +710,17 @@ export const AgentEntrySchema = z
     heartbeat: HeartbeatSchema,
     identity: IdentitySchema,
     groupChat: GroupChatSchema,
+    thinkingDefault: z
+      .union([
+        z.literal("off"),
+        z.literal("minimal"),
+        z.literal("low"),
+        z.literal("medium"),
+        z.literal("high"),
+        z.literal("xhigh"),
+        z.literal("adaptive"),
+      ])
+      .optional(),
     subagents: z
       .object({
         allowAgents: z.array(z.string()).optional(),

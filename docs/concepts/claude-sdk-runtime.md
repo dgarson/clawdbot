@@ -48,9 +48,7 @@ Optional Claude SDK tuning:
 {
   agents: {
     defaults: {
-      claudeSdk: {
-        thinkingDefault: "low",
-      },
+      thinkingDefault: "low",
     },
   },
 }

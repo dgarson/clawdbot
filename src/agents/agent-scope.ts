@@ -33,6 +33,7 @@ type ResolvedAgentConfig = {
   memorySearch?: AgentEntry["memorySearch"];
   humanDelay?: AgentEntry["humanDelay"];
   heartbeat?: AgentEntry["heartbeat"];
+  thinkingDefault?: AgentEntry["thinkingDefault"];
   identity?: AgentEntry["identity"];
   groupChat?: AgentEntry["groupChat"];
   subagents?: AgentEntry["subagents"];
@@ -135,6 +136,7 @@ export function resolveAgentConfig(
     memorySearch: entry.memorySearch,
     humanDelay: entry.humanDelay,
     heartbeat: entry.heartbeat,
+    ...(entry.thinkingDefault !== undefined ? { thinkingDefault: entry.thinkingDefault } : {}),
     identity: entry.identity,
     groupChat: entry.groupChat,
     subagents: typeof entry.subagents === "object" && entry.subagents ? entry.subagents : undefined,

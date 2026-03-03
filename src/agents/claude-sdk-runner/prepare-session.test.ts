@@ -158,14 +158,14 @@ describe("prepareClaudeSdkSession — thinkLevel resolution", () => {
     expect(mock.mock.calls[0][0].thinkLevel).toBe("low");
   });
 
-  it("uses thinkingDefault from config when thinkLevel is 'off'", async () => {
-    const cfg = { thinkingDefault: "medium" as const };
+  it("keeps thinkLevel='off' when claudeSdk config has unrelated settings", async () => {
+    const cfg = { configDir: "/tmp/claude-config" };
     await callPrepare(baseParams, baseSessionManager(), cfg);
     const mock = createClaudeSdkSession as ReturnType<typeof vi.fn>;
-    expect(mock.mock.calls[0][0].thinkLevel).toBe("medium");
+    expect(mock.mock.calls[0][0].thinkLevel).toBe("off");
   });
 
-  it("keeps 'off' when thinkLevel is 'off' and no thinkingDefault is set", async () => {
+  it("keeps 'off' when thinkLevel is 'off' and no claudeSdk override is set", async () => {
     await callPrepare(baseParams, baseSessionManager());
     const mock = createClaudeSdkSession as ReturnType<typeof vi.fn>;
     expect(mock.mock.calls[0][0].thinkLevel).toBe("off");
@@ -184,8 +184,8 @@ describe("prepareClaudeSdkSession — thinkLevel resolution", () => {
   });
 });
 
-describe("resolveClaudeSdkConfig — thinkingDefault compatibility", () => {
-  it("keeps claudeSdk config when thinkingDefault is legacy 'none'", () => {
+describe("resolveClaudeSdkConfig — deprecated fields", () => {
+  it("returns undefined when claudeSdk includes deprecated thinkingDefault", () => {
     const params = {
       config: {
         agents: {
@@ -200,8 +200,7 @@ describe("resolveClaudeSdkConfig — thinkingDefault compatibility", () => {
     } as unknown as EmbeddedRunAttemptParams;
 
     const resolved = resolveClaudeSdkConfig(params, "agent-1");
-    expect(resolved).toBeDefined();
-    expect(resolved?.thinkingDefault).toBe("none");
+    expect(resolved).toBeUndefined();
   });
 });
 

@@ -197,16 +197,10 @@ export async function prepareClaudeSdkSession(
     customTools: allCustomTools,
     systemPrompt: systemPromptText,
     modelCost: params.model.cost,
-    // Explicit user directive (anything other than the "off" default) takes precedence
-    // over the config-level thinkingDefault. If no directive was given, the config acts
-    // as the agent-level default, falling back to the runtime "off" if unset.
-    // TODO: explicit user "off" is indistinguishable from the default "off", so
-    // thinkingDefault can override an explicit user choice. Proper fix requires
-    // threading `thinkLevelExplicit` from message parsing.
-    thinkLevel:
-      params.thinkLevel !== "off"
-        ? params.thinkLevel
-        : (claudeSdkConfig.thinkingDefault ?? params.thinkLevel),
+    // Thinking defaulting is resolved by shared model-selection/agent config logic
+    // before this runtime is invoked. Claude SDK should consume the resolved level
+    // directly to keep parity with Pi runtime behavior.
+    thinkLevel: params.thinkLevel,
     extraParams: params.streamParams as Record<string, unknown> | undefined,
     sessionManager,
     claudeSdkResumeSessionId,

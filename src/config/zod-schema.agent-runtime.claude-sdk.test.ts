@@ -7,11 +7,6 @@ describe("ClaudeSdkConfigSchema", () => {
     expect(parsed).toEqual({});
   });
 
-  it("accepts optional thinkingDefault", () => {
-    const parsed = ClaudeSdkConfigSchema.parse({ thinkingDefault: "low" });
-    expect(parsed?.thinkingDefault).toBe("low");
-  });
-
   it("accepts optional configDir", () => {
     const parsed = ClaudeSdkConfigSchema.parse({
       configDir: "/tmp/claude-config",
@@ -23,8 +18,8 @@ describe("ClaudeSdkConfigSchema", () => {
     expect(() => ClaudeSdkConfigSchema.parse({ configDir: "   " })).toThrow();
   });
 
-  it("rejects non-Claude-SDK thinking levels", () => {
-    expect(() => ClaudeSdkConfigSchema.parse({ thinkingDefault: "off" })).toThrow();
+  it("rejects thinkingDefault (moved to agents.defaults/agents.list)", () => {
+    expect(() => ClaudeSdkConfigSchema.parse({ thinkingDefault: "low" })).toThrow();
   });
 
   it("rejects unknown keys", () => {
