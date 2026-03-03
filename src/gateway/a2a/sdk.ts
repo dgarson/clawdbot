@@ -86,9 +86,10 @@ export function setSendFunction(fn: SendFn): void {
 }
 
 async function send(message: A2AMessage): Promise<A2AMessage> {
-  if (sendFn) {
-    await sendFn(message);
+  if (!sendFn) {
+    throw new Error("A2A send function not configured. Call setSendFunction() before sending messages.");
   }
+  await sendFn(message);
   return message;
 }
 

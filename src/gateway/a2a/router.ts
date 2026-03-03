@@ -127,13 +127,32 @@ export class A2ARouter {
         const result: RouteResult = {
           status: "validation_failed",
           error: "Message validation failed",
-          errors: validationResult.errors,
+          errors: "errors" in validationResult ? validationResult.errors : undefined,
         };
+        // Audit validation failures for observability
+        await this.auditResult(input as A2AMessage, result);
         return result;
       }
       message = validationResult.message;
     } else {
-      // No validator — trust the input (dangerous, but allows incremental integration)
+      // No validator — perform basic structural check before unsafe dereference
+      if (!input || typeof input !== "object") {
+        this.metrics.totalValidationFailed++;
+        const result: RouteResult = {
+          status: "validation_failed",
+          error: "Invalid input: must be a non-null object",
+        };
+        return result;
+      }
+      const obj = input as Record<string, unknown>;
+      if (!obj.from || !obj.to || typeof obj.from !== "object" || typeof obj.to !== "object") {
+        this.metrics.totalValidationFailed++;
+        const result: RouteResult = {
+          status: "validation_failed",
+          error: "Invalid input: missing from/to agent references",
+        };
+        return result;
+      }
       message = input as A2AMessage;
     }
 
