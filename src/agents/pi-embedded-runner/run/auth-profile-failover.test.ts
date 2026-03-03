@@ -43,7 +43,6 @@ type MutableResolutionState = {
   profileCandidates: AuthProfileCandidate[];
   profileIndex: number;
   advanceProfileIndex: () => void;
-  moveToNextClaudeSdkProvider: () => Promise<boolean>;
   fallBackToPiRuntime: () => Promise<boolean>;
 };
 
@@ -66,9 +65,6 @@ function makeResolutionState(params: {
         return;
       }
       state.profileIndex += 1;
-    },
-    async moveToNextClaudeSdkProvider() {
-      return false;
     },
     async fallBackToPiRuntime() {
       return false;
@@ -145,17 +141,17 @@ describe("createRunAuthProfileFailoverController", () => {
   it("maps auth lookup model provider to resolved auth provider", async () => {
     const state = makeResolutionState({
       runtimeOverride: "pi",
-      authProvider: "openrouter",
-      profileCandidates: [{ profileId: "openrouter:p1", resolveProfileId: "openrouter:p1" }],
+      authProvider: "custom-bridge",
+      profileCandidates: [{ profileId: "custom-bridge:p1", resolveProfileId: "custom-bridge:p1" }],
     });
     mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
-    mocks.getApiKeyForModel.mockResolvedValue(resolvedAuth("openrouter:p1", "sk-openrouter"));
+    mocks.getApiKeyForModel.mockResolvedValue(resolvedAuth("custom-bridge:p1", "sk-custom"));
     const { params } = baseParams({ model: { provider: "anthropic" } as never });
 
     const controller = await createRunAuthProfileFailoverController(params);
     const lookupModel = controller.resolveAuthLookupModel();
 
-    expect(lookupModel.provider).toBe("openrouter");
+    expect(lookupModel.provider).toBe("custom-bridge");
   });
 
   it("accepts aws-sdk auth mode without an API key", async () => {
@@ -247,24 +243,18 @@ describe("createRunAuthProfileFailoverController", () => {
   it("fails over Claude SDK provider exhaustion to Pi runtime", async () => {
     const state = makeResolutionState({
       runtimeOverride: "claude-sdk",
-      authProvider: "claude-pro",
-      profileCandidates: [{ profileId: "claude-pro:system-keychain", resolveProfileId: undefined }],
+      authProvider: "claude-personal",
+      profileCandidates: [
+        { profileId: "claude-personal:system-keychain", resolveProfileId: undefined },
+      ],
     });
-    state.moveToNextClaudeSdkProvider = vi
-      .fn()
-      .mockImplementationOnce(async () => {
-        state.authProvider = "zai";
-        state.claudeSdkProviderOverride = "zai";
-        state.profileCandidates = [{ profileId: "zai:p1", resolveProfileId: "zai:p1" }];
-        state.profileIndex = 0;
-        return true;
-      })
-      .mockImplementationOnce(async () => false);
     state.fallBackToPiRuntime = vi.fn(async () => {
       state.runtimeOverride = "pi";
-      state.authProvider = "claude-pro";
+      state.authProvider = "claude-personal";
       state.claudeSdkProviderOverride = undefined;
-      state.profileCandidates = [{ profileId: "claude-pro:pi", resolveProfileId: "claude-pro:pi" }];
+      state.profileCandidates = [
+        { profileId: "claude-personal:pi", resolveProfileId: "claude-personal:pi" },
+      ];
       state.profileIndex = 0;
       return true;
     });
@@ -275,13 +265,12 @@ describe("createRunAuthProfileFailoverController", () => {
         source: "Claude Subscription (system keychain)",
         mode: "system-keychain",
       })
-      .mockRejectedValueOnce(new Error("zai auth profile failed"))
-      .mockResolvedValueOnce(resolvedAuth("claude-pro:pi", "sk-pi-fallback"));
+      .mockResolvedValueOnce(resolvedAuth("claude-personal:pi", "sk-pi-fallback"));
     const onAuthRotationSuccess = vi.fn();
     const onClaudeSdkToPiFallback = vi.fn();
     const { params, authStorage } = baseParams({
-      provider: "claude-pro",
-      model: { provider: "claude-pro" } as never,
+      provider: "claude-personal",
+      model: { provider: "claude-personal" } as never,
       onAuthRotationSuccess,
       onClaudeSdkToPiFallback,
     });
@@ -293,8 +282,11 @@ describe("createRunAuthProfileFailoverController", () => {
     expect(onClaudeSdkToPiFallback).toHaveBeenCalledTimes(1);
     expect(onAuthRotationSuccess).toHaveBeenCalledTimes(1);
     expect(controller.authResolution.runtimeOverride).toBe("pi");
-    expect(controller.lastProfileId).toBe("claude-pro:pi");
-    expect(authStorage.setRuntimeApiKey).toHaveBeenLastCalledWith("claude-pro", "sk-pi-fallback");
+    expect(controller.lastProfileId).toBe("claude-personal:pi");
+    expect(authStorage.setRuntimeApiKey).toHaveBeenLastCalledWith(
+      "claude-personal",
+      "sk-pi-fallback",
+    );
   });
 
   it("throws cooldown failover when every candidate is unavailable due to cooldown", async () => {
@@ -341,13 +333,14 @@ describe("createRunAuthProfileFailoverController", () => {
   it("warns when Pi fallback succeeds but still cannot initialize a profile", async () => {
     const state = makeResolutionState({
       runtimeOverride: "claude-sdk",
-      authProvider: "claude-pro",
-      profileCandidates: [{ profileId: "claude-pro:system-keychain", resolveProfileId: undefined }],
+      authProvider: "claude-personal",
+      profileCandidates: [
+        { profileId: "claude-personal:system-keychain", resolveProfileId: undefined },
+      ],
     });
-    state.moveToNextClaudeSdkProvider = vi.fn(async () => false);
     state.fallBackToPiRuntime = vi.fn(async () => {
       state.runtimeOverride = "pi";
-      state.authProvider = "claude-pro";
+      state.authProvider = "claude-personal";
       state.claudeSdkProviderOverride = undefined;
       state.profileCandidates = [];
       state.profileIndex = 0;
@@ -361,8 +354,8 @@ describe("createRunAuthProfileFailoverController", () => {
     });
     const onClaudeSdkToPiFallback = vi.fn();
     const { params } = baseParams({
-      provider: "claude-pro",
-      model: { provider: "claude-pro" } as never,
+      provider: "claude-personal",
+      model: { provider: "claude-personal" } as never,
       fallbackConfigured: false,
       onClaudeSdkToPiFallback,
     });
@@ -380,10 +373,11 @@ describe("createRunAuthProfileFailoverController", () => {
   it("returns false when Claude SDK provider exhaustion cannot fall back to Pi runtime", async () => {
     const state = makeResolutionState({
       runtimeOverride: "claude-sdk",
-      authProvider: "claude-pro",
-      profileCandidates: [{ profileId: "claude-pro:system-keychain", resolveProfileId: undefined }],
+      authProvider: "claude-personal",
+      profileCandidates: [
+        { profileId: "claude-personal:system-keychain", resolveProfileId: undefined },
+      ],
     });
-    state.moveToNextClaudeSdkProvider = vi.fn(async () => false);
     state.fallBackToPiRuntime = vi.fn(async () => false);
     mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel.mockResolvedValue({
@@ -393,8 +387,8 @@ describe("createRunAuthProfileFailoverController", () => {
     });
     const onClaudeSdkToPiFallback = vi.fn();
     const { params } = baseParams({
-      provider: "claude-pro",
-      model: { provider: "claude-pro" } as never,
+      provider: "claude-personal",
+      model: { provider: "claude-personal" } as never,
       fallbackConfigured: false,
       onClaudeSdkToPiFallback,
     });

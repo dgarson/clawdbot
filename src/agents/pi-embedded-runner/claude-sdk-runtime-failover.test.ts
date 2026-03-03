@@ -29,12 +29,12 @@ describe("claude-sdk runtime failover parity flow", () => {
     mockedIsProfileInCooldown.mockReturnValue(false);
   });
 
-  it("uses claude-sdk runtime for system-keychain provider (claude-pro)", async () => {
+  it("uses claude-sdk runtime for system-keychain provider (claude-personal)", async () => {
     mockedRunEmbeddedAttempt.mockResolvedValueOnce(successfulAttemptResult);
     mockedGetApiKeyForModel.mockResolvedValueOnce({
       apiKey: undefined,
-      profileId: "claude-pro:system-keychain",
-      source: "Claude Pro (system keychain)",
+      profileId: "claude-personal:system-keychain",
+      source: "Claude Personal (system keychain)",
       mode: "system-keychain",
     } as never);
 
@@ -46,7 +46,7 @@ describe("claude-sdk runtime failover parity flow", () => {
       prompt: "hello",
       timeoutMs: 30000,
       runId: "run-sdk-keychain",
-      provider: "claude-pro",
+      provider: "claude-personal",
       config: {
         agents: {
           defaults: {
@@ -63,7 +63,7 @@ describe("claude-sdk runtime failover parity flow", () => {
   it("falls back from claude-sdk to pi runtime when system-keychain auth fails", async () => {
     mockedRunEmbeddedAttempt.mockResolvedValueOnce(successfulAttemptResult);
     mockedGetApiKeyForModel
-      .mockRejectedValueOnce(new Error("claude-pro keychain expired"))
+      .mockRejectedValueOnce(new Error("claude-personal keychain expired"))
       .mockResolvedValueOnce({
         apiKey: "sk-pi-fallback",
         profileId: "pi-profile",
@@ -79,7 +79,7 @@ describe("claude-sdk runtime failover parity flow", () => {
       prompt: "hello",
       timeoutMs: 30000,
       runId: "run-sdk-to-pi",
-      provider: "claude-pro",
+      provider: "claude-personal",
       config: {
         agents: {
           defaults: {

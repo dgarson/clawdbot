@@ -686,13 +686,13 @@ describe("session lifecycle — messages state", () => {
     );
 
     const createSession = await importCreateSession();
-    const session = await createSession(makeParams({ provider: "openrouter" }));
+    const session = await createSession(makeParams({ provider: "custom-bridge" }));
 
     await session.prompt("Hello");
 
     expect(session.messages[1]).toMatchObject({
       role: "assistant",
-      provider: "openrouter",
+      provider: "custom-bridge",
       api: "claude-sdk",
     });
   });
@@ -1699,7 +1699,7 @@ describe("prompt() — media persistence strategy", () => {
     const createSession = await importCreateSession();
     const session = await createSession(
       makeParams({
-        provider: "claude-pro",
+        provider: "claude-personal",
         claudeSdkResumeSessionId: "sess_media_resume",
         sessionManager: {
           appendMessage: vi.fn(() => "msg-id"),
@@ -1712,7 +1712,7 @@ describe("prompt() — media persistence strategy", () => {
                 filename,
                 fileId: "file_from_history",
                 sessionId: "sess_media_resume",
-                provider: "claude-pro",
+                provider: "claude-personal",
                 modelId: "claude-sonnet-4-5-20250514",
                 updatedAt: Date.now() - 10_000,
               },
@@ -1748,7 +1748,7 @@ describe("prompt() — media persistence strategy", () => {
     const createSession = await importCreateSession();
     const session = await createSession(
       makeParams({
-        provider: "claude-pro",
+        provider: "claude-personal",
         claudeSdkResumeSessionId: "sess_media_resume",
         sessionManager: {
           appendMessage: vi.fn(() => "msg-id"),
@@ -1760,7 +1760,7 @@ describe("prompt() — media persistence strategy", () => {
                 filename,
                 fileId: "file_hashless",
                 sessionId: "sess_media_resume",
-                provider: "claude-pro",
+                provider: "claude-personal",
                 modelId: "claude-sonnet-4-5-20250514",
                 updatedAt: Date.now() - 10_000,
               },
@@ -1796,7 +1796,7 @@ describe("prompt() — media persistence strategy", () => {
     const createSession = await importCreateSession();
     const session = await createSession(
       makeParams({
-        provider: "claude-pro",
+        provider: "claude-personal",
         claudeSdkResumeSessionId: "sess_media_current",
         sessionManager: {
           appendMessage: vi.fn(() => "msg-id"),
@@ -1809,7 +1809,7 @@ describe("prompt() — media persistence strategy", () => {
                 filename,
                 fileId: "file_other_session",
                 sessionId: "sess_media_old",
-                provider: "claude-pro",
+                provider: "claude-personal",
                 modelId: "claude-sonnet-4-5-20250514",
                 updatedAt: Date.now() - 10_000,
               },

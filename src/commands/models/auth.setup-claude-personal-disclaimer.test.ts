@@ -74,7 +74,7 @@ describe("modelsAuthSetupClaudePersonalCommand policy disclaimer", () => {
     const runtime = makeRuntime();
     mocks.confirm.mockResolvedValueOnce(true).mockResolvedValueOnce(true);
 
-    await modelsAuthSetupClaudePersonalCommand({ provider: "claude-pro" }, runtime);
+    await modelsAuthSetupClaudePersonalCommand({ provider: "claude-personal" }, runtime);
 
     for (const line of CLAUDE_SDK_POLICY_WARNING_LINES) {
       expect(runtime.log).toHaveBeenCalledWith(line);
@@ -97,7 +97,7 @@ describe("modelsAuthSetupClaudePersonalCommand policy disclaimer", () => {
     const runtime = makeRuntime();
     mocks.confirm.mockResolvedValueOnce(false);
 
-    await modelsAuthSetupClaudePersonalCommand({ provider: "claude-pro" }, runtime);
+    await modelsAuthSetupClaudePersonalCommand({ provider: "claude-personal" }, runtime);
 
     expect(mocks.confirm).toHaveBeenCalledTimes(1);
     expect(mocks.upsertAuthProfile).not.toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe("modelsAuthSetupClaudePersonalCommand policy disclaimer", () => {
   it("still prints disclaimer in --yes mode", async () => {
     const runtime = makeRuntime();
 
-    await modelsAuthSetupClaudePersonalCommand({ provider: "claude-pro", yes: true }, runtime);
+    await modelsAuthSetupClaudePersonalCommand({ provider: "claude-personal", yes: true }, runtime);
 
     expect(mocks.confirm).not.toHaveBeenCalled();
     expect(runtime.log).toHaveBeenCalledWith("Important Anthropic policy notice:");

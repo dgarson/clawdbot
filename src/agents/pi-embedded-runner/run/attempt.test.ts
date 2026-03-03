@@ -388,7 +388,7 @@ describe("isOllamaCompatProvider", () => {
       isOllamaCompatProvider({
         provider: "custom",
         api: "openai-completions",
-        baseUrl: "https://api.openrouter.ai/v1",
+        baseUrl: "https://api.proxy.example/v1",
       }),
     ).toBe(false);
   });
@@ -664,7 +664,7 @@ describe("resolveClaudeSdkConfig", () => {
 });
 
 describe("resolveRuntime", () => {
-  it("returns pi when resolvedProviderAuth says system-keychain but provider is not claude-pro or claude-max", () => {
+  it("returns pi when resolvedProviderAuth says system-keychain but provider is not system-keychain", () => {
     const params = {
       provider: "not-claude-pro",
       resolvedProviderAuth: {
@@ -678,22 +678,22 @@ describe("resolveRuntime", () => {
     expect(resolveRuntime(params, "main")).toBe("pi");
   });
 
-  it("returns claude-sdk for known claude-sdk providers", () => {
+  it("returns claude-sdk for the canonical claude-personal provider", () => {
     const params = {
-      provider: "claude-pro",
+      provider: "claude-personal",
       config: {},
     } as unknown as EmbeddedRunAttemptParams;
 
     expect(resolveRuntime(params, "main")).toBe("claude-sdk");
   });
 
-  it("returns claude-sdk for claude-max alias", () => {
+  it("returns pi for unknown claude-max-like provider (not in SYSTEM_KEYCHAIN_PROVIDERS)", () => {
     const params = {
       provider: "claude-max",
       config: {},
     } as unknown as EmbeddedRunAttemptParams;
 
-    expect(resolveRuntime(params, "main")).toBe("claude-sdk");
+    expect(resolveRuntime(params, "main")).toBe("pi");
   });
 
   it("returns pi for non-claude-sdk providers", () => {
@@ -705,7 +705,7 @@ describe("resolveRuntime", () => {
     expect(resolveRuntime(params, "main")).toBe("pi");
   });
 
-  it("returns pi for any provider that is not exactly claude-pro or claude-max", () => {
+  it("returns pi for any provider that is not in SYSTEM_KEYCHAIN_PROVIDERS", () => {
     const params = {
       provider: "claude-pro-custom",
       config: {},
@@ -716,7 +716,7 @@ describe("resolveRuntime", () => {
 
   it("runtimeOverride pi forces pi even when provider is a known claude-sdk provider", () => {
     const params = {
-      provider: "claude-pro",
+      provider: "claude-personal",
       runtimeOverride: "pi",
       config: {},
     } as unknown as EmbeddedRunAttemptParams;
@@ -745,8 +745,8 @@ describe("resolveRuntime", () => {
 
   it("returns pi for non-Claude model even when runtimeOverride is claude-sdk", () => {
     const params = {
-      provider: "zai",
-      modelId: "GLM-4.7",
+      provider: "openai",
+      modelId: "gpt-5.1",
       runtimeOverride: "claude-sdk",
       config: {},
     } as unknown as EmbeddedRunAttemptParams;
@@ -756,17 +756,17 @@ describe("resolveRuntime", () => {
 
   it("returns pi for non-Claude model ID regardless of provider", () => {
     const params = {
-      provider: "minimax",
-      modelId: "MiniMax-M2.5",
+      provider: "google",
+      modelId: "gemini-3-pro-preview",
       config: {},
     } as unknown as EmbeddedRunAttemptParams;
 
     expect(resolveRuntime(params, "main")).toBe("pi");
   });
 
-  it("returns claude-sdk for Claude model with claude-pro provider", () => {
+  it("returns claude-sdk for Claude model with claude-personal provider", () => {
     const params = {
-      provider: "claude-pro",
+      provider: "claude-personal",
       modelId: "claude-sonnet-4-5",
       config: {},
     } as unknown as EmbeddedRunAttemptParams;

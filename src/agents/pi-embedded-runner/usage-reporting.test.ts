@@ -77,8 +77,8 @@ describe("runEmbeddedPiAgent usage reporting", () => {
     } as any);
     mockedGetApiKeyForModel.mockResolvedValueOnce({
       apiKey: undefined,
-      profileId: "claude-pro:system-keychain",
-      source: "Claude Pro (system keychain)",
+      profileId: "claude-personal:system-keychain",
+      source: "Claude Personal (system keychain)",
       mode: "system-keychain",
     } as never);
 
@@ -90,7 +90,7 @@ describe("runEmbeddedPiAgent usage reporting", () => {
       prompt: "hello",
       timeoutMs: 30000,
       runId: "run-2",
-      provider: "claude-pro",
+      provider: "claude-personal",
       config: {
         agents: {
           defaults: {
@@ -106,7 +106,7 @@ describe("runEmbeddedPiAgent usage reporting", () => {
 
   it("falls back runtime to pi before attempt when claude-sdk auth is unavailable", async () => {
     mockedGetApiKeyForModel
-      .mockRejectedValueOnce(new Error("claude-pro keychain expired"))
+      .mockRejectedValueOnce(new Error("claude-personal keychain expired"))
       .mockResolvedValueOnce({
         apiKey: "sk-pi-fallback",
         profileId: "pi-profile",
@@ -135,7 +135,7 @@ describe("runEmbeddedPiAgent usage reporting", () => {
       prompt: "hello",
       timeoutMs: 30000,
       runId: "run-3",
-      provider: "claude-pro",
+      provider: "claude-personal",
       config: {
         agents: {
           defaults: {

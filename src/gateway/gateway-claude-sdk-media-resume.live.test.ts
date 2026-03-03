@@ -21,7 +21,7 @@ const LIVE = isTruthyEnvValue(process.env.LIVE) || isTruthyEnvValue(process.env.
 const CLAUDE_MEDIA_LIVE = isTruthyEnvValue(process.env.OPENCLAW_LIVE_CLAUDE_SDK_MEDIA_TEST);
 const describeLive = LIVE && CLAUDE_MEDIA_LIVE ? describe : describe.skip;
 
-const DEFAULT_PROVIDER = process.env.OPENCLAW_LIVE_CLAUDE_SDK_PROVIDER?.trim() || "claude-pro";
+const DEFAULT_PROVIDER = process.env.OPENCLAW_LIVE_CLAUDE_SDK_PROVIDER?.trim() || "claude-personal";
 const DEFAULT_MODEL = process.env.OPENCLAW_LIVE_CLAUDE_SDK_MODEL?.trim() || "claude-sonnet-4-5";
 
 async function getFreeGatewayPort(): Promise<number> {

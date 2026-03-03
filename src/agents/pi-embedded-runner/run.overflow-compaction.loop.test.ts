@@ -108,7 +108,7 @@ describe("overflow compaction in run loop", () => {
 
     const result = await runEmbeddedPiAgent({
       ...baseParams,
-      provider: "claude-pro",
+      provider: "claude-personal",
     });
 
     expect(mockedCompactDirect).not.toHaveBeenCalled();
@@ -138,7 +138,7 @@ describe("overflow compaction in run loop", () => {
 
     const result = await runEmbeddedPiAgent({
       ...baseParams,
-      provider: "claude-pro",
+      provider: "claude-personal",
     });
 
     expect(mockedCompactDirect).not.toHaveBeenCalled();
@@ -174,7 +174,7 @@ describe("overflow compaction in run loop", () => {
     try {
       await runEmbeddedPiAgent({
         ...baseParams,
-        provider: "claude-pro",
+        provider: "claude-personal",
         config: { diagnostics: { enabled: true } } as never,
       });
     } finally {
@@ -187,7 +187,7 @@ describe("overflow compaction in run loop", () => {
     expect(failFastMetric).toBeDefined();
     expect(failFastMetric?.fields).toMatchObject({
       sessionKey: "test-key",
-      provider: "claude-pro",
+      provider: "claude-personal",
       reason: "no_compaction_signal",
     });
   });
@@ -226,7 +226,7 @@ describe("overflow compaction in run loop", () => {
 
     const result = await runEmbeddedPiAgent({
       ...baseParams,
-      provider: "claude-pro",
+      provider: "claude-personal",
     });
 
     expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(2);

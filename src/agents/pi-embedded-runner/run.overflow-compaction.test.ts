@@ -147,7 +147,7 @@ describe("runEmbeddedPiAgent overflow compaction trigger routing", () => {
 
     const result = await runEmbeddedPiAgent({
       ...overflowBaseRunParams,
-      provider: "claude-pro",
+      provider: "claude-personal",
     });
 
     expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(2);
@@ -179,7 +179,7 @@ describe("runEmbeddedPiAgent overflow compaction trigger routing", () => {
 
     const result = await runEmbeddedPiAgent({
       ...overflowBaseRunParams,
-      provider: "claude-pro",
+      provider: "claude-personal",
     });
 
     expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(2);

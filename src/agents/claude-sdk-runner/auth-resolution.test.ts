@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../model-auth.js", () => ({
-  SYSTEM_KEYCHAIN_PROVIDERS: new Set(["claude-pro", "claude-personal"]),
+  SYSTEM_KEYCHAIN_PROVIDERS: new Set(["claude-personal"]),
   resolveAuthProfileOrder: mocks.resolveAuthProfileOrder,
 }));
 
@@ -26,19 +26,19 @@ describe("createClaudeSdkAuthResolutionState", () => {
     mocks.resolveAuthProfileOrder.mockReturnValue([]);
     mocks.upsertAuthProfileWithLock.mockResolvedValue({
       profiles: {
-        "claude-pro:system-keychain": {
+        "claude-personal:system-keychain": {
           type: "token",
-          provider: "claude-pro",
+          provider: "claude-personal",
           token: "system-keychain",
         },
       },
     });
   });
 
-  it("creates and persists a synthetic keychain profile for claude-pro", async () => {
+  it("creates and persists a synthetic keychain profile for claude-personal", async () => {
     const authStore = { profiles: {} } as never;
     const state = await createClaudeSdkAuthResolutionState({
-      provider: "claude-pro",
+      provider: "claude-personal",
       cfg: {},
       claudeSdkConfig: undefined,
       authStore,
@@ -48,10 +48,10 @@ describe("createClaudeSdkAuthResolutionState", () => {
     });
 
     expect(state.runtimeOverride).toBe("claude-sdk");
-    expect(state.authProvider).toBe("claude-pro");
-    expect(state.profileCandidates[0]?.profileId).toBe("claude-pro:system-keychain");
+    expect(state.authProvider).toBe("claude-personal");
+    expect(state.profileCandidates[0]?.profileId).toBe("claude-personal:system-keychain");
     expect(mocks.upsertAuthProfileWithLock).toHaveBeenCalledWith(
-      expect.objectContaining({ profileId: "claude-pro:system-keychain" }),
+      expect.objectContaining({ profileId: "claude-personal:system-keychain" }),
     );
   });
 
@@ -71,25 +71,10 @@ describe("createClaudeSdkAuthResolutionState", () => {
     expect(state.authProvider).toBe("anthropic");
   });
 
-  it("moveToNextClaudeSdkProvider always returns false (single system-keychain candidate)", async () => {
-    const authStore = { profiles: {} } as never;
-    const state = await createClaudeSdkAuthResolutionState({
-      provider: "claude-pro",
-      cfg: {},
-      claudeSdkConfig: undefined,
-      authStore,
-      agentDir: "/tmp/agent",
-      preferredProfileId: undefined,
-      authProfileIdSource: undefined,
-    });
-
-    expect(await state.moveToNextClaudeSdkProvider()).toBe(false);
-  });
-
   it("fallBackToPiRuntime switches runtime to pi and restores original provider", async () => {
     const authStore = { profiles: {} } as never;
     const state = await createClaudeSdkAuthResolutionState({
-      provider: "claude-pro",
+      provider: "claude-personal",
       cfg: {},
       claudeSdkConfig: undefined,
       authStore,
@@ -102,7 +87,7 @@ describe("createClaudeSdkAuthResolutionState", () => {
     const fell = await state.fallBackToPiRuntime();
     expect(fell).toBe(true);
     expect(state.runtimeOverride).toBe("pi");
-    expect(state.authProvider).toBe("claude-pro");
+    expect(state.authProvider).toBe("claude-personal");
   });
 
   it("fallBackToPiRuntime returns false when runtime is not claude-sdk", async () => {
@@ -143,15 +128,15 @@ describe("createClaudeSdkAuthResolutionState", () => {
   });
 
   it("advanceProfileIndex increments for unlocked profiles", async () => {
-    mocks.resolveAuthProfileOrder.mockReturnValue(["claude-pro:p1", "claude-pro:p2"]);
+    mocks.resolveAuthProfileOrder.mockReturnValue(["claude-personal:p1", "claude-personal:p2"]);
     const authStore = {
       profiles: {
-        "claude-pro:p1": { type: "token", provider: "claude-pro", token: "one" },
-        "claude-pro:p2": { type: "token", provider: "claude-pro", token: "two" },
+        "claude-personal:p1": { type: "token", provider: "claude-personal", token: "one" },
+        "claude-personal:p2": { type: "token", provider: "claude-personal", token: "two" },
       },
     } as never;
     const state = await createClaudeSdkAuthResolutionState({
-      provider: "claude-pro",
+      provider: "claude-personal",
       cfg: {},
       claudeSdkConfig: undefined,
       authStore,
@@ -173,7 +158,7 @@ describe("createClaudeSdkAuthResolutionState", () => {
 
     await expect(
       createClaudeSdkAuthResolutionState({
-        provider: "claude-pro",
+        provider: "claude-personal",
         cfg: {},
         claudeSdkConfig: undefined,
         authStore,
