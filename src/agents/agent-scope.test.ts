@@ -65,6 +65,22 @@ describe("resolveAgentConfig", () => {
     });
   });
 
+  it("returns per-agent thinkingDefault when configured", () => {
+    const cfg: OpenClawConfig = {
+      agents: {
+        list: [
+          {
+            id: "main",
+            thinkingDefault: "adaptive",
+          },
+        ],
+      },
+    };
+
+    const result = resolveAgentConfig(cfg, "main");
+    expect(result?.thinkingDefault).toBe("adaptive");
+  });
+
   it("resolves explicit and effective model primary separately", () => {
     const cfgWithStringDefault = {
       agents: {

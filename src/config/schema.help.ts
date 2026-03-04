@@ -190,7 +190,7 @@ export const FIELD_HELP: Record<string, string> = {
     "Maximum characters for projected ACP session/update lines (tool/status updates).",
   "acp.stream.tagVisibility":
     "Per-sessionUpdate visibility overrides for ACP projection (for example usage_update, available_commands_update).",
-  "acp.runtime.ttlMinutes":
+  "acp.runthttps://github.com/dgarson/clawdbot/pull/214/conflict?name=src%252Fauto-reply%252Freply%252Fmodel-selection.ts&ancestor_oid=1b666b6ded5812a2d944677f73d5cb08845513fd&base_oid=13ef94dbd3fd085926a6009dcac5baa57e512db3&head_oid=0a911d7e07d1c3c53092cf0fe2287ba988a8ffccime.ttlMinutes":
     "Idle runtime TTL in minutes for ACP session workers before eligible cleanup.",
   "acp.runtime.installCommand":
     "Optional operator install/setup command shown by `/acp install` and `/acp doctor` when ACP backend wiring is missing.",
@@ -201,7 +201,7 @@ export const FIELD_HELP: Record<string, string> = {
   "agents.list[].skills":
     "Optional allowlist of skills for this agent (omit = all skills; empty = no skills).",
   "agents.list[].thinkingDefault":
-    "Per-agent default thinking level used when no explicit /think override is present for that run.",
+    'Per-agent thinking default override ("off", "minimal", "low", "medium", "high", "xhigh", or "adaptive").',
   agents:
     "Agent runtime configuration root covering defaults and explicit agent entries used for routing and execution context. Keep this section explicit so model/tool behavior stays predictable across multi-agent workflows.",
   "agents.defaults":
