@@ -27,7 +27,13 @@ import {
 } from "../context-window-guard.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../defaults.js";
 import { FailoverError, resolveFailoverStatus } from "../failover-error.js";
-import { ensureAuthProfileStore } from "../model-auth.js";
+import {
+  ensureAuthProfileStore,
+  getApiKeyForModel,
+  resolveAuthProfileOrder,
+  type ResolvedProviderAuth,
+} from "../model-auth.js";
+import { normalizeProviderId, resolveThinkingDefault } from "../model-selection.js";
 import { ensureOpenClawModelsJson } from "../models-config.js";
 import {
   formatBillingErrorMessage,
@@ -374,7 +380,40 @@ export async function runEmbeddedPiAgent(
 
       const authStore = ensureAuthProfileStore(agentDir, { allowKeychainPrompt: false });
       const preferredProfileId = params.authProfileId?.trim();
-      const initialThinkLevel = params.thinkLevel ?? "off";
+      let lockedProfileId = params.authProfileIdSource === "user" ? preferredProfileId : undefined;
+      if (lockedProfileId) {
+        const lockedProfile = authStore.profiles[lockedProfileId];
+        if (
+          !lockedProfile ||
+          normalizeProviderId(lockedProfile.provider) !== normalizeProviderId(provider)
+        ) {
+          lockedProfileId = undefined;
+        }
+      }
+      const profileOrder = resolveAuthProfileOrder({
+        cfg: params.config,
+        store: authStore,
+        provider,
+        preferredProfile: preferredProfileId,
+      });
+      if (lockedProfileId && !profileOrder.includes(lockedProfileId)) {
+        throw new Error(`Auth profile "${lockedProfileId}" is not configured for ${provider}.`);
+      }
+      const profileCandidates = lockedProfileId
+        ? [lockedProfileId]
+        : profileOrder.length > 0
+          ? profileOrder
+          : [undefined];
+      let profileIndex = 0;
+
+      const initialThinkLevel =
+        params.thinkLevel ??
+        resolveThinkingDefault({
+          cfg: params.config ?? {},
+          provider,
+          model: modelId,
+          agentId: workspaceResolution.agentId,
+        });
       let thinkLevel = initialThinkLevel;
       const attemptedThinking = new Set<ThinkLevel>();
       let staleResumeRecoveryAttempted = false;
@@ -420,6 +459,9 @@ export async function runEmbeddedPiAgent(
             promptTokens: number;
           }
         | undefined;
+      let bootstrapPromptWarningSignaturesSeen =
+        params.bootstrapPromptWarningSignaturesSeen ??
+        (params.bootstrapPromptWarningSignature ? [params.bootstrapPromptWarningSignature] : []);
       const usageAccumulator = createUsageAccumulator();
       let lastRunPromptUsage: ReturnType<typeof normalizeUsage> | undefined;
       let autoCompactionCount = 0;
@@ -549,6 +591,9 @@ export async function runEmbeddedPiAgent(
             streamParams: params.streamParams,
             ownerNumbers: params.ownerNumbers,
             enforceFinalTag: params.enforceFinalTag,
+            bootstrapPromptWarningSignaturesSeen,
+            bootstrapPromptWarningSignature:
+              bootstrapPromptWarningSignaturesSeen[bootstrapPromptWarningSignaturesSeen.length - 1],
           });
           forceFreshClaudeSession = false;
 
@@ -560,6 +605,16 @@ export async function runEmbeddedPiAgent(
             sessionIdUsed,
             lastAssistant,
           } = attempt;
+          bootstrapPromptWarningSignaturesSeen =
+            attempt.bootstrapPromptWarningSignaturesSeen ??
+            (attempt.bootstrapPromptWarningSignature
+              ? Array.from(
+                  new Set([
+                    ...bootstrapPromptWarningSignaturesSeen,
+                    attempt.bootstrapPromptWarningSignature,
+                  ]),
+                )
+              : bootstrapPromptWarningSignaturesSeen);
           const lastAssistantUsage = normalizeUsage(lastAssistant?.usage as UsageLike);
           const attemptUsage = attempt.attemptUsage ?? lastAssistantUsage;
           mergeUsageIntoAccumulator(usageAccumulator, attemptUsage);
@@ -1289,7 +1344,11 @@ export async function runEmbeddedPiAgent(
               aborted,
               systemPromptReport: attempt.systemPromptReport,
               // Handle client tool calls (OpenResponses hosted tools)
-              stopReason: attempt.clientToolCall ? "tool_calls" : undefined,
+              // Propagate the LLM stop reason so callers (lifecycle events,
+              // ACP bridge) can distinguish end_turn from max_tokens.
+              stopReason: attempt.clientToolCall
+                ? "tool_calls"
+                : (lastAssistant?.stopReason as string | undefined),
               pendingToolCalls: attempt.clientToolCall
                 ? [
                     {

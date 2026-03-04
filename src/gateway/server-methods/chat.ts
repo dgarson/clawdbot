@@ -621,7 +621,7 @@ export const chatHandlers: GatewayRequestHandlers = {
         provider,
         model,
         catalog,
-        agentThinkingDefault: resolveAgentConfig(cfg, sessionAgentId)?.thinkingDefault,
+        agentId: sessionAgentId,
       });
     }
     const verboseLevel = entry?.verboseLevel ?? cfg.agents?.defaults?.verboseDefault;
