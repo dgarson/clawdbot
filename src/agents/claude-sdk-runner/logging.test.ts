@@ -5,7 +5,10 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createClaudeSdkSpawnWithStdoutTailLogging,
   defaultClaudeSdkSpawnProcess,
-} from "./spawn-stdout-logging.js";
+  emitClaudeSdkPolicyWarningLines,
+  getClaudeSdkPolicyWarningText,
+  isClaudeSubscriptionProvider,
+} from "./logging.js";
 
 type FakeSpawnedProcess = SpawnedProcess & {
   pushStdout: (text: string) => void;
@@ -133,5 +136,26 @@ describe("defaultClaudeSdkSpawnProcess", () => {
     });
 
     expect(stderrChunks.join("")).toContain("stderr-ready");
+  });
+});
+
+describe("policy warning helpers", () => {
+  it("normalizes provider IDs for subscription provider detection", () => {
+    expect(isClaudeSubscriptionProvider("claude-personal")).toBe(true);
+    expect(isClaudeSubscriptionProvider(" Claude-Personal ")).toBe(true);
+    expect(isClaudeSubscriptionProvider("anthropic")).toBe(false);
+  });
+
+  it("builds and emits warning lines", () => {
+    const lines: string[] = [];
+    emitClaudeSdkPolicyWarningLines({
+      log: (line) => lines.push(line),
+      padding: true,
+    });
+
+    expect(getClaudeSdkPolicyWarningText().length).toBeGreaterThan(0);
+    expect(lines[0]).toBe("");
+    expect(lines.at(-1)).toBe("");
+    expect(lines.length).toBeGreaterThan(3);
   });
 });

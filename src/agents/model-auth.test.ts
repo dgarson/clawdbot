@@ -53,6 +53,11 @@ describe("resolveModelAuthMode", () => {
     expect(mode).toBe("system-keychain");
   });
 
+  it("normalizes provider id before system-keychain detection", () => {
+    const mode = resolveModelAuthMode(" Claude-Personal ");
+    expect(mode).toBe("system-keychain");
+  });
+
   it("returns mixed when provider has both token and api key profiles", () => {
     const store: AuthProfileStore = {
       version: 1,
@@ -123,6 +128,14 @@ describe("resolveApiKeyForProvider", () => {
     expect(result.apiKey).toBeUndefined();
     expect(result.mode).toBe("system-keychain");
     expect(result.source).toContain("system keychain");
+  });
+
+  it("normalizes provider id before system-keychain resolution", async () => {
+    const result = await resolveApiKeyForProvider({
+      provider: " Claude-Personal ",
+    });
+    expect(result.apiKey).toBeUndefined();
+    expect(result.mode).toBe("system-keychain");
   });
 });
 

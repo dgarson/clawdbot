@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import fs from "node:fs/promises";
 import type { ThinkLevel } from "../../auto-reply/thinking.js";
-import { emitDiagnosticEvent, isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
+import { isDiagnosticsEnabled } from "../../infra/diagnostic-events.js";
 import { generateSecureToken } from "../../infra/secure-random.js";
 import { getGlobalHookRunner } from "../../plugins/hook-runner-global.js";
 import type { PluginHookBeforeAgentStartResult } from "../../plugins/types.js";
@@ -18,7 +18,7 @@ import {
   isStaleClaudeResumeSessionError,
   isStaleClaudeResumeSessionErrorMessage,
 } from "../claude-sdk-runner/error-mapping.js";
-import { resolveClaudeSdkConfig } from "../claude-sdk-runner/prepare-session.js";
+import { emitClaudeSdkMetricFields } from "../claude-sdk-runner/logging.js";
 import {
   CONTEXT_WINDOW_HARD_MIN_TOKENS,
   CONTEXT_WINDOW_WARN_BELOW_TOKENS,
@@ -52,10 +52,9 @@ import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
 import { resolveModel } from "./model.js";
 import { runEmbeddedAttempt } from "./run/attempt.js";
-import { createRunAuthProfileFailoverController } from "./run/auth-profile-failover.js";
+import { createRunAuthRuntimeFailoverController } from "./run/auth-runtime-failover.js";
 import type { RunEmbeddedPiAgentParams } from "./run/params.js";
 import { buildEmbeddedRunPayloads } from "./run/payloads.js";
-import type { EmbeddedRunAttemptParams } from "./run/types.js";
 import {
   truncateOversizedToolResultsInSession,
   sessionLikelyHasOversizedToolResults,
@@ -109,21 +108,7 @@ function emitClaudeSdkRuntimeMetric(
   fields: Record<string, unknown>,
   diagnosticsEnabled: boolean,
 ): void {
-  log.info(`[claude-sdk-metric] ${metric} ${JSON.stringify(fields)}`);
-  if (!diagnosticsEnabled) {
-    return;
-  }
-  emitDiagnosticEvent({
-    type: "runtime.metric",
-    metric,
-    runId: typeof fields.runId === "string" ? fields.runId : undefined,
-    sessionId: typeof fields.sessionId === "string" ? fields.sessionId : undefined,
-    sessionKey: typeof fields.sessionKey === "string" ? fields.sessionKey : undefined,
-    provider: typeof fields.provider === "string" ? fields.provider : undefined,
-    model: typeof fields.model === "string" ? fields.model : undefined,
-    attempt: typeof fields.attempt === "number" ? fields.attempt : undefined,
-    fields,
-  });
+  emitClaudeSdkMetricFields(metric, fields, diagnosticsEnabled);
 }
 
 function normalizeOverflowFingerprint(message: string): string {
@@ -388,23 +373,12 @@ export async function runEmbeddedPiAgent(
       }
 
       const authStore = ensureAuthProfileStore(agentDir, { allowKeychainPrompt: false });
-      const claudeSdkConfig = resolveClaudeSdkConfig(
-        {
-          ...params,
-          provider,
-          modelId,
-          model,
-          authStorage,
-          modelRegistry,
-          thinkLevel: params.thinkLevel ?? "off",
-        } as EmbeddedRunAttemptParams,
-        workspaceResolution.agentId,
-      );
       const preferredProfileId = params.authProfileId?.trim();
       const initialThinkLevel = params.thinkLevel ?? "off";
       let thinkLevel = initialThinkLevel;
       const attemptedThinking = new Set<ThinkLevel>();
-      const authController = await createRunAuthProfileFailoverController({
+      let staleResumeRecoveryAttempted = false;
+      const authController = await createRunAuthRuntimeFailoverController({
         provider,
         modelId,
         model,
@@ -413,12 +387,12 @@ export async function runEmbeddedPiAgent(
         authStore,
         authStorage,
         fallbackConfigured,
-        claudeSdkConfig,
         preferredProfileId,
         authProfileIdSource: params.authProfileIdSource,
         onAuthRotationSuccess: () => {
           thinkLevel = initialThinkLevel;
           attemptedThinking.clear();
+          staleResumeRecoveryAttempted = false;
         },
         onClaudeSdkToPiFallback: () => {
           log.warn(
@@ -434,7 +408,6 @@ export async function runEmbeddedPiAgent(
       );
       let overflowCompactionAttempts = 0;
       let forceFreshClaudeSession = false;
-      let staleResumeRecoveryAttempted = false;
       let toolResultTruncationAttempted = false;
       let claudeOverflowRetryCount = 0;
       let claudeOverflowFailFastCount = 0;

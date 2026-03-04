@@ -113,6 +113,8 @@ vi.mock("./model.js", () => ({
 
 vi.mock("../model-auth.js", () => ({
   SYSTEM_KEYCHAIN_PROVIDERS: new Set(["claude-personal"]),
+  isSystemKeychainProvider: (provider: string | undefined) =>
+    typeof provider === "string" && provider.trim().toLowerCase() === "claude-personal",
   ensureAuthProfileStore: vi.fn(() => ({ profiles: {}, usageStats: {} })),
   getApiKeyForModel: vi.fn(async () => ({
     apiKey: "test-key",

@@ -667,7 +667,7 @@ describe("session lifecycle — messages state", () => {
     });
   });
 
-  it("uses params.provider for transcript metadata when provided", async () => {
+  it("always uses anthropic transcript metadata for claude-sdk sessions", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() =>
       makeMockQueryGen([
@@ -692,8 +692,8 @@ describe("session lifecycle — messages state", () => {
 
     expect(session.messages[1]).toMatchObject({
       role: "assistant",
-      provider: "custom-bridge",
-      api: "claude-sdk",
+      provider: "anthropic",
+      api: "anthropic-messages",
     });
   });
 });
@@ -764,7 +764,7 @@ describe("session lifecycle — multimodal images", () => {
     expect(JSON.stringify(userMessage.message.content)).not.toContain("data:image/");
   });
 
-  it("persists image prompts in Pi-style user content blocks", async () => {
+  it("persists image prompts as lightweight media_ref blocks without base64 payloads", async () => {
     const queryMock = await importQuery();
     queryMock.mockImplementation(() =>
       makeMockQueryGen([{ type: "result", subtype: "success" }])(),
@@ -788,23 +788,17 @@ describe("session lifecycle — multimodal images", () => {
     expect(userCall).toBeDefined();
     const userMessage = (userCall as unknown[])[0] as {
       role: string;
-      content:
-        | string
-        | Array<
-            { type: "text"; text?: string } | { type: "image"; data?: string; mimeType?: string }
-          >;
+      content: string | Array<{ type: "text"; text?: string }>;
     };
     expect(userMessage.role).toBe("user");
     expect(Array.isArray(userMessage.content)).toBe(true);
-    const content = userMessage.content as Array<
-      { type: "text"; text?: string } | { type: "image"; data?: string; mimeType?: string }
-    >;
+    const content = userMessage.content as Array<{ type: "text"; text?: string }>;
     expect(content[0]).toEqual({ type: "text", text: "Describe this" });
-    expect(content[1]).toEqual({
-      type: "image",
-      data: "iVBOR_base64data",
-      mimeType: "image/png",
-    });
+    expect(content[1]?.type).toBe("text");
+    expect(content[1]?.text ?? "").toContain("[media_ref type=inline_base64");
+    expect(content[1]?.text ?? "").toContain("mime_type=image/png");
+    expect(content[1]?.text ?? "").toContain("payload=omitted");
+    expect(content[1]?.text ?? "").not.toContain("iVBOR_base64data");
     expect((content[0] as { text?: string }).text ?? "").not.toContain("data:image/");
   });
 });
@@ -1820,6 +1814,180 @@ describe("prompt() — media persistence strategy", () => {
     );
 
     await session.prompt("Analyze restored media", {
+      images: [{ type: "image", media_type: "image/png", data: imageData }],
+    } as never);
+
+    const prompt = queryMock.mock.calls[0][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await prompt[Symbol.asyncIterator]().next();
+    expect(next.value.message.content[1]).toEqual({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: "image/png",
+        data: imageData,
+      },
+    });
+  });
+
+  it("does not carry stale filename->file_id mappings across SDK session id changes", async () => {
+    const imageData = "iVBOR_session_rotation";
+    const hash = buildImageHash("image/png", imageData);
+    const filename = buildImageFilename(0, hash);
+    const queryMock = await importQuery();
+    queryMock
+      .mockImplementationOnce(() =>
+        makeMockQueryGen([
+          { type: "system", subtype: "init", session_id: "sess_media_old" },
+          {
+            type: "system",
+            subtype: "files_persisted",
+            files: [{ filename, file_id: "file_old" }],
+          },
+          { type: "result", subtype: "success" },
+        ])(),
+      )
+      .mockImplementationOnce(() =>
+        makeMockQueryGen([
+          { type: "system", subtype: "init", session_id: "sess_media_new" },
+          { type: "result", subtype: "success" },
+        ])(),
+      )
+      .mockImplementationOnce(() => makeMockQueryGen([{ type: "result", subtype: "success" }])());
+
+    const createSession = await importCreateSession();
+    const session = await createSession(makeParams({ claudeSdkResumeSessionId: "sess_media_old" }));
+    const image = { type: "image", media_type: "image/png", data: imageData };
+
+    await session.prompt("Analyze image", { images: [image] } as never);
+    await session.prompt("Analyze image after rotation", { images: [image] } as never);
+    await session.prompt("Analyze image once more", { images: [image] } as never);
+
+    const thirdPrompt = queryMock.mock.calls[2][0].prompt as AsyncIterable<{
+      message: { content: Array<{ type: string; source?: Record<string, unknown> }> };
+    }>;
+    const next = await thirdPrompt[Symbol.asyncIterator]().next();
+    expect(next.value.message.content[1]).toEqual({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: "image/png",
+        data: imageData,
+      },
+    });
+  });
+
+  it("ignores stale failure backoff entries when a newer success reference exists", async () => {
+    const now = Date.now();
+    const imageData = "iVBOR_failure_backoff";
+    const hash = buildImageHash("image/png", imageData);
+    const filename = buildImageFilename(0, hash);
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([
+        { type: "system", subtype: "init", session_id: "sess_media_current" },
+        {
+          type: "system",
+          subtype: "files_persisted",
+          files: [{ filename, file_id: "file_current" }],
+        },
+        { type: "result", subtype: "success" },
+      ])(),
+    );
+
+    const appendCustomEntry = vi.fn();
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        provider: "claude-personal",
+        claudeSdkResumeSessionId: "sess_media_current",
+        sessionManager: {
+          appendMessage: vi.fn(() => "msg-id"),
+          appendCustomEntry,
+          getEntries: vi.fn(() => [
+            {
+              type: "custom",
+              customType: "openclaw:claude-sdk-media-persist-failure",
+              data: {
+                hash,
+                filename,
+                reason: "transient upload failure",
+                failureCount: 1,
+                lastFailureAt: now - 10_000,
+                retryAfter: now + 60_000,
+              },
+            },
+            {
+              type: "custom",
+              customType: "openclaw:claude-sdk-media-ref",
+              data: {
+                hash,
+                filename,
+                fileId: "file_old",
+                sessionId: "sess_media_old",
+                provider: "claude-personal",
+                modelId: "claude-sonnet-4-5-20250514",
+                updatedAt: now - 5_000,
+              },
+            },
+          ]),
+        },
+      }),
+    );
+
+    await session.prompt("Analyze image", {
+      images: [{ type: "image", media_type: "image/png", data: imageData }],
+    } as never);
+
+    expect(appendCustomEntry).toHaveBeenCalledWith(
+      "openclaw:claude-sdk-media-ref",
+      expect.objectContaining({
+        hash,
+        fileId: "file_current",
+        filename,
+        sessionId: "sess_media_current",
+      }),
+    );
+  });
+
+  it("ignores stale persisted media references that are older than the retention window", async () => {
+    const queryMock = await importQuery();
+    queryMock.mockImplementation(() =>
+      makeMockQueryGen([{ type: "result", subtype: "success" }])(),
+    );
+
+    const imageData = "iVBOR_stale";
+    const hash = buildImageHash("image/png", imageData);
+    const filename = buildImageFilename(0, hash);
+    const staleUpdatedAt = Date.now() - 40 * 24 * 60 * 60 * 1000;
+    const createSession = await importCreateSession();
+    const session = await createSession(
+      makeParams({
+        provider: "claude-personal",
+        claudeSdkResumeSessionId: "sess_media_current",
+        sessionManager: {
+          appendMessage: vi.fn(() => "msg-id"),
+          getEntries: vi.fn(() => [
+            {
+              type: "custom",
+              customType: "openclaw:claude-sdk-media-ref",
+              data: {
+                hash,
+                filename,
+                fileId: "file_stale",
+                sessionId: "sess_media_current",
+                provider: "claude-personal",
+                modelId: "claude-sonnet-4-5-20250514",
+                updatedAt: staleUpdatedAt,
+              },
+            },
+          ]),
+        },
+      }),
+    );
+
+    await session.prompt("Analyze stale media ref", {
       images: [{ type: "image", media_type: "image/png", data: imageData }],
     } as never);
 

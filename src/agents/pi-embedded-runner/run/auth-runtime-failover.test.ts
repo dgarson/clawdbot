@@ -1,23 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { AuthProfileCandidate } from "../../claude-sdk-runner/auth-resolution.js";
 import { FailoverError } from "../../failover-error.js";
-import { createRunAuthProfileFailoverController } from "./auth-profile-failover.js";
+import {
+  createRunAuthRuntimeFailoverController,
+  type AuthProfileCandidate,
+} from "./auth-runtime-failover.js";
 
 const mocks = vi.hoisted(() => ({
-  createClaudeSdkAuthResolutionState: vi.fn(),
+  createRunAuthResolutionState: vi.fn(),
   getApiKeyForModel: vi.fn(),
+  isSystemKeychainProvider: vi.fn(),
+  resolveAuthProfileOrder: vi.fn(),
   resolveCopilotApiToken: vi.fn(),
   isProfileInCooldown: vi.fn(),
   resolveProfilesUnavailableReason: vi.fn(),
+  saveAuthProfileStore: vi.fn(),
+  upsertAuthProfileWithLock: vi.fn(),
   logWarn: vi.fn(),
-}));
-
-vi.mock("../../claude-sdk-runner/auth-resolution.js", () => ({
-  createClaudeSdkAuthResolutionState: mocks.createClaudeSdkAuthResolutionState,
 }));
 
 vi.mock("../../model-auth.js", () => ({
   getApiKeyForModel: mocks.getApiKeyForModel,
+  isSystemKeychainProvider: mocks.isSystemKeychainProvider,
+  resolveAuthProfileOrder: mocks.resolveAuthProfileOrder,
 }));
 
 vi.mock("../../../providers/github-copilot-token.js", () => ({
@@ -27,10 +31,13 @@ vi.mock("../../../providers/github-copilot-token.js", () => ({
 vi.mock("../../auth-profiles.js", () => ({
   isProfileInCooldown: mocks.isProfileInCooldown,
   resolveProfilesUnavailableReason: mocks.resolveProfilesUnavailableReason,
+  saveAuthProfileStore: mocks.saveAuthProfileStore,
+  upsertAuthProfileWithLock: mocks.upsertAuthProfileWithLock,
 }));
 
 vi.mock("../logger.js", () => ({
   log: {
+    debug: vi.fn(),
     warn: mocks.logWarn,
   },
 }));
@@ -83,7 +90,7 @@ function resolvedAuth(profileId: string, apiKey: string) {
 }
 
 function baseParams(
-  overrides?: Partial<Parameters<typeof createRunAuthProfileFailoverController>[0]>,
+  overrides?: Partial<Parameters<typeof createRunAuthRuntimeFailoverController>[0]>,
 ) {
   const authStorage = {
     setRuntimeApiKey: vi.fn(),
@@ -98,23 +105,29 @@ function baseParams(
       authStore: { profiles: {}, usageStats: {} } as never,
       authStorage: authStorage as never,
       fallbackConfigured: true,
-      claudeSdkConfig: undefined,
       preferredProfileId: undefined,
       authProfileIdSource: undefined,
+      createAuthResolutionState: mocks.createRunAuthResolutionState,
       ...overrides,
     },
     authStorage,
   };
 }
 
-describe("createRunAuthProfileFailoverController", () => {
+describe("createRunAuthRuntimeFailoverController", () => {
   beforeEach(() => {
-    mocks.createClaudeSdkAuthResolutionState.mockReset();
+    mocks.createRunAuthResolutionState.mockReset();
     mocks.getApiKeyForModel.mockReset();
+    mocks.isSystemKeychainProvider.mockReset();
+    mocks.resolveAuthProfileOrder.mockReset();
     mocks.resolveCopilotApiToken.mockReset();
     mocks.isProfileInCooldown.mockReset();
     mocks.resolveProfilesUnavailableReason.mockReset();
+    mocks.saveAuthProfileStore.mockReset();
+    mocks.upsertAuthProfileWithLock.mockReset();
     mocks.logWarn.mockReset();
+    mocks.isSystemKeychainProvider.mockReturnValue(false);
+    mocks.resolveAuthProfileOrder.mockReturnValue([]);
     mocks.isProfileInCooldown.mockReturnValue(false);
     mocks.resolveProfilesUnavailableReason.mockReturnValue("rate_limit");
   });
@@ -125,11 +138,11 @@ describe("createRunAuthProfileFailoverController", () => {
       authProvider: "anthropic",
       profileCandidates: [{ profileId: "anthropic:p1", resolveProfileId: "anthropic:p1" }],
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel.mockResolvedValue(resolvedAuth("anthropic:p1", "sk-first"));
     const { params, authStorage } = baseParams();
 
-    const controller = await createRunAuthProfileFailoverController(params);
+    const controller = await createRunAuthRuntimeFailoverController(params);
 
     expect(authStorage.setRuntimeApiKey).toHaveBeenCalledWith("anthropic", "sk-first");
     expect(controller.lastProfileId).toBe("anthropic:p1");
@@ -144,11 +157,11 @@ describe("createRunAuthProfileFailoverController", () => {
       authProvider: "custom-bridge",
       profileCandidates: [{ profileId: "custom-bridge:p1", resolveProfileId: "custom-bridge:p1" }],
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel.mockResolvedValue(resolvedAuth("custom-bridge:p1", "sk-custom"));
     const { params } = baseParams({ model: { provider: "anthropic" } as never });
 
-    const controller = await createRunAuthProfileFailoverController(params);
+    const controller = await createRunAuthRuntimeFailoverController(params);
     const lookupModel = controller.resolveAuthLookupModel();
 
     expect(lookupModel.provider).toBe("custom-bridge");
@@ -160,7 +173,7 @@ describe("createRunAuthProfileFailoverController", () => {
       authProvider: "amazon-bedrock",
       profileCandidates: [{ profileId: "bedrock:aws-sdk", resolveProfileId: "bedrock:aws-sdk" }],
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel.mockResolvedValue({
       apiKey: undefined,
       source: "aws-sdk default chain",
@@ -171,7 +184,7 @@ describe("createRunAuthProfileFailoverController", () => {
       model: { provider: "amazon-bedrock" } as never,
     });
 
-    const controller = await createRunAuthProfileFailoverController(params);
+    const controller = await createRunAuthRuntimeFailoverController(params);
 
     expect(controller.lastProfileId).toBe("bedrock:aws-sdk");
     expect(authStorage.setRuntimeApiKey).not.toHaveBeenCalled();
@@ -185,7 +198,7 @@ describe("createRunAuthProfileFailoverController", () => {
         { profileId: "github-copilot:p1", resolveProfileId: "github-copilot:p1" },
       ],
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel.mockResolvedValue({
       apiKey: "ghu_token",
       profileId: "github-copilot:p1",
@@ -203,13 +216,92 @@ describe("createRunAuthProfileFailoverController", () => {
       model: { provider: "github-copilot" } as never,
     });
 
-    await createRunAuthProfileFailoverController(params);
+    await createRunAuthRuntimeFailoverController(params);
 
     expect(mocks.resolveCopilotApiToken).toHaveBeenCalledWith({ githubToken: "ghu_token" });
     expect(authStorage.setRuntimeApiKey).toHaveBeenCalledWith(
       "github-copilot",
       "copilot_runtime_token",
     );
+  });
+
+  it("reuses freshly exchanged copilot token for run-start sync without re-refreshing", async () => {
+    const state = makeResolutionState({
+      runtimeOverride: "pi",
+      authProvider: "github-copilot",
+      profileCandidates: [
+        { profileId: "github-copilot:p1", resolveProfileId: "github-copilot:p1" },
+      ],
+    });
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
+    mocks.getApiKeyForModel.mockResolvedValue({
+      apiKey: "ghu_token",
+      profileId: "github-copilot:p1",
+      source: "profile:github-copilot:p1",
+      mode: "token",
+    });
+    mocks.resolveCopilotApiToken.mockResolvedValue({
+      token: "copilot_runtime_token",
+      expiresAt: Date.now() + 60 * 60 * 1000,
+      source: "fetched",
+      baseUrl: "https://api.individual.githubcopilot.com",
+    });
+    const { params } = baseParams({
+      provider: "github-copilot",
+      model: { provider: "github-copilot" } as never,
+    });
+    const controller = await createRunAuthRuntimeFailoverController(params);
+
+    const synced = await controller.syncCopilotRefreshForCurrentProfile("run-start");
+
+    expect(synced).toBe(true);
+    expect(mocks.resolveCopilotApiToken).toHaveBeenCalledTimes(1);
+    controller.stopCopilotRefreshTimer();
+  });
+
+  it("forces copilot refresh on auth-error sync even when token is fresh", async () => {
+    const state = makeResolutionState({
+      runtimeOverride: "pi",
+      authProvider: "github-copilot",
+      profileCandidates: [
+        { profileId: "github-copilot:p1", resolveProfileId: "github-copilot:p1" },
+      ],
+    });
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
+    mocks.getApiKeyForModel.mockResolvedValue({
+      apiKey: "ghu_token",
+      profileId: "github-copilot:p1",
+      source: "profile:github-copilot:p1",
+      mode: "token",
+    });
+    mocks.resolveCopilotApiToken
+      .mockResolvedValueOnce({
+        token: "copilot_runtime_token",
+        expiresAt: Date.now() + 60 * 60 * 1000,
+        source: "fetched",
+        baseUrl: "https://api.individual.githubcopilot.com",
+      })
+      .mockResolvedValueOnce({
+        token: "copilot_runtime_token_refreshed",
+        expiresAt: Date.now() + 60 * 60 * 1000,
+        source: "fetched",
+        baseUrl: "https://api.individual.githubcopilot.com",
+      });
+    const { params, authStorage } = baseParams({
+      provider: "github-copilot",
+      model: { provider: "github-copilot" } as never,
+    });
+    const controller = await createRunAuthRuntimeFailoverController(params);
+
+    const synced = await controller.syncCopilotRefreshForCurrentProfile("auth-error");
+
+    expect(synced).toBe(true);
+    expect(mocks.resolveCopilotApiToken).toHaveBeenCalledTimes(2);
+    expect(authStorage.setRuntimeApiKey).toHaveBeenLastCalledWith(
+      "github-copilot",
+      "copilot_runtime_token_refreshed",
+    );
+    controller.stopCopilotRefreshTimer();
   });
 
   it("rotates to the next profile when the current one fails", async () => {
@@ -222,14 +314,14 @@ describe("createRunAuthProfileFailoverController", () => {
         { profileId: "anthropic:p3", resolveProfileId: "anthropic:p3" },
       ],
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel
       .mockResolvedValueOnce(resolvedAuth("anthropic:p1", "sk-one"))
       .mockRejectedValueOnce(new Error("profile p2 misconfigured"))
       .mockResolvedValueOnce(resolvedAuth("anthropic:p3", "sk-three"));
     const onAuthRotationSuccess = vi.fn();
     const { params, authStorage } = baseParams({ onAuthRotationSuccess });
-    const controller = await createRunAuthProfileFailoverController(params);
+    const controller = await createRunAuthRuntimeFailoverController(params);
 
     const rotated = await controller.advanceAuthProfile();
 
@@ -258,7 +350,7 @@ describe("createRunAuthProfileFailoverController", () => {
       state.profileIndex = 0;
       return true;
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel
       .mockResolvedValueOnce({
         apiKey: undefined,
@@ -274,7 +366,7 @@ describe("createRunAuthProfileFailoverController", () => {
       onAuthRotationSuccess,
       onClaudeSdkToPiFallback,
     });
-    const controller = await createRunAuthProfileFailoverController(params);
+    const controller = await createRunAuthRuntimeFailoverController(params);
 
     const rotated = await controller.advanceAuthProfile();
 
@@ -298,11 +390,11 @@ describe("createRunAuthProfileFailoverController", () => {
         { profileId: "anthropic:p2", resolveProfileId: "anthropic:p2" },
       ],
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.isProfileInCooldown.mockReturnValue(true);
     const { params } = baseParams();
 
-    await expect(createRunAuthProfileFailoverController(params)).rejects.toMatchObject({
+    await expect(createRunAuthRuntimeFailoverController(params)).rejects.toMatchObject({
       name: "FailoverError",
       reason: "rate_limit",
     });
@@ -317,13 +409,13 @@ describe("createRunAuthProfileFailoverController", () => {
         { profileId: "anthropic:p2", resolveProfileId: "anthropic:p2" },
       ],
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel
       .mockRejectedValueOnce(new Error("profile p1 missing token"))
       .mockRejectedValueOnce(new Error("401 invalid key for profile p2"));
     const { params } = baseParams();
 
-    await expect(createRunAuthProfileFailoverController(params)).rejects.toMatchObject({
+    await expect(createRunAuthRuntimeFailoverController(params)).rejects.toMatchObject({
       name: "FailoverError",
       reason: "auth",
       message: "401 invalid key for profile p2",
@@ -346,7 +438,7 @@ describe("createRunAuthProfileFailoverController", () => {
       state.profileIndex = 0;
       return true;
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel.mockResolvedValue({
       apiKey: undefined,
       source: "Claude Subscription (system keychain)",
@@ -359,7 +451,7 @@ describe("createRunAuthProfileFailoverController", () => {
       fallbackConfigured: false,
       onClaudeSdkToPiFallback,
     });
-    const controller = await createRunAuthProfileFailoverController(params);
+    const controller = await createRunAuthRuntimeFailoverController(params);
 
     const rotated = await controller.advanceAuthProfile();
 
@@ -379,7 +471,7 @@ describe("createRunAuthProfileFailoverController", () => {
       ],
     });
     state.fallBackToPiRuntime = vi.fn(async () => false);
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel.mockResolvedValue({
       apiKey: undefined,
       source: "Claude Subscription (system keychain)",
@@ -392,7 +484,7 @@ describe("createRunAuthProfileFailoverController", () => {
       fallbackConfigured: false,
       onClaudeSdkToPiFallback,
     });
-    const controller = await createRunAuthProfileFailoverController(params);
+    const controller = await createRunAuthRuntimeFailoverController(params);
 
     const rotated = await controller.advanceAuthProfile();
 
@@ -407,11 +499,11 @@ describe("createRunAuthProfileFailoverController", () => {
       lockedProfileId: "anthropic:locked",
       profileCandidates: [{ profileId: "anthropic:locked", resolveProfileId: "anthropic:locked" }],
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel.mockRejectedValue(new Error("locked profile invalid"));
     const { params } = baseParams({ fallbackConfigured: false });
 
-    await expect(createRunAuthProfileFailoverController(params)).rejects.toThrow(
+    await expect(createRunAuthRuntimeFailoverController(params)).rejects.toThrow(
       "locked profile invalid",
     );
     expect(state.profileIndex).toBe(0);
@@ -423,12 +515,12 @@ describe("createRunAuthProfileFailoverController", () => {
       authProvider: "anthropic",
       profileCandidates: [{ profileId: "anthropic:p1", resolveProfileId: "anthropic:p1" }],
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel.mockRejectedValue(new Error("profile auth unavailable"));
     const { params } = baseParams({ fallbackConfigured: false });
 
     try {
-      await createRunAuthProfileFailoverController(params);
+      await createRunAuthRuntimeFailoverController(params);
       throw new Error("expected controller creation to fail");
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
@@ -443,11 +535,11 @@ describe("createRunAuthProfileFailoverController", () => {
       authProvider: "anthropic",
       profileCandidates: [{ profileId: "anthropic:p1", resolveProfileId: "anthropic:p1" }],
     });
-    mocks.createClaudeSdkAuthResolutionState.mockResolvedValue(state);
+    mocks.createRunAuthResolutionState.mockResolvedValue(state);
     mocks.getApiKeyForModel.mockRejectedValue(new Error("authentication error"));
     const { params } = baseParams({ fallbackConfigured: true });
 
-    await expect(createRunAuthProfileFailoverController(params)).rejects.toBeInstanceOf(
+    await expect(createRunAuthRuntimeFailoverController(params)).rejects.toBeInstanceOf(
       FailoverError,
     );
   });

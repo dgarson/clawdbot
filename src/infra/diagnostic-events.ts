@@ -151,12 +151,12 @@ export type DiagnosticRuntimeMetricEvent = DiagnosticBaseEvent & {
   type: "runtime.metric";
   metric: string;
   runId?: string;
-  sessionKey?: string;
   sessionId?: string;
+  sessionKey?: string;
   provider?: string;
   model?: string;
   attempt?: number;
-  fields?: Record<string, unknown>;
+  fields: Record<string, unknown>;
 };
 
 export type DiagnosticEventPayload =

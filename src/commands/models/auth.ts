@@ -9,8 +9,8 @@ import type { AuthProfileCredential } from "../../agents/auth-profiles/types.js"
 import {
   CLAUDE_SDK_POLICY_ACKNOWLEDGEMENT_MESSAGE,
   emitClaudeSdkPolicyWarningLines,
-} from "../../agents/claude-sdk-runner/policy-warning.js";
-import { SYSTEM_KEYCHAIN_PROVIDERS } from "../../agents/model-auth.js";
+} from "../../agents/claude-sdk-runner/logging.js";
+import { isSystemKeychainProvider, SYSTEM_KEYCHAIN_PROVIDERS } from "../../agents/model-auth.js";
 import { normalizeProviderId } from "../../agents/model-selection.js";
 import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
 import { formatCliCommand } from "../../cli/command-format.js";
@@ -61,11 +61,11 @@ function resolveTokenProvider(raw?: string): TokenProvider | "custom" | null {
     return null;
   }
   const normalized = normalizeProviderId(trimmed);
+  if (isSystemKeychainProvider(normalized)) {
+    return "claude-personal";
+  }
   if (normalized === "anthropic") {
     return "anthropic";
-  }
-  if (normalized === "claude-personal") {
-    return "claude-personal";
   }
   return "custom";
 }

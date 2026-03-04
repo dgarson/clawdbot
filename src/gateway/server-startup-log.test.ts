@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { CLAUDE_SDK_POLICY_WARNING_LINES } from "../agents/claude-sdk-runner/policy-warning.js";
+import { CLAUDE_SDK_POLICY_WARNING_LINES } from "../agents/claude-sdk-runner/logging.js";
 import { logGatewayStartup } from "./server-startup-log.js";
 
 describe("gateway startup log", () => {

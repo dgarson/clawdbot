@@ -21,26 +21,34 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { SDKUserMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import type { ImageContent } from "@mariozechner/pi-ai";
-import { emitDiagnosticEvent } from "../../infra/diagnostic-events.js";
 import { createSubsystemLogger } from "../../logging/subsystem.js";
 import { estimateBase64DecodedBytes } from "../../media/base64.js";
-import { resolveClaudeSubprocessEnv } from "./config.js";
+import { buildProviderEnv, resolveClaudeSubprocessEnv } from "./config.js";
 import { mapSdkError } from "./error-mapping.js";
 import { translateSdkMessageToEvents } from "./event-adapter.js";
-import { createClaudeSdkMcpToolServer } from "./mcp-tool-server.js";
-import { buildProviderEnv } from "./provider-env.js";
 import {
   CLAUDE_SDK_STDERR_TAIL_MAX_CHARS,
   CLAUDE_SDK_STDOUT_TAIL_MAX_CHARS,
+  appendTail,
   createClaudeSdkSpawnWithStdoutTailLogging,
+  createStdoutExitCodeOneLogger,
+  emitClaudeSdkMetric,
+  enrichSubprocessExitErrorWithStderr,
   type ClaudeSdkSpawnProcess,
-} from "./spawn-stdout-logging.js";
+} from "./logging.js";
+import { createClaudeSdkMcpToolServer } from "./mcp-tool-server.js";
 import type {
   AgentRuntimeHints,
   ClaudeSdkEventAdapterState,
   ClaudeSdkSession,
   ClaudeSdkSessionParams,
 } from "./types.js";
+
+export type CreateSpawnWithStdoutTailLoggingOptions = {
+  baseSpawn?: ClaudeSdkSpawnProcess;
+  maxTailChars?: number;
+  onExitCodeOne?: (stdoutTail: string) => void;
+};
 
 // ---------------------------------------------------------------------------
 // ThinkLevel → maxThinkingTokens mapping
@@ -92,6 +100,8 @@ const THREAD_CONTEXT_MARKERS = [
 const THREAD_CONTEXT_SCAN_LIMIT_CHARS = 16_384;
 const MEDIA_PERSISTENCE_RETRY_BASE_MS = 15_000;
 const MEDIA_PERSISTENCE_RETRY_MAX_MS = 10 * 60_000;
+const MEDIA_REFERENCE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const MEDIA_PERSIST_FAILURE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_REFERENCE_URL_CHARS = 2048;
 const CLAUDE_SDK_MEDIA_REF_CUSTOM_TYPE = "openclaw:claude-sdk-media-ref";
 const CLAUDE_SDK_MEDIA_PERSIST_FAILURE_CUSTOM_TYPE = "openclaw:claude-sdk-media-persist-failure";
@@ -159,67 +169,14 @@ function stripThreadContextPrefix(prompt: string): {
   };
 }
 
-function resolveTranscriptMetadata(provider?: string): {
+function resolveTranscriptMetadata(): {
   transcriptProvider: string;
   transcriptApi: string;
 } {
-  const normalized = provider ?? "claude-sdk";
-  if (normalized === "claude-sdk" || normalized === "anthropic") {
-    return {
-      transcriptProvider: "anthropic",
-      transcriptApi: "anthropic-messages",
-    };
-  }
   return {
-    transcriptProvider: normalized,
-    transcriptApi: "claude-sdk",
+    transcriptProvider: "anthropic",
+    transcriptApi: "anthropic-messages",
   };
-}
-
-function appendTail(currentTail: string | undefined, chunk: string, maxChars: number): string {
-  if (!chunk) {
-    return currentTail ?? "";
-  }
-  const next = `${currentTail ?? ""}${chunk}`;
-  if (next.length <= maxChars) {
-    return next;
-  }
-  return next.slice(-maxChars);
-}
-
-function emitClaudeSdkMetric(
-  metric: string,
-  params: Pick<
-    ClaudeSdkSessionParams,
-    "runId" | "sessionId" | "sessionKey" | "provider" | "modelId" | "attemptNumber"
-  >,
-  fields: Record<string, unknown>,
-  diagnosticsEnabled = false,
-): void {
-  const payload = {
-    runId: params.runId,
-    sessionId: params.sessionId,
-    sessionKey: params.sessionKey,
-    provider: params.provider ?? "claude-sdk",
-    model: params.modelId,
-    attempt: params.attemptNumber,
-    ...fields,
-  };
-  log.info(`[claude-sdk-metric] ${metric} ${JSON.stringify(payload)}`);
-  if (!diagnosticsEnabled) {
-    return;
-  }
-  emitDiagnosticEvent({
-    type: "runtime.metric",
-    metric,
-    runId: params.runId,
-    sessionId: params.sessionId,
-    sessionKey: params.sessionKey,
-    provider: params.provider ?? "claude-sdk",
-    model: params.modelId,
-    attempt: params.attemptNumber,
-    fields,
-  });
 }
 
 type AnthropicBase64ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
@@ -258,7 +215,7 @@ type PreparedPromptImage =
       source: { type: "file"; file_id: string };
       inlineBytes: 0;
     };
-type PersistedUserContent = string | Array<{ type: "text"; text: string } | ImageContent>;
+type PersistedUserContent = string | Array<{ type: "text"; text: string }>;
 type ClaudePromptInput = string | AsyncIterable<SDKUserMessage>;
 type PersistedMediaReference = {
   fileId: string;
@@ -298,6 +255,13 @@ function asTimestamp(value: unknown): number | undefined {
   return Math.floor(value);
 }
 
+function isTimestampStale(timestamp: number | undefined, now: number, maxAgeMs: number): boolean {
+  if (!timestamp || !Number.isFinite(timestamp) || timestamp <= 0) {
+    return false;
+  }
+  return now - timestamp > maxAgeMs;
+}
+
 function hydratePersistedMediaStateFromSessionEntries(params: {
   state: ClaudeSdkEventAdapterState;
 }): {
@@ -313,10 +277,10 @@ function hydratePersistedMediaStateFromSessionEntries(params: {
   const hydratedByHash = params.state.mediaReferencesByHash ?? new Map();
   const hydratedByFilename = params.state.mediaReferencesByFilename ?? new Map();
   const hydratedFailures = params.state.mediaPersistenceFailuresByHash ?? new Map();
-  const hydratedPersistedByName = params.state.persistedFileIdsByName ?? new Map();
   let restoredByHash = 0;
   let restoredByFilename = 0;
   let restoredFailures = 0;
+  const now = Date.now();
 
   const start = Math.max(0, entries.length - MEDIA_STATE_HYDRATE_SCAN_LIMIT_ENTRIES);
   for (let i = entries.length - 1; i >= start; i -= 1) {
@@ -337,8 +301,11 @@ function hydratePersistedMediaStateFromSessionEntries(params: {
       const sessionId = asString(data.sessionId);
       const provider = asString(data.provider);
       const modelId = asString(data.modelId);
-      const updatedAt = asTimestamp(data.updatedAt) ?? Date.now();
+      const updatedAt = asTimestamp(data.updatedAt) ?? now;
       const hash = asString(data.hash);
+      if (isTimestampStale(updatedAt, now, MEDIA_REFERENCE_MAX_AGE_MS)) {
+        continue;
+      }
 
       if (filename && !hydratedByFilename.has(filename)) {
         hydratedByFilename.set(filename, {
@@ -348,7 +315,6 @@ function hydratePersistedMediaStateFromSessionEntries(params: {
           modelId,
           updatedAt,
         });
-        hydratedPersistedByName.set(filename, fileId);
         restoredByFilename += 1;
       }
 
@@ -373,7 +339,7 @@ function hydratePersistedMediaStateFromSessionEntries(params: {
       }
       const hash = asString(data.hash);
       const filename = asString(data.filename);
-      if (!hash || !filename || hydratedFailures.has(hash)) {
+      if (!hash || !filename || hydratedFailures.has(hash) || hydratedByHash.has(hash)) {
         continue;
       }
       const reason = asString(data.reason) ?? "unknown";
@@ -384,7 +350,10 @@ function hydratePersistedMediaStateFromSessionEntries(params: {
         failureCountRaw > 0
           ? Math.floor(failureCountRaw)
           : 1;
-      const lastFailureAt = asTimestamp(data.lastFailureAt) ?? Date.now();
+      const lastFailureAt = asTimestamp(data.lastFailureAt) ?? now;
+      if (isTimestampStale(lastFailureAt, now, MEDIA_PERSIST_FAILURE_MAX_AGE_MS)) {
+        continue;
+      }
       const retryAfter = asTimestamp(data.retryAfter) ?? lastFailureAt;
       hydratedFailures.set(hash, {
         filename,
@@ -400,7 +369,6 @@ function hydratePersistedMediaStateFromSessionEntries(params: {
   params.state.mediaReferencesByHash = hydratedByHash;
   params.state.mediaReferencesByFilename = hydratedByFilename;
   params.state.mediaPersistenceFailuresByHash = hydratedFailures;
-  params.state.persistedFileIdsByName = hydratedPersistedByName;
 
   return {
     restoredByHash,
@@ -574,8 +542,15 @@ function buildPromptImages(params: {
               updatedAt: recoveredFilenameRef.updatedAt,
             }
           : undefined);
+      const resolvedRefStale =
+        resolvedRef && isTimestampStale(resolvedRef.updatedAt, now, MEDIA_REFERENCE_MAX_AGE_MS);
+      if (resolvedRefStale) {
+        mediaReferencesByHash.delete(hash);
+        mediaReferencesByFilename.delete(filename);
+      }
       if (
         resolvedRef &&
+        !resolvedRefStale &&
         isMediaReferenceUsable(resolvedRef, {
           claudeSdkSessionId: params.state.claudeSdkSessionId,
           provider: params.provider,
@@ -683,7 +658,6 @@ function reconcilePromptMediaPersistence(params: {
   const mediaReferencesByFilename = params.state.mediaReferencesByFilename ?? new Map();
   const mediaFailuresByHash = params.state.mediaPersistenceFailuresByHash ?? new Map();
   const pendingByFilename = params.state.pendingPersistHashesByFilename ?? new Map();
-  const persistedByName = params.state.persistedFileIdsByName ?? new Map();
   const newPersisted = (params.state.persistedFileEvents ?? []).slice(params.persistedEventsStart);
   const newFailed = (params.state.failedPersistedFileEvents ?? []).slice(params.failedEventsStart);
   const unresolved = [...params.pendingPersistence];
@@ -735,16 +709,6 @@ function reconcilePromptMediaPersistence(params: {
     }
     registeredFileRefs += 1;
   };
-
-  for (let i = unresolved.length - 1; i >= 0; i -= 1) {
-    const candidate = unresolved[i];
-    const byName = persistedByName.get(candidate.filename);
-    if (!byName) {
-      continue;
-    }
-    resolveSuccess(candidate, byName);
-    unresolved.splice(i, 1);
-  }
 
   for (const persistedEvent of newPersisted) {
     if (!persistedEvent.filename) {
@@ -837,13 +801,14 @@ function buildPersistedUserContent(
   if (images.length === 0) {
     return text;
   }
-  const content: Array<{ type: "text"; text: string } | ImageContent> = [{ type: "text", text }];
+  const content: Array<{ type: "text"; text: string }> = [{ type: "text", text }];
   for (const image of images) {
     if (image.referenceType === "inline_base64") {
       content.push({
-        type: "image",
-        data: image.source.data,
-        mimeType: image.mimeType,
+        type: "text",
+        text:
+          `[media_ref type=inline_base64 hash=${image.hash ?? "n/a"} ` +
+          `filename=${image.filename} mime_type=${image.mimeType} bytes=${image.inlineBytes} payload=omitted]`,
       });
       continue;
     }
@@ -962,19 +927,16 @@ function buildQueryOptions(
     typeof queryOptions.spawnClaudeCodeProcess === "function"
       ? (queryOptions.spawnClaudeCodeProcess as ClaudeSdkSpawnProcess)
       : undefined;
-  queryOptions.spawnClaudeCodeProcess = createClaudeSdkSpawnWithStdoutTailLogging({
+  const spawnWithStdoutTailOptions: CreateSpawnWithStdoutTailLoggingOptions = {
     baseSpawn: customSpawn,
-    onExitCodeOne: (stdoutTail) => {
-      const trimmed = stdoutTail.trim();
-      if (!trimmed) {
-        log.error("Claude Code subprocess exited with code 1 (stdout was empty).");
-        return;
-      }
-      log.error(
-        `Claude Code subprocess exited with code 1. stdout tail (last ${CLAUDE_SDK_STDOUT_TAIL_MAX_CHARS} chars):\n${trimmed}`,
-      );
-    },
-  });
+    onExitCodeOne: createStdoutExitCodeOneLogger({
+      log,
+      maxTailChars: CLAUDE_SDK_STDOUT_TAIL_MAX_CHARS,
+    }),
+  };
+  queryOptions.spawnClaudeCodeProcess = createClaudeSdkSpawnWithStdoutTailLogging(
+    spawnWithStdoutTailOptions,
+  );
 
   return queryOptions;
 }
@@ -990,7 +952,7 @@ function buildQueryOptions(
 export async function createClaudeSdkSession(
   params: ClaudeSdkSessionParams,
 ): Promise<ClaudeSdkSession> {
-  const { transcriptProvider, transcriptApi } = resolveTranscriptMetadata(params.provider);
+  const { transcriptProvider, transcriptApi } = resolveTranscriptMetadata();
 
   // Internal adapter state
   const state: ClaudeSdkEventAdapterState = {
@@ -1214,11 +1176,13 @@ export async function createClaudeSdkSession(
           throw mapSdkError(new Error(errMsg, { cause: err }));
         }
         // Enrich process-exit errors with captured stderr for actionable diagnostics.
-        if (err instanceof Error && state.lastStderr) {
-          err.message = `${err.message}\nSubprocess stderr: ${state.lastStderr}`;
+        if (err instanceof Error) {
+          enrichSubprocessExitErrorWithStderr(err, state.lastStderr);
         }
         throw mapSdkError(err);
       } finally {
+        let reconcilePersistedEventsStart = turnPersistedEventsStart;
+        let reconcileFailedEventsStart = turnFailedEventsStart;
         if (
           preQuerySessionId &&
           state.claudeSdkSessionId &&
@@ -1228,6 +1192,16 @@ export async function createClaudeSdkSession(
           state.mediaReferencesByFilename?.clear();
           state.mediaPersistenceFailuresByHash?.clear();
           state.pendingPersistHashesByFilename?.clear();
+          state.persistedFileIdsByName?.clear();
+          state.failedPersistedFilesByName?.clear();
+          if (state.persistedFileEvents && reconcilePersistedEventsStart > 0) {
+            state.persistedFileEvents.splice(0, reconcilePersistedEventsStart);
+            reconcilePersistedEventsStart = 0;
+          }
+          if (state.failedPersistedFileEvents && reconcileFailedEventsStart > 0) {
+            state.failedPersistedFileEvents.splice(0, reconcileFailedEventsStart);
+            reconcileFailedEventsStart = 0;
+          }
           log.warn(
             `claude-sdk media reference state reset due to session id change ` +
               `${preQuerySessionId} -> ${state.claudeSdkSessionId}`,
@@ -1236,8 +1210,8 @@ export async function createClaudeSdkSession(
         const reconciliation = reconcilePromptMediaPersistence({
           state,
           pendingPersistence: promptImagePlan.pendingPersistence,
-          persistedEventsStart: turnPersistedEventsStart,
-          failedEventsStart: turnFailedEventsStart,
+          persistedEventsStart: reconcilePersistedEventsStart,
+          failedEventsStart: reconcileFailedEventsStart,
           provider: params.provider,
           modelId: params.modelId,
         });

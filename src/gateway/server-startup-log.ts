@@ -2,7 +2,7 @@ import chalk from "chalk";
 import {
   getClaudeSdkPolicyWarningText,
   isClaudeSubscriptionProvider,
-} from "../agents/claude-sdk-runner/policy-warning.js";
+} from "../agents/claude-sdk-runner/logging.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { resolveConfiguredModelRef } from "../agents/model-selection.js";
 import type { loadConfig } from "../config/config.js";

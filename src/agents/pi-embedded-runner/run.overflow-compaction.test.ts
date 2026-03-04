@@ -1,6 +1,11 @@
 import "./run.overflow-compaction.mocks.shared.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { pickFallbackThinkingLevel } from "../pi-embedded-helpers.js";
+import { getApiKeyForModel, resolveAuthProfileOrder } from "../model-auth.js";
+import {
+  classifyFailoverReason,
+  isFailoverErrorMessage,
+  pickFallbackThinkingLevel,
+} from "../pi-embedded-helpers.js";
 import { runEmbeddedPiAgent } from "./run.js";
 import {
   makeAttemptResult,
@@ -17,13 +22,25 @@ import {
   mockedTruncateOversizedToolResultsInSession,
   overflowBaseRunParams,
 } from "./run.overflow-compaction.shared-test.js";
+const mockedGetApiKeyForModel = vi.mocked(getApiKeyForModel);
+const mockedResolveAuthProfileOrder = vi.mocked(resolveAuthProfileOrder);
+const mockedClassifyFailoverReason = vi.mocked(classifyFailoverReason);
+const mockedIsFailoverErrorMessage = vi.mocked(isFailoverErrorMessage);
 const mockedPickFallbackThinkingLevel = vi.mocked(pickFallbackThinkingLevel);
 
 describe("runEmbeddedPiAgent overflow compaction trigger routing", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedGlobalHookRunner.hasHooks.mockImplementation(() => false);
-    mockedPickFallbackThinkingLevel.mockReturnValue(null);
+    mockedGetApiKeyForModel.mockResolvedValue({
+      apiKey: "test-key",
+      profileId: "test-profile",
+      source: "test",
+    } as never);
+    mockedResolveAuthProfileOrder.mockReturnValue([]);
+    mockedClassifyFailoverReason.mockReturnValue(null);
+    mockedIsFailoverErrorMessage.mockReturnValue(false);
+    mockedPickFallbackThinkingLevel.mockReturnValue(undefined);
   });
 
   it("passes precomputed legacy before_agent_start result into the attempt", async () => {
@@ -185,5 +202,63 @@ describe("runEmbeddedPiAgent overflow compaction trigger routing", () => {
     expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(2);
     expect(result.meta.error?.kind).toBe("claude_sdk_stale_resume");
     expect(result.payloads?.[0]?.isError).toBe(true);
+  });
+
+  it("does not reset stale-resume recovery when auth profile rotation is unavailable", async () => {
+    mockedResolveAuthProfileOrder.mockReturnValue(["claude-personal:p1", "claude-personal:p2"]);
+    mockedGetApiKeyForModel.mockImplementation(async (params) => ({
+      apiKey: `token-${params.profileId ?? "default"}`,
+      profileId: params.profileId ?? "claude-personal:p1",
+      source: "test",
+      mode: "token",
+    }));
+    mockedIsFailoverErrorMessage.mockImplementation((message?: string) =>
+      (message ?? "").includes("profile-rotate-auth"),
+    );
+    mockedClassifyFailoverReason.mockImplementation((message?: string) =>
+      (message ?? "").includes("profile-rotate-auth") ? "auth" : null,
+    );
+
+    mockedRunEmbeddedAttempt
+      .mockResolvedValueOnce(
+        makeAttemptResult({
+          promptError: new Error(
+            "claude_sdk_stale_resume_session: resume failed because session not found",
+          ),
+        }),
+      )
+      .mockResolvedValueOnce(
+        makeAttemptResult({
+          promptError: new Error("profile-rotate-auth: unauthorized"),
+        }),
+      )
+      .mockResolvedValueOnce(
+        makeAttemptResult({
+          promptError: new Error(
+            "claude_sdk_stale_resume_session: resume failed because session not found",
+          ),
+        }),
+      )
+      .mockResolvedValueOnce(makeAttemptResult({ promptError: null }));
+
+    await expect(
+      runEmbeddedPiAgent({
+        ...overflowBaseRunParams,
+        provider: "claude-personal",
+        config: {
+          agents: {
+            defaults: {
+              claudeSdk: {},
+            },
+          },
+        },
+      }),
+    ).rejects.toThrow("claude_sdk_stale_resume_session");
+
+    expect(mockedRunEmbeddedAttempt).toHaveBeenCalledTimes(3);
+    expect(mockedRunEmbeddedAttempt).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ forceFreshClaudeSession: true }),
+    );
   });
 });
