@@ -322,6 +322,7 @@ export async function runCronIsolatedAgentTurn(params: {
       provider,
       model,
       catalog: await loadCatalog(),
+      agentId,
     });
   }
   if (thinkLevel === "xhigh" && !supportsXHighThinking(provider, model)) {
