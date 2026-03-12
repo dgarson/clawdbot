@@ -125,11 +125,21 @@ export const missionControlTokens = {
     easingEntrance: "cubic-bezier(0.16, 1, 0.3, 1)",
   },
 
+  /**
+   * Breakpoints aligned to missionControlGridSpec layout ranges:
+   *   sm:  0–767    (single-priority-stack, 4 col)
+   *   md:  768–1023 (two-column-balanced, 8 col)
+   *   lg:  1024–1439 (operator-triad, 12 col)
+   *   xl:  1440+    (operator-triad-with-secondary-rail, 12 col)
+   *
+   * Intentionally diverges from Tailwind defaults to avoid premature xl
+   * activation at 1280px and missing sm coverage below 640px.
+   */
   breakpoint: {
-    sm: 640,
+    sm: 0,
     md: 768,
     lg: 1024,
-    xl: 1280,
+    xl: 1440,
     "2xl": 1536,
   },
 
