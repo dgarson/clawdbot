@@ -2399,6 +2399,7 @@ Reference env vars in any config string with `${VAR_NAME}`:
   logging: {
     level: "info",
     file: "/tmp/openclaw/openclaw.log",
+    timezone: "utc", // "utc" | "local" | IANA timezone string
     consoleLevel: "info",
     consoleStyle: "pretty", // pretty | compact | json
     redactSensitive: "tools", // off | tools
@@ -2409,6 +2410,11 @@ Reference env vars in any config string with `${VAR_NAME}`:
 
 - Default log file: `/tmp/openclaw/openclaw-YYYY-MM-DD.log`.
 - Set `logging.file` for a stable path.
+- `logging.timezone` controls the `time` field in file logs:
+  - `"utc"` (default): UTC ISO timestamps with `Z` suffix.
+  - `"local"`: system local timezone.
+  - IANA timezone string (for example, `"America/New_York"`).
+  - Invalid timezone values fall back to UTC.
 - `consoleLevel` bumps to `debug` when `--verbose`.
 
 ---
